@@ -1206,6 +1206,7 @@ class AccountancyExport
 			}
 			//$tab[] = substr(length_accountg($line->numero_compte), 0, 2) . $separator;
 			$tab[] = '"'.dol_trunc($line->label_operation, 40, 'right', 'UTF-8', 1).'"';
+			$tab[] = '"'.dol_trunc($line->doc_ref, 50, 'right', 'UTF-8', 1).'"';	// InfraS add
 			$tab[] = '"'.dol_trunc((string) $line->piece_num, 15, 'right', 'UTF-8', 1).'"';
 			$tab[] = price2num(abs($line->debit - $line->credit));
 			$tab[] = $line->sens;

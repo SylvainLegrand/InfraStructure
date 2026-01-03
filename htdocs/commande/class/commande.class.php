@@ -3784,7 +3784,7 @@ class Commande extends CommonOrder
 			if (!empty($this->delivery_date)) {
 				$labelTooltip .= ' - '.$langs->transnoentitiesnoconv("DateDeliveryPlanned").dol_print_date($this->delivery_date, 'day').$billedtext;
 			}
-			$statusType = 'status4';
+			$statusType = 'status3';	// InfraS change
 		} elseif ($status == self::STATUS_CLOSED) {
 			$labelStatus = $langs->transnoentitiesnoconv('StatusOrderDelivered').$billedtextlong;
 			$labelStatusShort = $langs->transnoentitiesnoconv('StatusOrderDeliveredShort').$billedtext;

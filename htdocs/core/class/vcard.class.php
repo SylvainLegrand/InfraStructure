@@ -33,7 +33,7 @@
  */
 function encode($string)
 {
-	return str_replace(";", "\;", (dol_quoted_printable_encode($string)));
+	return str_replace(";", "\;", (mb_convert_encoding(preg_replace('/(\r\n|\r|\n)+/', ' ', $string), 'ISO-8859-1', 'UTF-8')));	// InfraS change
 }
 
 
@@ -121,7 +121,7 @@ class vCard
 		}
 		$key .= ";VALUE=uri";
 		//$key .= ";".$this->encoding;
-		$this->properties[$key] = 'tel:'.$number;
+		$this->properties[$key] = $number;	// InfraS change
 	}
 
 	/**
@@ -511,12 +511,12 @@ class vCard
 
 		if (is_object($company)) {
 			// Si user linked to a thirdparty and not a physical people
-			if ($company->typent_code != 'TE_PRIVATE') {
+		//	if ($company->typent_code != 'TE_PRIVATE') {	// InfraS change
 				$this->setOrg($company->name);
-			}
+		//	}	// InfraS change
 
 			if (!empty($company->url)) {
-				$this->setURL($company->url, "");
+				$this->setURL($company->url, "TYPE=WORK");	// InfraS change
 			}
 
 			if ($company->phone && empty($object->office_phone)) {		// If we already set the type TYPE=WORK,VOICE with office_phone
@@ -526,11 +526,11 @@ class vCard
 				$this->setPhoneNumber($company->fax, "TYPE=WORK,FAX");
 			}
 			if (($company->address || $company->town || $company->state || $company->zip || $company->country) && !$addressalreadyset) {
-				$this->setAddress("", "", $company->address, $company->town, $company->state, $company->zip, $company->country, "TYPE=WORK");
+				$this->setAddress("", "", $company->address, $company->town, $company->state, $company->zip, $company->country, "TYPE=WORK;POSTAL");	// InfraS change
 			}
 
 			if ($company->email && empty($object->email)) {
-				$this->setEmail($company->email, "TYPE=WORK");
+				$this->setEmail($company->email, "INTERNET");	// InfraS change
 			}
 
 			/*

@@ -213,6 +213,15 @@ if (!$conf->global->PAYMENTBYBANKTRANSFER_ADDDAYS) {
 }
 print '<input type="text" name="PAYMENTBYBANKTRANSFER_ADDDAYS" value="' . getDolGlobalString('PAYMENTBYBANKTRANSFER_ADDDAYS').'" class="width50"></td>';
 print '</td></tr>';
+// InfraS add begin
+// Truncate the payment information ID
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans("TruncatePaymentInformationID").'</td>';
+print '<td class="center" colspan="2">';
+print ajax_constantonoff('PAYMENTBYBANKTRANSFER_TRUNCATE_PAYMENT_INFORMATION_ID', array(), null, 0, 0, 0, 2, 0, 1);
+print '</td>';
+print '</tr>';
+// InfraS add end
 print '</table>';
 
 print $form->buttonsSaveCancel("Save", '');

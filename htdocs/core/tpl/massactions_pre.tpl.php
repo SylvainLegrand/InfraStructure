@@ -73,6 +73,12 @@ if (!empty($sall) || !empty($search_all)) {
 	print '<input type="hidden" name="search_all" value="'.$search_all.'">';
 }
 
+// InfraS add begin
+if ($massaction == 'presendvcf') {
+	print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans("ConfirmMassSendVcf"), $langs->trans("ConfirmMassSendVcfQuestion", count($toselect)), "downloadVcf", null, 'yes', 0, 200, 500, 1);
+}
+// InfraS add end
+
 if ($massaction == 'predeletedraft') {
 	print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans("ConfirmMassDraftDeletion"), $langs->trans("ConfirmMassDeletionQuestion", count($toselect)), "delete", null, '', 0, 200, 500, 1);
 }
@@ -135,6 +141,27 @@ if ($massaction == 'preaffecttag' && isModEnabled('category')) {
 		setEventMessage('CategTypeNotFound');
 	}
 }
+
+//Infras add Begin
+if ($massaction == 'preaffectgeneralaccount' && isModEnabled('accounting')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/accounting.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountingaccount.class.php';
+	$formAccount = new FormAccounting($db);
+	$formquestion = array();
+	$formquestion[] = array('type' => 'other',
+							'name' => 'affectaccounts_customer',
+							'label' => $langs->trans("Compte_Client"),
+							'value' => $formAccount->select_account('', 'affectaccounts_customer', 1, array(), 1, 1),
+							);
+
+	$formquestion[] = array('type' => 'other',
+							'name' => 'affectaccounts_supplier',
+							'label' => $langs->trans("Compte_Fournisseur"),
+							'value' => $formAccount->select_account('', 'affectaccounts_supplier', 1, array(), 1, 1),
+							);
+	print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans("ConfirmAffectAccounts"), $langs->trans("ConfirmAffectAccountsQuestion", count($toselect)), "affectaccounts", $formquestion, 1, 0, 200, 500, 1);
+}
+//Infras add End
 
 if ($massaction == 'preupdateprice'
  && (

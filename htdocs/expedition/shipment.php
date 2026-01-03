@@ -789,6 +789,10 @@ if ($order_id > 0 || !empty($ref)) {
 						$toBeShipped[$objp->fk_product] = $objp->qty - $qtyAlreadyShipped;
 						$toBeShippedTotal += $toBeShipped[$objp->fk_product];
 						print $toBeShipped[$objp->fk_product];
+					} elseif ($type == Product::TYPE_SERVICE && getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {	// InfraS add begin
+						$toBeShipped[$objp->fk_product] = $objp->qty - $qtyAlreadyShipped;
+						$toBeShippedTotal += $toBeShipped[$objp->fk_product];
+						print $toBeShipped[$objp->fk_product].' <span class="opacitymedium">('.$langs->trans("Service").')</span>';	// InfraS add end
 					} else {
 						print '0 <span class="opacitymedium">('.$langs->trans("Service").')</span>';
 					}

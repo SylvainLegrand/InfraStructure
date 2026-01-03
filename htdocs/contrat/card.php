@@ -1868,7 +1868,13 @@ if ($action == 'create') {
 						if (getDolGlobalString('MAIN_INPUT_DESC_HEIGHT')) {
 							$nbrows = getDolGlobalString('MAIN_INPUT_DESC_HEIGHT');
 						}
-						$doleditor = new DolEditor('product_desc', (GETPOSTISSET('product_desc') ? GETPOST('product_desc') : $objp->description), '', 92, 'dolibarr_details', '', false, true, getDolGlobalInt('FCKEDITOR_ENABLE_DETAILS'), $nbrows, '90%');
+						// InfraS add begin
+						$toolbarname = 'dolibarr_details';
+						if (getDolGlobalString('FCKEDITOR_ENABLE_DETAILS_FULL')) {
+							$toolbarname = 'dolibarr_notes';
+						}
+						// InfraS add end
+						$doleditor = new DolEditor('product_desc', (GETPOSTISSET('product_desc') ? GETPOST('product_desc') : $objp->description), '', 164, $toolbarname, '', false, true, getDolGlobalInt('FCKEDITOR_ENABLE_DETAILS'), $nbrows, '90%');	// InfraS change
 						$doleditor->Create();
 
 						print '</td>';
@@ -2380,7 +2386,7 @@ if ($action == 'create') {
 
 
 			// Show links to link elements
-			$tmparray = $form->showLinkToObjectBlock($object, array(), array('contrat'), 1);
+			$tmparray = $form->showLinkToObjectBlock($object, array(), array(), 1);	// InfraS change
 			$linktoelem = $tmparray['linktoelem'];
 			$htmltoenteralink = $tmparray['htmltoenteralink'];
 			print $htmltoenteralink;

@@ -2064,7 +2064,7 @@ if ($action == 'create') {
 
 
 		// Show links to link elements
-		$tmparray = $form->showLinkToObjectBlock($object, array(), array('supplier_proposal'), 1);
+		$tmparray = $form->showLinkToObjectBlock($object, array(), array(), 1);	// InfraS change
 		$linktoelem = $tmparray['linktoelem'];
 		$htmltoenteralink = $tmparray['htmltoenteralink'];
 		print $htmltoenteralink;

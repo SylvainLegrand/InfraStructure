@@ -954,7 +954,12 @@ if (!empty($permissiontodelete)) {
 if (isModEnabled('category') && $user->hasRight('societe', 'creer')) {
 	$arrayofmassactions['preaffecttag'] = img_picto('', 'category', 'class="pictofixedwidth"').$langs->trans("AffectTag");
 }
-if (GETPOSTINT('nomassaction') || in_array($massaction, array('presend', 'predelete','preaffecttag'))) {
+// InfraS add begin
+if (!empty($permissiontoadd)) {
+	$arrayofmassactions['presendvcf'] = img_picto('', 'vcard.png', 'class="pictofixedwidth"').$langs->trans("Download").' '.$langs->trans("VCard");
+}
+// InfraS add end
+if (GETPOSTINT('nomassaction') || in_array($massaction, array('presend', 'predelete','preaffecttag', 'presendvcf'))) {	// InfraS change
 	$arrayofmassactions = array();
 }
 

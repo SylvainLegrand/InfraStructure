@@ -2396,7 +2396,7 @@ class FormFile
 		global $langs, $conf;
 
 		$out = '';
-		if ($conf->browser->layout != 'phone' && !empty($conf->use_javascript_ajax)) {
+		if (!empty($conf->use_javascript_ajax)) {	// InfraS change
 			$urladvancedpreview = getAdvancedPreviewUrl($modulepart, $relativepath, 1, $param); // Return if a file is qualified for preview.
 			if (count($urladvancedpreview)) {
 				$out .= '<a class="pictopreview '.$urladvancedpreview['css'].'" href="'.$urladvancedpreview['url'].'"'.(empty($urladvancedpreview['mime']) ? '' : ' mime="'.$urladvancedpreview['mime'].'"').' '.(empty($urladvancedpreview['target']) ? '' : ' target="'.$urladvancedpreview['target'].'"').'>';

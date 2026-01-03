@@ -2959,6 +2959,7 @@ while ($i < $imaxinloop) {
 						} else {
 							$reliquat = $orderLine->qty;
 						}
+						if ($reliquat == 0)	continue;	// InfraS add
 						if ($orderLine->product_type == 0 && $orderLine->fk_product > 0) {  // If line is a product and not a service
 							$nbprod++; // order contains real products
 							$generic_product->id = $orderLine->fk_product;

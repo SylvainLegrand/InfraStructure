@@ -136,7 +136,7 @@ $checkmandatory = GETPOST('accountancy_code_buy_export', 'alpha');
 if (getDolGlobalString('MAIN_SECURITY_ALLOW_UNSECURED_REF_LABELS')) {
 	$label_security_check = 'nohtml';
 } else {
-	$label_security_check = !getDolGlobalString('MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML') ? 'alphanohtml' : 'restricthtml';
+	$label_security_check = !getDolGlobalString('MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML') ? 'alphanohtml' : 'restricthtmlallowclass';	// InfraS change
 }
 
 if (!empty($user->socid)) {
@@ -1632,7 +1632,12 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 
 			// Description (used in invoice, propal...)
 			print '<tr><td class="tdtop">'.$langs->trans("Description").'</td><td>';
-			$doleditor = new DolEditor('desc', GETPOST('desc', 'restricthtml'), '', 160, 'dolibarr_details', '', false, true, getDolGlobalString('FCKEDITOR_ENABLE_DETAILS'), ROWS_4, '90%');
+			// InfraS add begin
+			$nbrows = getDolGlobalString('MAIN_INPUT_DESC_HEIGHT', ROWS_4);
+			$enable = getDolGlobalInt('FCKEDITOR_ENABLE_DETAILS', 0);
+			$toolbarname = getDolGlobalString('FCKEDITOR_ENABLE_DETAILS_FULL') ? 'dolibarr_notes' : 'dolibarr_details';
+			// InfraS add end
+			$doleditor = new DolEditor('desc', GETPOST('desc', 'restricthtml'), '', getDolGlobalInt('MAIN_DOLEDITOR_HEIGHT', 164), $toolbarname, '', false, true, getDolGlobalString('FCKEDITOR_ENABLE_DETAILS'), $nbrows, '90%');	// InfraS change
 			$doleditor->Create();
 			print "</td></tr>";
 
@@ -2259,9 +2264,13 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 
 				// Description (used in invoice, propal...)
 				print '<tr><td class="tdtop">'.$langs->trans("Description").'</td><td>';
-
+				// InfraS add begin
+				$nbrows = getDolGlobalString('MAIN_INPUT_DESC_HEIGHT', ROWS_4);
+				$enable = getDolGlobalInt('FCKEDITOR_ENABLE_DETAILS', 0);
+				$toolbarname = getDolGlobalString('FCKEDITOR_ENABLE_DETAILS_FULL') ? 'dolibarr_notes' : 'dolibarr_details';
+				// InfraS add end
 				// We use dolibarr_details as type of DolEditor here, because we must not accept images, as description is included into PDF and external links are not accepted by TCPDF.
-				$doleditor = new DolEditor('desc', GETPOSTISSET('desc') ? GETPOST('desc', 'restricthtml') : $object->description, '', 160, 'dolibarr_details', '', false, true, getDolGlobalInt('FCKEDITOR_ENABLE_DETAILS'), ROWS_4, '90%');
+				$doleditor = new DolEditor('desc', GETPOSTISSET('desc') ? GETPOST('desc', 'restricthtml') : $object->description, '', getDolGlobalInt('MAIN_DOLEDITOR_HEIGHT', 164), $toolbarname, '', false, true, getDolGlobalInt('FCKEDITOR_ENABLE_DETAILS'), $nbrows, '90%');	// InfraS change
 				$doleditor->Create();
 
 				print "</td></tr>";

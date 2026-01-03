@@ -1294,6 +1294,81 @@ EOPHAN;
 	}
 }
 
+// InfraS add begin
+if (!$error && ($action == 'downloadVcf' && $confirm == 'yes') && $permissiontoadd) {
+	require_once DOL_DOCUMENT_ROOT.'/core/class/vcard.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	// Security check
+	$result = restrictedArea($user, 'contact', $id, 'socpeople&societe');
+	$nbok = 0;
+	$dirfortmpfile = $conf->societe->dir_temp ? $conf->societe->dir_temp : '';
+	if (empty($dirfortmpfile)) {
+		setEventMessages($langs->trans("ErrorNoTmpDir", ''), null, 'errors');
+		$error++;
+	}
+	if (!$error) {
+		if (!extension_loaded('zip')) {
+			setEventMessages('PHPZIPExtentionNotLoaded', null, 'errors');
+		} else {
+			dol_mkdir($dirfortmpfile);
+			$zipname = $dirfortmpfile.'/'.dol_print_date(dol_now(), 'dayrfc', 'tzuserrel').'_export_vcf.zip';
+			dol_delete_file($zipname);
+			$zip = new ZipArchive;
+			$res = $zip->open($zipname, ZipArchive::OVERWRITE | ZipArchive::CREATE);
+			if ($res) {
+				$company = new Societe($db);
+				$v = new vCard();
+				$v->setProdId('Dolibarr '.DOL_VERSION);
+				foreach ($toselect as $toselectid) {
+					$result = $object->fetch($toselectid);
+					if ($result > 0) {
+						$result = $company->fetch($object->socid);
+						if ($result > 0) {
+							$output = $v->buildVCardString($object, $company, $langs, '');
+							$filename = trim(urldecode($v->getFileName())); // "Nom prenom.vcf"
+							$filenameurlencoded = dol_sanitizeFileName($filename);
+							$file = $dirfortmpfile."/".$filenameurlencoded;
+							$fp = fopen($file, "w");
+							fputs($fp, $output);
+							fclose($fp);
+							dolChmod($file);
+							if (file_exists($file)) {
+								$zip->addFile($file, 'vcf/'.$filenameurlencoded);
+							}
+							$nbok++;
+						} else {
+							setEventMessages($object->error, $object->errors, 'errors');
+						}
+					} else {
+						setEventMessages($object->error, $object->errors, 'errors');
+						$error++;
+						break;
+					}
+				}
+				$zip->close();
+				// Then download the zipped file.
+				header('Content-Type: application/zip');
+				header('Content-disposition: attachment; filename='.basename($zipname));
+				header('Content-Length: '.filesize($zipname));
+				readfile($zipname);
+				dol_delete_file($zipname);
+				if ($nbok > 1) {
+					setEventMessages($langs->trans("vcfDownloaded", $nbok), null);
+				} else {
+					setEventMessages($langs->trans("noVcfDownloaded"), null, 'errors');
+				}
+				dol_delete_dir_recursive($dirfortmpfile, 0, 0, 1);
+				$toselect = array();
+				$action = 'list';
+				$massaction = '';
+			} else {
+				setEventMessages($langs->trans("FailedToOpenFile", $zipname), null, 'errors');
+			}
+		}
+	}
+}
+// InfraS add end
+
 if (!$error && ($action == 'affecttag' && $confirm == 'yes') && $permissiontoadd) {
 	$nbok = 0;
 	$db->begin();
@@ -1349,6 +1424,68 @@ if (!$error && ($action == 'affecttag' && $confirm == 'yes') && $permissiontoadd
 		$db->rollback();
 	}
 }
+
+// InfraS add begin
+if (!$error && ($action == 'affectaccounts' && $confirm == 'yes') && $permissiontoadd) {
+	$db->begin();
+
+	$affectaccounts_customer = GETPOST('affectaccounts_customer', 'alpha');
+	$affectaccounts_supplier = GETPOST('affectaccounts_supplier', 'alpha');
+	require_once DOL_DOCUMENT_ROOT.'/societe/class/client.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.class.php';
+	$customerstatic = new Client($db);
+	$supplierstatic = new Fournisseur($db);
+	$nbok = 0;
+	foreach ($toselect as $toselectid) {
+		$result	= $object->fetch($toselectid);
+		if ($result > 0) {
+			if ($affectaccounts_customer > 0 && !empty($object->client)) {
+				$result = $customerstatic->fetch($toselectid);
+				if ($result > 0) {
+					$customerstatic->accountancy_code_customer_general = $affectaccounts_customer;
+					$result = $customerstatic->update($customerstatic->id, $user, 1, 1, 0);
+					if ($result > 0) {
+						$nbok++;
+					} else {
+						setEventMessages($customerstatic->error, $customerstatic->errors, 'errors');
+					}
+				} else {
+					setEventMessages($obcustomerstaticject->error, $customerstatic->errors, 'errors');
+					$error++;
+					break;
+				}
+			}
+			if ($affectaccounts_supplier > 0 && !empty($object->fournisseur)) {
+				$result = $supplierstatic->fetch($toselectid);
+				if ($result > 0) {
+					$supplierstatic->accountancy_code_supplier_general = $affectaccounts_supplier;
+					$result = $supplierstatic->update($supplierstatic->id, $user, 1, 0, 1);
+					if ($result > 0) {
+						$nbok++;
+					} else {
+						setEventMessages($supplierstatic->error, $supplierstatic->errors, 'errors');
+					}
+				} else {
+					setEventMessages($supplierstatic->error, $supplierstatic->errors, 'errors');
+					$error++;
+					break;
+				}
+			}
+			if (!$error) {
+				if ($nbok > 1) {
+					setEventMessages($langs->trans("RecordsModified", $nbok), null);
+				} else {
+					setEventMessages($langs->trans("RecordsModified", $nbok), null);
+				}
+				$db->commit();
+				$toselect=array();
+			} else {
+				$db->rollback();
+			}
+		}
+	}
+}
+// InfraS add end
 
 if (!$error && ($action == 'updateprice' && $confirm == 'yes') && $permissiontoadd) {
 	'@phan-var-force Product|ProductCustomerPrice $obj';

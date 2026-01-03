@@ -1031,7 +1031,9 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 			if (getDolGlobalString('THIRDPARTY_CUSTOMERPROSPECT_BY_DEFAULT')) {
 				$object->client = 3;
 			}
-		}
+		} else {	// Infras change
+			$private = 0;	// Infras add
+		}	// Infras add
 		// Prospect / Customer
 		if (GETPOST("type", 'aZ') == 'c') {
 			if (getDolGlobalInt('THIRDPARTY_CUSTOMERTYPE_BY_DEFAULT')) {
@@ -1185,7 +1187,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 		print load_fiche_titre($langs->trans("NewThirdParty"), $linkback, 'building');
 
 		if (!empty($conf->use_javascript_ajax)) {
-			if (getDolGlobalString('THIRDPARTY_SUGGEST_ALSO_ADDRESS_CREATION')) {
+			if (getDolGlobalString('THIRDPARTY_SUGGEST_ALSO_ADDRESS_CREATION') && !empty($object->client)) {	// InfraS change
 				print "\n".'<script type="text/javascript">';
 				print '$(document).ready(function () {
 						id_te_private=8;
@@ -1193,11 +1195,14 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
                         is_private=' . $private.';
 						if (is_private) {
 							$(".individualline").show();
+							$(".socline").hide();	// InfraS add
 						} else {
 							$(".individualline").hide();
+							$(".socline").show();	// InfraS add
 						}
                         $("#radiocompany").click(function() {
                         	$(".individualline").hide();
+							$(".socline").show();	// InfraS add
                         	$("#typent_id").val(0);
                         	$("#typent_id").change();
                         	$("#effectif_id").val(0);
@@ -1207,6 +1212,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
                         });
                         $("#radioprivate").click(function() {
                         	$(".individualline").show();
+							$(".socline").hide();	// InfraS add
                         	$("#typent_id").val(id_te_private);
                         	$("#typent_id").change();
                         	$("#effectif_id").val(id_ef15);
@@ -1432,7 +1438,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 
 			// If javascript on, we show option individual
 			if ($conf->use_javascript_ajax) {
-				if (getDolGlobalString('THIRDPARTY_SUGGEST_ALSO_ADDRESS_CREATION')) {
+				if (getDolGlobalString('THIRDPARTY_SUGGEST_ALSO_ADDRESS_CREATION') && !empty($private)) {	// InfraS change
 					// Firstname
 					print '<tr class="individualline"><td>'.$form->editfieldkey('FirstName', 'firstname', '', $object, 0).'</td>';
 					print '<td colspan="3"><input type="text" class="minwidth300" maxlength="128" name="firstname" id="firstname" value="'.dol_escape_htmltag($object->firstname).'"></td>';
@@ -1729,7 +1735,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 					$key = 'idprof'.$i;
 
 					if (($j % $NBCOLS) == 0) {
-						print '<tr>';
+						print '<tr class="socline">';	// InfraS change
 					}
 
 					$idprof_mandatory = 'SOCIETE_IDPROF'.($i).'_MANDATORY';
@@ -1749,12 +1755,12 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 			}
 
 			// Vat is used
-			print '<tr><td><label for="assujtva_value">'.$form->editfieldkey('VATIsUsed', 'assujtva_value', '', $object, 0).'</label></td>';
+			print '<tr class="socline"><td><label for="assujtva_value">'.$form->editfieldkey('VATIsUsed', 'assujtva_value', '', $object, 0).'</label></td>';	// InfraS change
 			print '<td>';
 			print '<input id="assujtva_value" name="assujtva_value" type="checkbox" ' . (GETPOSTISSET('assujtva_value') ? (GETPOST('assujtva_value', 'alpha') != '' ? ' checked="checked"' : '') : 'checked="checked"') . ' value="1">'; // Assujeti par default en creation
 			print '</td>';
 			if ($conf->browser->layout == 'phone') {
-				print '</tr><tr>';
+				print '</tr><tr class="socline">';	// InfraS change
 			}
 			print '<td class="nowrap">'.$form->editfieldkey('VATIntra', 'intra_vat', '', $object, 0).'</td>';
 			print '<td class="nowrap">';
@@ -1792,7 +1798,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 
 			// VAT reverse charge by default
 			if (getDolGlobalString('ACCOUNTING_FORCE_ENABLE_VAT_REVERSE_CHARGE')) {
-				print '<tr><td><label for="vat_reverse_charge">' . $form->editfieldkey('VATReverseChargeByDefault', 'vat_reverse_charge', '', $object, 0) . '</label></td><td colspan="3">';
+				print '<tr class="socline"><td><label for="vat_reverse_charge">' . $form->editfieldkey('VATReverseChargeByDefault', 'vat_reverse_charge', '', $object, 0) . '</label></td><td colspan="3">';	// InfraS change
 				print '<input type="checkbox" name="vat_reverse_charge" id="vat_reverse_charge" '.($object->vat_reverse_charge == '1' ? ' checked' : '').'>';
 				print '</td></tr>';
 			}
@@ -1800,7 +1806,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 			// Local Taxes
 			//TODO: Place into a function to control showing by country or study better option
 			if ($mysoc->localtax1_assuj == "1" && $mysoc->localtax2_assuj == "1") {
-				print '<tr><td>'.$langs->transcountry("LocalTax1IsUsed", $mysoc->country_code).'</td><td>';
+				print '<tr class="socline"><td>'.$langs->transcountry("LocalTax1IsUsed", $mysoc->country_code).'</td><td>';	// InfraS change
 				print '<input id="localtax1assuj_value" name="localtax1assuj_value" type="checkbox" ' . (isset($conf->global->THIRDPARTY_DEFAULT_USELOCALTAX1) ? 'checked="checked"' : '') . ' value="1">';
 				print '</td>';
 				if ($conf->browser->layout == 'phone') {
@@ -1810,17 +1816,17 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 				print '<input id="localtax2assuj_value" name="localtax2assuj_value" type="checkbox" ' . (isset($conf->global->THIRDPARTY_DEFAULT_USELOCALTAX2) ? 'checked="checked"' : '') . ' value="1">';
 				print '</td></tr>';
 			} elseif ($mysoc->localtax1_assuj == "1") {
-				print '<tr><td>'.$langs->transcountry("LocalTax1IsUsed", $mysoc->country_code).'</td><td colspan="3">';
+				print '<tr class="socline"><td>'.$langs->transcountry("LocalTax1IsUsed", $mysoc->country_code).'</td><td colspan="3">';	// InfraS change
 				print '<input id="localtax1assuj_value" name="localtax1assuj_value" type="checkbox" ' . (isset($conf->global->THIRDPARTY_DEFAULT_USELOCALTAX1) ? 'checked="checked"' : '') . ' value="1">';
 				print '</td></tr>';
 			} elseif ($mysoc->localtax2_assuj == "1") {
-				print '<tr><td>'.$langs->transcountry("LocalTax2IsUsed", $mysoc->country_code).'</td><td colspan="3">';
+				print '<tr class="socline"><td>'.$langs->transcountry("LocalTax2IsUsed", $mysoc->country_code).'</td><td colspan="3">';	// InfraS change
 				print '<input id="localtax2assuj_value" name="localtax2assuj_value" type="checkbox" ' . (isset($conf->global->THIRDPARTY_DEFAULT_USELOCALTAX2) ? 'checked="checked"' : '') . ' value="1">';
 				print '</td></tr>';
 			}
 
 			// Type - Workforce/Staff
-			print '<tr><td>'.$form->editfieldkey('ThirdPartyType', 'typent_id', '', $object, 0).'</td><td class="maxwidthonsmartphone"'.(($conf->browser->layout == 'phone' || getDolGlobalString('SOCIETE_DISABLE_WORKFORCE')) ? ' colspan="3"' : '').'>'."\n";
+			print '<tr class="socline"><td>'.$form->editfieldkey('ThirdPartyType', 'typent_id', '', $object, 0).'</td><td class="maxwidthonsmartphone"'.(($conf->browser->layout == 'phone' || getDolGlobalString('SOCIETE_DISABLE_WORKFORCE')) ? ' colspan="3"' : '').'>'."\n";	// InfraS  change
 			$sortparam = (!getDolGlobalString('SOCIETE_SORT_ON_TYPEENT') ? 'ASC' : $conf->global->SOCIETE_SORT_ON_TYPEENT); // NONE means we keep sort of original array, so we sort on position. ASC, means next function will sort on label.
 			print $form->selectarray("typent_id", $formcompany->typent_array(0), $object->typent_id, 1, 0, 0, '', 0, 0, 0, $sortparam, '', 1);
 			if ($user->admin) {
@@ -1829,7 +1835,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 			if (!getDolGlobalString('SOCIETE_DISABLE_WORKFORCE')) {
 				print '</td>';
 				if ($conf->browser->layout == 'phone') {
-					print '</tr><tr>';
+					print '</tr><tr class="socline">';	// InfraS change
 				}
 				print '<td>'.$form->editfieldkey('Workforce', 'effectif_id', '', $object, 0).'</td><td class="maxwidthonsmartphone"'.($conf->browser->layout == 'phone' ? ' colspan="3"' : '').'>';
 				print $form->selectarray("effectif_id", $formcompany->effectif_array(0), $object->effectif_id, 0, 0, 0, '', 0, 0, 0, '', '', 1);
@@ -1842,7 +1848,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 			print '</td></tr>';
 
 			// Legal Form
-			print '<tr><td>'.$form->editfieldkey('JuridicalStatus', 'forme_juridique_code', '', $object, 0).'</td>';
+			print '<tr class="socline"><td>'.$form->editfieldkey('JuridicalStatus', 'forme_juridique_code', '', $object, 0).'</td>';	// InfraS change
 			print '<td colspan="3" class="maxwidthonsmartphone">';
 			if ($object->country_id) {
 				print $formcompany->select_juridicalstatus($object->forme_juridique_code, $object->country_code, '', 'forme_juridique_code');
@@ -1852,7 +1858,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 			print '</td></tr>';
 
 			// Capital
-			print '<tr><td>'.$form->editfieldkey('Capital', 'capital', '', $object, 0).'</td>';
+			print '<tr class="socline"><td>'.$form->editfieldkey('Capital', 'capital', '', $object, 0).'</td>';	// InfraS change
 			print '<td colspan="3"><input type="text" name="capital" id="capital" class="maxwidth100" value="'.$object->capital.'"> ';
 			if (isModEnabled("multicurrency")) {
 				print '<span class="hideonsmartphone">';
@@ -1888,7 +1894,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 
 			// Incoterms
 			if (isModEnabled('incoterm')) {
-				print '<tr>';
+				print '<tr class="socline">';	// InfraS change
 				print '<td>'.$form->editfieldkey('IncotermLabel', 'incoterm_id', '', $object, 0).'</td>';
 				print '<td colspan="3" class="maxwidthonsmartphone">';
 				print $form->select_incoterms((!empty($object->fk_incoterms) ? $object->fk_incoterms : ''), (!empty($object->location_incoterms) ? $object->location_incoterms : ''));

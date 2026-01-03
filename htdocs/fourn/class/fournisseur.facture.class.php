@@ -861,6 +861,142 @@ class FactureFournisseur extends CommonInvoice
 		}
 	}
 
+	// InfraS add begin
+	/**
+	 *  Load an object from an order and create a new invoice into database
+	 *
+	 *  @param      Object			$object         	Object source
+	 *  @param		User			$user				Object user
+	 *  @return     int             					<0 if KO, 0 if nothing done, 1 if OK
+	 */
+	public function createFromOrder($object, User $user)
+	{
+		global $conf, $hookmanager;
+
+		$error = 0;
+
+		// Closed order
+		$this->date = dol_now();
+		$this->source = 0;
+
+		$num = count($object->lines);
+		for ($i = 0; $i < $num; $i++) {
+			$line = new SupplierInvoiceLine($this->db);
+
+			$line->description		= $object->lines[$i]->description;
+			$line->date_start		= $object->lines[$i]->date_start;
+			$line->date_end			= $object->lines[$i]->date_end;
+			$line->product_ref		= $object->lines[$i]->product_ref;
+			$line->ref				= $object->lines[$i]->product_ref;
+			$line->ref_supplier		= $object->lines[$i]->ref_supplier;
+			$line->libelle			= $object->lines[$i]->label;
+			$line->label  			= $object->lines[$i]->label;
+			$line->product_desc		= $object->lines[$i]->product_desc;
+			$line->subprice			= $object->lines[$i]->pu_ht;
+			$line->pu_ht			= $object->lines[$i]->pu_ht;
+			$line->pu_ttc			= $object->lines[$i]->pu_ttc;
+			$line->vat_src_code		= $object->lines[$i]->vat_src_code;
+			$line->tva_tx			= $object->lines[$i]->tva_tx;
+			$line->localtax1_tx		= $object->lines[$i]->localtax1_tx;
+			$line->localtax2_tx		= $object->lines[$i]->localtax2_tx;
+			$line->localtax1_type	= $object->lines[$i]->localtax1_type;
+			$line->localtax2_type	= $object->lines[$i]->localtax2_type;
+			$line->qty				= $object->lines[$i]->qty;
+			$line->remise_percent	= $object->lines[$i]->remise_percent;
+			$line->fk_remise_except = $object->lines[$i]->fk_remise_except;
+			$line->total_ht			= $object->lines[$i]->total_ht;
+			$line->total_ttc		= $object->lines[$i]->total_ttc;
+			$line->total_tva		= $object->lines[$i]->total_tva;
+			$line->total_localtax1	= $object->lines[$i]->total_localtax1;
+			$line->total_localtax2	= $object->lines[$i]->total_localtax2;
+			$line->fk_facture_fourn = $object->lines[$i]->fk_facture_fourn;
+			$line->fk_product		= $object->lines[$i]->fk_product;
+			$line->product_type		= $object->lines[$i]->product_type;
+			$line->product_label	= $object->lines[$i]->label;
+			$line->info_bits		= $object->lines[$i]->info_bits;
+			$line->fk_parent_line   = $object->lines[$i]->fk_parent_line;
+			$line->special_code		= $object->lines[$i]->special_code;
+			$line->rang				= $object->lines[$i]->rang;
+			$line->fk_unit          = $object->lines[$i]->fk_unit;
+
+			// Accountancy
+			$line->code_ventilation 		= $object->lines[$i]->fk_code_ventilation;
+			$line->fk_accounting_account	= $object->lines[$i]->fk_code_ventilation;
+
+			// Multicurrency
+			$line->fk_multicurrency			= $object->lines[$i]->fk_multicurrency;
+			$line->multicurrency_code		= $object->lines[$i]->multicurrency_code;
+			$line->multicurrency_subprice	= $object->lines[$i]->multicurrency_subprice;
+			$line->multicurrency_total_ht	= $object->lines[$i]->multicurrency_total_ht;
+			$line->multicurrency_total_tva	= $object->lines[$i]->multicurrency_total_tva;
+			$line->multicurrency_total_ttc	= $object->lines[$i]->multicurrency_total_ttc;
+
+			// get extrafields from original line
+			$object->lines[$i]->fetch_optionals();
+			foreach ($object->lines[$i]->array_options as $options_key => $value) {
+				$line->array_options[$options_key] = $value;
+			}
+
+			$this->lines[$i] = $line;
+		}
+
+		$this->socid				= $object->socid;
+		$this->fk_project			= $object->fk_project;
+		$this->fk_account			= $object->fk_account;
+		$this->cond_reglement_id	= $object->cond_reglement_id;
+		$this->mode_reglement_id	= $object->mode_reglement_id;
+		$this->contact_id			= $object->contact_id;
+		$this->ref_supplier			= $object->ref_supplier;
+
+		if (empty($conf->global->MAIN_DISABLE_PROPAGATE_NOTES_FROM_ORIGIN)) {
+			$this->note_private	= $object->note_private;
+			$this->note_public	= $object->note_public;
+		}
+
+		$this->module_source	= $object->module_source;
+
+		$this->origin			= $object->element;
+		$this->origin_id		= $object->id;
+
+		$this->author			= $user->id;
+
+		// get extrafields from original line
+		$object->fetch_optionals();
+		foreach ($object->array_options as $options_key => $value) {
+			$this->array_options[$options_key] = $value;
+		}
+
+		// Possibility to add external linked objects with hooks
+		$this->linked_objects[$this->origin] = $this->origin_id;
+		if (!empty($object->other_linked_objects) && is_array($object->other_linked_objects)) {
+			$this->linked_objects = array_merge($this->linked_objects, $object->other_linked_objects);
+		}
+
+		$ret = $this->create($user);
+
+		if ($ret > 0) {
+			// Actions hooked (by external module)
+			$hookmanager->initHooks(array($this->element . 'dao'));
+
+			$parameters = array('objFrom'=>$object);
+			$action = '';
+			$reshook = $hookmanager->executeHooks('createFrom', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
+			if ($reshook < 0) {
+				$this->setErrorsFromObject($hookmanager);
+				$error++;
+			}
+
+			if (!$error) {
+				return 1;
+			} else {
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	}
+	// InfraS add end
+
 	/**
 	 *  Load object in memory from database
 	 *

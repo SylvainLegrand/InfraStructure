@@ -347,6 +347,15 @@ if (empty($reshook)) {
 					$batch_line[$i]['ix_l'] = GETPOSTINT($idl);
 
 					$totalqty += $subtotalqty;
+					// InfraS add begin
+				} else if ($objectsrc->lines[$i]->product_tobatch && empty(price2num(GETPOST($qty, 'alpha'), 'MS')) && getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS')) {
+					// Batch or serial with no qty to deliver (empty stock) but we want to show all order lines
+					$sub_qty[$j]['q'] = 0;
+					$sub_qty[$j]['id_batch'] = 0;
+					$batch_line[$i]['detail'] = $sub_qty; // array of details
+					$batch_line[$i]['qty'] = 0;
+					$batch_line[$i]['ix_l'] = GETPOST($idl, 'int');
+					// InfraS add end
 				} else {
 					// No detail were provided for lots, so if a qty was provided, we can throw an error.
 					if (GETPOST($qty)) {
@@ -374,6 +383,33 @@ if (empty($reshook)) {
 					$qty = "qtyl".$i.'_'.$j;
 				}
 			} else {
+				// Easya add begin
+				$p = new Product($db);
+				$res = $p->fetch($objectsrc->lines[$i]->fk_product);
+				if ($res > 0) {
+					if(GETPOST('entrepot_id', 'int') == -1) {
+						$qty .= '_'.$j;
+					}
+
+					if($p->type == 0 && $p->stockable_product == Product::DISABLED_STOCK) {	// InfraS change
+						$w = new Entrepot($db);
+						$Tw = $w->list_array();
+						if(count($Tw) > 0) {
+							$w_Id = array_keys($Tw);
+							$stockLine[$i][$j]['qty'] = GETPOST($qty, 'int');
+
+							// lorsque que l'on a le stock désactivé sur un produit/service
+							// on force l'entrepot pour passer le test  d'ajout de ligne dans expedition.class.php
+							//
+							$stockLine[$i][$j]['warehouse_id'] = $w_Id[0];
+							$stockLine[$i][$j]['ix_l'] = GETPOST($idl, 'int');
+						}
+						else {
+							setEventMessage($langs->trans('NoWarehouseInBase'));
+						}
+					}
+				}
+				// Easya add end
 				//shipment line for product with no batch management and no multiple stock location
 				if (GETPOSTFLOAT($qty) > 0) {
 					$totalqty += price2num(GETPOST($qty, 'alpha'), 'MS');
@@ -1422,7 +1458,15 @@ if ($action == 'create') {
 
 					// Qty to ship
 					$quantityAsked = $line->qty;
-					if ($line->product_type == Product::TYPE_SERVICE && !getDolGlobalString('STOCK_SUPPORTS_SERVICES') && !getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES')) {
+
+					if ($line->product_type == Product::TYPE_SERVICE  && getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {	// InfraS add begin
+						if (is_numeric($quantityDelivered)) {
+							$quantityToBeDelivered = $quantityAsked - $quantityDelivered;
+						} else {
+							$quantityToBeDelivered = $quantityAsked;
+						}
+						// InfraS add end
+					} elseif ($line->product_type == Product::TYPE_SERVICE && !getDolGlobalString('STOCK_SUPPORTS_SERVICES') && !getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES')) {	// InfraS change
 						$quantityToBeDelivered = 0;
 					} else {
 						if (is_numeric($quantityDelivered)) {
@@ -1458,6 +1502,16 @@ if ($action == 'create') {
 									$qtylValue = '';
 								}
 								print '<input name="qtyl'.$indiceAsked.'" id="qtyl'.$indiceAsked.'" class="qtyl right" type="text" size="4" value="'.$qtylValue.'">';
+							} elseif ($line->product_type == Product::TYPE_SERVICE && getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {	// InfraS add begin
+								if (GETPOST('qtyl'.$indiceAsked, 'int')) {
+									$quantityToBeDelivered = GETPOST('qtyl'.$indiceAsked, 'int');
+								}
+								print '<input name="idl'.$indiceAsked.'" type="hidden" value="'.$line->id.'">';
+								$qtylValue = $quantityToBeDelivered;
+								if ($conf->global->SHIPMENT_DONT_PREFILL_QTY) {
+									$qtylValue = '';
+								}
+								print '<input name="qtyl'.$indiceAsked.'" id="qtyl'.$indiceAsked.'" class="qtyl center" type="text" size="4" value="'.$qtylValue.'">';	// InfraS add end
 							} else {
 								if (getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS')) {
 									print '<input name="idl'.$indiceAsked.'" type="hidden" value="'.$line->id.'">';
@@ -3124,7 +3178,7 @@ if ($action == 'create') {
 
 
 		// Show links to link elements
-		$tmparray = $form->showLinkToObjectBlock($object, array(), array('shipping'), 1);
+		$tmparray = $form->showLinkToObjectBlock($object, array(), array(), 1);	// InfraS change
 		$linktoelem = $tmparray['linktoelem'];
 		$htmltoenteralink = $tmparray['htmltoenteralink'];
 		print $htmltoenteralink;

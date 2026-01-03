@@ -9,6 +9,7 @@
  * Copyright (C) 2018-2024  Frédéric France         <frederic.france@free.fr>
  * Copyright (C) 2022       Charlene Benke          <charlene@patas-monkey.com>
  * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2026		Sylvain Legrand			<contact@infras.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +37,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/bank.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formbank.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';	// InfraS add
 require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 if (isModEnabled('category')) {
@@ -152,6 +154,8 @@ if (empty($reshook)) {
 		$object->bic = trim(GETPOST("bic"));
 		$object->iban = trim(GETPOST("iban"));
 		$object->pti_in_ctti = empty(GETPOST("pti_in_ctti")) ? 0 : 1;
+		$object->ctgypurp = trim(GETPOST("ctgypurp", "alphanohtml")); // InfraS add
+		$object->lclinstrm = trim(GETPOST("lclinstrm", "alphanohtml")); // InfraS add
 
 		$object->address = trim(GETPOST("account_address", "alphanohtml"));
 
@@ -370,6 +374,7 @@ if (empty($reshook)) {
  */
 
 $form = new Form($db);
+$formother = new FormOther($db);	// InfraS add
 $formbank = new FormBank($db);
 $formcompany = new FormCompany($db);
 if (isModEnabled('accounting')) {
@@ -600,6 +605,16 @@ if ($action == 'create') {
 				print '<tr><td>'.$form->textwithpicto($langs->trans("SEPAXMLPlacePaymentTypeInformationInCreditTransfertransactionInformation"), $langs->trans("SEPAXMLPlacePaymentTypeInformationInCreditTransfertransactionInformationHelp")).'</td>';
 				print '<td><input type="checkbox" class="flat" name="pti_in_ctti"'. (empty(GETPOST('pti_in_ctti')) ? '' : ' checked ') . '>';
 				print '</td></tr>';
+				// IinfraS add begin
+				print '<tr><td>'.$form->textwithpicto($langs->trans("CtgyPurplabel"), $langs->trans("CtgyPurphelp")).'</td>';
+				print '<td>';
+				$formother->select_dictionary('ctgypurp', 'c_sepa_category_purpose', 'code', 'position', (GETPOST('ctgypurp') ? GETPOST('ctgypurp') : 'CORE'), 0, '');
+				print '</td></tr>';
+				print '<tr><td>'.$form->textwithpicto($langs->trans("LclInstrmlabel"), $langs->trans("LclInstrmhelp")).'</td>';
+				print '<td>';
+				$formother->select_dictionary('lclinstrm', 'c_sepa_community_instrument', 'code', 'position', (GETPOST('lclinstrm') ? GETPOST('lclinstrm') : 'CORE'), 0, '');
+				print '</td></tr>';
+				// InfraS add end
 			}
 		}
 		print '</table>';
@@ -858,6 +873,14 @@ if ($action == 'create') {
 					print '<tr><td>'.$form->textwithpicto($langs->trans("SEPAXMLPlacePaymentTypeInformationInCreditTransfertransactionInformation"), $langs->trans("SEPAXMLPlacePaymentTypeInformationInCreditTransfertransactionInformationHelp")).'</td><td>';
 					print(empty($object->pti_in_ctti) ? $langs->trans("No") : $langs->trans("Yes"));
 					print "</td></tr>\n";
+					// InfraS add begin
+					print '<tr><td>'.$form->textwithpicto($langs->trans("CtgyPurplabel"), $langs->trans("CtgyPurphelp")).'</td><td>';
+					print $object->ctgypurp;
+					print "</td></tr>\n";
+					print '<tr><td>'.$form->textwithpicto($langs->trans("LclInstrmlabel"), $langs->trans("LclInstrmhelp")).'</td><td>';
+					print $object->lclinstrm;
+					print "</td></tr>\n";
+					// InfraS add end
 				}
 			}
 
@@ -1191,6 +1214,16 @@ if ($action == 'create') {
 					print '<tr><td>'.$form->textwithpicto($langs->trans("SEPAXMLPlacePaymentTypeInformationInCreditTransfertransactionInformation"), $langs->trans("SEPAXMLPlacePaymentTypeInformationInCreditTransfertransactionInformationHelp")).'</td>';
 					print '<td><input type="checkbox" class="flat" name="pti_in_ctti"'. ($object->pti_in_ctti ? ' checked ' : '') . '>';
 					print '</td></tr>';
+					// InfraS add begin
+					print '<tr><td>'.$form->textwithpicto($langs->trans("CtgyPurplabel"), $langs->trans("CtgyPurphelp")).'</td>';
+					print '<td>';
+					$formother->select_dictionary('ctgypurp', 'c_sepa_category_purpose', 'code', 'position', (GETPOST('ctgypurp') ? GETPOST('ctgypurp') : 'CORE'), 0, '');
+					print '</td></tr>';
+					print '<tr><td>'.$form->textwithpicto($langs->trans("LclInstrmlabel"), $langs->trans("LclInstrmhelp")).'</td>';
+					print '<td>';
+					$formother->select_dictionary('lclinstrm', 'c_sepa_community_instrument', 'code', 'position', (GETPOST('lclinstrm') ? GETPOST('lclinstrm') : 'CORE'), 0, '');
+					print '</td></tr>';
+					// InfraS add end
 				}
 			}
 

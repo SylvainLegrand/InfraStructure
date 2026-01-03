@@ -509,7 +509,7 @@ class Expedition extends CommonObject
 							}
 							continue;
 						}
-						if (empty($this->lines[$i]->product_type) || getDolGlobalString('STOCK_SUPPORTS_SERVICES') || getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES')) {
+						if (empty($this->lines[$i]->product_type) || getDolGlobalString('STOCK_SUPPORTS_SERVICES') || getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES') || getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {	// InfraS change
 							// virtual products
 							$line = $this->lines[$i];
 							if ($line->fk_product > 0) {
@@ -544,12 +544,12 @@ class Expedition extends CommonObject
 				$sub_kits_id_cached = array();
 				for ($i = 0; $i < $num; $i++) {
 					$line = $this->lines[$i];
-					if (empty($line->product_type) || getDolGlobalString('STOCK_SUPPORTS_SERVICES') || getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES')) {
+					if (empty($line->product_type) || getDolGlobalString('STOCK_SUPPORTS_SERVICES') || getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES') || getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {	// InfraS change
 						$line_id = 0;
 						if (!isset($kits_id_cached[$line->fk_product])) {
 							if (!isset($line->detail_batch) || isset($kits_list[$line->fk_product])) {    // no batch management or is kit
 								$qty = isset($kits_list[$line->fk_product]) ? $kits_list[$line->fk_product]['total_qty'] : $line->qty;
-								$warehouse_id = isset($kits_list[$line->fk_product]) ? 0 : $line->entrepot_id;
+								$warehouse_id = !empty($this->lines[$i]->product_type) && getDolGlobalInt('INFRAS_SHIPPING_SERVICE') ? '' : (isset($kits_list[$line->fk_product]) ? 0 : $line->entrepot_id);	// InfraS change
 								$line_id = $this->create_line($warehouse_id, $line->origin_line_id, $qty, $line->rang, $line->array_options, 0, $line->fk_product);
 								if ($line_id <= 0) {
 									$error++;
@@ -782,22 +782,33 @@ class Expedition extends CommonObject
 			}
 		}
 		// create shipment lines
-		foreach ($stockLocationQty as $stockLocation => $qty) {
-			$line_id = $this->create_line($stockLocation, $line_ext->origin_line_id, $qty, $line_ext->rang, $array_options);
-			if ($line_id < 0) {
+		// InfraS add begin
+		if (empty($stockLocationQty) && getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS')) {
+			$entrepot_id = !empty($line_ext->product_type) && !empty($conf->global->INFRAS_SHIPPING_SERVICE) ? '' : $line_ext->entrepot_id;
+			if ($this->create_line($entrepot_id, $line_ext->origin_line_id, 0, $line_ext->rang, $array_options) <= 0) {
 				$error++;
-			} else {
-				// create shipment batch lines for stockLocation
-				foreach ($tab as $detbatch) {
-					if ($detbatch->fk_warehouse == $stockLocation) {
-						if (!($detbatch->create($line_id) > 0)) {		// Create an ExpeditionLineBatch
-							$this->errors = $detbatch->errors;
-							$error++;
+			}
+		} else {
+			// InfraS add end
+			// InfraS change begin
+			foreach ($stockLocationQty as $stockLocation => $qty) {
+				$line_id = $this->create_line($stockLocation, $line_ext->origin_line_id, $qty, $line_ext->rang, $array_options);
+				if ($line_id < 0) {
+					$error++;
+				} else {
+					// create shipment batch lines for stockLocation
+					foreach ($tab as $detbatch) {
+						if ($detbatch->fk_warehouse == $stockLocation) {
+							if (!($detbatch->create($line_id) > 0)) {		// Create an ExpeditionLineBatch
+								$this->errors = $detbatch->errors;
+								$error++;
+							}
 						}
 					}
 				}
 			}
-		}
+			// InfraS change end
+		}	// InfraS add
 
 		if (!$error) {
 			return 1;
@@ -1181,13 +1192,13 @@ class Expedition extends CommonObject
 			$product = new Product($this->db);
 			$product->fetch($orderline->fk_product);
 
-			if (!($entrepot_id > 0) && !getDolGlobalString('STOCK_WAREHOUSE_NOT_REQUIRED_FOR_SHIPMENTS') && !(getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES') && $line->product_type == Product::TYPE_SERVICE) && $product->stockable_product == Product::ENABLED_STOCK) {
+			if (!($entrepot_id > 0) && !getDolGlobalString('STOCK_WAREHOUSE_NOT_REQUIRED_FOR_SHIPMENTS') && !(getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES') && $line->product_type == Product::TYPE_SERVICE) && $product->stockable_product == Product::ENABLED_STOCK && !empty($line->qty)) {	// InfraS change
 				$langs->load("errors");
 				$this->error = $langs->trans("ErrorWarehouseRequiredIntoShipmentLine");
 				return -1;
 			}
 
-			if (getDolGlobalString('STOCK_MUST_BE_ENOUGH_FOR_SHIPMENT')) {
+			if (getDolGlobalString('STOCK_MUST_BE_ENOUGH_FOR_SHIPMENT') && ($qty > 0 || !getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS'))) {	// InfraS change
 				$productChildrenNb = 0;
 				if (getDolGlobalInt('PRODUIT_SOUSPRODUITS')) {
 					$productChildrenNb = $product->hasFatherOrChild(1);
@@ -1791,6 +1802,7 @@ class Expedition extends CommonObject
 							// We increment stock of batches
 							// We use warehouse selected for each line
 							foreach ($lotArray as $lot) {
+								if (empty($lot->qty))	continue;	//InfraS add
 								$result = $mouvS->reception($user, $obj->fk_product, $obj->fk_entrepot, $lot->qty, 0, $langs->trans("ShipmentDeletedInDolibarr", $this->ref), $lot->eatby, $lot->sellby, (string) $lot->batch, '', 0, '', 0, 1); // Price is set to 0, because we don't want to see WAP changed
 								if ($result < 0) {
 									$error++;

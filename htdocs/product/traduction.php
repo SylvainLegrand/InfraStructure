@@ -139,16 +139,23 @@ if (empty($reshook)) {
 	// Edit translation
 	if ($action == 'vedit' && $cancel != $langs->trans("Cancel") && $usercancreate) {
 		$current_lang = $langs->getDefaultLang();
-
+		// InfraS add begin
+		// by default 'alphanohtml' (better security); hidden conf MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML allows basic html
+		if (getDolGlobalString('MAIN_SECURITY_ALLOW_UNSECURED_REF_LABELS')) {
+			$label_security_check = 'nohtml';
+		} else {
+			$label_security_check = !getDolGlobalString('MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML') ? 'alphanohtml' : 'restricthtmlallowclass';
+		}
+		// InfraS add end
 		foreach ($object->multilangs as $key => $value) { // enregistrement des nouvelles valeurs dans l'objet
 			if ($key == $current_lang) {
-				$object->label = GETPOST("libelle-" . $key);
+				$object->label = GETPOST("libelle-" . $key, $label_security_check);	// InfraS change
 				$object->description = dol_htmlcleanlastbr(GETPOST("desc-" . $key, 'restricthtml'));
 				$object->other = dol_htmlcleanlastbr(GETPOST("other-" . $key, 'restricthtml'));
 
 				$object->update($object->id, $user);
 			} else {
-				$object->multilangs[$key]["label"] = GETPOST("libelle-" . $key);
+				$object->multilangs[$key]["label"] = GETPOST("libelle-" . $key, $label_security_check);	// InfraS change
 				$object->multilangs[$key]["description"] = dol_htmlcleanlastbr(GETPOST("desc-" . $key, 'restricthtml'));
 				$object->multilangs[$key]["other"] = dol_htmlcleanlastbr(GETPOST("other-" . $key, 'restricthtml'));
 			}

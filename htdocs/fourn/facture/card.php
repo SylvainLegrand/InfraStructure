@@ -508,7 +508,41 @@ if (empty($reshook)) {
 				setEventMessages($langs->trans("WarningInvoiceDateTooFarInFuture"), null, 'warnings');
 			}
 		}
+		// InfraS Add begin: contrôle de la date de facturation ---
+		$currentDay			= (int) dol_print_date(dol_now(), '%d');
+		$currentMonth		= (int) dol_print_date(dol_now(), '%m');
+		$currentYear		= (int) dol_print_date(dol_now(), '%Y');
+		$invoiceMonth		= (int) dol_print_date($newdate, '%m');
+		$invoiceYear		= (int) dol_print_date($newdate, '%Y');
+		$previousMonthData	= dol_get_prev_month($currentMonth, $currentYear);
+		$previousMonth		= $previousMonthData['month'];
+		$previousYear		= $previousMonthData['year'];
 
+		$forceDate			= false;
+		// Si la date proposée est trop ancienne
+		if ($invoiceYear < $currentYear || ($invoiceYear == $currentYear && $invoiceMonth < $previousMonth)) {
+			if ($currentDay < 10) {
+				// Avant le 10, on force à Août si on est en septembre, sinon au mois précédent
+				$forceMonth	= $previousMonth;
+				$forceYear	= $previousYear;
+			} else {
+				// Après le 10, on force au 1er du mois courant
+				$forceMonth	= $currentMonth;
+				$forceYear	= $currentYear;
+			}
+			$newdate		= dol_mktime(0, 0, 0, $forceMonth, 1, $forceYear, 'tzserver');
+			$forceDate		= true;
+		} elseif ($invoiceYear == $currentYear && $invoiceMonth == $previousMonth) {
+			// Si la date est dans le mois précédent, on accepte si avant le 10, sinon on force au 1er du mois courant
+			if ($currentDay >= 10) {
+				$newdate	= dol_mktime(0, 0, 0, $currentMonth, 1, $currentYear, 'tzserver');
+				$forceDate	= true;
+			}
+		}
+		if ($forceDate) {
+			setEventMessages($langs->trans('factureDateChangeWarning'), array(), 'warnings');
+		}
+		// InfraS Add end
 		$object->fetch($id);
 
 		$object->date = $newdate;
@@ -3089,7 +3123,48 @@ if ($action == 'create') {
 			} else {
 				$numref = $object->ref;
 			}
+			// InfraS add begin
+			//Règle de saisie de facture
+			if (getDolGlobalInt('SUPPLIER_INVOICE_CHECK_DATE', 0) && $object->statut == FactureFournisseur::STATUS_DRAFT) {
+				$dateButoir			= getDolGlobalInt('SUPPLIER_INVOICE_CHECK_DATE', 0);
+				$currentDay			= (int) dol_print_date(dol_now(), '%d');
+				$currentMonth		= (int) dol_print_date(dol_now(), '%m');
+				$currentYear		= (int) dol_print_date(dol_now(), '%Y');
+				$invoiceMonth		= (int) dol_print_date($object->date, '%m');
+				$invoiceYear		= (int) dol_print_date($object->date, '%Y');
+				$previousMonthData	= dol_get_prev_month($currentMonth, $currentYear);
+				$previousMonth		= $previousMonthData['month'];
+				$previousYear		= $previousMonthData['year'];
 
+				$forceDate = false;
+				// Si la date proposée est trop ancienne
+				if ($invoiceYear < $currentYear || ($invoiceYear == $currentYear && $invoiceMonth < $previousMonth)) {
+					if ($currentDay < $dateButoir) {
+						// Avant la date butoir, on force au 1er du mois précédent
+						$forceMonth	= $previousMonth;
+						$forceYear	= $previousYear;
+					} else {
+						// Après la date butoir, on force au 1er du mois courant
+						$forceMonth	= $currentMonth;
+						$forceYear	= $currentYear;
+					}
+					$newdate		= dol_mktime(0, 0, 0, $forceMonth, 1, $forceYear, 'tzserver');
+					$forceDate		= true;
+				} elseif ($invoiceYear == $currentYear && $invoiceMonth == $previousMonth) {
+					// Si la date est dans le mois précédent, on accepte si avant la date butoir, sinon on force au 1er du mois courant
+					if ($currentDay >= $dateButoir) {
+						$newdate		= dol_mktime(0, 0, 0, $currentMonth, 1, $currentYear, 'tzserver');
+						$forceDate		= true;
+					}
+				}
+				if ($forceDate) {
+					$object->fetch($id);
+					$object->date	= $newdate;
+					$result			= $object->update($user);
+					setEventMessages($langs->trans('factureDateChangeWarning'), array(), 'warnings');
+				}
+			}
+			// InfraS add end
 			if ($numref < 0) {
 				setEventMessages($object->error, $object->errors, 'errors');
 				$action = '';
@@ -4242,7 +4317,18 @@ if ($action == 'create') {
 					$htmltooltip = '';
 					$params = (empty($conf->use_javascript_ajax) ? array() : array('attr' => array('class' => 'reposition')));
 					//var_dump($isErasable); var_dump($params);
-					if ($isErasable == -4) {
+					// InfraS add begin
+					if (preg_match('/^-5(\d+)/',$isErasable, $reg)) {
+						$tmprefbon = '';
+						if ((int) $reg[1] > 0) {
+							require_once DOL_DOCUMENT_ROOT.'/compta/prelevement/class/bonprelevement.class.php';
+							$tmpbon = new BonPrelevement($db);
+							$tmpbon->fetch((int) $reg[1]);
+							$tmprefbon = '('.$tmpbon->getNomUrl(0, 'nolink', 1).')';
+						}
+						$htmltooltip = $langs->trans("DisabledBecauseInvoiceHasPrelevement", $tmprefbon);
+						// InfraS add end
+					}  elseif ($isErasable == -4) {	// InfraS change
 						$htmltooltip = $langs->trans("DisabledBecausePayments");
 					} elseif ($isErasable == -3) {	// Should never happen with supplier invoice
 						$htmltooltip = $langs->trans("DisabledBecauseNotLastSituationInvoice");
@@ -4279,7 +4365,7 @@ if ($action == 'create') {
 					$somethingshown = $formfile->numoffiles;
 
 					// Show links to link elements
-					$tmparray = $form->showLinkToObjectBlock($object, array(), array('invoice_supplier'), 1);
+					$tmparray = $form->showLinkToObjectBlock($object, array(), array(), 1);	// InfraS change
 					$linktoelem = $tmparray['linktoelem'];
 					$htmltoenteralink = $tmparray['htmltoenteralink'];
 					print $htmltoenteralink;

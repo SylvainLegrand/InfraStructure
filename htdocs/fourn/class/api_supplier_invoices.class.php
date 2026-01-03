@@ -260,6 +260,49 @@ class SupplierInvoices extends DolibarrApi
 		return $this->invoice->id;
 	}
 
+	// InfraS add begin
+	 /**
+	  * Create an invoice using an existing order.
+	  *
+	  * @param int   $orderid       Id of the order
+	  * @return	object				Object with cleaned properties
+	  *
+	  * @url     POST /createfromorder/{orderid}
+	  *
+	  * @throws RestException 400
+	  * @throws RestException 401
+	  * @throws RestException 404
+	  * @throws RestException 405
+	  */
+	  public function createInvoiceFromOrder($orderid)
+	  {
+		  require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+
+		  if (!DolibarrApiAccess::$user->hasRight("fournisseur", "commande", "lire") && !DolibarrApiAccess::$user->hasRight("supplier_order", "lire")) {
+			  throw new RestException(401);
+		  }
+		  if (!DolibarrApiAccess::$user->hasRight("fournisseur", "facture", "creer") && !DolibarrApiAccess::$user->hasRight("supplier_invoice", "creer")) {
+			  throw new RestException(401);
+		  }
+		  if (empty($orderid)) {
+			  throw new RestException(400, 'Order ID is mandatory');
+		  }
+
+		  $order = new CommandeFournisseur($this->db);
+		  $result = $order->fetch($orderid);
+		  if (!$result) {
+			  throw new RestException(404, 'Order not found');
+		  }
+
+		  $result = $this->invoice->createFromOrder($order, DolibarrApiAccess::$user);
+		  if ($result < 0) {
+			  throw new RestException(405, $this->invoice->error);
+		  }
+		  $this->invoice->fetchObjectLinked();
+		  return $this->_cleanObjectDatas($this->invoice);
+	  }
+	  // InfraS add end
+
 	/**
 	 * Update supplier invoice
 	 *

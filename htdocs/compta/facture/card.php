@@ -3413,13 +3413,18 @@ if (empty($reshook)) {
 
 		if (!empty($importLines) && is_array($importLines) && !empty($fromElement) && ctype_alpha($fromElement) && !empty($fromElementid)) {
 			$lineClassName = '';
-			if ($fromElement == 'commande') {
+			// InfraS change begin
+			if ($fromElement == 'facture') {
+				dol_include_once('/compta/'.$fromElement.'/class/'.$fromElement.'.class.php');
+				$lineClassName = 'FactureLigne';
+			} elseif ($fromElement == 'commande') {
 				dol_include_once('/'.$fromElement.'/class/'.$fromElement.'.class.php');
 				$lineClassName = 'OrderLine';
 			} elseif ($fromElement == 'propal') {
 				dol_include_once('/comm/'.$fromElement.'/class/'.$fromElement.'.class.php');
 				$lineClassName = 'PropaleLigne';
 			}
+			// InfraS change end
 			$nextRang = count($object->lines) + 1;
 			$importCount = 0;
 			$error = 0;
@@ -6690,7 +6695,7 @@ if ($action == 'create') {
 		$somethingshown = $formfile->numoffiles;
 
 		// Show links to link elements
-		$tmparray = $form->showLinkToObjectBlock($object, array(), array('invoice'), 1);
+		$tmparray = $form->showLinkToObjectBlock($object, array(), array(), 1);	// InfraS change
 		$linktoelem = $tmparray['linktoelem'];
 		$htmltoenteralink = $tmparray['htmltoenteralink'];
 		print $htmltoenteralink;
@@ -6699,7 +6704,7 @@ if ($action == 'create') {
 		if ($usercancreate
 			&& $object->status == Facture::STATUS_DRAFT
 			&& ($object->type == Facture::TYPE_STANDARD || $object->type == Facture::TYPE_REPLACEMENT || $object->type == Facture::TYPE_DEPOSIT || $object->type == Facture::TYPE_PROFORMA || $object->type == Facture::TYPE_SITUATION)) {
-			$compatibleImportElementsList = array('commande', 'propal', 'subscription'); // import from linked elements
+			$compatibleImportElementsList = array('commande', 'propal', 'subscription', 'facture'); // import from linked elements	// InfraS change
 		}
 		$somethingshown = $form->showLinkedObjectBlock($object, $linktoelem, $compatibleImportElementsList);
 

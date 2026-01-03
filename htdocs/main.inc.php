@@ -2242,7 +2242,12 @@ function top_menu($head, $title = '', $target = '', $disablejs = 0, $disablehead
 
 		// Version
 		if (!getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER') && getDolGlobalInt('MAIN_HIDE_VERSION') == 0) {
-			$text = '<span class="aversion"><span class="hideonsmartphone small">'.DOL_VERSION.'</span></span>';
+			if (getDolGlobalString('EASYA_VERSION')) {
+				$appli = $langs->trans("Easya") . ' '. getDolGlobalString('EASYA_VERSION');
+				$text = '<span class="aversion"><span class="hideonsmartphone small">'.getDolGlobalString('EASYA_VERSION').'</span></span>';
+			} else {
+				$text = '<span class="aversion"><span class="hideonsmartphone small">'.DOL_VERSION.'</span></span>';
+			}
 			// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 			$toprightmenu .= $form->textwithtooltip('', $appli, 2, 1, $text, 'login_block_elem', 2);
 		}
@@ -2362,6 +2367,10 @@ function top_menu_user($hideloginname = 0, $urllogout = '')
 	$dropdownBody .= '<br>';
 	$dropdownBody .= '<span id="topmenuloginmoreinfo-btn"><i class="fa fa-caret-right"></i> '.$langs->trans("ShowMoreInfos").'</span>';
 	$dropdownBody .= '<div id="topmenuloginmoreinfo" >';
+
+	$dropdownBody .= '<br><b>'.$langs->trans("Easya").'</b>: <i class="fa fa-code-branch"></i> '.getDolGlobalString('EASYA_VERSION', '');	// InfraS change
+	$dropdownBody .= '<br><b>'.$langs->trans("Dolibarr").'</b>: <i class="fa fa-heart"></i> '.getDolGlobalString('MAIN_VERSION_LAST_UPGRADE', '');	// InfraS change
+	$dropdownBody .= '<br>';
 
 	// login infos
 	if (!empty($user->admin)) {

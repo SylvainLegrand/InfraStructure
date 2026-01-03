@@ -193,6 +193,7 @@ if ($in_bookkeeping == 'notyet') {
 if ($only_rappro == 2) {
 	$sql .= " AND (b.rappro = '1')";
 }
+$sql .= " GROUP BY b.rowid";	// InfraS add
 $sql .= " ORDER BY b.datev";
 //print $sql;
 
@@ -421,7 +422,7 @@ if ($result) {
 					$paymentsupplierstatic->ref = (string) $links[$key]['url_id'];
 					$tabpay[$obj->rowid]["lib"] .= ' '.$paymentsupplierstatic->getNomUrl(2);
 					$tabpay[$obj->rowid]["paymentsupplierid"] = $paymentsupplierstatic->id;
-				} elseif ($links[$key]['type'] == 'company') {
+				} elseif ($links[$key]['type'] == 'company' && $links[$key]['url_id'] == $obj->socid) {	// InfraS change
 					$societestatic->id = $links[$key]['url_id'];
 					$societestatic->name = $links[$key]['label'];
 					$societestatic->email = $tabcompany[$obj->rowid]['email'];
@@ -680,7 +681,7 @@ if (!$error && $action == 'writebookkeeping' && $user->hasRight('accounting', 'b
 
 	$error = 0;
 	foreach ($tabpay as $key => $val) {		// $key is rowid into llx_bank
-		$date = dol_print_date($val["date"], 'day');
+		$date = dol_print_date($db->jdate($val["date"]), 'day');	// InfraS change
 
 		$ref = getSourceDocRef($val, $tabtype[$key]);
 
@@ -1012,7 +1013,7 @@ if ($action == 'exportcsv' && $user->hasRight('accounting', 'bind', 'write')) {	
 	print "\n";
 
 	foreach ($tabpay as $key => $val) {
-		$date = dol_print_date($val["date"], 'day');
+		$date = dol_print_date($db->jdate($val["date"]), 'day');	// InfraS change
 
 		$ref = getSourceDocRef($val, $tabtype[$key]);
 
@@ -1181,7 +1182,7 @@ if (empty($action) || $action == 'view') {
 		$obj = $db->fetch_object($resql);
 		if ($obj->nb > 0) {
 			print '<br><div class="warning">'.img_warning().' '.$langs->trans("TheJournalCodeIsNotDefinedOnSomeBankAccount");
-			$desc = ' : '.$langs->trans("AccountancyAreaDescBank", 6, '{link}');
+			$desc = ' : '.$langs->trans("AccountancyAreaDescBank", 9, '{link}');	// InfraS change
 			$desc = str_replace('{link}', '<strong>'.$langs->transnoentitiesnoconv("MenuAccountancy").'-'.$langs->transnoentitiesnoconv("Setup")."-".$langs->transnoentitiesnoconv("BankAccounts").'</strong>', $desc);
 			print $desc;
 			print '</div>';
@@ -1262,7 +1263,7 @@ if (empty($action) || $action == 'view') {
 	print "</tr>\n";
 
 	foreach ($tabpay as $key => $val) {			  // $key is rowid in llx_bank
-		$date = dol_print_date($val["date"], 'day');
+		$date = dol_print_date($db->jdate($val["date"]), 'day');	// InfraS change
 
 		$ref = getSourceDocRef($val, $tabtype[$key]);
 
