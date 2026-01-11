@@ -445,3 +445,5 @@ ThisIdNotDefined=Identifiant non défini
 OperNotDefined=Méthode de paiement non définie
 EmptyMessageNotAllowedError=Les messages vides ne sont pas autorisés
 SomeShipmentExists=Erreur : une expédition est liée à commande. Suppression refusée.
+ErrorBadParametersForDirectDebitFileCreate=Impossible de créer le fichier de transfert: le paramètre 'format' n'est pas indiqué.
+ErrorBadParametersForDirectDebitFileCreateDids=Impossible de créer le fichier de transfert: Aucun ID de demande de paiement n'est fourni.

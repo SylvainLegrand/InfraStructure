@@ -172,3 +172,4 @@ SalaryWaitingWithdraw=Salaires en attente de paiement par virement bancaire
 RefSalary=Salaire
 NoSalaryInvoiceToWithdraw=Aucun salaire n'attend un '%s'. Allez sur l'onglet '%s' sur la fiche salaire pour faire une demande.
 SalaryInvoiceWaitingWithdraw=Salaires en attente de paiement par virement bancaire
+ErrorBankTransferNoPaymentRequestSelected=Aucune demande de paiement sélectionnée.

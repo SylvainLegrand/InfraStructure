@@ -330,6 +330,10 @@ ALTER TABLE llx_webhook_history ADD COLUMN trigger_code text NOT NULL;
 ALTER TABLE llx_webhook_history ADD COLUMN error_message text;
 ALTER TABLE llx_webhook_history MODIFY COLUMN url varchar(255);
 
+-- default deposit % if payment term needs it on supplier
+ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
+ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
+
 -- InfraS add begin
 -- Add category purpose and community specific instrument to bank account (used to build SEPA files)
 ALTER TABLE llx_bank_account ADD COLUMN ctgypurp varchar(14) DEFAULT 'CORE' AFTER pti_in_ctti;
@@ -367,3 +371,5 @@ ALTER TABLE llx_c_sepa_community_instrument ADD INDEX idx_c_sepa_community_instr
 INSERT INTO llx_c_sepa_community_instrument (code, label, position, active) VALUES ('CORE', 'c_sepa_community_instrumentCORE', 0, 1);
 INSERT INTO llx_c_sepa_community_instrument (code, label, position, active) VALUES ('INST', 'c_sepa_community_instrumentINST', 1, 1);
 -- InfraS add end
+
+UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 'mastodon';

@@ -100,7 +100,9 @@ if ($action == "save" && empty($cancel)) {
 	foreach ($triggers as $trigger) {
 		$keyparam = 'MAIN_AGENDA_ACTIONAUTO_'.$trigger['code'];
 		if ($search_event === '' || preg_match('/'.preg_quote($search_event, '/').'/i', $keyparam)) {
-			$res = dolibarr_set_const($db, $keyparam, (GETPOST($keyparam, 'alpha') ? GETPOST($keyparam, 'alpha') : ''), 'chaine', 0, '', $conf->entity);
+			// OPENDSI specific : We should save the constant as 0 instead of deleting the constant.
+			$res = dolibarr_set_const($db, $keyparam, (GETPOST($keyparam, 'alpha') ? GETPOST($keyparam, 'alpha') : '0'), 'chaine', 0, '', $conf->entity);
+			// END OPENDSI specific
 			if (!($res > 0)) {
 				$error++;
 			}
