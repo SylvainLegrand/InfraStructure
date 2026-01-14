@@ -1,0 +1,202 @@
+# UptoSign language file - en_US - UptoSign
+# Copyright (C) 2018        Netlogic			<dolibarr@netlogic.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Generic
+#
+UptoSignTab = Up To Sign 
+ 
+# Module label 'ModuleUptoSignName'
+ModuleUptoSignName=UptoSign
+# Module description 'ModuleUptoSignDesc'
+ModuleUptoSignDesc=This module permits you to create legally valid digital signed PDF documents.
+ModuleUptoSignDescLong=With the DoiEsign module you can have your commercial documents digital signed by your contacts.
+#
+# Admin page
+#
+UptoSignSetup = UptoSign setup
+Settings = Settings
+UptoSignSetupPage = UptoSign setup page
+UptoSignParamAction1 = Save / Restore all module parameters for
+UptoSignParamAction2 = <br>(after a restore refresh the page (F5) to visualize the result)
+UptoSignParamBkup    = Backup
+UptoSignParamRestore = Restore
+UPTOSIGN_ENVIRONMENT=Signing Environment
+UPTOSIGN_ENVIRONMENTTooltip=Signing Provider environment, to show the options for the new environment you need to save after changing the environment.
+UPTOSIGN_AUTHENTICATION_MODE = Default authentication mode
+UPTOSIGN_AUTHENTICATION_MODETooltip = Default authentication mode for sign the document. The signer will receive a validation code for signing the document, possible values are sms and mail.
+UPTOSIGN_AUTHENTICATION_MODE_PROD = Default authentication mode in production
+
+
+#
+# About page
+#
+About=About
+UptoSignAbout=About UptoSign
+UptoSignAboutPage=UptoSign about page
+
+#
+# Sample page
+#
+ConfirmUptoSign = Are you sure to send a request for electronic signing the document.
+ConfirmUptoSignFetch = Are you sure to download the electronic signed the document.
+UptoSignInitPropalTemplate=UptoSign: To send a proposal and asking for an electronic signature
+UptoSignEndPropalTemplate=UptoSign: Confirmation mail when the proposal is signed
+UptoSignInitCommandeTemplate=UptoSign: To send a customer order and asking for an electronic signature
+UptoSignEndCommandeTemplate=UptoSign: Confirmation mail when the customer order is signed
+UptoSignInitInterventionTemplate=UptoSign: To send an intervention and asking for an electronic signature
+UptoSignEndInterventionTemplate=UptoSign: Confirmation mail when the intervention is signed
+UptoSignSync = Synchronize UptoSign
+UptoSign = UptoSign
+UptoSignAgain = UptoSign Again
+UptoSignStatus = Status UptoSign
+NoUptoSign = None
+WaitingCommonSign = Waiting
+UptoSignSigned = Signed
+UptoSignCanceled = Cancelled
+UptoSignError = Sign error
+UptoSignFetchedSign = Signed Doc
+UptoSignFetch = Download Signed doc
+UptoSignCanceled = UptoSign Cancelled
+ReadUptoSign = Read signings
+CreateUptoSign = Request signings
+DeleteUptoSign = Cancel signings
+UptoSignConnectError = Error connecting to the API.
+UptoSignApiError = Api Error.
+UptoSignContactEmailMissing = Contact email missing.
+UptoSignContactPhoneMobileMissing = Contact mobile phone number missing for sending signing SMS.
+UptoSignUserEmailMissing = User email missing.
+UptoSignUserPhoneMobileMissing = User mobile phone number missing for sending signing SMS.
+UptoSignUserPhoneMobileWrongFormat = User mobile phone number needs to be in international format (ex: +33612345678).
+UptoSignContactPhoneMobileWrongFormat = Contact mobile phone number needs to be in international format (ex: +33612345678).
+UptoSignContactMissing = No contact assigned for signing.
+UptoSignCreateFileError = Error storing Signed document.
+UptoSignFileMissing = No generated document available.
+UptoSignInvalidCoordinates = Invalid signing coordinates format (ex: 12,34,56,78)
+SignRequestSuccessful = Successful sending of request for signing document.
+AuthentificationMode = Authentication mode for signing the document.
+AuthentificationSms = Sms
+AuthentificationEmail = Email
+RedirectionMode = Redirect to the signing page,
+RedirectionFalse = No
+RedirectionTrue = Yes
+UptoSignSignedNoModify = You can't modify a signed document.
+UptoSignSignedNoDelete = You can't delete a signed document.
+UptoSignSendInitDefaultEnUs = No request template found for your language, english template used.
+UptoSignSendEndDefaultEnUs = No confirmation template found for your language, english template used.
+SignedByUptoSign = Signed by UptoSign
+UptoSignDocumentFetched = You can now find the Signed document in your linked files section.
+ConfirmDeleteConfig = Do you really want to delete this UptoSign configuration.
+TypeContact = Contact type for signing document
+SignCoordinate = Position coordinates for signature
+UptoSignConfig = UptoSign
+NewConfig = New setting
+UptoSignConfigList = Settings list
+UptoSignList = List of Signings
+ObjectId = Object reference
+ObjectType = Object Type
+SignStatus = Sign status
+ContactSignId = Signing contact
+UserSignId = Signing user
+DateSign = Signing date
+UptoSignSetupError=Error in your UptoSign setup.
+UPTOSIGN_ACTIVATE_SERVICES_ON_CONTRACT_SIGNED = Automatically activate all services upon signing the contract
+
+# Sample widget
+#
+MyWidget = My widget
+MyWidgetDescription = My widget description
+
+UptoSignSyncError = UpToSign synchronization error
+UptoSignForceRefresh = Forced UpToSign synchronization
+
+UptoSign=UptoSign
+UptoSignSettingsServer=Server
+UptoSignSetup=UptoSign setup
+UptoSignSettings=UptoSign parameters
+UptoSignSetupPage=UptoSign configuration page
+UPTOSIGNSetup=Setup
+UPTOSIGNSetupPage=UpToSign Setup
+UPTOSIGN_LOGIN_USED_RESETPASS=Authentication on remote server is impossible (login or password missmatch)
+UPTOSIGN_LOGIN_USED_RESETPASS2=If you have an account on the remote server please follow the reset password link
+UPTOSIGN_LOGIN_USED_RESETPASS3=And in the other case, please clic on create account
+UptoSignResetPass=Password reset
+UptoSignCreateAccount=Create account
+UPTOSIGN_LOGIN=Login
+UPTOSIGN_LOGINTooltip=Mail address used to create your account on remote server
+UPTOSIGN_PASS_API=Password
+UPTOSIGN_PASS_APITooltip=Your account password
+CheckConnectToUPTOSIGN=Check connexion
+UPTOSIGN_API_KEY_UPTOSIGN=API Key
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN=Signed file name suffix
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGNTooltip=You can customize your file name with a suffix (inserted before .pdf)
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL=Sealed file name suffix 
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEALTooltip=You can customize your file name with a suffix (inserted before .pdf)
+UPTOSIGN_FILENAME_SUFFIX_PROOF=Proof file name suffix
+UPTOSIGN_FILENAME_SUFFIX_PROOFTooltip=You can customize your file name with a suffix (inserted before .pdf)
+UptoSignTemplatesTab=Templates
+UptoSignTemplateLongTxt1=
+ConfirmUptoSign=Are you sure to process sending a document for electronic sign ?
+ConfirmUptoSeal=Are you sure to process sending a document for electronic sealing and timestamping ?
+ConfirmUptoSignFetch=Do you really want to download the file ?
+UptoSignInitContractTemplate=UptoSign: For sending a contract for electronic signature
+UptoSignEndContratTemplate=UptoSign: Confirmation email to the signatory of a contract
+UptoSignInitExpeditionTemplate=UptoSign: For sending a delivery note for electronic signature
+UptoSignEndExpeditionTemplate=UptoSign: Confirmation email to the signatory of a delivery note
+UptoSignReminders=UptoSign: Reminder email
+UptoSignRefused=UptoSign: Refusal email
+UptoSignSync=UptoSign synchronization
+UptoSignAgain=UptoSign Again
+UptoSignStatus=UptoSign Status
+NoUptoSign=None
+UptoSignSignedNoModify=You cannot modify a signed document.
+UptoSignSignedNoDelete=You cannot delete a signed document.
+UptoSignConfig=UptoSign
+UptoSignConfigList=List of configurations
+UptoSignList=History of UptoSign signatures and seals
+ObjectId=Part Ref
+ObjectType=Part type
+SignStatus=UptoSign Status
+ContactSignId=Contact signature
+UserSignId=User
+DateSign=Date processed
+UptoSignConfigMissing=Missing configuration for your document template (UptoSign).
+ModelePdf=Name of the PDF document model
+ModelDocument=Document model
+ModelePdfTooltip=This is the name of the PDF document template you are using
+UptoSignOnlineSignature=Electronic document signature page
+UptoSignWelcomeOnOnlineSignaturePage=Welcome to the signature page of documents offered by %s
+UptoSignThisScreenAllowsYouToSignDocFrom=This screen allows you to accept and sign online, or refuse, the following documents:
+UptoSignSignatureProposalRef=Signature of document %s
+SignOrSeal=Seal or Signature?
+SignOrSealTooltip=In the context of a seal only the seal information is necessary. For the signature remember to complete all the fields of this form.
+SignCoordinate=Signature(position)
+SignCoordinateTooltip=Signature position (x,y coordinates in millimeters of top left corner)
+SignPage=Signature page
+SignPageTooltip=Page where to add the signature (to choose a number starting from the end, put a negative number: ex, -3 for the 3rd page before the end)
+AcceptDocument=Accept and sign
+RefuseDocument=Refuse
+DocumentAlreadyRefused=Document already accepted
+DocumentRefused=Document refused
+DocumentAlreadySigned=Document already accepted and signed
+DocumentSigned=Document signed
+DocumentSealed=Document Sealed
+UptoSignSealInvoice=Seal an invoice
+SignedUptoSign=Document signed
+UptoSignProof=proof
+UptoSignProofButtonActions=Proof file linked to the signature of the document, no action is possible on this form
+UptoSignYouDoNotHaveRightsToDo=You do not have the right to launch this action
+UptoSignProcedureCancelled=A cancellation procedure is in progress for this document

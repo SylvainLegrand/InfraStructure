@@ -1,0 +1,82 @@
+# Dolibarr language file - fr_FR - InfraS
+CHARSET                          = UTF-8
+
+basenameInfraSSupPrice           = InfraS
+modnameInfraSSupPrice            = infrassupprice
+modcomnameInfraSSupPrice         = InfraSSupPrice
+Module500056Name                 = Tarifs fournisseurs
+Module500056Desc                 = Gestion des tarifs fournisseurs : mise à jour directe depuis les documents d'achats (Demandes de prix, Commandes ou Factures)
+NewVersionAviable                = Dernière version disponible
+PiloteVersion                    = Version pilote
+InfraSSupPriceCautionMess        = <center><b>----- à lire attentivement ! -----</b></center>
+InfraSSupPriceCaution            = <b>ATTENTION !</b>
+InfraSSupPriceXMLextError        = <br><center>L'extension PHP 'XML' n'est pas chargé<br>Certaines fonctionnalités du module ne seront pas disponibles</center>
+InfraSSupPriceChangelogXMLError  = Erreur changelog.xml
+InfraSSupPricenoMinDolVersion    = Pas de version minimum connue
+InfraSSupPricenoMaxDolVersion    = Pas de version maximum connue
+InfraSSupPricesupportInformation = Informations techniques
+
+### Permissions ###
+InfraSSupPricePermMenu    = Afficher le menu secondaire vers les paramètres du module (utilisateur non administrateur)
+InfraSSupPricePermSpecif  = Modifier les paramètres spécifique InfraSSupPrice
+InfraSSupPricePermBkpRest = Sauvegarder / Restaurer les paramètres du module
+InfraSSupPricePermUpdate  = Mettre à jour les tarifs fournisseurs
+
+### infras lib page ###
+InfraSSupPriceParamsSetup           = Paramétrage de la gestion des tarif fournisseur
+InfraSSupPriceParamChangelog        = Evolutions
+InfraSSupPriceSetup                 = Paramétrage
+
+### InfraSSupPrice setup page ###
+InfraSSupPriceParamAction1        = Sauvegarder / Restaurer l'ensemble des paramètres du module
+InfraSSupPriceParamAction2        = <br>(après une restauration rafraichissez la page (F5) pour visualiser le résultat)
+InfraSSupPriceParamBkup           = Sauvegarder
+InfraSSupPriceParamRestore        = Restaurer
+InfraSSupPriceParamTitleComp      = <b>Options des fonctions de gestion des tarifs fournisseurs</b>
+InfraSSupPriceParamQtyNotValueMin = Ne pas utiliser la quantité produit renseignée dans le document comme quantité minimum pour le tarif (La valeur de la quantité minimum est modifiable ligne par ligne)
+
+### About page ###
+
+### Changelog page ###
+InfraSSupPriceParamsChangelog           = Changelog / Support
+InfraSSupPriceParamPresent              = <b>Ce module est une création InfraS, sa documentation est disponible sur notre wiki</b>
+InfraSSupPriceParamSlogan               = Structurez votre croissance !
+InfraSSupPriceParamLienModules          = Nos Modules
+InfraSSupPriceParamSupport              = Demande de support
+InfraSSupPriceParamLienDocs             = Nos Documentations
+InfraSSupPriceParamLicense              = sous Licence GPL v3 et supérieur. 
+InfraSSupPriceParamMoreModulesLink      = Nos modules sur le dolistore
+InfraSSupPriceParamObjet                = <h3>Objet :</h3>
+InfraSSupPriceParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSSupPriceParamSkipCheck            = Téléchargement désactivé
+InfraSSupPriceParamNumberVersion        = N° de version
+InfraSSupPriceParamMonthVersion         = Date
+InfraSSupPriceParamChangesVersion       = Modifications
+InfraSSupPriceParamCheckNewVersion      = Nouveau Changelog
+InfraSSupPriceParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
+
+### Actionsinfrassupprice ###
+InfraSSupPriceTitreMaj         = Mise à jour des tarifs fournisseur
+InfraSSupPriceColLineN         = Ligne N°
+InfraSSupPriceColRef           = Référence
+InfraSSupPriceColCodeFour      = Code Fournisseur
+InfraSSupPriceColTVA           = TVA
+InfraSSupPriceColPu            = Prix U
+InfraSSupPriceColQty           = Qty min.
+InfraSSupPriceColQtyMin        = Prix Qty min.
+InfraSSupPriceColRem           = Remise
+InfraSSupPriceActualUp         = Prix unitaire en cours :
+InfraSSupPriceActualSubPrice   = Prix pour qty minimum en cours :
+InfraSSupPriceActuaRem         = Remise en cours :
+InfraSSupPriceActualVat        = TVA en cours :
+InfraSSupPriceActualQtyTxt     = (pour une Qty minimum de %s)
+InfraSSupPriceActualQty        = Qty minimum en cours :
+InfraSSupPriceActualNotDefined = Pas de tarif défini pour ce produit chez ce fournisseur et pour cette quantité minimum.
+InfraSSupPricebtnModif         = Modifier les tarifs fournisseur
+
+### Message ###
+InfraSSupPriceMajOk      = Mise à jour du tarif de la ligne %s effectuée !
+InfraSSupPriceMajIdem    = Le tarif fournisseur de la ligne %s est identique !
+InfraSSupPriceMajKo      = Il y a une erreur dans la saisie de la ligne %s
+InfraSSupPriceMajNoCheck = Aucune ligne n'est cochée !
+InfraSSupPriceMajKoElse  = Il y a une erreur dans la saisie de la ligne %s : réponse du traitement = > %s

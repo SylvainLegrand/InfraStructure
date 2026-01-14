@@ -1,0 +1,78 @@
+<changelog>
+	<Version Number="8.0.0" MonthVersion="2018-08">
+		<change type='add'>Initial release</change>
+	</Version>
+	<Version Number="8.0.1" MonthVersion="2018-11">
+		<change type='fix'>Compatibilité PHP 5.3.28</change>
+	</Version>
+	<Version Number="8.0.2" MonthVersion="2019-05">
+		<change type='fix'>changelog : bug empéchant l'accès aux paramètres après une erreur dans le fichier 'changelog.xml'</change>
+	</Version>
+	<Version Number="8.1.0" MonthVersion="2019-07">
+		<change type='fix'>Page "à propos" : Correction d'un bug d'apparence => image manquante</change>
+		<change type='chg'>Initialisation : Modification du contrôle de version (Compatibilité Dolibarr 10.0.0)</change>
+		<change type='chg'>Paramètres : Modification de l'apparence des tableaux (Compatibilité Dolibarr 10.0.0)</change>
+		<change type='chg'>Paramètres : Modification de l'apparence du menu des utilisateurs non-administrateurs (Compatibilité Dolibarr 10.0.0)</change>
+		<change type='chg'>ChangeLog : Modification du contrôle de version disponible => suppression du contrôle automatique et ajout d'un bouton sur la page "à propos"</change>
+	</Version>
+	<Version Number="8.1.1" MonthVersion="2018-11">
+		<change type='fix'>Bug mineur de traduction</change>
+	</Version>
+	<Version Number="8.2.0" MonthVersion="2021-01">
+		<change type='add'>Ajout de la gestion des services => totalisation des durées</change>
+	</Version>
+	<Version Number="8.2.1" MonthVersion="2021-02">
+		<change type='add'>Ajout d'une option pour afficher la totalisation des durées en semaines / jours et heures (suivant les facteurs de conversion enregistrés)</change>
+		<change type='add'>Core change : Compatibilité Dolibarr 13.0.0</change>
+	</Version>
+	<Version Number="8.2.2" MonthVersion="2021-03">
+		<change type='add'>Core change : Compatibilité Dolibarr 13.0.2</change>
+	</Version>
+	<Version Number="8.2.3" MonthVersion="2021-09">
+		<change type='add'>Calcul des temps : Ajout d'une option pour n'afficher que le total des lignes</change>
+		<change type='add'>Core change : Compatibilité Dolibarr 14.0.2</change>
+		<change type='chg'>Changelog : Déplacement du fichier de version téléchargé vers le dossier des documents Dolibarr</change>
+		<change type='chg'>Core change : Abandon des versions 6.0.x à 11.0.x de Dolibarr</change>
+	</Version>
+	<Version Number="8.3.0" MonthVersion="2023-10">
+		<change type='chg'>Compatibilité avec Dolibarr supérieur à 16.0.x</change>
+		<change type='chg'>Menu d'accès aux paramètres du module pour les utilisateurs non-administrateur => Déplacement du menu principal au menu des outils</change>
+		<change type='chg'>Activation des fonctions de contrôle de version natives de Dolibarr</change>
+		<change type='chg'>Abandon du support pour les versions de Dolibarr inférieures à 14.0.x</change>
+		<change type='chg'>Mise à jour des logos</change>
+		<change type='chg'>Paramètres : Amélioration de l'expérience utilisateur (Style CSS amélioré)</change>
+	</Version>
+	<Version Number="8.3.1" MonthVersion="2023-10">
+		<change type='chg'>Menu d'accès aux paramètres du module pour les utilisateurs non-administrateur => Création d'un menu général pour les modules InfraS</change>
+	</Version>
+	<Version Number="15.0.0" MonthVersion="2025-03">
+		<change type='fix'>Compatibilité PHP 8.1</change>
+		<change type='fix'>Amélioration de la gestion des versions déclarées du module</change>
+		<change type='chg'>Modification de la numérotation => (version minimum requise de Dolibarr) . (ajout de fonction) . (correctif)</change>
+		<change type='add'>Ajout d'un menu vers l'onglet "Changelog" => Facilite l'utilisation du lien vers le support</change>
+		<change type='add'>Gestion des versions minimum / maximum de PHP centralisée dans le fichier changelog</change>
+	</Version>
+	<Version Number="15.0.1" MonthVersion="2025-03">
+		<change type='chg'>Modification de la gestion du menu 'outils'</change>
+	</Version>
+	<Version Number="15.0.2" MonthVersion="2025-06">
+		<change type='fix'>Correction du contrôle de version</change>
+		<change type='chg'>Amélioration du process de téléchargement du fichier changelog</change>
+	</Version>
+	<Version Number="15.0.2" MonthVersion="2025-06">
+		<change type='chg'>Mise à jour du logo et de l'URL du DOlistore</change>
+	</Version>
+	<Version Number="15.0.3" MonthVersion="2025-06">
+		<change type='chg'>Mise à jour du fichier readme</change>
+	</Version>
+	<Version Number="15.0.4" MonthVersion="2025-07">
+		<change type='chg'>Amélioration de la compatibilité PHP8.1 et supérieur</change>
+		<change type='chg'>Amélioration de l'affichage des paramètres (en fonction des choix utilisateur et du thème appliqué dans Dolibarr)</change>
+	</Version>
+	<Version Number="15.0.5" MonthVersion="2025-07">
+		<change type='chg'>Amélioration de la compatibilité CSS avec les thèmes Dolibarr</change>
+	</Version>
+	<InfraS Downloaded="20250701"/>
+	<Dolibarr minVersion="15.0.0" maxVersion="21.0.3"/>
+	<PHP minVersion="7.4" maxVersion="8.2"/>
+</changelog>

@@ -1,0 +1,81 @@
+# Dolibarr language file - en_US - InfraS
+CHARSET                          = UTF-8
+
+basenameInfraSSupPrice           = InfraS
+modnameInfraSSupPrice            = infrassupprice
+modcomnameInfraSSupPrice         = InfraSSupPrice
+Module500056Name                 = Suppliers Prices
+Module500056Desc                 = Suppliers Prices management : direct update from the purchase documents (Supplier proposals, Orders or Invoices)
+NewVersionAviable                = Last available version
+PiloteVersion                    = Pilot version
+InfraSSupPriceCautionMess        = <center><b>----- to read carefully! -----</b></center>
+InfraSSupPriceCaution            = <b>WARNING!</b>
+InfraSSupPriceXMLextError        = <br><center>The PHP 'XML' extension is not loaded<br>Some features of the module will not be available<center>
+InfraSSupPriceChangelogXMLError  = changelog.xml error
+InfraSSupPricenoMinDolVersion    = No minimum version known
+InfraSSupPricenoMaxDolVersion    = No maximum version known
+InfraSSupportInformation         = Technical informations
+
+### Permissions ###
+InfraSSupPricePermMenu    = Show secondary menu to module settings (non-administrator user)
+InfraSSupPricePermSpecif  = Modify the specific parameters InfraSSupPrice
+InfraSSupPricePermBkpRest = Backup / Restore module settings
+InfraSSupPricePermUpdate  = Update supplier rates
+
+### infras lib page ###
+InfraSSupPriceParamsSetup    = Settings
+InfraSSupPriceParamChangelog = Changelog
+
+### InfraSSupPrice setup page ###
+InfraSSupPriceParamAction1        = Save / Restore all module parameters
+InfraSSupPriceParamAction2        = <br>(after a restore refresh the page (F5) to visualize the result)
+InfraSSupPriceParamBkup           = Backup
+InfraSSupPriceParamRestore        = Restore
+InfraSSupPriceParamTitleComp      = <b>Options for Supplier Rate Management Functions</b>
+InfraSSupPriceParamQtyNotValueMin = Do not use the product quantity entered in the document as the minimum quantity for the rate (The value of the minimum quantity can be modified line by line)
+
+### About page ###
+
+### Changelog page ###
+InfraSSupPriceParamsChangelog           = Changelog / Support
+InfraSSupPriceParamPresent              = <b>This module is an InfraS creation, a documentation is available on our website</b>
+InfraSSupPriceParamSlogan               = Structurez votre croissance !
+InfraSSupPriceParamLienModules          = Our Modules
+InfraSSupPriceParamSupport              = Support request
+InfraSSupPriceParamLienDocs             = Our User Guides
+InfraSSupPriceParamLicense              = Under GPL v3 and higher license
+InfraSSupPriceParamMoreModulesLink      = Our modules on the dolistore
+InfraSSupPriceParamObjet                = <h3>Object :</h3>
+InfraSSupPriceParamHistoryUpdates       = <b>Update history :</b>
+InfraSSupPriceParamSkipCheck            = Download disabled
+InfraSSupPriceParamNumberVersion        = version N°
+InfraSSupPriceParamMonthVersion         = Date
+InfraSSupPriceParamChangesVersion       = Modifications
+InfraSSupPriceParamCheckNewVersion      = New Changelog
+InfraSSupPriceParamCheckNewVersionTitle = Click to download the changelog of the latest available version
+
+### Actionsinfrassupprice ###
+InfraSSupPriceTitreMaj         = Update Supplier price
+InfraSSupPriceColLineN         = Line N°
+InfraSSupPriceColRef           = Reference
+InfraSSupPriceColCodeFour      = Supplier Code
+InfraSSupPriceColTVA           = VAT
+InfraSSupPriceColPu            = Unit Price
+InfraSSupPriceColQty           = Min. Qty
+InfraSSupPriceColQtyMin        = Min. Qty Price
+InfraSSupPriceColRem           = Discount
+InfraSSupPriceActualUp         = Current unit price:
+InfraSSupPriceActualSubPrice   = Price for current minimum qty:
+InfraSSupPriceActuaRem         = Current discount:
+InfraSSupPriceActualVat        = Current VAT:
+InfraSSupPriceActualQtyTxt     = (for a minimum Qty of %s)
+InfraSSupPriceActualQty        = Current minimum qty:
+InfraSSupPriceActualNotDefined = No price set for this product from this supplier and for this minimum quantity
+InfraSSupPricebtnModif         = Change Supplier price
+
+### Message ###
+InfraSSupPriceMajOk      = Update price line %s done !
+InfraSSupPriceMajIdem    = The supplier tariff of line %s is identical!
+InfraSSupPriceMajKo      = There is an error in entering the line %s
+InfraSSupPriceMajNoCheck = No line check !
+InfraSSupPriceMajKoElse  = There is an error in entering the line %s : Treatment response  = > %s

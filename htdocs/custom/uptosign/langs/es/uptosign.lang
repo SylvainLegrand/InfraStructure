@@ -1,0 +1,155 @@
+
+
+#
+# Generic
+#
+UptoSignTab=Hasta la firma 
+# Module description 'ModuleUptoSignDesc'
+ModuleUptoSignDesc=Este módulo le permite crear documentos PDF firmados digitalmente con validez legal.
+UptoSignParamAction2=<br>(después de una restauración actualice la página (F5) para visualizar el resultado)
+UPTOSIGN_AUTHENTICATION_MODETooltip=Modo de autenticación por defecto para firmar el documento. El firmante recibirá un código de validación para firmar el documento, los valores posibles son sms y correo.
+UptoSignEndPropalTemplate=UptoSign: Correo de confirmación cuando se firma la propuesta
+UptoSignInitCommandeTemplate=UptoSign: Para enviar una propuesta y solicitar una firma electrónica
+UptoSignEndCommandeTemplate=UptoSign: Correo de confirmación cuando se firma el pedido del cliente
+UptoSignFetch=Descargar el documento firmado
+UptoSignContactPhoneMobileMissing=Falta el número de teléfono móvil de contacto para el envío de SMS de firma.
+UptoSignUserPhoneMobileWrongFormat=El número de teléfono móvil del usuario debe estar en formato internacional (por ejemplo: +33612345678).
+UptoSignInvalidCoordinates=Formato de coordenadas de firma no válido (por ejemplo: 12,34,56,78)
+UPTOSIGN_PASS_API=Contraseña
+AuthentificationSms=Sms
+RedirectionMode=Redirigir a la página de firma,
+RedirectionFalse=No
+RedirectionTrue=Sí
+UptoSignSignedNoModify=No se puede modificar un documento firmado.
+UptoSignSignedNoDelete=No se puede borrar un documento firmado.
+UptoSignSendInitDefaultEnUs=No se ha encontrado ninguna plantilla de solicitud para su idioma, se ha utilizado la plantilla en inglés.
+UptoSignSendEndDefaultEnUs=No se ha encontrado ninguna plantilla de confirmación para su idioma, se ha utilizado la plantilla en inglés.
+SignedByUptoSign=Firmado por UptoSign
+UptoSignDocumentFetched=Ahora puede encontrar el documento firmado en su sección de archivos vinculados.
+ConfirmDeleteConfig=¿Realmente quiere eliminar esta configuración de UptoSign?
+TypeContact=Tipo de contacto para firmar el documento
+SignCoordinate=Coordenadas de posición para la firma
+NewConfig=Nueva configuración
+UptoSignConfigList=Lista de ajustes
+ObjectId=Referencia del objeto
+ObjectType=Tipo de objeto
+SignStatus=Estado de los signos
+ContactSignId=Contacto para la firma
+UserSignId=Usuario firmante
+DateSign=Fecha de la firma
+UptoSignSetupError=Error en la configuración de UptoSign.
+# Sample widget
+#
+MyWidget=Mi widget
+MyWidgetDescription=Descripción de mi widget
+UptoSignSyncError=Error de sincronización de UpToSign
+UptoSignForceRefresh=Sincronización forzada de UpToSign
+UptoSignSettingsServer=Servidor
+UptoSignSettings=Parámetros de UptoSign
+UPTOSIGNSetup=Configurar
+UPTOSIGNSetupPage=Configuración de UpToSign
+UPTOSIGN_LOGIN_USED_RESETPASS=La autenticación en el servidor remoto es imposible (login o contraseña errónea)
+UPTOSIGN_LOGIN_USED_RESETPASS2=Si tiene una cuenta en el servidor remoto, siga el enlace _QQ_restablecer contraseña_QQ_"."
+UPTOSIGN_LOGIN_USED_RESETPASS3=Y en el otro caso, por favor haga clic en _QQ_crear cuenta_QQ_""
+UptoSignResetPass=Restablecimiento de la contraseña
+UptoSignCreateAccount=Crear una cuenta
+UPTOSIGN_LOGIN=Inicio de sesión
+UPTOSIGN_LOGINTooltip=Dirección de correo electrónico utilizada para crear su cuenta en el servidor remoto
+UPTOSIGN_PASS_APITooltip=La contraseña de su cuenta
+CheckConnectToUPTOSIGN=Comprobar la conexión
+UPTOSIGN_API_KEY_UPTOSIGN=Clave API
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN=Sufijo del nombre del archivo firmado
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGNTooltip=Puede personalizar el nombre del archivo con un sufijo (insertado antes de _QQ_.pdf_QQ_")"
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL=Sufijo del nombre del archivo sellado 
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEALTooltip=Puede personalizar el nombre del archivo con un sufijo (insertado antes de _QQ_.pdf_QQ_")"
+UPTOSIGN_FILENAME_SUFFIX_PROOF=Sufijo del nombre del archivo de prueba
+UPTOSIGN_FILENAME_SUFFIX_PROOFTooltip=Puede personalizar el nombre del archivo con un sufijo (insertado antes de _QQ_.pdf_QQ_")"
+UptoSignTemplatesTab=Plantillas
+ConfirmUptoSeal=¿Está seguro de que va a procesar el envío de un documento para el sellado electrónico y el sellado de tiempo?
+UptoSignInitContractTemplate=UptoSign: Para enviar un contrato a la firma electrónica
+UptoSignEndContratTemplate=UptoSign: Correo electrónico de confirmación al firmante de un contrato
+UptoSignInitExpeditionTemplate=UptoSign: Para enviar un albarán para la firma electrónica
+UptoSignEndExpeditionTemplate=UptoSign: Correo electrónico de confirmación al firmante de un albarán
+UptoSignReminders=UptoSign: Correo electrónico de recordatorio
+UptoSignRefused=UptoSign: Correo electrónico de rechazo
+UptoSignConfigMissing=Falta la configuración de su plantilla de documento (UptoSign).
+ModelePdf=Nombre del modelo de documento PDF
+ModelDocument=Modelo de documento
+ModelePdfTooltip=Este es el nombre de la plantilla del documento PDF que está utilizando
+UptoSignOnlineSignature=Página de firma de documentos electrónicos
+UptoSignWelcomeOnOnlineSignaturePage=Bienvenido a la página de firma de documentos que ofrece %s
+
+# Module label 'ModuleUptoSignName'
+ModuleUptoSignName=UptoSign
+ModuleUptoSignDescLong=Con el módulo DoiEsign puede hacer que sus documentos comerciales sean firmados digitalmente por sus contactos.
+UptoSignSetup=Configuración de UptoSign
+Settings=Ajustes
+UptoSignSetupPage=Página de configuración de UptoSign
+UptoSignParamAction1=Guardar / Restaurar todos los parámetros del módulo para
+UptoSignParamBkup=Copia de seguridad
+UptoSignParamRestore=Restaurar
+UPTOSIGN_ENVIRONMENT=Entorno de firma
+UPTOSIGN_ENVIRONMENTTooltip=Entorno del Proveedor de Firma, para mostrar las opciones del nuevo entorno que debe guardar después de cambiar el entorno.
+UPTOSIGN_AUTHENTICATION_MODE=Modo de autenticación por defecto
+UPTOSIGN_AUTHENTICATION_MODE_PROD=Modo de autenticación por defecto en producción
+UPTOSIGN_ACTIVATE_SERVICES_ON_CONTRACT_SIGNED = Activar automáticamente todos los servicios al firmar el contrato.
+
+
+#
+# About page
+#
+About=Acerca de
+UptoSignAbout=Acerca de UptoSign
+UptoSignAboutPage=Página de configuración de UptoSign
+ConfirmUptoSign=¿Está seguro de enviar una solicitud de firma electrónica del documento.
+UptoSignInitPropalTemplate=UptoSign: Para enviar una propuesta y solicitar una firma electrónica
+ConfirmUptoSignFetch=¿Está seguro de descargar el documento firmado electrónicamente?
+UptoSignInitInterventionTemplate=UptoSign: Para enviar una intervención y solicitar una firma electrónica
+UptoSignEndInterventionTemplate=UptoSign: Correo de confirmación cuando se firma la intervención
+UptoSignSync=Sincronizar UptoSign
+UptoSign=UptoSign
+UptoSignAgain=Volver a firmar
+UptoSignStatus=Estado UptoSign
+NoUptoSign=Ninguno
+WaitingCommonSign=Esperando
+UptoSignSigned=Firmado
+UptoSignCanceled=Cancelado
+UptoSignError=Error de señalización
+UptoSignFetchedSign=Firmado Doc
+ReadUptoSign=Leer firmas
+CreateUptoSign=Solicitar firmas
+DeleteUptoSign=Anular los fichajes
+UptoSignApiError=Error de Api.
+UptoSignContactEmailMissing=Falta el correo electrónico de contacto.
+UptoSignUserEmailMissing=Falta el correo electrónico del usuario.
+UptoSignUserPhoneMobileMissing=Falta el número de teléfono móvil de contacto para el envío de SMS de firma.
+UptoSignContactPhoneMobileWrongFormat=El número de teléfono móvil de contacto debe estar en formato internacional (por ejemplo: +33612345678).
+UptoSignContactMissing=No se ha asignado ningún contacto para la firma.
+UptoSignCreateFileError=Error al almacenar el documento firmado.
+UptoSignFileMissing=No hay ningún documento generado disponible.
+SignRequestSuccessful=Envío satisfactorio de la solicitud de firma del documento.
+AuthentificationMode=Modo de autenticación para firmar el documento.
+AuthentificationEmail=Envíe un correo electrónico a
+UptoSignConfig=UptoSign
+UptoSignConnectError=Error de conexión a la API.
+UptoSignList=Lista de firmas
+RefuseDocument=Rechazo
+UptoSignThisScreenAllowsYouToSignDocFrom=Esta pantalla le permite aceptar y firmar en línea, o rechazar, los siguientes documentos:
+UptoSignSignatureProposalRef=Firma del documento %s
+SignOrSeal=¿Sello o firma?
+SignOrSealTooltip=En el contexto de un sello sólo es necesaria la información del sello. Para la firma recuerde completar todos los campos de este formulario.
+SignCoordinateTooltip=Posición de la firma (coordenadas x,y en milímetros de la esquina superior izquierda)
+SignPage=Página de la firma
+SignPageTooltip=Página donde añadir la firma (para elegir un número a partir del final, ponga un número negativo: ej., -3 para la 3ª página antes del final)
+AcceptDocument=Aceptar y firmar
+DocumentAlreadyRefused=Documento ya aceptado
+DocumentRefused=Documento rechazado
+DocumentAlreadySigned=Documento ya aceptado y firmado
+DocumentSigned=Documento firmado
+DocumentSealed=Documento sellado
+UptoSignSealInvoice=Sellar una factura
+SignedUptoSign=Documento firmado
+UptoSignProof=prueba
+UptoSignProofButtonActions=Archivo de prueba vinculado a la firma del documento, no es posible realizar ninguna acción en este formulario
+UptoSignYouDoNotHaveRightsToDo=No tiene derecho a iniciar esta acción
+UptoSignProcedureCancelled=Se está llevando a cabo un procedimiento de anulación de este documento

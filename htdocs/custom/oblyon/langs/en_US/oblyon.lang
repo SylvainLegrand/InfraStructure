@@ -1,0 +1,296 @@
+# < Oblyon Control Panel - English translation >
+# Copyright (C) 2015       Nicolas Rivera       <nrivera.pro@gmail.com>
+# Copyright (C) 2015-2025  Alexandre Spangaro   <alexandre@inovea-conseil.com>
+#
+Module432573Name   = Oblyon
+Module432573Desc   = Options panel allows you to personalize the Oblyon theme
+
+OblyonParamAction1  = Save / Restore all module parameters for
+OblyonParamAction2  = <br>(after a restore refresh the page (F5) to visualize the result)
+OblyonParamBkup     = Backup
+OblyonParamRestore  = Restore
+OblyonDeleteThemeError  = An error occurred when deleting the theme Oblyon
+OblyonCopyThemeError    = An error occurred while copying the theme Oblyon
+
+#
+# Easya
+#
+MenuProjectsOpportunities = Projects | Opportunities
+BankColorizeMovement      = Colouring of bank transactions
+BankColorizeMovementDesc  = If this function is activated, you can define a specific background color for debit or credit movements.
+BankColorizeMovementName1 = Background color for a debit movement
+BankColorizeMovementName2 = Background color for a credit movement
+MenuCatalog               = Catalog
+MenuVAT                   = VAT
+Recruitment               = Recruitment
+
+CustomCSS=Style CSS
+
+#
+# Menus
+#
+OblyonMenusTitle                     = Oblyon Configurator - Menus Editor
+OblyonLoginTitle                     = Oblyon Configurator - Login page editor
+OblyonSuccessMessage                 = Oblyon theme detected, you can now personalize it.
+OblyonErrorMessage                   = You must use the Oblyon theme in order to personalize it.
+OblyonMenusErrorMessage              = You must use the Oblyon menus in order to personalize it. Please check your current menu manager.
+LeftMenu                             = Left Menu
+TopMenu                              = Top Menu
+InvertMenus                          = Invert Menus
+FullsizeTopBar                       = Fullsize Top Bar
+FullsizeTopBarWarning                = Use a limited number of menu entries.
+ShowCompanyName                      = Show Company Name
+StickyTopBar                         = Sticky Top Bar 
+StickyTopBarWarning                  = Experimental. Use a limited number of menu entries.
+StickyTopBarInvertedWarning          = Certain modules are not supported with this feature.
+StickyLeftBar                        = Sticky left bar
+StickyLeftBarWarning                 = Experimental. Use a limited number of menu entries.
+StickyLeftBarInvertedWarning         = Certain modules are not supported with this feature.
+OblyonEnableShowLogo                 = Show logo
+OblyonLogoWidth                      = Logo width (in px) (Default: 260px)
+ReduceLeftMenu                       = Reduced left menu (Icons only)
+
+HideLeftMenu                         = Hide Left Menu
+OpenEffect                           = Opening Effect
+OpenEffectReduce                     = Left Menu opening effect reduced
+EffectLeftMenuSlide                  = Slide
+EffectLeftMenuPush                   = Push
+HideTopIcons                         = Hide Top Icons
+HideLeftIcons                        = Hide Left Icons
+ShowLeftMenu                         = Show/Hide Left Menu
+MicroMenuLeftBarHideLeftIconsWarning = Warning. Incompatible with the "Hide icons" option in the left menu.
+MicroMenuLeftBarCompanyNameWarning   = Warning. Incompatible with the option "Display company name".
+EffectMicroMenuHover                 = Deployed at mouse-over
+EffectMicroMenuOnly                  = Do not deploy
+OblyonLogin                          = Login page
+LoginRight                           = Offset the connection block to the right of the screen
+CardBehavior                         = Behavior of the cards
+FixAreaRefAndTabAction               = Fix the reference banner and action buttons during vertical scrolling
+FixStickyTabsCard                    = Fix tab banner when scrolling vertically
+SwitchColunmOnLeft                   = Toggle selection / search / mass action column to the left
+FixTitleInList                       = Sticky list title bar so that title, mass action, pagination and “Add” element are always visible
+RemoveKanbanViewInList               = Remove the "Kanban view" button at the top right of the lists
+FixStickyTableHeadersColumns         = Fix the table column header on the elements during vertical scrolling
+FixStickyFirstColumn                 = Fix first column of tables when scrolling horizontally
+FixStickyLastColumn                  = Fix last column of tables when scrolling horizontally
+General                              = General parameters
+OblyonFontSize                       = Basic text size in pixels (must be between 10 and 16)
+OblyonFontFamily                     = Change Font family for Dolibarr interface
+MainStatusUseImages                  = The different statuses of the elements will be displayed as icons with or without explanatory text (otherwise a colored label will be used)
+
+#
+# Warnings
+#
+ResetCacheDisclaimer=For some options to take effect, it is necessary to clear the browser's cache.<br> CTRL + F5 will suffice in most cases immediately after applying an option below.
+WIP=Caution! Function under development - May cause unexpected display behavior
+NotAvailableOnAllLists=Not available on all lists
+WarningActivationOption1Enabled=Not recommended when %s is enabled
+
+#
+# Colors page
+#
+OblyonColorsTitle                  = Oblyon Configurator - Colors
+Colors                             = Colors
+Buttons                            = Buttons
+OBLYON_COLOR_MAIN                  = Maincolor
+OBLYON_COLOR_BCKGRD                = Background color
+OBLYON_COLOR_LOGO_BCKGRD           = Logo background color
+OBLYON_COLOR_LOGIN_BCKGRD          = Login background color
+OBLYON_COLOR_BTITLE                = Title background color
+OBLYON_COLOR_FTITLE                = Text color of the titles
+OBLYON_COLOR_STITLE                = Text color of the Main titles
+OBLYON_COLOR_BLINE                 = Lines background color
+OBLYON_COLOR_BLINE_HOVER           = Background color of the hovered lines
+OBLYON_COLOR_FDATE_DEFAULT         = Default date color (today's date) in date picker
+OBLYON_COLOR_FDATE_SELECTED        = Selected date color in date picker
+OBLYON_COLOR_FLINE                 = Lines text color
+OBLYON_COLOR_FLINE_HOVER           = Lines text hover color
+OBLYON_COLOR_TOPMENU_BCKGRD        = Topmenu background color
+OBLYON_COLOR_TOPMENU_BCKGRD_HOVER  = Topmenu background hover color
+OBLYON_COLOR_TOPMENU_TXT           = Topmenu color text
+OBLYON_COLOR_TOPMENU_TXT_ACTIVE    = Color of the active text of the top menu
+OBLYON_COLOR_TOPMENU_TXT_HOVER     = Hover text color of the top menu
+OBLYON_COLOR_LEFTMENU_BCKGRD       = Leftmenu background color
+OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER = Leftmenu background hover color
+OBLYON_COLOR_LEFTMENU_TXT          = leftmenu color text
+OBLYON_COLOR_LEFTMENU_TXT_ACTIVE   = Color of the active text of the left menu
+OBLYON_COLOR_LEFTMENU_TXT_HOVER    = Left menu hover text color
+OBLYON_COLOR_BUTTON_ACTION1        = Button background color 1
+OBLYON_COLOR_BUTTON_ACTION2        = Button background color 2
+OBLYON_COLOR_BUTTON_DELETE1        = Color 1 of the background of the dangerous buttons
+OBLYON_COLOR_BUTTON_DELETE2        = Color 2 background of the dangerous buttons
+OBLYON_COLOR_INFO_BORDER           = Color border on information message
+OBLYON_COLOR_INFO_BCKGRD           = Color background on information message
+OBLYON_COLOR_INFO_TEXT             = Color text on information message
+OBLYON_COLOR_WARNING_BORDER        = Color border on warning message
+OBLYON_COLOR_WARNING_BCKGRD        = Color background on warning message
+OBLYON_COLOR_WARNING_TEXT          = Color text on warning message
+OBLYON_COLOR_ERROR_BORDER          = Color border on error message
+OBLYON_COLOR_ERROR_BCKGRD          = Color background on error message
+OBLYON_COLOR_ERROR_TEXT            = Color text on error message
+OBLYON_COLOR_NOTIF_INFO_BCKGRD     = Color background on notification information message
+OBLYON_COLOR_NOTIF_INFO_TEXT       = Color text on notification information message
+OBLYON_COLOR_NOTIF_WARNING_BCKGRD  = Color background on notification warning message
+OBLYON_COLOR_NOTIF_WARNING_TEXT    = Color text on notification warning message
+OBLYON_COLOR_NOTIF_ERROR_BCKGRD    = Color background on notification error message
+OBLYON_COLOR_NOTIF_ERROR_TEXT      = Color text on notification error message
+OBLYON_COLOR_TEXTTABACTIVE         = Color text of active tabs
+OBLYON_COLOR_INPUT_BCKGRD          = Background color of inputs
+OBLYON_COLOR_INFOBOX_BCKGRD1       = Background color 1 of active kanban cards (applications / modules)
+OBLYON_COLOR_INFOBOX_BCKGRD2       = Background color 2 of active kanban cards (applications / modules)
+OBLYON_COLOR_BORDER_ACTIONCOLUMN   = Border color of the 'action' column of the tables
+InvertRatioDesc                    = Color Inversion Filter Ratio (Applicable to icons based on PNG image files)
+Eldys                              = Basic colors
+THEME_ELDY_TOPBORDER_TITLE1        = Title border color
+THEME_ELDY_BACKTITLE1              = Background color of filters (Oblyon => only on inactive statistics filters)
+THEME_ELDY_BACKTABACTIVE           = Color of active tabs
+THEME_ELDY_LINEIMPAIR1             = Background color 1 of the odd lines of the tables
+THEME_ELDY_LINEIMPAIR2             = Background color 2 of the odd lines of the tables
+THEME_ELDY_LINEPAIR1               = Background color 1 of the even rows of the tables
+THEME_ELDY_LINEPAIR2               = Background color 2 of the even rows of the tables
+THEME_ELDY_LINEBREAK               = Color of the line breaks
+THEME_ELDY_TEXTTITLENOTAB          = Title text color (excluding tables)
+THEME_ELDY_TEXTTITLE               = Title text color
+THEME_ELDY_TEXT                    = Basic text color
+THEME_ELDY_TEXTLINK                = Link text color
+
+RestoreDefaultColors               = Restore default colors
+DefaultsColorsMsg                  = Default colors restored
+ThemeApplied                       = Template applied
+Oblyongreen                        = Oblyon Green
+Oblyondark                         = Oblyon Dark
+Oblyonblue                         = Oblyon Blue
+Oblyonnight                        = Oblyon Night
+Oblyonlight                        = Oblyon Light
+OblyonWarningColorWhiteHelp        = This text color is white. It might not be visible on lightbackgrounds.
+
+#
+# Dashboard page
+#
+OblyonDashboardTitle                    = Oblyon configurator - Dashboard
+OblyonDashboardDisableBlocks            = Thumbs of open objects (to process or late) on main dashboard
+DisableGlobalBoxStats                   = Disable the global statistics widget (number of items in database)
+InfoboxColorOnBackground                = Invert the colors of the icons and the background of the thumbnails
+OblyonInfoboxSingleWidth                = Standardize the width of the thumbnails (Dolibarr standard 280px)
+OblyonInfoboxSingleWidthHelp            = Otherwise the width will adapt to the length of the information presented (the minimum width is 260px)
+ColorIntensity                          = Color intensity
+ColorIntensityDesc                      = Set the intensity to the colors below (Currently %s)
+ColorMoreDarker                         = Less intense
+ColorMoreLighter                        = More intense
+OBLYON_INFOXBOX_BACKGROUND              = Thumb background color
+OBLYON_INFOXBOX_WEATHER_COLOR           = Thumb color 'weather'
+OBLYON_INFOXBOX_ACTION_COLOR            = Thumb color 'agenda'
+OBLYON_INFOXBOX_PROJECT_COLOR           = Thumb color 'project'
+OBLYON_INFOXBOX_CUSTOMER_PROPAL_COLOR   = Thumb color 'customer sales proposals'
+OBLYON_INFOXBOX_CUSTOMER_ORDER_COLOR    = Thumb color 'customer orders'
+OBLYON_INFOXBOX_CUSTOMER_INVOICE_COLOR  = Thumb color 'customer invoices'
+OBLYON_INFOXBOX_SUPPLIER_PROPAL_COLOR   = Thumb color 'requests for quotations from suppliers'
+OBLYON_INFOXBOX_SUPPLIER_ORDER_COLOR    = Thumb color 'supplier orders'
+OBLYON_INFOXBOX_SUPPLIER_INVOICE_COLOR  = Thumb color 'supplier invoices'
+OBLYON_INFOXBOX_CONTRAT_COLOR           = Thumb color 'contract'
+OBLYON_INFOXBOX_BANK_COLOR              = Thumb color 'bank'
+OBLYON_INFOXBOX_ADHERENT_COLOR          = Thumb color 'members'
+OBLYON_INFOXBOX_EXPENSEREPORT_COLOR     = Thumb color 'expense reports'
+OBLYON_INFOXBOX_HOLIDAY_COLOR           = Thumb color 'holidays'
+OBLYON_INFOXBOX_TICKET_COLOR            = Thumb color 'tickets'
+OBLYON_INFOXBOX_MRP_COLOR               = Thumb color 'production (MRP)'
+
+#
+# Login page
+#
+OBLYON_COLOR_LOGIN_BCKGRD_RIGHT = Couleur du fond - Partie droite
+OBLYON_COLOR_LOGIN_BCKGRD_LEFT  = Couleur de fond - Partie gauche
+OBLYON_COLOR_LOGIN_TXT_RIGHT    = Couleur du texte - Partie droite
+OBLYON_COLOR_LOGIN_TXT_LEFT     = Couleur du texte - Partie gauche
+OBLYON_COLOR_LOGIN_TXT_INPUT    = Couleur du texte des champs de saisie
+OblyonActiveloginPersonalized   = Activer le remplacement de la page de connexion par celle d'Oblyon
+OblyonLoginLinks                = Liens
+OblyonSocialNetwork             = Réseaux sociaux
+OBLYON_LOGIN_TXT1               = 1er lien - Texte
+OBLYON_LOGIN_URL1               = 1er lien - URL
+OBLYON_LOGIN_FAICON1            = 1er lien - Icône
+OBLYON_LOGIN_TXT2               = 2ème lien - Texte
+OBLYON_LOGIN_URL2               = 2ème lien - URL
+OBLYON_LOGIN_FAICON2            = 2ème lien - Icône
+OBLYON_LOGIN_TXT3               = 3ème lien - Texte
+OBLYON_LOGIN_URL3               = 3ème lien - URL
+OBLYON_LOGIN_FAICON3            = 3ème lien - Icône
+OBLYON_SOCIAL_TWITTER           = URL Twitter
+OBLYON_SOCIAL_FACEBOOK          = URL Facebook
+OBLYON_SOCIAL_LINKEDIN          = URL LinkedIn
+OBLYON_SOCIAL_INSTAGRAM         = Instagram
+OBLYON_SOCIAL_YOUTUBE           = YouTube
+OBLYON_SOCIAL_GITHUB            = Github
+
+#
+# Options page
+#
+OblyonOptionsTitle              = Oblyon Configurator - Options
+OptionsGeneral                  = General options
+OblyonOptions                   = Options
+OblyonMainUseQuickAddDropdown   = Add the quick action menu (in top right)
+OblyonMainUseSearchDropdown     = Add the search menu (in top right)
+OblyonMainUseBookmarkDropdown   = Add the bookmark menu (in top right)
+OblyonImageHeightTable          = Maximum height of images in lists (tables)
+OblyonDisableVersion            = Don't show the version number of Dolibarr (in top right)
+OblyonPaddingRightBottom        = Display a margin at the bottom of the page on the right side
+
+# List
+OptionsList                  = List options
+SwitchColumnOnLeft           = Flip the selection / search / mass action column to the left
+FixTitleInList               = Sticky list title bar so that title, mass action, pagination and “Add” element are always visible
+RemoveKanbanViewInList       = Remove the “Kanban view” button at the top right of lists
+FixStickyTableHeadersColumns = Sticky table column headers on elements when scrolling vertically
+FixStickyFirstColumn         = Sticky first column of tables when scrolling horizontally
+FixStickyLastColumn          = Sticky last table column when scrolling horizontally
+FixStickyTotalBar            = Sticky total bar at the bottom of the page
+ShowGrandTotalList           = Display grand totals without pagination if amounts differ from classic totals
+FixStickyGrandTotalBar       = Sticky grand total bar at the bottom of the page
+
+# Card
+OptionsCard                  = Card options
+FixStickyTabsCard            = Sticky tab banner when scrolling vertically
+FixAreaRefCard               = Sticky area ref when scrolling vertically. (Disabled on mobiles phones)
+MainMaxTabsInCard            = Maximum number of tabs visible. Others are grouped into a combo list
+LimitTabLineToOne            = (Allows you to limit the tabs to a single line => necessary when the 2 previous options are active simultaneously)
+FixAbsoluteButtonsActionCard = Sticky action buttons at bottom of the page
+ShowLineNumberCard           = Show line number (Invoice, proposal, etc)
+
+# FCK Editor
+OptionsCKEditor                             = WYSIWYG editor options (CKEditor)
+FckeditorAllowAnyContent                    = Allow any content in WYSIWYG editor
+FckeditorEnableScaytAutostartup             = Enable automatic spell check (SCAYT)
+MainSecurityAllowUnsecuredLabelsWithHtml    = Allow unsecured label with html
+NotRecommended                              = Not recommended
+
+#
+# Icons page
+#
+Icons=Icons
+OblyonSetupIcons=Oblyon Configurator - Icons
+OblyonIconsUseFA6 = QuickUXIconsUseFA6 = Enable use of FontAwesome 6 icons (Free) (Font Awesome 5 by default)
+FontAwesomeSelectPack=Select which FontAwesome pack to use:
+FontAwesomeAction=Action
+FontAwesomeFolder=Folder
+FontAwesomeVersion=Version
+FontAwesomeLicence=Licence
+FontAwesomeAvailableStyles=Available Styles
+FontAwesomeSaveButton=Save
+FontAwesomeSuccessMessage=✅ You are now using %s (%s, weight %s) from %s
+FontAwesomeDirectoryDownload=To add a new FontAwesome pack, you need to create a new “fontawesome-<i><b>x(p)</b></i>” directory (x for the major version, p if it's a pro version) (Example for FontAwesome 6.0.72 Pro: “fontawesome-6p”) in <b>/theme/common/</b>. This directory will contain your unzipped FontAwesome package.
+
+#
+# Custom CSS page
+#
+OblyonCustomCSSTitle = Oblyon Configurator - Custom CSS
+AddCustomCssSentence = You can add your custom CSS
+
+#
+# About page
+#
+ThemeOblyonAboutTitle     = Oblyon Configurator - About
+ThemeOblyonChangelogTitle = Oblyon Configurator - ChangeLog
+OblyonAbout               = About
+Authors                   = Authors
+OldAuthors                = Previous authors
+LicenseMessage            = Theme Oblyon is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.<br><a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a>

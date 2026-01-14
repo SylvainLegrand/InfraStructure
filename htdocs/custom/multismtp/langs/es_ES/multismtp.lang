@@ -1,0 +1,34 @@
+#Admin page
+Module402002Desc=Permite a los usuarios configurar una cuenta de correo electrónico
+SMTPDescription=La función SMTP permite enviar correos electrónicos desde las credenciales configuradas por el usuario en vez de utilizar las principales de Dolibarr, de forma que pueda evitar problemas de SPAM o con el servidor de correo electrónico.
+MULTISMTP_SMTP_ENABLED=Activar función SMTP
+MULTISMTP_ALLOW_CHANGESERVER=Permitir a los usuarios configurar un servidor diferente
+IMAPDescription=La función IMAP le permite copiar los correos electrónicos enviados a través de Dolibarr a su servidor, de forma que pueda comprobarlos más tarde.
+MULTISMTP_IMAP_ENABLED=Activar función IMAP
+ForceIMAPConfiguration=Forzar configuración de servidor IMAP
+MULTISMTP_IMAP_CONF_SSL=Usar cifrado SSL
+IMAPNotAvailable=No disponible. Se requiere la extensión IMAP.
+MULTISMTP_IMAP_NOVALIDATECERT=No validar certificados SSL. Obligatorio si el servidor utiliza certificados autofirmados
+PreParameterAdvice=Como protección contra la fuga de datos en la empresa, por defecto no se permite configurar cuentas de un servidor de correo electrónico diferente al especificado en la configuración general de Email de Dolibarr.
+NotWorking370=Este módulo no funciona correctamente con la versión 3.7.0.
+TriggerNotActive=La constante MAIN_ACTIVATE_UPDATESESSIONTRIGGER debe estar configurada para que el módulo funcione correctamente.
+WarningMailSendMode=Debe configurar "SMTP/SMTPS socket library" en "%s" para empezar a utilizar la función SMTP. %sAcceda desde aquí para cambiarlo%s
+WarningMailDisabled=El envío de correos electrónicos ha sido desactivado. La función SMTP no funcionará. %sAcceda desde aquí para activarlo de nuevo%s
+
+#Background errors
+SMTPInjectionError=El módulo MultiSMTP no fue capaz de inyectar la configuración de email del usuario.
+IMAPSaveError=Error al guardar el mensaje enviado a su servidor IMAP.
+
+#User page
+IMAPConnectionError=Error al conectar al servidor IMAP
+SMTPConnectionError=Error al conectar al servidor SMTP
+SMTPConfiguration=Configuración SMTP
+IMAPConfiguration=Configuración IMAP
+IMAP_SERVER=Servidor IMAP
+IMAP_PORT=Puerto IMAP
+IMAP_ID=Usuario IMAP
+IMAP_PW=Contraseña IMAP
+IMAP_FOLDER=Carpeta que almacena los emails enviados
+ErrorRetrievingIMAPFolders=Error al recuperar la lista de bandejas de correo electrónico.
+CheckModuleConfiguration=Compruebe la configuración del módulo.
+ErrorFolderNotExist=No se encuentra la carpeta IMAP seleccionada.

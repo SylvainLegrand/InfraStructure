@@ -1,0 +1,34 @@
+#Admin page
+Module402002Desc=Allows users configure an email account
+SMTPDescription=The SMTP function allows sending emails from configured user credentials instead of using the main Dolibarr ones, so that you can avoid SPAM or mailserver problems.
+MULTISMTP_SMTP_ENABLED=Enable SMTP function
+MULTISMTP_ALLOW_CHANGESERVER=Allow users to configure a different mail server
+IMAPDescription=The IMAP function allows copying emails sent through Dolibarr to your server, so that you can check them later.
+MULTISMTP_IMAP_ENABLED=Enable IMAP function
+ForceIMAPConfiguration=Force IMAP server configuration
+MULTISMTP_IMAP_CONF_SSL=Use SSL encryption
+MULTISMTP_IMAP_NOVALIDATECERT=Do not validate SSL certificates. Mandatory if the server uses self-signed certificates
+IMAPNotAvailable=Not available. IMAP extension is required.
+PreParameterAdvice=As a protection measure of data leak in the company, users are not allowed to configure email accounts that connect to different mail servers other than specified in the main configuration of Dolibarr.
+NotWorking370=This module is known to not be working properly with 3.7.0 version.
+TriggerNotActive=Constant MAIN_ACTIVATE_UPDATESESSIONTRIGGER must be configured for the module to work correctly.
+WarningMailSendMode=You have to configure "SMTP/SMTPS socket library" in "%s" to start using the SMTP function. %sClick here to change it%s
+WarningMailDisabled=Email sending has been disabled. SMTP function won't work. %sClick here to enable it again%s
+
+#Background errors
+SMTPInjectionError=MultiSMTP module was not able to inject user email settings.
+IMAPSaveError=Error saving the sent message to your IMAP server.
+
+#User page
+IMAPConnectionError=Error connecting to IMAP server
+SMTPConnectionError=Error connecting to SMTP server
+SMTPConfiguration=SMTP configuration
+IMAPConfiguration=IMAP configuration
+IMAP_SERVER=IMAP host
+IMAP_PORT=IMAP port
+IMAP_ID=IMAP user
+IMAP_PW=IMAP password
+IMAP_FOLDER=Folder which stores sent emails
+ErrorRetrievingIMAPFolders=Unable to retrieve mailboxes list.
+CheckModuleConfiguration=Check module configuration.
+ErrorFolderNotExist=The selected IMAP folder cannot be found.

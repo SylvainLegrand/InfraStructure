@@ -1,0 +1,117 @@
+# Dolibarr language file - it_IT - sconti
+CHARSET                         = UTF-8
+basenameInfraSDiscount          = InfraS
+modcomnameInfrasdiscount        = InfraSMultiDiscount
+Module500058Name                = Inserimento Sconti
+Module500058Desc                = Consente di inserire rapidamente sconti globali, a cascata o di valore su preventivi, ordini e fatture. Supporta più valute.
+easyaFamily                     = Easya Solutions
+DolibarrMinVersionRequired      = Versione minima richiesta di Dolibarr
+NewVersionAvailable             = Ultima versione disponibile
+PiloteVersion                   = Versione pilota
+InfraSDiscountCautionMess       = <center><b>----- Si prega di leggere attentamente! -----</b></center>
+InfraSDiscountCaution           = <b>ATTENZIONE!</b>
+InfraSDiscountXMLextError       = <br><center>L'estensione PHP 'XML' non è caricata<br>Alcune funzionalità del modulo non saranno disponibili</center>
+InfraSDiscountChangelogXMLError = Errore changelog.xml
+InfraSDiscountnoMinDolVersion   = Nessuna versione minima conosciuta
+InfraSDiscountnoMaxDolVersion   = Nessuna versione massima conosciuta
+InfraSSupportInformation        = Informazioni tecniche
+
+### Permissions ###
+InfraSDiscountPermMenu    = Mostra il menu secondario alle impostazioni del modulo (User non -amministratore)
+InfraSDiscountPermSpecif  = Modifica le impostazioni del modulo
+InfraSDiscountPermBkpRest = Salva / ripristina le impostazioni del modulo
+InfraSDiscountPermAdd     = Fare riferimento
+
+### infras lib page ###
+
+### modinfras class page ###
+
+### settings page ###
+InfraSDiscountSetup                         = Configurazione degli sconti globali
+InfraSDiscountParamAction1                  = Salva / ripristina tutte le impostazioni del modulo
+InfraSDiscountParamAction2                  = <br>(Dopo un restauro aggiorna la pagina (F5) per visualizzare il risultato)
+InfraSDiscountParamBkup                     = Salvaguardare
+InfraSDiscountParamRestore                  = Ripristinare
+InfraSDiscountFeatures                      = Parametri di attivazione
+InfraSDiscountAuto                          = Impostazioni di sconto automatico (solo per ordini)
+InfraSDiscountParamCautionSave              = Fai clic sul pulsante "<b> Modifica </b>" dopo ogni modifica!
+InfraSDiscountOnPropale                     = Attiva sconti sulle proposte commerciali
+InfraSDiscountlabelPropalDefault            = Etichetta o chiave per la traduzione degli sconti predefiniti sulle quotazioni (attualmente l'etichetta registrata è: "%s")
+InfraSDiscountOnOrder                       = Attiva sconti dei comandi
+InfraSDiscountlabelOrderDefault             = Etichetta o chiave per la traduzione Gli sconti predefiniti sugli ordini (attualmente l'etichetta registrata è: "%s")
+InfraSDiscountOnInvoice                     = Attiva sconti sulle fatture
+InfraSDiscountlabelInvoiceDefault           = Etichetta o chiave della traduzione Gli sconti predefiniti sulle fatture (attualmente l'etichetta registrata è: "%s")
+InfraSDiscountProductType                   = Scelta del tipo di linea associato a sconti (esclusi gli sconti specifici sui prodotti) => attivato = sconti del tipo di servizio;Altrimenti consegna del tipo di prodotto
+InfraSDiscountServiceLinkToDiscount         = Scelta del servizio associata a sconti
+InfraSDiscountServiceLinkToDiscountHelp     = Quando gli sconti (esclusi gli sconti specifici sui prodotti) sono associati ai servizi, questa opzione consente di essere vinti con un servizio e quindi con un account contabile
+InfraSDiscountProductLinkToDiscount         = Scelta del prodotto associato agli sconti del prodotto
+InfraSDiscountProductLinkToDiscountHelp     = Quando gli sconti sono associati ai prodotti, questa opzione consente loro di essere vincolati a un servizio e quindi a un account contabile
+InfraSDiscountDefaultRemValue               = Valore di sconto predefinito
+InfraSDiscountProductAffiliate              = Elenco dei riferimenti su cui applicare lo sconto automatico
+InfraSDiscountProductAffiliateHelp          = Aggiungi qui tutti i riferimenti inclusi nel calcolo dello sconto automatico
+InfraSDiscountNumberofFree                  = Quantità di prodotti gratuiti per riferimento
+InfraSDiscountNumberofFreeHelp              = Quantità massima: </br> Se la quantità di prodotti per un riferimento è inferiore a questo valore, lo sconto sarà: </br> "Quantità richiesta per questo riferimento" X dal suo prezzo unitario. </b> </br> Se la quantità di prodotti per un riferimento è maggiore di questo valore, lo sconto sarà: </br> <b> "Questo valore" x "pu del riferimento". </b>
+InfraSDiscountNumberofDiscountAllowed       = Numero di ordini dei clienti su cui applicano uno sconto automatico
+InfraSDiscountNumberofDiscountAllowedHelp   = Ti consente di limitare gli sconti automatici agli ordini convalidati "X" del cliente.
+InfraSDiscountPonderation                   = Articolo la cui quantità funge da peso per i calcoli dello sconto automatico
+InfraSDiscountPonderationHelp               = <b> 1 _ </b> Il calcolo dello sconto automatico inizierà con questo prodotto.Per questo, la quantità di prodotto libero per riferimento si applica del tutto.</br> </br> <b> Esempio 1: </b> La quantità di questo prodotto è 1500, la quantità di prodotto libero per riferimento è 650, lo sconto calcolato sarà: </br> <b> "650" x pu del riferimento. </b> </br> <b> Esempio 2: </b> La quantità di questo prodotto è 330, la quantità di prodotto libero per riferimento è 650, <b>. </br> "330" x "PU del riferimento". </b> </br> </br> <b> 2 _ </b> Per altri riferimenti selezionati: la quantità di prodotto libero per riferimento sarà ponderata dalla quantità di questo prodotto.</br> </br> <b> Esempio: </b> La quantità del riferimento è di 10.000, la quantità del prodotto libero per riferimento è 650, la quantità di questo prodotto è 250, lo sconto sarà: </br> ("quantità di prodotto libero" - "quantità del prodotto di peso") x "PU del riferimento".</b> </br> be <b> ("650" - "250") x "pu del riferimento". </b>
+remiseCalcul                                = Calcola lo sconto
+AutomaticDiscount                           = Sconto automatico
+Discount                                    = Sconto
+InfraSDiscountParamDescFreeText             = Aggiungi informazioni nella descrizione dello sconto
+onProduct                                   = sul prodotto
+subprice                                    = Prezzo unitario escluso
+InfraSDiscountTypeProductOnly               = Solo prodotto
+InfraSDiscountTypeServiceOnly               = Solo servizio
+InfraSDiscountTypeProductAndService         = Prodotto e servizio
+InfraSDiscountLabelModify                   = Modifica sconti
+ErrorAddingDiscountLine                     = Impossibile aggiungere la linea di sconto.
+
+
+### About page ###
+
+### Changelog page ###
+InfraSDiscountParamChangelog            = changelog /Support
+InfraSDiscountParamPresent              = <b> Questo modulo è una creazione di infras, la sua documentazione è disponibile sul nostro wiki </b>
+InfraSDiscountParamSlogan               = Struttura la tua crescita!
+InfraSDiscountParamLienModules          = Moduli NOS
+InfraSDiscountParamSupport              = Richiesta di supporto
+InfraSDiscountParamLienDocs             = Documentazioni NOS
+InfraSDiscountParamLicense              = Sotto LPG V3 e Licenza Superior
+InfraSDiscountParamMoreModulesLink      = I nostri moduli Dolistore
+InfraSDiscountParamObjet                = <h3>objet :</h3>
+InfraSDiscountParamHistoryUpdates       = <b>Cronologia degli aggiornamenti:</b>
+InfraSDiscountParamSkipCheck            = Scarica disabili
+InfraSDiscountParamNumberVersion        = Numero di versione
+InfraSDiscountParamMonthVersion         = Data
+InfraSDiscountParamChangesVersion       = Modifiche
+InfraSDiscountParamCheckNewVersion      = Nuovo Changelog
+InfraSDiscountParamCheckNewVersionTitle = Fare clic per scaricare il Changelog dell'ultima versione disponibile
+
+### Popup ###
+InfraSDiscountLabelBox              = Inserisci uno sconto globale
+InfraSDiscountDiscountValue         = Tasso di sconto o importo fisso
+InfraSDiscountTypeDiscount          = Il valore inserito sopra è
+InfraSDiscountTypeDiscountPercent   = Una percentuale di rendering
+InfraSDiscountTypeDiscountAmount    = un importo di sconto fisso
+InfraSDiscountTypeDiscountTotalTTC  = Importo totale inclusa la tassa da raggiungere
+InfraSDiscountlabelInput            = Etichetta dello sconto
+InfraSDiscountlabelDefault          = Sconto commerciale eccezionale
+InfraSDiscountLabelSubmit           = Sconto
+InfraSDiscountUpdateDiscount        = Aggiornamento dell'aggiornamento complessivo
+InfraSDiscountproduct_only          = Sconto solo sui prodotti
+InfraSDiscountemptyRemise           = Non sono stati sequestrati sconti!
+InfraSDiscountProductLabel          = (sui prodotti)
+InfraSDiscountServiceLabel          = (sui servizi)
+InfraSDiscountProductLabelProrata   = (sui prodotti al prorata)
+InfraSDiscountServiceLabelProrata   = (sui servizi al prorata)
+InfraSDiscountRemiseLinesList       = Linee di sconto presenti
+InfraSDiscountConfirmModifyRemise   = Sei sicuro di voler modificare queste linee di sconto?
+InfraSDiscountProrataCombinedLabel  = Sconto Prorata (Product + Service) combinati
+InfraSDiscountLabelLinePosition     = ligne
+InfrasDiscountSelectTypeToApply     = Applica lo sconto su
+SellTaxRate                         = Tasso di sconto IVA
+InfraSDiscountDiscountValuecurrency = Tasso multivviso
+TTC                                 = TTC
+Arrondi                             = Arrotondato
+InfraSDiscountBothCurrencies        = Entrambe le voci non devono essere inserite contemporaneamente.

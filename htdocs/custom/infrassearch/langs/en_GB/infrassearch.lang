@@ -1,0 +1,118 @@
+# Dolibarr language file - en_GB - InfraS
+CHARSET                        = UTF-8
+
+basenameSearch                 = InfraS
+modnameSearch                  = infrassearch
+modcomnameSearch               = InfraSSearch
+Module550080Name               = Advanced search
+Module550080Desc               = Advanced search tools (all types of data can be scanned simultaneously : products, third parties, contacts, technical documents, sales or purchase, projects, contracts, events, etc...)
+easya                          = Easya Solutions
+DolibarrMinVersionRequiered    = Minimum Dolibarr version requiered
+NewVersionAviable              = Last available version
+PiloteVersion                  = Pilot version
+GenModif                       = (may be change before document generation)
+InfraSSearchCautionMess        = <center><b>----- to read carefully ! -----</b></center>
+InfraSSearchCaution            = <b>Warning !</b>
+InfraSXMLextError              = <center>The PHP <b>%s</ b> extension is not loaded<br>Some features of the module will not be available<center>
+InfraSSearchChangelogXMLError  = changelog.xml error
+InfraSSearchnoMinDolVersion    = No minimum version known
+InfraSSearchnoMaxDolVersion    = No maximum version known
+InfraSSearchSupportInformation = Technical informations
+
+### Permissions ###
+InfraSSearchPermMenu    = View the settings menu
+InfraSSearchPermSpecif  = Change advanced search settings
+InfraSSearchPermBkpRest = Backup / Restore module settings
+
+### infras lib page ###
+InfraSSearchParams          = InfraS parameters
+InfraSSearchParamsChangelog = Changelog / Support
+
+### modinfras class page ###
+modfamily = InfraS Modules
+
+### InfraSSearch setup page ###
+InfraSSearchSetupPages          = Advanced search tools
+InfraSSearchParamAction1        = Save / Restore all module parameters for
+InfraSSearchParamAction2        = after a restore refresh the page (F5) to visualize the result)
+InfraSSearchParamBkup           = Backup
+InfraSSearchParamRestore        = Restore
+InfraSSearchTitleComp           = <b>Options for managing the behavior of search functions</b>
+InfraSSearchParamCautionSave    = Click the '<b>Edit</b>' button after any changes
+InfraSSearchParamSort           = Sort the results (for documents) in ascending or descending order according to the parameter below
+InfraSSearchParamOrder          = For documents, the search results will be sorted in
+InfraSSearchParamASC            = ascending order
+InfraSSearchParamDESC           = descending order
+InfraSSearchParamOnlyInEntity   = Search only the data of the entity in which you are located
+InfraSSearchParamShowFindField  = In the search page (Tools menu) show the detail of the field containing the searched expression and this one in <b>bold</ b>
+InfraSSearchParamStdSearchTop   = Place Dolibarr native search on the top menu (drop-down menu)
+InfraSSearchParamReplaceStd     = In the left menu replace the standard search with the advanced method
+InfraSSearchParamOnTopMenu      = Place the advanced search box on the top menu (input box)
+InfraSSearchParamNbCaracAvRech  = Minimum number of characters to trigger the search in the left menu => <b>between 1 and 15</b>
+InfraSSearchParamNbSecAvRech    = Waiting time (in milliseconds) between typing a character and starting the search in the left menu => <b>between 200 (0.2s) and 5000 (5s)</b>
+InfraSSearchParamsearchDropDown = Moves the search to the top menu (Drop-down menu)
+InfraSSearchParamNbRows         = Number of lines of advanced search results by category => <b>between 3 and 20</b>
+InfraSSearchParamBreadCrumb     = Enable InfraSSearchBreadcrumb
+InfraSSearchParamNbBreadCrumbs  = Number of InfraSSearchBreadcrumb records to present => <b>must be between 5 and 30</b>
+InfraSSearchParamActiveSearch   = Enable advanced search for %s
+InfraSSearchParamModules        = Modules
+InfraSSearchParamOrderModules   = Module display order
+InfraSSearchParamPosModule      = Position of search results for %s
+
+### About page ###
+
+### Changelog page ###
+InfraSSearchParamPresent              = <b>This module is an InfraS creation, its documentation is available on our wiki</b>
+InfraSSearchParamSlogan               = Structurez votre croissance !
+InfraSSearchParamLienModules          = Our Modules
+InfraSSearchParamLienDocs             = Our User Guides
+InfraSSearchParamLicense              = Under GPL v3 and higher license
+InfraSSearchParamMoreModulesLink      = Our modules on the dolistore
+InfraSSearchParamObjet                = <h3>Object :</h3>
+InfraSSearchParamHistoryUpdates       = <b>Update history :</b>
+InfraSSearchParamSkipCheck            = Download disabled
+InfraSSearchParamNumberVersion        = version N°
+InfraSSearchParamMonthVersion         = Date
+InfraSSearchParamChangesVersion       = Modifications
+InfraSSearchParamCheckNewVersion      = New Changelog
+InfraSSearchParamCheckNewVersionTitle = Click to download the changelog of the latest available version
+
+### actions InfraSPack class ###
+InfraSSearchWarningMaxVersion    = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSSearch %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
+InfraSSearchBreadcrumb           = InfraSSearchBreadcrumb
+InfraSSearchBreadcrumbShortCut   = Ctrl + Maj + k
+InfraSSearchInputPlaceHolder     = Advanced search
+
+### search ###
+InfraSSearchWait     = Loading...
+InfraSSearchNoResult = No result
+
+### interface ###
+InfraSSearchLibCategorie           = Categories
+InfraSSearchLibProduct             = Products/Services
+InfraSSearchLibSociete             = Customer/Prospect/Supplier
+InfraSSearchLibContact             = Contacts
+InfraSSearchLibProject             = Projects
+InfraSSearchLibTask                = Tasks
+InfraSSearchLibActionComm          = Events
+InfraSSearchLibPropal              = Commercial proposal
+InfraSSearchLibCommande            = Orders
+InfraSSearchLibFacture             = Invoices
+InfraSSearchLibContrat             = Contracts
+InfraSSearchLibFichinter           = Interventions report
+InfraSSearchLibExpedition          = Expeditions
+InfraSSearchLibSupplierProposal    = Supplier quotations
+InfraSSearchLibCommandeFournisseur = Supplier orders
+InfraSSearchLibFactureFournisseur  = Supplier invoices
+InfraSSearchLibExpenseReport       = Expense reports
+InfraSSearchLibEquipement          = Equipements
+InfraSSearchLibNdfp                = Expenses +
+InfraSSearchLibContacttracking     = Follow-up of exchanges and contacts
+InfraSSearchLibDomain              = Domains
+InfraSSearchLibHost                = Host
+InfraSSearchLibTicketsup           = Tickets
+InfraSSearchLibPropalHist          = quote variants
+InfraSSearchLibrmindr              = RmindR
+InfraSSearchLibFactory             = Manufacturing
+InfraSSearchLibknowledgemanagement = Knowledge Base Articles
+InfraSSearchLibKnowledgeRecord     = Knowledge Base Articles

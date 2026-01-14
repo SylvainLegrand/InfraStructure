@@ -1,0 +1,155 @@
+
+
+UptoSignInvalidCoordinates=Érvénytelen aláírási koordináta formátum (pl.: 12,34,56,78)
+SignRequestSuccessful=A dokumentum aláírására irányuló kérelem sikeres elküldése.
+AuthentificationMode=A dokumentum aláírásának hitelesítési módja.
+AuthentificationSms=Sms
+AuthentificationEmail=E-mail
+RedirectionMode=Átirányítás az aláíró oldalra,
+RedirectionFalse=Nem
+RedirectionTrue=Igen
+UptoSignSignedNoModify=Az aláírt dokumentumot nem lehet módosítani.
+UptoSignSignedNoDelete=Az aláírt dokumentumot nem lehet törölni.
+UptoSignSendInitDefaultEnUs=Az Ön nyelvéhez nem találtunk kéréssablont, angol sablont használunk.
+UptoSignSendEndDefaultEnUs=Az Ön nyelvéhez nem találtunk megerősítő sablont, angol sablont használunk.
+SignedByUptoSign=Aláírta: UptoSign
+UptoSignDocumentFetched=Az aláírt dokumentumot mostantól a linkelt fájlok között találja.
+ConfirmDeleteConfig=Tényleg törölni szeretné ezt az UptoSign konfigurációt.
+TypeContact=A dokumentum aláírásához szükséges kapcsolattartó típusa
+SignCoordinate=Az aláírás koordinátái
+UptoSignConfig=UptoSign
+UptoSignConfigList=Beállítások listája
+UptoSignList=Aláírások listája
+ObjectId=Tárgyhivatkozás
+ObjectType=Objektum típusa
+SignStatus=Jelölje státuszát
+ContactSignId=Aláíró kapcsolat
+UserSignId=Felhasználó aláírása
+DateSign=Aláírás dátuma
+UptoSignSetupError=Hiba az Ön UptoSign beállításaiban.
+# Sample widget
+#
+MyWidget=Az én widgetem
+MyWidgetDescription=A widget leírása
+UptoSignSyncError=UpToSign szinkronizációs hiba
+UptoSignForceRefresh=Kényszerített UpToSign szinkronizáció
+UptoSignSettingsServer=Szerver
+UptoSignSettings=UptoSign paraméterek
+UPTOSIGNSetup=Beállítás
+UPTOSIGNSetupPage=UpToSign beállítása
+UPTOSIGN_LOGIN_USED_RESETPASS=A távoli kiszolgálón való hitelesítés nem lehetséges (nem megfelelő bejelentkezés vagy jelszó)
+UPTOSIGN_LOGIN_USED_RESETPASS2=Ha van fiókja a távoli kiszolgálón, kérjük, kövesse a jelszó visszaállítása linket.
+UPTOSIGN_LOGIN_USED_RESETPASS3=A másik esetben kattintson a fiók létrehozása gombra.
+UptoSignResetPass=Jelszó visszaállítása
+UptoSignCreateAccount=Fiók létrehozása
+UPTOSIGN_LOGIN=Bejelentkezés
+UPTOSIGN_LOGINTooltip=A távoli szerveren a fiók létrehozásához használt e-mail cím
+UPTOSIGN_PASS_API=Jelszó
+UPTOSIGN_PASS_APITooltip=Az Ön fiókjának jelszava
+CheckConnectToUPTOSIGN=Ellenőrizze a csatlakozást
+UPTOSIGN_API_KEY_UPTOSIGN=API kulcs
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN=Aláírt fájlnév utótag
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGNTooltip=A fájlnevet testre szabhatja egy utótaggal (a .pdf előtt beillesztve).
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL=Lezárt fájlnév utótag 
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEALTooltip=A fájlnevet testre szabhatja egy utótaggal (a .pdf előtt beillesztve).
+UPTOSIGN_FILENAME_SUFFIX_PROOF=Bizonyítékfájlnév utótag
+UPTOSIGN_FILENAME_SUFFIX_PROOFTooltip=A fájlnevet testre szabhatja egy utótaggal (a .pdf előtt beillesztve).
+ConfirmUptoSeal=Biztos, hogy feldolgozza a dokumentum elektronikus pecsételésre és időbélyegzésre történő elküldését ?
+UptoSignInitContractTemplate=UptoSign: Elektronikus aláírás céljából történő szerződésküldéshez
+UptoSignEndContratTemplate=UptoSign: Megerősítő e-mail a szerződés aláírójának
+UptoSignInitExpeditionTemplate=UptoSign: Elektronikus aláírásra szolgáló szállítólevél küldéséhez
+UptoSignEndExpeditionTemplate=UptoSign: Megerősítő e-mail a szállítólevél aláírójának
+UptoSignReminders=UptoSign: Emlékeztető e-mail
+#
+# Generic
+#
+UptoSignTab=Up To Sign 
+
+# Module label 'ModuleUptoSignName'
+ModuleUptoSignName=UptoSign
+# Module description 'ModuleUptoSignDesc'
+ModuleUptoSignDesc=Ez a modul lehetővé teszi, hogy jogilag érvényes, digitálisan aláírt PDF dokumentumokat hozzon létre.
+UptoSignSetup=UptoSign beállítása
+UptoSignRefused=UptoSign: Elutasító e-mail
+UptoSignConfigMissing=Hiányzó konfiguráció a dokumentumsablonhoz (UptoSign).
+ModelePdf=A PDF dokumentummodell neve
+ModelDocument=Dokumentum modell
+ModelePdfTooltip=Ez a használt PDF dokumentum sablon neve.
+UptoSignOnlineSignature=Elektronikus dokumentum aláírási oldal
+UptoSignWelcomeOnOnlineSignaturePage=Üdvözöljük a %s által kínált dokumentumok aláírási oldalán.
+UptoSignThisScreenAllowsYouToSignDocFrom=Ez a képernyő lehetővé teszi, hogy elfogadja és online aláírja vagy elutasítsa a következő dokumentumokat:
+UptoSignSignatureProposalRef=A dokumentum aláírása %s
+SignOrSeal=Pecsét vagy aláírás?
+SignOrSealTooltip=Egy pecsét esetében csak a pecsétre vonatkozó információra van szükség. Az aláíráshoz ne felejtse el kitölteni az űrlap minden mezőjét.
+SignCoordinateTooltip=Aláírás pozíciója (x,y koordináták milliméterben a bal felső saroktól)
+SignPage=Aláírás oldal
+SignPageTooltip=Az az oldal, ahová az aláírást hozzá kell adni (ha a végétől kezdődő számot választja, negatív számot írjon be: pl. -3 a vége előtti 3. oldalra).
+AcceptDocument=Elfogadom és aláírom
+RefuseDocument=Hulladék
+DocumentAlreadyRefused=Már elfogadott dokumentum
+DocumentRefused=A dokumentumot elutasították
+DocumentAlreadySigned=Már elfogadott és aláírt dokumentum
+DocumentSigned=Aláírt dokumentum
+UptoSignSealInvoice=Számla lezárása
+SignedUptoSign=Aláírt dokumentum
+UptoSignProof=bizonyíték
+UptoSignProofButtonActions=A dokumentum aláírásához kapcsolódó bizonylatfájl, ezen a nyomtatványon nem lehet intézkedni.
+UptoSignSigned=Aláírva
+UptoSignCanceled=Törölt
+UptoSignError=Aláírási hiba
+UptoSignFetchedSign=Aláírva Doki
+UptoSignFetch=Aláírt dokumentum letöltése
+NewConfig=Új beállítás
+UptoSignTemplatesTab=Sablonok
+DocumentSealed=Lezárt dokumentum
+UptoSignYouDoNotHaveRightsToDo=Önnek nincs joga ezt a keresetet indítani.
+UptoSignProcedureCancelled=A dokumentum törlési eljárása folyamatban van.
+ModuleUptoSignDescLong=A DoiEsign modullal digitálisan aláírathatja kereskedelmi dokumentumait a kapcsolattartókkal.
+Settings=Beállítások
+UptoSignSetupPage=UptoSign beállítási oldal
+UptoSignParamAction1=Az összes modulparaméter mentése/visszaállítása
+UptoSignParamAction2=<br>(visszaállítás után frissítse az oldalt (F5) az eredmény megjelenítéséhez)
+UptoSignParamBkup=Biztonsági mentés
+UptoSignParamRestore=Visszaállítás
+UPTOSIGN_ENVIRONMENT=Aláírási környezet
+UPTOSIGN_ENVIRONMENTTooltip=Signing Provider környezet, hogy megjelenjenek az új környezet beállításai, amit a környezet módosítása után el kell menteni.
+UPTOSIGN_AUTHENTICATION_MODE=Alapértelmezett hitelesítési mód
+UPTOSIGN_AUTHENTICATION_MODETooltip=A dokumentum aláírásának alapértelmezett hitelesítési módja. Az aláíró a dokumentum aláírásához egy érvényesítési kódot kap, a lehetséges értékek az sms és a mail.
+UPTOSIGN_AUTHENTICATION_MODE_PROD=Alapértelmezett hitelesítési mód a termelésben
+UPTOSIGN_ACTIVATE_SERVICES_ON_CONTRACT_SIGNED = Minden szolgáltatás automatikus aktiválása a szerződés aláírásakor
+
+
+#
+# About page
+#
+About=A  oldalról
+UptoSignAbout=Az UptoSignról
+UptoSignAboutPage=UptoSign az oldalról
+ConfirmUptoSign=Biztos, hogy a dokumentum elektronikus aláírására vonatkozó kérelmet kell küldenie.
+ConfirmUptoSignFetch=Biztos, hogy letölthető az elektronikus aláírt dokumentum.
+UptoSignInitPropalTemplate=UptoSign: Javaslat küldése és elektronikus aláírás kérése
+UptoSignEndPropalTemplate=UptoSign: Megerősítő levél a javaslat aláírása után
+UptoSignInitCommandeTemplate=UptoSign: Vevői megrendelés küldése és elektronikus aláírás kérése
+UptoSignEndCommandeTemplate=UptoSign: Visszaigazoló levél, amikor a vásárló megrendelését aláírják
+UptoSignInitInterventionTemplate=UptoSign: Intervenció küldése és elektronikus aláírás kérése
+UptoSignEndInterventionTemplate=UptoSign: Megerősítő levél a beavatkozás aláírása után
+UptoSignSync=UptoSign szinkronizálása
+UptoSign=UptoSign
+UptoSignAgain=UptoSign újra
+UptoSignStatus=Állapot UptoSign
+NoUptoSign=Nincs
+WaitingCommonSign=Várakozás
+ReadUptoSign=Olvassa el a aláírásokat
+CreateUptoSign=Aláírások kérése
+DeleteUptoSign=Aláírások törlése
+UptoSignConnectError=Hiba az API-hoz való csatlakozásban.
+UptoSignApiError=Api hiba.
+UptoSignContactEmailMissing=Hiányzik a kapcsolattartó e-mail címe.
+UptoSignContactPhoneMobileMissing=Az SMS aláírásához hiányzik a kapcsolattartó mobiltelefon száma.
+UptoSignUserEmailMissing=Felhasználói e-mail hiányzik.
+UptoSignUserPhoneMobileMissing=A felhasználó mobiltelefonszáma hiányzik az aláíró SMS küldéséhez.
+UptoSignUserPhoneMobileWrongFormat=A felhasználó mobiltelefonszámának nemzetközi formátumúnak kell lennie (pl.: +33612345678).
+UptoSignContactPhoneMobileWrongFormat=A kapcsolattartó mobiltelefonszámának nemzetközi formátumúnak kell lennie (pl.: +33612345678).
+UptoSignContactMissing=Nincs aláíráshoz kijelölt kapcsolattartó.
+UptoSignCreateFileError=Hiba az aláírt dokumentum tárolásában.
+UptoSignFileMissing=Nincs generált dokumentum.

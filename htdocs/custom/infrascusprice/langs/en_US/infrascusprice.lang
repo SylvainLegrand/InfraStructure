@@ -1,0 +1,65 @@
+# Dolibarr language file - en_US - InfraSCusPrice
+basenameCusP                 = InfraS
+modnameCusP                  = infrascusprice
+modcomnameCusP               = InfraSCusPrice
+Module500077Name             = Price management by customer
+Module500077Desc             = Price management tools per customer: propagation of prices from a parent company to subsidiaries
+Module500077DescTrigger      = Trigger for InfraS Price management by customer
+DolibarrMinVersionRequiered  = Minimum Dolibarr version requiered
+NewVersionAviable            = Last available version
+PiloteVersion                = Pilot version
+InfraSCusPCautionMess        = <center><b>----- to read carefully! -----</b></center>
+InfraSCusPCaution            = <b>WARNING !</b>
+InfraSCusPDolChg             = <br><center><b>You have made a migration from Dolibarr</b> (%s to %s) since the last installation of the InfraSCusPrice module ;<br><b>a "Core Change" is needed</b> (the replacement of some basic files of Dolibarr). To perform this operation disable and reactivate the module</b></center>
+InfraSCusPVersionChg         = <br><center><b>You use a new version of InfraSCusPrice module</b> (%s to %s) ;<br><b>a "Core Change" is needed</b> (the replacement of some basic files of Dolibarr). To perform this operation disable and reactivate the module.</b></center>
+InfraSXMLextError            = <br><center>The PHP <b>%s</ b> extension is not loaded<br>Some features of the module will not be available<center>
+InfraSCusPChangelogXMLError  = changelog.xml error
+InfraSCusPnoMinDolVersion    = No minimum version known
+InfraSCusPnoMaxDolVersion    = No maximum version known
+InfraSCusPSupportInformation = Technical informations
+
+### Permissions ###
+InfraSCusPPermMenu   = Show secondary menu to module settings (non-administrator user)
+InfraSCusPPermSpecif = Modify the specific parameters InfraSCusPrice
+InfraSCusPPermCusP   = Use the price update functions
+
+### infras lib page ###
+InfraSCusPParams          = Parameters
+InfraSCusPParamsChangeLog = Changelog/Support
+InfraSCusPidErr           = The company concerned is not informed!
+
+### modinfras class page ###
+modfamily                      = InfraS Modules
+InfraSCusPParamPresentation    = InfraS : Price management by customer
+
+### InfraSCusPsetup page ###
+InfraSCusPSetup                = InfraS price management by customer
+InfraSCusPParamNoConfTechInfos = This module requires no special configuration
+InfraSCusPParamAction1         = Backup / restore all module settings
+InfraSCusPParamAction2         = <br>(After a restoration refresh the page (F5) to view the result)
+InfraSCusPParamBkup            = Backup
+InfraSCusPParamRestore         = Restore
+InfraSCusPParamChange          = Change
+
+### About page ###
+InfraSCusPParamPresent              = <b>This module is an InfraS creation, it's documentation is available on our website</b>
+InfraSCusPParamSlogan               = Structure your growth!
+InfraSCusPParamLienModules          = Our Modules
+InfraSCusPParamMoreModulesLink      = Our modules on the dolistore
+InfraSCusPParamLienDocs             = Our user guides
+InfraSCusPParamLicense              = Under GPL v3 and higher license
+InfraSCusPParamHistoryUpdates       = <b>History of updates:</b>
+InfraSCusPParamSkipCheck            = Download disabled
+InfraSCusPParamNumberVersion        = version N°
+InfraSCusPParamMonthVersion         = Date
+InfraSCusPParamChangesVersion       = Modifications
+InfraSCusPParamCheckNewVersion      = New Changelog
+InfraSCusPParamCheckNewVersionTitle = Click to download the changelog of the latest available version
+InfraSCusPParamSupport              = Support request
+
+### actions_infrascusprice ###
+InfraSCusPWarningMaxVersion = <center><br>The latest modifications (from Dolibarr or the InfraSCusPrice module) have not been validated.<br>To clear this message, contact your administrator for deactivation / reactivation of the module.</center>
+InfraSCusPbtnSuprTitle      = Delete all customer prices
+InfraSCusPbtn3thdTitle      = Updates customer prices according to the registered prices for the parent company (%s)
+InfraSCusPbtnSupr           = Remove prices
+InfraSCusPbtn3thd           = Price update

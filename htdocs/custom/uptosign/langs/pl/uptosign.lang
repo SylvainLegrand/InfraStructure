@@ -1,0 +1,156 @@
+
+
+UptoSignApiError=Błąd API.
+UptoSignSettings=Parametry UptoSign
+UptoSignOnlineSignature=Strona podpisu dokumentu elektronicznego
+UptoSignProcedureCancelled=Procedura anulowania tego dokumentu jest w toku
+#
+# Generic
+#
+UptoSignTab=Do podpisania 
+
+# Module label 'ModuleUptoSignName'
+ModuleUptoSignName=UptoSign
+# Module description 'ModuleUptoSignDesc'
+ModuleUptoSignDesc=Moduł ten umożliwia tworzenie legalnie podpisanych cyfrowo dokumentów PDF.
+ModuleUptoSignDescLong=Moduł DoiEsign umożliwia cyfrowe podpisywanie dokumentów handlowych przez osoby kontaktowe.
+UptoSignSetup=Konfiguracja UptoSign
+Settings=Ustawienia
+UptoSignSetupPage=Strona konfiguracji UptoSign
+UptoSignParamAction1=Zapisz / Przywróć wszystkie parametry modułu dla
+UptoSignParamAction2=<br>(po przywróceniu odśwież stronę (F5), aby zobaczyć wynik)
+UptoSignParamBkup=Kopia zapasowa
+UptoSignParamRestore=Przywracanie
+UPTOSIGN_ENVIRONMENT=Środowisko podpisywania
+UPTOSIGN_ENVIRONMENTTooltip=Signing Provider environment, aby wyświetlić opcje nowego środowiska, które należy zapisać po zmianie środowiska.
+UPTOSIGN_AUTHENTICATION_MODE=Domyślny tryb uwierzytelniania
+UPTOSIGN_AUTHENTICATION_MODETooltip=Domyślny tryb uwierzytelniania dla podpisywania dokumentu. Podpisujący otrzyma kod walidacyjny do podpisania dokumentu, możliwe wartości to sms i mail.
+UPTOSIGN_AUTHENTICATION_MODE_PROD=Domyślny tryb uwierzytelniania w środowisku produkcyjnym
+
+
+#
+# About page
+#
+About=O
+UptoSignAbout=Informacje o UptoSign
+UptoSignAboutPage=Strona informacyjna UptoSign
+ConfirmUptoSign=Czy na pewno wysłać prośbę o elektroniczne podpisanie dokumentu?
+ConfirmUptoSignFetch=Czy na pewno pobrałeś dokument podpisany elektronicznie?
+UptoSignInitPropalTemplate=UptoSign: Aby wysłać propozycję i poprosić o podpis elektroniczny
+UptoSignEndPropalTemplate=UptoSign: Wiadomość e-mail z potwierdzeniem podpisania wniosku
+UptoSignInitCommandeTemplate=UptoSign: Aby wysłać zamówienie klienta i poprosić o podpis elektroniczny
+UptoSignEndCommandeTemplate=UptoSign: Wiadomość potwierdzająca podpisanie zamówienia przez klienta
+UptoSignInitInterventionTemplate=UptoSign: Aby wysłać interwencję i poprosić o podpis elektroniczny
+UptoSignEndInterventionTemplate=UptoSign: Wiadomość potwierdzająca podpisanie interwencji
+UptoSignSync=Synchronizacja UptoSign
+UptoSign=UptoSign
+UptoSignAgain=UptoSign Again
+UptoSignStatus=Status UptoSign
+NoUptoSign=Brak
+WaitingCommonSign=Oczekiwanie
+UptoSignSigned=Podpisano
+UptoSignCanceled=Anulowane
+UptoSignError=Błąd znaku
+UptoSignFetchedSign=Podpisano Doc
+UptoSignFetch=Pobierz podpisany dokument
+ReadUptoSign=Przeczytaj podpisy
+CreateUptoSign=Żądanie podpisów
+DeleteUptoSign=Anulowanie podpisów
+UptoSignConnectError=Błąd połączenia z interfejsem API.
+UptoSignContactEmailMissing=Brakujący kontaktowy adres e-mail.
+UptoSignContactPhoneMobileMissing=Brakuje numeru telefonu komórkowego do wysyłania podpisujących wiadomości SMS.
+UptoSignUserEmailMissing=Brak adresu e-mail użytkownika.
+UptoSignUserPhoneMobileMissing=Brak numeru telefonu komórkowego użytkownika do wysłania podpisującej wiadomości SMS.
+UptoSignUserPhoneMobileWrongFormat=Numer telefonu komórkowego użytkownika musi być w formacie międzynarodowym (np. +33612345678).
+UptoSignContactPhoneMobileWrongFormat=Kontaktowy numer telefonu komórkowego musi być w formacie międzynarodowym (np. +33612345678).
+UptoSignContactMissing=Brak przypisanego kontaktu do podpisania.
+UptoSignCreateFileError=Błąd przechowywania podpisanego dokumentu.
+UptoSignFileMissing=Brak wygenerowanego dokumentu.
+UptoSignInvalidCoordinates=Nieprawidłowy format współrzędnych podpisu (np. 12,34,56,78)
+SignRequestSuccessful=Pomyślne wysłanie wniosku o podpisanie dokumentu.
+AuthentificationMode=Tryb uwierzytelniania do podpisywania dokumentu.
+AuthentificationSms=Sms
+AuthentificationEmail=E-mail
+RedirectionMode=Przekierowanie do strony podpisywania,
+RedirectionFalse=Nie
+RedirectionTrue=Tak
+UptoSignSignedNoModify=Nie można modyfikować podpisanego dokumentu.
+UptoSignSignedNoDelete=Nie można usunąć podpisanego dokumentu.
+UptoSignSendInitDefaultEnUs=Nie znaleziono szablonu żądania dla Twojego języka, użyto szablonu w języku angielskim.
+UptoSignSendEndDefaultEnUs=Nie znaleziono szablonu potwierdzenia dla danego języka, użyto szablonu w języku angielskim.
+SignedByUptoSign=Podpisano przez UptoSign
+UptoSignDocumentFetched=Podpisany dokument można teraz znaleźć w sekcji połączonych plików.
+ConfirmDeleteConfig=Czy naprawdę chcesz usunąć tę konfigurację UptoSign?
+TypeContact=Typ kontaktu do podpisania dokumentu
+SignCoordinate=Współrzędne pozycji dla podpisu
+UptoSignConfig=UptoSign
+NewConfig=Nowe ustawienia
+UptoSignConfigList=Lista ustawień
+UptoSignList=Lista podpisów
+ObjectId=Odniesienie do obiektu
+ObjectType=Typ obiektu
+SignStatus=Status znaku
+ContactSignId=Kontakt w sprawie podpisu
+UserSignId=Podpisywanie użytkownika
+DateSign=Data podpisania
+UptoSignSetupError=Błąd w konfiguracji UptoSign.
+UPTOSIGN_ACTIVATE_SERVICES_ON_CONTRACT_SIGNED = Automatyczna aktywacja wszystkich usług po podpisaniu umowy
+
+# Sample widget
+#
+MyWidget=Mój widget
+MyWidgetDescription=Opis mojego widżetu
+UptoSignSyncError=Błąd synchronizacji UpToSign
+UptoSignForceRefresh=Wymuszona synchronizacja UpToSign
+UptoSignSettingsServer=Serwer
+UPTOSIGNSetup=Konfiguracja
+UPTOSIGNSetupPage=Konfiguracja UpToSign
+UPTOSIGN_LOGIN_USED_RESETPASS=Uwierzytelnienie na zdalnym serwerze jest niemożliwe (niezgodność loginu lub hasła)
+UPTOSIGN_LOGIN_USED_RESETPASS2=Jeśli posiadasz konto na serwerze zdalnym, skorzystaj z linku resetowania hasła.
+UPTOSIGN_LOGIN_USED_RESETPASS3=W drugim przypadku należy kliknąć na utwórz konto
+UptoSignResetPass=Resetowanie hasła
+UptoSignCreateAccount=Utwórz konto
+UPTOSIGN_LOGIN=Logowanie
+UPTOSIGN_LOGINTooltip=Adres e-mail użyty do utworzenia konta na serwerze zdalnym
+UPTOSIGN_PASS_API=Hasło
+UPTOSIGN_PASS_APITooltip=Hasło do konta
+CheckConnectToUPTOSIGN=Sprawdź połączenie
+UPTOSIGN_API_KEY_UPTOSIGN=Klucz API
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN=Sufiks nazwy podpisanego pliku
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGNTooltip=Nazwę pliku można dostosować za pomocą przyrostka (wstawianego przed .pdf)
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL=Uszczelniony sufiks nazwy pliku 
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEALTooltip=Nazwę pliku można dostosować za pomocą przyrostka (wstawianego przed .pdf)
+UPTOSIGN_FILENAME_SUFFIX_PROOF=Przyrostek nazwy pliku dowodu
+UPTOSIGN_FILENAME_SUFFIX_PROOFTooltip=Nazwę pliku można dostosować za pomocą przyrostka (wstawianego przed .pdf)
+UptoSignTemplatesTab=Szablony
+ConfirmUptoSeal=Czy na pewno chcesz wysłać dokument do opatrzenia pieczęcią elektroniczną i znacznikiem czasu?
+UptoSignInitContractTemplate=UptoSign: Do wysyłania umowy do podpisu elektronicznego
+UptoSignEndContratTemplate=UptoSign: Wiadomość e-mail z potwierdzeniem dla osoby podpisującej umowę
+UptoSignInitExpeditionTemplate=UptoSign: Do wysyłania listu przewozowego do podpisu elektronicznego
+UptoSignEndExpeditionTemplate=UptoSign: Wiadomość e-mail z potwierdzeniem do osoby podpisującej dokument dostawy
+UptoSignReminders=UptoSign: E-mail z przypomnieniem
+UptoSignRefused=UptoSign: Wiadomość e-mail z odmową
+UptoSignConfigMissing=Brakująca konfiguracja szablonu dokumentu (UptoSign).
+ModelePdf=Nazwa modelu dokumentu PDF
+ModelDocument=Wzór dokumentu
+ModelePdfTooltip=Jest to nazwa używanego szablonu dokumentu PDF
+UptoSignWelcomeOnOnlineSignaturePage=Witamy na stronie podpisów dokumentów oferowanych przez %s
+UptoSignThisScreenAllowsYouToSignDocFrom=Ten ekran umożliwia zaakceptowanie i podpisanie online lub odrzucenie następujących dokumentów:
+UptoSignSignatureProposalRef=Podpis dokumentu %s
+SignOrSeal=Pieczęć czy podpis?
+SignOrSealTooltip=W kontekście pieczęci konieczne są tylko informacje dotyczące pieczęci. W przypadku podpisu należy pamiętać o wypełnieniu wszystkich pól formularza.
+SignCoordinateTooltip=Pozycja podpisu (współrzędne x,y w milimetrach od lewego górnego rogu)
+SignPage=Strona z podpisem
+SignPageTooltip=Strona, na której ma zostać dodany podpis (aby wybrać numer zaczynający się od końca, wpisz liczbę ujemną: np. -3 dla trzeciej strony przed końcem)
+AcceptDocument=Zaakceptuj i podpisz
+RefuseDocument=Odmówić
+DocumentAlreadyRefused=Dokument już zaakceptowany
+DocumentRefused=Dokument odrzucony
+DocumentAlreadySigned=Dokument już zaakceptowany i podpisany
+DocumentSigned=Dokument podpisany
+DocumentSealed=Dokument zapieczętowany
+UptoSignSealInvoice=Pieczętowanie faktury
+SignedUptoSign=Dokument podpisany
+UptoSignProof=dowód
+UptoSignProofButtonActions=Plik dowodu powiązany z podpisem dokumentu, nie jest możliwe żadne działanie na tym formularzu.
+UptoSignYouDoNotHaveRightsToDo=Nie masz prawa do wszczęcia tego postępowania

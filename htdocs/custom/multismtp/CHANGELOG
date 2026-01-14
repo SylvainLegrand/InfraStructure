@@ -1,0 +1,72 @@
+v1.4.6 (6 juin 2023)
+=====================
+- Change les informations smtp seulement si l'emeteur de l'envoi du mail est de type 'user'
+
+v1.4.5 (31 mars 2022)
+=====================
+- Prise en compte de swiftmailer dansla sauvegarde des mail dans IMAP
+
+v1.4.4 (28 mai 2021)
+=====================
+- Prise en compte de réception IMAP des mails sur les fiches utilisateurs, contacts, contrats, ...
+
+v1.4.3 (13 janvier 2021)
+=====================
+- Correction d'un fichier requis non inclus
+
+v1.4.2 (21 juil. 2020)
+=====================
+- Compatibilité Easya 2020
+
+v1.4.1 (25 mar. 2019)
+=====================
+- Fixed escape text in javascript on users config page
+
+v1.4 (14 apr. 2017)
+=====================
+- Added support for supplier quotes emails
+- Little cosmetic changes to adapt to Dolibarr 5.0 interface
+- Fixed warning error message when trying to enable the module if the SMTP socket library was enabled
+
+v1.3 (14 sep. 2016)
+=====================
+- Ensure compatibility with Dolibarr 4.0
+- Added support for STARTTLS
+- Removed SMTP server check when editing the configuration due to bug #5750 that caused the web server to hang
+- Fixed a problem that prevented from showing up IMAP folders to the user.
+- Reduced IMAP connection timeouts and changed the way users select their IMAP mailbox folder.
+
+v1.2 (2 apr. 2016)
+=====================
+- Added support for connecting to IMAP servers with self-signed certificates
+- Added support for IMAP function working with "PHP mail function" email method
+- Fixed an error that caused SMTP errors when an user with no SMTP user or password tried to send an email
+- Fixed some cosmetic errors
+- Ensure compatibility with Dolibarr 3.9
+- Added some configuration checks in module configuration page
+
+v1.1.1 (29 jun. 2015)
+=====================
+- Corrected an error when loading user configuration page if module was placed in custom folder
+- Corrected SQL errors when upgrading from previous versions
+
+v1.1 (28 jun. 2015)
+=====================
+- New IMAP function that allows saving several emails to the mail server
+- Corrected some XSS problems present in previous versions
+
+v1.0.3 (16 may. 2015)
+=====================
+- Manually adding MAIN_ACTIVATE_UPDATESESSIONTRIGGER constant is no longer necessary
+- Added support for 3.7.1 Dolibarr version
+
+v1.0.2 (5 mar. 2015)
+=====================
+- Fixed an error when loading from a non-custom directory
+- Administrators can now change SMTP credentials for every user
+
+v1.0.1 (28 feb. 2015)
+=====================
+- Fixed a problem when activating the module for the 2nd time
+- Fixed module load when loading from custom directory
+- Moved module to "Other modules" category

@@ -1,0 +1,155 @@
+
+
+UptoSignParamAction2=<br>(po obnovitvi osvežite stran (F5), da si ogledate rezultat)
+UptoSignParamBkup=Varnostna kopija
+UptoSignParamRestore=Obnovitev
+UPTOSIGN_ENVIRONMENT=Okolje za podpisovanje
+UPTOSIGN_AUTHENTICATION_MODETooltip=Privzet način avtentikacije za podpisovanje dokumenta. Podpisnik bo za podpis dokumenta prejel potrditveno kodo, možni vrednosti sta sms in pošta.
+UPTOSIGN_AUTHENTICATION_MODE_PROD=Privzet način avtentikacije v produkciji
+
+
+#
+# About page
+#
+About=O
+UptoSignAbout=O podjetju UptoSign
+UptoSignAboutPage=Stran o storitvi UptoSign
+ConfirmUptoSign=Ali ste prepričani, da želite poslati zahtevo za elektronsko podpisovanje dokumenta.
+ConfirmUptoSignFetch=Ali ste prepričani, da prenesete elektronsko podpisan dokument.
+UptoSignEndCommandeTemplate=UptoSign: potrditvena pošta, ko je naročilo stranke podpisano
+UptoSignInitInterventionTemplate=UptoSign: za pošiljanje intervencije in zahtevo po elektronskem podpisu
+UptoSignEndInterventionTemplate=UptoSign: potrditvena pošta, ko je intervencija podpisana
+UptoSignSync=Sinhronizacija storitve UptoSign
+UptoSignAgain=Spet se podpišite
+UptoSignStatus=Status do podpisa
+NoUptoSign=Ni
+WaitingCommonSign=Čakanje
+UptoSignSigned=Podpisano
+UptoSignCanceled=Preklicano
+UptoSignError=Napaka znaka
+UptoSignFetchedSign=Podpisani Doc
+UptoSignFetch=Prenesite podpisan doc
+ReadUptoSign=Preberi podpise
+CreateUptoSign=Zahteva za podpise
+DeleteUptoSign=Preklicati podpise
+UptoSignConnectError=Napaka pri povezovanju z vmesnikom API.
+UptoSignApiError=Napaka API.
+UptoSignContactEmailMissing=Kontaktna e-pošta manjka.
+UptoSignContactPhoneMobileMissing=Manjka kontaktna številka mobilnega telefona za pošiljanje podpisnega sporočila SMS.
+UptoSignUserEmailMissing=Manjka e-pošta uporabnika.
+UptoSignUserPhoneMobileMissing=Manjka številka uporabnikovega mobilnega telefona za pošiljanje podpisnega sporočila SMS.
+UptoSignUserPhoneMobileWrongFormat=Mobilna telefonska številka uporabnika mora biti v mednarodni obliki (npr.: +33612345678).
+RedirectionFalse=Ne
+RedirectionTrue=Da
+UptoSignSignedNoModify=Podpisanega dokumenta ne morete spreminjati.
+UptoSignSignedNoDelete=Podpisanega dokumenta ne morete izbrisati.
+AcceptDocument=Sprejmite in podpišite
+RefuseDocument=Odpadki
+DocumentAlreadyRefused=Že sprejeti dokument
+DocumentRefused=Zavrnitev dokumenta
+DocumentAlreadySigned=Že sprejet in podpisan dokument
+DocumentSigned=Podpisan dokument
+DocumentSealed=Zapečaten dokument
+UptoSignSealInvoice=Pečatenje računa
+SignedUptoSign=Podpisan dokument
+UptoSignProofButtonActions=Dokazna datoteka, povezana s podpisom dokumenta, na tem obrazcu ni mogoče ukrepati.
+UptoSignYouDoNotHaveRightsToDo=Nimate pravice vložiti te tožbe.
+UptoSignProcedureCancelled=Za ta dokument poteka postopek preklica.
+#
+# Generic
+#
+UptoSignTab=Do podpisa 
+
+# Module label 'ModuleUptoSignName'
+ModuleUptoSignName=UptoSign
+UPTOSIGN_ENVIRONMENTTooltip=Okolje ponudnika podpisovanja, da se prikažejo možnosti za novo okolje, ki ga morate po spremembi okolja shraniti.
+UPTOSIGN_AUTHENTICATION_MODE=Privzet način avtentikacije
+UptoSignInitPropalTemplate=UptoSign: pošiljanje predloga in zahteva po elektronskem podpisu
+UptoSignEndPropalTemplate=UptoSign: potrditvena pošta, ko je predlog podpisan.
+UptoSignInitCommandeTemplate=UptoSign: za pošiljanje naročila stranke in zahtevo po elektronskem podpisu
+UptoSign=UptoSign
+UptoSignContactPhoneMobileWrongFormat=Kontaktna mobilna telefonska številka mora biti v mednarodni obliki (npr.: +33612345678).
+UptoSignContactMissing=Za podpis ni bil dodeljen noben stik.
+UptoSignCreateFileError=Napaka pri shranjevanju podpisanega dokumenta.
+UptoSignFileMissing=Ustvarjen dokument ni na voljo.
+UptoSignInvalidCoordinates=Nepravilna oblika koordinat za podpisovanje (npr.: 12,34,56,78)
+SignRequestSuccessful=Uspešno poslana zahteva za podpis dokumenta.
+AuthentificationMode=Način avtentikacije za podpisovanje dokumenta.
+AuthentificationSms=Sms
+AuthentificationEmail=E-pošta
+RedirectionMode=Preusmeritev na stran za podpisovanje,
+ContactSignId=Kontaktna oseba za podpisovanje
+UserSignId=Uporabnik za podpisovanje
+DateSign=Datum podpisa
+UptoSignSetupError=Napaka v nastavitvi storitve UptoSign.
+# Sample widget
+#
+MyWidget=Moj gradnik
+MyWidgetDescription=Opis mojega gradnika
+UptoSignSyncError=Napaka sinhronizacije UpToSign
+UptoSignForceRefresh=Prisilna sinhronizacija UpToSign
+UptoSignSettingsServer=Strežnik
+UptoSignSettings=Parametri UptoSign
+UPTOSIGNSetup=Nastavitev
+UPTOSIGNSetupPage=Nastavitev UpToSign
+UPTOSIGN_LOGIN_USED_RESETPASS=Preverjanje pristnosti na oddaljenem strežniku ni mogoče (napačno uporabniško ime ali geslo).
+UPTOSIGN_LOGIN_USED_RESETPASS2=Če imate račun na oddaljenem strežniku, sledite povezavi za ponastavitev gesla.
+UPTOSIGN_LOGIN_USED_RESETPASS3=V drugem primeru kliknite na Ustvari račun.
+UPTOSIGN_ACTIVATE_SERVICES_ON_CONTRACT_SIGNED = Samodejno aktivirajte vse storitve ob podpisu pogodbe
+UptoSignResetPass=Ponastavitev gesla
+UptoSignCreateAccount=Ustvari račun
+UPTOSIGN_LOGIN=Prijava
+UPTOSIGN_LOGINTooltip=Poštni naslov, uporabljen za ustvarjanje računa na oddaljenem strežniku
+UPTOSIGN_PASS_API=Geslo
+UPTOSIGN_PASS_APITooltip=geslo vašega računa
+CheckConnectToUPTOSIGN=Preverite povezavo
+UPTOSIGN_API_KEY_UPTOSIGN=Ključ API
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN=Podpisana končnica imena datoteke
+UPTOSIGN_FILENAME_SUFFIX_UPTOSIGNTooltip=Ime datoteke lahko prilagodite s končnico (vstavljeno pred .pdf)
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEALTooltip=Ime datoteke lahko prilagodite s končnico (vstavljeno pred .pdf)
+UPTOSIGN_FILENAME_SUFFIX_PROOF=Končnica imena datoteke dokaza
+UptoSignTemplatesTab=Predloge
+# Module description 'ModuleUptoSignDesc'
+ModuleUptoSignDesc=Ta modul omogoča ustvarjanje pravno veljavnih digitalno podpisanih dokumentov PDF.
+ModuleUptoSignDescLong=Z modulom DoiEsign lahko vaše poslovne dokumente digitalno podpišejo vaši stiki.
+UptoSignSetup=Nastavitev storitve UptoSign
+Settings=Nastavitve
+UptoSignSetupPage=Stran za nastavitev storitve UptoSign
+UptoSignProof=dokaz
+UptoSignParamAction1=Shrani / obnovi vse parametre modula za
+UptoSignSendInitDefaultEnUs=Za vaš jezik ni bila najdena nobena predloga zahteve, uporabljena je angleška predloga.
+UptoSignSendEndDefaultEnUs=Za vaš jezik ni bila najdena nobena potrditvena predloga, uporabljena je angleška predloga.
+SignedByUptoSign=Podpisano s strani UptoSign
+UptoSignDocumentFetched=Podpisani dokument zdaj najdete v razdelku povezanih datotek.
+ConfirmDeleteConfig=Ali res želite izbrisati to konfiguracijo UptoSign.
+TypeContact=Vrsta stika za podpis dokumenta
+SignCoordinate=Koordinate položaja za podpis
+UptoSignConfig=UptoSign
+NewConfig=Nova nastavitev
+UptoSignConfigList=Seznam nastavitev
+UptoSignList=Seznam podpisov
+ObjectId=Sklic na predmet
+ObjectType=Vrsta predmeta
+SignStatus=Stanje znaka
+UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL=Zapečatena končnica imena datoteke 
+UPTOSIGN_FILENAME_SUFFIX_PROOFTooltip=Ime datoteke lahko prilagodite s končnico (vstavljeno pred .pdf)
+ConfirmUptoSeal=Ali ste prepričani, da lahko pošljete dokument za elektronsko žigosanje in časovni žig?
+UptoSignInitContractTemplate=UptoSign: Za pošiljanje pogodbe v elektronski podpis
+UptoSignEndContratTemplate=UptoSign: potrditveno e-poštno sporočilo podpisniku pogodbe
+UptoSignInitExpeditionTemplate=UptoSign: Za pošiljanje dobavnice za elektronski podpis
+UptoSignEndExpeditionTemplate=UptoSign: potrditveno e-poštno sporočilo podpisniku dobavnice
+UptoSignReminders=UptoSign: E-pošta za opomnik
+UptoSignRefused=UptoSign: E-pošta za zavrnitev
+UptoSignConfigMissing=Manjka konfiguracija za predlogo dokumenta (UptoSign).
+ModelePdf=Ime modela dokumenta PDF
+ModelDocument=Model dokumenta
+ModelePdfTooltip=To je ime predloge dokumenta PDF, ki jo uporabljate.
+UptoSignOnlineSignature=Stran z elektronskim podpisom dokumenta
+UptoSignWelcomeOnOnlineSignaturePage=Dobrodošli na strani s podpisi dokumentov, ki jih ponuja %s
+UptoSignThisScreenAllowsYouToSignDocFrom=Na tem zaslonu lahko sprejmete in spletno podpišete ali zavrnete naslednje dokumente:
+UptoSignSignatureProposalRef=Podpis dokumenta %s
+SignOrSeal=Pečat ali podpis?
+SignOrSealTooltip=Pri pečatu so potrebni samo podatki o pečatu. Za podpis ne pozabite izpolniti vseh polj tega obrazca.
+SignCoordinateTooltip=Položaj podpisa (koordinate x,y v milimetrih od levega zgornjega kota)
+SignPage=Podpisna stran
+SignPageTooltip=Stran, na katero želite dodati podpis (če želite izbrati številko od konca, vpišite negativno številko: npr. -3 za tretjo stran pred koncem).

@@ -1,0 +1,114 @@
+<changelog>
+	<Version Number="1.8.5" MonthVersion="2021-09">
+		<change type='add'>Initiale release.</change>
+	</Version>
+	<Version Number="1.9.1" MonthVersion="2022-05">
+		<change type='add'>Ajout d'une fenêtre Popup pour la création des remises</change>
+		<change type='add'>Gestion des remises en cascade</change>
+	</Version>
+	<Version Number="1.9.3" MonthVersion="2022-09">
+		<change type='fix'>Compatibilité avec Dolibarr 14.0.x et ultérieur => utilisation de la description plutôt que du libellé pour les lignes de remise (sinon création de facture impossible)</change>
+	</Version>
+	<Version Number="2.0.1" MonthVersion="2022-09">
+		<change type='add'>Gestion des remises en montant</change>
+		<change type='add'>Ajout d'une option pour choisir le type d'élément associé aux remises (produit ou service)</change>
+		<change type='add'>Inclusion des remises dans les calculs de marge du document</change>
+	</Version>
+	<Version Number="2.0.2" MonthVersion="2022-09">
+		<change type='fix'>Correction d'un problème de traduction du libellé des remises</change>
+		<change type='fix'>Correction d'une erreur de calcul des marges et des taux de marge et/ou de marque</change>
+	</Version>
+	<Version Number="2.0.3" MonthVersion="2023-10">
+		<change type='chg'>Compatibilité avec Dolibarr supérieur à 16.0.x</change>
+		<change type='chg'>Abandon du support pour les versions de Dolibarr inférieures à 14.0.x</change>
+		<change type='chg'>Mise à jour des logos</change>
+		<change type='chg'>Paramètres : Amélioration de l'expérience utilisateur (Style CSS amélioré)</change>
+	</Version>
+	<Version Number="2.0.4" MonthVersion="2023-10">
+		<change type='chg'>Mise à jour des CSS</change>
+	</Version>
+	<Version Number="2.0.5" MonthVersion="2023-10">
+		<change type='chg'>Menu d'accès aux paramètres du module pour les utilisateurs non-administrateur => Création d'un menu général pour les modules InfraS</change>
+	</Version>
+	<Version Number="14.0.1" MonthVersion="2024-06">
+		<change type='fix'>Compatibilité PHP 8.1</change>
+		<change type='fix'>Amélioration de la gestion des versions déclarées du module</change>
+		<change type='chg'>Modification de la numérotation => (version minimum requise de Dolibarr) . (ajout de fonction) . (correctif)</change>
+		<change type='add'>Ajout d'un menu vers l'onglet "Changelog" => Facilite l'utilisation du lien vers le support</change>
+		<change type='add'>Gestion des versions minimum / maximum de PHP centralisée dans le fichier changelog</change>
+	</Version>
+	<Version Number="15.0.0" MonthVersion="2024-08">
+		<change type='fix'>Clean a lot of few small problems - improvements</change>
+		<change type='fix'>Configuration => Amélioration de la compatibilité avec PHP 8.1 et supérieur (typage des variables extraites du changelog.xml)</change>
+		<change type='fix'>Changelog / Support => Mise à jour des liens</change>
+		<change type='chg'>Compatibilité Dolibarr : Abandon de Dolibarr v14</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de l'utilisation des fonctions Dolibarr</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de la compatibilité Dolibarr v16, v18 et v19</change>
+		<change type='chg'>Amélioration du code => meilleur utilisation du CSS</change>
+		<change type='chg'>Paramètres : Amélioration du téléchargement du changelog</change>
+	</Version>
+	<Version Number="15.1.0" MonthVersion="2024-10">
+		<change type='add'>Activation du module : Ajout d'une constante cachée (INVOICE_KEEP_DISCOUNT_LINES_AS_IN_ORIGIN)</change>
+		<change type='add'>Comptabilité : Ajout de deux options pour lier les remises à un produit et / ou un service => permet de définir un compte comptable spécifique pour les remises</change>
+	</Version>
+	<Version Number="15.1.1" MonthVersion="2025-02">
+		<change type='fix'>Gestion des entrées du menu InfraS des outils</change>
+		<change type='chg'>Uniformisation des traductions des pages de paramètres</change>
+	</Version>
+	<Version Number="15.2.0" MonthVersion="2025-05">
+		<change type='add'>Ajout des fonctions de modification des remises existantes</change>
+		<change type='add'>Gestion des multidevises pour les remises</change>
+		<change type='chg'>Indifférenciation du type de séparateur décimal (. ou ,)</change>
+		<change type='chg'>Application des valeurs par défaut des libellés quand aucune modification de ces descriptifs n'est demandée</change>
+		<change type='add'>Gestion des remises différenciées entre les produits et les services (cohérence des calculs de marge)</change>
+		<change type='add'>Ajout des fonctions de remise automatique (X produits d'une liste offerts sur la / les Y premières commandes)</change>
+		<change type='add'>Ajout des fonctions de valeur cible (en TTC) : les remises sont calculées au prorata entre les produits et les service et par taux de TVA</change>
+	</Version>
+	<Version Number="15.2.1" MonthVersion="2025-06">
+		<change type='chg'>Améliorations du code => meilleure utilisation des fonctions de Dolibarr</change>
+	</Version>
+	<Version Number="15.2.2" MonthVersion="2025-06">
+		<change type='chg'>Changement du Logo</change>
+	</Version>
+	<Version Number="15.2.3" MonthVersion="2025-06">
+		<change type='chg'>Modification du fichier readme</change>
+	</Version>
+	<Version Number="15.2.4" MonthVersion="2025-07">
+		<change type='fix'>Erreur dans le changelog</change>
+		<change type='chg'>Amélioration de la compatibilité PHP8.1 et supérieur</change>
+		<change type='chg'>Amélioration de l'affichage des paramètres (en fonction des choix utilisateur et du thème appliqué dans Dolibarr)</change>
+	</Version>
+	<Version Number="15.2.5" MonthVersion="2025-07">
+		<change type='chg'>Amélioration de la compatibilité CSS avec les thèmes Dolibarr</change>
+	</Version>
+	<Version Number="15.2.6" MonthVersion="2025-08">
+		<change type='fix'>Correction de la compatibilité avec les modules externes Sous-total, MileSton - Jalon et Ouvrage</change>
+		<change type='chg'>Améliorations de la déctection des lignes de remises dans le code</change>
+		<change type='chg'>Les Remises fonctionnes maintenant sans qu'il soit liée ou associée à un produit/service</change>
+	</Version>
+	<Version Number="15.2.7" MonthVersion="2025-08">
+		<change type='fix'>Correction d'une erreur lors de la modification d'une ligne avec une remise en monétaire présente dans le document => la remise était supprimée</change>
+		<change type='chg'>Nettoyage de code</change>
+		<change type='chg'>Compatibilité Dolibarr v22</change>
+	</Version>
+	<Version Number="15.2.8" MonthVersion="2025-08">
+		<change type='fix'>Correction du lien vers le Dolistore</change>
+	</Version>
+	<Version Number="15.2.9" MonthVersion="2025-10">
+		<change type='fix'>Correction d'une erreur lors du contrôle des remises à 0 => dans certains cas, une ligne libre était considérée comme une ligne de remise à 0</change>
+		<change type='fix'>Correction d'un appel au fichier de la classe action d'InfraSDiscount (fichier trigger)</change>
+	</Version>
+	<Version Number="15.2.10" MonthVersion="2025-11">
+		<change type='fix'>Correction des fonctions de remise en cascade</change>
+		<change type='chg'>Factorisation du code de mise à jour des lignes de remise</change>
+	</Version>
+	<Version Number="15.2.11" MonthVersion="2025-11">
+		<change type='fix'>Refonte complète de la gestion des remises en cascade : les remises en pourcentage et prorata calculent maintenant uniquement sur les lignes situées AU-DESSUS d'elles (mode cascade)</change>
+		<change type='fix'>Correction du problème d'arrondis pour les remises total_ttc : algorithme intelligent garantissant désormais le montant TTC exact avec répartition proportionnelle par taux de TVA</change>
+		<change type='add'>Ajout de fonctions pour la gestion du multidevise : conversion sécurisée, protection contre division par zéro</change>
+		<change type='chg'>Factorisation et centralisation du code : création de fonctions réutilisables</change>
+	</Version>
+	<InfraS Downloaded="20251101"/>
+	<Dolibarr minVersion="15.0.0" maxVersion="22.0.2"/>
+	<PHP minVersion="7.4" maxVersion="8.2"/>
+</changelog>

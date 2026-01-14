@@ -1,0 +1,186 @@
+<changelog>
+	<Version Number="3.6.0" MonthVersion="2023-05">
+		<change type='add'>Version initiale (Merci à Jeremie Ter-Heide pour l'idée de base et le squelette des fonctions de consommation sur projet)</change>
+	</Version>
+	<Version Number="3.6.1" MonthVersion="2023-05">
+		<change type='fix'>Correction de bavures de chantier (classe action, trigger intenpestif)</change>
+	</Version>
+	<Version Number="3.6.2" MonthVersion="2023-09">
+		<change type='fix'>Compatibilité avec le module externe InfraSLoc (Fichiers TPL)</change>
+		<change type='add'>Ajout de l'option masquée native de Dolibarr pour masquer la date limite d'utilisation optimale (DMD / DLUO)</change>
+		<change type='add'>Ajout de l'option masquée native de Dolibarr pour masquer la date limite de consommation (DLC)</change>
+	</Version>
+	<Version Number="3.7.1" MonthVersion="2023-09">
+		<change type='add'>Ajout d'une option pour limiter les produits disponibles pour les consommations de stock à certaines catégories</change>
+		<change type='add'>Ajout du choix de la date de mouvement</change>
+	</Version>
+	<Version Number="3.7.2" MonthVersion="2023-10">
+		<change type='chg'>Activation des fonctions de contrôle de version natives de Dolibarr</change>
+		<change type='chg'>Menu d'accès aux paramètres du module pour les utilisateurs non-administrateur => Création d'un menu général pour les modules InfraS</change>
+	</Version>
+	<Version Number="3.7.3" MonthVersion="2023-10">
+		<change type='fix'>Correction d'une erreur empêchant le chargement des prix de vente produit / service sur le formulaire de création de ligne</change>
+	</Version>
+	<Version Number="3.7.4" MonthVersion="2023-10">
+		<change type='fix'>Compatibilité Dolibarr v18.0.2</change>
+	</Version>
+	<Version Number="3.7.5" MonthVersion="2023-10">
+		<change type='fix'>CSS pour thème sombre</change>
+	</Version>
+	<Version Number="3.7.6" MonthVersion="2023-10">
+		<change type='fix'>Compatibilité avec le module externe "Modification de ligne rapide (quickcustomerprice - ATM)"</change>
+	</Version>
+	<Version Number="14.8.0" MonthVersion="2024-04">
+		<change type='chg'>Compatibilité Dolibarr v19.0.x</change>
+		<change type='chg'>Compatibilité PHP8.1</change>
+		<change type='chg'>Modification de la numérotation => (version minimum requise de Dolibarr) . (ajout de fonction) . (correctif)</change>
+		<change type='add'>Ajout d'un menu vers l'onglet "Changelog" => Facilite l'utilisation du lien vers le support</change>
+		<change type='add'>Gestion des versions minimum / maximum de PHP centralisée dans le fichier changelog</change>
+		<change type='add'>Amélioration de l'onglet "Changelog" => Ajout d'un lien vers le support</change>
+	</Version>
+	<Version Number="14.8.1" MonthVersion="2024-05">
+		<change type='fix'>Correction d'une erreur provoquant l'effacement du projet lié au document lors de la création ou de la modification d'une ligne de détail</change>
+	</Version>
+	<Version Number="14.8.2" MonthVersion="2024-05">
+		<change type='fix'>Correction d'une erreur suivant le choix des catégories quand aucune catégorie n'était sélectionnée ou si l'option "Sans tag / catégorie" était choisie</change>
+	</Version>
+	<Version Number="14.9.0" MonthVersion="2024-05">
+		<change type='chg'>Amélioration de la compatibilité Dolibarr v18</change>
+		<change type='chg'>Amélioration de l'option de choix de la date de mouvement (désormais non dépendante de l'option de lien consommation / utilisateur)</change>
+	</Version>
+	<Version Number="14.10.0" MonthVersion="2024-05">
+		<change type='add'>Ajout d'une option pour créer un projet à la signature d'un devis</change>
+	</Version>
+	<Version Number="15.0.0" MonthVersion="2024-09">
+		<change type='fix'>Clean a lot of few small problems - improvements</change>
+		<change type='fix'>Configuration => Amélioration de la compatibilité avec PHP 8.1 et supérieur (typage des variables extraites du changelog.xml)</change>
+		<change type='fix'>Changelog / Support => Mise à jour des liens</change>
+		<change type='fix'>Fichier CSS</change>
+		<change type='fix'>Amélioration du test de compatibilité avec la version courante de Dolibarr</change>
+		<change type='chg'>Compatibilité Dolibarr : Abandon de Dolibarr v14</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de la compatibilité v19</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de l'utilisation des fonctions Dolibarr</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de la compatibilité Dolibarr v16, v18 et v19</change>
+		<change type='chg'>Amélioration du code => meilleur utilisation du CSS</change>
+		<change type='chg'>Paramètres : Mise à jour des liens de l'onglet "Changelog / Support"</change>
+		<change type='chg'>Paramètres : Amélioration du téléchargement du changelog</change>
+	</Version>
+	<Version Number="15.0.1" MonthVersion="2024-09">
+		<change type='fix'>CSS (scroll up)</change>
+		<change type='fix'>Traductions</change>
+	</Version>
+	<Version Number="15.0.2" MonthVersion="2024-09">
+		<change type='chg'>Add compatibility with Dolibarr 20.0.x</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de la compatibilité Dolibarr v15 à v19</change>
+	</Version>
+	<Version Number="15.0.3" MonthVersion="2024-12">
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de la compatibilité Dolibarr v18 à v20 (repport des correction du core de Dolibarr)</change>
+	</Version>
+	<Version Number="15.1.0" MonthVersion="2024-12">
+		<change type='chg'>Nettoyage du code : Améliorations liés à l'utilisation d'IDE</change>
+		<change type='add'>Compatibilité module externe ContactTracking (Inovea Conseil) : Ajout de 2 options pour afficher le dernier échange et / ou la prochaine action lié au projet sur l'onglet principal</change>
+	</Version>
+	<Version Number="15.1.1" MonthVersion="2025-02">
+		<change type='fix'>Gestion des entrées du menu InfraS des outils</change>
+		<change type='chg'>Uniformisation des traductions des pages de paramètres</change>
+	</Version>
+	<Version Number="18.0.0" MonthVersion="2025-06">
+		<change type='chg'>Abandon de Dolibarr v15 à v17</change>
+		<change type='chg'>Amélioration de la compatibilité avc Dolibarr v18 à v20</change>
+		<change type='chg'>Nettoyage du code</change>
+		<change type='chg'>Amélioration de la compatibilité avec PHP 8.2</change>
+		<change type='add'>Ajout de la compatibilité avc Dolibarr v21</change>
+	</Version>
+	<Version Number="18.0.1" MonthVersion="2025-06">
+		<change type='fix'>Correction d'une erreur bloquante dans les paramètres</change>
+		<change type='fix'>Correction du contrôle de version</change>
+		<change type='chg'>Amélioration du process de téléchargement du fichier changelog</change>
+	</Version>
+	<Version Number="18.0.2" MonthVersion="2025-06">
+		<change type='chg'>Mise à jour du logo</change>
+		<change type='chg'>Mise à jour du fichier readme</change>
+	</Version>
+	<Version Number="18.0.3" MonthVersion="2025-07">
+		<change type='chg'>Amélioration de la compatibilité PHP8.1 et supérieur</change>
+		<change type='chg'>Amélioration de l'affichage des paramètres (en fonction des choix utilisateur et du thème appliqué dans Dolibarr)</change>
+	</Version>
+	<Version Number="18.0.4" MonthVersion="2025-07">
+		<change type='chg'>Amélioration de la compatibilité CSS avec les thèmes Dolibarr</change>
+	</Version>
+	<Version Number="18.0.5" MonthVersion="2025-07">
+		<change type='fix'>Correction d'erreurs éventuelles suivant la version de Dolibarr utilisée (fichier TPL)</change>
+	</Version>
+	<Version Number="18.0.6" MonthVersion="2025-08">
+		<change type='fix'>Erreur trigger dans certain cas d'utilisation via l'API</change>
+		<change type='add'>Compatibilité Dolibarr v22</change>
+	</Version>
+	<Version Number="18.0.7" MonthVersion="2025-08">
+		<change type='fix'>Correction du lien vers le Dolistore</change>
+		<change type='chg'>Compatibilité Dolibarr 22.0.x (fichiers templates)</change>
+	</Version>
+	<Version Number="18.0.9" MonthVersion="2025-09">
+		<change type='chg'>Nettoyage du code</change>
+		<change type='fix'>Correction du consommation des stocks => Le produit est séléctionnable si l'option "Gestion du stock" est activée (sinon l'enregistrement échoue)</change>
+	</Version>
+	<Version Number="18.1.0" MonthVersion="2025-09">
+		<change type='add'>Ajout des options de sauvegarde / restauration des paramètres</change>
+		<change type='add'>Ajout d'une option pour afficher le bénéfice provisoire dans l'onglet "Vue d'ensemble" des projets</change>
+	</Version>
+	<Version Number="18.1.1" MonthVersion="2025-09">
+		<change type='fix'>Correction de compatibilité pour Dolibarr antérieur à 20</change>
+	</Version>
+	<Version Number="18.2.0" MonthVersion="2025-09">
+		<change type='add'>Ajout d'une option pour afficher le tableau de calcul du bénéfice provisoire en premier</change>
+		<change type='add'>Ajouts des options pour afficher les totaux des devis, des commandes, des devis fournisseurs, des commandes fournisseurs dans le tableau récapitulatif du Bénéfice</change>
+		<change type='add'>Ajout d'une option pour choisir le type de lignes de notes de frais à NE PAS prendre en compte dans le calcul de bénéfice </change>
+		<change type='add'>Ajout des options pour masquer les listes de commandes, de modèles de factures clients, de devis fournisseurs, d'expéditions, de temps consommées sur les tâche et les listes vides</change>
+		<change type='add'>Ajout d'une option pour inclure le total des factures fournisseurs non liées à une commande fournisseur dans le tableau de calcul du Bénéfice Provisoire </change>
+	</Version>
+	<Version Number="18.2.1" MonthVersion="2025-09">
+		<change type='chg'>Simplification de la page des paramètres</change>
+		<change type='chg'>Amélioration des libellés et traductions sur la vue d'ensemble des projets</change>
+	</Version>
+	<Version Number="18.2.2" MonthVersion="2025-09">
+		<change type='fix'>Correction d'affichage des lignes de factures fournisseurs non liée à une commande fournisseur dans le tableau du Bénéfice Provisoire</change>
+	</Version>
+	<Version Number="18.3.0" MonthVersion="2025-09">
+		<change type='add'>Ajout d'une colonne pour inclure le commande fournisseur liées à une facture fournisseur dans le tableau de Liste des factures fournisseurs associées au projet</change>
+	</Version>
+	<Version Number="18.4.0" MonthVersion="2025-10">
+		<change type='fix'>Correction d'une erreur de typage de variable</change>
+		<change type='add'>Ajout d'une ligne dans le calcul de la marge provisoire pour prendre en compte les dépassements de facturation fournisseur par rapport aux commandes liées</change>
+		<change type='add'>Ajout d'un mécanisme de contournement des droits utilisateurs pour la gestion des liens sur les factures fournisseur</change>
+	</Version>
+	<Version Number="18.5.0" MonthVersion="2025-10">
+		<change type='add'>Ajouts des options cachées de dolibarr dans l'onglet "Paramètres Dolibarr"</change>
+	</Version>
+	<Version Number="18.6.0" MonthVersion="2025-10">
+		<change type='add'>Ajouts de deux options => Éléments à prendre en compte comme addition et déduction dans le calcul du bénéfice provisoire</change>
+	</Version>
+	<Version Number="18.6.1" MonthVersion="2025-10">
+		<change type='chg'>Modification de la famille de module</change>
+		<change type='chg'>Amélioration de la gestion des éléments à prendre en compte dans les calculs de bénéfice (prise en compte de l'activation du module concerné)</change>
+	</Version>
+	<Version Number="18.7.0" MonthVersion="2025-10">
+		<change type='add'>Ajout de nouvelles options pour choisir les taux de marque à utiliser dans les calculs du droit à dépenser</change>
+	</Version>
+	<Version Number="18.7.1" MonthVersion="2025-10">
+		<change type='fix'>Correction d'une erreur dans l'enregistrement des tiers dont les projets peuvent être liés à n'importe quel élément (option cachée de Dolibarr)</change>
+	</Version>
+	<Version Number="18.7.2" MonthVersion="2025-10">
+		<change type='fix'>Correction d'une erreur d'affichage du boutons créer sur la page "Vue d'ensemble"</change>
+	</Version>
+	<Version Number="18.7.3" MonthVersion="2025-10">
+		<change type='fix'>Correction de l'option d'affichage de factures fournisseurs non lié à une commande dans le tableau de récapitulatif du Bénéfice Provisoire</change>
+		<change type='fix'>Correction de libellés de statut de Dolibarr18</change>
+	</Version>
+	<Version Number="18.7.4" MonthVersion="2025-11">
+		<change type='fix'>Correction et amélioration de l'affichage de factures fournisseurs non lié à une commande dans le tableau de Bénéfice Provisoire</change>
+	</Version>
+	<Version Number="18.7.5" MonthVersion="2025-11">
+		<change type='chg'>Création de la compatibilité avec le module externe InfraSWidgets</change>
+	</Version>
+	<InfraS Downloaded="20251101"/>
+	<Dolibarr minVersion="18.0.0" maxVersion="22.0.3"/>
+	<PHP minVersion="7.4" maxVersion="8.2"/>
+</changelog>
