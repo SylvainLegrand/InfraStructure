@@ -1715,7 +1715,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($canvasdisplayactio
 				if (!getDolGlobalString('PRODUCT_DISABLE_NATURE')) {
 					// Nature
 					print '<tr><td>'.$form->textwithpicto($langs->trans("NatureOfProductShort"), $langs->trans("NatureOfProductDesc")).'</td><td>';
-					print $formproduct->selectProductNature('finished', (string) $object->finished);
+					print $formproduct->selectProductNature('finished', (GETPOST('finished') ? GETPOST('finished') : (string) $object->finished));
 					print '</td></tr>';
 				}
 			}
