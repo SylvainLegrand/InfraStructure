@@ -1714,7 +1714,14 @@
 	<Version Number="18.12.5" MonthVersion="2025-12">
 		<change type='fix'>Correction d'une erreur d'affichage pour les remises globales (elles étaient doublées sur l'affichage den pied de document)</change>
 	</Version>
-	<InfraS Downloaded="20251201"/>
+	<Version Number="18.12.6" MonthVersion="2026-01">
+		<change type='chg'>Compatibilité avec Dolibarr v22</change>
+	</Version>
+	<Version Number="18.12.7" MonthVersion="2026-01">
+		<change type='fix'>Correction d'une erreur qui empêche la modification du format de page lorsque l'utilisation de l'unité est désactivée</change>
+		<change type='chg'>Amélioration de la compatibilité avec le lien de paiement InfraS2Bridge</change>
+	</Version>
+	<InfraS Downloaded="20260101"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.2"/>
 </changelog>

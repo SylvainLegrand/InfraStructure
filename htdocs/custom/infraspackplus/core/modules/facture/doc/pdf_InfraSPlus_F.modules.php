@@ -2348,29 +2348,27 @@
 				}
 				// If payment mode forced to VIR, show payment with QR code and/or Link
 				if (isModEnabled('infras2bridge') && $object->mode_reglement_code == 'VIR' && $object->statut == Facture::STATUS_VALIDATED) {
-					$bridge		= new Bridge($this->db);
-					$payments	= $bridge->fetchAllBridgePaymentLink();
-					if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK')) {
-						foreach ($payments['resources'] as $payment) {
-							if (!empty($payment['client_reference']) && preg_replace('/\s+/', '', $payment['client_reference']) == preg_replace('/\s+/', '', $object->ref) && in_array($payment['status'], ['valid','completed'])) {
-								$pdf->SetFont('', 'B', $default_font_size - 2);
-								$titre = $outputlangs->transnoentities('PDFInfraSPlusTransferCreationLink').' : ';
-								$pdf->MultiCell($larg_col1info, $tabinfo_hl, $titre, '', 'L', 0, 1, $posxtabinfo, $posytabinfo - 2, true, 0, 0, false, 0, 'N', false);
-
-								$pdf->SetFont('', '', $default_font_size - 2);
-								$linktopay = '<a href="'.$payment['link'].'" title="'.$outputlangs->transnoentities('ClickHere').'" style="text-decoration:none">'.$outputlangs->transnoentities('PDFInfraSPlusBridgeLink').'</a>';
-								$pdf->writeHTMLCell($larg_col2info, $tabinfo_hl, $posxcol2info, $posytabinfo - 2, dol_htmlentitiesbr($linktopay), 0, 1,false,true, 'N',true);
-								break;
-							}
-						}
-					}
-					// Bridge QR Code (si valid + conf active)
-					if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_QR_CODE')) {
-						foreach ($payments['resources'] as $payment) {
-							if (!empty($payment['link']) && in_array($payment['status'], ['valid','completed']) && !empty($payment['client_reference']) && preg_replace('/\s+/', '', $payment['client_reference']) == preg_replace('/\s+/', '', $object->ref)) {
-								$pdf->write2DBarcode($payment['link'], 'QRCODE,M', $posxtabinfo, $posytabinfo + 5, $this->sizeBC, $this->sizeBC, $this->styleBC, 'N');
-								$posytabinfo = $pdf->GetY() + 1;
-								break;
+					$paymentLink	= new infras2bridge_paymentlinks($this->db);
+					$links			= $paymentLink->get_status_from_ref($object->ref);
+					dol_syslog('ici pdf_InfraSPlus_F::_tableau_info link='.$link['status'], LOG_DEBUG);
+					if (is_array($links)) {
+						foreach ($links as $link) {
+							if (in_array($link['status'], array('valid','completed'))) {
+								if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK')) {
+									$pdf->SetFont('', 'B', $default_font_size - 2);
+									$titre	= $outputlangs->transnoentities('PDFInfraSPlusTransferCreationLink').' : ';
+									$pdf->MultiCell($larg_col1info, $tabinfo_hl, $titre, '', 'L', 0, 1, $posxtabinfo, $posytabinfo - 2, true, 0, 0, false, 0, 'N', false);
+									$pdf->SetFont('', '', $default_font_size - 2);
+									$linktopay	= '<a href="'.$link['link'].'" title="'.$outputlangs->transnoentities('ClickHere').'" style="text-decoration:none">'.$outputlangs->transnoentities('PDFInfraSPlusBridgeLink').'</a>';
+									$pdf->writeHTMLCell($larg_col2info, $tabinfo_hl, $posxcol2info, $posytabinfo - 2, dol_htmlentitiesbr($linktopay), 0, 1,false,true, 'N',true);
+									dol_syslog('ici titre='.$titre.' linktopay='.$linktopay, LOG_DEBUG);
+								}
+								// Bridge QR Code (si valid + conf active)
+								if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK')) {
+									$pdf->write2DBarcode($link['link'], 'QRCODE,M', $posxtabinfo, $posytabinfo + 5, $this->sizeBC, $this->sizeBC, $this->styleBC, 'N');
+									$posytabinfo	= $pdf->GetY() + 1;
+									dol_syslog('ici QR code '.$link['link'], LOG_DEBUG);
+								}
 							}
 						}
 					}

@@ -82,7 +82,7 @@
 		$chgUnits	= false;
 		foreach ($list[$confkey] as $constname) {
 			// Specific case for units management
-			if ($constname == 'PRODUCT_USE_UNITS' && (GETPOST('PRODUCT_USE_UNITS', 'alpha') == 'none') || GETPOST('PRODUCT_USE_UNITS', 'alpha') == '-1') {
+			if ($constname == 'PRODUCT_USE_UNITS' && (GETPOST('PRODUCT_USE_UNITS', 'alpha') == 'none' || GETPOST('PRODUCT_USE_UNITS', 'alpha') == '-1')) {
 				$value	= '';
 			} else {
 				$value	= GETPOST($constname, 'alpha');

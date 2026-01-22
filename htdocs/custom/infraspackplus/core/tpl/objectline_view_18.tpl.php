@@ -355,7 +355,7 @@ if ((($line->info_bits & 2) != 2) && $line->special_code != 3) {
 }
 print '</td>';
 
-if (getDolGlobalString('PRODUCT_USE_UNITS')) {
+if (!empty($conf->global->PRODUCT_USE_UNITS)) {
 	print '<td class="linecoluseunit nowrap left">';
 	$label = $line->getLabelOfUnit('short');
 	if ($label !== '') {
