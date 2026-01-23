@@ -330,6 +330,8 @@ ALTER TABLE llx_webhook_history ADD COLUMN trigger_code text NOT NULL;
 ALTER TABLE llx_webhook_history ADD COLUMN error_message text;
 ALTER TABLE llx_webhook_history MODIFY COLUMN url varchar(255);
 
+UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 'mastodon';
+
 -- default deposit % if payment term needs it on supplier
 ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
 ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
@@ -373,3 +375,9 @@ INSERT INTO llx_c_sepa_community_instrument (code, label, position, active) VALU
 -- InfraS add end
 
 UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 'mastodon';
+
+-- ---------------
+-- AJOUTS OSDEN
+-- ---------------
+
+UPDATE llx_const SET name = 'MAIL_MASS_ACTION_SEARCH_MOST_RECENT_FILE_IF_NOT_FOUND' WHERE name = 'ESAYA_SEND_EMAIL_IN_MASS_MOST_RECENT_FILE_IF_NOT_FOUND';
