@@ -1,5 +1,13 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.3.34 -- 202560109
+
+race condition for propal/propale template like azur/cyan
+
+## 2.3.32 -- 20251204
+
+fix no object id on hook : use parameter uuid data
+
 ## 2.3.30 -- 20251029
 
 infras contracts

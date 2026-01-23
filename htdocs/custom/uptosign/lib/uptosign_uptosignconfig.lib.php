@@ -116,6 +116,13 @@ function uptoSignGetSpecimen($objectType, $modele, $defaultIfNotFound = false)
 	$modulepart = $hallobj['modulepart'];
 	$pdfpath = $hallobj['pdfpath'];
 
+	//too easy with dolibarr
+	if ($modulepart == "propal") {
+		dol_syslog("uptoSignGetSpecimen race condition for propal ...", LOG_DEBUG);
+		$modulepart = "propale";
+	}
+
+
 	//what about custom models from other modules ?
 	$filefound = 0;
 	foreach ($dirmodels as $reldir) {

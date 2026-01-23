@@ -168,18 +168,24 @@ class ActionsUptoSign
 			}
 		}
 
-		// we need object id and element ...
-		if (empty($object->id) || empty($object->element)) {
-			dol_syslog("uptosign doAction $action, error object id or element is empty !");
-			return 0;
-		}
-
-		//uuid possible
+		//uuid possible >> prioritaire
 		if (isset($parameters['uuid'])) {
 			$resUTS = $uptosignstatic->fetchWhereUuidSign($parameters['uuid']);
 			if ($resUTS <= 0) {
 				dol_syslog("uptosign doActions can't find document : " . json_encode($uptoSign), LOG_ERR);
+			} else {
+				dol_syslog("uptosign resUTS=" . json_encode($uptosignstatic));
+				if($uptosignstatic->object_type == $object->element && empty($object->id)) {
+					$object->fetch($uptosignstatic->fk_object);
+				}
 			}
+		}
+
+		// we need object id and element ...
+		if (empty($object->id) || empty($object->element)) {
+			dol_syslog("uptosign doAction $action, error object id ($object->id) or element ($object->element) is empty (a) !");
+			dol_syslog("uptosign doAction parameters=" . json_encode($parameters));
+			return 0;
 		}
 
 		if (empty($uptosignstatic->id)) {
@@ -1538,7 +1544,7 @@ class ActionsUptoSign
 
 		// we need object id and element ...
 		if (empty($object->id) || empty($object->element)) {
-			dol_syslog("uptosign createFrom $action, error object id or element is empty !");
+			dol_syslog("uptosign createFrom $action, error object id or element is empty (b) !");
 			return 0;
 		}
 
