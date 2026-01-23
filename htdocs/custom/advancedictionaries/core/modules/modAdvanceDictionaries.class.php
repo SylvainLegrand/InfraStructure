@@ -54,11 +54,11 @@ class modAdvanceDictionaries extends DolibarrModules
 
         // Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
         // It is used to group modules by family in module setup page
-        $this->family = 'easya';
+        $this->family = "Opendsi";
         // Module position in the family
         $this->module_position = 500;
         // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        $this->familyinfo = array('easya' => array('position' => '001', 'label' => $langs->trans("easyaFamily")));
+        // $this->familyinfo = array('osden' => array('position' => '001', 'label' => $langs->trans("osdenFamily")));
         // Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
         $this->special = 0;
 
@@ -67,10 +67,10 @@ class modAdvanceDictionaries extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module Advanced Dictionaries";
         $this->descriptionlong = "";
-        $this->editor_name		= '<b>Easya Solutions</b>';
-        $this->editor_web		= 'https://easya.solutions';
-        $this->editor_url		= "https://easya.solutions";
-        $this->editor_email		= 'support@easya.solutions';
+        $this->editor_name		= '<b>Opendsi</b>';
+        $this->editor_web		= 'https://opendsi.fr';
+        $this->editor_url		= "https://opendsi.fr";
+        $this->editor_email		= 'support@open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
 		$this->version = trim(file_get_contents(__DIR__.'/../../VERSION'));
@@ -122,9 +122,9 @@ class modAdvanceDictionaries extends DolibarrModules
 		$this->depends = array();		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
-		$easya_info = json_decode(file_get_contents(__DIR__.'/../../.easya_info.json'));
-        $this->phpmin = explode('.', $easya_info->php_min_version);                    // Minimum version of PHP required by module
-        $this->need_dolibarr_version = explode('.', $easya_info->dlb_min_version);    // Minimum version of Dolibarr required by module
+		$opendsi_info = json_decode(file_get_contents(__DIR__.'/../../.opendsi_info.json'));
+        $this->phpmin = explode('.', $opendsi_info->php_min_version);                    // Minimum version of PHP required by module
+        $this->need_dolibarr_version = explode('.', $opendsi_info->dlb_min_version);    // Minimum version of Dolibarr required by module
 		$this->langfiles = array("advancedictionaries@advancedictionaries", "opendsi@advancedictionaries");
         $langs->load('advancedictionaries@advancedictionaries');
 
@@ -135,7 +135,6 @@ class modAdvanceDictionaries extends DolibarrModules
 		// );
 		$this->const = array(
             0 => array('ADVANCEDICTIONARIES_REPLACE_OLD_DICTIONARIES_PAGE', 'chaine', '0', 'Replace original dictionaries.', 0, 'current'),
-			1 => array('ADVANCEDICTIONARIES_VERSION', 'chaine', $this->version, 'AdvanceDictionaries version', 0, 'current'),
         );
 
 		// Array to add new pages in new tabs
@@ -312,6 +311,10 @@ class modAdvanceDictionaries extends DolibarrModules
 			),
 			"DELETE FROM " . MAIN_DB_PREFIX . "const WHERE {$cq}name{$cq} LIKE 'ADVANCEDICTIONARIES_DICTIONARY_%_VERSION' AND {$cq}entity{$cq} != 0",
 		);
+
+		// Set module version
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+		$res = dolibarr_set_const($this->db, 'ADVANCEDICTIONARIES_VERSION', $this->version, 'chaine', 0, 'AdvanceDictionaries version', $conf->entity);
 
         return $this->_init($sql, $options);
 	}

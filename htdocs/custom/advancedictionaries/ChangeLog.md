@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.0.17] - 19-01-2026
+- Corrige la mise a jour de la version de la constante 'ADVANCEDICTIONARIES_VERSION'
+- Correction selection de la valeur actuelle d'un sellist cas ou un tableau est passé comme valeur du champ
+
 ## [14.0.16] - 11-09-2025
 - Correction : Inclusion de main.inc.php (bis)
 
@@ -294,7 +298,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/14.0.16...HEAD
+[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/14.0.17...HEAD
+[14.0.17]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.17
 [14.0.16]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.16
 [14.0.15]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.15
 [14.0.14]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.14

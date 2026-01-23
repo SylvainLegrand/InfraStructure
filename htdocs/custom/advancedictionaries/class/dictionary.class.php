@@ -4591,7 +4591,9 @@ class DictionaryLine extends CommonObjectLine
 						if (empty($options_only)) {
 							$out .= '</select>';
 							include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-							$out .= ajax_combobox($fieldHtmlName, array(), 0, 0, 'resolve', '', $moreClasses);
+							$empty_value = '';
+							if (!empty($field['empty_options'])) $empty_value = is_array($field['empty_options']) ? array_values($field['empty_options'])[0] : $field['empty_options'];
+							$out .= ajax_combobox($fieldHtmlName, array(), 0, 0, 'resolve', $empty_value, $moreClasses);
 						}
 						break;
 					case 'sellist':
@@ -4730,7 +4732,9 @@ class DictionaryLine extends CommonObjectLine
 						if (empty($options_only)) {
 							$out .= '</select>';
 							include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-							$out .= ajax_combobox($fieldHtmlName, array(), 0, 0, 'resolve', '', $moreClasses);
+							$empty_value = '';
+							if (!empty($field['empty_options'])) $empty_value = is_array($field['empty_options']) ? array_values($field['empty_options'])[0] : $field['empty_options'];
+							$out .= ajax_combobox($fieldHtmlName, array(), 0, 0, 'resolve', $empty_value, $moreClasses);
 						}
 						break;
 					case 'radio':

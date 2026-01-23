@@ -100,12 +100,12 @@ print '<table class="centpercent">';
 //print '<tr class="liste_titre"><td colspan="2">' . $langs->trans("Authors") . '</td>';
 //print '</tr>'."\n";
 
-// Easya Solutions
+// Opendsi
 print '<tr>';
-print '<form id="ticket" method="POST" target="_blank" action="https://support.easya.solutions/create_ticket.php">';
+print '<form id="ticket" method="POST" target="_blank" action="https://support.opendsi.fr/create_ticket.php">';
 print '<input name=message type="hidden" value="'.$supportvalue.'" />';
 print '<input name=email type="hidden" value="'.$user->email.'" />';
-print '<td class="titlefield center"><img alt="Easya Solutions" src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";
+print '<td class="titlefield center"><img alt="Opendsi" src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";
 print '<td class="left"><p>'.$langs->trans("OpenDsiAboutDesc1").' <button type="submit" >'.$langs->trans("OpenDsiAboutDesc2").'</button> '.$langs->trans("OpenDsiAboutDesc3").'</p></td>'."\n";
 print '</tr>'."\n";
 
