@@ -232,6 +232,6 @@ SireneErrorWhileConnectToAPI            = Erreur lors de la connexion à l'API
 SireneErrorBadConvertResult             = Mauvais format de la réponse d'une requête sur l'API
 SireneErrorWhenGetOneCompanyBySiret     = Erreur lors de la recherche du tiers avec le siret %s
 SireneErrorWhenSearchCompanies          = Erreur lors de la recherche des tiers
-SireneSolutionForError401               = Votre jeton d'accès à l'API de l'INSEE est expiré ou invalide. Rendez-vous sur votre compte INSEE et vérifier vos données de connexion. Pour plus d'informations, veuillez consulter le point 4 de <a href="https://link.easya.solutions/sirene_doc">la documentation</a>
+SireneSolutionForError401               = Votre jeton d'accès à l'API de l'INSEE est expiré ou invalide. Rendez-vous sur votre compte INSEE et vérifier vos données de connexion. Pour plus d'informations, veuillez consulter le point 4 de <a href="https://link.opendsi.fr/sirene_doc">la documentation</a>
 SireneSolutionForError500               = Le serveur de l'INSEE est actuellement injoignable. Cette indisponibilité, bien que rare, peut durer de 30 min à 1 journée. Veuillez réessayez plus tard.
 SireneErrorWhenGetCompanyByRna          = Erreur lors de la recherche du tiers avec le RNA %s

@@ -55,11 +55,11 @@ class modSirene extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
 		// It is used to group modules by family in module setup page
-		$this->family = 'easya';
+		$this->family = "Opendsi";
 		// Module position in the family
 		$this->module_position = 500;
 		// Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-		$this->familyinfo = array('easya' => array('position' => '001', 'label' => $langs->trans("easyaFamily")));
+		// $this->familyinfo = array('osden' => array('position' => '001', 'label' => $langs->trans("osdenFamily")));
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
 		$this->special = 0;
 
@@ -68,18 +68,18 @@ class modSirene extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module \"Sirene\"";
 		$this->descriptionlong = "";
-		$this->editor_name      = '<b>Easya Solutions</b>';
-		$this->editor_web       = 'https://easya.solutions';
-		$this->editor_url       = "https://easya.solutions";
-		$this->editor_email     = 'support@easya.solutions';
+		$this->editor_name      = '<b>Opendsi</b>';
+		$this->editor_web       = 'https://opendsi.fr';
+		$this->editor_url       = "https://opendsi.fr";
+		$this->editor_email     = 'support@open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
 		$this->version          = trim(file_get_contents(__DIR__.'/../../VERSION'));    // Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 		$this->url_last_version = 'https://git.open-dsi.fr/dolibarr-extension/sirene/-/raw/2024/VERSION';
 
-		$easya_info = json_decode(file_get_contents(__DIR__.'/../../.easya_info.json'));
-		$this->phpmin = explode('.', $easya_info->php_min_version);                 // Minimum version of PHP required by module
-		$this->need_dolibarr_version = explode('.', $easya_info->dlb_min_version);  // Minimum version of Dolibarr required by module
+		$opendsi_info = json_decode(file_get_contents(__DIR__.'/../../.opendsi_info.json'));
+		$this->phpmin = explode('.', $opendsi_info->php_min_version);                 // Minimum version of PHP required by module
+		$this->need_dolibarr_version = explode('.', $opendsi_info->dlb_min_version);  // Minimum version of Dolibarr required by module
 
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -333,8 +333,12 @@ class modSirene extends DolibarrModules
 
 		$visibilityListOnly = -2;
 		$visibilityCardAndList = -1;
-		$easya_version = getSireneDolGlobalString('EASYA_VERSION');
-		if (!empty($easya_version) && version_compare($easya_version, '2022.5.3', '<')) {
+		if(!empty(getSireneDolGlobalString('OSDEN_VERSION'))) {
+			$opendsi_version = getSireneDolGlobalString('OSDEN_VERSION');
+		} else {
+			$opendsi_version = getSireneDolGlobalString('EASYA_VERSION');
+		}
+		if (!empty($opendsi_version) && version_compare($opendsi_version, '2022.5.3', '<')) {
 			$visibilityListOnly = -1; // [2 or -2] don't use if the fix wasn't here "https://github.com/Dolibarr/dolibarr/pull/25355"
 		} elseif (version_compare(DOL_VERSION, '18.0.5', '<')) {
 			$visibilityListOnly = -1; // [2 or -2] don't use if the fix wasn't here "https://github.com/Dolibarr/dolibarr/pull/25355"

@@ -5,10 +5,10 @@ Ajout de champs complémentaires
 - sur la fiche du tiers
   - Maj Sirene détectée
     - sirene_status : booléen
-    - visible uniquement sur la liste (visible partout si version d'Easya est inférieure à 2022.5.3 ou version de Dolibarr inférieure à 18.0.5)
+    - visible uniquement sur la liste (visible partout si version d'Osden est inférieure à 2022.5.3 ou version de Dolibarr inférieure à 18.0.5)
   - Date dernier appel Sirene
     - sirene_update_date : date et heure
-    - visible uniquement sur la liste (visible partout si version d'Easya est inférieure à 2022.5.3 ou version de Dolibarr inférieure à 18.0.5)
+    - visible uniquement sur la liste (visible partout si version d'Osden est inférieure à 2022.5.3 ou version de Dolibarr inférieure à 18.0.5)
   - Statut Sirene
     - sirene_company_admin_status : liste de sélection
     F. Fermé
@@ -16,7 +16,7 @@ Ajout de champs complémentaires
     - visible partout (liste et fiche en mode visuel / création / modification)
   - Date tâche planifiée Sirene
     - sirene_cron_date : date et heure
-    - visible uniquement sur la liste (visible partout si version d'Easya est inférieure à 2022.5.3 ou version de Dolibarr inférieure à 18.0.5)
+    - visible uniquement sur la liste (visible partout si version d'Osden est inférieure à 2022.5.3 ou version de Dolibarr inférieure à 18.0.5)
 
 ### Hooks
 - Hook formObjectOptions affiche un formulaire sur la page de création / édition de tiers pour rechercher un tiers à partir d'un numéro de SIREN, SIRET, RNA, raison social...
