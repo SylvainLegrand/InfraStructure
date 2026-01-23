@@ -126,7 +126,7 @@ if ($action == 'updateMask') {
 }
 // Activate a model
 elseif ($action == 'set') {
-	$array = ['SCANINVOICES_DEFAULT_PRODUCT','SCANINVOICES_DEFAULT_LIVRAISON', 'SCANINVOICES_ADD_CATEG', 'SCANINVOICES_FILE_NAME', 'SCANINVOICES_FILE_NAME_PRE', 'SCANINVOICES_DISABLE_WARNING'];
+	$array = ['SCANINVOICES_DEFAULT_PRODUCT','SCANINVOICES_DEFAULT_LIVRAISON', 'SCANINVOICES_ADD_CATEG', 'SCANINVOICES_FILE_NAME', 'SCANINVOICES_FILE_NAME_PRE', 'SCANINVOICES_DISABLE_WARNING', 'SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR'];
 	foreach ($array as $key) {
 		$value = GETPOST($key, 'alpha');
 		dolibarr_set_const($db, $key, $value, 'chaine', 0, '', $conf->entity);
@@ -195,6 +195,11 @@ echo '<input type="checkbox" name="SCANINVOICES_DISABLE_WARNING" value="1" class
 print '</td>';
 print '</tr>';
 
+print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR") . "</b><br /><i>" . $langs->trans("SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARRTooltip") . '</i></td>';
+print '<td>';
+echo '<input type="checkbox" name="SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR" value="1" class="minwidth300" '.(getDolGlobalInt('SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR') ? 'checked="checked"' : '').'>';
+print '</td>';
+print '</tr>';
 
 
 //TODO - plus simple si on avait le form builder

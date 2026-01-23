@@ -1,5 +1,19 @@
 # CHANGELOG SCANINVOICES FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 1.4.78 - 20260106
+
+* fix setup-3 yes/no : unset does not work !
+
+## 1.4.76 - 20251105
+
+* new functionnal auto import peppol files from peppol AP like peppyrus
+  (need cap-rel peppol module)
+
+## 1.4.74 - 20250901
+
+* new option in module setup : SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR
+  then you can force supplier payment date / conditions and so from thirdpart settings
+
 ## 1.4.72 - 20250729
 
 * fix php warning on array values

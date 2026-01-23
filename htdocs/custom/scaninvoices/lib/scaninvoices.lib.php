@@ -850,8 +850,10 @@ function scaninvoicesCreate_fact_fournisseur($data)
 		$facfou->date = strtotime(scaninvoicesDateFormating($data->ladate, 'Y-m-d'));
 		//default = date
 		if (isset($data->due_date)) {
+			dol_syslog(' ScanInvoices: supplier invoice due date is set, use it');
 			$facfou->date_echeance = strtotime(scaninvoicesDateFormating($data->due_date, 'Y-m-d'));
 		} else {
+			dol_syslog(' ScanInvoices: supplier invoice due date is not set, use same date as invoice date...');
 			$facfou->date_echeance = $facfou->date;
 		}
 		$facfou->note_public = '';
@@ -873,6 +875,22 @@ function scaninvoicesCreate_fact_fournisseur($data)
 		//default payment account
 		if (empty($facfou->fk_account) && !empty($facfou->thirdparty->fk_account)) {
 			$facfou->fk_account = $facfou->thirdparty->fk_account;
+		}
+
+		//forcee everything from dolibarr thirdpart settings
+		if (getDolGlobalString('SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR')) {
+			dol_syslog(' ScanInvoices: configuration is to force supplier payment settings from thirdpart settings...');
+
+			if (!empty($facfou->thirdparty->fk_account)) {
+				$facfou->fk_account = $facfou->thirdparty->fk_account;
+			}
+			if (!empty($facfou->thirdparty->mode_reglement_supplier_id)) {
+				$facfou->mode_reglement_id = $facfou->thirdparty->mode_reglement_supplier_id;
+			}
+			if (!empty($facfou->thirdparty->cond_reglement_supplier_id)) {
+				$facfou->cond_reglement_id = $facfou->thirdparty->cond_reglement_supplier_id;
+				$facfou->date_echeance = $facfou->calculate_date_lim_reglement();
+			}
 		}
 
 		$factureid = $facfou->create($user);
@@ -2590,7 +2608,14 @@ function scaninvoicesSearchProductID($ref, $supplier_id)
  */
 function scaninvoicesGetMyIP()
 {
-	return @file_get_contents('https://bl.cap-rel.fr/ip.php');
+	$ip = file_get_contents('https://bl.cap-rel.fr/ip.php');
+	if (empty($ip)) {
+		preg_match('/((\d{1,3}\.){3}\d{1,3})/', @file_get_contents("http://www.monip.org/"), $matches);
+		if (isset($matches[0])) {
+			$ip = $matches[0];
+		}
+	}
+	return $ip;
 }
 
 

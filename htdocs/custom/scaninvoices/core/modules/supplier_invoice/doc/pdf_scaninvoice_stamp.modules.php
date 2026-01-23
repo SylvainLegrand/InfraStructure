@@ -26,12 +26,12 @@
  *	\brief      Class file to generate the supplier invoices with the scaninvoice_stamp model
  */
 
-require_once DOL_DOCUMENT_ROOT.'/core/modules/supplier_invoice/modules_facturefournisseur.php';
-require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
-require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/modules/supplier_invoice/modules_facturefournisseur.php';
+require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.facture.class.php';
+require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 
 
 /**
@@ -199,14 +199,14 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 			$objectref = "";
 			if ($object->specimen) {
 				$dir = $conf->fournisseur->facture->dir_output;
-				$file = $dir."/SPECIMEN.pdf";
+				$file = $dir . "/SPECIMEN.pdf";
 			} else {
 				$objectref = dol_sanitizeFileName($object->ref);
 				$objectrefsupplier = dol_sanitizeFileName($object->ref_supplier);
-				$dir = $conf->fournisseur->facture->dir_output.'/'.get_exdir($object->id, 2, 0, 0, $object, 'invoice_supplier').$objectref;
-				$file = $dir."/".$objectref.".pdf";
+				$dir = $conf->fournisseur->facture->dir_output . '/' . get_exdir($object->id, 2, 0, 0, $object, 'invoice_supplier') . $objectref;
+				$file = $dir . "/" . $objectref . ".pdf";
 				if (!empty(getDolGlobalString('SUPPLIER_REF_IN_NAME'))) {
-					$file = $dir."/".$objectref.($objectrefsupplier ? "_".$objectrefsupplier : "").".pdf";
+					$file = $dir . "/" . $objectref . ($objectrefsupplier ? "_" . $objectrefsupplier : "") . ".pdf";
 				}
 			}
 
@@ -232,13 +232,13 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 
 				//search for a pdf file $object->ref-xxxx.pdf in same folder
 				$otherpdfindir = $othertmp = null;
-				foreach (glob($dir."/".$objectref."-*.pdf") as $otherpdf) {
+				foreach (glob($dir . "/" . $objectref . "-*.pdf") as $otherpdf) {
 					$otherpdfindir = $otherpdf;
 				}
 
 				if ((null !== $otherpdfindir) && (false === strpos($otherpdfindir, '('))) {
-						dol_syslog("scaninvoice_stamp : break pdf security with qpdf");
-						$othertmp = str_replace(".pdf", "-tmp.pdf", $otherpdfindir);
+					dol_syslog("scaninvoice_stamp : break pdf security with qpdf");
+					$othertmp = str_replace(".pdf", "-tmp.pdf", $otherpdfindir);
 					if (is_file("/usr/bin/qpdf")) {
 						$cmd = "/usr/bin/qpdf --decrypt " . escapeshellarg($otherpdfindir) . " "  . escapeshellarg($othertmp);
 						if (false !== exec($cmd, $output)) {
@@ -267,15 +267,17 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 					}
 				}
 
+				dol_syslog("scaninvoice_stamp : open pdf, page 0");
 				$pdf->Open();
 				$pagenb = 0;
 				$pdf->SetDrawColor(128, 128, 128);
 
+				dol_syslog("scaninvoice_stamp : set meta data to pdf");
 				$pdf->SetTitle($outputlangs->convToOutputCharset($object->ref));
 				$pdf->SetSubject($outputlangs->transnoentities("PdfInvoiceTitle"));
-				$pdf->SetCreator("Dolibarr ".DOL_VERSION);
+				$pdf->SetCreator("Dolibarr " . DOL_VERSION);
 				$pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
-				$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("PdfInvoiceTitle")." ".$outputlangs->convToOutputCharset($object->thirdparty->name));
+				$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref) . " " . $outputlangs->transnoentities("PdfInvoiceTitle") . " " . $outputlangs->convToOutputCharset($object->thirdparty->name));
 				if (!empty(getDolGlobalString('MAIN_DISABLE_PDF_COMPRESSION'))) {
 					$pdf->SetCompression(false);
 				}
@@ -283,15 +285,21 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 				// $pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite); // Left, Top, Right
 
 				// New page
+				dol_syslog("scaninvoice_stamp : add page");
 				$pdf->AddPage();
 				if (!empty($tplidx)) {
+					dol_syslog("scaninvoice_stamp : use template");
 					$pdf->useTemplate($tplidx, null, null, $this->page_largeur, $this->page_hauteur, true);
 				}
 				$pagenb++;
 				$this->_pagehead($pdf, $object, 1, $outputlangs);
-				$pdf->Close();
 
-				$pdf->Output($file, 'F');
+				dol_syslog("scaninvoice_stamp : write pdf to $file");
+				try {
+					$pdf->Output($file, 'F');
+				} catch (Exception $e) {
+					dol_syslog("scaninvoice_stamp : exception on pdf close is " . $e->getMessage(), LOG_WARNING);
+				}
 
 				if (!empty(getDolGlobalString('MAIN_UMASK'))) {
 					@chmod($file, octdec(getDolGlobalString('MAIN_UMASK')));
@@ -302,8 +310,9 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 					@unlink($othertmp);
 				}
 
-				$this->result = array('fullpath'=>$file);
+				$this->result = array('fullpath' => $file);
 
+				dol_syslog("scaninvoice_stamp : return 1");
 				return 1; // No error
 			} else {
 				$this->error = $langs->transnoentities("ErrorCanNotCreateDir", $dir);
@@ -353,7 +362,7 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 		$pdf->SetLineWidth(0.5);
 		$pdf->SetDrawColor(200, 10, 10);
 		$pdf->SetFillColor(255, 255, 255);
-		$pdf->RoundedRect($posx, $posy, $cellwidth, $cellheight*2, 1.5, '1111', 'FD');
+		$pdf->RoundedRect($posx, $posy, $cellwidth, $cellheight * 2, 1.5, '1111', 'FD');
 		$pdf->SetTextColor(200, 10, 10);
 		$pdf->MultiCell($cellwidth, $cellheight, $outputlangs->convToOutputCharset($object->ref), '', 'C');
 		$posy += 1;

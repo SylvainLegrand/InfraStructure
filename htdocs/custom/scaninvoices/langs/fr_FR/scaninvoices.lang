@@ -244,3 +244,6 @@ runocrInfoThereIsNoNewZone = Aucune nouvelle zone d'extraction de données n'a �
 ScanInvoicesAutoImportSupplier = Si vous voulez vous pouvez choisir un fournisseur à qui vous voulez affecter l'import
 SCANINVOICES_DISABLE_WARNING = Désactiver l'affichage des messages d'alertes
 SCANINVOICES_DISABLE_WARNINGTooltip = À utiliser si vous ne voulez plus voir les messages d'alertes (mais en ce cas quand ça ne marchera pas vous n'aurez pas les détails)
+
+SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR = Forcer la date de règlement due, moyen et paiement et compte avec la configuration de votre fiche de tiers
+SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARRSTooltip = Si vous cochez cette case les conditions de règlement fournisseur de votre dolibarr seront prioritaires sur les données présentes sur la facture importée. Ainsi si votre facture indique date de facturation le 2 aout et "payée le 2 le aout" mais que votre fiche fournisseur dolibarr indique "paiement à 10 jours" la date de paiement sera alors le 12 aout. Il en sera de même pour le moyen de paiement et le compte à utiliser.

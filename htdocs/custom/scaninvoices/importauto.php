@@ -104,6 +104,7 @@ foreach ($otherModulesRights as $perm) {
 
 
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+dol_include_once('/scaninvoices/class/filestoimport.class.php');
 
 // Load translation files required by the page
 $langs->loadLangs(['scaninvoices@scaninvoices']);
@@ -154,7 +155,14 @@ if (isset($_POST['filenamePDF'])) {
 	$filename = basename($_POST['fournisseur']);
 }
 
-include 'importauto-form.php';
+
+//Un fichier déjà présent dans le stockage dolibarr (exemple fichier issu d'un import peppol)
+if (isset($_GET['localFileName'])) {
+	$localFileName = basename($_GET['localFileName']);
+	include 'importauto-local.php';
+} else {
+	include 'importauto-form.php';
+}
 
 //Fix #38: Verifications de configuration qui pourrait empêcher le bon fonctionnement du module
 //champs obligatoires pour créer un tiers
@@ -164,7 +172,7 @@ $error = 0;
 $errors = array();
 foreach ($array_to_check as $key) {
 	if ($mysoc->country_id > 0) {
-		$idprof_mandatory = 'SOCIETE_'.$key.'_MANDATORY';
+		$idprof_mandatory = 'SOCIETE_' . $key . '_MANDATORY';
 		if (!empty(getDolGlobalString($idprof_mandatory))) {
 			$error++;
 			$errors[] = $langs->trans("ErrorProdIdIsMandatory", strtolower($key));
@@ -176,7 +184,7 @@ if ($error) {
 	$mesg .= implode(', ', $errors);
 }
 
-if(empty(getDolGlobalString('SCANINVOICES_DISABLE_WARNING'))) {
+if (empty(getDolGlobalString('SCANINVOICES_DISABLE_WARNING'))) {
 	if ($mesg) {
 		setEventMessages($mesg, [], 'errors');
 	}
