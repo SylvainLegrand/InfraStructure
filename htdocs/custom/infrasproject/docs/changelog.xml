@@ -180,7 +180,13 @@
 	<Version Number="18.7.5" MonthVersion="2025-11">
 		<change type='chg'>Création de la compatibilité avec le module externe InfraSWidgets</change>
 	</Version>
-	<InfraS Downloaded="20251101"/>
-	<Dolibarr minVersion="18.0.0" maxVersion="22.0.3"/>
+	<Version Number="18.7.6" MonthVersion="2026-01">
+		<change type='chg'>Compatibilité Dolibarr v22</change>
+	</Version>
+	<Version Number="18.7.7" MonthVersion="2026-01">
+		<change type='chg'>Compatibilité Dolibarr v22</change>
+	</Version>
+	<InfraS Downloaded="20260101"/>
+	<Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.2"/>
 </changelog>

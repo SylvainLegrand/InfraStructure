@@ -9,7 +9,9 @@
  * Copyright (C) 2021-2023  Gauthier VERDOL      <gauthier.verdol@atm-consulting.fr>
  * Copyright (C) 2021       Noé Cendrier         <noe.cendrier@altairis.fr>
  * Copyright (C) 2023-2024 	Frédéric France      <frederic.france@free.fr>
- * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024-2025	MDW					 <mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2026		Joachim Kueter       <git-jk@bloxera.com>
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
@@ -200,6 +202,17 @@ $hookmanager->initHooks(array('projectOverview'));
 
 //if ($user->socid > 0) $socid = $user->socid;    // For external user, no check is done on company because readability is managed by public status of project and assignment.
 $result = restrictedArea($user, 'projet', $object->id, 'projet&project');
+
+// Check if user has access to any financial module (not just project time)
+$canSeeFinancials = (
+	(isModEnabled('invoice') && $user->hasRight('facture', 'lire'))
+	|| (isModEnabled('supplier_invoice') && ($user->hasRight('fournisseur', 'facture', 'lire') || $user->hasRight('supplier_invoice', 'lire')))
+	|| (isModEnabled('salaries') && $user->hasRight('salaries', 'read'))
+	|| (isModEnabled('expensereport') && $user->hasRight('expensereport', 'lire'))
+	|| (isModEnabled('don') && $user->hasRight('don', 'lire'))
+	|| (isModEnabled('tax') && $user->hasRight('tax', 'charges', 'lire'))
+	|| (isModEnabled('bank') && $user->hasRight('banque', 'lire'))
+);
 
 $total_duration = 0;
 $total_ttc_by_line = 0;
@@ -563,11 +576,11 @@ $totalsupplierinvoice_ht = 0;	// InfraS add
 // Loop on each element type (proposal, sale order, invoices, ...)
 foreach ($listofreferent as $key => $value) {
 	$parameters = array(
-		'total_revenue_ht' => &$total_revenue_ht,
-		'balance_ht' => &$balance_ht,
-		'balance_ttc' => &$balance_ttc,
+		'total_revenue_ht' => & $total_revenue_ht,
+		'balance_ht' => & $balance_ht,
+		'balance_ttc' => & $balance_ttc,
 		'key' => $key,
-		'value' => &$value,
+		'value' => & $value,
 		'dates' => $dates,
 		'datee' => $datee
 	);
@@ -585,6 +598,10 @@ foreach ($listofreferent as $key => $value) {
 	$tablename = $value['table'];
 	$datefieldname = $value['datefieldname'];
 	$qualified = $value['test'];
+	// Hide project_task amounts in profit section for users without financial access
+	if ($key === 'project_task' && !$canSeeFinancials) {
+		$qualified = false;
+	}
 	$margin = $value['margin'];	// InfraS change
 	$project_field = empty($value['project_field']) ? '' : $value['project_field'];
 	if ($qualified) {		// If this element must be included into profit summary table ($margin is '', 'minus' or 'add')
@@ -828,6 +845,10 @@ if (getDolGlobalInt('INFRASPROJECT_SHOW_MARGIN_PROV', 0)) {
 		}
 		$name		= $langs->trans($value['name']);
 		$qualified	= $value['test'];
+		// Hide project_task amounts in profit section for users without financial access
+		if ($key === 'project_task' && !$canSeeFinancials) {
+			$qualified = false;
+		}
 		$provmargin	= $value['provmargin'];
 		if ($qualified && isset($provmargin)) {		// If this element must be included into profit calculation ($margin is 'minus' or 'add')
 			if ($provmargin == 'add') {
@@ -1156,7 +1177,7 @@ foreach ($listofreferent as $key => $value) {
 	// InfraS add end
 	$parameters = array(
 		'key' => $key,
-		'value' => &$value,
+		'value' => & $value,
 		'dates' => $dates,
 		'datee' => $datee
 	);

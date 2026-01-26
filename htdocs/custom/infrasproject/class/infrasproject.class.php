@@ -324,8 +324,39 @@
 		{
 			global $db, $langs, $conf, $hookmanager, $mysoc;
 
-			$form			= new Form($db);
-			$listofreferent	= infrasproject_getListOfReferent($this->id, $this->socid);
+			$form = new Form($db);
+			$listofreferent = infrasproject_getListOfReferent($this->id, $this->socid);
+
+			// ✅ Appliquer la configuration AVANT la boucle
+			if (getDolGlobalInt('INFRASPROJECT_ADD_SUPPLIER_INVOICE_IN_MARGIN_PROV', 0)) {
+				$listofreferent['invoice_supplier']['provmargin'] = 'minus';
+			}
+
+			// ✅ Appliquer INFRASPROJECT_ELEMENTS_FOR_PLUS_MARGIN_PROV
+			if (!empty(getDolGlobalString('INFRASPROJECT_ELEMENTS_FOR_PLUS_MARGIN_PROV'))) {
+				foreach ($listofreferent as $key => $element) {
+					if (isset($listofreferent[$key]['provmargin']) && $listofreferent[$key]['provmargin'] == 'add') {
+						unset($listofreferent[$key]['provmargin']);
+					}
+				}
+				$newelementforplusmarginprov = explode(',', getDolGlobalString('INFRASPROJECT_ELEMENTS_FOR_PLUS_MARGIN_PROV'));
+				foreach ($newelementforplusmarginprov as $value) {
+					$listofreferent[trim($value)]['provmargin'] = 'add';
+				}
+			}
+
+			// ✅ Appliquer INFRASPROJECT_ELEMENTS_FOR_MINUS_MARGIN_PROV
+			if (!empty(getDolGlobalString('INFRASPROJECT_ELEMENTS_FOR_MINUS_MARGIN_PROV'))) {
+				foreach ($listofreferent as $key => $element) {
+					if (isset($listofreferent[$key]['provmargin']) && $listofreferent[$key]['provmargin'] == 'minus') {
+						unset($listofreferent[$key]['provmargin']);
+					}
+				}
+				$newelementforminusmarginprov = explode(',', getDolGlobalString('INFRASPROJECT_ELEMENTS_FOR_MINUS_MARGIN_PROV'));
+				foreach ($newelementforminusmarginprov as $value) {
+					$listofreferent[trim($value)]['provmargin'] = 'minus';
+				}
+			}
 
 			$total_provmargin_ht	= 0;
 			$provmargin_ht			= 0;
@@ -334,12 +365,8 @@
 			$totalsupplierorder_ht	= 0;
 
 			foreach ($listofreferent as $key => $value) {
-				if (getDolGlobalInt('INFRASPROJECT_ADD_SUPPLIER_INVOICE_IN_MARGIN_PROV', 0)) {
-					$listofreferent['invoice_supplier']['provmargin'] = 'minus';
-				}
-
-				$qualified			= $value['test'];
-				$provmargin			= $value['provmargin'];
+				$qualified		= $value['test'];
+				$provmargin		= isset($value['provmargin']) ? $value['provmargin'] : null;
 
 				if ($qualified && isset($provmargin)) {
 					$classname		= $value['class'];
@@ -363,33 +390,40 @@
 						for ($i = 0; $i < $num; $i++) {
 							$tmp				= explode('_', $elementarray[$i]);
 							$idofelement		= $tmp[0];
-							$idofelementuser	= $tmp[1];
+							$idofelementuser	= !empty($tmp[1]) ? $tmp[1] : '';
 							$element->fetch($idofelement);
+
+							// ✅ CORRECTION 1: Filtrage des factures fournisseur liées aux commandes
 							if ($key == 'invoice_supplier' && getDolGlobalInt('INFRASPROJECT_ADD_SUPPLIER_INVOICE_IN_MARGIN_PROV', 0)) {
-								$hasValidInvoiceSupplier	= true;
 								$element->fetchObjectLinked();
 								if (!empty($element->linkedObjects['order_supplier'])) {
 									continue; // Skip supplier invoices linked to supplier orders
-								} else {
-									$hasValidInvoiceSupplier = false;
 								}
 							}
+
 							// We don't want to count propal with wrong status
-							$nb	-= $tablename == 'propal' && $element->status != Propal::STATUS_SIGNED && $element->status != Propal::STATUS_BILLED ? 1 : 0;
+							$nb -= $tablename == 'propal' && $element->status != Propal::STATUS_SIGNED && $element->status != Propal::STATUS_BILLED ? 1 : 0;
 
 							// Define if record must be used for total or not
-							$qualifiedfortotal			= true;
+							$qualifiedfortotal = true;
 							if ($key == 'invoice') {
 								if (!empty($element->close_code) && $element->close_code == 'replaced') {
-									$qualifiedfortotal	= false;
+									$qualifiedfortotal = false;
 								}
 								if (!empty($conf->global->FACTURE_DEPOSITS_ARE_JUST_PAYMENTS) && $element->type == Facture::TYPE_DEPOSIT) {
-									$qualifiedfortotal	= false;
+									$qualifiedfortotal = false;
 								}
 							}
 							if ($key == 'propal') {
 								if ($element->status != Propal::STATUS_SIGNED && $element->status != Propal::STATUS_BILLED) {
-									$qualifiedfortotal	= false;
+									$qualifiedfortotal = false;
+								}
+							}
+
+							// ✅ CORRECTION 2: Ajout du filtrage des notes de frais par type
+							if ($key == 'expensereport') {
+								if (!empty($value['type_fees_code']) && is_array($value['type_fees_code']) && in_array($element->type_fees_code, $value['type_fees_code'])) {
+									$qualifiedfortotal = false; // selected type of fees must not be included in total
 								}
 							}
 
@@ -398,31 +432,32 @@
 							}
 
 							// Define $total_ht_by_line
-							$total_ht_by_line	= $element->total_ht;
+							$total_ht_by_line = $element->total_ht;
+
 							// Define $total_ttc_by_line
-							$total_ttc_by_line	= $element->total_ttc;
+							$total_ttc_by_line = $element->total_ttc;
 
 							// Remain to pay on supplier order
 							if (empty($value['disableamount']) && $tablename == 'commande_fournisseur') {
-								$remaintopay_ht		= 0;
-								$remaintopay_ttc	= 0;
+								$remaintopay_ht = 0;
+								$remaintopay_ttc = 0;
 								if ($element->status > CommandeFournisseur::STATUS_DRAFT && $element->status < CommandeFournisseur::STATUS_CANCELED) {
-									$totalonlinkedelements		= 0;
-									$totalonlinkedelements_ttc	= 0;
+									$totalonlinkedelements = 0;
+									$totalonlinkedelements_ttc = 0;
 									$element->fetchObjectLinked($element->id, $element->element);
 									if (!empty($element->linkedObjects)) {
 										foreach ($element->linkedObjects['invoice_supplier'] as $factureliee) {
-											$totalonlinkedelements		+= $factureliee->total_ht;
-											$totalonlinkedelements_ttc	+= $factureliee->total_ttc;
+											$totalonlinkedelements += $factureliee->total_ht;
+											$totalonlinkedelements_ttc += $factureliee->total_ttc;
 										}
 									}
-									$remaintopay_ht		= $element->total_ht - $totalonlinkedelements;
-									$remaintopay_ttc	= $element->total_ttc - $totalonlinkedelements_ttc;
+									$remaintopay_ht = $element->total_ht - $totalonlinkedelements;
+									$remaintopay_ttc = $element->total_ttc - $totalonlinkedelements_ttc;
 								}
 								if (isset($totalonlinkedelements)) {
 									if ($remaintopay_ht < 0) {
-										$totalremaintopay_ht	+= $remaintopay_ht;
-										$totalremaintopay_ttc	+= $remaintopay_ttc;
+										$totalremaintopay_ht += $remaintopay_ht;
+										$totalremaintopay_ttc += $remaintopay_ttc;
 										$qualifiedTotalRemain++;
 									}
 								}
@@ -430,57 +465,56 @@
 
 							// Add total if we have to
 							if ($qualifiedfortotal) {
-								$total_ht	= $total_ht + $total_ht_by_line;
-								$total_ttc	= $total_ttc + $total_ttc_by_line;
+								$total_ht = $total_ht + $total_ht_by_line;
+								$total_ttc = $total_ttc + $total_ttc_by_line;
 								$qualifiedTotal++;
 							}
 						}
 
 						// Calculate margin
-						$qualifiedforfinalprofit		= true;
+						$qualifiedforfinalprofit = true;
 						if ($key == 'intervention' && empty($conf->global->PROJECT_INCLUDE_INTERVENTION_AMOUNT_IN_PROFIT)) {
-							$qualifiedforfinalprofit	= false;
+							$qualifiedforfinalprofit = false;
 						}
 
 						if ($qualifiedforfinalprofit) {
 							if ($provmargin == 'add') {
 								$total_provmargin_ht += $total_ht;
 							}
+							// NE PAS inverser le signe ici, il sera inversé après
 							if ($provmargin != "add") {
-								$total_ht	= -$total_ht;
-								$total_ttc	= -$total_ttc;
+								$total_ht = -$total_ht;
+								$total_ttc = -$total_ttc;
 							}
-							$provmargin_ht	+= $total_ht;
-							$provmargin_ttc	+= $total_ttc;
+							$provmargin_ht += $total_ht;
+							$provmargin_ttc += $total_ttc;
 
 							// Remain to pay on supplier order
-							$provmargin_ht	+= $totalremaintopay_ht;
-							$provmargin_ttc	+= $totalremaintopay_ttc;
+							$provmargin_ht += $totalremaintopay_ht;
+							$provmargin_ttc += $totalremaintopay_ttc;
 
 							if ($key == 'propal') {
 								$totalpropal_ht = $total_ht;
 							}
 							if ($key == 'order_supplier') {
-								$totalsupplierorder_ht	= -$total_ht;
+								$totalsupplierorder_ht = -$total_ht;
 							}
 						}
 					}
 				}
 			}
-
 			// Calculate margin rate
-			$margin_rate		= 0;
+			$margin_rate = 0;
 			if ($total_provmargin_ht > 0) {
-				$margin_rate	= round(100 * $provmargin_ht / $total_provmargin_ht, 2);
+				$margin_rate = round(100 * $provmargin_ht / $total_provmargin_ht, 2);
 			}
-
 			return array(
-						'ca_ht'				=> $total_provmargin_ht,
-						'margin_ht'			=> $provmargin_ht,
-						'margin_ttc'		=> $provmargin_ttc,
-						'margin_rate'		=> $margin_rate,
-						'propal_ht'			=> $totalpropal_ht,
-						'supplier_order_ht'	=> $totalsupplierorder_ht
-					);
+				'ca_ht'				=> $total_provmargin_ht,
+				'margin_ht'			=> $provmargin_ht,
+				'margin_ttc'		=> $provmargin_ttc,
+				'margin_rate'		=> $margin_rate,
+				'propal_ht'			=> $totalpropal_ht,
+				'supplier_order_ht'	=> $totalsupplierorder_ht
+			);
 		}
 	}
