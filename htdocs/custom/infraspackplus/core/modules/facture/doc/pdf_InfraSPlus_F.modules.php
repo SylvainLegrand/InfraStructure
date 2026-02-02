@@ -97,7 +97,7 @@
 		public $ht_by_vat_p_s;
 		public $show_serial_from_shipping;
 		public $use_situ_total_2;
-		public $tva__mention_mode;
+		public $tva_mention_mode;
 		public $tva_mode;
 		public $diffsizetitle;
 		public $diffsizecontent;
@@ -374,8 +374,8 @@
 			$this->ht_by_vat_p_s				= getDolGlobalInt('INFRASPLUS_PDF_HT_BY_VAT_P_OR_S', 0);
 			$this->show_serial_from_shipping	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_SERIAL_ON_INVOICE', 0);
 			$this->use_situ_total_2				= getDolGlobalInt('INFRASPLUS_PDF_USE_SITU_TOTAL_2', 0);
-			$this->tva__mention_mode			= getDolGlobalInt('INFRASPLUS_PDF_MENTION_TVA_MODE', 1);
-			$this->tva_mode						= getDolGlobalInt('TAX_MODE', 0);	// 0 => exigible sur débits, 1 => exigible sur encaissements, 2 => exigible sur paiements
+			$this->tva_mention_mode				= getDolGlobalInt('INFRASPLUS_PDF_MENTION_TVA_MODE', 1);
+			$this->tva_mode						= getDolGlobalInt('TAX_MODE', 0);	// 0 => exigible sur encaissements, 1 => exigible sur débits, 2 => exigible sur paiements
 			$this->use_tva_forfait				= getDolGlobalInt('INFRASPLUS_PDF_USE_TVA_FORFAIT', 0);
 			$this->tva_forfait					= getDolGlobalFloat('INFRASPLUS_PDF_TVA_FORFAIT', 0);
 			$this->diffsizetitle				= getDolGlobalInt('PDF_DIFFSIZE_TITLE', 3);
@@ -2195,9 +2195,10 @@
 				$posytabinfo	= $pdf->GetY() + 2;
 			}
 			// VAT statements
-			if (!empty($this->tva__mention_mode)) {
+			// Show if Option VAT debit option is on also if transmitter is french	// Decret n°2099-1299 2022-10-07
+			if (!empty($this->tva_mention_mode) && $this->emetteur->country_code == 'FR') {
 				$pdf->SetFont('', '', $default_font_size - 2);
-				$txt_tva_mode	= $outputlangs->transnoentities(($this->tva_mode ? 'InfraSPlusParamMentionTvaDebits' : 'InfraSPlusParamMentionTvaEncaissement'));
+				$txt_tva_mode	= $outputlangs->transnoentities(($this->tva_mode == 1 ? 'InfraSPlusParamMentionTvaDebits' : ($this->tva_mode == 2 ? '' : 'InfraSPlusParamMentionTvaEncaissement')));
 				$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $txt_tva_mode, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
 				$posytabinfo = $pdf->GetY() + 1;
 			}
@@ -2217,14 +2218,6 @@
 					if (!empty($statements['B'])) {
 						$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['B'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
 					}
-				}
-			}
-			// Show if Option VAT debit option is on also if transmitter is french	// Decret n°2099-1299 2022-10-07
-			if ($this->emetteur->country_code == 'FR') {
-				if (!empty($conf->global->TAX_MODE) && $conf->global->TAX_MODE == 1) {
-					$pdf->SetFont('', '', $default_font_size - 2);
-					$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $outputlangs->transnoentities('MentionVATDebitOptionIsOn'), '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
-					$posytabinfo = $pdf->GetY() + 1;
 				}
 			}
 			// Show category of operations
@@ -2361,13 +2354,11 @@
 									$pdf->SetFont('', '', $default_font_size - 2);
 									$linktopay	= '<a href="'.$link['link'].'" title="'.$outputlangs->transnoentities('ClickHere').'" style="text-decoration:none">'.$outputlangs->transnoentities('PDFInfraSPlusBridgeLink').'</a>';
 									$pdf->writeHTMLCell($larg_col2info, $tabinfo_hl, $posxcol2info, $posytabinfo - 2, dol_htmlentitiesbr($linktopay), 0, 1,false,true, 'N',true);
-									dol_syslog('ici titre='.$titre.' linktopay='.$linktopay, LOG_DEBUG);
 								}
 								// Bridge QR Code (si valid + conf active)
 								if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK')) {
 									$pdf->write2DBarcode($link['link'], 'QRCODE,M', $posxtabinfo, $posytabinfo + 5, $this->sizeBC, $this->sizeBC, $this->styleBC, 'N');
 									$posytabinfo	= $pdf->GetY() + 1;
-									dol_syslog('ici QR code '.$link['link'], LOG_DEBUG);
 								}
 							}
 						}

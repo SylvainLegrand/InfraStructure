@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2025	Sylvain Legrand			- <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2025-2026	Fallinah Ranasolonirina 	- <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -52,6 +53,19 @@
 	$action			= GETPOST('action', 'alpha');
 	$confirm		= GETPOST('confirm', 'alpha');
 	$result			= '';
+	// Update with multicompany management
+	if ($action == 'copyParams') {
+		$sourceEntity	= GETPOSTINT('entity');
+		$res			= infraspackplus_copy_entity($sourceEntity, $conf->entity);
+		dol_syslog('ici generation.php copyParams sourceEntity='.$sourceEntity.' conf->entity='.$conf->entity.' res='.$res);
+		if ($res < 0) {
+			setEventMessage($langs->trans('InfraSPackPlusErrorFailedToCopyParameters',$sourceEntity, $conf->entity),'errors');
+		} else {
+			setEventMessage($langs->trans('InfraSPackPlusParametersCopiedFromEntity', $sourceEntity), 'mesgs');
+			header('Location: '.$_SERVER['PHP_SELF']);
+			exit;
+		}
+	}
 	//Sauvegarde / Restauration
 	if ($action == 'bkupParams') {
 		$result	= infraspackplus_bkup_module ('infraspackplus');

@@ -4362,6 +4362,7 @@
 
 		$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
 		$footer_bold	= getDolGlobalInt('INFRASPLUS_PDF_REFD_FROM_CUSTOMER', 0);
+		$noendline		= !empty($noendline) || getDolGlobalInt('INFRASPLUS_PDF_NO_LINE_FOOTER') ? 1 : 0;
 		$pdf->SetFont('', $footer_bold ? 'B' : '', 7);
 		$alignL1		= 'C';
 		// First line of company infos

@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2025	Sylvain Legrand		- <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2025-2026	Fallinah Ranasolonirina	- <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -597,7 +598,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	**/
 	function infraspackplus_print_backup_restore()
 	{
-		global $conf, $langs;
+		global $conf, $langs, $mc;
 
 		print '	<table class = "centpercent noborderspacing">';
 		$metas	= array('*', '90px', '156px', '120px');
@@ -606,11 +607,22 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 						<td colspan = "2" class = "center infrasplustitleparam">
 							<a href = "'.DOL_URL_ROOT.'/document.php?modulepart=infraspackplus&file=sql/update.'.$conf->entity.'">'.$langs->trans('InfraSPlusParamAction1').' <b><span>'.$langs->trans('modcomnamePackPlus').'</span></b> '.$langs->trans('InfraSPlusParamAction2').'</a>
 						</td>
-						<td class = "center"><button class = "butAction" type = "submit" value = "bkupParams" name = "action">'.$langs->trans('InfraSPlusParamBkup').'</button></td>
+						<td class = "right"><button class = "butAction" type = "submit" value = "bkupParams" name = "action">'.$langs->trans('InfraSPlusParamBkup').'</button></td>
 						<td class = "center"><button class = "butActionDelete" type = "submit" value = "restoreParams" name = "action">'.$langs->trans('InfraSPlusParamRestore').'</button></td>
 					</tr>';
-		print '		<tr><td colspan = "4" class = "center nopadding"><hr></td></tr>';
-		print '		<tr><td colspan = "4" class = "infrasplusFinal">&nbsp;</td></tr>';
+		if (isModEnabled('multicompany') && is_object($mc)) {
+			$list	= $mc->getEntitiesList();
+			$label	= $mc->label ? $mc->label : $list[$conf->entity];
+			print '	<tr class = "height75">
+						<td colspan = "2" class = "center infrasplustitleparam">'.$langs->trans('InfraSPlusAutoUpdateContent', $label).'</td>
+						<td class = "center infrasplustitleparam">';
+							print $mc->select_entities('', 'entity', '', false, array($conf->entity), true, false, '', 'minwidth300imp');
+			print'		</td>
+						<td class = "center"><button class = "butAction copyParamsBtn" type = "submit" value = "copyParams" name = "action">'.$langs->trans('InfraSPlusParamCopy').'</button></td>
+					</tr>
+					<tr><td colspan = "4" class = "center nopadding"><hr></td></tr>';
+		}
+		infraspackplus_print_final(4);
 		print '	</table>';
 	}
 

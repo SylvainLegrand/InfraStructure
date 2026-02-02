@@ -266,3 +266,6 @@ img.infraspluswidthpictotitle {
 .fontsizeinherit {
 	font-size: inherit;
 }
+button.copyParamsBtn, .copyParamsBtn:hover {
+	padding: 8px 25px 8px 25px;
+}

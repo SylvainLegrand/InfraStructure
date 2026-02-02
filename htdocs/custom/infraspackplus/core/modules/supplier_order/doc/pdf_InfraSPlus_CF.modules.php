@@ -216,18 +216,20 @@
 					$objproduct					= new Product($db);
 					$this->ecoTaxes				= array();
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						$isProd											= !empty($object->lines[$i]->fk_product) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
+						$isProd	= !empty($object->lines[$i]->fk_product) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						// Positionne $this->atleastonediscount si on a au moins une remise
-						if (!empty($object->lines[$i]->remise_percent))	$this->atleastonediscount++;
+						if (!empty($object->lines[$i]->remise_percent)) {
+							$this->atleastonediscount++;
+						}
 						// Collecte des totaux par valeur de tva dans $this->tva['taux'] = total_tva
-						$tvaligne										= $this->use_multicurrency ? doubleval($object->lines[$i]->multicurrency_total_tva) : doubleval($object->lines[$i]->total_tva);
-						$htligne										= $this->use_multicurrency ? $object->lines[$i]->multicurrency_total_ht : $object->lines[$i]->total_ht;
-						$localtax1ligne									= $object->lines[$i]->total_localtax1;
-						$localtax2ligne									= $object->lines[$i]->total_localtax2;
-						$localtax1_rate									= $object->lines[$i]->localtax1_tx;
-						$localtax2_rate									= $object->lines[$i]->localtax2_tx;
-						$localtax1_type									= $object->lines[$i]->localtax1_type;
-						$localtax2_type									= $object->lines[$i]->localtax2_type;
+						$tvaligne		= $this->use_multicurrency ? doubleval($object->lines[$i]->multicurrency_total_tva) : doubleval($object->lines[$i]->total_tva);
+						$htligne		= $this->use_multicurrency ? $object->lines[$i]->multicurrency_total_ht : $object->lines[$i]->total_ht;
+						$localtax1ligne	= $object->lines[$i]->total_localtax1;
+						$localtax2ligne	= $object->lines[$i]->total_localtax2;
+						$localtax1_rate	= $object->lines[$i]->localtax1_tx;
+						$localtax2_rate	= $object->lines[$i]->localtax2_tx;
+						$localtax1_type	= $object->lines[$i]->localtax1_type;
+						$localtax2_type	= $object->lines[$i]->localtax2_type;
 						if (!empty($object->remise_percent)) {
 							$htligne		-= ($htligne * $object->remise_percent) / 100;
 							$tvaligne		-= ($tvaligne * $object->remise_percent) / 100;

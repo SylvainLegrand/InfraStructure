@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2025	Sylvain Legrand 		- <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2025-2026	Fallinah Ranasolonirina 	- <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -1980,4 +1981,110 @@
 			}
 			return -1;
 		}
+	}
+
+	/**
+	* Copy parameters from other company (MultiCompany)
+	*
+	* @param	int		$fromEntity			Source entity ID
+	* @param	int		$toEntity			Target entity ID
+	* @return	int						0 if OK, -1 if KO
+	*/
+	function infraspackplus_copy_entity($fromEntity, $toEntity)
+	{
+		global $db;
+
+		if (!is_numeric($fromEntity) || !is_numeric($toEntity)) {
+			return -1;
+		}
+		$db->begin();
+
+		// DOCUMENT MODELS
+		$sql	= 'SELECT nom, type, libelle FROM '.$db->prefix().'document_model WHERE entity = '.((int) $fromEntity).' AND nom LIKE \'INFRASPLUS\_%\'';
+		$resql	= $db->query($sql);
+		if ($resql == false) {
+			$db->rollback();
+			return -1;
+		}
+		while ($obj	= $db->fetch_object($resql)) {
+			$sqlInsert	= 'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("'.$db->escape($obj->nom).'", '.((int) $toEntity).', "'.$db->escape($obj->type).'", "'.$db->escape($obj->libelle).'")';
+			$sqlInsert	.=' ON DUPLICATE KEY UPDATE type = VALUES(type), libelle = VALUES(libelle)';
+			if (!$db->query($sqlInsert)) {
+				$db->rollback();
+				return -1;
+			}
+		}
+		$db->free($resql);
+
+		// CONST TABLE
+		$sql1	= 'SELECT name, value, type, visible, note FROM '.$db->prefix().'const';
+		$sql1	.= ' WHERE entity = '.((int) $fromEntity);
+		$sql1	.= ' AND ((name LIKE "INFRASPLUS\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_VALID\_CORE\_CHGT") OR name LIKE "INFRASPACKPLUS\_PS\_%" OR (name LIKE "%\_ADDON\_PDF" AND value LIKE "InfraSPlus\_%") OR name LIKE "%\_FREE_TEXT%" OR name LIKE "%\_PUBLIC\_NOTE%" OR name LIKE "MAIN_DOCUMENTS_LOGO_HEIGHT")';
+		$resql1	= $db->query($sql1);
+		if ($resql1 == false) {
+			$db->rollback();
+			return -1;
+		}
+		while ($obj = $db->fetch_object($resql1)) {
+			$sqlInsert1	= 'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("'.$db->escape($obj->name).'",'.((int) $toEntity).',"'.$db->escape($obj->value).'","'.$db->escape($obj->type).'",'.((int) $obj->visible).',"'.$db->escape($obj->note).'")';
+			$sqlInsert1	.=' ON DUPLICATE KEY UPDATE value = VALUES(value), type = VALUES(type), visible = VALUES(visible), note = VALUES(note)';
+			if (!$db->query($sqlInsert1)) {
+				$db->rollback();
+				return -1;
+			}
+		}
+		$db->free($resql1);
+
+		// 3. SOCIETE ADDRESS
+		$sql2	= 'SELECT * FROM '.$db->prefix().'infraspackplus_societe_address WHERE entity = '.((int) $fromEntity);
+		$resql2	= $db->query($sql2);
+		if ($resql2 == false) {
+			$db->rollback();
+			return -1;
+		}
+		while ($obj	= $db->fetch_object($resql2)) {
+			unset($obj->rowid);
+			$obj->entity	= (int) $toEntity;
+			$fields 		= array();
+			$values 		= array();
+			$updates 		= array();
+			foreach ($obj as $key => $value) {
+				$fields[]	= $key;
+				if ($value == null) {
+					$values[] 	= 'NULL';
+					$updates[]	= $key.' = NULL';
+				} else {
+					$values[]	= "'".$db->escape($value)."'";
+					$updates[]	= $key." = '".$db->escape($value)."'";
+				}
+			}
+			$sqlInsert2	= 'INSERT INTO '.$db->prefix().'infraspackplus_societe_address ('.implode(',', $fields).') VALUES ('.implode(',', $values).') ON DUPLICATE KEY UPDATE '.implode(',', $updates);
+			if (!$db->query($sqlInsert2)) {
+				$db->rollback();
+				return -1;
+			}
+		}
+		$db->free($resql2);
+
+		// DICTIONARIES
+		$dictTables = array('c_infraspackplus_mention','c_infraspackplus_note');
+		foreach ($dictTables as $table) {
+			$sql3	= 'SELECT code, pos, libelle, active FROM '.$db->prefix().$table.' WHERE entity = '.((int) $fromEntity).' ORDER BY pos ASC';
+			$resql3	= $db->query($sql3);
+			if ($resql3 == false) {
+				$db->rollback();
+				return -1;
+			}
+			while ($obj	= $db->fetch_object($resql3)) {
+				$sqlInsert3	= 'INSERT INTO '.$db->prefix().$table.' (code, entity, pos, libelle, active) VALUES ("'.$db->escape($obj->code).'", '.((int) $toEntity).', '.((int) $obj->pos).', "'.$db->escape($obj->libelle).'", '.((int) $obj->active).')';
+				$sqlInsert3	.= ' ON DUPLICATE KEY UPDATE pos = VALUES(pos), libelle = VALUES(libelle), active = VALUES(active)';
+				if (!$db->query($sqlInsert3)) {
+					$db->rollback();
+					return -1;
+				}
+			}
+			$db->free($resql3);
+		}
+		$db->commit();
+		return 1;
 	}

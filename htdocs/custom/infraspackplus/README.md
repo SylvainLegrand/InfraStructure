@@ -3,7 +3,7 @@
 
 
 ## ***InfraSPackPlus***
-* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 695 options (32 options sont modifiables directement sur la fiche du document) dont
+* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 703 options (32 options sont modifiables directement sur la fiche du document) dont
 	 * Les cadres arrondis, l’organisation des colonnes (ordre, affichage, largeur, …)
 	 * Le choix des couleurs de texte, de fond, des images, des filigranes, des types épaisseur et couleurs des lignes, …
 	 * L’affichage 'full' TTC
@@ -133,6 +133,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 * Onglets Paramètres ***InfraS***, Images, Adresses, Attributs supplémentaires, Mentions complémentaires, Notes publiques et Options avant génération
 	* Télécharger le fichier de sauvegarde des paramètres
 	* Sauvegarder / Restaurer l'ensemble des paramètres du module (une copie de sécurité de la sauvegarde est systématiquement créée dans le répertoire d'administration des documents)
+	* Copier les paramètres depuis une autre entité dans l'entité courante (Module Multi-Société)
 * Onglet Paramètres ***InfraS***
 	* OPTIONS DE GESTION DU COMPORTEMENT DES FONCTIONS D'IMPRESSION
 		* ***1*** Activer les modèles InfraS comme modèles par défaut pour les documents
@@ -349,11 +350,12 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 			 * ***5*** Ligne 3 => Forme juridique et capital
 			 * ***6*** Ligne 4 => Identifiants professionnels
 		* ***7*** Afficher les informations du pied de page en gras
-		* ***8*** Créer un pied de page personnalisé à partir d'un fichier PHP
-		* ***9*** Remplacer les informations de pied de page par du texte saisie manuellement
-		* ***10*** Cacher la numérotation de pages (page x/y) dans les éditions
-		* ***11-12*** Définir la position de la numérotation de page sur les éléments concaténés au document (CGV, documentation technique, …)
-		* ***13*** Imprimer la LCR avec les factures client quand c'est le moyen de paiement sélectionné
+		* ***8*** Ne pas afficher de ligne de séparation au dessus du pied de page
+		* ***9*** Créer un pied de page personnalisé à partir d'un fichier PHP
+		* ***10*** Remplacer les informations de pied de page par du texte saisie manuellement
+		* ***11*** Cacher la numérotation de pages (page x/y) dans les éditions
+		* ***12-13*** Définir la position de la numérotation de page sur les éléments concaténés au document (CGV, documentation technique, …)
+		* ***14*** Imprimer la LCR avec les factures client quand c'est le moyen de paiement sélectionné
 	* GESTION DES CONDITIONS GÉNÉRALES DE VENTE
 		* Importer des fichiers PDF comme CGV, CGI ou CGA à utiliser
 		* LISTE DES CONDITIONS GÉNÉRALES DE VENTE EXISTANTES

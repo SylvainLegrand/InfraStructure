@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2025	Sylvain Legrand				- <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2025-2026	Fallinah Ranasolonirina 	- <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -81,6 +82,18 @@
 	$cgxdir					= !empty($conf->mycompany->multidir_output[$conf->entity])	? $conf->mycompany->multidir_output[$conf->entity]	: $conf->mycompany->dir_output;
 	$pdfsdir				= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/';
 	$phpsdir				= dol_buildpath('/infraspackplus/core/modules/specialfiles', 0);
+	// Update with multicompany management
+	if ($action == 'copyParams') {
+		$sourceEntity	= GETPOSTINT('entity');
+		$res			= infraspackplus_copy_entity( $sourceEntity, $conf->entity);
+		if ($res < 0) {
+			setEventMessage($langs->trans('InfraSPackPlusErrorFailedToCopyParameters',$sourceEntity, $conf->entity),'errors');
+		} else {
+			setEventMessage($langs->trans('InfraSPackPlusParametersCopiedFromEntity', $sourceEntity), 'mesgs');
+			header('Location: '.$_SERVER['PHP_SELF']);
+			exit;
+		}
+	}
 	// Sauvegarde / Restauration
 	if ($action == 'bkupParams') {
 		$result	= infraspackplus_bkup_module ('infraspackplus');
@@ -1925,7 +1938,8 @@
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_TYPESOC', 'on_off', $langs->trans('InfraSPlusParamFooterTypeSoc'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_IDS', 'on_off', $langs->trans('InfraSPlusParamFooterIds'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FOOTER_BOLD', 'on_off', $langs->trans('InfraSPlusParamFooterBold'), '', array(), 2, 1, '', $num);
-		// $num = 8
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_NO_LINE_FOOTER', 'on_off', $langs->trans('InfraSPlusParamNoLineFooter'), '', array(), 2, 1, '', $num);
+		// $num = 9
 		infraspackplus_print_hr(4);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SPE_FOOT', 'input', $langs->trans('InfraSPlusParamSpecialFoot'), '', array(), 2, 1, '', $num);
 		if (!getDolGlobalString('INFRASPLUS_PDF_SPE_FOOT', '')) {
@@ -1933,17 +1947,17 @@
 		} else {
 			$num++;
 		}
-		// $num = 10
+		// $num = 11
 		infraspackplus_print_hr(4);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_PAGE_NUM', 'on_off', $langs->trans('InfraSPlusParamHidePageNum'), '', array(), 2, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '10', 'max' => '267', 'step' => '0.1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_X_PAGE_NUM', 'input', $langs->trans('InfraSPlusParamPosXPageNum'), '', $metas, 2, 1, '&nbsp;mm', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '10', 'max' => '285', 'step' => '0.1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_Y_PAGE_NUM', 'input', $langs->trans('InfraSPlusParamPosYPageNum'), '', $metas, 2, 1, '&nbsp;mm', $num);
-		// $num = 13
+		// $num = 14
 		infraspackplus_print_hr(4);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_LCR', 'on_off', $langs->trans('InfraSPlusParamShowLCR'), '', array(), 2, 1, '', $num);
-		// $num = 14
+		// $num = 15
 	}
 	print '			</table>
 				</div>';
