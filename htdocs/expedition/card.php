@@ -1458,8 +1458,8 @@ if ($action == 'create') {
 
 					// Qty to ship
 					$quantityAsked = $line->qty;
-
-					if ($line->product_type == Product::TYPE_SERVICE  && getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {	// InfraS add begin
+					// InfraS add begin
+					if ($line->product_type == Product::TYPE_SERVICE  && getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {
 						if (is_numeric($quantityDelivered)) {
 							$quantityToBeDelivered = $quantityAsked - $quantityDelivered;
 						} else {
@@ -1502,7 +1502,8 @@ if ($action == 'create') {
 									$qtylValue = '';
 								}
 								print '<input name="qtyl'.$indiceAsked.'" id="qtyl'.$indiceAsked.'" class="qtyl right" type="text" size="4" value="'.$qtylValue.'">';
-							} elseif ($line->product_type == Product::TYPE_SERVICE && getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {	// InfraS add begin
+							// InfraS add begin
+							} elseif ($line->product_type == Product::TYPE_SERVICE && getDolGlobalInt('INFRAS_SHIPPING_SERVICE')) {
 								if (GETPOST('qtyl'.$indiceAsked, 'int')) {
 									$quantityToBeDelivered = GETPOST('qtyl'.$indiceAsked, 'int');
 								}
@@ -1511,7 +1512,8 @@ if ($action == 'create') {
 								if ($conf->global->SHIPMENT_DONT_PREFILL_QTY) {
 									$qtylValue = '';
 								}
-								print '<input name="qtyl'.$indiceAsked.'" id="qtyl'.$indiceAsked.'" class="qtyl center" type="text" size="4" value="'.$qtylValue.'">';	// InfraS add end
+								print '<input name="qtyl'.$indiceAsked.'" id="qtyl'.$indiceAsked.'" class="qtyl center" type="text" size="4" value="'.$qtylValue.'">';
+								// InfraS add end
 							} else {
 								if (getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS')) {
 									print '<input name="idl'.$indiceAsked.'" type="hidden" value="'.$line->id.'">';
@@ -3124,12 +3126,6 @@ if ($action == 'create') {
 						print dolGetButtonAction('', $langs->trans('CreateBill'), 'default', DOL_URL_ROOT.'/compta/facture/card.php?action=create&origin='.$object->element.'&originid='.$object->id.'&socid='.$object->socid, '');
 					}
 				}
-			}
-
-			// This is just to generate a delivery receipt
-			//var_dump($object->linkedObjectsIds['delivery']);
-			if (getDolGlobalInt('MAIN_SUBMODULE_DELIVERY') && ($object->status == Expedition::STATUS_VALIDATED || $object->status == Expedition::STATUS_CLOSED) && $user->hasRight('expedition', 'delivery', 'creer') && empty($object->linkedObjectsIds['delivery'])) {
-				print dolGetButtonAction('', $langs->trans('CreateDeliveryOrder'), 'default', $_SERVER["PHP_SELF"].'?action=create_delivery&token='.newToken().'&id='.$object->id, '');
 			}
 
 			// Set Billed and Closed
