@@ -334,7 +334,7 @@ return [
 	'exclude_file_regex' => '@^('  // @phpstan-ignore-line
 		.'dummy'  // @phpstan-ignore-line
 		// mymodule seen in cti, but not in git.
-		.'|htdocs/custom/.*'  // Ignore all custom modules @phpstan-ignore-line
+		// .'|htdocs/custom/.*'  // Ignore all custom modules @phpstan-ignore-line
 		.'|htdocs/.*/canvas/.*/tpl/.*.tpl.php'  // @phpstan-ignore-line
 		.'|htdocs/admin/tools/ui/.*'  // @phpstan-ignore-line
 		//.'|htdocs/modulebuilder/template/.*'  // @phpstan-ignore-line
