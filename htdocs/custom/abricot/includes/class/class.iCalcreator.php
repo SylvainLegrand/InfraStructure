@@ -1664,7 +1664,7 @@ class vcalendar {
       $proprows  = array();
       for( $i = 0; $i < count( $this->unparsed ); $i++ ) { // concatenate lines
         $line = rtrim( $this->unparsed[$i], $nl );
-        while( isset( $this->unparsed[$i+1] ) && !empty( $this->unparsed[$i+1] ) && ( ' ' == $this->unparsed[$i+1][0] ))
+		  while( isset( $this->unparsed[$i+1] ) && !empty( $this->unparsed[$i+1] ) && ( ' ' == $this->unparsed[$i+1][0] ))
           $line .= rtrim( substr( $this->unparsed[++$i], 1 ), $nl );
         $proprows[] = $line;
       }
@@ -3063,7 +3063,7 @@ class calendarComponent {
         }
         elseif(( 3 <= strlen( trim( $fbMember ))) &&    // string format duration
                ( in_array( $fbMember[0], array( 'P', '+', '-' )))) {
-		if( 'P' != $fbMember[0] )
+          if( 'P' != $fbMember[0] )
             $fbmember = substr( $fbMember, 1 );
           $freebusyPairMember = iCalUtilityFunctions::_durationStr2arr( $fbMember );
         }
@@ -6955,7 +6955,7 @@ class iCalUtilityFunctions {
         if( isset( $theDate['timestamp'] ))
           $tzid = ( isset( $theDate['tz'] )) ? $theDate['tz'] : null;
         else
-          $tzid = ( isset( $theDate['tz'] )) ? $theDate['tz'] : ( 7 == count( $theDate )) ? end( $theDate ) : null;
+		  $tzid = (isset($theDate['tz'])) ? $theDate['tz'] : ((7 == count($theDate)) ? end($theDate) : null);
         if( !empty( $tzid )) {
           $parno = 7;
           if( !iCalUtilityFunctions::_isOffset( $tzid ))

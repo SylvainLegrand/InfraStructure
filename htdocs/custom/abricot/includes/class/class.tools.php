@@ -245,6 +245,7 @@ class Tools{
 		 * Referencing $GLOBALS is no longer allowed
 		 * Prior to PHP 8.1, it was possible to create a reference to $GLOBALS array, and modify that reference. All changes would then be reflected in the global variables as well.
 		 */
+		$GLOBALS['_TBS_AutoInstallPlugIns'][] = TBS_HTML; // Auto-install
 
 		$Tout = array();
 		foreach($GLOBALS as $key => $val){

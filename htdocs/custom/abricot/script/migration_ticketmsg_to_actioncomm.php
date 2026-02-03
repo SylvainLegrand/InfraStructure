@@ -31,7 +31,6 @@ if ($resql) {
 	$TTicketCache = array();
 
 	while ($i < $num_rows) {
-
 		$i++;
 		$fk_element = 0;
 		$object = $db->fetch_object($resql);
@@ -58,13 +57,10 @@ if ($resql) {
 						$TTicketCache[$object->fk_track_id] = $ticketStatic;
 						$ticketRef = $ticketStatic->ref;
 						$ticketSoc = $ticketStatic->fk_soc;
-					}
-					else continue;
-				}
-				else continue;
+					} else continue;
+				} else continue;
 			}
-		}
-		else {
+		} else {
 			$fk_element = $TTicketCache[$object->fk_track_id]->id;
 			$ticketRef = $TTicketCache[$object->fk_track_id]->ref;
 			$ticketSoc = $TTicketCache[$object->fk_track_id]->fk_soc;
@@ -72,7 +68,6 @@ if ($resql) {
 
 		//on insère les données de ticket dans la table de ticket standard si la note est associée à un ticket
 		if (! empty($fk_element)) {
-
 			$sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm (entity, fk_user_author, fk_user_action, fk_soc, fk_action, transparency, priority, percent, datec, datep, note, fk_element, elementtype, label, code)";
 
 			$sql .= " VALUES (";
