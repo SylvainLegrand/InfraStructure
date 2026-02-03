@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.3.8] - 23-01-2026
+- Correction de clés de traductions sur champs complémentaires et traductions en langue "en_US"
+
 ## [10.3.7] - 21-11-2025
 - Correction de warnings (compatibilité PHP8.4) Thanks @Inovea
 
@@ -373,7 +376,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.7...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.8...HEAD
+[10.3.8]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.8
 [10.3.7]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.7
 [10.3.6]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.6
 [10.3.5]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.5

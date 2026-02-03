@@ -78,8 +78,8 @@ SireneCodeIso                   = Code ISO
 #######################################################################
 # Extrafields
 #######################################################################
-SireneCompanyUpdateDate         = Date dernier appel Sirene
-SireneCompanyAdminStatus        = Statut Sirene
+SireneCompanyUpdateDate         = Sirene : Last update date
+SireneCompanyAdminStatus        = Sirene : Status
 
 #######################################################################
 # General

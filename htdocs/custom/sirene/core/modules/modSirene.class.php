@@ -345,13 +345,13 @@ class modSirene extends DolibarrModules
 		}
 
 		//$result = $extrafields->addExtraField('sirene_status', $langs->trans('SireneCompanyStatus'), 'boolean', 100, '', 'societe', 0, 0, '', null, 0, '', $visibilityListOnly, 0, '', '', 'sirene@sirene', '1');
-		$result = $extrafields->addExtraField('sirene_update_date', $langs->trans("SireneCompanyUpdateDate"), 'datetime', 101, '', 'societe', 0, 0, '', null, 0, '', $visibilityListOnly, 0, '', '', 'sirene@sirene', '1');
+		$result = $extrafields->addExtraField('sirene_update_date', "SireneCompanyUpdateDate", 'datetime', 101, '', 'societe', 0, 0, '', null, 0, '', $visibilityListOnly, 0, '', '', 'sirene@sirene', '1');
 		//$result = $extrafields->update('sirene_status', $langs->trans('SireneCompanyStatus'), 'boolean', '', 'societe', 0, 0, 100, null, 0, '', $visibilityListOnly, 0, '', '', '', 'sirene@sirene', '1');
-		$result = $extrafields->update('sirene_update_date', $langs->trans("SireneCompanyUpdateDate"), 'datetime', '', 'societe', 0, 0, 101, null, 0, '', $visibilityListOnly, 0, '', '', '', 'sirene@sirene', '1');
+		$result = $extrafields->update('sirene_update_date', "SireneCompanyUpdateDate", 'datetime', '', 'societe', 0, 0, 101, null, 0, '', $visibilityListOnly, 0, '', '', '', 'sirene@sirene', '1');
 
 		// v7.0.56
-		$result = $extrafields->addExtraField('sirene_company_admin_status', $langs->trans("SireneCompanyAdminStatus"), 'select', 102, '', 'societe', 0, 0, '', array('options' => array('F' => 'SireneEstablishmentClosed', 'A' => 'SireneEstablishmentOpened')), 0, '', $visibilityCardAndList, '', '', '', 'sirene@sirene', '$conf->sirene->enabled');
-		$result = $extrafields->update('sirene_company_admin_status', $langs->trans("SireneCompanyAdminStatus"), 'select', '', 'societe', 0, 0, 102, array('options' => array('F' => 'SireneEstablishmentClosed', 'A' => 'SireneEstablishmentOpened')), 0, '', $visibilityCardAndList, '', '', '', '', 'sirene@sirene', '$conf->sirene->enabled');
+		$result = $extrafields->addExtraField('sirene_company_admin_status', "SireneCompanyAdminStatus", 'select', 102, '', 'societe', 0, 0, '', array('options' => array('F' => 'SireneEstablishmentClosed', 'A' => 'SireneEstablishmentOpened')), 0, '', $visibilityCardAndList, '', '', '', 'sirene@sirene', '$conf->sirene->enabled');
+		$result = $extrafields->update('sirene_company_admin_status', "SireneCompanyAdminStatus", 'select', '', 'societe', 0, 0, 102, array('options' => array('F' => 'SireneEstablishmentClosed', 'A' => 'SireneEstablishmentOpened')), 0, '', $visibilityCardAndList, '', '', '', '', 'sirene@sirene', '$conf->sirene->enabled');
 
 		// v7.0.58
 		//$result = $extrafields->addExtraField('sirene_cron_date', $langs->trans("SireneCronDate"), 'datetime', 103, '', 'societe', 0, 0, '', null, 0, '', $visibilityListOnly, '', '', '', 'sirene@sirene', '$conf->sirene->enabled');
