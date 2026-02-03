@@ -1,7 +1,8 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
-	* Copyright (C) 2017-2025	Open-DSI - <support@open-dsi.fr>
+	* Copyright (C) 2016-2025	Sylvain Legrand 		- <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2017-2025	Open-DSI 				- <support@open-dsi.fr>
+	* Copyright (C) 2025-2026	Fallinah Ranasolonirina	- <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -971,7 +972,7 @@
 				$specialhead	= 'pdf_'.$specialHead['rootFileName'].'_pagehead';
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												0, $this->title_size, $this->titlekey, 0, $this->datesbold, 0, 1, 1,
-												$this->show_code_cli_compt, $this->code_cli_compt_frm, 0, $this->use_iso_location, '', '', $this->Rounded_rect,
+												$this->show_code_cli_compt, $this->code_cli_compt_frm, 0, $this->use_iso_location, '', $this->typeadr, '', $this->Rounded_rect,
 												'', -2, -2, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}

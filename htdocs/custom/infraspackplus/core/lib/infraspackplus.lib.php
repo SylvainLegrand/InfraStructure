@@ -1509,7 +1509,7 @@
 				}
 				// Type d'adresse de livraison spéciale fournisseur (I_ interne, C_ adresse principale client ou S_ adresse secondaire client)
 				if ($key == 'typeadr') {
-					$listOptions[$key]['value']	= getDolGlobalInt($listOptions[$key]['defaultconst'], -2);
+					$listOptions[$key]['value']	= -2;	// -2 pour aucun;
 				}
 				// Conditions générales
 				if (in_array($key, array('cgv', 'cgi', 'cga')) && !empty($user->hasRight('infraspackplus', 'paramCGV'))) {

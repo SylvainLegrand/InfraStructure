@@ -1730,6 +1730,9 @@
 	<Version Number="18.14.0" MonthVersion="2026-01">
 		<change type='add'>Ajout d’une option pour ne pas afficher de ligne de séparation au dessus du pied de page.</change>
 	</Version>
+	<Version Number="18.14.1" MonthVersion="2026-01">
+		<change type='fix'>Correction d'une erreur d'affichage des adresses de livraison</change>
+	</Version>
 	<InfraS Downloaded="20260101"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.2"/>

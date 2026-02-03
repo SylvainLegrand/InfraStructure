@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2025	Sylvain Legrand 		- <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2025-2026	Fallinah Ranasolonirina	- <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -507,12 +508,13 @@ EOJS;
 					if (getDolGlobalInt('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SI_FACT', 0) && $object->element == 'facture') {
 						$res_adrfact = $listOptions['adrlivr']['value'];
 					}
-					$useDoliAddr	= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
-					$freeadrlivr	= getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', '');
-					$showadrlivr	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 0);
-					$showadrlivr	= !empty($useDoliAddr) || !empty($object->array_options['options_'.$freeadrlivr]) ? 0 : $showadrlivr;
+					$useDoliAddr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
+					$freeadrlivr		= getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', '');
+					$showadrlivr		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 0);
+					$showadrlivr		= !empty($useDoliAddr) || !empty($object->array_options['options_'.$freeadrlivr]) ? 0 : $showadrlivr;
+					$def_adrlivrfour	= getDolGlobalString('INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', '');
 					$typeadr		= in_array($object->element, array('fichinter')) ? $langs->trans('PDFInfraSPlusAdrInter') : $langs->trans('PDFInfraSPlusAdrLivr');
-					$adrlivrPost	= !empty($res_adrfact) ? $res_adrfact : GETPOST('adrlivr', 'int');	// -1 pour défaut, -2 pour aucune, >0 pour ID
+					$adrlivrPost		= !empty($res_adrfact) ? $res_adrfact : GETPOST('adrlivr', 'int');	// -1 pour défaut, -2 pour aucune, >0 pour ID
 					if (!empty($showadrlivr)) {
 						$adrlivrtmp			= new Address($db);
 						$res_adrlivr		= $adrlivrtmp->fetch_lines($object->thirdparty->id);
@@ -520,8 +522,8 @@ EOJS;
 													<td colspan = "'.$colspan.'" align = "right">
 														<label for = "adrlivr">'.$typeadr.'</label>&nbsp;
 														<select class = "flat cursorpointer width200" id = "selectadrlivr" name = "adrlivr">
-															<option name = "adrlivr" value = "-2"'.($adrlivrPost === -2 ? ' selected' : '').'>&nbsp;</option>
-															<option name = "adrlivr" value = "-1"'.($adrlivrPost === -1 ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
+															<option name = "adrlivr" value = "-2"'.($adrlivrPost == -2 ? ' selected' : '').'>&nbsp;</option>
+															<option name = "adrlivr" value = "-1"'.($adrlivrPost == -1 ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
 						if ($res_adrlivr > 0) {
 							foreach ($adrlivrtmp->lines as $lineadr) {
 								$this->resprints	.= '	<option name = "adrlivr" value = "'.$lineadr->id.'" '.($adrlivrPost === $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($lineadr->name.' ('.$lineadr->label.')').'">'.$lineadr->name.' ('.$lineadr->label.')</option>';
@@ -614,14 +616,14 @@ EOJS;
 														<td colspan = "'.$colspan.'" class = "right">
 															<label for = "adrlivrfour">'.$langs->trans('PDFInfraSPlusAdrLivr').'</label>&nbsp;
 															<select class = "flat cursorpointer width200" id = "selectadrlivrfour" name = "adrlivrfour">
-																<option name = "adrlivrfour" value = "-2"'.($adrlivrfourPost === -2 ? ' selected' : '').'>&nbsp;</option>';
+																<option name = "adrlivrfour" value = "-2"'.($adrlivrfourPost == -2 ? ' selected' : '').'>&nbsp;</option>';
 							if (!empty($def_adrlivrfour)) {
-								$this->resprints	.= '		<option name = "adrlivrfour" value = "'.$def_adrlivrfour.'"'.($adrlivrfourPost === $def_adrlivrfour ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
+								$this->resprints	.= '		<option name = "adrlivrfour" value = "'.$def_adrlivrfour.'"'.($adrlivrfourPost == $def_adrlivrfour ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
 							}
 							if ($res_adrlivrfour > 0) {
 								foreach ($adrlivrfourtmp->lines as $lineadr) {
 									$labelToShow		= $lineadr->name.' ('.$lineadr->label.')';
-									$this->resprints	.= '	<option name = "adrlivrfour" value = "'.$lineadr->id.'" '.($adrlivrfourPost === $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($labelToShow).'">'.$labelToShow.'</option>';
+									$this->resprints	.= '	<option name = "adrlivrfour" value = "'.$lineadr->id.'" '.($adrlivrfourPost == $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($labelToShow).'">'.$labelToShow.'</option>';
 								}
 							}
 							$this->resprints	.= '		</select>';
@@ -635,9 +637,9 @@ EOJS;
 														<td colspan = "'.$colspan.'" class = "right">
 															<label for = "adrlivrfour">'.$langs->trans('PDFInfraSPlusAdrLivr').'</label>&nbsp;
 															<select class = "flat cursorpointer width200" id = "selectadrlivrfour" name = "adrlivrfour">
-																<option name = "adrlivrfour" value = "-2"'.($adrlivrfourPost === -2 ? ' selected' : '').'>&nbsp;</option>';
+																<option name = "adrlivrfour" value = "-2"'.($adrlivrfourPost == -2 ? ' selected' : '').'>&nbsp;</option>';
 							if (!empty($def_adrlivrfour)) {
-								$this->resprints	.= '		<option name = "adrlivrfour" value = "'.$def_adrlivrfour.'"'.($adrlivrfourPost === $def_adrlivrfour ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
+								$this->resprints	.= '		<option name = "adrlivrfour" value = "'.$def_adrlivrfour.'"'.($adrlivrfourPost == $def_adrlivrfour ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
 							}
 							if ($res_adrlivrfour > 0) {
 								$typadrlivrfourPost	= $typadrlivrfourPost == -2 ? '' : $typadrlivrfourPost.'_';
@@ -646,14 +648,18 @@ EOJS;
 										continue;
 									}
 									// 'I' internal (ID => llx_infraspackplus_societe_address rowid) ; 'C' main company address (ID => llx_societe rowid) ; 'S' secondary company address (ID => llx_infraspackplus_societe_address rowid)
-									$value				= ($lineadr->socid == '0' ? 'I_' : ($lineadr->socid == 'NULL' ? 'C_' : 'S_')).$lineadr->id;
-														// 'I' => name (label) / town
-														// 'C' => soc_name / town
-														// 'S' => soc_name / name (label) / town
+									if ($lineadr->socid == 0) {
+										$prefixLabel	= 'I_';	// 'I' => Internal => name (label) / town
+									} elseif ($lineadr->socid == 'NULL') {
+										$prefixLabel	= 'C_';	// 'C' => Customer => soc_name / town
+									} else {
+										$prefixLabel	= 'S_';	// 'S' => Supplier => soc_name / name (label) / town
+									}
+									$value				= $prefixLabel.$lineadr->id;
 									$labelToShow		= $lineadr->socid == '0' ? '' : $lineadr->soc_name;
 									$labelToShow		.= !empty($labelToShow) && $lineadr->socid != 'NULL' ? ' - ' : '';
 									$labelToShow		.= $lineadr->socid == 'NULL' ? '' : $lineadr->name.' ('.$lineadr->label.')';
-									$this->resprints	.= '	<option name = "adrlivrfour" value = "'.$value.'" '.($typadrlivrfourPost.$adrlivrfourPost === $value ? ' selected' : '').' data-html = "'.dol_escape_htmltag($labelToShow).'">'.$labelToShow.'</option>';
+									$this->resprints	.= '	<option name = "adrlivrfour" value = "'.$value.'" '.($prefixLabel.$adrlivrfourPost === $value ? ' selected' : '').' data-html = "'.dol_escape_htmltag($labelToShow).'">'.$labelToShow.'</option>';
 								}
 							}
 							$this->resprints	.= '		</select>';
@@ -1254,7 +1260,7 @@ EOJS;
 						$this->results['adrlivrfour']	= GETPOST('adrlivrfour', 'int');
 						$this->results['typeadr']		= 'I';
 					} else {
-						if (! preg_match('/\_/', GETPOST('adrlivrfour', 'alpha'))) {	// default => internal
+						if (!preg_match('/\_/', GETPOST('adrlivrfour', 'alpha'))) {	// default => internal
 							$this->results['adrlivrfour']	= GETPOST('adrlivrfour', 'int');
 							$this->results['typeadr']		= 'I';
 						} else {
