@@ -1,10 +1,8 @@
 <?php
 /* Copyright (C) 2015   Jean-François Ferry     <jfefe@aternatik.fr>
  * Copyright (C) 2016	Laurent Destailleur		<eldy@users.sourceforge.net>
- * Copyright (C) 2024-2025  Frédéric France         <frederic.france@free.fr>
+ * Copyright (C) 2024       Frédéric France         <frederic.france@free.fr>
  * Copyright (C) 2025		MDW						<mdeweerd@users.noreply.github.com>
- * Copyright (C) 2025   	Jessica Kowal			<jessicakowal69@gmail.com>
- * Copyright (C) 2025   	Charlene Benke			<charlene@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -197,7 +195,7 @@ class Tasks extends DolibarrApi
 	 */
 	public function post($request_data = null)
 	{
-		global $conf;
+		global $conf;	// InfraS add - Backport from V24
 		if (!DolibarrApiAccess::$user->hasRight('projet', 'creer')) {
 			throw new RestException(403, "Insuffisant rights");
 		}
@@ -219,7 +217,8 @@ class Tasks extends DolibarrApi
 			array_push($lines, (object) $line);
 		  }
 		  $this->project->lines = $lines;
-		}*/ // Infras add begin -Backport from V24
+		}*/
+		// Infras add begin -Backport from V24
 		// Auto-generate the "ref" field if it is set to "auto"
 		if ($this->task->ref == -1 || $this->task->ref === 'auto') {
 			$reldir = '';
@@ -644,10 +643,11 @@ class Tasks extends DolibarrApi
 		$this->task->timespent_fk_product  = $product_id;
 		$this->task->timespent_fk_user  = $uid;
 		$this->task->timespent_note     = $note;
-		if (!empty($progress) && $progress >= 0 && $progress <= 100) { // Infras add -Backport from V24
+		// Infras add -Backport from V24
+		if (!empty($progress) && $progress >= 0 && $progress <= 100) {
 			$this->task->progress  		= $progress;
 		}
-
+		// Infras add end - Backport from V24
 		$result = $this->task->addTimeSpent(DolibarrApiAccess::$user, 0);
 		if ($result == 0) {
 			throw new RestException(304, 'Error nothing done. May be object is already validated');
@@ -1089,5 +1089,5 @@ class Tasks extends DolibarrApi
 		}
 		return $this->_cleanObjectDatas($this->task);
 	}
+	// InfraS add end - Backport from v24
 }
-// Infras add end -Backport from V24

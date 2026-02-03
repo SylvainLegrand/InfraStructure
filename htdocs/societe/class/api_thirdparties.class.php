@@ -325,9 +325,9 @@ class Thirdparties extends DolibarrApi
 			if ($field === 'caller') {
 				// Add a mention of caller so on trigger called after action, we can filter to avoid a loop if we try to sync back again with the caller
 				$this->company->context['caller'] = sanitizeVal($request_data['caller'], 'aZ09');
-				// Infras add begin -Backport from V24
 				continue;
 			}
+			// Infras add begin -Backport from V24
 			if ($field == 'array_options' && is_array($value)) {
 				foreach ($value as $index => $val) {
 					$this->company->array_options[$index] = $this->_checkValForAPI('extrafields', $val, $this->company);
@@ -1083,10 +1083,11 @@ class Thirdparties extends DolibarrApi
 		}
 
 		$result = $this->company->getSalesRepresentatives(DolibarrApiAccess::$user, $mode);
-
-		if (!is_array($result)) { // infras add !is_array check for error case
+		// infras add begin !is_array check for error case
+		if (!is_array($result)) {
 			throw new RestException(500, 'Error while retrieving sales representatives');
 		}
+		// infras add end !is_array check for error case
 		return $result;
 	}
 
@@ -1464,11 +1465,13 @@ class Thirdparties extends DolibarrApi
 		$notifications = array();
 
 		if ($result) {
-			$i = 0; // Infras add -Backport from V24
+			// Infras add -Backport from V24
+			$i = 0;
 			$num = $this->db->num_rows($result);
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
+			// Infras add end -Backport from V24
 				$obj = $this->db->fetch_object($result);
 				$notifications[] = $obj;
 				$i++;
@@ -1758,11 +1761,13 @@ class Thirdparties extends DolibarrApi
 		$accounts = array();
 
 		if ($result) {
-			$i = 0; // Infras add -Backport from V24
+			// Infras add -Backport from V24
+			$i = 0;
 			$num = $this->db->num_rows($result);
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
+			// Infras add end -Backport from V24
 				$obj = $this->db->fetch_object($result);
 
 				$account = new CompanyBankAccount($this->db);
@@ -2017,9 +2022,11 @@ class Thirdparties extends DolibarrApi
 			}
 
 			$num = $this->db->num_rows($result);
+			// Infras add -Backport from V24
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
+			// Infras add end -Backport from V24
 				$obj = $this->db->fetch_object($result);
 
 				$account = new CompanyBankAccount($this->db);
@@ -2091,12 +2098,13 @@ class Thirdparties extends DolibarrApi
 		$i = 0;
 
 		$accounts = array();
-
+		// Infras add -Backport from V24
 		$i = 0;
 		$num = $this->db->num_rows($result);
 		//$min = min($num, ($limit <= 0 ? $num : $limit));
 		$min = $num;
 		while ($i < $min) {
+		// Infras add end -Backport from V24
 			$obj = $this->db->fetch_object($result);
 			$account = new SocieteAccount($this->db);
 
@@ -2475,12 +2483,13 @@ class Thirdparties extends DolibarrApi
 			throw new RestException(404, 'This third party does not have any account attached or does not exist.');
 		} else {
 			$i = 0;
-
+			// Infras add -Backport from V24
 			$i = 0;
 			$num = $this->db->num_rows($result);
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
+			// Infras add end -Backport from V24
 				$obj = $this->db->fetch_object($result);
 				$account = new SocieteAccount($this->db);
 				$account->fetch($obj->rowid);
