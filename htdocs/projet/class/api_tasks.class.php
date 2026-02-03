@@ -1,8 +1,10 @@
 <?php
 /* Copyright (C) 2015   Jean-François Ferry     <jfefe@aternatik.fr>
  * Copyright (C) 2016	Laurent Destailleur		<eldy@users.sourceforge.net>
- * Copyright (C) 2024       Frédéric France         <frederic.france@free.fr>
+ * Copyright (C) 2024-2025  Frédéric France         <frederic.france@free.fr>
  * Copyright (C) 2025		MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2025   	Jessica Kowal			<jessicakowal69@gmail.com>
+ * Copyright (C) 2025   	Charlene Benke			<charlene@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -195,6 +197,7 @@ class Tasks extends DolibarrApi
 	 */
 	public function post($request_data = null)
 	{
+		global $conf;
 		if (!DolibarrApiAccess::$user->hasRight('projet', 'creer')) {
 			throw new RestException(403, "Insuffisant rights");
 		}
@@ -216,56 +219,83 @@ class Tasks extends DolibarrApi
 			array_push($lines, (object) $line);
 		  }
 		  $this->project->lines = $lines;
-		}*/
+		}*/ // Infras add begin -Backport from V24
+		// Auto-generate the "ref" field if it is set to "auto"
+		if ($this->task->ref == -1 || $this->task->ref === 'auto') {
+			$reldir = '';
+			$defaultref = '';
+			$file = '';
+			$classname = '';
+			$filefound = 0;
+			$modele = getDolGlobalString('PROJECT_TASK_ADDON', 'mod_task_simple');
+			$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+			foreach ($dirmodels as $reldir) {
+				$file = dol_buildpath($reldir."core/modules/project/task/".$modele.'.php', 0);
+				if (file_exists($file)) {
+					$filefound = 1;
+					$classname = $modele;
+					break;
+				}
+			}
+			if ($filefound && !empty($classname)) {
+				$result = dol_include_once($reldir . "core/modules/project/task/" . $modele . '.php');
+				if ($result !== false && class_exists($classname)) {
+					$modTask = new $classname();
+					'@phan-var-force ModeleNumRefTask $modTask';
+					$defaultref = $modTask->getNextValue(null, $this->task);
+				} else {
+					dol_syslog("Failed to include module file or invalid classname: " . $reldir . "core/modules/project/task/" . $modele . '.php', LOG_ERR);
+				}
+			} else {
+				dol_syslog("Module file not found or classname is empty: " . $modele, LOG_ERR);
+			}
+			if (is_numeric($defaultref) && $defaultref <= 0) {
+				$defaultref = '';
+			}
+			if (empty($defaultref)) {
+				$defaultref = 'TK' . dol_print_date(dol_now(), 'dayrfc');
+			}
+			$this->task->ref = $defaultref;
+		}
+		// Infras add end -Backport from V24
 		if ($this->task->create(DolibarrApiAccess::$user) < 0) {
 			throw new RestException(500, "Error creating task", array_merge(array($this->task->error), $this->task->errors));
 		}
 
 		return $this->task->id;
 	}
-
-	// /**
-	//  * Get time spent of a task
-	//  *
-	//  * @param int   $id                     Id of task
-	//  * @return int
-	//  *
-	//  * @url	GET {id}/tasks
-	//  */
-	/*
-	public function getLines($id, $includetimespent=0)
+	// Infras add begin -Backport from V24
+	/**
+	 * Get time spent of a task
+	 *
+	 * @param 	int   				$id         Id of task
+	 * @return	array<int,mixed>				Array of timespent lines
+	 *
+	 * @url	GET {id}/timespent
+	 */
+	public function getTimespent($id)
 	{
 		if(! DolibarrApiAccess::$user->hasRight('projet', 'lire')) {
 			throw new RestException(403);
 		}
 
-		$result = $this->project->fetch($id);
+		$result = $this->task->fetch($id);
 		if( ! $result ) {
-			throw new RestException(404, 'Project not found');
+			throw new RestException(404, 'Task not found');
 		}
 
-		if( ! DolibarrApi::_checkAccessToResource('project',$this->project->id)) {
+		if (!DolibarrApi::_checkAccessToResource('tasks', $this->task->id)) {
 			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
-		$this->project->getLinesArray(DolibarrApiAccess::$user);
+
+		$this->task->fetchTimeSpentOnTask();
 		$result = array();
-		foreach ($this->project->lines as $line)      // $line is a task
-		{
-			if ($includetimespent == 1)
-			{
-				$timespent = $line->getSummaryOfTimeSpent(0);
-			}
-			if ($includetimespent == 1)
-			{
-				// TODO
-				// Add class for timespent records and loop and fill $line->lines with records of timespent
-			}
+		foreach ($this->task->lines as $line) {
 			array_push($result,$this->_cleanObjectDatas($line));
 		}
 		return $result;
 	}
-	*/
-
+	// Infras add end -Backport from V24
 	/**
 	 * Get roles a user is assigned to a task with
 	 *
@@ -540,7 +570,7 @@ class Tasks extends DolibarrApi
 	 *
 	 * @throws	RestException
 	 */
-	public function getTimeSpent($id, $timespent_id)
+	public function getTimeSpentByID($id, $timespent_id) // Infras add -Backport from V24
 	{
 		dol_syslog("API Rest request::getTimeSpent", LOG_DEBUG);
 		if (! DolibarrApiAccess::$user->hasRight('projet', 'lire')) {
@@ -573,12 +603,12 @@ class Tasks extends DolibarrApi
 	 * { "date": "2016-12-31 23:15:00", "duration": 1800, "user_id": 1, "note": "My time test" }
 	 *
 	 * @param   int         $id                 Task ID
-	 * @param   datetime    $date               Date (YYYY-MM-DD HH:MI:SS in GMT)
-	 * @phan-param string $date
+	 * @param   datetime|string	$date               Date (YYYY-MM-DD HH:MI:SS in GMT)
 	 * @param   int         $duration           Duration in seconds (3600 = 1h)
 	 * @param   int         $product_id         The product id that is used, default is null
 	 * @param   int         $user_id            User (Use 0 for connected user)
 	 * @param   string      $note               Note
+	 * @param   int|null    	$progress           Progress percentage (0-100). If null, progress is not updated
 	 *
 	 * @url POST    {id}/addtimespent
 	 *      NOTE: Should be "POST {id}/timespent", since POST already implies "add"
@@ -587,7 +617,7 @@ class Tasks extends DolibarrApi
 	 * @phan-return array{success:array{code:int,message:string}}
 	 * @phpstan-return array{success:array{code:int,message:string}}
 	 */
-	public function addTimeSpent($id, $date, $duration, $product_id = null, $user_id = 0, $note = '')
+	public function addTimeSpent($id, $date, $duration, $product_id = null, $user_id = 0, $note = '', $progress = -1) // Infras add begin -Backport from V24
 	{
 		if (!DolibarrApiAccess::$user->hasRight('projet', 'creer')) {
 			throw new RestException(403);
@@ -597,7 +627,7 @@ class Tasks extends DolibarrApi
 			throw new RestException(404, 'Task not found');
 		}
 
-		if (!DolibarrApi::_checkAccessToResource('project', $this->task->fk_project)) {
+		if (!DolibarrApi::_checkAccessToResource('project', (int) $this->task->fk_project)) {
 			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
@@ -614,6 +644,9 @@ class Tasks extends DolibarrApi
 		$this->task->timespent_fk_product  = $product_id;
 		$this->task->timespent_fk_user  = $uid;
 		$this->task->timespent_note     = $note;
+		if (!empty($progress) && $progress >= 0 && $progress <= 100) { // Infras add -Backport from V24
+			$this->task->progress  		= $progress;
+		}
 
 		$result = $this->task->addTimeSpent(DolibarrApiAccess::$user, 0);
 		if ($result == 0) {
@@ -945,4 +978,116 @@ class Tasks extends DolibarrApi
 		}
 		return $object;
 	}
+	 // Infras add begin -Backport from V24
+	/**
+	 * Get contacts of given task
+	 *
+	 * Return an array with contact information
+	 *
+	 * @param int    $id     ID of task
+	 * @param string $type   Type of the contact
+	 * @return array<int,mixed>		Array with cleaned properties
+	 *
+	 * @url GET {id}/contacts
+	 *
+	 * @throws RestException
+	 */
+	public function getContacts($id, $type = '')
+	{
+		if (!DolibarrApiAccess::$user->hasRight('projet', 'lire')) {
+			throw new RestException(403);
+		}
+		$result = $this->task->fetch($id);
+		if (!$result) {
+			throw new RestException(404, 'Task not found');
+		}
+		if (!DolibarrApi::_checkAccessToResource('task', $this->task->id)) {
+			throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+		}
+		$contacts = $this->task->liste_contact(-1, 'external', 0, $type);
+		$socpeoples = $this->task->liste_contact(-1, 'internal', 0, $type);
+		$contacts = array_merge($contacts, $socpeoples);
+		return $contacts;	// Return array
+	}
+	/**
+	 * Adds a contact to a task
+	 *
+	 * @param int    $id             Task ID
+	 * @param int    $fk_socpeople   Id of thirdparty contact (if source = 'external') or id of user (if source = 'internal') to link
+	 * @param string $type_contact   Type of contact (code). Must a code found into table llx_c_type_contact. For example: BILLING
+	 * @param string $source         external=Contact extern (llx_socpeople), internal=Contact intern (llx_user)
+	 * @param int    $notrigger      Disable all triggers
+	 *
+	 * @url POST {id}/contacts
+	 *
+	 * @return object
+	 *
+	 * @throws RestException 304
+	 * @throws RestException 401
+	 * @throws RestException 404
+	 * @throws RestException 500 System error
+	 */
+	public function addContact($id, $fk_socpeople, $type_contact, $source, $notrigger = 0)
+	{
+		if (!DolibarrApiAccess::$user->hasRight('projet', 'creer')) {
+			throw new RestException(403);
+		}
+		$result = $this->task->fetch($id);
+		if (!$result) {
+			throw new RestException(404, 'Task not found');
+		}
+		if (!DolibarrApi::_checkAccessToResource('task', $this->task->id)) {
+			throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+		}
+		$result = $this->task->add_contact($fk_socpeople, $type_contact, $source, $notrigger);
+		if ($result <= 0) {
+			throw new RestException(500, 'Error : ' . $this->task->error);
+		}
+		$result = $this->task->fetch($id);
+		if (!$result) {
+			throw new RestException(404, 'Task not found');
+		}
+		return $this->_cleanObjectDatas($this->task);
+	}
+	/**
+	 * Delete a contact type of given task
+	 *
+	 * @param int    $id         Id of task to update
+	 * @param int    $contactid  Row key of the contact in the array contact_ids.
+	 * @param string $type       Type of the contact (BILLING, SHIPPING, CUSTOMER).
+	 * @return Object            Object with cleaned properties
+	 *
+	 * @url DELETE {id}/contacts/{contactid}/{type}
+	 *
+	 * @throws RestException 401
+	 * @throws RestException 404
+	 * @throws RestException 500 System error
+	 */
+	public function deleteContact($id, $contactid, $type)
+	{
+		if (!DolibarrApiAccess::$user->hasRight('projet', 'creer')) {
+			throw new RestException(403);
+		}
+		$result = $this->task->fetch($id);
+		if (!$result) {
+			throw new RestException(404, 'Task not found');
+		}
+		if (!DolibarrApi::_checkAccessToResource('task', $this->task->id)) {
+			throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+		}
+		foreach (array('internal', 'external') as $source) {
+			$contacts = $this->task->liste_contact(-1, $source);
+			foreach ($contacts as $contact) {
+				if ($contact['id'] == $contactid && $contact['code'] == $type) {
+					$result = $this->task->delete_contact($contact['rowid']);
+					if (!$result) {
+						throw new RestException(500, 'Error when deleted the contact');
+					}
+					break 2;
+				}
+			}
+		}
+		return $this->_cleanObjectDatas($this->task);
+	}
 }
+// Infras add end -Backport from V24
