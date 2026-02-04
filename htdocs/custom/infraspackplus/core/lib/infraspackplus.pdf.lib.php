@@ -4805,7 +4805,7 @@
 			// Is the following line an ATM subtitle/subtotal?
 			$isATMLineNext	= !empty($object->lines[$i + 1]) ? infraspackplus_isLineFromExternalModule($object->lines[$i + 1], $object->element, 'modSubtotal') : false;
 			// The rule changes if it is a text line (qty == 50)
-			$isATMLineNext	= $isATMLineNext && $object->lines[$i + 1]->qty != 50 ?? false;
+			$isATMLineNext	= $isATMLineNext && ($object->lines[$i + 1]->qty != 50);
 			return !empty($isATMLine) || !empty($isATMLineNext) ? 1 : -1;
 		}
 		return -1;
