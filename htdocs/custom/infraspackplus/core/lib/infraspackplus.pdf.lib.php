@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -4800,8 +4800,12 @@
 				}
 			}
 		} elseif (isModEnabled('subtotal')) {
+			// Is the current line an ATM subtitle/subtotal?
 			$isATMLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+			// Is the following line an ATM subtitle/subtotal?
 			$isATMLineNext	= !empty($object->lines[$i + 1]) ? infraspackplus_isLineFromExternalModule($object->lines[$i + 1], $object->element, 'modSubtotal') : false;
+			// The rule changes if it is a text line (qty == 50)
+			$isATMLineNext	= $isATMLineNext && $object->lines[$i + 1]->qty != 50 ?? false;
 			return !empty($isATMLine) || !empty($isATMLineNext) ? 1 : -1;
 		}
 		return -1;
