@@ -36,6 +36,9 @@
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
+	if (isModEnabled('infras2bridge')) {
+		dol_include_once('/infras2bridge/class/infras2bridge_paymentlinks.class.php');
+	}
 	// For retrocompatibility Dolibarr < 21.0
 	if (floatval(DOL_VERSION) < 21.0 && (!function_exists('getDolGlobalFloat') || !function_exists('getDolGlobalBool'))) {
 		dol_include_once('/infraspackplus/backport/v21/core/lib/functions.lib.php');
@@ -2070,7 +2073,7 @@
 				if (isModEnabled('infras2bridge') && getDolGlobalInt('INFRAS2BRIDGE_ENABLE_PROPAL_PAYMENT_LINK', 0)) {
 					$objectRef		= isModEnabled('propalehistory') && !empty($object->ref_old) ? $object->ref_old : $object->ref;
 					$paymentLink	= new infras2bridge_paymentlinks($this->db);
-					$links			= $paymentLink->get_status_from_ref($objectRef);
+					$links			= $paymentLink->get_status_from_ref(dol_sanitizeFileName($objectRef));
 					if (is_array($links)) {
 						foreach ($links as $link) {
 							if (in_array($link['status'], array('valid','completed'))) {
@@ -2080,12 +2083,12 @@
 									$titre	= $outputlangs->transnoentities('PDFInfraSPlusTransferCreationLink').' : ';
 									$pdf->MultiCell($larg_col1info, $tabinfo_hl, $titre, '', 'L', 0, 1, $posxtabinfo, $posytabinfo - 2, true, 0, 0, false, 0, 'N', false);
 									$pdf->SetFont('', '', $default_font_size - 2);
-									$linktopay	= '<a href="'.$link['status'].'" title="'.$outputlangs->transnoentities('ClickHere').'" style="text-decoration:none">'.$outputlangs->transnoentities('PDFInfraSPlusBridgeLink').'</a>';
+									$linktopay	= '<a href="'.$link['link'].'" title="'.$outputlangs->transnoentities('ClickHere').'" style="text-decoration:none">'.$outputlangs->transnoentities('PDFInfraSPlusBridgeLink').'</a>';
 									$pdf->writeHTMLCell($larg_col2info, $tabinfo_hl, $posxcol2info, $posytabinfo - 2, dol_htmlentitiesbr($linktopay), 0, 1, false, true, 'N', true);
 								}
 								// QR Code
 								if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_QR_CODE')) {
-									$pdf->write2DBarcode($link['status'], 'QRCODE,M', $posxtabinfo, $posytabinfo + 5, $this->sizeBC, $this->sizeBC, $this->styleBC, 'N');
+									$pdf->write2DBarcode($link['link'], 'QRCODE,M', $posxtabinfo, $posytabinfo + 5, $this->sizeBC, $this->sizeBC, $this->styleBC, 'N');
 									$posytabinfo	= $pdf->GetY() + 1;
 								}
 							}

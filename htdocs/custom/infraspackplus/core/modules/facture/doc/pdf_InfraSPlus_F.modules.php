@@ -39,6 +39,9 @@
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
+	if (isModEnabled('infras2bridge')) {
+		dol_include_once('/infras2bridge/class/infras2bridge_paymentlinks.class.php');
+	}
 	// For retrocompatibility Dolibarr < 21.0
 	if (floatval(DOL_VERSION) < 21.0 && (!function_exists('getDolGlobalFloat') || !function_exists('getDolGlobalBool'))) {
 		dol_include_once('/infraspackplus/backport/v21/core/lib/functions.lib.php');
@@ -2343,8 +2346,7 @@
 				// If payment mode forced to VIR, show payment with QR code and/or Link
 				if (isModEnabled('infras2bridge') && $object->mode_reglement_code == 'VIR' && $object->statut == Facture::STATUS_VALIDATED) {
 					$paymentLink	= new infras2bridge_paymentlinks($this->db);
-					$links			= $paymentLink->get_status_from_ref($object->ref);
-					dol_syslog('ici pdf_InfraSPlus_F::_tableau_info link='.$link['status'], LOG_DEBUG);
+					$links			= $paymentLink->get_status_from_ref(dol_sanitizeFileName($object->ref));
 					if (is_array($links)) {
 						foreach ($links as $link) {
 							if (in_array($link['status'], array('valid','completed'))) {

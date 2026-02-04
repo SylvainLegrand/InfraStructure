@@ -1736,6 +1736,9 @@
 	<Version Number="18.14.2" MonthVersion="2026-02">
 		<change type='chg'>Amélioration de l'affichage des lignes de texte issues du module sous-total</change>
 	</Version>
+	<Version Number="18.14.3" MonthVersion="2026-02">
+		<change type='fix'>Correction d'une erreur dans les liens de paiement InfraS2Bridge pour les devis</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="23.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.2"/>
