@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Lucky Ranasolonirina - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -26,6 +27,7 @@
 
 	/**
 	* Calcul du total HT à prendre en compte pour la remise
+	* Exclut les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
 	*
 	* @param	CommonObject	$object			L'objet à traiter (une facture si vous êtes dans le module facture, une propal dans le module propal, etc...)
 	* @param	int				$only_product	inclure uniquement les produits dans le calcul
@@ -40,6 +42,10 @@
 		$totalHT	= 0;
 		dol_syslog('infrasdiscount.lib::infrasdiscount_currentTotalPriceLines $object->id = '.$object->id.' $only_product = '.$only_product.' $only_service = '.$only_service.' $exceptIds = '.implode(',', $exceptIds));
 		foreach ($object->lines as $line) {
+			// Ignorer les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
+			if (infrasdiscount_isSubtotalLine($line)) {
+				continue;
+			}
 			if ((empty($line->special_code) || in_array($line->special_code, array(7, 8))) && (empty($exceptIds) || !in_array($line->id, $exceptIds))) {
 				if (empty($only_product) && empty($only_service)) {
 					// Inclure toutes les lignes
@@ -198,6 +204,54 @@
 			return $objMod->numero;
 		}
 		return 0;
+	}
+
+	/**
+	* Vérifie si une ligne est une ligne du module subtotal ATM (titre, sous-total ou texte libre)
+	* Ces lignes ont special_code = 104777, product_type = 9 et qty spécifique :
+	* - qty <= 9 pour les titres
+	* - qty >= 90 pour les sous-totaux
+	* - qty == 50 pour les textes libres
+	*
+	* @param	object	$line	Ligne à vérifier
+	* @return	bool			true si c'est une ligne subtotal ATM, false sinon
+	**/
+	function infrasdiscount_isSubtotalLine($line)
+	{
+		// Numéro du module subtotal ATM
+		$subtotalModuleNumber = 104777;
+
+		// Vérification si le module subtotal est activé et si la ligne correspond
+		if (!empty($line->special_code) && $line->special_code == $subtotalModuleNumber && $line->product_type == 9) {
+			// C'est une ligne du module subtotal (titre, sous-total ou texte libre)
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	* Vérifie si une ligne est un titre du module subtotal ATM
+	*
+	* @param	object	$line	Ligne à vérifier
+	* @return	bool			true si c'est un titre, false sinon
+	**/
+	function infrasdiscount_isSubtotalTitle($line)
+	{
+		$subtotalModuleNumber = 104777;
+		return !empty($line->special_code) && $line->special_code == $subtotalModuleNumber && $line->product_type == 9 && $line->qty <= 9;
+	}
+
+	/**
+	* Vérifie si une ligne est un sous-total du module subtotal ATM
+	*
+	* @param	object	$line	Ligne à vérifier
+	* @return	bool			true si c'est un sous-total, false sinon
+	**/
+	function infrasdiscount_isSubtotalTotal($line)
+	{
+		$subtotalModuleNumber = 104777;
+		return !empty($line->special_code) && $line->special_code == $subtotalModuleNumber && $line->product_type == 9 && $line->qty >= 90;
 	}
 
 	/**
@@ -450,6 +504,7 @@
 	/**
 	* Calcule la base en cascade pour une remise en pourcentage à une position donnée
 	* La base est la somme de toutes les lignes AVANT la position de la remise (mode cascade)
+	* Exclut les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
 	*
 	* @param	CommonObject	$object				L'objet à traiter
 	* @param	int				$position			Index de position dans le tableau $object->lines
@@ -466,20 +521,505 @@
 		for ($i = 0; $i < $position; $i++) {
 			$line	= $object->lines[$i];
 
+			// Ignorer les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
+			if (infrasdiscount_isSubtotalLine($line)) {
+				continue;
+			}
+
 			if ($isProductDiscount) {
 				// Pour la remise produit : inclure toutes les lignes produit (type 0) sauf les références de remise service
-				if ($line->fk_product_type == 0 && $line->product_ref != $remServiceRef) {
+				if ($line->product_type == 0 && $line->product_ref != $remServiceRef) {
 					$base += $line->total_ht;
 				}
 			} else {
 				// Pour la remise service : inclure toutes les lignes service (type 1) sauf les références de remise produit
-				if ($line->fk_product_type == 1 && $line->product_ref != $remProductRef) {
+				if ($line->product_type == 1 && $line->product_ref != $remProductRef) {
 					$base += $line->total_ht;
 				}
 			}
 		}
 
 		return $base;
+	}
+
+	/**
+	 * Crée une ou plusieurs lignes de remise selon le type et les options
+	 *
+	 * @param	CommonObject	$object				L'objet (propal, commande, facture)
+	 * @param	string			$remise_is			Type de remise : 'percent', 'amount', 'total_ttc'
+	 * @param	int				$remise_type		1=produit, 2=service, 3=les deux
+	 * @param	float			$remiseValue		Valeur de la remise
+	 * @param	float			$remiseValueCurrency	Valeur en devise étrangère (si applicable)
+	 * @param	array			$params				Paramètres additionnels (libelle, tva_tx, etc.)
+	 * @return	int									< 0 on error, > 0 on success
+	 */
+	function infrasdiscount_createDiscountLines(&$object, $remise_is, $remise_type, $remiseValue, $remiseValueCurrency = 0, $params = array())
+	{
+		global $conf, $langs, $user;
+
+		$langs->load('infrasdiscount@infrasdiscount');
+
+		$refs			= infrasdiscount_getDiscountProductRefs();
+		$remProductRef	= $refs['product'];
+		$remServiceRef	= $refs['service'];
+
+		$newRemiseIndex		= count($object->lines);
+
+		// Calculer les bases pour produits et services
+		$totalProductPrice	= infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, true, $remProductRef, $remServiceRef);
+		$totalServicePrice	= infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, false, $remProductRef, $remServiceRef);
+
+		// Définir les types à traiter selon remise_type
+		$typesToProcess		= infrasdiscount_getTypesToProcess($remise_type, $totalProductPrice, $totalServicePrice);
+
+		if (empty($typesToProcess) && $remise_is != 'total_ttc') {
+			return 0; // Rien à traiter
+		}
+
+		// Dispatcher selon le type de remise
+		switch ($remise_is) {
+			case 'percent':
+				return infrasdiscount_createPercentDiscount($object, $typesToProcess, $remiseValue, $params);
+
+			case 'amount':
+				return infrasdiscount_createAmountDiscount($object, $typesToProcess, $remiseValue, $remiseValueCurrency, $params);
+
+			case 'total_ttc':
+				return infrasdiscount_createTotalTTCDiscount($object, $remiseValue, $params);
+
+			default:
+				return -1;
+		}
+	}
+
+	/**
+	 * Retourne les types à traiter selon le remise_type
+	 *
+	 * @param	int		$remise_type		1=produit, 2=service, 3=les deux
+	 * @param	float	$totalProductPrice	Total produits
+	 * @param	float	$totalServicePrice	Total services
+	 * @return	array						Liste des types à traiter
+	 */
+	function infrasdiscount_getTypesToProcess($remise_type, $totalProductPrice, $totalServicePrice)
+	{
+		$types	= array();
+
+		if ($remise_type == 1 || $remise_type == 3) {
+			if ($totalProductPrice != 0) {
+				$types[]	= array(
+					'type'			=> 0,		// product_type
+					'label_key'		=> 'InfraSDiscountProductLabel',
+					'label_prorata'	=> 'InfraSDiscountProductLabelProrata',
+					'link_config'	=> 'INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT',
+					'total'			=> $totalProductPrice
+				);
+			}
+		}
+
+		if ($remise_type == 2 || $remise_type == 3) {
+			if ($totalServicePrice != 0) {
+				$types[]	= array(
+					'type'			=> 1,		// product_type
+					'label_key'		=> 'InfraSDiscountServiceLabel',
+					'label_prorata'	=> 'InfraSDiscountServiceLabelProrata',
+					'link_config'	=> 'INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT',
+					'total'			=> $totalServicePrice
+				);
+			}
+		}
+
+		return $types;
+	}
+
+	/**
+	 * Crée les lignes de remise en pourcentage
+	 *
+	 * @param	CommonObject	$object			L'objet
+	 * @param	array			$typesToProcess	Types à traiter
+	 * @param	float			$percent		Pourcentage de remise
+	 * @param	array			$params			Paramètres additionnels
+	 * @return	int								< 0 on error, > 0 on success
+	 */
+	function infrasdiscount_createPercentDiscount(&$object, $typesToProcess, $percent, $params)
+	{
+		global $langs;
+
+		$libelle		= isset($params['libelle']) ? $params['libelle'] : '';
+		$labelRemise	= isset($params['labelRemise']) ? $params['labelRemise'] : '';
+		$tva_tx			= isset($params['tva_tx']) ? $params['tva_tx'] : 0;
+		$localtax1_tx	= isset($params['localtax1_tx']) ? $params['localtax1_tx'] : 0;
+		$localtax2_tx	= isset($params['localtax2_tx']) ? $params['localtax2_tx'] : 0;
+		$array_options	= isset($params['array_options']) ? $params['array_options'] : array();
+
+		$array_options['options_specialtype']	= 1; // discount percent
+
+		foreach ($typesToProcess as $typeInfo) {
+			$remise			= $typeInfo['total'] * $percent / 100;
+			$descRemise		= $percent.' % - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans($typeInfo['label_key']);
+			$remiseLinkTo	= getDolGlobalInt($typeInfo['link_config'], 0);
+
+			$result	= infrasdiscount_addDiscountLine(
+				$object,
+				$descRemise,
+				$remise,
+				$typeInfo['type'],
+				$tva_tx,
+				$localtax1_tx,
+				$localtax2_tx,
+				$remiseLinkTo,
+				$array_options
+			);
+
+			if ($result < 0) {
+				setEventMessage($langs->trans('ErrorAddingDiscountLine'), 'errors');
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Crée les lignes de remise en montant
+	 *
+	 * @param	CommonObject	$object				L'objet
+	 * @param	array			$typesToProcess		Types à traiter
+	 * @param	float			$amount				Montant de remise
+	 * @param	float			$amountCurrency		Montant en devise étrangère
+	 * @param	array			$params				Paramètres additionnels
+	 * @return	int									< 0 on error, > 0 on success
+	 */
+	function infrasdiscount_createAmountDiscount(&$object, $typesToProcess, $amount, $amountCurrency, $params)
+	{
+		global $conf, $langs;
+
+		$libelle		= isset($params['libelle']) ? $params['libelle'] : '';
+		$labelRemise	= isset($params['labelRemise']) ? $params['labelRemise'] : '';
+		$tva_tx			= isset($params['tva_tx']) ? $params['tva_tx'] : 0;
+		$localtax1_tx	= isset($params['localtax1_tx']) ? $params['localtax1_tx'] : 0;
+		$localtax2_tx	= isset($params['localtax2_tx']) ? $params['localtax2_tx'] : 0;
+		$array_options	= isset($params['array_options']) ? $params['array_options'] : array();
+
+		$is_multicurrency	= infrasdiscount_multicurrency_enabled($object);
+
+		// Vérifier si les deux devises sont renseignées (erreur)
+		if ($is_multicurrency && !empty($amountCurrency) && !empty($amount)) {
+			setEventMessage($langs->trans('InfraSDiscountBothCurrencies',
+				price($amountCurrency, 0, $langs, 0, -1, -1, $object->multicurrency_code),
+				price($amount, 0, $langs, 0, -1, -1, $conf->currency)
+			), 'errors');
+			return -1;
+		}
+
+		// Préparer les montants
+		$preparedPrices	= infrasdiscount_prepare_prices($amount, $amountCurrency, $object);
+		$pu_ht			= $preparedPrices['pu_ht'];
+		$pu_ht_devise	= $preparedPrices['pu_ht_devise'];
+
+		// Si un seul type à traiter : montant fixe simple
+		if (count($typesToProcess) == 1) {
+			$typeInfo		= $typesToProcess[0];
+			$descRemise		= $langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans($typeInfo['label_key']);
+			$remiseLinkTo	= getDolGlobalInt($typeInfo['link_config'], 0);
+
+			$array_options['options_specialtype']	= 2; // discount amount
+
+			return infrasdiscount_addDiscountLine(
+				$object,
+				$descRemise,
+				$pu_ht,
+				$typeInfo['type'],
+				$tva_tx,
+				$localtax1_tx,
+				$localtax2_tx,
+				$remiseLinkTo,
+				$array_options,
+				$pu_ht_devise
+			);
+		}
+
+		// Plusieurs types : répartition prorata
+		return infrasdiscount_createProrataDiscount($object, $typesToProcess, $pu_ht, $pu_ht_devise, $params);
+	}
+
+	/**
+	 * Crée les lignes de remise prorata (répartition entre produits et services)
+	 *
+	 * @param	CommonObject	$object				L'objet
+	 * @param	array			$typesToProcess		Types à traiter
+	 * @param	float			$totalAmount		Montant total de remise
+	 * @param	float			$totalAmountDevise	Montant total en devise étrangère
+	 * @param	array			$params				Paramètres additionnels
+	 * @return	int									< 0 on error, > 0 on success
+	 */
+	function infrasdiscount_createProrataDiscount(&$object, $typesToProcess, $totalAmount, $totalAmountDevise, $params)
+	{
+		global $conf, $langs;
+
+		$libelle		= isset($params['libelle']) ? $params['libelle'] : '';
+		$labelRemise	= isset($params['labelRemise']) ? $params['labelRemise'] : '';
+		$tva_tx			= isset($params['tva_tx']) ? $params['tva_tx'] : 0;
+		$localtax1_tx	= isset($params['localtax1_tx']) ? $params['localtax1_tx'] : 0;
+		$localtax2_tx	= isset($params['localtax2_tx']) ? $params['localtax2_tx'] : 0;
+		$array_options	= isset($params['array_options']) ? $params['array_options'] : array();
+
+		$is_multicurrency	= infrasdiscount_multicurrency_enabled($object);
+
+		// Calculer le total de la base
+		$totalBase	= 0;
+		foreach ($typesToProcess as $typeInfo) {
+			$totalBase	+= $typeInfo['total'];
+		}
+
+		if ($totalBase == 0) {
+			return 0;
+		}
+
+		// Calculer le taux de répartition
+		$remiseRate	= $totalAmount / $totalBase;
+
+		// Construire la description de base
+		if ($is_multicurrency && !empty($totalAmountDevise)) {
+			$descBase	= price($totalAmountDevise, 0, $langs, 0, -1, -1, $object->multicurrency_code).' / '.
+						  price($totalAmount, 0, $langs, 0, -1, -1, 'auto').' - '.
+						  $langs->trans(!empty($libelle) ? $libelle : $labelRemise);
+		} else {
+			$descBase	= price($totalAmount, 0, $langs, 1, -1, -1, $conf->currency).' - '.
+						  $langs->trans(!empty($libelle) ? $libelle : $labelRemise);
+		}
+
+		$array_options['options_specialtype']	= 3; // discount amount prorata
+
+		foreach ($typesToProcess as $typeInfo) {
+			$remise			= round($typeInfo['total'] * $remiseRate, 2, PHP_ROUND_HALF_UP);
+			$remiseDevise	= $is_multicurrency ? infrasdiscount_to_foreign($remise, $object) : 0;
+
+			$descRemise		= $descBase.' '.$langs->trans($typeInfo['label_prorata']);
+			$remiseLinkTo	= getDolGlobalInt($typeInfo['link_config'], 0);
+
+			$result	= infrasdiscount_addDiscountLine(
+				$object,
+				$descRemise,
+				$remise,
+				$typeInfo['type'],
+				$tva_tx,
+				$localtax1_tx,
+				$localtax2_tx,
+				$remiseLinkTo,
+				$array_options,
+				$remiseDevise
+			);
+
+			if ($result < 0) {
+				setEventMessage($langs->trans('ErrorAddingDiscountLine'), 'errors');
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Crée les lignes de remise pour atteindre un total TTC cible
+	 *
+	 * @param	CommonObject	$object			L'objet
+	 * @param	float			$targetTTC		Montant TTC cible
+	 * @param	array			$params			Paramètres additionnels
+	 * @return	int								< 0 on error, > 0 on success
+	 */
+	function infrasdiscount_createTotalTTCDiscount(&$object, $targetTTC, $params)
+	{
+		global $conf, $langs, $user;
+
+		require_once DOL_DOCUMENT_ROOT.'/margin/lib/margins.lib.php';
+
+		$libelle		= isset($params['libelle']) ? $params['libelle'] : '';
+		$labelRemise	= isset($params['labelRemise']) ? $params['labelRemise'] : '';
+		$localtax1_tx	= isset($params['localtax1_tx']) ? $params['localtax1_tx'] : 0;
+		$localtax2_tx	= isset($params['localtax2_tx']) ? $params['localtax2_tx'] : 0;
+		$array_options	= isset($params['array_options']) ? $params['array_options'] : array();
+
+		// Vérification du montant cible
+		if ($targetTTC <= 0) {
+			setEventMessage($langs->trans('InfraSDiscountErrorInvalidTargetAmount'), 'errors');
+			return -1;
+		}
+
+		// Analyser les lignes existantes
+		$analysis	= infrasdiscount_analyzeLinesForTotalTTC($object);
+
+		if (empty($analysis['groups'])) {
+			setEventMessage($langs->trans('InfraSDiscountErrorNoLines'), 'errors');
+			return -1;
+		}
+
+		$currentTotalTTC	= $analysis['total_ttc'];
+		$discountTTCNeeded	= $currentTotalTTC - $targetTTC;
+
+		if ($discountTTCNeeded <= 0) {
+			setEventMessage($langs->trans('InfraSDiscountErrorAmountToHigh', $object->element), 'errors');
+			return -1;
+		}
+
+		// Vérifier la marge
+		$formmargin			= new FormMargin($object->db);
+		$marginInfos		= $formmargin->getMarginInfosArray($object, false);
+		$discountHTApprox	= $discountTTCNeeded / 1.2;
+
+		if ($discountHTApprox > $marginInfos['total_margin'] &&
+			(!getDolGlobalBool('MAIN_USE_ADVANCED_PERMS') || !$user->hasRight('produit', 'ignore_price_min_advance'))) {
+			setEventMessage($langs->trans('marginError', $object->element), 'errors');
+			return -1;
+		}
+
+		// Calculer les lignes de remise avec correction des arrondis
+		$discountLines	= infrasdiscount_calculateTTCDiscountLines($analysis['groups'], $discountTTCNeeded, $currentTotalTTC);
+
+		// Créer les lignes
+		$array_options['options_specialtype']	= 4; // discount total ttc
+
+		foreach ($discountLines as $discountLine) {
+			$typeLabel	= ($discountLine['product_type'] == 0) ? 'InfraSDiscountProductLabel' : 'InfraSDiscountServiceLabel';
+			$descRemise	= $langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.
+						  $langs->trans($typeLabel).'/'.$langs->trans('Arrondi').' '.
+						  price($targetTTC, 0, $langs, 1, -1, -1, 'auto').$langs->trans(' TTC');
+
+			$linkConfig		= ($discountLine['product_type'] == 0) ? 'INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT' : 'INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT';
+			$remiseLinkTo	= getDolGlobalInt($linkConfig, 0);
+
+			$pu_ht_devise	= 0;
+			if (infrasdiscount_multicurrency_enabled($object)) {
+				$pu_ht_devise	= infrasdiscount_to_foreign($discountLine['ht'], $object);
+			}
+
+			$result	= infrasdiscount_addDiscountLine(
+				$object,
+				$descRemise,
+				$discountLine['ht'],
+				$discountLine['product_type'],
+				$discountLine['vat'],
+				$localtax1_tx,
+				$localtax2_tx,
+				$remiseLinkTo,
+				$array_options,
+				$pu_ht_devise
+			);
+
+			if ($result < 0) {
+				setEventMessages($object->error, $object->errors, 'errors');
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Analyse les lignes pour le calcul total TTC
+	 *
+	 * @param	CommonObject	$object		L'objet
+	 * @return	array						Données d'analyse
+	 */
+	function infrasdiscount_analyzeLinesForTotalTTC(&$object)
+	{
+		$currentTotalTTC	= 0;
+		$groups				= array();
+
+		foreach ($object->lines as $line) {
+			// Ignorer les lignes subtotal ATM
+			if (infrasdiscount_isSubtotalLine($line)) {
+				continue;
+			}
+
+			// Ignorer les lignes de remise type 4 (total_ttc)
+			if (isset($line->array_options['options_specialtype']) && $line->array_options['options_specialtype'] == 4) {
+				continue;
+			}
+
+			$currentTotalTTC	+= $line->total_ttc;
+			$vatindex			= $line->tva_tx;
+			$typeKey			= ($line->product_type == 0 ? 'prod_' : 'serv_').$vatindex;
+
+			if (!isset($groups[$typeKey])) {
+				$groups[$typeKey]	= array(
+					'tva'			=> $vatindex,
+					'total_ttc'		=> 0,
+					'total_ht'		=> 0,
+					'product_type'	=> $line->product_type
+				);
+			}
+
+			$groups[$typeKey]['total_ttc']	+= $line->total_ttc;
+			$groups[$typeKey]['total_ht']	+= $line->total_ht;
+		}
+
+		return array(
+			'total_ttc'	=> $currentTotalTTC,
+			'groups'	=> array_values($groups)
+		);
+	}
+
+	/**
+	 * Calcule les lignes de remise TTC avec correction des arrondis
+	 *
+	 * @param	array	$groups				Groupes de lignes par type/TVA
+	 * @param	float	$discountTTCNeeded	Montant TTC de remise nécessaire
+	 * @param	float	$currentTotalTTC	Total TTC actuel
+	 * @return	array						Lignes de remise calculées
+	 */
+	function infrasdiscount_calculateTTCDiscountLines($groups, $discountTTCNeeded, $currentTotalTTC)
+	{
+		$discountLines				= array();
+		$totalDiscountTTCCalculated	= 0;
+
+		// Étape 1 : Calculer les remises HT théoriques
+		foreach ($groups as $group) {
+			$vatRate		= $group['tva'];
+			$vatMultiplier	= 1 + ($vatRate / 100);
+			$proportion		= $group['total_ttc'] / $currentTotalTTC;
+
+			$discountTTCForGroup	= $discountTTCNeeded * $proportion;
+			$discountHTForGroup		= $discountTTCForGroup / $vatMultiplier;
+			$discountHTRounded		= round($discountHTForGroup, 2, PHP_ROUND_HALF_UP);
+			$discountTTCRounded		= round($discountHTRounded * $vatMultiplier, 2, PHP_ROUND_HALF_UP);
+
+			$discountLines[]	= array(
+				'ht'				=> $discountHTRounded,
+				'ttc'				=> $discountTTCRounded,
+				'vat'				=> $vatRate,
+				'vat_multiplier'	=> $vatMultiplier,
+				'product_type'		=> $group['product_type']
+			);
+
+			$totalDiscountTTCCalculated	+= $discountTTCRounded;
+		}
+
+		// Étape 2 : Correction des arrondis
+		$ttcDifference	= round($discountTTCNeeded - $totalDiscountTTCCalculated, 2, PHP_ROUND_HALF_UP);
+
+		if (abs($ttcDifference) >= 0.01) {
+			usort($discountLines, function($a, $b) {
+				return $b['ttc'] <=> $a['ttc'];
+			});
+
+			$remainingDifference	= $ttcDifference;
+			foreach ($discountLines as &$line) {
+				if (abs($remainingDifference) < 0.01) {
+					break;
+				}
+
+				$adjustment			= ($remainingDifference > 0) ? 0.01 : -0.01;
+				$nbAdjustments		= min(abs(round($remainingDifference / 0.01)), 10);
+				$totalAdjustment	= $adjustment * $nbAdjustments;
+
+				$line['ttc']			= round($line['ttc'] + $totalAdjustment, 2, PHP_ROUND_HALF_UP);
+				$line['ht']				= round($line['ttc'] / $line['vat_multiplier'], 2, PHP_ROUND_HALF_UP);
+				$remainingDifference	= round($remainingDifference - $totalAdjustment, 2, PHP_ROUND_HALF_UP);
+			}
+			unset($line);
+		}
+
+		return $discountLines;
 	}
 
 	/**
@@ -518,7 +1058,7 @@
 				}
 
 				// Détermine si c'est une remise produit ou service
-				$isProductDiscount	= ($line->fk_product_type == 0);
+				$isProductDiscount	= ($line->product_type == 0);
 
 				// Calcule la nouvelle base en utilisant la logique en cascade
 				$base	= infrasdiscount_calculateCascadeBase($object, $idx, $isProductDiscount, $remProductRef, $remServiceRef);
@@ -606,12 +1146,16 @@
 			// Calcule les montants de base à partir des lignes AU-DESSUS de cette paire prorata (cascade)
 			for ($i = 0; $i < $prorataPosition; $i++) {
 				$line			= $object->lines[$i];
+				// Ignore les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
+				if (infrasdiscount_isSubtotalLine($line)) {
+					continue;
+				}
 				// Ignore les lignes des modules externes
 				$searchNames	= array();
 				if (isModEnabled('subtotal')) $searchNames[]	= 'modSubtotal';
 				if (isModEnabled('milestone')) $searchNames[]	= 'modMilestone';
 				if (isModEnabled('ouvrage')) $searchNames[]		= 'modOuvrage';
-				if (!empty($searchNames) && infrasdiscount_isLineFromExternalModule($line, $object, $searchNames)) {
+				if (!empty($searchNames) && infrasdiscount_isLineFromExternalModule($line, $object->element, $searchNames)) {
 					continue;
 				}
 				// Ignore les autres lignes prorata (type 3) et les lignes total_ttc (type 4)

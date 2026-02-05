@@ -108,7 +108,14 @@
 		<change type='add'>Ajout de fonctions pour la gestion du multidevise : conversion sécurisée, protection contre division par zéro</change>
 		<change type='chg'>Factorisation et centralisation du code : création de fonctions réutilisables</change>
 	</Version>
-	<InfraS Downloaded="20251101"/>
+	<Version Number="15.2.12" MonthVersion="2026-02">
+		<change type='fix'>Correction de detection de type de ligne(produit ou service)</change>
+		<change type='add'>Ajout de la detection de lignes du module Sous-total ATM (titres, sous-totaux, textes libres)</change>
+	</Version>
+	<Version Number="15.2.13" MonthVersion="2026-02">
+		<change type='fix'>Refonte complet du logique de creation et modification de remise en utilisant des fonctions helpers</change>
+	</Version>
+	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="22.0.2"/>
 	<PHP minVersion="7.4" maxVersion="8.2"/>
 </changelog>

@@ -24,7 +24,8 @@
 
 ***InfraSMultiDiscount*** est distribué sous les termes de la licence GNU General Public License v3+ ou supérieure. ![](img/gplv3.png)
 
-Copyright (C) 2016-2025 Sylvain Legrand - InfraS
+Copyright (C) 2016-2026 Sylvain Legrand - InfraS
+Copyright (C) 2016-2026 Lucky Ranasolonirina - InfraS
 
 voir le fichier LICENSE pour plus d'informations
 

@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand		- <contact@infras.fr>		InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Lucky Ranasolonirina - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -430,591 +431,479 @@
 			$langs->load('infrasdiscount@infrasdiscount');
 
 			$result	= 0;
+
 			/*
-			*
-			* Créations des Remises
-			*
-			*/
+			 * Créations des Remises
+			 */
 			if (in_array($object->element, array('propal', 'commande', 'facture')) && $action == 'InfraSDiscountRemise' && GETPOST('confirm', 'alpha') == 'yes') {
-				$myRemiseValue			= !empty(GETPOST('myRemiseValue', 'alpha')) ? price2num(GETPOST('myRemiseValue', 'alpha'), 'CU', 2) : getDolGlobalfloat('INFRASDISCOUNT_DEFAULT_REM_VALUE', 10.00);
-				$myRemise_is			= GETPOST('myRemise_is', 'alpha');
-				$myRemise_type			= GETPOST('myRemise_type', 'int');
-				$libelle				= GETPOST('libelle', 'alpha');
-				$labelRemise			= 'INFRASDISCOUNT_LABEL_'.($object->element == 'propal' ? 'PROPAL' : ($object->element == 'commande' ? 'ORDER' : ($object->element == 'facture' ? 'INVOICE' : '')));
-				$labelRemise			= getDolGlobalString($labelRemise, '');
-				$tva_tx					= GETPOST('remise_tva_tx') ? GETPOST('remise_tva_tx') : 0;
-				$tva_npr				= (preg_match('/\*/', $tva_tx) ? 1 : 0);
-				$tva_tx					= str_replace('*', '', $tva_tx);
-				$localtax1_tx			= get_localtax($tva_tx, 1, $object->thirdparty);
-				$localtax2_tx			= get_localtax($tva_tx, 2, $object->thirdparty);
-				$extrafieldsline		= new ExtraFields($this->db);
-				$formmargin				= new FormMargin($this->db);
-				$extralabelsline		= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
-				$array_options			= $extrafieldsline->getOptionalsFromPost($extralabelsline);
-				$myRemiseValueCurrency	= price2num(GETPOST('myRemiseValuecurrency', 'alpha'), 'CU', 2);
-				$myRemiseValue			= !empty($myRemiseValueCurrency) ? 0 : $myRemiseValue;	// Si myRemiseValueCurrency est renseigné, on utilise sa valeur, sinon on utilise myRemiseValue
-				$refs					= infrasdiscount_getDiscountProductRefs();
-				$remProductRef			= $refs['product'];
-				$remServiceRef			= $refs['service'];
-				// Définir $is_multicurrency avant utilisation
-				$is_multicurrency		= isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 1 : 0;				// Trouver l'index où sera insérée la nouvelle remise (à la fin des lignes)
-				$newRemiseIndex			= count($object->lines);
-				// Calcul du total pour les produits (toutes lignes produit/remise produit au-dessus)
-				// Calculate cascade base for new discount at end of lines
-				$totalProductPrice		= infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, true, $remProductRef, $remServiceRef);
-				$totalServicePrice		= infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, false, $remProductRef, $remServiceRef);
-				if ($myRemise_is == 'percent') {	// Percentage discount
-					if ($myRemise_type == 1) {	// Only product lines
-						$remise									= $totalProductPrice * $myRemiseValue / 100;
-						$descRemise								= $myRemiseValue.' % - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans('InfraSDiscountProductLabel');
-						$type									= 0; // Product type
-						$remiseLinkTo							= getDolGlobalInt('INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT', 0);
-						$array_options['options_specialtype']	= 1; //special type 1 == discount percent
-						$result									= infrasdiscount_addDiscountLine($object, $descRemise, $remise, $type, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkTo, $array_options);
-						if ($result < 0) {
-							setEventMessage($langs->trans('ErrorAddingDiscountLine'));
-							return -1; // Stop processing if error
-						}
-					} elseif ($myRemise_type == 2) {	// Only service lines
-						$remise									= $totalServicePrice * $myRemiseValue / 100;
-						$descRemise								= $myRemiseValue.' % - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans('InfraSDiscountServiceLabel');
-						$type									= 1; // Service type
-						$remiseLinkTo							= getDolGlobalInt('INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 0);
-						$array_options['options_specialtype']	= 1; //special type 1 == discount percent
-						$result									= infrasdiscount_addDiscountLine($object, $descRemise, $remise, $type, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkTo, $array_options);
-						if ($result < 0) {
-							setEventMessage($langs->trans('ErrorAddingDiscountLine'));
-							return -1; // Stop processing if error
-						}
-					} elseif ($myRemise_type == 3) {	// Both product and service lines
-						if ($totalProductPrice != 0){
-							$remiseProduct							= $totalProductPrice * $myRemiseValue / 100;
-							$descRemiseProduct						= $myRemiseValue.' % - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans('InfraSDiscountProductLabel');
-							$typeProduct							= 0; // Product type
-							$remiseLinkToProduct					= getDolGlobalInt('INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT', 0);
-							$array_options['options_specialtype']	= 1; //special type 1 == discount percent
-							$resultProduct							= infrasdiscount_addDiscountLine($object, $descRemiseProduct, $remiseProduct, $typeProduct, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToProduct, $array_options);
-							if ($resultProduct < 0) {
-								setEventMessage($langs->trans('ErrorAddingDiscountLine'));
-								return -1; // Stop processing if error
-							}
-						}
-						if ($totalServicePrice != 0){
-							$remiseService							= $totalServicePrice * $myRemiseValue / 100;
-							$descRemiseService						= $myRemiseValue.' % - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans('InfraSDiscountServiceLabel');
-							$typeService							= 1; // Service type
-							$array_options['options_specialtype']	= 1; //special type 1 == discount percent
-							$remiseLinkToService					= getDolGlobalInt('INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 0);
-							$resultService							= infrasdiscount_addDiscountLine($object, $descRemiseService, $remiseService, $typeService, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToService, $array_options);
-							if ($resultService < 0) {
-								setEventMessage($langs->trans('ErrorAddingDiscountLine'));
-								return -1; // Stop processing if error
-							}
-						}
-					}
-				} elseif ($myRemise_is == 'amount') {	// Amount discount
-					if (!empty($myRemiseValueCurrency)) {	// Utiliser directement la valeur en devise étrangère
-						$pu_ht_devise	= $myRemiseValueCurrency; // Prix unitaire en devise étrangère
-						$pu_ht			= $pu_ht_devise / $object->multicurrency_tx; // Convertir en devise par défaut pour référence
-					} else {
-						$pu_ht			= $myRemiseValue; // Si pas de multidevise, utiliser la valeur en devise par défaut
-						$pu_ht_devise	= $pu_ht * $object->multicurrency_tx; // Pas de devise étrangère
-					}
-					// Si multidevise et les deux champs sont renseignés, afficher une erreur et ne rien faire
-					if ($is_multicurrency && ($myRemiseValueCurrency !== '' && $myRemiseValueCurrency != 0) && ($myRemiseValue !== '' && $myRemiseValue != 0)) {
-						setEventMessage($langs->trans('InfraSDiscountBothCurrencies', price($myRemiseValueCurrency, 0, $langs, 0, -1, -1, $object->multicurrency_code), price($myRemiseValue, 0, $langs, 1, -1, -1, $conf->currency)), 'errors');
-						return -1;
-					}
-					if ($myRemise_type == 1) {	// Only product lines
-						// Montant fixe appliqué uniquement aux lignes produits
-						$remise									= $pu_ht;
-						$descRemise								= $langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans('InfraSDiscountProductLabel');
-						$type									= 0; // Type produit
-						$remiseLinkTo							= getDolGlobalInt('INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT', 0);
-						$array_options['options_specialtype']	= 2; //special type 2 == discount amount
-						$result									= infrasdiscount_addDiscountLine($object, $descRemise, $remise, $type, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkTo, $array_options, $pu_ht_devise);
-					} elseif ($myRemise_type == 2) {	// Only service lines
-						// Option 2 : Montant fixe appliqué uniquement aux lignes services
-						$remise									= $pu_ht;
-						$descRemise								= $langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans('InfraSDiscountServiceLabel');
-						$type									= 1; // Type service
-						$remiseLinkTo							= getDolGlobalInt('INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 0);
-						$array_options['options_specialtype']	= 2;
-						$result									= infrasdiscount_addDiscountLine($object, $descRemise, $remise, $type, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkTo, $array_options, $pu_ht_devise);
-					} elseif ($myRemise_type == 3) {	// Both product and service lines
-						if ($is_multicurrency) {
-							if (!empty($myRemiseValueCurrency)) {	// Utiliser directement la valeur en devise étrangère
-								$totalProductPriceCurrency	= $totalProductPrice * $object->multicurrency_tx;
-								$totalServicePriceCurrency	= $totalServicePrice * $object->multicurrency_tx;
-								$remiseProrata				= $totalProductPriceCurrency + $totalServicePriceCurrency;
-								$remiseCurrencyRate			= $myRemiseValueCurrency / $remiseProrata; // Taux de remise en devise étrangère
-								$remiseProductCurrency		= $totalProductPriceCurrency * $remiseCurrencyRate;
-								$remiseServiceCurrency		= $totalServicePriceCurrency * $remiseCurrencyRate;
-								$remiseProduct				= $remiseProductCurrency / $object->multicurrency_tx; // Montant en devise par défaut
-								$remiseService				= $remiseServiceCurrency / $object->multicurrency_tx; // Montant en devise par défaut
-								$descRemise					= price($myRemiseValueCurrency, 0, $langs, 0, -1, -1, $object->multicurrency_code).' / '.price($pu_ht, 0, $langs, 0, -1, -1, 'auto').' - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise);
-								// Ligne pour les produits
-								if ($remiseProductCurrency != 0) {
-									$descRemiseProduct						= $descRemise.' '.$langs->trans('InfraSDiscountProductLabelProrata');
-									$typeProduct							= 0; // Type produit
-									$array_options['options_specialtype']	= 3; //special type 3 == discount amount prorata
-									$remiseLinkToProduct					= getDolGlobalInt('INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT', 0);
-									$resultProduct							= infrasdiscount_addDiscountLine($object, $descRemiseProduct, $remiseProduct, $typeProduct, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToProduct, $array_options, $remiseProductCurrency);
-								}
-								// Ligne pour les services
-								if ($remiseServiceCurrency != 0) {
-									$descRemiseService						= $descRemise.' '.$langs->trans('InfraSDiscountServiceLabelProrata');
-									$typeService							= 1; // Type service
-									$array_options['options_specialtype']	= 3; //special type 3 == discount amount prorata
-									$remiseLinkToService					= getDolGlobalInt('INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 0);
-									$resultService							= infrasdiscount_addDiscountLine($object, $descRemiseService, $remiseService, $typeService, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToService, $array_options, $remiseServiceCurrency);
-								}
-							} elseif (!empty($myRemiseValue)) {	// La valeur est saisie dans la devise de la société
-								$remiseProrata	= $totalProductPrice + $totalServicePrice;
-								$remiseRate		= $myRemiseValue / $remiseProrata; // Taux de remise
-								$remiseProduct	= $totalProductPrice * $remiseRate; // Remise pour les produits
-								$remiseService	= $totalServicePrice * $remiseRate; // Remise pour les services
-								$descRemise		= price($pu_ht_devise, 0, $langs, 0, -1, -1, $object->multicurrency_code).' / '.price($myRemiseValue, 0, $langs, 0, -1, -1, 'auto').' - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise);
-								// Ligne pour les produits
-								if ($remiseProduct != 0) {
-									$descRemiseProduct						= $descRemise.' '.$langs->trans('InfraSDiscountProductLabelProrata');
-									$typeProduct							= 0; // Type produit
-									$array_options['options_specialtype']	= 3; //special type 3 == discount amount prorata
-									$remiseLinkToProduct					= getDolGlobalInt('INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT', 0);
-									$resultProduct							= infrasdiscount_addDiscountLine($object, $descRemiseProduct, $remiseProduct, $typeProduct, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToProduct, $array_options);
-								}
-								// Ligne pour les services
-								if ($remiseService != 0) {
-									$descRemiseService						= $descRemise.' '.$langs->trans('InfraSDiscountServiceLabelProrata');
-									$typeService							= 1; // Type service
-									$array_options['options_specialtype']	= 3; //special type 3 == discount amount prorata
-									$remiseLinkToService					= getDolGlobalInt('INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 0);
-									$resultService							= infrasdiscount_addDiscountLine($object, $descRemiseService, $remiseService, $typeService, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToService, $array_options);
-								}
-							}
-						} else {
-							$remiseProrata	= $totalProductPrice + $totalServicePrice;
-							$remiseRate		= $myRemiseValue / $remiseProrata; // Taux de remise
-							$remiseProduct	= $totalProductPrice * $remiseRate; // Remise pour les produits
-							$remiseService	= $totalServicePrice * $remiseRate; // Remise pour les services
-							$descRemise		= price($myRemiseValue, 0, $langs, 1, -1, -1, $conf->currency).' - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise);
-							if ($totalProductPrice != 0) {
-								$descRemiseProduct						= $descRemise.' '.$langs->trans('InfraSDiscountProductLabelProrata');
-								$typeProduct							= 0; // Type produit
-								$array_options['options_specialtype']	= 3; //special type 3 == discount amount prorata
-								$pu_ht_devise							= $remiseProduct * $object->multicurrency_tx; // Prix unitaire en devise étrangère
-								$remiseLinkToProduct					= getDolGlobalInt('INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT', 0);
-								$resultProduct							= infrasdiscount_addDiscountLine($object, $descRemiseProduct, $remiseProduct, $typeProduct, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToProduct, $array_options, $pu_ht_devise);
-							}
-							// Ligne pour les services
-							if ($totalServicePrice != 0) {
-								$descRemiseService						= $descRemise.' '.$langs->trans('InfraSDiscountServiceLabelProrata');
-								$typeService							= 1; // Type service
-								$array_options['options_specialtype']	= 3; //special type 3 == discount amount prorata
-								$pu_ht_devise							= $remiseService * $object->multicurrency_tx; // Prix unitaire en devise étrangère
-								$remiseLinkToService					= getDolGlobalInt('INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 0);
-								$resultService							= infrasdiscount_addDiscountLine($object, $descRemiseService, $remiseService, $typeService, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkToService, $array_options, $pu_ht_devise);
-							}
-						}
-					}
-				} elseif ($myRemise_is == 'total_ttc') {	// Remise en Montant TTC à atteindre
-					$marginInfos		= $formmargin->getMarginInfosArray($object, false);
-
-					// Vérifier que le montant cible est valide
-					if ($myRemiseValue <= 0) {
-						setEventMessage($langs->trans('InfraSDiscountErrorInvalidTargetAmount'), 'errors');
-						return -1;
-					}
-
-					// Calculer le total TTC actuel en excluant les remises existantes
-					$currentTotalTTC	= 0;
-					$totalTTCProd		= array();
-					$totalTTCServ		= array();
-
-					foreach ($object->lines as $line) {
-						// Ignorer les lignes de remise type 4 (total_ttc) pour éviter les doublons
-						if (isset($line->array_options['options_specialtype']) && $line->array_options['options_specialtype'] == 4) {
-							continue;
-						}
-						$currentTotalTTC	+= $line->total_ttc;
-						$vatindex			= $line->tva_tx;
-						// Regrouper par type (produit/service) et taux de TVA
-						if ($line->product_type == 0) {
-							if (!isset($totalTTCProd[$vatindex])) {
-								$totalTTCProd[$vatindex]			= array('tva' => $vatindex, 'total_ttc' => 0, 'total_ht' => 0);
-							}
-							$totalTTCProd[$vatindex]['total_ttc']	+= $line->total_ttc;
-							$totalTTCProd[$vatindex]['total_ht']	+= $line->total_ht;
-						} else {
-							if (!isset($totalTTCServ[$vatindex])) {
-								$totalTTCServ[$vatindex]			= array('tva' => $vatindex, 'total_ttc' => 0, 'total_ht' => 0);
-							}
-							$totalTTCServ[$vatindex]['total_ttc']	+= $line->total_ttc;
-							$totalTTCServ[$vatindex]['total_ht']	+= $line->total_ht;
-						}
-					}
-
-					// Calculer la différence à atteindre (montant de remise nécessaire en TTC)
-					$discountTTCNeeded		= $currentTotalTTC - $myRemiseValue;
-
-					if ($discountTTCNeeded <= 0) {
-						setEventMessage($langs->trans('InfraSDiscountErrorAmountToHigh', $object->element), 'errors');
-						return -1;
-					}
-
-					// Vérifier la marge (approximation)
-					$discountHTApprox		= $discountTTCNeeded / 1.2;
-					if ($discountHTApprox > $marginInfos['total_margin'] && (!getDolGlobalBool('MAIN_USE_ADVANCED_PERMS') || !$user->hasRight('produit', 'ignore_price_min_advance'))) {
-						setEventMessage($langs->trans('marginError', $object->element), 'errors');
-						return -1;
-					}
-
-					// Fusionner tous les groupes (produits + services) pour traitement unifié
-					$allGroups				= array();
-					foreach ($totalTTCProd as $vatindex => $data) {
-						$allGroups[]		= array_merge($data, array('type' => 'products', 'product_type' => 0, 'vat_key' => 'prod_'.$vatindex));
-					}
-					foreach ($totalTTCServ as $vatindex => $data) {
-						$allGroups[]		= array_merge($data, array('type' => 'services', 'product_type' => 1, 'vat_key' => 'serv_'.$vatindex));
-					}
-
-					if (empty($allGroups)) {
-						setEventMessage($langs->trans('InfraSDiscountErrorNoLines'), 'errors');
-						return -1;
-					}
-
-					// ÉTAPE 1 : Calculer les remises HT théoriques pour chaque groupe avec précision maximale
-					$discountLines				= array();
-					$totalDiscountTTCCalculated	= 0;
-					foreach ($allGroups as $index => $group) {
-						$vatRate				= $group['tva'];
-						$vatMultiplier			= 1 + ($vatRate / 100);
-						// Calculer la proportion de ce groupe dans le total TTC
-						$proportion				= $group['total_ttc'] / $currentTotalTTC;
-						// Montant TTC de remise pour ce groupe (proportionnel)
-						$discountTTCForGroup	= $discountTTCNeeded * $proportion;
-						// Convertir en HT (formule : HT = TTC / (1 + TVA%))
-						$discountHTForGroup		= $discountTTCForGroup / $vatMultiplier;
-						// Arrondir à 2 décimales
-						$discountHTRounded		= round($discountHTForGroup, 2, PHP_ROUND_HALF_UP);
-						// Recalculer le TTC après arrondi du HT
-						$discountTTCRounded		= round($discountHTRounded * $vatMultiplier, 2, PHP_ROUND_HALF_UP);
-						$discountLines[] = array(
-							'ht'				=> $discountHTRounded,
-							'ttc'				=> $discountTTCRounded,
-							'ttc_theoretical'	=> $discountTTCForGroup, // Valeur théorique exacte avant arrondi
-							'vat'				=> $vatRate,
-							'vat_multiplier'	=> $vatMultiplier,
-							'type'				=> $group['type'],
-							'product_type'		=> $group['product_type'],
-							'index'				=> $index
-						);
-
-						$totalDiscountTTCCalculated += $discountTTCRounded;
-					}
-
-					// ÉTAPE 2 : CORRECTION DES ARRONDIS
-					// Calculer l'écart entre le montant TTC souhaité et le montant TTC calculé
-					$ttcDifference				= round($discountTTCNeeded - $totalDiscountTTCCalculated, 2, PHP_ROUND_HALF_UP);
-					// Si l'écart est significatif (> 0.005€), ajuster les lignes
-					if (abs($ttcDifference) >= 0.01) {
-						// Trier les lignes par montant TTC décroissant pour ajuster les plus grosses
-						usort($discountLines, function($a, $b) {
-							return $b['ttc'] <=> $a['ttc'];
-						});
-						// Ajuster ligne par ligne jusqu'à atteindre exactement le montant cible
-						$remainingDifference	= $ttcDifference;
-						foreach ($discountLines as $idx => &$line) {
-							if (abs($remainingDifference) < 0.01) {
-								break; // Objectif atteint
-							}
-							// Déterminer l'ajustement à appliquer (par pas de 0.01€ TTC)
-							$adjustment			= ($remainingDifference > 0) ? 0.01 : -0.01;
-							// Nombre d'ajustements à appliquer sur cette ligne
-							$nbAdjustments		= min(abs(round($remainingDifference / 0.01)), 10); // Max 10 ajustements par ligne
-							$totalAdjustment	= $adjustment * $nbAdjustments;
-							// Appliquer l'ajustement en TTC
-							$line['ttc']		= round($line['ttc'] + $totalAdjustment, 2, PHP_ROUND_HALF_UP);
-							// Recalculer le HT correspondant
-							$line['ht']			= round($line['ttc'] / $line['vat_multiplier'], 2, PHP_ROUND_HALF_UP);
-							// Mettre à jour le reste à ajuster
-							$remainingDifference	= round($remainingDifference - $totalAdjustment, 2, PHP_ROUND_HALF_UP);
-
-							// Marquer cette ligne comme ajustée
-							$line['adjusted']		= true;
-							$line['adjustment']		= $totalAdjustment;
-						}
-						unset($line); // Libérer la référence
-
-						dol_syslog('InfraDiscount total_ttc: Adjusted '.count(array_filter($discountLines, fn($l) => isset($l['adjusted']))).' lines to reach exact TTC target. Initial difference: '.price($ttcDifference), LOG_DEBUG);
-					}
-
-					// ÉTAPE 3 : Créer les lignes de remise
-					foreach ($discountLines as $discountLine) {
-						$remise			= $discountLine['ht'];
-						$vatindex		= $discountLine['vat'];
-						$product_type	= $discountLine['product_type'];
-						$type			= $discountLine['type'];
-
-						// Construire la description
-						if (empty($libelle)) {
-							$descRemise	= $langs->trans($labelRemise).' '.$langs->trans($type == 'products' ? 'InfraSDiscountProductLabel' : 'InfraSDiscountServiceLabel').'/'.$langs->trans('Arrondi').' '.price($myRemiseValue, 0, $langs, 1, -1, -1, 'auto').$langs->trans(' TTC');
-						} else {
-							$descRemise	= $langs->trans($libelle).' '.$langs->trans($type == 'products' ? 'InfraSDiscountProductLabel' : 'InfraSDiscountServiceLabel').'/'.$langs->trans('Arrondi').' '.price($myRemiseValue, 0, $langs, 1, -1, -1, 'auto').$langs->trans(' TTC');
-						}
-
-						// Ajouter une indication si la ligne a été ajustée pour correction d'arrondi
-						if (isset($discountLine['adjusted']) && $discountLine['adjusted']) {
-							//$descRemise .= ' [Δ:'.price($discountLine['adjustment'], 0, $langs, 1, 2, 2).'€]';
-						}
-
-						$array_options['options_specialtype']	= 4; // special type 4 == discount total ttc
-						$remiseLinkTo							= getDolGlobalInt($type == 'products' ? 'INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT' : 'INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 0);
-						// Calculer le montant en devise étrangère si nécessaire
-						$pu_ht_devise							= 0;
-						if (infrasdiscount_multicurrency_enabled($object)) {
-							$pu_ht_devise	= infrasdiscount_to_foreign($remise, $object);
-						}
-
-						$result				= infrasdiscount_addDiscountLine($object, $descRemise, $remise, $product_type, $vatindex, $localtax1_tx, $localtax2_tx, $remiseLinkTo, $array_options, $pu_ht_devise);
-
-						if ($result < 0) {
-							setEventMessages($object->error, $object->errors, 'errors');
-							return -1;
-						}
-					}
-				}
+				$result	= $this->handleCreateDiscount($object);
 			}
+
 			/*
-			*
-			* Modifications des Remises
-			*
-			*/
+			 * Modifications des Remises
+			 */
 			if (in_array($object->element, array('propal', 'commande', 'facture')) && $action == 'modify_remise' && GETPOST('confirm', 'alpha') == 'yes') {
-				$listLines		= explode(',',GETPOST('ListLines', 'alpha'));
-				// Ensure $remProductRef and $remServiceRef are defined in this scope
-				$refs			= infrasdiscount_getDiscountProductRefs();
-				$remProductRef	= $refs['product'];
-				$remServiceRef	= $refs['service'];
-				// Build mapping for virtual prorata lines to real line IDs
-				$prorataMap		= array();
-				foreach ($listLines as $lineid) {
-					$prorataIds	= GETPOST("prorata_ids_{$lineid}", 'alpha');
-					if (!empty($prorataIds)) {
-						$prorataMap[$lineid]	= explode(',', $prorataIds);
-					}
-				}
-				// Collect user input for each line
-				foreach ($listLines as $lineid) {
-					$remiseModValue						= array();
-					$remiseModValueCurrency				= array();
-					$remiseModValue[$lineid]			= GETPOST("remiseModValue_{$lineid}", 'alpha');
-					$remiseModValueCurrency[$lineid]	= GETPOST("remiseValueCurrency_{$lineid}", 'alpha');
-					// Handle combined prorata lines
-					if (isset($prorataMap[$lineid])) {
-						// On récupère la valeur de la remise
-						$newValueRaw		= (!empty($remiseModValue[$lineid]) ? $remiseModValue[$lineid] : '');
-						$newValueCurrency	= (!empty($remiseModValueCurrency[$lineid]) ? $remiseModValueCurrency[$lineid] : '');
-						// Si la valeur de la remise est vide, on passe à la ligne suivante
-						if (empty($newValueRaw) && empty($newValueCurrency)) {
-							continue;
-						}
-						// On convertit la valeur de la remise en nombre
-						$newValue			= price2num($newValueRaw, 'CU', 2);
-						$newValueCurrency	= price2num($newValueCurrency, 'CU', 2);
-						if (!is_numeric($newValue) && !is_numeric($newValueCurrency)){
-							continue;
-						}
-						// 1.Calculer la somme des anciennes remises prorata (produit et service)
-						$oldProrataProduct	= $oldProrataService	= 0;
-						$totalProductPrice	= $totalServicePrice	= 0;
-						foreach ($object->lines as $l) {
-							$isRemline	= in_array ($l->array_options['options_specialtype'], [1, 2, 3, 4]) && in_array($l->id, $prorataMap[$lineid]);
-							if ($l->fk_product_type == 0) {
-								$totalProductPrice += $l->total_ht;
-								if ($isRemline && $l->array_options['options_specialtype'] == 3) {
-									$oldProrataProduct += $l->total_ht;
-								}
-							} elseif ($l->fk_product_type == 1) {
-								$totalServicePrice += $l->total_ht;
-								if ($isRemline && $l->array_options['options_specialtype'] == 3) {
-									$oldProrataService += $l->total_ht;
-								}
-							}
-						}
-						// 2.Reconstituer la base HT AVANT remise prorata
-						$baseProduct		= $totalProductPrice + abs($oldProrataProduct);
-						$baseService		= $totalServicePrice + abs($oldProrataService);
-						$remiseProrataBase	= $baseProduct + $baseService;
-						if ($remiseProrataBase == 0) {
-							continue;
-						}
-						$preparedPrices		= infrasdiscount_prepare_prices($newValue, $newValueCurrency, $object);
-						$newValues			= $preparedPrices['pu_ht'];
-						$newValues			= round($newValues, 2, PHP_ROUND_HALF_UP);
-						// 3.Calculer le nouveau taux de remise
-						$remiseRate			= $newValues / $remiseProrataBase;
-						// 4.Répartir le nouveau montant
-						$remiseProduct		= round($baseProduct * $remiseRate, 2, PHP_ROUND_HALF_UP);
-						$remiseService		= round($baseService * $remiseRate, 2, PHP_ROUND_HALF_UP);
-						// 5.Mettre à jour chaque ligne réelle
-						foreach ($object->lines as $l) {
-							$isRemProrata	= in_array($l->id, $prorataMap[$lineid]) && in_array($l->array_options['options_specialtype'], [1, 2, 3, 4]) && $l->array_options['options_specialtype'] == 3;
-							if (!$isRemProrata) {
-								continue;
-							}
-							dol_syslog('Updating prorata line '.$l->id.' with new values: product='.$remiseProduct.' service='.$remiseService, LOG_DEBUG);
-							$is_Product		= $l->product_type == 0;
-							$remise			= $is_Product ? $remiseProduct : $remiseService;
-							// Calculer pu_ht_devise si multidevise
-							$pu_ht_devise_calc	= 0;
-							if (infrasdiscount_multicurrency_enabled($object)) {
-								 if (!empty($newValueCurrency)) {
-									// Si devise étrangère saisie, calculer prorata en devise étrangère
-									$remiseProductCurrency	= round($baseProduct * $remiseRate * $object->multicurrency_tx, 2, PHP_ROUND_HALF_UP);
-									$remiseServiceCurrency	= round($baseService * $remiseRate * $object->multicurrency_tx, 2, PHP_ROUND_HALF_UP);
-									$pu_ht_devise_calc		= $is_Product ? $remiseProductCurrency : $remiseServiceCurrency;
-								} else {
-									// Sinon convertir depuis base
-									$pu_ht_devise_calc		= infrasdiscount_to_foreign($remise, $object);
-								}
-							}
-							// Mettre à jour la description
-							if (infrasdiscount_multicurrency_enabled($object)) {
-								// Format: "montant_devise / montant_base symbole - reste"
-								$desc = preg_replace_callback(
-									'/([\d\s.,]+)\s*\/\s*([\d\s.,]+)\s*([^\d\s]+)(.*)$/u',
-									function ($matches) use ($pu_ht_devise_calc, $remise, $object) {
-										$newValueCurrency = price(abs($pu_ht_devise_calc), 0, '', 1, -1, -1, ' ');
-										$newValueBase = price(abs($remise), 0, '', 1, -1, -1, ' ');
-										return $newValueCurrency.' / '.$newValueBase.$matches[3].$matches[4];
-									},
-									$l->desc
-								);
-							} else {
-								// Pas de multidevise : remplacer uniquement le montant au début
-								$desc = preg_replace_callback(
-									'/^([^\d\s-]*)([\d\s.,]+)(.*)$/u',
-									function ($matches) use ($remise) {
-										$newValue = price(abs($remise), 0, '', 1, -1, -1, ' ');
-										return $matches[1].$newValue.$matches[3];
-									},
-									$l->desc
-								);
-							}
-							// Update the line with the new values
-							infrasdiscount_updateRemLine($object, $l, $remise, $pu_ht_devise_calc, $desc);
-						}
-						continue;
-					} else {
-						// Otherwise, update normal lines
-						foreach ($object->lines as $line) {
-							if ($line->id != $lineid || !in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
-								continue;
-							}
-
-							// Récupérer la valeur saisie dans les inputs
-							$value		= '';
-							if (!empty($remiseModValueCurrency[$lineid])) {
-								$value	= $remiseModValueCurrency[$lineid];
-							} elseif (!empty($remiseModValue[$lineid])) {
-								$value	= $remiseModValue[$lineid];
-							}
-
-							if ($value === '') {
-								continue; // Skip if no value provided
-							}
-
-							// Utiliser le helper pour préparer les montants
-							$valueBase			= !empty($remiseModValue[$lineid]) ? price2num($remiseModValue[$lineid], 'CU', 2) : 0;
-							$valueCurrency		= !empty($remiseModValueCurrency[$lineid]) ? price2num($remiseModValueCurrency[$lineid], 'CU', 2) : 0;
-
-							$preparedPrices		= infrasdiscount_prepare_prices($valueBase, $valueCurrency, $object);
-							$newValue			= $preparedPrices['pu_ht'];
-							$newValueCurrency	= $preparedPrices['pu_ht_devise'];
-
-							if (!is_numeric($newValue)) {
-								continue;
-							}
-
-							$desc				= $line->desc;
-							$specialtype		= isset($line->array_options['options_specialtype']) ? $line->array_options['options_specialtype'] : 1;
-
-							if ($specialtype == 1) {
-								// Pourcentage - recalculer la base en mode "cascade"
-								$base				= 0;
-								$isProductDiscount	= (strpos($desc, $langs->trans('InfraSDiscountProductLabel')) !== false);
-								$isServiceDiscount	= (strpos($desc, $langs->trans('InfraSDiscountServiceLabel')) !== false);
-
-								// Trouver la position de la ligne dans $object->lines
-								$lineIds			= array_column($object->lines, 'id');
-								$currentPos			= array_search($line->id, $lineIds, true);
-								if ($currentPos === false) {
-									$currentPos		= count($object->lines);
-								}
-
-								// Utiliser la fonction cascade pour calculer la base
-								$base				= infrasdiscount_calculateCascadeBase($object, $currentPos, $isProductDiscount, $remProductRef, $remServiceRef);
-
-								// Si base = 0, on laisse la remise à 0
-								if ($base == 0) {
-									$remise			= 0;
-								} else {
-									$remise			= $base * $newValue / 100;
-								}
-
-								// Calculer pu_ht_devise
-								$pu_ht_devise_upd	= 0;
-								if (infrasdiscount_multicurrency_enabled($object)) {
-									$pu_ht_devise_upd	= infrasdiscount_to_foreign($remise, $object);
-								}
-
-								// Mettre à jour la description (conserver comportement actuel)
-								$desc = preg_replace('/([\d\.,]+)\s*%/', $newValue.' %', $desc);
-
-							} elseif ($specialtype == 2) {
-								// Montant fixe
-								$isProduct = ($line->fk_product_type == 0);
-								$isService = ($line->fk_product_type == 1);
-								$labelRemise	= ($isProduct && strpos($desc, $langs->trans('InfraSDiscountProductLabel')) !== false) || ($isService && strpos($desc, $langs->trans('InfraSDiscountServiceLabel')) !== false);
-
-								if (!$labelRemise) {
-									continue; // Skip if not a valid discount line
-								}
-								$remise				= $newValue;
-								$pu_ht_devise_upd	= $newValueCurrency;
-								if (infrasdiscount_multicurrency_enabled($object)) {
-									// Format: "montant_devise / montant_base symbole - reste"
-									$desc	= preg_replace_callback(
-										'/([\d\s.,]+)\s*\/\s*([\d\s.,]+)\s*([^\d\s]+)(.*)$/u',
-										function ($matches) use ($newValueCurrency, $newValue) {
-											$dispCurrency = price(abs($newValueCurrency), 0, '', 1, -1, -1, ' ');
-											$dispBase = price(abs($newValue), 0, '', 1, -1, -1, ' ');
-											return $dispCurrency.' / '.$dispBase.$matches[3].$matches[4];
-										},
-										$desc
-									);
-								} else {
-									// Pas de multidevise : remplacer uniquement le montant
-									$desc	= preg_replace('/^-?\s*[\d\.,\s]+€/', price($newValue, 0, $langs, 1, -1, -1, 'auto'), $desc);
-								}
-
-							} else {
-								continue;
-							}
-
-							infrasdiscount_updateRemLine($object, $line, $remise, $pu_ht_devise_upd, $desc);
-						}
-					}
-				}
-				// Recalculer automatiquement toutes les remises en pourcentage si activé
-				infrasdiscount_recalculatePercentDiscounts($object);
+				$result	= $this->handleModifyDiscount($object);
 
 				// Redirection pour éviter la réouverture du popup
-				header("Location: ".$_SERVER['PHP_SELF']."?id=".$object->id);
-				exit;
+				if ($result >= 0) {
+					header("Location: ".$_SERVER['PHP_SELF']."?id=".$object->id);
+					exit;
+				}
 			}
+
 			return $result;
+		}
+
+		/**
+		 * Gère la création des remises
+		 *
+		 * @param	CommonObject	$object		L'objet
+		 * @return	int							< 0 on error, >= 0 on success
+		 */
+		private function handleCreateDiscount(&$object)
+		{
+			global $langs;
+
+			// Récupérer les paramètres du formulaire
+			$myRemiseValue			= !empty(GETPOST('myRemiseValue', 'alpha'))
+									? price2num(GETPOST('myRemiseValue', 'alpha'), 'CU', 2)
+									: getDolGlobalfloat('INFRASDISCOUNT_DEFAULT_REM_VALUE', 10.00);
+			$myRemiseValueCurrency	= price2num(GETPOST('myRemiseValuecurrency', 'alpha'), 'CU', 2);
+			$myRemise_is			= GETPOST('myRemise_is', 'alpha');
+			$myRemise_type			= GETPOST('myRemise_type', 'int');
+			$libelle				= GETPOST('libelle', 'alpha');
+			$tva_tx					= GETPOST('remise_tva_tx') ? GETPOST('remise_tva_tx') : 0;
+			$tva_npr				= (preg_match('/\*/', $tva_tx) ? 1 : 0);
+			$tva_tx					= str_replace('*', '', $tva_tx);
+
+			// Calculer les taxes locales
+			$localtax1_tx			= get_localtax($tva_tx, 1, $object->thirdparty);
+			$localtax2_tx			= get_localtax($tva_tx, 2, $object->thirdparty);
+
+			// Récupérer le libellé par défaut selon le type d'objet
+			$labelRemise			= $this->getDefaultLabel($object->element);
+
+			// Préparer les extrafields
+			$extrafieldsline		= new ExtraFields($this->db);
+			$extralabelsline		= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
+			$array_options			= $extrafieldsline->getOptionalsFromPost($extralabelsline);
+
+			// Si myRemiseValueCurrency est renseigné, on l'utilise comme base
+			if (!empty($myRemiseValueCurrency)) {
+				$myRemiseValue	= 0;
+			}
+
+			// Construire les paramètres pour la fonction helper
+			$params	= array(
+				'libelle'		=> $libelle,
+				'labelRemise'	=> $labelRemise,
+				'tva_tx'		=> $tva_tx,
+				'localtax1_tx'	=> $localtax1_tx,
+				'localtax2_tx'	=> $localtax2_tx,
+				'array_options'	=> $array_options
+			);
+
+			// Appeler la fonction helper centralisée
+			return infrasdiscount_createDiscountLines(
+				$object,
+				$myRemise_is,
+				$myRemise_type,
+				$myRemiseValue,
+				$myRemiseValueCurrency,
+				$params
+			);
+		}
+
+		/**
+		 * Gère la modification des remises
+		 *
+		 * @param	CommonObject	$object		L'objet
+		 * @return	int							< 0 on error, >= 0 on success
+		 */
+		private function handleModifyDiscount(&$object)
+		{
+			global $langs;
+
+			$listLines		= explode(',', GETPOST('ListLines', 'alpha'));
+			$refs			= infrasdiscount_getDiscountProductRefs();
+			$remProductRef	= $refs['product'];
+			$remServiceRef	= $refs['service'];
+
+			// Construire le mapping des lignes prorata virtuelles
+			$prorataMap		= $this->buildProrataMap($listLines);
+
+			// Traiter chaque ligne
+			foreach ($listLines as $lineid) {
+				$remiseModValue			= GETPOST("remiseModValue_{$lineid}", 'alpha');
+				$remiseModValueCurrency	= GETPOST("remiseValueCurrency_{$lineid}", 'alpha');
+
+				// Gérer les lignes prorata combinées
+				if (isset($prorataMap[$lineid])) {
+					$this->updateProrataLines($object, $lineid, $prorataMap, $remiseModValue, $remiseModValueCurrency);
+					continue;
+				}
+
+				// Gérer les lignes normales
+				$this->updateNormalLine($object, $lineid, $remiseModValue, $remiseModValueCurrency, $remProductRef, $remServiceRef);
+			}
+
+			// Recalculer les remises
+			infrasdiscount_recalculatePercentDiscounts($object);
+			infrasdiscount_recalculateProrataDiscounts($object);
+
+			return 0;
+		}
+
+		/**
+		 * Retourne le libellé par défaut selon le type d'objet
+		 *
+		 * @param	string	$element	Type d'objet
+		 * @return	string				Libellé par défaut
+		 */
+		private function getDefaultLabel($element)
+		{
+			$configKey	= 'INFRASDISCOUNT_LABEL_';
+
+			switch ($element) {
+				case 'propal':
+					$configKey	.= 'PROPAL';
+					break;
+				case 'commande':
+					$configKey	.= 'ORDER';
+					break;
+				case 'facture':
+					$configKey	.= 'INVOICE';
+					break;
+				default:
+					$configKey	.= 'DEFAULT';
+			}
+
+			return getDolGlobalString($configKey, '');
+		}
+
+		/**
+		 * Construit le mapping des lignes prorata
+		 *
+		 * @param	array	$listLines	Liste des IDs de lignes
+		 * @return	array				Mapping prorata
+		 */
+		private function buildProrataMap($listLines)
+		{
+			$prorataMap	= array();
+
+			foreach ($listLines as $lineid) {
+				$prorataIds	= GETPOST("prorata_ids_{$lineid}", 'alpha');
+				if (!empty($prorataIds)) {
+					$prorataMap[$lineid]	= explode(',', $prorataIds);
+				}
+			}
+
+			return $prorataMap;
+		}
+
+		/**
+		 * Met à jour les lignes prorata combinées
+		 *
+		 * @param	CommonObject	$object				L'objet
+		 * @param	int				$lineid				ID de la ligne virtuelle
+		 * @param	array			$prorataMap			Mapping prorata
+		 * @param	string			$newValueRaw		Nouvelle valeur
+		 * @param	string			$newValueCurrency	Nouvelle valeur en devise
+		 * @return	void
+		 */
+		private function updateProrataLines(&$object, $lineid, $prorataMap, $newValueRaw, $newValueCurrency)
+		{
+			if (empty($newValueRaw) && empty($newValueCurrency)) {
+				return;
+			}
+
+			$newValue			= price2num($newValueRaw, 'CU', 2);
+			$newValueCurrency	= price2num($newValueCurrency, 'CU', 2);
+
+			if (!is_numeric($newValue) && !is_numeric($newValueCurrency)) {
+				return;
+			}
+
+			// Calculer les totaux et anciennes remises
+			$totals	= $this->calculateProrataBase($object, $prorataMap[$lineid]);
+
+			$baseProduct		= $totals['baseProduct'];
+			$baseService		= $totals['baseService'];
+			$remiseProrataBase	= $baseProduct + $baseService;
+
+			if ($remiseProrataBase == 0) {
+				return;
+			}
+
+			// Préparer les prix
+			$preparedPrices	= infrasdiscount_prepare_prices($newValue, $newValueCurrency, $object);
+			$newValues		= round($preparedPrices['pu_ht'], 2, PHP_ROUND_HALF_UP);
+
+			// Calculer le nouveau taux de remise
+			$remiseRate		= $newValues / $remiseProrataBase;
+			$remiseProduct	= round($baseProduct * $remiseRate, 2, PHP_ROUND_HALF_UP);
+			$remiseService	= round($baseService * $remiseRate, 2, PHP_ROUND_HALF_UP);
+
+			// Mettre à jour chaque ligne réelle
+			foreach ($object->lines as $l) {
+				if (!in_array($l->id, $prorataMap[$lineid]) ||
+					!isset($l->array_options['options_specialtype']) ||
+					$l->array_options['options_specialtype'] != 3) {
+					continue;
+				}
+
+				$isProduct			= ($l->product_type == 0);
+				$remise				= $isProduct ? $remiseProduct : $remiseService;
+				$pu_ht_devise_calc	= 0;
+
+				if (infrasdiscount_multicurrency_enabled($object)) {
+					if (!empty($newValueCurrency)) {
+						$remiseCurrency		= $isProduct
+							? round($baseProduct * $remiseRate * $object->multicurrency_tx, 2, PHP_ROUND_HALF_UP)
+							: round($baseService * $remiseRate * $object->multicurrency_tx, 2, PHP_ROUND_HALF_UP);
+						$pu_ht_devise_calc	= $remiseCurrency;
+					} else {
+						$pu_ht_devise_calc	= infrasdiscount_to_foreign($remise, $object);
+					}
+				}
+
+				// Mettre à jour la description
+				$desc	= $this->updateProrataDescription($l->desc, $remise, $pu_ht_devise_calc, $object);
+
+				infrasdiscount_updateRemLine($object, $l, $remise, $pu_ht_devise_calc, $desc);
+			}
+		}
+
+		/**
+		 * Calcule la base pour les lignes prorata
+		 *
+		 * @param	CommonObject	$object			L'objet
+		 * @param	array			$prorataIds		IDs des lignes prorata
+		 * @return	array							Totaux calculés
+		 */
+		private function calculateProrataBase(&$object, $prorataIds)
+		{
+			$oldProrataProduct	= $oldProrataService	= 0;
+			$totalProductPrice	= $totalServicePrice	= 0;
+
+			foreach ($object->lines as $l) {
+				if (infrasdiscount_isSubtotalLine($l)) {
+					continue;
+				}
+
+				$isRemline	= isset($l->array_options['options_specialtype']) &&
+							  in_array($l->array_options['options_specialtype'], [1, 2, 3, 4]) &&
+							  in_array($l->id, $prorataIds);
+
+				if ($l->product_type == 0) {
+					$totalProductPrice	+= $l->total_ht;
+					if ($isRemline && $l->array_options['options_specialtype'] == 3) {
+						$oldProrataProduct	+= $l->total_ht;
+					}
+				} elseif ($l->product_type == 1) {
+					$totalServicePrice	+= $l->total_ht;
+					if ($isRemline && $l->array_options['options_specialtype'] == 3) {
+						$oldProrataService	+= $l->total_ht;
+					}
+				}
+			}
+
+			return array(
+				'baseProduct'	=> $totalProductPrice + abs($oldProrataProduct),
+				'baseService'	=> $totalServicePrice + abs($oldProrataService)
+			);
+		}
+
+		/**
+		 * Met à jour la description d'une ligne prorata
+		 *
+		 * @param	string			$desc				Description actuelle
+		 * @param	float			$remise				Nouveau montant
+		 * @param	float			$pu_ht_devise_calc	Montant en devise
+		 * @param	CommonObject	$object				L'objet
+		 * @return	string								Nouvelle description
+		 */
+		private function updateProrataDescription($desc, $remise, $pu_ht_devise_calc, $object)
+		{
+			if (infrasdiscount_multicurrency_enabled($object)) {
+				return preg_replace_callback(
+					'/([\d\s.,]+)\s*\/\s*([\d\s.,]+)\s*([^\d\s]+)(.*)$/u',
+					function ($matches) use ($pu_ht_devise_calc, $remise) {
+						$newValueCurrency	= price(abs($pu_ht_devise_calc), 0, '', 1, -1, -1, ' ');
+						$newValueBase		= price(abs($remise), 0, '', 1, -1, -1, ' ');
+						return $newValueCurrency.' / '.$newValueBase.$matches[3].$matches[4];
+					},
+					$desc
+				);
+			}
+
+			return preg_replace_callback(
+				'/^([^\d\s-]*)([\d\s.,]+)(.*)$/u',
+				function ($matches) use ($remise) {
+					$newValue	= price(abs($remise), 0, '', 1, -1, -1, ' ');
+					return $matches[1].$newValue.$matches[3];
+				},
+				$desc
+			);
+		}
+
+		/**
+		 * Met à jour une ligne de remise normale
+		 *
+		 * @param	CommonObject	$object					L'objet
+		 * @param	int				$lineid					ID de la ligne
+		 * @param	string			$remiseModValue			Nouvelle valeur
+		 * @param	string			$remiseModValueCurrency	Nouvelle valeur en devise
+		 * @param	string			$remProductRef			Référence produit remise
+		 * @param	string			$remServiceRef			Référence service remise
+		 * @return	void
+		 */
+		private function updateNormalLine(&$object, $lineid, $remiseModValue, $remiseModValueCurrency, $remProductRef, $remServiceRef)
+		{
+			global $langs;
+
+			foreach ($object->lines as $line) {
+				if ($line->id != $lineid ||
+					!isset($line->array_options['options_specialtype']) ||
+					!in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
+					continue;
+				}
+
+				// Récupérer la valeur saisie
+				$value	= !empty($remiseModValueCurrency) ? $remiseModValueCurrency : $remiseModValue;
+
+				if ($value === '' || $value === null) {
+					continue;
+				}
+
+				$valueBase		= !empty($remiseModValue) ? price2num($remiseModValue, 'CU', 2) : 0;
+				$valueCurrency	= !empty($remiseModValueCurrency) ? price2num($remiseModValueCurrency, 'CU', 2) : 0;
+
+				$preparedPrices		= infrasdiscount_prepare_prices($valueBase, $valueCurrency, $object);
+				$newValue			= $preparedPrices['pu_ht'];
+				$newValueCurrency	= $preparedPrices['pu_ht_devise'];
+
+				if (!is_numeric($newValue)) {
+					continue;
+				}
+
+				$specialtype	= $line->array_options['options_specialtype'];
+				$desc			= $line->desc;
+				$remise			= 0;
+				$pu_ht_devise_upd	= 0;
+
+				switch ($specialtype) {
+					case 1: // Pourcentage
+						$updateData	= $this->calculatePercentUpdate($object, $line, $newValue, $remProductRef, $remServiceRef);
+						if ($updateData === null) {
+							continue 2;
+						}
+						$remise				= $updateData['remise'];
+						$pu_ht_devise_upd	= $updateData['pu_ht_devise'];
+						$desc				= preg_replace('/([\d\.,]+)\s*%/', $newValue.' %', $desc);
+						break;
+
+					case 2: // Montant fixe
+						if (!$this->isValidAmountLine($line, $langs)) {
+							continue 2;
+						}
+						$remise				= $newValue;
+						$pu_ht_devise_upd	= $newValueCurrency;
+						$desc				= $this->updateAmountDescription($desc, $newValue, $newValueCurrency, $object);
+						break;
+
+					default:
+						continue 2;
+				}
+
+				infrasdiscount_updateRemLine($object, $line, $remise, $pu_ht_devise_upd, $desc);
+			}
+		}
+
+		/**
+		 * Calcule la mise à jour pour une remise en pourcentage
+		 *
+		 * @param	CommonObject	$object			L'objet
+		 * @param	object			$line			La ligne
+		 * @param	float			$newPercent		Nouveau pourcentage
+		 * @param	string			$remProductRef	Référence produit remise
+		 * @param	string			$remServiceRef	Référence service remise
+		 * @return	array|null						Données de mise à jour ou null
+		 */
+		private function calculatePercentUpdate(&$object, $line, $newPercent, $remProductRef, $remServiceRef)
+		{
+			global $langs;
+
+			$isProductDiscount	= (strpos($line->desc, $langs->trans('InfraSDiscountProductLabel')) !== false);
+
+			// Trouver la position de la ligne
+			$lineIds	= array_column($object->lines, 'id');
+			$currentPos	= array_search($line->id, $lineIds, true);
+			if ($currentPos === false) {
+				$currentPos	= count($object->lines);
+			}
+
+			// Calculer la base en mode cascade
+			$base	= infrasdiscount_calculateCascadeBase($object, $currentPos, $isProductDiscount, $remProductRef, $remServiceRef);
+
+			$remise	= ($base == 0) ? 0 : $base * $newPercent / 100;
+
+			$pu_ht_devise	= 0;
+			if (infrasdiscount_multicurrency_enabled($object)) {
+				$pu_ht_devise	= infrasdiscount_to_foreign($remise, $object);
+			}
+
+			return array(
+				'remise'		=> $remise,
+				'pu_ht_devise'	=> $pu_ht_devise
+			);
+		}
+
+		/**
+		 * Vérifie si une ligne de montant est valide
+		 *
+		 * @param	object	$line	La ligne
+		 * @param	object	$langs	Objet langs
+		 * @return	bool			True si valide
+		 */
+		private function isValidAmountLine($line, $langs)
+		{
+			$isProduct	= ($line->product_type == 0);
+			$isService	= ($line->product_type == 1);
+
+			$hasProductLabel	= (strpos($line->desc, $langs->trans('InfraSDiscountProductLabel')) !== false);
+			$hasServiceLabel	= (strpos($line->desc, $langs->trans('InfraSDiscountServiceLabel')) !== false);
+
+			return ($isProduct && $hasProductLabel) || ($isService && $hasServiceLabel);
+		}
+
+		/**
+		 * Met à jour la description d'une ligne montant
+		 *
+		 * @param	string			$desc				Description actuelle
+		 * @param	float			$newValue			Nouveau montant
+		 * @param	float			$newValueCurrency	Nouveau montant en devise
+		 * @param	CommonObject	$object				L'objet
+		 * @return	string								Nouvelle description
+		 */
+		private function updateAmountDescription($desc, $newValue, $newValueCurrency, $object)
+		{
+			global $langs;
+
+			if (infrasdiscount_multicurrency_enabled($object)) {
+				return preg_replace_callback(
+					'/([\d\s.,]+)\s*\/\s*([\d\s.,]+)\s*([^\d\s]+)(.*)$/u',
+					function ($matches) use ($newValueCurrency, $newValue) {
+						$dispCurrency	= price(abs($newValueCurrency), 0, '', 1, -1, -1, ' ');
+						$dispBase		= price(abs($newValue), 0, '', 1, -1, -1, ' ');
+						return $dispCurrency.' / '.$dispBase.$matches[3].$matches[4];
+					},
+					$desc
+				);
+			}
+
+			return preg_replace('/^-?\s*[\d\.,\s]+€/', price($newValue, 0, $langs, 1, -1, -1, 'auto'), $desc);
 		}
 
 		/**

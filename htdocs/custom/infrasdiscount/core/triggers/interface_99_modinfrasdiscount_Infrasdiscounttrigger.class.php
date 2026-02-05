@@ -1,6 +1,7 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Lucky Ranasolonirina - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -229,6 +230,10 @@
 				// Identifier et supprimer les lignes de remise à 0
 				$linesToDelete	= array();
 				foreach ($element->lines as $line) {
+					// Ignorer les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
+					if (infrasdiscount_isSubtotalLine($line)) {
+						continue;
+					}
 					if (isset($line->array_options['options_specialtype']) && in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
 						if (round(abs($line->total_ht), 2) == 0) { // Proche de 0
 							$linesToDelete[]	= $line->id;
