@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.0.18] - -30-01-2026
+- Compatibilité v22
+
 ## [14.0.17] - 19-01-2026
 - Corrige la mise a jour de la version de la constante 'ADVANCEDICTIONARIES_VERSION'
 - Correction selection de la valeur actuelle d'un sellist cas ou un tableau est passé comme valeur du champ
@@ -298,67 +301,68 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/compare/14.0.17...HEAD
-[14.0.17]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.17
-[14.0.16]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.16
-[14.0.15]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.15
-[14.0.14]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.14
-[14.0.12]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.12
-[14.0.11]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.11
-[14.0.10]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.10
-[14.0.9]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.9
-[14.0.8]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.8
-[14.0.7]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.7
-[14.0.6]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.6
-[14.0.5]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.5
-[14.0.4]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.4
-[14.0.3]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.3
-[14.0.2]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.2
-[14.0.1]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/14.0.1
-[4.0.59]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.59
-[4.0.58]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.58
-[4.0.57]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.57
-[4.0.56]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.56
-[4.0.54]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.54
-[4.0.53]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.53
-[4.0.52]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.52
-[4.0.51]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.51
-[4.0.50]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.50
-[4.0.49]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.49
-[4.0.48]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.48
-[4.0.47]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.47
-[4.0.46]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.46
-[4.0.45]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.45
-[4.0.44]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.44
-[4.0.43]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.43
-[4.0.42]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.42
-[4.0.41]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.41
-[4.0.40]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.40
-[4.0.39]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.39
-[4.0.38]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.38
-[4.0.37]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.37
-[4.0.36]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.36
-[4.0.35]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.35
-[4.0.34]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.34
-[4.0.33]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.33
-[4.0.32]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.32
-[4.0.31]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.31
-[4.0.29]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.29
-[4.0.28]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.28
-[4.0.27]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.27
-[4.0.26]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.26
-[4.0.25]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.25
-[4.0.24]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.24
-[4.0.23]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.23
-[4.0.22]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.22
-[4.0.21]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.21
-[4.0.20]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.20
-[4.0.19]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.19
-[4.0.18]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.18
-[4.0.17]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.17
-[4.0.16]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.16
-[4.0.14]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.14
-[4.0.13]: https://github.com/OPEN-DSI/dolibarr_module_advancedictionaries/commits/v4.0.13
+[Non Distribué]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/14.0.18...HEAD
+[14.0.18]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.18
+[14.0.17]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.17
+[14.0.16]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.16
+[14.0.15]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.15
+[14.0.14]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.14
+[14.0.12]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.12
+[14.0.11]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.11
+[14.0.10]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.10
+[14.0.9]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.9
+[14.0.8]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.8
+[14.0.7]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.7
+[14.0.6]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.6
+[14.0.5]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.5
+[14.0.4]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.4
+[14.0.3]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.3
+[14.0.2]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.2
+[14.0.1]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.1
+[4.0.59]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.59
+[4.0.58]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.58
+[4.0.57]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.57
+[4.0.56]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.56
+[4.0.54]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.54
+[4.0.53]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.53
+[4.0.52]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.52
+[4.0.51]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.51
+[4.0.50]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.50
+[4.0.49]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.49
+[4.0.48]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.48
+[4.0.47]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.47
+[4.0.46]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.46
+[4.0.45]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.45
+[4.0.44]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.44
+[4.0.43]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.43
+[4.0.42]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.42
+[4.0.41]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.41
+[4.0.40]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.40
+[4.0.39]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.39
+[4.0.38]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.38
+[4.0.37]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.37
+[4.0.36]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.36
+[4.0.35]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.35
+[4.0.34]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.34
+[4.0.33]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.33
+[4.0.32]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.32
+[4.0.31]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.31
+[4.0.29]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.29
+[4.0.28]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.28
+[4.0.27]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.27
+[4.0.26]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.26
+[4.0.25]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.25
+[4.0.24]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.24
+[4.0.23]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.23
+[4.0.22]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.22
+[4.0.21]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.21
+[4.0.20]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.20
+[4.0.19]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.19
+[4.0.18]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.18
+[4.0.17]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.17
+[4.0.16]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.16
+[4.0.14]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.14
+[4.0.13]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.13
 [4.0.12]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.12
 [4.0.11]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.11
 [4.0.10]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.10
