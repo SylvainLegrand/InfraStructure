@@ -1,4 +1,4 @@
-# Finance Module
+# htdocs/compta - Finance Module
 
 Bank accounts, payments, VAT, and customer invoices.
 

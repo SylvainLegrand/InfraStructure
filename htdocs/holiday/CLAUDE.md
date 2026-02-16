@@ -1,4 +1,4 @@
-# Holiday Module
+# htdocs/holiday - Holiday Module
 
 Leave/absence management.
 

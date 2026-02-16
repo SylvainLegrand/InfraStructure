@@ -1,10 +1,10 @@
-# CLI Scripts
+# scripts - CLI Scripts
 
 Command-line scripts for automation, cron jobs, and system tasks.
 
 ## Usage
 
-Scripts should be run from command line:
+Run scripts from command line:
 
 ```bash
 php scripts/scriptname.php [options]

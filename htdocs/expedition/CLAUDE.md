@@ -1,4 +1,4 @@
-# Shipments Module
+# htdocs/expedition - Shipments Module
 
 Customer shipment management.
 

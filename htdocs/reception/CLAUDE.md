@@ -1,4 +1,4 @@
-# Reception Module
+# htdocs/reception - Reception Module
 
 Goods reception from suppliers.
 

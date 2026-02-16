@@ -1,4 +1,4 @@
-# Cron Module
+# htdocs/cron - Cron Module
 
 Scheduled job management for background tasks.
 

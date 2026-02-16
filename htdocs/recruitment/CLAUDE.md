@@ -1,4 +1,4 @@
-# Recruitment Module
+# htdocs/recruitment - Recruitment Module
 
 Job position and candidate management.
 

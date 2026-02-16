@@ -1,4 +1,4 @@
-# Suppliers Module
+# htdocs/fourn - Suppliers Module
 
 Supplier management: orders and invoices.
 

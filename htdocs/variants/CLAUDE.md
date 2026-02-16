@@ -1,4 +1,4 @@
-# Product Variants Module
+# htdocs/variants - Product Variants Module
 
 Product variations (size, color, etc.).
 

@@ -1,4 +1,4 @@
-# OpenSurvey Module
+# htdocs/opensurvey - OpenSurvey Module
 
 Poll and survey management (meeting scheduling).
 

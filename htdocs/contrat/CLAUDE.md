@@ -1,4 +1,4 @@
-# Contracts Module
+# htdocs/contrat - Contracts Module
 
 Service contracts and subscriptions management.
 

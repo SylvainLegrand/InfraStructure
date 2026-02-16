@@ -1,4 +1,4 @@
-# Customer Orders Module
+# htdocs/commande - Customer Orders Module
 
 Customer order management.
 

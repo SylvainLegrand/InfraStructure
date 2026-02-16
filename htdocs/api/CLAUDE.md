@@ -1,4 +1,4 @@
-# REST API
+# htdocs/api - REST API
 
 RESTful API using Restler framework. Authentication via DOLAPIKEY header.
 

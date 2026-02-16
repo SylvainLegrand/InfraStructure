@@ -1,4 +1,4 @@
-# Partnership Module
+# htdocs/partnership - Partnership Module
 
 Partner/affiliate relationship management.
 

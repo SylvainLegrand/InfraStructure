@@ -1,4 +1,4 @@
-# Projects Module
+# htdocs/projet - Projects Module
 
 Project and task management.
 

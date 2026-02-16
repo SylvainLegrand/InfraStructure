@@ -1,4 +1,4 @@
-# Website Module
+# htdocs/website - Website Module
 
 Website builder and CMS.
 

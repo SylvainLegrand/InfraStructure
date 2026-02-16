@@ -1,4 +1,4 @@
-# Salaries Module
+# htdocs/salaries - Salaries Module
 
 Employee salary payments management.
 

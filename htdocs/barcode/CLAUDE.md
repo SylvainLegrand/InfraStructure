@@ -1,4 +1,4 @@
-# Barcode Module
+# htdocs/barcode - Barcode Module
 
 Barcode generation and management for products and third parties.
 

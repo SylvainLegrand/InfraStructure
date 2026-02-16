@@ -1,4 +1,4 @@
-# Bill of Materials Module
+# htdocs/bom - Bill of Materials Module
 
 Product composition and manufacturing recipes.
 

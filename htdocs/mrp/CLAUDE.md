@@ -1,4 +1,4 @@
-# Manufacturing Orders Module
+# htdocs/mrp - Manufacturing Orders Module
 
 Manufacturing/production order management (MRP).
 

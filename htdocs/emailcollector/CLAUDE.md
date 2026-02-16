@@ -1,4 +1,4 @@
-# Email Collector Module
+# htdocs/emailcollector - Email Collector Module
 
 Automatic email collection and processing.
 

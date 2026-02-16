@@ -1,4 +1,4 @@
-# PayPal Module
+# htdocs/paypal - PayPal Module
 
 PayPal payment gateway integration.
 

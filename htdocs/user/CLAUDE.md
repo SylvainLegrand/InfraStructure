@@ -1,4 +1,4 @@
-# Users Module
+# htdocs/user - Users Module
 
 User and group management.
 

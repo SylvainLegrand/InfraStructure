@@ -1,4 +1,4 @@
-# Supplier Proposals Module
+# htdocs/supplier_proposal - Supplier Proposals Module
 
 Supplier RFQ (Request for Quotation) management.
 

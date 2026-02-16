@@ -1,4 +1,4 @@
-# Installation & SQL Schemas
+# htdocs/install - Installation & SQL Schemas
 
 Installation wizard and database schema files.
 

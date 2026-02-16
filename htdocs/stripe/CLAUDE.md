@@ -1,4 +1,4 @@
-# Stripe Module
+# htdocs/stripe - Stripe Module
 
 Stripe payment gateway integration.
 

@@ -1,4 +1,4 @@
-# System Administration
+# htdocs/admin - System Administration
 
 Administration pages for system configuration, modules, and settings.
 

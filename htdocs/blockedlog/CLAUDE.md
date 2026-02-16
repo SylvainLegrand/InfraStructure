@@ -1,4 +1,4 @@
-# Blocked Log Module
+# htdocs/blockedlog - Blocked Log Module
 
 Unalterable audit logs (French NF525 compliance).
 

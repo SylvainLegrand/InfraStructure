@@ -1,4 +1,4 @@
-# Members Module
+# htdocs/adherents - Members Module
 
 Association/club membership management.
 

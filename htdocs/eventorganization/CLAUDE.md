@@ -1,4 +1,4 @@
-# Event Organization Module
+# htdocs/eventorganization - Event Organization Module
 
 Event and conference management.
 

@@ -1,4 +1,4 @@
-# Resources Module
+# htdocs/resource - Resources Module
 
 Resource (equipment, rooms, vehicles) management.
 

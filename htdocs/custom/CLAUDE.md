@@ -1,8 +1,8 @@
-# Custom Modules Directory
+# htdocs/custom - External Modules
 
-External/custom modules are installed in `htdocs/custom/`. This directory is preserved during Dolibarr upgrades.
+External modules are installed in `htdocs/custom/`. This directory is preserved during Dolibarr upgrades.
 
-## Module Builder (Recommended)
+## Module Builder
 
 Use `/dolibarr-new-module` to create a new module from scratch with all standard files and structure.
 
@@ -10,15 +10,15 @@ Dolibarr includes a built-in Module Builder (since v12.0) at **Home > Developer 
 
 ### When to Use Module Builder
 
-- Creating new modules with standard objects
-- Generating CRUD pages, list views, API endpoints
-- Setting up module descriptor, permissions, menus
-- Creating extrafields-compatible objects
+- Create new modules with standard objects
+- Generate CRUD pages, list views, API endpoints
+- Set up module descriptor, permissions, menus
+- Create extrafields-compatible objects
 
 ### Module Builder Workflow
 
-1. **Create module:** Enter module name, generates `modMyModule.class.php`
-2. **Add objects:** Define fields via UI, generates class + SQL + pages
+1. **Create module:** Enter module name to generate `modMyModule.class.php`
+2. **Add objects:** Define fields via UI to generate class + SQL + pages
 3. **Configure:** Set permissions, menus, tabs, hooks
 4. **Export:** Download as ZIP or develop directly in `htdocs/custom/`
 
@@ -45,7 +45,7 @@ custom/mymodule/
 ├── langs/en_US/mymodule.lang           # Translations (/dolibarr-translation)
 ├── sql/
 │   ├── llx_mymodule_myobject.sql       # Table creation (/dolibarr-sql-schema)
-│   └── llx_mymodule_myobject.key.sql   # Indexes (/dolibarr-sql-schema)
+│   ├── llx_mymodule_myobject.key.sql   # Indexes (/dolibarr-sql-schema)
 │   └── update...
 ├── ajax/                               # Ajax request handlers (/dolibarr-ajax)
 ├── css/                                # Stylesheets (/dolibarr-css)
@@ -55,7 +55,7 @@ custom/mymodule/
 ├── test/                               # Unit tests (/dolibarr-testing)
 ├── admin/
 │   ├── about.php                       # Module about page
-│   └── changelog.php                   # Module changelog page
+│   ├── changelog.php                   # Module changelog page
 │   └── mymodulesetup.php               # Module settings (/dolibarr-page-patterns)
 ├── myobject_card.php                   # Card page (/dolibarr-page-patterns)
 ├── myobject_list.php                   # List page (/dolibarr-page-patterns)
@@ -66,7 +66,7 @@ custom/mymodule/
 
 ## Upgrade Safety
 
-- Never modify files in `htdocs/` (except `htdocs/custom/`)
+- For upgrade-safe customizations, do not modify core files in `htdocs/`; use `htdocs/custom/`
 - Use hooks instead of editing core pages (/dolibarr-hooks)
 - Use triggers instead of editing core classes (/dolibarr-triggers)
 - Use extrafields instead of adding database columns (/dolibarr-extrafields)

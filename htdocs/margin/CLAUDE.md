@@ -1,4 +1,4 @@
-# Margin Analysis Module
+# htdocs/margin - Margin Analysis Module
 
 Margin calculation and analysis for commercial documents.
 

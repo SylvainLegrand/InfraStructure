@@ -1,4 +1,4 @@
-# HRM Module
+# htdocs/hrm - HRM Module
 
 Human Resource Management (establishments, jobs, skills).
 

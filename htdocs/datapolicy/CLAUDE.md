@@ -1,4 +1,4 @@
-# Data Policy Module
+# htdocs/datapolicy - Data Policy Module
 
 GDPR compliance and data protection management.
 

@@ -1,4 +1,4 @@
-# Ticket Module
+# htdocs/ticket - Ticket Module
 
 Helpdesk and support ticket management.
 

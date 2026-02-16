@@ -1,4 +1,4 @@
-# TakePOS Module
+# htdocs/takepos - TakePOS Module
 
 Point of Sale system.
 

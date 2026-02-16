@@ -1,4 +1,4 @@
-# Module Builder
+# htdocs/modulebuilder - Module Builder
 
 Development tool for creating Dolibarr modules.
 

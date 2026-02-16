@@ -1,4 +1,4 @@
-# Categories Module
+# htdocs/categories - Categories Module
 
 Hierarchical categorization for all object types.
 

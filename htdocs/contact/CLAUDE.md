@@ -1,4 +1,4 @@
-# Contacts Module
+# htdocs/contact - Contacts Module
 
 Contact persons management for third parties.
 

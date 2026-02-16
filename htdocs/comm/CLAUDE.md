@@ -1,4 +1,4 @@
-# Commercial Module
+# htdocs/comm - Commercial Module
 
 Commercial actions and proposals (quotes).
 

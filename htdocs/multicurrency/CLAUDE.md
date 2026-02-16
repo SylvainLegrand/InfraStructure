@@ -1,4 +1,4 @@
-# Multi-Currency Module
+# htdocs/multicurrency - Multi-Currency Module
 
 Multi-currency support for commercial documents.
 

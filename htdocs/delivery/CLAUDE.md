@@ -1,4 +1,4 @@
-# Delivery Notes Module
+# htdocs/delivery - Delivery Notes Module
 
 Delivery receipts for shipped goods.
 

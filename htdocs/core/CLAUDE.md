@@ -1,4 +1,4 @@
-# Core Framework
+# htdocs/core - Core Framework
 
 Framework classes, libraries, modules, database abstraction, triggers, and hooks.
 

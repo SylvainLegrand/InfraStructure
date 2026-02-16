@@ -1,4 +1,4 @@
-# Third Parties Module
+# htdocs/societe - Third Parties Module
 
 Customers, suppliers, and prospects management.
 

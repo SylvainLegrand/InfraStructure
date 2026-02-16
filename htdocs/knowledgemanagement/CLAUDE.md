@@ -1,4 +1,4 @@
-# Knowledge Management Module
+# htdocs/knowledgemanagement - Knowledge Management Module
 
 Knowledge base and documentation articles.
 

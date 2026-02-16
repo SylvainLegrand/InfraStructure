@@ -1,4 +1,4 @@
-# Donations Module
+# htdocs/don - Donations Module
 
 Donation tracking and receipts.
 

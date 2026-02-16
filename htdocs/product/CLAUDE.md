@@ -1,4 +1,4 @@
-# Products Module
+# htdocs/product - Products Module
 
 Products, services, and stock management.
 

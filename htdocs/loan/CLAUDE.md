@@ -1,4 +1,4 @@
-# Loans Module
+# htdocs/loan - Loans Module
 
 Loan management and repayment schedules.
 

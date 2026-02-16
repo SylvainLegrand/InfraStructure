@@ -1,4 +1,4 @@
-# DAV Module
+# htdocs/dav - DAV Module
 
 CalDAV and CardDAV server integration.
 

@@ -1,4 +1,4 @@
-# Accountancy Module
+# htdocs/accountancy - Accountancy Module
 
 Double-entry accounting system.
 

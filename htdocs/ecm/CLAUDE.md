@@ -1,4 +1,4 @@
-# ECM Module
+# htdocs/ecm - ECM Module
 
 Electronic Content Management (document management).
 

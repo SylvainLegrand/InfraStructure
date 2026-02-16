@@ -1,4 +1,4 @@
-# Webhook Module
+# htdocs/webhook - Webhook Module
 
 Outgoing webhook notifications.
 
