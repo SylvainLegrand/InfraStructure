@@ -48,280 +48,284 @@ use Smalot\PdfParser\RawData\RawDataParser;
  */
 class Parser
 {
-	/**
-	 * @var Config
-	 */
-	private $config;
+    /**
+     * @var Config
+     */
+    private $config;
 
-	/**
-	 * @var PDFObject[]
-	 */
-	protected $objects = [];
+    /**
+     * @var PDFObject[]
+     */
+    protected $objects = [];
 
-	protected $rawDataParser;
+    protected $rawDataParser;
 
-	public function __construct($cfg = [], ?Config $config = null)
-	{
-		$this->config = $config ?: new Config();
-		$this->rawDataParser = new RawDataParser($cfg, $this->config);
-	}
+    public function __construct($cfg = [], ?Config $config = null)
+    {
+        $this->config = $config ?: new Config();
+        $this->rawDataParser = new RawDataParser($cfg, $this->config);
+    }
 
-	public function getConfig(): Config
-	{
-		return $this->config;
-	}
+    public function getConfig(): Config
+    {
+        return $this->config;
+    }
 
-	/**
-	 * @throws \Exception
-	 */
-	public function parseFile(string $filename): Document
-	{
-		$content = file_get_contents($filename);
-		/*
-		 * 2018/06/20 @doganoo as multiple times a
-		 * users have complained that the parseFile()
-		 * method dies silently, it is an better option
-		 * to remove the error control operator (@) and
-		 * let the users know that the method throws an exception
-		 * by adding @throws tag to PHPDoc.
-		 *
-		 * See here for an example: https://github.com/smalot/pdfparser/issues/204
-		 */
-		return $this->parseContent($content);
-	}
+    /**
+     * @throws \Exception
+     */
+    public function parseFile(string $filename): Document
+    {
+        $content = file_get_contents($filename);
 
-	/**
-	 * @param string $content PDF content to parse
-	 *
-	 * @throws \Exception if secured PDF file was detected
-	 * @throws \Exception if no object list was found
-	 */
-	public function parseContent(string $content): Document
-	{
-		// Create structure from raw data.
-		list($xref, $data) = $this->rawDataParser->parseData($content);
+        /*
+         * 2018/06/20 @doganoo as multiple times a
+         * users have complained that the parseFile()
+         * method dies silently, it is an better option
+         * to remove the error control operator (@) and
+         * let the users know that the method throws an exception
+         * by adding @throws tag to PHPDoc.
+         *
+         * See here for an example: https://github.com/smalot/pdfparser/issues/204
+         */
+        return $this->parseContent($content);
+    }
 
-		if (isset($xref['trailer']['encrypt'])) {
-			throw new \Exception('Secured pdf file are currently not supported.');
-		}
+    /**
+     * @param string $content PDF content to parse
+     *
+     * @throws \Exception if secured PDF file was detected
+     * @throws \Exception if no object list was found
+     */
+    public function parseContent(string $content): Document
+    {
+        // Create structure from raw data.
+        list($xref, $data) = $this->rawDataParser->parseData($content);
 
-		if (empty($data)) {
-			throw new \Exception('Object list not found. Possible secured file.');
-		}
+        if (isset($xref['trailer']['encrypt']) && false === $this->config->getIgnoreEncryption()) {
+            throw new \Exception('Secured pdf file are currently not supported.');
+        }
 
-		// Create destination object.
-		$document = new Document();
-		$this->objects = [];
+        if (empty($data)) {
+            throw new \Exception('Object list not found. Possible secured file.');
+        }
 
-		foreach ($data as $id => $structure) {
-			$this->parseObject($id, $structure, $document);
-			unset($data[$id]);
-		}
+        // Create destination object.
+        $document = new Document();
+        $this->objects = [];
 
-		$document->setTrailer($this->parseTrailer($xref['trailer'], $document));
-		$document->setObjects($this->objects);
+        foreach ($data as $id => $structure) {
+            $this->parseObject($id, $structure, $document);
+            unset($data[$id]);
+        }
 
-		return $document;
-	}
+        $document->setTrailer($this->parseTrailer($xref['trailer'], $document));
+        $document->setObjects($this->objects);
 
-	protected function parseTrailer(array $structure, ?Document $document)
-	{
-		$trailer = [];
+        return $document;
+    }
 
-		foreach ($structure as $name => $values) {
-			$name = ucfirst($name);
+    protected function parseTrailer(array $structure, ?Document $document)
+    {
+        $trailer = [];
 
-			if (is_numeric($values)) {
-				$trailer[$name] = new ElementNumeric($values);
-			} elseif (\is_array($values)) {
-				$value = $this->parseTrailer($values, null);
-				$trailer[$name] = new ElementArray($value, null);
-			} elseif (false !== strpos($values, '_')) {
-				$trailer[$name] = new ElementXRef($values, $document);
-			} else {
-				$trailer[$name] = $this->parseHeaderElement('(', $values, $document);
-			}
-		}
+        foreach ($structure as $name => $values) {
+            $name = ucfirst($name);
 
-		return new Header($trailer, $document);
-	}
+            if (is_numeric($values)) {
+                $trailer[$name] = new ElementNumeric($values);
+            } elseif (\is_array($values)) {
+                $value = $this->parseTrailer($values, null);
+                $trailer[$name] = new ElementArray($value, null);
+            } elseif (false !== strpos($values, '_')) {
+                $trailer[$name] = new ElementXRef($values, $document);
+            } else {
+                $trailer[$name] = $this->parseHeaderElement('(', $values, $document);
+            }
+        }
 
-	protected function parseObject(string $id, array $structure, ?Document $document)
-	{
-		$header = new Header([], $document);
-		$content = '';
+        return new Header($trailer, $document);
+    }
 
-		foreach ($structure as $position => $part) {
-			if (\is_int($part)) {
-				$part = [null, null];
-			}
-			switch ($part[0]) {
-				case '[':
-					$elements = [];
+    protected function parseObject(string $id, array $structure, ?Document $document)
+    {
+        $header = new Header([], $document);
+        $content = '';
 
-					foreach ($part[1] as $sub_element) {
-						$sub_type = $sub_element[0];
-						$sub_value = $sub_element[1];
-						$elements[] = $this->parseHeaderElement($sub_type, $sub_value, $document);
-					}
+        foreach ($structure as $position => $part) {
+            if (\is_int($part)) {
+                $part = [null, null];
+            }
+            switch ($part[0]) {
+                case '[':
+                    $elements = [];
 
-					$header = new Header($elements, $document);
-					break;
+                    foreach ($part[1] as $sub_element) {
+                        $sub_type = $sub_element[0];
+                        $sub_value = $sub_element[1];
+                        $elements[] = $this->parseHeaderElement($sub_type, $sub_value, $document);
+                    }
 
-				case '<<':
-					$header = $this->parseHeader($part[1], $document);
-					break;
+                    $header = new Header($elements, $document);
+                    break;
 
-				case 'stream':
-					$content = isset($part[3][0]) ? $part[3][0] : $part[1];
+                case '<<':
+                    $header = $this->parseHeader($part[1], $document);
+                    break;
 
-					if ($header->get('Type')->equals('ObjStm')) {
-						$match = [];
+                case 'stream':
+                    $content = isset($part[3][0]) ? $part[3][0] : $part[1];
 
-						// Split xrefs and contents.
-						preg_match('/^((\d+\s+\d+\s*)*)(.*)$/s', $content, $match);
-						$content = $match[3];
+                    if ($header->get('Type')->equals('ObjStm')) {
+                        $match = [];
 
-						// Extract xrefs.
-						$xrefs = preg_split(
-							'/(\d+\s+\d+\s*)/s',
-							$match[1],
-							-1,
-							\PREG_SPLIT_NO_EMPTY | \PREG_SPLIT_DELIM_CAPTURE
-						);
-						$table = [];
+                        // Split xrefs and contents.
+                        preg_match('/^((\d+\s+\d+\s*)*)(.*)$/s', $content, $match);
+                        $content = $match[3];
 
-						foreach ($xrefs as $xref) {
-							list($id, $position) = preg_split("/\s+/", trim($xref));
-							$table[$position] = $id;
-						}
+                        // Extract xrefs.
+                        $xrefs = preg_split(
+                            '/(\d+\s+\d+\s*)/s',
+                            $match[1],
+                            -1,
+                            \PREG_SPLIT_NO_EMPTY | \PREG_SPLIT_DELIM_CAPTURE
+                        );
+                        $table = [];
 
-						ksort($table);
+                        foreach ($xrefs as $xref) {
+                            list($id, $position) = preg_split("/\s+/", trim($xref));
+                            $table[$position] = $id;
+                        }
 
-						$ids = array_values($table);
-						$positions = array_keys($table);
+                        ksort($table);
 
-						foreach ($positions as $index => $position) {
-							$id = $ids[$index].'_0';
-							$next_position = isset($positions[$index + 1]) ? $positions[$index + 1] : \strlen($content);
-							$sub_content = substr($content, $position, (int) $next_position - (int) $position);
+                        $ids = array_values($table);
+                        $positions = array_keys($table);
 
-							$sub_header = Header::parse($sub_content, $document);
-							$object = PDFObject::factory($document, $sub_header, '', $this->config);
-							$this->objects[$id] = $object;
-						}
+                        foreach ($positions as $index => $position) {
+                            $id = $ids[$index].'_0';
+                            $next_position = isset($positions[$index + 1]) ? $positions[$index + 1] : \strlen($content);
+                            $sub_content = substr($content, $position, (int) $next_position - (int) $position);
 
-						// It is not necessary to store this content.
+                            $sub_header = Header::parse($sub_content, $document);
+                            $object = PDFObject::factory($document, $sub_header, '', $this->config);
+                            $this->objects[$id] = $object;
+                        }
 
-						return;
-					}
-					break;
+                        // It is not necessary to store this content.
 
-				default:
-					if ('null' != $part) {
-						$element = $this->parseHeaderElement($part[0], $part[1], $document);
+                        return;
+                    } elseif ($header->get('Type')->equals('Metadata')) {
+                        // Attempt to parse XMP XML Metadata
+                        $document->extractXMPMetadata($content);
+                    }
+                    break;
 
-						if ($element) {
-							$header = new Header([$element], $document);
-						}
-					}
-					break;
-			}
-		}
+                default:
+                    if ('null' != $part) {
+                        $element = $this->parseHeaderElement($part[0], $part[1], $document);
 
-		if (!isset($this->objects[$id])) {
-			$this->objects[$id] = PDFObject::factory($document, $header, $content, $this->config);
-		}
-	}
+                        if ($element) {
+                            $header = new Header([$element], $document);
+                        }
+                    }
+                    break;
+            }
+        }
 
-	/**
-	 * @throws \Exception
-	 */
-	protected function parseHeader(array $structure, ?Document $document): Header
-	{
-		$elements = [];
-		$count = \count($structure);
+        if (!isset($this->objects[$id])) {
+            $this->objects[$id] = PDFObject::factory($document, $header, $content, $this->config);
+        }
+    }
 
-		for ($position = 0; $position < $count; $position += 2) {
-			$name = $structure[$position][1];
-			$type = $structure[$position + 1][0];
-			$value = $structure[$position + 1][1];
+    /**
+     * @throws \Exception
+     */
+    protected function parseHeader(array $structure, ?Document $document): Header
+    {
+        $elements = [];
+        $count = \count($structure);
 
-			$elements[$name] = $this->parseHeaderElement($type, $value, $document);
-		}
+        for ($position = 0; $position < $count; $position += 2) {
+            $name = $structure[$position][1];
+            $type = $structure[$position + 1][0];
+            $value = $structure[$position + 1][1];
 
-		return new Header($elements, $document);
-	}
+            $elements[$name] = $this->parseHeaderElement($type, $value, $document);
+        }
 
-	/**
-	 * @param string|array $value
-	 *
-	 * @return Element|Header|null
-	 *
-	 * @throws \Exception
-	 */
-	protected function parseHeaderElement(?string $type, $value, ?Document $document)
-	{
-		$valueIsEmpty = null == $value || '' == $value || false == $value;
-		if (('<<' === $type || '>>' === $type) && $valueIsEmpty) {
-			$value = [];
-		}
+        return new Header($elements, $document);
+    }
 
-		switch ($type) {
-			case '<<':
-			case '>>':
-				$header = $this->parseHeader($value, $document);
-				PDFObject::factory($document, $header, null, $this->config);
+    /**
+     * @param string|array $value
+     *
+     * @return Element|Header|null
+     *
+     * @throws \Exception
+     */
+    protected function parseHeaderElement(?string $type, $value, ?Document $document)
+    {
+        $valueIsEmpty = null == $value || '' == $value || false == $value;
+        if (('<<' === $type || '>>' === $type) && $valueIsEmpty) {
+            $value = [];
+        }
 
-				return $header;
+        switch ($type) {
+            case '<<':
+            case '>>':
+                $header = $this->parseHeader($value, $document);
+                PDFObject::factory($document, $header, null, $this->config);
 
-			case 'numeric':
-				return new ElementNumeric($value);
+                return $header;
 
-			case 'boolean':
-				return new ElementBoolean($value);
+            case 'numeric':
+                return new ElementNumeric($value);
 
-			case 'null':
-				return new ElementNull();
+            case 'boolean':
+                return new ElementBoolean($value);
 
-			case '(':
-				if ($date = ElementDate::parse('('.$value.')', $document)) {
-					return $date;
-				}
+            case 'null':
+                return new ElementNull();
 
-				return ElementString::parse('('.$value.')', $document);
+            case '(':
+                if ($date = ElementDate::parse('('.$value.')', $document)) {
+                    return $date;
+                }
 
-			case '<':
-				return $this->parseHeaderElement('(', ElementHexa::decode($value), $document);
+                return ElementString::parse('('.$value.')', $document);
 
-			case '/':
-				return ElementName::parse('/'.$value, $document);
+            case '<':
+                return $this->parseHeaderElement('(', ElementHexa::decode($value), $document);
 
-			case 'ojbref': // old mistake in tcpdf parser
-			case 'objref':
-				return new ElementXRef($value, $document);
+            case '/':
+                return ElementName::parse('/'.$value, $document);
 
-			case '[':
-				$values = [];
+            case 'ojbref': // old mistake in tcpdf parser
+            case 'objref':
+                return new ElementXRef($value, $document);
 
-				if (\is_array($value)) {
-					foreach ($value as $sub_element) {
-						$sub_type = $sub_element[0];
-						$sub_value = $sub_element[1];
-						$values[] = $this->parseHeaderElement($sub_type, $sub_value, $document);
-					}
-				}
+            case '[':
+                $values = [];
 
-				return new ElementArray($values, $document);
+                if (\is_array($value)) {
+                    foreach ($value as $sub_element) {
+                        $sub_type = $sub_element[0];
+                        $sub_value = $sub_element[1];
+                        $values[] = $this->parseHeaderElement($sub_type, $sub_value, $document);
+                    }
+                }
 
-			case 'endstream':
-			case 'obj': // I don't know what it means but got my project fixed.
-			case '':
-				// Nothing to do with.
-				return null;
+                return new ElementArray($values, $document);
 
-			default:
-				throw new \Exception('Invalid type: "'.$type.'".');
-		}
-	}
+            case 'endstream':
+            case 'obj': // I don't know what it means but got my project fixed.
+            case '':
+                // Nothing to do with.
+                return null;
+
+            default:
+                throw new \Exception('Invalid type: "'.$type.'".');
+        }
+    }
 }

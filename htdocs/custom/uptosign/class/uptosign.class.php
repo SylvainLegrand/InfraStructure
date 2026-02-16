@@ -1787,12 +1787,6 @@ class UptoSign extends CommonObject
 			$id = $this->fk_object;
 			$hallobj = uptosign_handle_all_type_of_objects($objectType, $id);
 			$object = $hallobj['object'];
-			$displayname = $hallobj['displayname'];
-
-			//TODO please double check that
-			if($displayname) {
-				return $displayname;
-			}
 			if (method_exists($object, 'getNomUrl')) {
 				return $object->getNomUrl();
 			}

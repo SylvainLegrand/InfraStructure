@@ -1,5 +1,10 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.1 -- 20260212
+
+- cron to keep signed files as archives into dolibarr
+- code cleanup & fix thanks to tests
+
 ## 2.4.0 -- 20260212
 
 NEW: UptoSignList synthetic tracking table (uptosignlist_docs.php)
