@@ -190,11 +190,11 @@ class UptosignListTargets // This can't be abstract as it is used for some metho
 				$sql .= "'".$this->db->escape($targetarray['lastname'])."',";
 				$sql .= "'".$this->db->escape($targetarray['firstname'])."',";
 				$sql .= "'".$this->db->escape($targetarray['email'])."',";
-				$sql .= "'".$this->db->escape($targetarray['mobile'])."',";
-				$sql .= "'".$this->db->escape($targetarray['other'])."',";
-				$sql .= "'".$this->db->escape($targetarray['source_url'])."',";
+				$sql .= "'".$this->db->escape(isset($targetarray['mobile']) ? $targetarray['mobile'] : '')."',";
+				$sql .= "'".$this->db->escape(isset($targetarray['other']) ? $targetarray['other'] : '')."',";
+				$sql .= "'".$this->db->escape(isset($targetarray['source_url']) ? $targetarray['source_url'] : '')."',";
 				$sql .= (empty($targetarray['source_id']) ? 'null' : "'".$this->db->escape($targetarray['source_id'])."'").",";
-				$sql .= "'".$this->db->escape($targetarray['source_type'])."',";
+				$sql .= "'".$this->db->escape(isset($targetarray['source_type']) ? $targetarray['source_type'] : '')."',";
 				$sql .= "'".UptoSignList::STATUS_DRAFT."')";
 				dol_syslog(__METHOD__, LOG_DEBUG);
 				$result = $this->db->query($sql);

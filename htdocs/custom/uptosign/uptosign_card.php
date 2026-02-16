@@ -126,7 +126,7 @@ include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be includ
 
 // There is several ways to check permission.
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
-$enablepermissioncheck = 0;
+$enablepermissioncheck = 1;
 $permissiontoadd = 0; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 if ($enablepermissioncheck) {
 	$permissiontoread = $user->hasRight('uptosign', 'read');

@@ -147,7 +147,7 @@ class mod_uptosignlist_standard extends ModeleNumRefUptoSignList
 
 		//$date=time();
 		$date = $object->date_creation;
-		$yymm = strftime("%y%m", $date);
+		$yymm = date("ym", $date);
 
 		if ($max >= (pow(10, 4) - 1)) {
 			$num = $max + 1; // If counter > 9999, we do not format on 4 chars, we take number as it is

@@ -43,6 +43,7 @@ CREATE TABLE llx_uptosign
 	path_file varchar(512),
 	path_file_signed varchar(512),
 	api_name varchar(64),
-	hook_key varchar(255)
+	hook_key varchar(255),
+	fk_uptosignlist integer
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

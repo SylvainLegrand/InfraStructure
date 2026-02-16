@@ -1,59 +1,133 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
-## 2.3.34 -- 202560109
+## 2.4.0 -- 20260212
 
-race condition for propal/propale template like azur/cyan
+NEW: UptoSignList synthetic tracking table (uptosignlist_docs.php)
+  - Each row = one member with signing procedure status, date, and signed document download
+  - Summary counters: not sent, waiting, signed, fetched, error
+  - Mass action "Sync" to fetch signed files in bulk
+NEW: Bidirectional FK between uptosign and uptosignlist
+  - fk_uptosignlist on llx_uptosign (procedure -> list)
+  - fk_uptosign on llx_uptosign_uptosignlistmembers (member -> procedure)
+  - Automatically populated when sending signatures from a list
+NEW: getContactsWithProcedures() method on UptoSignList (LEFT JOIN members + procedures)
+NEW: Selector modules promoted from experimental to production
+  - uts_contacts: contacts of thirdparties (prospects, customers, suppliers)
+  - uts_members: foundation/association members with status/type/category filters
+  - uts_eventattendees: attendees of organized events
+  - uts_inputfile: CSV file import
+  - uts_inputmanual: multi-line manual input (paste from spreadsheet with tab or semicolon separator)
+ENH: All selector modules renamed with uts_ prefix to avoid collision with Dolibarr core mailing modules
+ENH: addTargetsToDatabase() now handles optional keys (mobile, other, source_url) with isset() for PHP 8.2 strict mode
+FIX: UptoSign object reinitialized at each iteration in mass signing loop (was reused)
+FIX: Removed stale require_once to Dolibarr core advthirdparties.modules.php
+QUAL: 53 new tests (22 unit + 31 integration) covering selector modules, add_to_target, getContactsWithProcedures
+
+## 2.3.35 -- 20260210
+
+FIX: better logs in case of exclude user on admin page
+ENH: add more debug logs to diagnose race condition on setup signer list
+QUAL: phpstan fixes
+QUAL: tests
+
+## 2.3.34 -- 20260109
+
+FIX: race condition for propal/propale template like azur/cyan
 
 ## 2.3.32 -- 20251204
 
-fix no object id on hook : use parameter uuid data
+FIX: no object id on hook, use parameter uuid data instead
 
-## 2.3.30 -- 20251029
+## 2.3.30 -- 20251128
 
-infras contracts
-fix societe tab files
-new setup option on workflow UPTOSIGN_WORKFLOW_AUTO_CLOSE_ORDER
+NEW: support for InfraS contracts
+FIX: societe tab file path
+NEW: setup option on workflow UPTOSIGN_WORKFLOW_AUTO_CLOSE_ORDER
+
+## 2.3.18 -- 20251128
+
+FIX: societe path, use id not name
+NEW: compatibility with InfraSSalariesContracts module (thanks to InfraS)
+NEW: new option for contracts (merge request from InfraS)
+FIX: multicompany hook
+QUAL: phpstan fixes
 
 ## 2.3.16 -- 20251029
 
-fix hook thanks to Sylvain (InfraS)
-add new type of documents (contracts from InfraS)
-for #47 : code factoring and one place for all type of documents
-fix employee links
-better display for output fields
-fix header tabs
-activate sql for uptosignlistmembers
+NEW: add new type of documents (contracts from InfraS)
+NEW: for #47 code factoring with uptosign_handle_all_type_of_objects (one place for all dolibarr objects)
+FIX: hook thanks to Sylvain (InfraS)
+FIX: employee links
+FIX: header tabs
+ENH: better display for showOutputField
+ENH: activate sql for uptosignlistmembers + indexes
+
+## 2.3.12 -- 20251029
+
+NEW: hook add order support
+NEW: compatibility with InfraS custom module (phpstan)
+FIX: fix signature logos on contracts (thanks to InfraS)
+FIX: fix page stamp and signatures display
+FIX: fix listing of signatures/sealings
+FIX: undefined vars thanks to phpstan
+FIX: undef fko
+ENH: use utsbackports_getDolGlobalString
+QUAL: phpcs / indent / spaces cleanup (no functional changes)
 
 ## 2.3.10 -- 20250916
 
-fix file choosed on thirdparty tab
+FIX: file choosed on thirdparty tab
+FIX: search ref on uptosign_list_of_elements_with_extrafield
+FIX: try to download proof even if there is an error before
+FIX: undefined array return by reset()
+FIX: phone -> phone_pro mapping
+FIX: first page is zero
+ENH: better log level and debug messages
+QUAL: phpcs + whocansign cleanup
 
 ## 2.3.8 -- 20250902
 
-try to use fk_soc if socid is not set (bug on sign project documents)
+FIX: try to use fk_soc if socid is not set (bug on sign project documents)
 
 ## 2.3.7 -- 20250829
 
-fix non proof download "sometimes"
+FIX: non proof download "sometimes"
 
 ## 2.3.6 -- 20250725
 
-fix non proof download "sometimes"
+FIX: non proof download "sometimes"
 
-## 2.3.4 -- 20250611
+## 2.3.4 -- 20250611
 
-fix can't sign files with apostrophe in file name
-new UPTOSIGN_ADD_CONTACT_POSTE_FUNCTION option
-fix some log/debug messages
+FIX: can't sign files with apostrophe in file name
+FIX: handle msg object properly
+FIX: stancer logs renamed to uptosign
+FIX: log/debug messages cleanup
+NEW: UPTOSIGN_ADD_CONTACT_POSTE_FUNCTION option
 
-## 2.3.2 -- 20250408
+## 2.3.2 -- 20250408
 
-activate (for tests) mass sign of same document
-actions on customers OR prospects
-better log collect on hooks
-new option to enable/disable sms double auth sources (be carefull with legal consequences)
-new workflow options on module setup for auto-tasks (be carefull)
+NEW: activate mass sign of same document (sign same doc by multiple users)
+NEW: actions on customers OR prospects
+NEW: option to enable/disable sms double auth (digitalsign_disable_sms)
+NEW: workflow options on module setup for auto-tasks
+NEW: uptosignlist_advthirdparties selector module
+NEW: hook for proof file
+NEW: suffixForMassSignProcess
+ENH: better log collect on hooks (get error log)
+ENH: user multi sign & add downloaded file
+ENH: list docs returned
+ENH: start workflow implementation
+QUAL: phpstan fixes (old versions compat)
+QUAL: code cleanup
 
+## 2.3.1 -- 20250404
+
+ENH: list of sign 1.0 (status, translations)
+
+## 2.3.0 -- 20250315
+
+Start of UptoSignList (mass sign) feature branch
 
 ## 2.2.82 -- 20250307
 

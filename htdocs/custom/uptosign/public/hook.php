@@ -144,7 +144,7 @@ if ($h['Content-Type'] == 'application/json') {
 	//check signature
 	$computedSignature = hash_hmac('sha256', $content, $uptoSign->hook_key);
 	dol_syslog('uptosign signature is '.$h['Signature'].' compare to '.$computedSignature.' ...');
-	if ($computedSignature == $h['Signature']) {
+	if (hash_equals($computedSignature, $h['Signature'])) {
 		dol_syslog('uptosign signature is confirmed, can continue !');
 	} else {
 		http_response_code(403);

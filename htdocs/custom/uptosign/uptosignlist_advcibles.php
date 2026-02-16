@@ -63,11 +63,10 @@ require_once DOL_DOCUMENT_ROOT.'/comm/mailing/class/mailing.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/emailing.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/mailing/class/advtargetemailing.class.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/mailing/class/html.formadvtargetemailing.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/modules/mailings/advthirdparties.modules.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 
-dol_include_once('/uptosign/core/modules/uptosignlist/advthirdparties.modules.php');
+dol_include_once('/uptosign/core/modules/uptosignlist/uts_thirdparties.modules.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 
 // Load translation files required by the page
@@ -129,7 +128,7 @@ if ($result < 0) {
 }
 
 // Security check
-if (!$user->rights->mailing->lire || (empty($conf->global->EXTERNAL_USERS_ARE_AUTHORIZED) && $user->socid > 0)) {
+if (!$user->hasRight('uptosign', 'read') || (empty($conf->global->EXTERNAL_USERS_ARE_AUTHORIZED) && $user->socid > 0)) {
 	accessforbidden();
 }
 //$result = restrictedArea($user, 'mailing');
@@ -265,7 +264,7 @@ if ($action == 'add') {
 	$obj = null;
 	if ((count($advTarget->thirdparty_lines) > 0) || (count($advTarget->contact_lines) > 0)) {
 		// Add targets into database
-		$obj = new uptosignlist_advthirdparties($db);
+		$obj = new uptosignlist_uts_thirdparties($db);
 		$result = $obj->add_to_target_spec($id, $advTarget->thirdparty_lines, $array_query['type_of_target'], $advTarget->contact_lines);
 	} else {
 		$result = 0;
@@ -486,7 +485,7 @@ if ($object->fetch($id) >= 0) {
 	print "</div>";
 
 	// Show email selectors
-	if ($object->statut == 0 && $user->rights->mailing->creer) {
+	if ($object->statut == 0 && $user->hasRight('uptosign', 'create')) {
 		include DOL_DOCUMENT_ROOT.'/core/tpl/advtarget.tpl.php';
 	}
 }

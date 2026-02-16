@@ -26,6 +26,7 @@ CREATE TABLE llx_uptosign_uptosignlistmembers(
 	other varchar(255) NULL,
 	source_url varchar(255),
 	tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	status integer NOT NULL
+	status integer NOT NULL,
+	fk_uptosign integer
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

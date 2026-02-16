@@ -200,8 +200,8 @@ class ActionsUptoSign
 				$listContacts = $uptoSign->getListContacts($object);
 				if (!is_array($listContacts)) {
 					$errormessage = "";
-					foreach ($uptoSign->errors as $error) {
-						$errormessage .= $langs->trans($error);
+					foreach ($uptoSign->errors as $errmsg) {
+						$errormessage .= $langs->trans($errmsg);
 					}
 					setEventMessages($errormessage, [], 'warnings');
 					return -1;
@@ -220,7 +220,7 @@ class ActionsUptoSign
 
 				$object_type = uptosign_unify_object_type($object->element);
 				$api_name = uptosign_unify_api_name($signOrSeal);
-				$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $object->id . "' AND object_type='" . $object_type . "' AND api_name='" . $api_name . "'"));
+				$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('api_name' => $api_name));
 				//quid d'un vieux process ? lancé il y a x heures / minutes ?
 				if ($result) {
 					setEventMessages($langs->trans('UptoSignProcessAlreadyStarted'), [], 'warnings');
@@ -264,7 +264,7 @@ class ActionsUptoSign
 						}
 					} else {
 						array_push($errors, 'Init Process Error, res is ' . $res . ' and action is ' . $action  . " <br /> " . implode(',', $uptoSign->errors));
-						$error--;
+						$error++;
 					}
 				}
 				break;
@@ -289,7 +289,7 @@ class ActionsUptoSign
 					dol_syslog("uptosign doAction signFetch Error", LOG_DEBUG);
 					$errors = $uptoSign->errors;
 					array_push($errors, 'Fetch Process Error res=' . $res);
-					$error--;
+					$error++;
 				} else {
 					setEventMessages($langs->trans('UptoSignDocumentFetched'), [], 'mesgs');
 				}
@@ -301,7 +301,7 @@ class ActionsUptoSign
 					dol_syslog("uptosign doAction signFetchProof Error", LOG_DEBUG);
 					$errors = $uptoSign->errors;
 					array_push($errors, 'FetchProof Process Error');
-					$error--;
+					$error++;
 				} else {
 					setEventMessages($langs->trans('UptoSignDocumentFetched'), [], 'mesgs');
 				}
@@ -368,7 +368,7 @@ class ActionsUptoSign
 					if (($signStatus == UptoSign::STATUS_SIGNED || $signStatus == UptoSign::STATUS_FILE_FETCHED) && !empty($uptoSign->fk_contact_sign)) {
 						dol_syslog("uptosign doAction confirm_reopen Error", LOG_DEBUG);
 						$errors = ["UptoSignSignedNoModify"];
-						$error--;
+						$error++;
 					} else {
 						// $uptoSign->delete($user);
 					}
@@ -381,7 +381,7 @@ class ActionsUptoSign
 					if ($signStatus == UptoSign::STATUS_SIGNED && !empty($uptoSign->fk_contact_sign)) {
 						dol_syslog("uptosign doAction confirm_delete Error", LOG_DEBUG);
 						$errors = ["UptoSignSignedNoDelete"];
-						$error--;
+						$error++;
 					} else {
 						$uptoSign->delete($user);
 					}
@@ -390,7 +390,7 @@ class ActionsUptoSign
 			case "builddoc":
 				//Si le document est signé / scellé il faut "capturer" le clic sur le bouton de création du PDF
 				$object_type = uptosign_unify_object_type(uptosignModel($object));
-				$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $object->id . "' AND object_type='" . $object_type . "' AND sign_status='done'"));
+				$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('sign_status' => 'done'));
 				if (is_array($result) && count($result) > 0) {
 					$this->formConfirm($parameters, $object, $action, $hookmanager);
 					$this->results = array('myreturn' => 999);
@@ -401,7 +401,7 @@ class ActionsUptoSign
 			case "confirm_builddoc":
 				//change uptosign entries -> override
 				$object_type = uptosign_unify_object_type(uptosignModel($object));
-				$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $object->id . "' AND object_type='" . $object_type . "' AND sign_status='done'"));
+				$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('sign_status' => 'done'));
 				if (is_array($result) && count($result) > 0) {
 					foreach ($result as $uts) {
 						// $uts->delete($user);
@@ -554,7 +554,7 @@ class ActionsUptoSign
 			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('UptoSign'), $langs->trans('ConfirmUptoSignFetch', $object->ref), 'confirm_uptosealfetch', '', 0, 1);
 		} elseif ($action == 'builddoc') {
 			$object_type = uptosign_unify_object_type(uptosignModel($object));
-			$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $object->id . "' AND object_type='" . $object_type . "' AND sign_status='done'"));
+			$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('sign_status' => 'done'));
 			if (is_array($result) && count($result) > 0) {
 				$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('UptoSign'), $langs->trans('UptoSignConfirmRebuildPDF'), 'confirm_builddoc', '', 0, 1);
 				$ret = 1;
@@ -593,7 +593,7 @@ class ActionsUptoSign
 		//cas particulier pour la fiche contact d'un utilisateur: on ajoute un bouton pour lui donner tous les droits de signer tous les docs possibles
 		if ($currentcontext == 'contactcard') {
 			dol_syslog("uptosign addMoreActionsButtons param = " . json_encode($parameters) . ", action = $action", LOG_DEBUG);
-			print '<div class="inline-block divButAction"><a class="butAction classfortooltip" title="' . $langs->trans('UptoSignAddAllDocToSignTooltip') . '" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=uptosignAllDocsToContact"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignAddAllDocToSign') . '</a></div>';
+			print '<div class="inline-block divButAction"><a class="butAction classfortooltip" title="' . $langs->trans('UptoSignAddAllDocToSignTooltip') . '" href="' . dol_escape_htmltag($_SERVER["PHP_SELF"]) . '?id=' . $object->id . '&action=uptosignAllDocsToContact"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignAddAllDocToSign') . '</a></div>';
 		}
 
 		if (!in_array($currentcontext, $this->array_of_handled_context)) {
@@ -634,7 +634,7 @@ class ActionsUptoSign
 			if (((int) DOL_VERSION) < 11) {
 				dol_syslog("uptosign, setStatusCommon is available on dolibarr > 10.0, let use old setStatut...", LOG_WARNING);
 				$minStatus = 1;
-				$minStatus = 1;
+				$maxStatus = 1;
 			} else {
 				/** @phpstan-ignore-next-line */
 				$minStatus = Contrat::STATUS_VALIDATED;
@@ -704,15 +704,16 @@ class ActionsUptoSign
 
 				// print "<p>UpToSign context : min=$minStatus, max=$maxStatus et status=$status ou " . json_encode($signStatus) . "</p>";
 				// && $status <= $maxStatus
+				$phpself = dol_escape_htmltag($_SERVER["PHP_SELF"]);
 				if ($currentcontext == "uptosigncard") {
 					print '<div class="inline-block divButAction"><a class="butActionRefused classfortooltip" href="#"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignSync') . '</a></div>';
-					print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=' . $signOrSeal . 'fetch"><i class=\"fas fa-signature\"></i>' . $langs->trans($signOrSeal . 'Fetch') . '</a></div>';
-					print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=' . $signOrSeal . 'sync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignForceRefresh') . '</a></div>';
+					print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=' . $signOrSeal . 'fetch"><i class=\"fas fa-signature\"></i>' . $langs->trans($signOrSeal . 'Fetch') . '</a></div>';
+					print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=' . $signOrSeal . 'sync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignForceRefresh') . '</a></div>';
 				} else {
 					// print "<p>UptoSign : debug pour signStatus == $signStatus</p>";
 					if ($signStatus == UptoSign::STATUS_WAITING || $signStatus == UptoSign::STATUS_DRAFT) {
 						if ($user->rights->uptosign->read) {
-							print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=' . $signOrSeal . 'sync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignSync') . '</a></div>';
+							print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=' . $signOrSeal . 'sync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignSync') . '</a></div>';
 						} else {
 							print '<div class="inline-block divButAction"><a class="butActionRefused classfortooltip" title="' . $langs->trans('UptoSignYouDoNotHaveRightsToDo') . '" href="#"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignSync') . '</a></div>';
 						}
@@ -720,9 +721,9 @@ class ActionsUptoSign
 						//|| $signStatus == UptoSign::STATUS_FILE_FETCHED -> si déjà téléchargé on n'affiche pas le bouton
 						if ($user->rights->uptosign->read) {
 							if ($currentcontext == 'contractcard') {
-								print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=confirm_' . $signOrSeal . 'fetch"><i class=\"fas fa-signature\"></i>' . $langs->trans($signOrSeal . 'Fetch') . '</a></div>';
+								print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=confirm_' . $signOrSeal . 'fetch"><i class=\"fas fa-signature\"></i>' . $langs->trans($signOrSeal . 'Fetch') . '</a></div>';
 							} else {
-								print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=' . $signOrSeal . 'fetch"><i class=\"fas fa-signature\"></i>' . $langs->trans($signOrSeal . 'Fetch') . '</a></div>';
+								print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=' . $signOrSeal . 'fetch"><i class=\"fas fa-signature\"></i>' . $langs->trans($signOrSeal . 'Fetch') . '</a></div>';
 							}
 						}
 					} elseif ($signStatus == UptoSign::STATUS_CANCELED) {
@@ -731,11 +732,11 @@ class ActionsUptoSign
 						}
 					} elseif ($signStatus == UptoSign::STATUS_ERROR) {
 						print '<div class="inline-block divButAction"><a class="butActionRefused classfortooltip" href="#">' . $langs->trans('UptoSignSyncError') . '</a></div>';
-						print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=uptosignsync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignForceRefresh') . '</a></div>';
+						print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=uptosignsync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignForceRefresh') . '</a></div>';
 					} elseif ($signStatus == UptoSign::STATUS_FILE_FETCHED) {
 						//verifications si le fichier local n'est "pas le fichier signé/scellé"
 						if (!$uptoSign->checkFile()) {
-							print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=uptosignsync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignForceRefresh') . '</a></div>';
+							print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=uptosignsync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignForceRefresh') . '</a></div>';
 						}
 					}
 				}
@@ -885,7 +886,7 @@ class ActionsUptoSign
 			}
 		}
 		if ($sealbtn) {
-			$retour .=  '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=uptoseal">' . $langs->trans('UptoSignBtnSeal') . '</a></div>';
+			$retour .=  '<div class="inline-block divButAction"><a class="butAction" href="' . dol_escape_htmltag($_SERVER["PHP_SELF"]) . '?id=' . $object->id . '&action=uptoseal">' . $langs->trans('UptoSignBtnSeal') . '</a></div>';
 		} else {
 			$retour .= '<div class="inline-block divButAction"><a class="butActionRefused classfortooltip" title="' . $sealbtnMessage . '" href="#">' . $langs->trans('UptoSignBtnSeal') . '</a></div>';
 		}
@@ -906,40 +907,57 @@ class ActionsUptoSign
 	{
 		global $conf, $user, $langs, $db;
 
-		$error = 0; // Error counter
+		$error = 0;
 		$tabErrors = array();
 		dol_syslog(get_class($this) . '::doMassActions uptosign' . json_encode($parameters));
 
-		// print_r($parameters); print_r($object); echo "action: " . $action;
-		if (in_array($parameters['currentcontext'], array('invoicelist'))) {		// do something only for the context 'somecontext1' or 'somecontext2'
-			if ($parameters['massaction'] == "uptosealMass") {
-				//TODO sceal a lot of documents
-				$obj = new Facture($db);
-				foreach ($parameters['toselect'] as $id) {
-					$res = $obj->fetch($id);
-					if ($res > 0) {
-						$uptoSign = new UptoSign($this->db);
-						$filename = dol_sanitizeFileName($obj->ref);
-						$dir = $conf->invoice->dir_output . "/" . $filename;
-						$resUTS = $uptoSign->sealInit($user, $obj, $dir);
-						if ($resUTS < 0) {
-							--$error;
-							$tabErrors = $uptoSign->errors;
-							dol_syslog(get_class($this) . '::doMassActions uptosign error, ' . json_encode($uptoSign->errors));
-						}
-						// print "<p>Résultat UTS pour $filename / $dir = $resUTS</p>";
+		$massContextClasses = array(
+			'propallist' => 'Propal',
+			'orderlist' => 'Commande',
+			'invoicelist' => 'Facture',
+			'contractlist' => 'Contrat',
+			'interventionlist' => 'Fichinter',
+			'shipmentlist' => 'Expedition',
+			'projectlist' => 'Project',
+		);
+
+		$currentcontext = $parameters['currentcontext'];
+		if (isset($massContextClasses[$currentcontext]) && $parameters['massaction'] == "uptosealMass") {
+			$className = $massContextClasses[$currentcontext];
+			$obj = new $className($db);
+			foreach ($parameters['toselect'] as $id) {
+				$res = $obj->fetch($id);
+				if ($res > 0) {
+					$uptoSign = new UptoSign($this->db);
+					$filename = dol_sanitizeFileName($obj->ref);
+					// Resolve document directory based on object type
+					$elem = $obj->element;
+					if ($elem == 'shipping') {
+						$baseDir = $conf->expedition->dir_output . "/sending";
+					} elseif ($elem == 'contrat') {
+						$baseDir = $conf->contrat->dir_output;
+					} elseif ($elem == 'facture') {
+						$baseDir = $conf->invoice->dir_output;
+					} elseif ($elem == 'project') {
+						$baseDir = $conf->projet->dir_output;
+					} else {
+						$baseDir = $conf->{$elem}->dir_output;
+					}
+					$dir = $baseDir . "/" . $filename;
+					$resUTS = $uptoSign->sealInit($user, $obj, $dir);
+					if ($resUTS < 0) {
+						$error++;
+						$tabErrors = array_merge($tabErrors, $uptoSign->errors);
+						dol_syslog(get_class($this) . '::doMassActions uptosign error, ' . json_encode($uptoSign->errors));
 					}
 				}
 			}
 		}
 
 		if (!$error) {
-			$this->results = array('myreturn' => 999);
-			$this->resprints = 'A text to show';
-			return 0; // or return 1 to replace standard code
+			return 0;
 		} else {
-			$liste = array_unique($tabErrors);
-			$this->errors = $liste;
+			$this->errors = array_unique($tabErrors);
 			return -1;
 		}
 	}
@@ -959,20 +977,29 @@ class ActionsUptoSign
 		$langs->load("uptosign@uptosign");
 		dol_syslog(get_class($this) . '::addMoreMassActions uptosign' . json_encode($parameters));
 
-		$error = 0; // Error counter
+		$error = 0;
 		$disabled = 0;
 
-		// print_r($parameters); print_r($object); echo "action: " . $action;
-		//method=addMoreMassActions action= context=searchform:leftblock:toprightmenu:main:invoicelist
-		if (in_array($parameters['currentcontext'], array('invoicelist'))) {		// do something only for the context 'somecontext1' or 'somecontext2'
-			dol_syslog(get_class($this) . '::addMoreMassActions uptosign invoice list');
-			$this->resprints = '<option value="uptosealMass"' . ($disabled ? ' disabled="disabled"' : '') . '>' . $langs->trans("UptoSignSealInvoices") . '</option>';
+		$massContextLabels = array(
+			'propallist' => 'UptoSignSealProposals',
+			'orderlist' => 'UptoSignSealOrders',
+			'invoicelist' => 'UptoSignSealInvoices',
+			'contractlist' => 'UptoSignSealContracts',
+			'interventionlist' => 'UptoSignSealInterventions',
+			'shipmentlist' => 'UptoSignSealShipments',
+			'projectlist' => 'UptoSignSealProjects',
+		);
+
+		$currentcontext = $parameters['currentcontext'];
+		if (isset($massContextLabels[$currentcontext])) {
+			dol_syslog(get_class($this) . '::addMoreMassActions uptosign ' . $currentcontext);
+			$this->resprints = '<option value="uptosealMass"' . ($disabled ? ' disabled="disabled"' : '') . '>' . $langs->trans($massContextLabels[$currentcontext]) . '</option>';
 		}
 
 		if (!$error) {
-			return 0; // or return 1 to replace standard code
+			return 0;
 		} else {
-			array_push($this->errors, 'Error message');;
+			$this->errors[] = 'Error message';
 			return -1;
 		}
 	}
@@ -1166,45 +1193,6 @@ class ActionsUptoSign
 
 		$error = 0; // Error counter
 
-		// print_r($parameters); print_r($object); echo "action: " . $action; exit;
-		// eric disabled, je n'arrive pas à trouver comment ajouter l'option dans le menu sandwich
-		// if (in_array($parameters['currentcontext'], array('propallist','invoicelist','orderlist','interventionlist','contractlist','shipmentlist','projectlist'))) {
-		//     $parameters['arrayfields']['uptosign'] = array(
-		//         'label' => $langs->trans('UptoSignStatus'),
-		//         'checked' => 1,
-		//         'enabled' => 1
-		//     );
-
-		//     if (!empty($parameters['arrayfields']['uptosign']['checked'])) {
-		//         // do something only for the context 'somecontext1' or 'somecontext2'
-		//         $config = new UptoSignConfig($this->db);
-
-		//         if ($parameters['currentcontext'] == 'propallist' && ! empty($config->fetchListId('', 'propal'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'orderlist' && ! empty($config->fetchListId('', 'commande'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'interventionlist' && ! empty($config->fetchListId('', 'fichinter'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'contractlist' && ! empty($config->fetchListId('', 'contrat'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'shipmentlist' && ! empty($config->fetchListId('', 'expedition'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'projectlist' && ! empty($config->fetchListId('', 'project'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'invoicelist' && ! empty($config->fetchListId('', 'facture'))) {
-		//             $active = true;
-		//         } else {
-		//             $active = false;
-		//         }
-		//         if ($active && $user->rights->uptosign->read) {
-		//             $this->resprints = '<td class="liste_titre"><input type="text" name="uptosign_filter" value=""></td>';
-		//         } else {
-		//             $this->resprints = '';
-		//         }
-		//     }
-		// }
-
-		// or return 1 to replace standard code
 		return 0;
 	}
 
@@ -1223,46 +1211,6 @@ class ActionsUptoSign
 		global $conf, $user, $langs;
 
 		$error = 0; // Error counter
-
-		// print json_encode($parameters['arrayfields']);exit;
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-
-		// eric disabled, je n'arrive pas à trouver comment ajouter l'option dans le menu sandwich
-		// if (in_array($parameters['currentcontext'], array('propallist','invoicelist','orderlist','interventionlist','contractlist','shipmentlist','projectlist'))) {
-
-		// 	$parameters['arrayfields']['uptosign'] = array(
-		// 		'label' => $langs->trans('UptoSignStatus'),
-		// 		'checked' => 1,
-		// 		'enabled' => 1
-		// 	);
-
-		//     if (!empty($parameters['arrayfields']['uptosign']['checked'])) {
-		//         $config = new UptoSignConfig($this->db);
-		//         if ($parameters['currentcontext'] == 'propallist' && ! empty($config->fetchListId('', 'propal'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'orderlist' && ! empty($config->fetchListId('', 'commande'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'interventionlist' && ! empty($config->fetchListId('', 'fichinter'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'contractlist' && ! empty($config->fetchListId('', 'contrat'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'shipmentlist' && ! empty($config->fetchListId('', 'expedition'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'projectlist' && ! empty($config->fetchListId('', 'project'))) {
-		//             $active = true;
-		//         } elseif ($parameters['currentcontext'] == 'invoicelist' && ! empty($config->fetchListId('', 'facture'))) {
-		//             $active = true;
-		//         } else {
-		//             $active = false;
-		//         }
-		//         if ($active && $user->rights->uptosign->read) {
-		//             $this->resprints = '<th class="liste_titre">' . $langs->trans('UptoSignStatus') . '</th>';
-		//         } else {
-		//             $this->resprints = 'vide';
-		//         }
-		//     }
-		// }
 
 		return 0;                                    // or return 1 to replace standard code
 	}
@@ -1287,73 +1235,6 @@ class ActionsUptoSign
 		$dolObject = new stdClass();
 		$dolObject->db = $this->db;
 
-
-		// print_r($parameters['obj']); //print_r($object); echo "action: " . $action;
-		// exit;
-
-		// eric disabled, je n'arrive pas à trouver comment ajouter l'option dans le menu sandwich
-		// if (in_array($parameters['currentcontext'], array('propallist','invoicelist','orderlist','interventionlist','contractlist','shipmentlist','projectlist'))) {
-
-		// 	$parameters['arrayfields']['uptosign'] = array(
-		// 		'label' => $langs->trans('UptoSignStatus'),
-		// 		'checked' => 1,
-		// 		'enabled' => 1
-		// 	);
-
-		//     if (!empty($parameters['arrayfields']['uptosign']['checked'])) {
-		//         $config = new UptoSignConfig($this->db);
-		//         $uptoSign = new UptoSign($this->db);
-
-		//         if ($parameters['currentcontext'] == 'propallist' && ! empty($config->fetchListId('', 'propal'))) {
-		//             $dolObject->element = 'propal';
-		//         } elseif ($parameters['currentcontext'] == 'orderlist' && ! empty($config->fetchListId('', 'commande'))) {
-		//             $dolObject->element = 'commande';
-		//         } elseif ($parameters['currentcontext'] == 'interventionlist' && ! empty($config->fetchListId('', 'fichinter'))) {
-		//             $dolObject->element = 'fichinter';
-		//         } elseif ($parameters['currentcontext'] == 'contractlist' && ! empty($config->fetchListId('', 'contrat'))) {
-		//             $dolObject->element = 'contrat';
-		//         } elseif ($parameters['currentcontext'] == 'shipmentlist' && ! empty($config->fetchListId('', 'expedition'))) {
-		//             $dolObject->element = 'shipping';
-		//         } elseif ($parameters['currentcontext'] == 'projectlist' && ! empty($config->fetchListId('', 'project'))) {
-		//             $dolObject->element = 'project';
-		//         } elseif ($parameters['currentcontext'] == 'invoicelist' && ! empty($config->fetchListId('', 'facture'))) {
-		//             $dolObject->element = 'facture';
-		//         } else {
-		//             $dolObject->element = '';
-		//         }
-		//         $this->resprints = '';
-		//         $dolObject->id = $parameters['obj']->rowid ?? $parameters['obj']->id;
-		//         if ($user->rights->uptosign->read && !empty($dolObject->id) && !empty($dolObject->element)) {
-		//             if (! $i) {
-		//                 $totalarray['nbfield']++;
-		//             }
-		//             $res = $uptoSign->signInfo($user, $dolObject, 'local');
-		//             $signStatus = $res;
-		//             if (!isset($signStatus)) {
-		//                 $this->resprints = '<td>' . $langs->trans('NoUptoSign') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_NOTHING) {
-		//                 $this->resprints = '<td>' . $langs->trans('Nothing') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_EXPIRED) {
-		//                 $this->resprints = '<td>' . $langs->trans('UptoSignArchived') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_WAITING) {
-		//                 $this->resprints = '<td>' . $langs->trans('WaitingUptoSign') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_SIGNED) {
-		//                 $this->resprints = '<td>' . $langs->trans('SignedUptoSign') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_SEALED) {
-		//                 $this->resprints = '<td>' . $langs->trans('UptoSignSealedIsAvailable') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_CANCELED) {
-		//                 $this->resprints = '<td>' . $langs->trans('CanceledUptoSign') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_ERROR) {
-		//                 $this->resprints = '<td>' . $langs->trans('ErrorUptoSign') . '</td>';
-		//             } elseif ($signStatus == UptoSign::STATUS_FILE_FETCHED) {
-		//                 //Dans ce cas particulier on peut chercher à savoir si on a un fichier scellé et / ou signé en local ...
-		//                 $moreInfo = $this->_getMoreInfoFor($dolObject);
-		//                 $this->resprints = '<td>' . $langs->trans('UptoSignFetchedSign') . $moreInfo . '</td>';
-		//             }
-		//         }
-		//     }
-		// }
-
 		return 0;                                    // or return 1 to replace standard code
 	}
 
@@ -1363,9 +1244,7 @@ class ActionsUptoSign
 		$uptoSign = new UptoSign($this->db);
 		// $result = $uptoSign->fetchAll(null, null, $object->id, $object->element);
 		$object_type = uptosign_unify_object_type(uptosignModel($object));
-		$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $object->id . "' AND object_type='" . $object_type . "'"));
-		// print json_encode($object->element);
-		// print "<p>" . json_encode($object) . "</p>";
+		$result = $uptoSign->fetchByObject((int) $object->id, $object_type);
 		foreach ($result as $uts) {
 			// print '<p>'.json_encode($uts).'</p>';
 			if ($uts->api_name == 'uptoseal') {
@@ -1464,7 +1343,7 @@ class ActionsUptoSign
 			$hash = hash_file('sha256', $object['fullname']);
 			$uptoSign = new UptoSign($this->db);
 			$object_type = uptosign_unify_object_type($parameters['modulepart']);
-			$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $parameters['id'] . "' AND object_type='" . $object_type . "' AND hash_file_signed='" . $hash . "'"));
+			$result = $uptoSign->fetchByObject((int) $parameters['id'], $object_type, array('hash_file_signed' => $hash));
 			if (is_array($result)) {
 				$res = reset($result);
 				if ($res === false) {

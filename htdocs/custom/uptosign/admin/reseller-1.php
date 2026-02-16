@@ -96,6 +96,10 @@ if (!class_exists('FormSetup')) {
 * Actions
 */
 
+if (($action == "autoCreateContract" || $action == "autoCreateContractAndRecInvoice") && (!GETPOST('token', 'alpha') || GETPOST('token', 'alpha') != newToken())) {
+	accessforbidden('Invalid CSRF token');
+}
+
 if ($action == "autoCreateContract") {
 	$uptosignid = (string) GETPOST('uptosignid', 'aZ09');
 	$customerid = (string) GETPOST('customerid', 'aZ09');
@@ -165,7 +169,7 @@ if ($uptosignAccount === null || $uptosignAccount['main_role_level'] != UptoSign
 		if (isset($uptosignAccount['customers']) && count($uptosignAccount['customers']) > 0) {
 			foreach ($uptosignAccount['customers'] as $customer) {
 				echo "<tr>\n";
-				echo "<td><a href='https://app.uptosign.com/admin/s-list/users/s-form/users/" . $customer['id'] . "'>UpToSign: " . $customer['firstname'] . " " . $customer['name'] . "</a></td>\n";
+				echo "<td><a href='https://app.uptosign.com/admin/s-list/users/s-form/users/" . urlencode($customer['id']) . "'>UpToSign: " . dol_escape_htmltag($customer['firstname']) . " " . dol_escape_htmltag($customer['name']) . "</a></td>\n";
 				//search for a local dolibarr thirdpart with that email ...
 				$doliTiers = uptosignSearchThirdpartWithEmail($customer['email']);
 				if ($doliTiers) {
@@ -176,15 +180,15 @@ if ($uptosignAccount === null || $uptosignAccount['main_role_level'] != UptoSign
 						echo "<td>" . $langs->transnoentities("uptosignLocalCustomerContract", "<a href='" .DOL_URL_ROOT.'/contrat/card.php?id='.urlencode((string) $tiersContrat->id) . "&token=" . newToken() . "'>" . $tiersContrat->ref . "</a></td>");
 					} else {
 						if (utsbackports_getDolGlobalString('UPTOSIGN_RVD_AUTO_CREATE_INVOICES', '') != '') {
-							echo "<td>" . $langs->transnoentities("uptosignLocalCustomerCreateContractAndRecInvoice", "<a class='butAction' title='" . $langs->transnoentities("uptosignLocalCustomerCreateAutoTooltip") . "' href='" .$_SERVER['PHP_SELF'].'?action=autoCreateContractAndRecInvoice&customerid='.urlencode((string) $doliTiers->id) . "&uptosignid=" . $customer['id'] . "&token=" . newToken() . "'>", "</a>") . "</td>\n";
+							echo "<td>" . $langs->transnoentities("uptosignLocalCustomerCreateContractAndRecInvoice", "<a class='butAction' title='" . $langs->transnoentities("uptosignLocalCustomerCreateAutoTooltip") . "' href='" . dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=autoCreateContractAndRecInvoice&customerid='.urlencode((string) $doliTiers->id) . "&uptosignid=" . urlencode($customer['id']) . "&token=" . newToken() . "'>", "</a>") . "</td>\n";
 						} elseif (utsbackports_getDolGlobalString('UPTOSIGN_RVD_AUTO_CREATE_CONTRACT', '') != '') {
-							echo "<td>" . $langs->transnoentities("uptosignLocalCustomerCreateContract", "<a class='butAction' href='" .$_SERVER['PHP_SELF'].'?action=autoCreateContract&customerid='.urlencode((string) $doliTiers->id) . "&uptosignid=" . $customer['id'] . "&token=" . newToken() . "'>", "</a>") . "</td>\n";
+							echo "<td>" . $langs->transnoentities("uptosignLocalCustomerCreateContract", "<a class='butAction' href='" . dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=autoCreateContract&customerid='.urlencode((string) $doliTiers->id) . "&uptosignid=" . urlencode($customer['id']) . "&token=" . newToken() . "'>", "</a>") . "</td>\n";
 						} else {
 							echo "<td>" . $langs->transnoentities("uptosignLocalCustomerCreateContractIsDisabled") . "</td>\n";
 						}
 					}
 				} else {
-					echo "<td colspan='2'>" . $langs->trans("uptosignThereIsNoLocalCustomerWithThatEmail", $customer['email']) . "</td>\n";
+					echo "<td colspan='2'>" . $langs->trans("uptosignThereIsNoLocalCustomerWithThatEmail", dol_escape_htmltag($customer['email'])) . "</td>\n";
 				}
 				echo "</tr>\n";
 			}

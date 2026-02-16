@@ -184,7 +184,7 @@ $arrayfields = dol_sort_array($arrayfields, 'position');
 
 // There is several ways to check permission.
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
-$enablepermissioncheck = 0;
+$enablepermissioncheck = 1;
 if ($enablepermissioncheck) {
 	$permissiontoread = $user->rights->uptosign->read;
 	$permissiontodelete = $user->rights->uptosign->delete;
@@ -203,7 +203,7 @@ if ($user->socid > 0) {
 //$isdraft = (($object->status == $object::STATUS_DRAFT) ? 1 : 0);
 //restrictedArea($user, $object->element, $object->id, $object->table_element, '', 'fk_soc', 'rowid', $isdraft);
 if (empty($conf->uptosign->enabled)) {
-	accessforbidden('Moule not enabled');
+	accessforbidden('Module not enabled');
 }
 if (!$permissiontoread) {
 	accessforbidden();
@@ -215,7 +215,7 @@ if (isset($search["fk_object"]) && !is_numeric($search["fk_object"])) {
 	if($table == "") {
 		$table = "propal";
 	}
-	$sqlfk = "SELECT rowid FROM " . MAIN_DB_PREFIX . $table . " WHERE ref='" . $search["fk_object"] . "'";
+	$sqlfk = "SELECT rowid FROM " . MAIN_DB_PREFIX . $table . " WHERE ref='" . $db->escape($search["fk_object"]) . "'";
 	$resqlfk = $db->query($sqlfk);
 	if ($resqlfk) {
 		$objfk = $db->fetch_object($resqlfk);

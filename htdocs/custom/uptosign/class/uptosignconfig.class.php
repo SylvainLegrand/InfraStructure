@@ -28,6 +28,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 dol_include_once('/uptosign/class/uptosign.class.php');
+dol_include_once('/uptosign/class/uptosignsignatoryresolver.class.php');
 dol_include_once('/uptosign/lib/uptosign.lib.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 
@@ -246,16 +247,8 @@ class UptoSignConfig extends CommonObject
 	 */
 	public function create(User $user, $notrigger = false)
 	{
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-		$resultcreate = $this->createCommon($user, $notr);
-		//$resultvalidate = $this->validate($user, $notr);
+		/** @phpstan-ignore-next-line */
+		$resultcreate = $this->createCommon($user, $notrigger ? 1 : 0);
 		return $resultcreate;
 	}
 
@@ -290,7 +283,7 @@ class UptoSignConfig extends CommonObject
 		// Reset some properties
 		unset($object->id);
 		unset($object->fk_user_creat);
-		unset($object->import_key);
+		$object->import_key = null;
 
 		// Clear fields
 		if (property_exists($object, 'ref')) {
@@ -430,14 +423,14 @@ class UptoSignConfig extends CommonObject
 			foreach ($filter as $key => $value) {
 				if ($key == 't.rowid') {
 					$sqlwhere[] = $key." = ".((int) $value);
-				} elseif ($key == 'customsql') {
-					$sqlwhere[] = $value;
-				} elseif (in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
+				} elseif (array_key_exists($key, $this->fields) && in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
 					$sqlwhere[] = $key." = '".$this->db->idate($value)."'";
-				} elseif (strpos($value, '%') === false) {
-					$sqlwhere[] = $key." IN (".$this->db->sanitize($this->db->escape($value)).")";
-				} else {
+				} elseif (strpos($value, '%') !== false) {
 					$sqlwhere[] = $key." LIKE '%".$this->db->escape($value)."%'";
+				} elseif (is_numeric($value)) {
+					$sqlwhere[] = $key." = ".((int) $value);
+				} else {
+					$sqlwhere[] = $key." = '".$this->db->escape($value)."'";
 				}
 			}
 		}
@@ -502,13 +495,13 @@ class UptoSignConfig extends CommonObject
 		if (isset($modelpdf)) {
 			if ($type != '') {
 				$type = uptosign_unify_object_type($type);
-				$sql .= " AND model_pdf = '" . $type . ':' . $modelpdf . "'";
+				$sql .= " AND model_pdf = '" . $this->db->escape($type . ':' . $modelpdf) . "'";
 			} else {
-				$sql .= " AND model_pdf = '" . $modelpdf . "'";
+				$sql .= " AND model_pdf = '" . $this->db->escape($modelpdf) . "'";
 			}
 		}
 		if ($signOrSeal != '') {
-			$sql .= " AND sign_or_seal = '" . $signOrSeal . "'";
+			$sql .= " AND sign_or_seal = '" . $this->db->escape($signOrSeal) . "'";
 		}
 		$sql .= " AND status != '" . $this::STATUS_DISABLED . "'";
 
@@ -584,18 +577,12 @@ class UptoSignConfig extends CommonObject
 	 */
 	public function update(User $user, $notrigger = false)
 	{
-		//remove import_key -> that config will be saved in backup/restaure module process
-		unset($this->import_key);
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
+		// Set import_key to null so it won't be saved (for backup/restore module process)
+		// Note: using null instead of unset() for PHP 8.x compatibility
+		$this->import_key = null;
 
-		return $this->updateCommon($user, $notr);
+		/** @phpstan-ignore-next-line */
+		return $this->updateCommon($user, $notrigger ? 1 : 0);
 	}
 
 	/**
@@ -607,16 +594,8 @@ class UptoSignConfig extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-		return $this->deleteCommon($user, $notr);
-		//return $this->deleteCommon($user, $notrigger, 1);
+		/** @phpstan-ignore-next-line */
+		return $this->deleteCommon($user, $notrigger ? 1 : 0);
 	}
 
 	/**
@@ -633,15 +612,8 @@ class UptoSignConfig extends CommonObject
 			$this->error = 'ErrorDeleteLineNotAllowedByObjectStatus';
 			return -2;
 		}
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-		return $this->deleteLineCommon($user, $idline, $notr);
+		/** @phpstan-ignore-next-line */
+		return $this->deleteLineCommon($user, $idline, $notrigger ? 1 : 0);
 	}
 
 
@@ -948,7 +920,6 @@ class UptoSignConfig extends CommonObject
 
 				$this->date_creation     = $this->db->jdate($obj->datec);
 				$this->date_modification = $this->db->jdate($obj->datem);
-				$this->date_validation   = $this->db->jdate($obj->datev);
 			}
 
 			$this->db->free($result);
@@ -982,7 +953,7 @@ class UptoSignConfig extends CommonObject
 		$this->lines = array();
 
 		$objectline = new UptoSignConfigLine($this->db);
-		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql'=>'fk_uptosignconfig = '.((int) $this->id)));
+		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('t.fk_uptosignconfig' => (int) $this->id));
 
 		if (is_numeric($result)) {
 			$this->error = $objectline->error;
@@ -1118,110 +1089,30 @@ class UptoSignConfig extends CommonObject
 	}
 
 	/**
-	 *  Return array with list of possible values for type of contacts
+	 * Return array with list of possible values for type of contacts - delegates to UptoSignSignatoryResolver
 	 *
-	 *  @param  string  $element    Object element
-	 *  @param  string  $source     'internal', 'external' or 'all'
-	 *  @param  string  $order      Sort order by : 'position', 'code', 'rowid'...
-	 *  @param  string  $filter     Filter : associative array key => value
-	 *  @return array               Array list of type of contacts (id->label if option=0, code->label if option=1)
+	 * @param  string     $element Object element
+	 * @param  string     $source  'internal', 'external' or 'all'
+	 * @param  string     $order   Sort order by: 'position', 'code', 'rowid'...
+	 * @param  array|null $filter  Associative array of additional filters
+	 * @return array|null          Array of contact types or null on error
 	 */
 	public function getTypeContactCode($element, $source = 'external', $order = 'position', $filter = null)
 	{
-		global $langs;
-
-		if (empty($order)) {
-			$order = 'position';
-		}
-		if ($order == 'position') {
-			$order .= ',code';
-		}
-		if ($element == 'expedition' || $element == 'shipping') {
-			$element = 'commande';
-		}
-
-		$tab = array();
-
-		$sql = "SELECT DISTINCT tc.rowid, tc.source, tc.code, tc.libelle, tc.position";
-		$sql .= " FROM " . MAIN_DB_PREFIX . "c_type_contact as tc";
-		$sql .= " WHERE tc.element='" . $this->db->escape($element) . "'";
-		$sql .= " AND tc.active=1"; // only the active types
-		if (!empty($source) && $source != 'all') {
-			$sql .= " AND tc.source='" . $this->db->escape($source) . "'";
-		}
-		if (is_array($filter)) {
-			foreach ($filter as $key => $val) {
-				$sql .= " AND tc." . $key . "='" . $this->db->escape($val) . "'";
-			}
-		}
-		$sql .= $this->db->order($order, 'ASC');
-
-		// print "sql=".$sql;
-		$resql = $this->db->query($sql);
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			$i = 0;
-			while ($i < $num) {
-				$obj = $this->db->fetch_object($resql);
-				$tab[$obj->rowid] = array(
-					'id' => $obj->rowid,
-					'code' => $obj->code,
-					'source' => $obj->source,
-				);
-				$i++;
-			}
-			return $tab;
-		} else {
-			array_push($this->errors, "Error " . $this->db->lasterror());
-			dol_syslog(get_class($this) . "::getTypeContactCode " .join(',', $this->errors), LOG_ERR);
-			return null;
-		}
+		$resolver = new UptoSignSignatoryResolver($this->db);
+		return $resolver->getTypeContactCode($element, $source, $order, $filter);
 	}
 
 	/**
-	 *  Return array with list of possible values for type of contacts
+	 * Return array with list of possible contact sources for an element - delegates to UptoSignSignatoryResolver
 	 *
-	 *  @param  string  $element    L'élément du type de contact
-	 *
-	 *  @return array               Array list of type of contacts (id->label if option=0, code->label if option=1)
+	 * @param  string     $element Object element name
+	 * @return array|null          Array of sources or null on error/empty
 	 */
 	public function getSourceContactCode($element)
 	{
-		global $langs;
-		dol_syslog('uptoSignConfig getSourceContactCode for $element', LOG_DEBUG);
-
-		if (empty($element)) {
-			dol_syslog('uptoSignConfig getSourceContactCode element is empty, short return', LOG_DEBUG);
-			return null;
-		}
-
-		if ($element == 'shipping' || $element == 'expedition') {
-			$element = 'commande';
-		}
-
-		$tab = array();
-
-		$sql = "SELECT DISTINCT tc.rowid, tc.source";
-		$sql .= " FROM " . MAIN_DB_PREFIX . "c_type_contact as tc";
-		$sql .= " WHERE tc.element='" . $this->db->escape($element) . "'";
-		$sql .= " AND tc.active=1"; // only the active types
-
-		//print "sql=".$sql;
-		$resql = $this->db->query($sql);
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			$i = 0;
-			while ($i < $num) {
-				$obj = $this->db->fetch_object($resql);
-				$tab[$obj->rowid] = $obj->source;
-				$i++;
-			}
-			return $tab;
-		} else {
-			array_push($this->errors, "Error " . $this->db->lasterror());
-			dol_syslog(get_class($this) . "::getSourceContactCode " .join(',', $this->errors), LOG_ERR);
-			return null;
-		}
+		$resolver = new UptoSignSignatoryResolver($this->db);
+		return $resolver->getSourceContactCode($element);
 	}
 
 	/**

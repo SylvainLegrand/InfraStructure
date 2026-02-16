@@ -302,6 +302,7 @@ if ($action == 'uptosign') {
 	$sendRes = null;
 	$contacts = $object->getContacts();
 	foreach ($contacts as $contact) {
+		$uptoSign = new UptoSign($db);
 		$listMembers = [];
 		$signerName = $contactemail = "";
 
@@ -344,6 +345,14 @@ if ($action == 'uptosign') {
 			);
 
 			$sendRes = $uptoSign->sealOrSignInitLight($user, $object, $fileToSign, $listMembers, $procedure);
+
+			// Link the member to the created UptoSign procedure
+			if ($sendRes >= 0 && $uptoSign->id > 0) {
+				$sql = "UPDATE ".$db->prefix()."uptosign_uptosignlistmembers";
+				$sql .= " SET fk_uptosign = ".((int) $uptoSign->id);
+				$sql .= " WHERE rowid = ".((int) $contact->rowid);
+				$db->query($sql);
+			}
 		} else {
 			dol_syslog("uptosign: sign target email is empty !", LOG_DEBUG);
 			$sendRes = -1;
@@ -433,7 +442,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		// Send
 		$api_name = uptosign_unify_api_name($signOrSeal);
-		$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql'=>"fk_object='" . $id ."' AND object_type='" . uptosign_unify_object_type($modulepart) . "' AND api_name='" . $api_name . "' AND path_file='" . $pdfFileChoosedFullPath . "'"));
+		$result = $uptoSign->fetchByObject((int) $id, uptosign_unify_object_type($modulepart), array('api_name' => $api_name, 'path_file' => $pdfFileChoosedFullPath));
 		// print "<p>UptoSignSignedNoModify : "  .  json_encode($result). "</p>";
 		// print json_encode($uptoSign);
 		if (is_array($result)) {
@@ -470,58 +479,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	}
 	print '	<div class="fichecenter">' . "\n";
 	print ' 	<div class="fichethirdleft" style="padding:10px; max-width: 200px">' . "\n";
-	print '			<div style="display: flex; justify-content: space-between;" id="paramPages">
-						<button style="display: flex; width: 48px;" id="prev">
-							<svg xmlns="http://www.w3.org/2000/svg" style="height: 24px; width: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
-							</svg>
-						</button>
-						<div style="display: flex; flex-grow: 20;flex-direction: column;text-align: center;">
-							<span>Page: <span id="page_num"></span> / <span id="page_count"></span></span>
-						</div>
-						<button style="display: flex; width: 48px;" id="next">
-							<svg xmlns="http://www.w3.org/2000/svg" style="height: 24px; width: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-							</svg>
-						</button>
-					</div>' . "\n";
-	// print "<p>Choix du fichier à signer : (liste des PDF liés à l'objet en cours)";
-	// print '			<input type="file" id="file">';
+	uptosign_render_page_nav();
 	dol_syslog("uptosign, pdfFileChoosed is " . $pdfFileChoosed);
-	//Liste des fichiers PDF liés à cet objet
-	/** @phpstan-ignore-next-line */
-	$filearray = dol_dir_list($upload_dir, "files", 0, '\.pdf$', ['(\.meta|_preview.*\.png)$'], "name", SORT_ASC, 1);
-	$fileInfo = null;
-	if (is_array($filearray) && count($filearray) >= 1) {
-		//1er fichier par défaut
-		$fileInfo = reset($filearray);
-		$pdfFileChoosedFullPath = dol_osencode(dol_sanitizePathName($fileInfo['fullname']));
-		if (count($filearray) > 1) {
-			print '<p>' . $langs->trans('UptoSignChooseFile') . '</p>' . "\n";
-			print "<select name='pdfFileChoosed' onchange='pdfFileChange();' style='width:100%;max-width:90%;'>";
-			foreach ($filearray as $fileInfo) {
-				$s = "";
-				if ($pdfFileChoosed != "" && dol_osencode(dol_sanitizePathName($fileInfo['name'])) == $pdfFileChoosed) {
-					//note do not use dol_sanitizePathName due to non ascii chars into file name...
-					$pdfFileChoosedFullPath = dol_osencode($fileInfo['fullname']);
-					$s = "selected";
-				}
-				print "<option value='" . dol_osencode(dol_sanitizePathName($fileInfo['name'])) . "' $s>" . $fileInfo['name'] . "</option>";
-			}
-			print "<option value=''></option>";
-			print "</select>";
-		}
-		print '	  <input type="hidden" id="pdfData" name="pdfData" value="' . base64_encode(file_get_contents($pdfFileChoosedFullPath)) . '">' . "\n";
-		print '	  <input type="hidden" id="pdfFileName" name="pdfFileName" value="' . base64_encode($pdfFileChoosedFullPath) . '">' . "\n";
-	} else {
-		print "<p style='color: #f00;font-weight: bold;'>" . $langs->trans('UptoSignNoPdfFilesAssociated') . "</p>";
-		print "<p>" . $upload_dir . "</p>";
-	}
+	$fileInfo = uptosign_render_pdf_selector($upload_dir, $pdfFileChoosed, $pdfFileChoosedFullPath);
 	print '	  <input type="hidden" id="objectType" name="objectType" value="' . $objectType . '">' . "\n";
 	print '	  <input type="hidden" id="id" name="id" value="' . $id . '">' . "\n";
 	print '		 <input type="hidden" name="token" value="'.newToken().'">'."\n";
-	// print '	  <input type="hidden" id="" name="" value="' . $ . '">' . "\n";
-	// print '	  <input type="hidden" id="" name="" value="' . $ . '">' . "\n";
 
 	$autopositionSeal = $autopositionSign = false; //new way: seal is distinct of sign
 	$positionsSeal = $positionsSign = array();
@@ -538,85 +501,17 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	//En priorite utilisation de la position des mots clés magiques
 	if (!empty($fileInfo)) {
-		$arr = [];
-		if (uptosign_auto_position_magic_keywords($pdfFileChoosedFullPath, $arr, $action)) {
-			// print json_encode($arr);exit;
-
-			if (isset($arr['STAMP'])) {
-				foreach ($arr['STAMP'] as $page => $value) {
-					$positionsSeal[$page]['STAMP'] = array('defaultSealX' => (!empty($value['x']) ? $value['x'] : 0),
-											'defaultSealY' => (!empty($value['y']) ? $value['y'] : 0),
-											'defaultSealPage' => (!empty($value['p']) ? $value['p'] : 0));
-					$autopositionSeal = true;
-				}
-			}
-			for ($idn = 0; $idn < 10; $idn++) {
-				$tag = sprintf("SIGN_%'02d", $idn);
-				if (isset($arr[$tag])) {
-					foreach ($arr[$tag] as $page => $value) {
-						dol_syslog("uptosign: auto position detect (sign debug) : $tag // $idn // page=$page :: " . $value['p']);
-						$positionsSign[$page][$tag]= array('defaultSignContactX' => (!empty($value['x']) ? $value['x'] : 0),
-												'defaultSignContactY' => (!empty($value['y']) ? $value['y'] : 0),
-												'defaultSignContactPage' => (!empty($value['p']) ? $value['p'] : 0));
-					}
-					$autopositionSign = true;
-				}
-			}
-			for ($idn = 0; $idn < 10; $idn++) {
-				$tag = sprintf("FROM_%'02d", $idn);
-				if (isset($arr[$tag])) {
-					foreach ($arr[$tag] as $page => $value) {
-						$positionsSign[$page][$tag]= array('defaultSignUserX' => (!empty($value['x']) ? $value['x'] : 0),
-												'defaultSignUserY' => (!empty($value['y']) ? $value['y'] : 0),
-												'defaultSignUserPage' => (!empty($value['p']) ? $value['p'] : 0));
-					}
-					$autopositionSign = true;
-				}
-			}
-
-			// print json_encode($positionsSign);exit;
-
-			dol_syslog('uptosign: auto position detect (sign) :' . json_encode($positionsSign));
-			dol_syslog('uptosign: auto position detect (seal) :' . json_encode($positionsSeal));
-		} else {
-			dol_syslog('uptosign: auto position detect (keywords) fail');
-		}
+		$autoResult = uptosign_detect_pdf_positions($pdfFileChoosedFullPath, $action, $positionsSign, $positionsSeal);
+		$autopositionSign = $autoResult['autopositionSign'];
+		$autopositionSeal = $autoResult['autopositionSeal'];
 	}
 
 	// note: partial fail possible: autoposition ok pour signature mais pas pour le sceau .. il faut donc quand meme passer sur ce bloc de code
 	if ($autopositionSeal == false || $autopositionSign == false) {
-		$configIds = $uptoSignConfig->fetchListId($model_pdf, $modulepart, $signOrSeal);
-		if ($configIds) {
-			// print "<p>Modèle de document : " . json_encode($configIds) . "</p>";
-			if (is_array($configIds)) {
-				$uptoSignConfig->fetch($configIds[0]);
-
-				//C'est là qu'on evite de prendre l'info si le autoposition a retourné qqchose : ces données ont été renseignées par autoconf
-				if (!$autopositionSeal) {
-					$d = explode(',', $uptoSignConfig->seal_coordinate);
-					$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealX'] = $d[0];
-					$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealY'] = $d[1];
-					$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealPage'] = $uptoSignConfig->page_seal;
-					$autopositionSeal = true;
-				}
-				//Une seule signature "client" préconfigurée => pour plus de sugnatures utiliser les mots 'magiques'
-				if (!$autopositionSign) {
-					if (!empty($uptoSignConfig->page_sign)) {	// test si la signature n'est pas désactivée pour ce type de document
-						$d = explode(',', $uptoSignConfig->sign_coordinate);
-						$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactX'] = $d[0];
-						$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactY'] = $d[1];
-						$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactPage'] = $uptoSignConfig->page_sign;
-						$autopositionSign = true;
-					} else {
-						$noSign = 1;
-					}
-				}
-				dol_syslog('uptosign: position via profil de doc sign: ' . json_encode($positionsSign));
-				dol_syslog('uptosign: position via profil de doc seal: ' . json_encode($positionsSeal));
-			} else {
-				dol_syslog("Modèle de position des signatures introuvable", LOG_ERR);
-			}
-		}
+		$configResult = uptosign_get_config_positions($model_pdf, $modulepart, $signOrSeal, $uptoSignConfig, $autopositionSeal, $autopositionSign, $positionsSign, $positionsSeal);
+		$autopositionSign = $configResult['autopositionSign'];
+		$autopositionSeal = $configResult['autopositionSeal'];
+		$noSign = $configResult['noSign'];
 	}
 
 
@@ -664,43 +559,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '	</div> <!-- end of pdfManager -->' . "\n";
 
 	//La liste des objets a placer sur le document. 1. le sceau toujours présent
-	$jsonparameters = array();
-	if (count($positionsSeal) > 0) {
-		$i = 0;
-		foreach ($positionsSeal as $page => $position) {
-			$jsonparameters[] = array('paramId' => 'seal-' . $i,
-						'description' => "SCEAU UPTOSIGN (obligatoire)<br />"
-						 . "Document scellé par uptosign<br />"
-						 . "Identifiant unique xxxxx<br />"
-						 . "https://uptosign.com/",
-						'defaultX' => $position['STAMP']['defaultSealX'],
-						'defaultY' => $position['STAMP']['defaultSealY'],
-						'defaultPage' => $position['STAMP']['defaultSealPage']
-						);
-			$listOfFields = array('signX', 'signY', 'page');
-			foreach ($listOfFields as $f) {
-				$fieldName = 'seal-'.$i.'-'.$f;
-				print '<input id="'.$fieldName.'" name="'.$fieldName.'" type="hidden" value="">'."\n";
-			}
-			$i++;
-		}
-	} else {
-		$i = 0;
-		$jsonparameters[] = array('paramId' => 'seal-' . $i,
-		'description' => "SCEAU UPTOSIGN (obligatoire)<br />"
-		. "Document scellé par uptosign<br />"
-		. "Identifiant unique xxxxx<br />"
-		. "https://uptosign.com/",
-		'defaultX' => 0,
-		'defaultY' => 0,
-		'defaultPage' => 0
-		);
-		$listOfFields = array('signX', 'signY', 'page');
-		foreach ($listOfFields as $f) {
-			$fieldName = 'seal-'.$i.'-'.$f;
-			print '<input id="'.$fieldName.'" name="'.$fieldName.'" type="hidden" value="">'."\n";
-		}
-	}
+	$jsonparameters = uptosign_build_seal_params($positionsSeal);
 	$jsonparameters[] = array('paramId' => 'sign-'.$i,
 					'description' => str_replace("'", "&apos;", "PRENOM NOM<br />"
 					. "Mail : xxxx@xxxxx.xxxxx<br />"
@@ -712,7 +571,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			);
 
 	print '	  <input type="hidden" id="countOfContacts" name="countOfContacts" value="' . $object->getNbContacts() . '">'."\n";
-	//TODO CHECK
+	$listOfFields = ['signX', 'signY', 'page'];
 	foreach ($listOfFields as $f) {
 		$fieldName = 'sign-'.$i.'-'.$f;
 		print '<input id="'.$fieldName.'" name="'.$fieldName.'" type="hidden" value="">'."\n";

@@ -23,7 +23,7 @@ include_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 /**
  *	Class to manage a list of personalised recipients for mailing feature
  */
-class uptosignlist_advthirdparties extends UptosignListTargets
+class uptosignlist_uts_thirdparties extends UptosignListTargets
 {
 	public $name = 'ThirdPartyAdvancedTargeting';
 	// This label is used if no translation is found for key XXX neither MailingModuleDescXXX where XXX=name is found

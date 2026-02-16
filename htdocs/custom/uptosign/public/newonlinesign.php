@@ -146,7 +146,7 @@ $urlwithroot = DOL_MAIN_URL_ROOT; // This is to use same domain name than curren
 
 
 // Complete urls for post treatment
-$SECUREKEY = GETPOST("securekey"); // Secure key
+$SECUREKEY = GETPOST("securekey", "alpha"); // Secure key
 
 if (!empty($source)) {
 	$urlok .= 'source=' . urlencode($source) . '&';
@@ -539,7 +539,7 @@ print '<input type="hidden" name="token" value="' . newToken() . '">' . "\n";
 print '<input type="hidden" name="action" value="dosign">' . "\n";
 print '<input type="hidden" name="tag" value="' . (string) GETPOST("tag", 'alpha') . '">' . "\n";
 print '<input type="hidden" name="suffix" value="' . (string) GETPOST("suffix", 'alpha') . '">' . "\n";
-print '<input type="hidden" name="securekey" value="' . $SECUREKEY . '">' . "\n";
+print '<input type="hidden" name="securekey" value="' . dol_escape_htmltag($SECUREKEY) . '">' . "\n";
 print '<input type="hidden" name="entity" value="' . $entity . '" />';
 print '<input type="hidden" name="page_y" value="" />';
 print '<input type="hidden" name="last_main_doc" value="' . $pdfFileChoosed . '" />';

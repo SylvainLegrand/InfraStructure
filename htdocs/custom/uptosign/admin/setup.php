@@ -148,7 +148,7 @@ if (utsbackports_getDolGlobalString('UPTOSIGN_ACCEPT_CGU', '')  != '') {
 }
 $resetPasswordLink = $createAccountLink = "";
 
-if ($action == 'checkConnectAPI') {
+if ($action == 'checkConnectAPI' && !empty(GETPOST('token', 'alpha')) && GETPOST('token', 'alpha') == newToken()) {
 	//Note: in case of remote api key removed or disabled, local api is set but can't be used anymore
 	if (utsbackports_getDolGlobalString('UPTOSIGN_KEY_API', '')  != "") {
 		if (uptosignApiTryLoginWithAPIKey()) {
@@ -326,7 +326,7 @@ if ($resetPasswordLink != "") {
 
 	print '<tr class="oddeven"><td class=""><b>' . $langs->trans("UPTOSIGN_PASS_API") . "</b><br /><i>" . $langs->trans("UPTOSIGN_PASS_APITooltip") . '</i></td>';
 	print '<td>';
-	print '<input type="password" name="UPTOSIGN_PASS_API" value="' . $defaultPassword . '" class="minwidth300" onchange="formChange();">';
+	print '<input type="password" name="UPTOSIGN_PASS_API" value="' . dol_escape_htmltag($defaultPassword) . '" class="minwidth300" onchange="formChange();">';
 	print '</td>';
 	print '</tr>';
 
@@ -352,7 +352,7 @@ if ($resetPasswordLink != "") {
 
 	print '<input id="saveBtn" class="button button-save" type="submit" value="' . $langs->trans("Save") . '" ' . $btnDefaultStatus . '>';
 
-	print '<a id="checkConnectBtn" class="butAction" href="' . $_SERVER["PHP_SELF"] . '?action=checkConnectAPI"' . $btnCheckVisible . '>' . $langs->trans("CheckConnectToUPTOSIGN") . '</a>';
+	print '<a id="checkConnectBtn" class="butAction" href="' . dol_escape_htmltag($_SERVER["PHP_SELF"]) . '?action=checkConnectAPI&token=' . newToken() . '"' . $btnCheckVisible . '>' . $langs->trans("CheckConnectToUPTOSIGN") . '</a>';
 
 	print '</div>';
 

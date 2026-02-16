@@ -769,7 +769,7 @@ if ($id > 0 && $object->fetch($id)) {
 					print '<td class="center">';
 					print '<!-- ID uptosignlist_cibles = '.$obj->rowid.' -->';
 					if ($obj->statut == $object::STATUS_DRAFT) {	// Not sent yet
-						if (!empty($user->rights->mailing->creer)) {
+						if (!empty($user->hasRight('uptosign', 'create'))) {
 							print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
 						}
 					}
@@ -852,7 +852,7 @@ if ($id > 0 && $object->fetch($id)) {
 					print '<td class="center">';
 					print '<!-- ID uptosignlist_cibles = '.$obj->rowid.' -->';
 					if ($obj->statut == $object::STATUS_DRAFT) {	// Not sent yet
-						if (!empty($user->rights->mailing->creer)) {
+						if (!empty($user->hasRight('uptosign', 'create'))) {
 							print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
 						}
 					}

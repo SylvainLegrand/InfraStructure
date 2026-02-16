@@ -159,8 +159,8 @@ class UptoSignList extends CommonObject
 	public $status;
 	// END MODULEBUILDER PROPERTIES
 
-	private $_nb_contacts;
-	private $_contacts;
+	private $_nb_contacts = 0;
+	private $_contacts = [];
 
 
 	// If this object has a subtable with lines
@@ -251,17 +251,8 @@ class UptoSignList extends CommonObject
 	 */
 	public function create(User $user, $notrigger = false)
 	{
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-
-		$resultcreate = $this->createCommon($user, $notr);
-		//$resultvalidate = $this->validate($user, $notrigger);
+		/** @phpstan-ignore-next-line */
+		$resultcreate = $this->createCommon($user, $notrigger ? 1 : 0);
 
 		return $resultcreate;
 	}
@@ -297,7 +288,7 @@ class UptoSignList extends CommonObject
 		// Reset some properties
 		unset($object->id);
 		unset($object->fk_user_creat);
-		unset($object->import_key);
+		$object->import_key = null;
 
 		// Clear fields
 		if (property_exists($object, 'ref')) {
@@ -434,14 +425,14 @@ class UptoSignList extends CommonObject
 			foreach ($filter as $key => $value) {
 				if ($key == 't.rowid') {
 					$sqlwhere[] = $key." = ".((int) $value);
-				} elseif (in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
+				} elseif (array_key_exists($key, $this->fields) && in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
 					$sqlwhere[] = $key." = '".$this->db->idate($value)."'";
-				} elseif ($key == 'customsql') {
-					$sqlwhere[] = $value;
-				} elseif (strpos($value, '%') === false) {
-					$sqlwhere[] = $key." IN (".$this->db->sanitize($this->db->escape($value)).")";
-				} else {
+				} elseif (strpos($value, '%') !== false) {
 					$sqlwhere[] = $key." LIKE '%".$this->db->escapeforlike($this->db->escape($value))."%'";
+				} elseif (is_numeric($value)) {
+					$sqlwhere[] = $key." = ".((int) $value);
+				} else {
+					$sqlwhere[] = $key." = '".$this->db->escape($value)."'";
 				}
 			}
 		}
@@ -490,16 +481,8 @@ class UptoSignList extends CommonObject
 	 */
 	public function update(User $user, $notrigger = false)
 	{
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-
-		return $this->updateCommon($user, $notr);
+		/** @phpstan-ignore-next-line */
+		return $this->updateCommon($user, $notrigger ? 1 : 0);
 	}
 
 	/**
@@ -511,17 +494,8 @@ class UptoSignList extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-
-		return $this->deleteCommon($user, $notr);
-		//return $this->deleteCommon($user, $notrigger, 1);
+		/** @phpstan-ignore-next-line */
+		return $this->deleteCommon($user, $notrigger ? 1 : 0);
 	}
 
 	/**
@@ -539,15 +513,8 @@ class UptoSignList extends CommonObject
 			return -2;
 		}
 
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-		return $this->deleteLineCommon($user, $idline, $notr);
+		/** @phpstan-ignore-next-line */
+		return $this->deleteLineCommon($user, $idline, $notrigger ? 1 : 0);
 	}
 
 
@@ -766,7 +733,7 @@ class UptoSignList extends CommonObject
 		if (isset($this->status)) {
 			$datas['picto'] .= ' '.$this->getLibStatut(5);
 		}
-		$datas['ref'] .= '<br><b>'.$langs->trans('Ref').':</b> '.$this->ref;
+		$datas['ref'] = '<br><b>'.$langs->trans('Ref').':</b> '.$this->ref;
 
 		return $datas;
 	}
@@ -1053,7 +1020,7 @@ class UptoSignList extends CommonObject
 		$this->lines = array();
 
 		$objectline = new UptoSignListLine($this->db);
-		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql'=>'fk_uptosignlist = '.((int) $this->id)));
+		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('t.fk_uptosignlist' => (int) $this->id));
 
 		if (is_numeric($result)) {
 			//dur to dolibarr < 16 compat
@@ -1242,6 +1209,35 @@ class UptoSignList extends CommonObject
 	}
 
 
+
+	/**
+	 * Get list members with their linked UptoSign procedure (LEFT JOIN)
+	 *
+	 * @return array    Array of stdClass objects with member + uptosign fields
+	 */
+	public function getContactsWithProcedures()
+	{
+		$result = [];
+
+		$sql = "SELECT m.rowid, m.firstname, m.lastname, m.email, m.mobile,";
+		$sql .= " m.source_type, m.source_id, m.fk_uptosign, m.status as member_status,";
+		$sql .= " u.rowid as uptosign_id, u.ref as uptosign_ref, u.status as uptosign_status,";
+		$sql .= " u.path_file_signed, u.date_creation as uptosign_date, u.date_sign";
+		$sql .= " FROM ".$this->db->prefix()."uptosign_uptosignlistmembers m";
+		$sql .= " LEFT JOIN ".$this->db->prefix()."uptosign u ON m.fk_uptosign = u.rowid";
+		$sql .= " WHERE m.fk_uptosignlist = ".((int) $this->id);
+		$sql .= " ORDER BY m.lastname, m.firstname";
+
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			while ($obj = $this->db->fetch_object($resql)) {
+				$result[] = $obj;
+			}
+			$this->db->free($resql);
+		}
+
+		return $result;
+	}
 
 	/**
 	 *  Return the label of a given status of a recipient

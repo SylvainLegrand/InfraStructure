@@ -157,7 +157,7 @@ foreach ($user->users as $u) {
 		continue;
 	}
 	//ni les utilisateurs externes liés à des tiers
-	if (!is_null($u->socid)) {
+	if (!empty($u->socid)) {
 		dol_syslog("uptosign, user " . $u->login . " is linked to socid=" . $u->socid . ", (external ?)");
 		continue;
 	}

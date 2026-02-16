@@ -398,7 +398,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 									$signOrSeal = "seal";
 									$object_type = uptosign_unify_object_type($object->element);
 									$api_name = uptosign_unify_api_name($signOrSeal);
-									$result = $uptoSign->fetchAll('', '', 0, 0, array('customsql'=>"fk_object='" . $object->id ."' AND object_type='" . $object_type . "' AND api_name='" . $api_name . "'"));
+									$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('api_name' => $api_name));
 									//quid d'un vieux process ? lancé il y a x heures / minutes ?
 									if ($result) {
 										dol_syslog("uptosign workflow automatic seal already started for that object !");

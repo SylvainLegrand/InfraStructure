@@ -77,7 +77,7 @@ class modUptoSign extends DolibarrModules
 		$this->editor_url = 'https://cap-rel.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.3.34';
+		$this->version = '2.4.0';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version;
 
@@ -297,6 +297,21 @@ class modUptoSign extends DolibarrModules
 				 'priority' => 50,
 				 'datenextrun' => $datestart,
 			 ),
+			 1 => array(
+				 'label' => 'UptoSignArchiveCron',
+				 'jobtype' => 'method',
+				 'class' => '/uptosign/class/uptosign.class.php',
+				 'objectname' => 'Uptosign',
+				 'method' => 'doScheduledArchive',
+				 'parameters' => '',
+				 'comment' => 'UptoSignArchiveCronComments',
+				 'frequency' => 1,
+				 'unitfrequency' => 86400,
+				 'status' => 0,
+				 'test' => '$conf->uptosign->enabled',
+				 'priority' => 50,
+				 'datenextrun' => $datestart,
+			 ),
 		);
 		// Example: $this->cronjobs=array(
 		//    0=>array('label'=>'My label', 'jobtype'=>'method', 'class'=>'/dir/class/file.class.php', 'objectname'=>'MyClass', 'method'=>'myMethod', 'parameters'=>'param1, param2', 'comment'=>'Comment', 'frequency'=>2, 'unitfrequency'=>3600, 'status'=>0, 'test'=>'$conf->uptosign->enabled', 'priority'=>50),
@@ -346,6 +361,48 @@ class modUptoSign extends DolibarrModules
 		$this->rights[$r][3] = 0;                   // Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'employee';              // In php code, permission will be checked by test if ($user->rights->uptosign->level1->level2)
 		$this->rights[$r][5] = 'create';                  // In php code, permission will be checked by test if ($user->rights->uptosign->level1->level2)
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'ReadUptoSignConfig';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'uptosignconfig';
+		$this->rights[$r][5] = 'read';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'CreateUptoSignConfig';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'uptosignconfig';
+		$this->rights[$r][5] = 'write';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'DeleteUptoSignConfig';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'uptosignconfig';
+		$this->rights[$r][5] = 'delete';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'ReadUptoSignList';
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'uptosignlist';
+		$this->rights[$r][5] = 'read';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'CreateUptoSignList';
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'uptosignlist';
+		$this->rights[$r][5] = 'write';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'DeleteUptoSignList';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'uptosignlist';
+		$this->rights[$r][5] = 'delete';
 
 		/* END MODULEBUILDER PERMISSIONS */
 

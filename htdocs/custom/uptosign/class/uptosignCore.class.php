@@ -401,63 +401,48 @@ class uptosignCore implements ArrayAccess
 
 
 	/**
-	 * [whoCanSign description]
+	 * Return list of contacts who can sign for a given thirdparty and element type
 	 *
-	 * @param   int    $socid        soc id
-	 * @param   string $element      invoice, sepamandate ...
-	 * @param   string $role         CustomerSign or VendorSign
+	 * Public API for external modules. Uses UptoSignSignatoryResolver internally.
 	 *
-	 * @return  object|ArrayObject   [return description]
+	 * @param   int    $socid   Thirdparty ID
+	 * @param   string $element Object element (invoice, propal, etc.)
+	 * @param   string $role    Contact role code (CustomerSign, VendorSign)
+	 * @return  object|ArrayObject  Single contact or array of contacts
 	 */
 	public function whoCanSign($socid, $element, $role = 'CustomerSign')
 	{
-		$result = new ArrayObject();
-		//liste des contacts de la societe
+		dol_syslog('uptoSignCore whoCanSign socid=' . $socid . ' element=' . $element . ' role=' . $role, LOG_DEBUG);
+
+		$resolver = new UptoSignSignatoryResolver($this->db);
+		$typeContacts = $resolver->getTypeContactCode($element, '', '', ['module' => 'uptosign']);
+		$typeContactsIds = array();
+		if (is_array($typeContacts) && count($typeContacts) > 0) {
+			$typeContactsIds = array_keys($typeContacts);
+		}
+
 		$societe = new Societe($this->db);
 		$societe->fetch($socid);
 		$contacts = $societe->contact_array_objects();
 
-		dol_syslog('uptoSignCore whoCanSign', LOG_DEBUG);
-		//liste des rôles possibles pour acceder a ce type d'objet
-		$config = new UptoSignConfig($this->db);
-		// $configIds = $config->fetchListId($model_pdf, $element, $role);
-		// print "<p>SourceContacts ids are : " . json_encode($configIds) . "</p>";
-
-		$typeContacts = $config->getTypeContactCode($element, '', '', ['module' => 'uptosign']);
-		$typeContactsIds = array();
-		if (is_array($typeContacts) && count($typeContacts) > 0) {
-			$typeContactsIds = array_keys($typeContacts);
-			// print "<p>typeContacts ids are : " . json_encode($typeContactsIds) . "</p>";
-		}
-		// $sourceContacts = $config->getSourceContactCode($element);
-		// print "<p>SourceContacts : " . json_encode($sourceContacts) . "</p>";
-		// $contactIds = $config->getIdContact('internal', $sourceContacts['code']); //requete sur la table llx_element_contact
-		//et nous notre contact est lié dans llx_societe_contacts
-
-		//search for contacts who have rôle on $element
+		$result = new ArrayObject();
 		foreach ($contacts as $contact) {
 			$contact->fetchRoles();
 			foreach ($contact->roles as $key => $value) {
 				if ($value['element'] == $element && $value['code'] == $role && in_array($value['id'], $typeContactsIds)) {
-					//note warning user_mobile for dolibarr internal users and phone_mobile for externals people
 					$numero = uptoSignSearchMobile($contact->phone_mobile, $contact->phone_pro, $contact->country_code);
-
-					//More filter ! user must have an email AND a phone number to complete online sign process
 					if (empty($contact->email)) {
-						dol_syslog('uptoSignCore whoCanSign this user does not have an email : ' . $contact->id, LOG_DEBUG);
+						dol_syslog('uptoSignCore whoCanSign contact without email: ' . $contact->id, LOG_DEBUG);
 					} elseif (empty($numero)) {
-						dol_syslog('uptoSignCore whoCanSign this user does not have an mobile phone as international number : ' . $contact->id, LOG_DEBUG);
+						dol_syslog('uptoSignCore whoCanSign contact without mobile: ' . $contact->id, LOG_DEBUG);
 					} else {
 						$result->append($contact);
 					}
 				}
 			}
-			// print json_encode($contact);
 		}
 
-		// return $contactIds;
-		dol_syslog('uptoSignCore whoCanSign result is (display only number of elements matching) ' . count($result), LOG_DEBUG);
-		// print "<p>contacts result : " . json_encode($result) . "</p>";
+		dol_syslog('uptoSignCore whoCanSign result count: ' . count($result), LOG_DEBUG);
 		if (count($result) == 1) {
 			return $result[0];
 		}

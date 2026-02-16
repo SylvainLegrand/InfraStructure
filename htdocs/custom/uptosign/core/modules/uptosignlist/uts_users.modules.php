@@ -29,7 +29,7 @@ dol_include_once('/uptosign/lib/uptosign.lib.php');
 /**
  *	Class to offer a selector of emailing targets with Rule 'Pomme'.
  */
-class uptosignlist_pomme extends UptosignListTargets
+class uptosignlist_uts_users extends UptosignListTargets
 {
 	public $name = 'DolibarrUsersWithMailAndPhone'; // Identifiant du module mailing
 	// This label is used if no translation is found for key XXX neither MailingModuleDescXXX where XXX=name is found
@@ -120,20 +120,20 @@ class uptosignlist_pomme extends UptosignListTargets
 		$langs->load("users");
 
 		$s = '';
-		$s .= '<select id="filter_pomme"" name="filter" class="flat minwidth100">';
+		$s .= '<select id="filter_uts_users" name="filter" class="flat minwidth100">';
 		$s .= '<option value="-1">'.$langs->trans("Status").'</option>';
 		$s .= '<option value="1">'.$langs->trans("Enabled").'</option>';
 		$s .= '<option value="0">'.$langs->trans("Disabled").'</option>';
 		$s .= '</select>';
-		$s .= ajax_combobox("filter_pomme");
+		$s .= ajax_combobox("filter_uts_users");
 
 		$s .= ' ';
-		$s .= '<select id="filteremployee_pomme" name="filteremployee" class="flat minwidth100">';
+		$s .= '<select id="filteremployee_uts_users" name="filteremployee" class="flat minwidth100">';
 		$s .= '<option value="-1">'.$langs->trans("Employee").'</option>';
 		$s .= '<option value="1">'.$langs->trans("Yes").'</option>';
 		$s .= '<option value="0">'.$langs->trans("No").'</option>';
 		$s .= '</select>';
-		$s .= ajax_combobox("filteremployee_pomme");
+		$s .= ajax_combobox("filteremployee_uts_users");
 
 		return $s;
 	}

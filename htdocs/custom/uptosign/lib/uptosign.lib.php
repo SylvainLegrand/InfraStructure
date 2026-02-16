@@ -37,6 +37,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/contract.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.class.php';
 
 dol_include_once('/uptosign/core/modules/modUptoSign.class.php');
+dol_include_once('/uptosign/class/uptosignapiclient.class.php');
 dol_include_once('/uptosign/class/uptosign.class.php');
 dol_include_once('/uptosign/class/uptosignconfig.class.php');
 dol_include_once('/contact/class/contact.class.php');
@@ -266,59 +267,26 @@ function uptosignuserAgent()
 }
 
 /**
- * code factoring for common header
- *
- * @param   bool  $withBearer  [$withBearer description]
- * @param   bool  $isJson	  [$isJson description]
- *
- * @return  array			 [return description]
- */
-function uptosignApiCommonHeader($withBearer = true, $isJson = true)
-{
-	global $conf;
-	$curlHeaders = [];
-	$curlHeaders[] = 'User-Agent: ' . uptosignuserAgent();
-	$curlHeaders[] = 'Accept: ' . 'application/json';
-	if ($withBearer) {
-		$curlHeaders[] = 'Authorization: ' . 'Bearer ' . utsbackports_getDolGlobalString('UPTOSIGN_KEY_API', '');
-	}
-	if ($isJson) {
-		$curlHeaders[] = 'Content-Type: ' . 'application/json';
-	}
-	return $curlHeaders;
-}
-
-/**
  * try to login with api key
  *
  * @return  string  [return description]
  */
 function uptosignApiTryLoginWithAPIKey()
 {
-	global $conf, $langs;
-	$retour = false;
-	$uptosign_endpoint = UptoSign::getEndPoint();
+	global $conf, $langs, $db;
 
-	$url = $uptosign_endpoint . '/api/profile';
-	dol_syslog('Uptosign:uptosignApiTryLoginWithAPIKey Try to log in ' . $url . ' with api key ...');
-	$param = ['json' => ['email' => utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '')]];
-	uptosignURLlogLevel(1);
-	$result = getURLContent($url, 'POST', json_encode($param), 1, uptosignApiCommonHeader());
-	uptosignURLlogLevel(0);
-	if (is_array($result) && $result['http_code'] == 200 && isset($result['content'])) {
-		// $json = json_decode($result['content']);
-		// $html = $json->data->html;
+	dol_syslog('Uptosign:uptosignApiTryLoginWithAPIKey Try to log in with api key ...');
+	$apiClient = new UptoSignAPIClient($db);
+	$response = $apiClient->getProfile();
+
+	if ($response['http_code'] == 200 && !empty($response['content'])) {
 		setEventMessages($langs->trans('CheckConnectOK'), [], 'mesgs');
-		$retour = true;
-	} else {
-		$retour = false;
+		return true;
 	}
-	if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
-		dol_syslog("CURL error message is " . $result['curl_error_msg']);
-		// $mesg .= '<br />'.$result['curl_error_msg'];
+	if (!empty($response['curl_error'])) {
+		dol_syslog("CURL error message is " . $response['curl_error']);
 	}
-
-	return $retour;
+	return false;
 }
 
 /**
@@ -340,48 +308,34 @@ function uptosignApiCreateAPIKey()
  */
 function uptosignApiCreateAccount()
 {
-	global $conf, $mesg, $langs, $db, $user;
+	global $conf, $langs, $db, $user;
 	$mesg = "";
 	$mesgType = "errors";
-	$retour = false;
-	$uptosign_endpoint = UptoSign::getEndPoint();
 
-	//Note : special case header without api key
-	$url = $uptosign_endpoint . '/api/register';
-	dol_syslog('Uptosign:uptosignApiCreateAccount Try to create account on ' . $url . ' ...');
-	if ($user->firstname == '') {
-		$user->firstname = 'anonymous';
-	}
-	if ($user->lastname == '') {
-		$user->lastname = 'anonyname';
-	}
-	$param = [
-		'firstname' => $user->firstname,
-		'lastname' => $user->lastname,
-		'email' => utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', ''),
-		'password' => dol_decode(utsbackports_getDolGlobalString('UPTOSIGN_PASS_API', '')),
-		'password_confirmation' => dol_decode(utsbackports_getDolGlobalString('UPTOSIGN_PASS_API', '')),
-	];
-	uptosignURLlogLevel(1);
-	$result = getURLContent($url, 'POST', json_encode($param), 1, uptosignApiCommonHeader(false));
-	uptosignURLlogLevel(0);
-	if (is_array($result) && $result['http_code'] == 200 && isset($result['content'])) {
-		$json = json_decode($result['content']);
-		// $html = $json->data->html;
-		$result2 = dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json->access_token, 'chaine', 0, '', $conf->entity);
+	dol_syslog('Uptosign:uptosignApiCreateAccount Try to create account ...');
+	$firstname = ($user->firstname != '') ? $user->firstname : 'anonymous';
+	$lastname = ($user->lastname != '') ? $user->lastname : 'anonyname';
+	$email = utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '');
+	$password = dol_decode(utsbackports_getDolGlobalString('UPTOSIGN_PASS_API', ''));
+
+	$apiClient = new UptoSignAPIClient($db);
+	$response = $apiClient->createAccount($firstname, $lastname, $email, $password);
+
+	if ($response['http_code'] == 200 && !empty($response['content'])) {
+		$json = $response['data'];
+		dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json['access_token'], 'chaine', 0, '', $conf->entity);
 		$mesg = $langs->trans('CreateAccountOK');
 		$mesgType = "mesgs";
 		$retour = true;
 	} else {
 		$mesg = $langs->trans('CreateAccountError');
-		if (isset($result['content'])) {
-			$mesg .= uptosignMergeMessage($result['content']);
-			// dol_syslog('Uptosign:uptosignApiCreateAccount return ********************************************* '.json_encode($result['content']));
+		if (!empty($response['content'])) {
+			$mesg .= uptosignMergeMessage($response['content']);
 		}
 		$retour = false;
 	}
-	if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
-		$mesg .= uptosignMergeMessage($result['curl_error_msg']);
+	if (!empty($response['curl_error'])) {
+		$mesg .= uptosignMergeMessage($response['curl_error']);
 	}
 	setEventMessages($mesg, [], $mesgType);
 	return $retour;
@@ -399,36 +353,29 @@ function uptosignApiTryLoginWithUserPass()
 	$mesg = "";
 	$mesgType = "errors";
 
-	$uptosign_endpoint = UptoSign::getEndPoint();
-	//Note special case, we do not use api key
-	$url = $uptosign_endpoint . '/api/login';
-	dol_syslog('Uptosign:uptosignApiTryLoginWithUserPass Try to log with user / pass account on ' . $url . ' ...');
-	$param = [
-		'email' => utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', ''),
-		'password' => dol_decode(utsbackports_getDolGlobalString('UPTOSIGN_PASS_API', '')),
-	];
-	uptosignURLlogLevel(1);
-	$result = getURLContent($url, 'POST', json_encode($param), 1, uptosignApiCommonHeader(false));
-	uptosignURLlogLevel(0);
-	if (is_array($result)) {
-		$retour = $result['http_code'];
-		if ($result['http_code'] == 200 && isset($result['content'])) {
-			$json = json_decode($result['content']);
-			$result2 = dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json->access_token, 'chaine', 0, '', $conf->entity);
-			$mesg = $langs->trans('CheckConnectOK');
-			$mesgType = "mesgs";
-		}
-		if ($result['http_code'] == 401) {
-			$mesg = $langs->trans('UptoSignErrorLoginWithUserPassError');
-		}
-		if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
-			$mesg .= uptosignMergeMessage($result['curl_error_msg']);
-		}
+	dol_syslog('Uptosign:uptosignApiTryLoginWithUserPass Try to log with user / pass ...');
+	$email = utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '');
+	$password = dol_decode(utsbackports_getDolGlobalString('UPTOSIGN_PASS_API', ''));
 
-		if (isset($result['content']) && $result['http_code'] != 200) {
-			dol_syslog('Uptosign:uptosignApiTryLoginWithUserPass return message ' . json_encode($result['content']));
-			$mesg = "";
-		}
+	$apiClient = new UptoSignAPIClient($db);
+	$response = $apiClient->login($email, $password);
+
+	$retour = $response['http_code'];
+	if ($response['http_code'] == 200 && !empty($response['content'])) {
+		$json = $response['data'];
+		dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json['access_token'], 'chaine', 0, '', $conf->entity);
+		$mesg = $langs->trans('CheckConnectOK');
+		$mesgType = "mesgs";
+	}
+	if ($response['http_code'] == 401) {
+		$mesg = $langs->trans('UptoSignErrorLoginWithUserPassError');
+	}
+	if (!empty($response['curl_error'])) {
+		$mesg .= uptosignMergeMessage($response['curl_error']);
+	}
+	if (!empty($response['content']) && $response['http_code'] != 200) {
+		dol_syslog('Uptosign:uptosignApiTryLoginWithUserPass return message ' . json_encode($response['content']));
+		$mesg = "";
 	}
 
 	if ($mesg != "") {
@@ -468,29 +415,18 @@ function uptosignMergeMessage($srvMsg)
 function uptosignApiGetInfoAboutWebservice($format = 'html')
 {
 	global $conf, $mesg, $langs, $db;
-	$uptosign_endpoint = UptoSign::getEndPoint();
 
 	$module = new modUptoSign($db);
 
 	$html = "";
-	$arr = "";
 	$json = "";
 
-	$url = $uptosign_endpoint . '/api/ruok';
-	$param = [
-		'json' => [
-			'email' => utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', ''),
-			'protocol' => $module->protocol,
-		]
-	];
+	$email = utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '');
+	$apiClient = new UptoSignAPIClient($db);
+	$response = $apiClient->healthCheck($email, $module->protocol);
 
-	dol_syslog('Uptosign:get_info_about_webservice ' . $url . ' with ' . json_encode($param));
-
-	uptosignURLlogLevel(1);
-	$result = getURLContent($url, 'GET', json_encode($param), 1, uptosignApiCommonHeader());
-	uptosignURLlogLevel(0);
-	if (is_array($result) && $result['http_code'] == 200 && isset($result['content'])) {
-		$arr = json_decode($result['content']);
+	if ($response['http_code'] == 200 && !empty($response['content'])) {
+		$arr = json_decode($response['content']);
 		$json = $arr->data->json;
 		$html = $arr->data->html;
 
@@ -507,7 +443,7 @@ function uptosignApiGetInfoAboutWebservice($format = 'html')
 		if (isset($json->srvlangs)) {
 			$html .= "<input type=\"hidden\" name=\"srvlangs\" value=\"" . base64_encode(json_encode($json->srvlangs)) . "\">\n";
 		}
-	} elseif (is_array($result) && $result['http_code'] == 503) {
+	} elseif ($response['http_code'] == 503) {
 		$html = "<div id=\"uptosign-account-status\">
 		<h3 align=\"center\">" . $langs->trans('UPTOSIGN_SERVER_UPGRADE_IN_PROGRESS') . "...</h3>
 		<p>" . $langs->trans('UPTOSIGN_SERVER_UPGRADE_IN_PROGRESS_MESSAGE') . ")</p>
@@ -519,9 +455,9 @@ function uptosignApiGetInfoAboutWebservice($format = 'html')
 			<p><a href=\"https://app.uptosign.com/tarifs\" target=\"_blank\">" . $langs->trans('DEFAULT_UPTOSIGN_WEBSERVICE_MSG2') . "</a></p>
 			</div>";
 	}
-	if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
+	if (!empty($response['curl_error'])) {
 		$mesg = '<div class="error">' . $langs->trans('uptosignApiGetInfoAboutWebservice');
-		$mesg .= '<br />' . $result['curl_error_msg'];
+		$mesg .= '<br />' . $response['curl_error'];
 		$mesg .= '</div>';
 	}
 
@@ -747,7 +683,7 @@ function uptosign_full_path($path)
 
 function uptosign_relative_path($path)
 {
-	return trim(str_replace(DOL_DATA_ROOT, '', $path), '/\\');
+	return trim(str_replace(DOL_DATA_ROOT, '', $path ?? ''), '/\\');
 }
 
 /**
@@ -1237,26 +1173,19 @@ function uptosign_send_mail($to, $subject, $message)
 
 function uptosignApiCheckResellerMode()
 {
-	global $conf, $langs;
-	$retour = false;
-	$uptosign_endpoint = UptoSign::getEndPoint();
+	global $db;
 
-	$url = $uptosign_endpoint . '/api/profile';
-	dol_syslog('Uptosign:uptosignApiCheckResellerMode Try to log in ' . $url . ' with api key ...');
-	$param = ['json' => ['email' => utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '')]];
-	uptosignURLlogLevel(1);
-	$result = getURLContent($url, 'POST', json_encode($param), 1, uptosignApiCommonHeader());
-	uptosignURLlogLevel(0);
-	if (is_array($result) && $result['http_code'] == 200 && isset($result['content'])) {
-		$retour = json_decode($result['content'], true);
-	} else {
-		$retour = null;
-	}
-	if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
-		dol_syslog("CURL error message is " . $result['curl_error_msg']);
-	}
+	dol_syslog('Uptosign:uptosignApiCheckResellerMode Try to log in with api key ...');
+	$apiClient = new UptoSignAPIClient($db);
+	$response = $apiClient->getProfile();
 
-	return $retour;
+	if ($response['http_code'] == 200 && !empty($response['content'])) {
+		return $response['data'];
+	}
+	if (!empty($response['curl_error'])) {
+		dol_syslog("CURL error message is " . $response['curl_error']);
+	}
+	return null;
 }
 
 //Returns a qrcode of uri
@@ -1897,18 +1826,231 @@ function uptosignCreateFacture($customerid, $prorataTemporis = false, $validateI
 	return $idinvoice;
 }
 
-function uptosignURLlogLevel($enable)
+/**
+ * Detect positions from PDF magic keywords (STAMP, SIGN_XX, FROM_XX)
+ *
+ * @param  string $pdfFileFullPath Full path to the PDF file
+ * @param  string $action          Current action (passed to keyword parser)
+ * @param  array  $positionsSign   Sign positions array (modified by reference)
+ * @param  array  $positionsSeal   Seal positions array (modified by reference)
+ * @return array  ['autopositionSign' => bool, 'autopositionSeal' => bool]
+ */
+function uptosign_detect_pdf_positions($pdfFileFullPath, $action, &$positionsSign, &$positionsSeal)
 {
-	global $conf, $uptosignLogLevel;
-	if ($enable == 1) {
-		$uptosignLogLevel = utsbackports_getDolGlobalString('SYSLOG_LEVEL', '');
+	$autopositionSign = false;
+	$autopositionSeal = false;
 
-		if (utsbackports_getDolGlobalString('UPTOSIGN_DISABLE_GETURL_DEBUG', '') != '') {
-			$conf->global->SYSLOG_LEVEL = LOG_ERR;
+	$arr = [];
+	if (uptosign_auto_position_magic_keywords($pdfFileFullPath, $arr, $action)) {
+		if (isset($arr['STAMP'])) {
+			foreach ($arr['STAMP'] as $page => $value) {
+				$positionsSeal[$page]['STAMP'] = array(
+					'defaultSealX' => (!empty($value['x']) ? $value['x'] : 0),
+					'defaultSealY' => (!empty($value['y']) ? $value['y'] : 0),
+					'defaultSealPage' => (!empty($value['p']) ? $value['p'] : 0)
+				);
+				$autopositionSeal = true;
+			}
+		}
+		for ($idn = 0; $idn < 10; $idn++) {
+			$tag = sprintf("SIGN_%'02d", $idn);
+			if (isset($arr[$tag])) {
+				foreach ($arr[$tag] as $page => $value) {
+					dol_syslog("uptosign: auto position detect (sign debug) : $tag // $idn // page=$page :: " . $value['p']);
+					$positionsSign[$page][$tag] = array(
+						'defaultSignContactX' => (!empty($value['x']) ? $value['x'] : 0),
+						'defaultSignContactY' => (!empty($value['y']) ? $value['y'] : 0),
+						'defaultSignContactPage' => (!empty($value['p']) ? $value['p'] : 0)
+					);
+				}
+				$autopositionSign = true;
+			}
+		}
+		for ($idn = 0; $idn < 10; $idn++) {
+			$tag = sprintf("FROM_%'02d", $idn);
+			if (isset($arr[$tag])) {
+				foreach ($arr[$tag] as $page => $value) {
+					$positionsSign[$page][$tag] = array(
+						'defaultSignUserX' => (!empty($value['x']) ? $value['x'] : 0),
+						'defaultSignUserY' => (!empty($value['y']) ? $value['y'] : 0),
+						'defaultSignUserPage' => (!empty($value['p']) ? $value['p'] : 0)
+					);
+				}
+				$autopositionSign = true;
+			}
+		}
+
+		dol_syslog('uptosign: auto position detect (sign) :' . json_encode($positionsSign));
+		dol_syslog('uptosign: auto position detect (seal) :' . json_encode($positionsSeal));
+	} else {
+		dol_syslog('uptosign: auto position detect (keywords) fail');
+	}
+
+	return array('autopositionSign' => $autopositionSign, 'autopositionSeal' => $autopositionSeal);
+}
+
+/**
+ * Fetch positions from UptoSignConfig database entries (fallback when auto-detection fails)
+ *
+ * @param  string          $modelPdf       PDF model name
+ * @param  string          $modulepart     Module part (object type)
+ * @param  string          $signOrSeal     "sign" or "seal"
+ * @param  UptoSignConfig  $uptoSignConfig Config object instance
+ * @param  bool            $autopositionSeal Whether seal position was already auto-detected
+ * @param  bool            $autopositionSign Whether sign position was already auto-detected
+ * @param  array           $positionsSign  Sign positions array (modified by reference)
+ * @param  array           $positionsSeal  Seal positions array (modified by reference)
+ * @return array  ['autopositionSign' => bool, 'autopositionSeal' => bool, 'noSign' => int]
+ */
+function uptosign_get_config_positions($modelPdf, $modulepart, $signOrSeal, $uptoSignConfig, $autopositionSeal, $autopositionSign, &$positionsSign, &$positionsSeal)
+{
+	$noSign = 0;
+	$configIds = $uptoSignConfig->fetchListId($modelPdf, $modulepart, $signOrSeal);
+	if ($configIds) {
+		if (is_array($configIds)) {
+			$uptoSignConfig->fetch($configIds[0]);
+
+			if (!$autopositionSeal) {
+				$d = explode(',', $uptoSignConfig->seal_coordinate);
+				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealX'] = $d[0];
+				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealY'] = $d[1];
+				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealPage'] = $uptoSignConfig->page_seal;
+				$autopositionSeal = true;
+			}
+			if (!$autopositionSign) {
+				if (!empty($uptoSignConfig->page_sign)) {
+					$d = explode(',', $uptoSignConfig->sign_coordinate);
+					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactX'] = $d[0];
+					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactY'] = $d[1];
+					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactPage'] = $uptoSignConfig->page_sign;
+					$autopositionSign = true;
+				} else {
+					$noSign = 1;
+				}
+			}
+			dol_syslog('uptosign: position via profil de doc sign: ' . json_encode($positionsSign));
+			dol_syslog('uptosign: position via profil de doc seal: ' . json_encode($positionsSeal));
+		} else {
+			dol_syslog("Modèle de position des signatures introuvable", LOG_ERR);
+		}
+	}
+
+	return array('autopositionSign' => $autopositionSign, 'autopositionSeal' => $autopositionSeal, 'noSign' => $noSign);
+}
+
+/**
+ * Build seal JSON parameters array and print hidden form fields
+ *
+ * @param  array $positionsSeal Seal positions array
+ * @return array JSON parameters array for seal positions
+ */
+function uptosign_build_seal_params($positionsSeal)
+{
+	$jsonparameters = array();
+	if (count($positionsSeal) > 0) {
+		$i = 0;
+		foreach ($positionsSeal as $page => $position) {
+			$jsonparameters[] = array(
+				'paramId' => 'seal-' . $i,
+				'description' => "SCEAU UPTOSIGN (obligatoire)<br />"
+					. "Document scellé par uptosign<br />"
+					. "Identifiant unique xxxxx<br />"
+					. "https://uptosign.com/",
+				'defaultX' => $position['STAMP']['defaultSealX'],
+				'defaultY' => $position['STAMP']['defaultSealY'],
+				'defaultPage' => $position['STAMP']['defaultSealPage']
+			);
+			$listOfFields = array('signX', 'signY', 'page');
+			foreach ($listOfFields as $f) {
+				$fieldName = 'seal-' . $i . '-' . $f;
+				print '<input id="' . $fieldName . '" name="' . $fieldName . '" type="hidden" value="">' . "\n";
+			}
+			$i++;
 		}
 	} else {
-		$conf->global->SYSLOG_LEVEL = $uptosignLogLevel;
+		$i = 0;
+		$jsonparameters[] = array(
+			'paramId' => 'seal-' . $i,
+			'description' => "SCEAU UPTOSIGN (obligatoire)<br />"
+				. "Document scellé par uptosign<br />"
+				. "Identifiant unique xxxxx<br />"
+				. "https://uptosign.com/",
+			'defaultX' => 0,
+			'defaultY' => 0,
+			'defaultPage' => 0
+		);
+		$listOfFields = array('signX', 'signY', 'page');
+		foreach ($listOfFields as $f) {
+			$fieldName = 'seal-' . $i . '-' . $f;
+			print '<input id="' . $fieldName . '" name="' . $fieldName . '" type="hidden" value="">' . "\n";
+		}
 	}
+	return $jsonparameters;
+}
+
+/**
+ * Render PDF file selector dropdown and hidden base64 fields
+ *
+ * @param  string $uploadDir           Upload directory path
+ * @param  string $pdfFileChoosed      Currently selected PDF filename
+ * @param  string $pdfFileChoosedFullPath Full path (modified by reference)
+ * @return array|null File info array of selected file, or null if no PDF found
+ */
+function uptosign_render_pdf_selector($uploadDir, $pdfFileChoosed, &$pdfFileChoosedFullPath)
+{
+	global $langs;
+
+	/** @phpstan-ignore-next-line */
+	$filearray = dol_dir_list($uploadDir, "files", 0, '\.pdf$', ['(\.meta|_preview.*\.png)$'], "name", SORT_ASC, 1);
+	$fileInfo = null;
+	if (is_array($filearray) && count($filearray) >= 1) {
+		$fileInfo = reset($filearray);
+		$pdfFileChoosedFullPath = dol_osencode(dol_sanitizePathName($fileInfo['fullname']));
+		if (count($filearray) > 1) {
+			print '<p>' . $langs->trans('UptoSignChooseFile') . '</p>' . "\n";
+			print "<select name='pdfFileChoosed' onchange='pdfFileChange();' style='width:100%;max-width:90%;'>";
+			foreach ($filearray as $fileInfo) {
+				$s = "";
+				if ($pdfFileChoosed != "" && dol_osencode(dol_sanitizePathName($fileInfo['name'])) == $pdfFileChoosed) {
+					$pdfFileChoosedFullPath = dol_osencode($fileInfo['fullname']);
+					$s = "selected";
+				}
+				print "<option value='" . dol_osencode(dol_sanitizePathName($fileInfo['name'])) . "' $s>" . $fileInfo['name'] . "</option>";
+			}
+			print "<option value=''></option>";
+			print "</select>";
+		}
+		print '	  <input type="hidden" id="pdfData" name="pdfData" value="' . base64_encode(file_get_contents($pdfFileChoosedFullPath)) . '">' . "\n";
+		print '	  <input type="hidden" id="pdfFileName" name="pdfFileName" value="' . base64_encode($pdfFileChoosedFullPath) . '">' . "\n";
+	} else {
+		print "<p style='color: #f00;font-weight: bold;'>" . $langs->trans('UptoSignNoPdfFilesAssociated') . "</p>";
+		print "<p>" . $uploadDir . "</p>";
+	}
+	return $fileInfo;
+}
+
+/**
+ * Render PDF page navigation buttons (prev/next with page counter)
+ *
+ * @return void
+ */
+function uptosign_render_page_nav()
+{
+	print '			<div style="display: flex; justify-content: space-between;" id="paramPages">
+					<button style="display: flex; width: 48px;" id="prev">
+						<svg xmlns="http://www.w3.org/2000/svg" style="height: 24px; width: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+						</svg>
+					</button>
+					<div style="display: flex; flex-grow: 20;flex-direction: column;text-align: center;">
+						<span>Page: <span id="page_num"></span> / <span id="page_count"></span></span>
+					</div>
+					<button style="display: flex; width: 48px;" id="next">
+						<svg xmlns="http://www.w3.org/2000/svg" style="height: 24px; width: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+						</svg>
+					</button>
+				</div>' . "\n";
 }
 
 /**

@@ -107,18 +107,23 @@ $form = new Form($db);
 if ($action == 'down') {
 	$filename = dol_decode(GETPOST('hash'));
 	if ($filename) {
+		$filename = dol_sanitizePathName($filename);
+		if (strpos($filename, '..') !== false) {
+			accessforbidden('Invalid file path');
+		}
 		$fullfname = DOL_DATA_ROOT . '/' . $filename;
-		if (file_exists($fullfname)) {
+		$realpath = realpath($fullfname);
+		if ($realpath && strpos($realpath, realpath(DOL_DATA_ROOT) . '/') === 0 && file_exists($realpath)) {
 			header('Content-Type: application/octet-stream');
 			header("Content-Transfer-Encoding: Binary");
-			header("Content-disposition: attachment; filename=\"".basename($filename)."\"");
-			readfile($fullfname);
+			header("Content-disposition: attachment; filename=\"" . dol_sanitizeFileName(basename($filename)) . "\"");
+			readfile($realpath);
 			exit;
 		} else {
-			print "<p>$filename ($fullfname) does not exists !</p>";
+			setEventMessages('File not found', [], 'errors');
 		}
 	} else {
-		print "<p>hash empty</p>";
+		setEventMessages('Hash empty', [], 'errors');
 	}
 }
 

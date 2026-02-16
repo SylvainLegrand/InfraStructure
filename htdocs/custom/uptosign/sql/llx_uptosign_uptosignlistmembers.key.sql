@@ -17,6 +17,7 @@
 -- BEGIN MODULEBUILDER INDEXES
 ALTER TABLE llx_uptosign_uptosignlistmembers ADD INDEX idx_uptosign_uptosignconfig_rowid (rowid);
 ALTER TABLE llx_uptosign_uptosignlistmembers ADD CONSTRAINT llx_uptosign_uptosignlistmembers_fk_uptosignlist FOREIGN KEY (fk_uptosignlist) REFERENCES llx_uptosign_uptosignlist(rowid);
+ALTER TABLE llx_uptosign_uptosignlistmembers ADD INDEX idx_uptosignlistmembers_fk_uptosign (fk_uptosign);
 
 -- END MODULEBUILDER INDEXES
 

@@ -21,6 +21,7 @@ ALTER TABLE llx_uptosign ADD INDEX idx_uptosign_entity (entity);
 ALTER TABLE llx_uptosign ADD INDEX idx_uptosign_fk_soc (fk_soc);
 ALTER TABLE llx_uptosign ADD INDEX idx_uptosign_status (status);
 ALTER TABLE llx_uptosign ADD INDEX idx_uptosign_fk_object (fk_object);
+ALTER TABLE llx_uptosign ADD INDEX idx_uptosign_fk_uptosignlist (fk_uptosignlist);
 -- END MODULEBUILDER INDEXES
 
 --ALTER TABLE llx_uptosign ADD UNIQUE INDEX uk_uptosign_fieldxyz(fieldx, fieldy);

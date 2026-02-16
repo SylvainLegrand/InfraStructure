@@ -32,6 +32,8 @@ dol_include_once('/uptosign/class/uptosignconfig.class.php');
 
 require_once DOL_DOCUMENT_ROOT . '/core/lib/geturl.lib.php';
 dol_include_once('/uptosign/lib/uptosign.lib.php');
+dol_include_once('/uptosign/class/uptosignapiclient.class.php');
+dol_include_once('/uptosign/class/uptosignsignatoryresolver.class.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 
 /**
@@ -155,6 +157,7 @@ class UptoSign extends CommonObject
 		'sign_history' => array('type' => 'text', 'label' => 'History', 'enabled' => '1', 'position' => 645, 'notnull' => -1, 'visible' => 0,),
 		'api_name' => array('type' => 'varchar(64)', 'label' => 'ApiName', 'enabled' => '1', 'position' => 650, 'notnull' => -1, 'visible' => -1,),
 		'hook_key' => array('type' => 'varchar(255)', 'label' => 'Hook API hash', 'enabled' => '1', 'position' => 660, 'notnull' => -1, 'visible' => -1,),
+		'fk_uptosignlist' => array('type' => 'integer', 'label' => 'UptoSignList', 'enabled' => '1', 'position' => 670, 'notnull' => -1, 'visible' => -1, 'index' => 1, 'foreignkey' => 'uptosign_uptosignlist.rowid'),
 		'import_key' => array('type' => 'varchar(14)', 'label' => 'ImportId', 'enabled' => '1', 'position' => 1000, 'notnull' => -1, 'visible' => -2,),
 		'status' => array('type' => 'integer', 'label' => 'Status', 'enabled' => '1', 'position' => 1001, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('-4' => 'uptosignStatusExpired', '-3' => 'uptosignStatusRefused', '-2' => 'uptosignStatusError', '-1' => 'uptosignStatusCancelled', '0' => 'uptosignStatusWaiting', '1' => 'uptosignStatusSigned', '2' => 'uptosignStatusSealed', '3' => 'uptosignStatusDownloaded')),
 	);
@@ -184,6 +187,7 @@ class UptoSign extends CommonObject
 	public $hash_file_signed;
 	public $path_file;
 	public $path_file_signed;
+	public $fk_uptosignlist;
 	// END MODULEBUILDER PROPERTIES
 
 	public $sign_link;
@@ -191,6 +195,16 @@ class UptoSign extends CommonObject
 	public $endRedirect; //where to redirect sign people after sign process
 	public $hideMailAndPhone; //activate pseudo anonymous sign ? with non delivered proof file
 	public $disableSms; // mauvaise idee mais parfois necessaire de desactiver le SMS
+
+	/**
+	 * @var UptoSignAPIClient API client for remote calls
+	 */
+	public $apiClient;
+
+	/**
+	 * @var UptoSignSignatoryResolver Signatory resolver
+	 */
+	public $signatoryResolver;
 
 	// If this object has a subtable with lines
 
@@ -238,6 +252,8 @@ class UptoSign extends CommonObject
 		global $conf, $langs;
 
 		$this->db = $db;
+		$this->apiClient = new UptoSignAPIClient($db);
+		$this->signatoryResolver = new UptoSignSignatoryResolver($db);
 		$this->redirect_sign = false;
 		$this->endRedirect = utsbackports_getDolGlobalString('UPTOSIGN_REDIRECT_PAGE_AFTER_SIGN', 'https://uptosign.com/');
 		$this->hideMailAndPhone = utsbackports_getDolGlobalString('UPTOSIGN_HIDE_MAIL_AND_PHONE', '0');
@@ -294,18 +310,10 @@ class UptoSign extends CommonObject
 
 		// dol_syslog("uptosign: create user =" . json_encode($user), LOG_DEBUG);
 		$user = $this->findUserToUse($user, $this);
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
 
-		$resultcreate = $this->createCommon($user, $notr);
+		/** @phpstan-ignore-next-line */
+		$resultcreate = $this->createCommon($user, $notrigger ? 1 : 0);
 
-		//$resultvalidate = $this->validate($user, $notr);
 		return $resultcreate;
 	}
 
@@ -340,7 +348,7 @@ class UptoSign extends CommonObject
 		// Reset some properties
 		unset($object->id);
 		unset($object->fk_user_creat);
-		unset($object->import_key);
+		$object->import_key = null;
 
 		// Clear fields
 		if (property_exists($object, 'ref')) {
@@ -484,7 +492,7 @@ class UptoSign extends CommonObject
 							if (!empty($evt->note_private)) {
 								//remove empty lines and trim each lines
 								$notesNoBr = preg_replace('/\<br(\s*)?\/?\>/i', "\n", $evt->note_private);
-								$notes = array_filter(array_map('trim', explode("\n", $notesNoBr)), 'strlen');
+								$notes = array_filter(array_map('trim', explode("\n", $notesNoBr)), function($s) { return $s !== ''; });
 							}
 							dol_syslog("uptosign: ... de moins de 10 minutes, avant push notes= " . json_encode($notes), LOG_DEBUG);
 							array_push($notes, $date . ": " . trim($langs->trans($message)));
@@ -530,7 +538,7 @@ class UptoSign extends CommonObject
 			$evt->socpeopleassigned = array();
 			$evt->userassigned = array();
 
-			if (!in_array($object->elementtype, array('societe', 'contact', 'project'))) {
+			if (!in_array($object->element, array('societe', 'contact', 'project'))) {
 				$evt->fk_element  = $object->id;
 				$evt->elementtype = $object->element;
 			}
@@ -758,13 +766,13 @@ class UptoSign extends CommonObject
 		$arrayResult = array();
 
 		$sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . $this->table_element . " AS t";
-		$sql .= " WHERE fk_object = " . $objectId;
+		$sql .= " WHERE fk_object = " . ((int) $objectId);
 		if (isset($objectType)) {
 			$sql .= " AND object_type = '" . $this->db->escape(uptosign_unify_object_type($objectType)) . "'";
 		}
 		if ($signOrSeal != "") {
 			$api_name = uptosign_unify_api_name($signOrSeal);
-			$sql .= " AND api_name='" . $api_name . "'";
+			$sql .= " AND api_name='" . $this->db->escape($api_name) . "'";
 		}
 		// $maxts = date('Y-m-d H:i:s');
 		$sql .= " ORDER BY tms DESC";
@@ -846,8 +854,6 @@ class UptoSign extends CommonObject
 			foreach ($filter as $key => $value) {
 				if ($key == 't.rowid') {
 					$sqlwhere[] = $key . " = " . ((int) $value);
-				} elseif ($key == 'customsql') {
-					$sqlwhere[] = $value;
 				} elseif (array_key_exists($key, $this->fields) && in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
 					$sqlwhere[] = $key . " = '" . $this->db->idate($value) . "'";
 				} elseif (strpos($value, '%') === false) {
@@ -895,6 +901,69 @@ class UptoSign extends CommonObject
 	}
 
 	/**
+	 * Fetch UptoSign records by business object with optional filters
+	 *
+	 * @param  int    $fkObject   Business object ID
+	 * @param  string $objectType Object type (unified)
+	 * @param  array  $filters    Optional filters: api_name, sign_status, path_file, hash_file_signed, hash_file_null (bool)
+	 * @return array|int          Array of UptoSign records indexed by ID, or <0 on error
+	 */
+	public function fetchByObject($fkObject, $objectType, $filters = array())
+	{
+		$sql = "SELECT t.rowid";
+		foreach ($this->fields as $key => $val) {
+			if ($key != 'rowid') {
+				$sql .= ", t." . $key;
+			}
+		}
+		$sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as t";
+		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
+			$sql .= " WHERE t.entity IN (" . getEntity($this->element) . ")";
+		} else {
+			$sql .= " WHERE 1 = 1";
+		}
+
+		$sql .= " AND t.fk_object = " . ((int) $fkObject);
+		$sql .= " AND t.object_type = '" . $this->db->escape($objectType) . "'";
+
+		if (!empty($filters['api_name'])) {
+			$sql .= " AND t.api_name = '" . $this->db->escape($filters['api_name']) . "'";
+		}
+		if (!empty($filters['sign_status'])) {
+			$sql .= " AND t.sign_status = '" . $this->db->escape($filters['sign_status']) . "'";
+		}
+		if (!empty($filters['path_file'])) {
+			$sql .= " AND t.path_file = '" . $this->db->escape($filters['path_file']) . "'";
+		}
+		if (!empty($filters['hash_file_signed'])) {
+			$sql .= " AND t.hash_file_signed = '" . $this->db->escape($filters['hash_file_signed']) . "'";
+		}
+		if (!empty($filters['hash_file_null'])) {
+			$sql .= " AND t.hash_file IS NULL";
+		}
+
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			$records = array();
+			$num = $this->db->num_rows($resql);
+			$i = 0;
+			while ($i < $num) {
+				$obj = $this->db->fetch_object($resql);
+				$record = new self($this->db);
+				$record->setVarsFromFetchObj($obj);
+				$records[$record->id] = $record;
+				$i++;
+			}
+			$this->db->free($resql);
+			return $records;
+		} else {
+			array_push($this->errors, $this->db->lasterror());
+			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
+			return -1;
+		}
+	}
+
+	/**
 	 * Update object into database
 	 *
 	 * @param  User $user      User that modifies
@@ -911,15 +980,8 @@ class UptoSign extends CommonObject
 		$this->path_file_signed = $f;
 
 		$user = $this->findUserToUse($user, $this);
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-		return $this->updateCommon($user, $notr);
+		/** @phpstan-ignore-next-line */
+		return $this->updateCommon($user, $notrigger ? 1 : 0);
 	}
 
 	/**
@@ -956,19 +1018,8 @@ class UptoSign extends CommonObject
 	public function delete(User $user, $notrigger = false)
 	{
 		dol_syslog("uptosign: call delete function");
-		$error = 0;
 		$user = $this->findUserToUse($user, $this);
 		$this->createEvent($this, "Call delete id #" . $this->sign_id ?? '');
-
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-
 
 		//effacer le fichier
 		$fullFileName = uptosign_full_path($this->path_file_signed);
@@ -976,15 +1027,8 @@ class UptoSign extends CommonObject
 			dol_delete_file($fullFileName);
 		}
 
-		if (((int) DOL_VERSION) >= 20) {
-			/** @phpstan-ignore-next-line */
-			$error = $this->deleteCommon($user, 1);
-		} else {
-			/** @phpstan-ignore-next-line */
-			$error = $this->deleteCommon($user, true);
-		}
-
-		return $error;
+		/** @phpstan-ignore-next-line */
+		return $this->deleteCommon($user, $notrigger ? 1 : 0);
 	}
 
 	/**
@@ -1001,27 +1045,15 @@ class UptoSign extends CommonObject
 		$user = $this->findUserToUse($user, $this);
 		$this->createEvent($this, "Call delete id #" . $this->sign_id ?? '');
 
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-
+		$notr = $notrigger ? 1 : 0;
 
 		if ($this->sign_id != '') {
-			$url = $this->getEndPoint() . "/api/documents/" . $this->sign_id;
-			uptosignURLlogLevel(1);
-			$result = getURLContent($url, 'DELETE', '', 1, uptosignApiCommonHeader());
-			uptosignURLlogLevel(0);
-			//dol_syslog("uptosign : remote delete returns " . json_encode($result));
+			$response = $this->apiClient->deleteDocument($this->sign_id);
 
-			dol_syslog("uptosign : remote delete returns code " . ($result['http_code'] ?? ''));
-			if (is_array($result)) {
-				$resultContent = json_decode($result['content'], true);
-				if (in_array($result['http_code'], ['200', '404'])) {
+			dol_syslog("uptosign : remote delete returns code " . $response['http_code']);
+			if ($response['http_code'] > 0) {
+				$resultContent = $response['data'];
+				if (in_array($response['http_code'], [200, 404])) {
 					dol_syslog("uptosign: signDelete ok");
 
 					//effacer le fichier
@@ -1031,7 +1063,7 @@ class UptoSign extends CommonObject
 					}
 
 					//note: il faut supprimer le fichier de preuve ...
-					$resProof = $this->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $this->fk_object . "' AND object_type='" . uptosign_unify_object_type($this->object_type) . "' AND api_name='uptoseal' AND hash_file IS NULL"));
+					$resProof = $this->fetchByObject((int) $this->fk_object, uptosign_unify_object_type($this->object_type), array('api_name' => 'uptoseal', 'hash_file_null' => true));
 					if (is_array($resProof)) {
 						$uts = reset($resProof);
 						if (is_object($uts)) {
@@ -1041,12 +1073,13 @@ class UptoSign extends CommonObject
 					}
 
 					// dol_syslog("uptosign: delete call common delete");
+					/** @phpstan-ignore-next-line */
 					$error = $this->deleteCommon($user, $notr);
 					// dol_syslog("uptosign: delete call common delete end");
 				} else {
-					dol_syslog("uptosign: signDelete error : "  . json_encode($resultContent['message']));
-					array_push($this->errors, 'UptoSignApiError signDelete : ' . $result['http_code']);
-					array_push($this->errors, json_encode($resultContent['message']));
+					dol_syslog("uptosign: signDelete error : "  . json_encode($resultContent['message'] ?? ''));
+					array_push($this->errors, 'UptoSignApiError signDelete : ' . $response['http_code']);
+					array_push($this->errors, json_encode($resultContent['message'] ?? ''));
 					$error--;
 				}
 			}
@@ -1060,13 +1093,8 @@ class UptoSign extends CommonObject
 				dol_delete_file($fullFileName);
 			}
 
-			if (((int) DOL_VERSION) >= 20) {
-				/** @phpstan-ignore-next-line */
-				$error = $this->deleteCommon($user, 1);
-			} else {
-				/** @phpstan-ignore-next-line */
-				$error = $this->deleteCommon($user, true);
-			}
+			/** @phpstan-ignore-next-line */
+			$error = $this->deleteCommon($user, $notr);
 
 			dol_syslog("uptosign: delete proof, error is = $error");
 		}
@@ -1089,16 +1117,8 @@ class UptoSign extends CommonObject
 		}
 
 		$user = $this->findUserToUse($user, $this);
-		if (((int) DOL_VERSION) >= 20) {
-			if ($notrigger) {
-				$notr = 1;
-			}
-			$notr = 0;
-		} else {
-			$notr = $notrigger;
-		}
-
-		return $this->deleteLineCommon($user, $idline, $notr);
+		/** @phpstan-ignore-next-line */
+		return $this->deleteLineCommon($user, $idline, $notrigger ? 1 : 0);
 	}
 
 	/**
@@ -1337,7 +1357,6 @@ class UptoSign extends CommonObject
 
 				$this->date_creation     = $this->db->jdate($obj->datec);
 				$this->date_modification = $this->db->jdate($obj->datem);
-				$this->date_validation   = $this->db->jdate($obj->datev);
 			}
 
 			$this->db->free($result);
@@ -1371,7 +1390,7 @@ class UptoSign extends CommonObject
 		$this->lines = array();
 
 		$objectline = new UptoSignLine($this->db);
-		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql' => 'fk_uptosign = ' . ((int) $this->id)));
+		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('t.fk_uptosign' => (int) $this->id));
 
 		if (is_numeric($result)) {
 			$this->errors = $objectline->errors;
@@ -1529,12 +1548,12 @@ class UptoSign extends CommonObject
 		dol_syslog("uptosign doScheduledJob, " . json_encode($uptosignAccount));
 
 		//prev month
-		$debut_prev = dol_get_first_day((int) date('Y'), date('m') - 1);
-		$fin_prev = dol_get_last_day((int) date('Y'), date('m') - 1);
+		$debut_prev = dol_get_first_day((int) date('Y'), (int) date('m') - 1);
+		$fin_prev = dol_get_last_day((int) date('Y'), (int) date('m') - 1);
 
 		//current month
-		$debut_curr = dol_get_first_day((int) date('Y'), date('m') - 1);
-		$fin_curr = dol_get_last_day((int) date('Y'), date('m') - 1);
+		$debut_curr = dol_get_first_day((int) date('Y'), (int) date('m'));
+		$fin_curr = dol_get_last_day((int) date('Y'), (int) date('m'));
 
 		foreach ($uptosignAccount['customers'] as $customer) {
 			$email = $customer['email'];
@@ -1623,6 +1642,125 @@ class UptoSign extends CommonObject
 		$this->db->commit();
 
 		return $error;
+	}
+
+	/**
+	 * Scheduled job to archive signed/sealed documents.
+	 * Creates backup copies of signed files and re-downloads missing ones from the API.
+	 *
+	 * @return int 0 if OK, <>0 if KO
+	 */
+	public function doScheduledArchive()
+	{
+		global $conf;
+
+		dol_syslog("uptosign doScheduledArchive cron start");
+
+		if (empty($conf->global->UPTOSIGN_ARCHIVE_AUTO_CRON)) {
+			dol_syslog("uptosign doScheduledArchive cron is not enabled");
+			return 0;
+		}
+
+		$sql = "SELECT rowid, ref, sign_id, status, path_file, path_file_signed,";
+		$sql .= " hash_file_signed, date_sign, tms, object_type, fk_object";
+		$sql .= " FROM " . MAIN_DB_PREFIX . "uptosign";
+		$sql .= " WHERE status IN (" . self::STATUS_SIGNED . ", " . self::STATUS_SEALED . ", " . self::STATUS_FILE_FETCHED . ")";
+		$sql .= " AND sign_id IS NOT NULL AND sign_id != ''";
+		$sql .= " AND entity IN (" . getEntity('uptosign') . ")";
+		$sql .= " ORDER BY rowid ASC";
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			dol_syslog("uptosign doScheduledArchive SQL error: " . $this->error, LOG_ERR);
+			return -1;
+		}
+
+		$archived = 0;
+		$errors = 0;
+		$num = $this->db->num_rows($resql);
+		dol_syslog("uptosign doScheduledArchive found $num procedures to check");
+
+		while ($obj = $this->db->fetch_object($resql)) {
+			if (empty($obj->path_file)) {
+				dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " no path_file, skip");
+				continue;
+			}
+
+			$fullPathFile = uptosign_full_path($obj->path_file);
+			$dirname = dirname($fullPathFile);
+			$basename = pathinfo($fullPathFile, PATHINFO_FILENAME);
+
+			$dateValue = !empty($obj->date_sign) ? $obj->date_sign : $obj->tms;
+			$archiveTs = $this->db->jdate($dateValue);
+			// jdate should return int, but some DB drivers (SQLite) may return string
+			if (!is_int($archiveTs)) {
+				$archiveTs = strtotime((string) $dateValue) ?: time();
+			}
+			$dateStr = date('Ymd', $archiveTs);
+			$archiveFile = $dirname . '/' . $basename . '_archive_uptosign_' . $dateStr . '.pdf';
+
+			if (file_exists($archiveFile)) {
+				continue;
+			}
+
+			// Try to archive from local signed file
+			if (!empty($obj->path_file_signed)) {
+				$fullSignedFile = uptosign_full_path($obj->path_file_signed);
+				if (file_exists($fullSignedFile)) {
+					if (copy($fullSignedFile, $archiveFile)) {
+						dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " archived from local file");
+						$archived++;
+					} else {
+						dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " copy failed", LOG_ERR);
+						$errors++;
+					}
+					continue;
+				}
+			}
+
+			// Signed file missing or never downloaded → re-download from API
+			$response = $this->apiClient->downloadDocument($obj->sign_id);
+
+			if ($response['http_code'] == 200 && strlen($response['content']) > 1024) {
+				$fp = fopen($archiveFile, 'w');
+				if (!$fp) {
+					dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " cannot open archive file for writing", LOG_ERR);
+					$errors++;
+					continue;
+				}
+				fwrite($fp, $response['content']);
+				fclose($fp);
+				dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " archived from API re-download");
+				$archived++;
+
+				// Also update DB record if signed file was missing
+				$needUpdate = empty($obj->path_file_signed) || !file_exists(uptosign_full_path($obj->path_file_signed));
+				if ($needUpdate) {
+					$hash = hash_file('sha256', $archiveFile);
+					$relativePath = uptosign_relative_path($archiveFile);
+					$sqlUpdate = "UPDATE " . MAIN_DB_PREFIX . "uptosign SET";
+					$sqlUpdate .= " path_file_signed = '" . $this->db->escape($relativePath) . "'";
+					$sqlUpdate .= ", hash_file_signed = '" . $this->db->escape($hash) . "'";
+					$sqlUpdate .= ", status = " . self::STATUS_FILE_FETCHED;
+					$sqlUpdate .= " WHERE rowid = " . ((int) $obj->rowid);
+					$this->db->query($sqlUpdate);
+					dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " updated path_file_signed to archive");
+				}
+			} elseif ($response['http_code'] == 404) {
+				dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " file expired on server (404)", LOG_WARNING);
+			} else {
+				dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " API error http_code=" . $response['http_code'], LOG_ERR);
+				$errors++;
+			}
+		}
+
+		$this->db->free($resql);
+
+		$this->output = "doScheduledArchive: $archived files archived, $errors errors ($num procedures checked)";
+		dol_syslog("uptosign " . $this->output);
+
+		return 0;
 	}
 
 	/**
@@ -1799,7 +1937,7 @@ class UptoSign extends CommonObject
 		//Sauvegarde locale de dol_hash($hookKEY);
 		//Et utilisation de dol_verifyHash
 		dol_syslog("uptosign document set hook_key to " . $key . " for doc id " . $this->id);
-		$sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element . " SET hook_key='" . $key . "' WHERE rowid='" . $this->id . "'";
+		$sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element . " SET hook_key='" . $this->db->escape($key) . "' WHERE rowid=" . ((int) $this->id);
 
 		$this->db->begin();
 		$res = $this->db->query($sql);
@@ -2221,6 +2359,9 @@ class UptoSign extends CommonObject
 			$this->fk_user_creat = $this->findUserToUse($user, $object, true);
 			$this->fk_soc = $fksoc;
 			$this->fk_contact_sign = $contactID;
+			if ($object->element == "uptosignlist") {
+				$this->fk_uptosignlist = $object->id;
+			}
 			$this->sign_link = $resultContent['url'];
 			$this->disableSms = $this->_searchDisableSMS($fksoc);
 
@@ -2340,30 +2481,20 @@ class UptoSign extends CommonObject
 		// debug
 		// return 0;
 
-		if ($procedure == "seal") {
-			$url = $this->getEndPoint() . "/api/seals";
+		$response = $this->apiClient->createProcedure($data, $procedure);
+		$resultContent = $response['data'];
+
+		if ($response['http_code'] == 200 && $resultContent !== null) {
+			dol_syslog("uptosign: initProcedureLight resultContent 2 : " . json_encode($resultContent));
+		} elseif ($response['http_code'] == 403) {
+			dol_syslog("UptoSignApiError initProcedureLight error 403 : " . json_encode($resultContent['message'] ?? ''));
+			array_push($this->errors, 'UptoSignApiError 403 : ' . ($resultContent['message'] ?? ''));
+			return --$error;
 		} else {
-			$url = $this->getEndPoint() . "/api/documents";
-		}
-
-		uptosignURLlogLevel(1);
-		$result = getURLContent($url, 'POST', json_encode($data), 1, uptosignApiCommonHeader());
-		uptosignURLlogLevel(0);
-
-		if (is_array($result)) {
-			$resultContent = json_decode($result['content'], true);
-			if ($result['http_code'] == 200 && isset($result['content'])) {
-				dol_syslog("uptosign: initProcedureLight resultContent 2 : " . json_encode($resultContent));
-			} elseif ($result['http_code'] == 403 && isset($result['content'])) {
-				dol_syslog("UptoSignApiError initProcedureLight error 403 : "  . json_encode($resultContent['message']));
-				array_push($this->errors, 'UptoSignApiError 403 : ' . $resultContent['message']);
-				return --$error;
-			} else {
-				dol_syslog("UptoSignApiError initProcedureLight 3 : "  . json_encode($resultContent['message']));
-				array_push($this->errors, 'UptoSignApiError 3a : ' . $result['http_code']);
-				array_push($this->errors, json_encode($resultContent['message']));
-				return --$error;
-			}
+			dol_syslog("UptoSignApiError initProcedureLight 3 : " . json_encode($resultContent['message'] ?? ''));
+			array_push($this->errors, 'UptoSignApiError 3a : ' . $response['http_code']);
+			array_push($this->errors, json_encode($resultContent['message'] ?? ''));
+			return --$error;
 		}
 
 		return $resultContent;
@@ -2520,7 +2651,6 @@ class UptoSign extends CommonObject
 		global $langs, $conf, $mysoc;
 		dol_syslog("uptosign::signInfo $mode");
 
-		$langs->setDefaultLang('fr_FR');
 		$langs->loadLangs(array("uptosign@uptosign", "main", "other", "companies", "errors"));
 		$error = 0;
 		$objectId = $object->id;
@@ -2562,7 +2692,7 @@ class UptoSign extends CommonObject
 			if ($child->status > UptoSign::STATUS_WAITING) {
 				// print json_encode($child);
 				//path_file_signed
-				$fullFileName = uptosign_full_path($this->path_file_signed);
+				$fullFileName = uptosign_full_path($child->path_file_signed);
 				if (!is_file($fullFileName)) {
 					$child->status = UptoSign::STATUS_WAITING;
 					$child->update($user);
@@ -2571,17 +2701,14 @@ class UptoSign extends CommonObject
 
 			if ($child->status == UptoSign::STATUS_WAITING || $child->status == UptoSign::STATUS_ERROR || $child->status == UptoSign::STATUS_DRAFT || $mode == 'info' || $mode == 'synchistory') {
 				dol_syslog("uptosign::signInfo refresh data from server");
-				$url = $this->getEndPoint() . "/api/documents/" . $child->sign_id;
-				uptosignURLlogLevel(1);
-				$result = getURLContent($url, 'GET', '', 1, uptosignApiCommonHeader());
-				uptosignURLlogLevel(0);
+				$response = $this->apiClient->getDocumentStatus($child->sign_id);
 
-				if (is_array($result)) {
-					$resultContent = json_decode($result['content'], true);
+				if ($response['http_code'] > 0) {
+					$resultContent = $response['data'];
 					if (isset($resultContent['data'])) {
 						$resultContent = $resultContent['data'];
 					}
-					if ($result['http_code'] == 200) {
+					if ($response['http_code'] == 200) {
 						dol_syslog("uptosign::signInfo initProcedure resultContent 3 : " . json_encode($resultContent));
 						if (isset($resultContent['status'])) {
 							$signStatus = $resultContent['status'];
@@ -2593,7 +2720,7 @@ class UptoSign extends CommonObject
 						$child->fk_user_modif = $user->id;
 						$res = $child->update($user);
 						$status = 0;
-					} elseif ($result['http_code'] == 204) {
+					} elseif ($response['http_code'] == 204) {
 						dol_syslog("uptosign::signInfo initProcedure resultContent 204, " . json_encode($resultContent));
 						array_push($this->errors, 'UptoSignApiError 204 : document not yet ready');
 						array_push($this->errors, "Document not yet ready, please wait ...");
@@ -2606,7 +2733,7 @@ class UptoSign extends CommonObject
 						return UptoSign::STATUS_WAITING;
 					} else {
 						dol_syslog("uptosign::signInfo UptoSignApiError (4) : " . $resultContent['message']);
-						array_push($this->errors, 'UptoSignApiError 4 : ' . $result['http_code']);
+						array_push($this->errors, 'UptoSignApiError 4 : ' . $response['http_code']);
 						array_push($this->errors, $resultContent['message']);
 
 						if (isset($resultContent['status'])) {
@@ -2802,38 +2929,31 @@ class UptoSign extends CommonObject
 				}
 			}
 
-			// dol_syslog("uptosign signFetch res > 0");
-			$url = $this->getEndPoint() . "/api/documents/" . $child->sign_id . '/download';
-			$param = [
-				'email' => utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '')
-			];
-			uptosignURLlogLevel(1);
-			$result = getURLContent($url, 'GET', json_encode($param), 1, uptosignApiCommonHeader());
-			uptosignURLlogLevel(0);
-			dol_syslog("uptosign signFetch :: " . $url);
+			$response = $this->apiClient->downloadDocument($child->sign_id);
+			dol_syslog("uptosign signFetch :: /api/documents/" . $child->sign_id . "/download");
 
-			if (!is_array($result)) {
+			if ($response['http_code'] == 0) {
 				dol_syslog("uptosign result from server is not an array");
 				$error = -1;
 				continue;
 			}
 
-			if ($result['http_code'] == 404) {
+			if ($response['http_code'] == 404) {
 				array_push($this->errors, $langs->trans('WaitingUptoSign'));
 				$error = -1;
 				continue;
 			}
 
-			// dol_syslog("signFetch step 6");
-			if ($result['http_code'] != 200) {
-				// dol_syslog("signFetchProof 6c");
-				array_push($this->errors, 'UptoSignApiError 6b : ' . $result['http_code']);
-				if (isset($result['message'])) {
-					array_push($this->errors, $result['message']);
+			if ($response['http_code'] != 200) {
+				array_push($this->errors, 'UptoSignApiError 6b : ' . $response['http_code']);
+				if (!empty($response['data']['message'])) {
+					array_push($this->errors, $response['data']['message']);
 				}
 				$error = -1;
 				continue;
 			}
+
+			$result = $response;
 
 			$ts = $child->date_sign;
 			//todo check
@@ -2984,28 +3104,21 @@ class UptoSign extends CommonObject
 				dol_syslog("uptosign signFetchProof child->hash_file_signed or child->path_file_signed is empty");
 			}
 
-			// dol_syslog("uptosign signFetchProof res > 0");
-			$url = $this->getEndPoint() . "/api/documents/" . $child->sign_id . '/downloadProof';
-			$param = [
-				'email' => utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '')
-			];
-			uptosignURLlogLevel(1);
-			$result = getURLContent($url, 'GET', json_encode($param), 1, uptosignApiCommonHeader());
-			uptosignURLlogLevel(0);
-			dol_syslog("uptosign signFetchProof :: $url :: " . json_encode($result));
+			$response = $this->apiClient->downloadProof($child->sign_id);
+			dol_syslog("uptosign signFetchProof :: /api/documents/" . $child->sign_id . "/downloadProof");
 
 			$hashProof = $proofFile = "";
-			if (!is_array($result)) {
+			if ($response['http_code'] == 0) {
 				dol_syslog("uptosign result from server is not an array");
 				return -1;
 			}
 
-			$resultContent = json_decode($result['content'], true);
+			$resultContent = $response['data'];
 			dol_syslog("signFetchProof 6b");
-			if ($result['http_code'] != 200) {
+			if ($response['http_code'] != 200) {
 				dol_syslog("signFetchProof 6c");
-				array_push($this->errors, 'UptoSignApiError 6b : ' . $result['http_code']);
-				array_push($this->errors, $resultContent['message']);
+				array_push($this->errors, 'UptoSignApiError 6b : ' . $response['http_code']);
+				array_push($this->errors, $resultContent['message'] ?? '');
 				return -1;
 			}
 
@@ -3022,7 +3135,7 @@ class UptoSign extends CommonObject
 			}
 
 			if ($fp = fopen($fullSignFile, 'w')) {
-				fwrite($fp, $result['content']);
+				fwrite($fp, $response['content']);
 				fclose($fp);
 			} else {
 				array_push($this->errors, $langs->trans("UptoSignCreateFileError") . " : " . $proofFile);
@@ -3052,7 +3165,7 @@ class UptoSign extends CommonObject
 				return -1;
 			}
 			//Evite le F5 sur le download du fichie de preuves
-			$resDup = $this->fetchAll('', '', 0, 0, array('customsql' => "fk_object='" . $this->fk_object . "' AND object_type='" . uptosign_unify_object_type($this->object_type) . "' AND hash_file IS NULL"));
+			$resDup = $this->fetchByObject((int) $this->fk_object, uptosign_unify_object_type($this->object_type), array('hash_file_null' => true));
 			if (count($resDup) != 0) {
 				dol_syslog("signFetchProof uProof object already downloaded");
 				return -1;
@@ -3223,12 +3336,14 @@ class UptoSign extends CommonObject
 		}
 
 		if (!$error && hash_file('sha256', $full) == $this->hash_file_signed) {
-			array_push($this->errors, "UptoSignChecksumError");
 			return true;
 		} else {
+			if (!$error) {
+				array_push($this->errors, "UptoSignChecksumError");
+			}
 			$this->update($user);
+			return false;
 		}
-		return false;
 	}
 
 
@@ -3298,254 +3413,20 @@ class UptoSign extends CommonObject
 	}
 
 	/**
-	 * whoCanSign retourne la liste des personnes qui peuvent signer l'objet
-	 * evolution 2024 : dans le cas d'une procédure de signature d'un document par
-	 * un salarié (donc user interne dolibarr) object, "internal", "UserSign"
+	 * whoCanSign - delegates to UptoSignSignatoryResolver::resolveSigners()
 	 *
-	 * array of Contact or user who can sign that document is into storeArray
-	 *
-	 * @param   User|Societe|Contact  $object            [$object description]
-	 * @param   string  $internalExternal  'external' or 'internal' or 'thirdparty' @see getIdContact
-	 * @param   string  $configLabel        "CustomerSign" or "VendorSign" / new maybe "UserSign" for new internal users sign
-	 * @param   ArrayObject  $storeArray	array of objects where we need to put result data
-	 *
+	 * @param   User|Societe|Contact  $object            Object to sign
+	 * @param   string  $internalExternal  'external' or 'internal'
+	 * @param   string  $configLabel        "CustomerSign" or "VendorSign" or "UserSign"
+	 * @param   ArrayObject  $storeArray	Result array (modified by reference)
+	 * @return  void|int  -1 on error
 	 */
 	public function whoCanSign($object, $internalExternal, $configLabel, ArrayObject &$storeArray = null)
 	{
-		global $conf;
-		dol_syslog("uptosign : whoCanSign on object=" . $object->element . ", internalExternal=$internalExternal, configLabel=$configLabel, storeArray size=" . count($storeArray));
-		// dol_syslog("uptosign : object is " . json_encode($object));
-
-		$socid = null;
-		$dedup = [];
-		$allContactsCanSign = false;
-
-		if ($object->element == "societe") {
-			$socid = $object->id;
-		} else {
-			$socid = $object->socid;
-		}
-
-		if (empty($socid) && isset($object->fk_soc)) {
-			$socid = $object->fk_soc;
-		}
-
-		if (empty($socid) && $object->element != 'user') {
-			array_push($this->errors, "UptoSignThereIsNoSocidForThatObject");
-			dol_syslog("  uptosign whoCanSign : there is no socid for that object ! " . json_encode($object), LOG_ERR);
-			return -1;
-		}
-
-		//all contact linked to object can sign...
-		if (utsbackports_getDolGlobalString('UPTOSIGN_CREATE_SIGN_ALL_CONTACT_LINKED', '')) {
-			$configLabel = '';
-			$allContactsCanSign = true;
-		}
-
-		//remove prefix in case of uptosign prefix
-		$configLabel = str_ireplace("uptosign", "", $configLabel);
-
-		//contact de type user (salarié)
-		if ($object->element == 'user') {
-			$pm = $object->personal_mobile;
-			if (empty($pm)) {
-				$pm = $object->user_mobile;
-				dol_syslog("  uptosign whoCanSign : user personal_mobile is empty, try user_mobile : $pm");
-			}
-			$phone_mobile = uptoSignSearchMobile($pm, $object->office_phone, $object->country_code);
-			if (empty($phone_mobile)) {
-				array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-				dol_syslog("  uptosign whoCanSign : user element type, whoCanSign user without mobile phone or error format, next");
-			}
-
-			if (!in_array($phone_mobile, $dedup)) {
-				dol_syslog("  uptosign whoCanSign (u1) put in dedup " . $object->personal_email);
-				array_push($dedup, $phone_mobile);
-				$storeArray->append($object);
-			} else {
-				dol_syslog("  uptosign whoCanSign (u1) already in dedup ??? " . $object->personal_email);
-			}
-			//cas très particulier, pas la peine d'aller plus loin
-			//.... non : ajouter les signataires de la société (patron par exemple)
-			// return;
-		}
-		//contact de type societe
-		elseif ($object->element == 'societe') {
-			$cts = $object->contact_array_objects();
-			//convert object to array
-			foreach ($cts as $c) {
-				$phone_mobile = uptoSignSearchMobileContact($c);
-				if (empty($phone_mobile)) {
-					array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-					dol_syslog("  uptosign whoCanSign : societe element whoCanSign user without mobile phone or error format, next");
-					continue;
-				}
-
-				if (!in_array($phone_mobile, $dedup)) {
-					dol_syslog("  uptosign whoCanSign (1) put in dedup " . $c->email);
-					array_push($dedup, $phone_mobile);
-					// if (null === $storeArray) {
-					// 	$res->append($c);
-					// } else {
-					$storeArray->append($c);
-					dol_syslog("  uptosign whoCanSign (1) = " . $c->email);
-					// }
-				} else {
-					dol_syslog("  uptosign whoCanSign (1) already in dedup " . $c->email);
-				}
-			}
-		}
-
-		$contactIds = $object->getIdContact($internalExternal, $configLabel);
-		if (count($contactIds) == 0) {
-			dol_syslog("  uptosign whoCanSign : there is no sign contact linked to that object with label=$configLabel, try with societe (socid=" . $socid . ")...");
-			if ($internalExternal == 'external') {
-				//on essaye les contacts liés au tiers si on a contact configuré pour signer les devis par ex.
-				//$contactIds = $object->getIdContact($internalExternal, $config->label);
-				$societe = new Societe($this->db);
-				$resSoc = $societe->fetch($socid);
-				if ($resSoc) {
-					// $contactIds = $societe->getIdContact($internalExternal, $configLabel);
-					// dol_syslog("  uptosign whoCanSign : getids on societe returns " . json_encode($contactIds));
-					$cts = $societe->contact_array_objects();
-					//convert object to array
-					foreach ($cts as $c) {
-						$found = false;
-						//verifier qu'il a bien un role de signature
-						if ($allContactsCanSign) {
-							$found = true;
-						} elseif ($configLabel != '') {
-							$c->fetchRoles();
-							foreach ($c->roles as $roleid => $role) {
-								if ($role['element'] == $object->element && $role['source'] == $internalExternal && $role['code'] == $configLabel) {
-									//found
-									$found = true;
-								}
-							}
-						} else {
-							$found = true;
-						}
-						if (!$found) {
-							dol_syslog("  uptosign whoCanSign : contact " . $c->email . " has not $configLabel role");
-							continue;
-						}
-						$phone_mobile = uptoSignSearchMobile($c->phone_mobile, $c->phone_pro, $c->country_code);
-						if (empty($phone_mobile)) {
-							array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-							dol_syslog("  uptosign whoCanSign : contact " . $c->email . " without mobile phone or error format, next");
-							continue;
-						}
-
-						if (!in_array($phone_mobile, $dedup)) {
-							dol_syslog("  uptosign whoCanSign : (2) put " . $phone_mobile . " (" . $c->email . ") in dedup list");
-							array_push($dedup, $phone_mobile);
-							// if (null === $storeArray) {
-							// 	$res->append($c);
-							// } else {
-							$storeArray->append($c);
-							dol_syslog("  uptosign whoCanSign : (2) = " . $phone_mobile . " / " . $c->email);
-							// }
-						} else {
-							dol_syslog("  uptosign whoCanSign : (2) already in dedup " . $phone_mobile . " / " . $c->email);
-						}
-					}
-
-					if (count($cts) == 0) {
-						dol_syslog("  uptosign whoCanSign : there is no sign contact linked to that societe [" . $socid . "] too :-( ie=$internalExternal, cl=$configLabel");
-					} else {
-						dol_syslog("  uptosign whoCanSign : sign contact linked to that societe found");
-					}
-				} else {
-					dol_syslog("  uptosign whoCanSign : can't fetch societe id " . $socid);
-				}
-			}
-		} else {
-			dol_syslog("  uptosign whoCanSign : sign contact linked to that object found");
-		}
-
-		//add local users ? //empty($contactIds) &&
-		if ($internalExternal == "internal") {
-			$listeUsers = explode(',', $conf->global->UPTOSIGN_DOLIBARR_USERS_SIGN);
-			foreach ($listeUsers as $userid) {
-				$contactIds[] = $userid;
-				dol_syslog("  uptosign whoCanSign : add internal user $userid");
-			}
-		}
-
-		if (count($contactIds) > 0) {
-			foreach ($contactIds as $key => $contactId) {
-				if ($internalExternal == 'external') {
-					$contact = new Contact($object->db);
-					if ($result = $contact->fetch($contactId) > 0) {
-						if (empty($contact->email)) {
-							array_push($this->errors, "UptoSignContactEmailMissing");
-							dol_syslog("  uptosign whoCanSign : user without email, next");
-							continue;
-						}
-						if (empty($contact->country_code)) {
-							$contact->country_code = 'FR';
-						}
-
-						//numero mobile non renseigné mais phone pro renseigné, c'est peut-être un mobile pro ...
-						$phone_mobile = uptoSignSearchMobile($contact->phone_mobile, $contact->phone_pro, $contact->country_code);
-						if (empty($phone_mobile)) {
-							array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-							dol_syslog("  uptosign contact : element whoCanSign user without mobile phone or error format, next");
-							continue;
-						}
-						if (!in_array($phone_mobile, $dedup)) {
-							dol_syslog("  uptosign whoCanSign : (3) put in dedup $phone_mobile for email=$contact->email");
-							array_push($dedup, $phone_mobile);
-							// if (null === $storeArray) {
-							// 	$res->append($contact);
-							// } else {
-							$storeArray->append($contact);
-							dol_syslog("  uptosign whoCanSign : (3) append in array $phone_mobile for email=$contact->email");
-							// }
-						} else {
-							dol_syslog("  uptosign whoCanSign : (3) already in dedup $phone_mobile ($contact->email)");
-						}
-					}
-				} else {
-					$oneuser = new User($object->db);
-					if ($oneuser->fetch($contactId) > 0) {
-						// dol_syslog("uptosign whoCanSign : add userid = " . $user->email);
-						if (empty($oneuser->email)) {
-							array_push($this->errors, "UptoSignUserEmailMissing");
-							continue;
-						}
-						if (empty($oneuser->country_code)) {
-							$oneuser->country_code = 'FR';
-						}
-						$phone_mobile = uptoSignSearchMobile($oneuser->user_mobile, $oneuser->office_phone, $oneuser->country_code);
-						if (empty($phone_mobile)) {
-							dol_syslog("  uptosign whoCanSign : userid disqualified : mobile is empty " . $oneuser->email);
-							array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-							continue;
-						}
-						if (!in_array($phone_mobile, $dedup)) {
-							dol_syslog("  uptosign whoCanSign : (4) put in dedup " . $oneuser->email);
-							array_push($dedup, $phone_mobile);
-							// if (null === $storeArray) {
-							// 	$res->append($oneuser);
-							// } else {
-							$storeArray->append($oneuser);
-							dol_syslog("  uptosign whoCanSign : (4) = " . $oneuser->email);
-							// }
-						} else {
-							dol_syslog("  uptosign whoCanSign : (4) already in dedup " . $oneuser->email);
-						}
-					}
-				}
-			}
-		}
-		if (is_countable($storeArray)) {
-			dol_syslog(" uptosign whoCanSign : return size array = " . count($storeArray));
-		} else {
-			dol_syslog(" uptosign whoCanSign : return size array = " . $storeArray->count());
-		}
-		// dol_syslog("uptosign whocansign json result is " . json_encode($storeArray));
-		// print json_encode($res);exit;
+		$result = $this->signatoryResolver->resolveSigners($object, $internalExternal, $configLabel, $storeArray);
+		$this->errors = array_merge($this->errors, $this->signatoryResolver->errors);
+		$this->signatoryResolver->errors = array();
+		return $result;
 	}
 
 	/**
@@ -3604,82 +3485,14 @@ class UptoSign extends CommonObject
 	}
 
 	/**
-	 * donne tous les roles uptosign au contact $object passé
+	 * Assign all signing roles to a contact - delegates to UptoSignSignatoryResolver
 	 *
-	 * @param   CommonObject  $object  [$object description]
-	 *
-	 * @return  int           [return description]
+	 * @param   CommonObject  $object  Contact object with thirdparty loaded
+	 * @return  int                    Result of updateRoles(), or -1 if not customer/supplier
 	 */
 	public function giveAllRolesToContact($object)
 	{
-		global $conf;
-		$object->fetchRoles();
-		dol_syslog("giveAllRolesToContact initial roles " . json_encode($object->roles));
-		// dol_syslog("giveAllRolesToContact object=" . json_encode($object));
-
-		//evite doublons ?
-		$duplicateID = [];
-		foreach ($object->roles as $key => $val) {
-			$duplicateID[] = $val['id'];
-		}
-		if (!is_array($object->roles)) {
-			$object->roles = array();
-		}
-
-		$code = "";
-		if ($object->thirdparty->client > 0) {
-			$code = "'CustomerSign'";
-		}
-		if ($object->thirdparty->fournisseur == 1) {
-			if ($code != '') {
-				$code .= ",";
-			}
-			$code .= "'VendorSign'";
-		}
-		if ($code == "") {
-			dol_syslog("giveAllRolesToContact not customer, not supplier, return");
-			return -1;
-		}
-		//pas d'accesseur pour récupérer la liste, passage en sql :-(
-		$sql = "SELECT * FROM " . MAIN_DB_PREFIX . "c_type_contact WHERE source='external' AND module='uptosign' AND code IN(" . $code . ")";
-
-		$resql = $this->db->query($sql);
-		if ($resql) {
-			while ($obj = $this->db->fetch_object($resql)) {
-				if (!in_array($obj->rowid, $duplicateID)) {
-					dol_syslog("giveAllRolesToContact add row in array " . json_encode($obj));
-					//si le module n'est pas actif ? cf core dolibarr listeTypeContacts
-					$modulename = $obj->element;
-					if (strpos($obj->element, 'project') !== false) {
-						$modulename = 'projet';
-					} elseif ($obj->element == 'contrat') {
-						$element = 'contract';
-					} elseif ($obj->element == 'action') {
-						$modulename = 'agenda';
-					} elseif (strpos($obj->element, 'supplier') !== false && $obj->element != 'supplier_proposal') {
-						$modulename = 'fournisseur';
-					} elseif (strpos($obj->element, 'supplier') !== false && $obj->element != 'supplier_proposal') {
-						$modulename = 'fournisseur';
-					}
-					if (!empty($conf->{$modulename}->enabled)) {
-						$object->roles[] = [
-							'id' => $obj->rowid,
-							'socid' => $object->socid,
-							'element' => $obj->element,
-							'source' => $obj->source,
-							'code' => $obj->code,
-							'label' => $obj->libelle,
-						];
-					} else {
-						dol_syslog("giveAllRolesToContact module $modulename seems to be disabled !");
-					}
-				}
-			}
-		} else {
-			dol_syslog("giveAllRolesToContact sql result empty/error " . json_encode($sql));
-		}
-		dol_syslog("giveAllRolesToContact apply " . json_encode($object->roles));
-		return $object->updateRoles();
+		return $this->signatoryResolver->giveAllRolesToContact($object);
 	}
 
 	/**
