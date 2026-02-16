@@ -1,10 +1,11 @@
 <?php
-/* Copyright (C) 2007-2015 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2019      Open-DSI             <support@open-dsi.fr>
+/* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
+ * Copyright (C) 2025		T. Negre <tnegre@opendsi.fr>
+ * Copyright (C) 2024       Frédéric France         <frederic.france@free.fr>
  *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -13,13 +14,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
- *        \file       htdocs/sirene/admin/about.php
- *        \ingroup    sirene
- *        \brief      Page about of sirene module
+ * \file    sirene/admin/about.php
+ * \ingroup sirene
+ * \brief   About page of module Sirene.
  */
 
 // Load Dolibarr environment
@@ -29,9 +30,13 @@ if (!$res && !empty($_SERVER["CONTEXT_DOCUMENT_ROOT"])) {
 	$res = @include $_SERVER["CONTEXT_DOCUMENT_ROOT"]."/main.inc.php";
 }
 // Try main.inc.php into web root detected using web root calculated from SCRIPT_FILENAME
-$tmp = empty($_SERVER['SCRIPT_FILENAME']) ? '' : $_SERVER['SCRIPT_FILENAME']; $tmp2 = realpath(__FILE__); $i = strlen($tmp) - 1; $j = strlen($tmp2) - 1;
+$tmp = empty($_SERVER['SCRIPT_FILENAME']) ? '' : $_SERVER['SCRIPT_FILENAME'];
+$tmp2 = realpath(__FILE__);
+$i = strlen($tmp) - 1;
+$j = strlen($tmp2) - 1;
 while ($i > 0 && $j > 0 && isset($tmp[$i]) && isset($tmp2[$j]) && $tmp[$i] == $tmp2[$j]) {
-	$i--; $j--;
+	$i--;
+	$j--;
 }
 if (!$res && $i > 0 && file_exists(substr($tmp, 0, ($i + 1))."/main.inc.php")) {
 	$res = @include substr($tmp, 0, ($i + 1))."/main.inc.php";
@@ -50,71 +55,70 @@ if (!$res) {
 	die("Include of main fails");
 }
 
-require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
-dol_include_once('/sirene/lib/sirene.lib.php');
-dol_include_once('/sirene/core/modules/modSirene.class.php');
-
-$langs->load("admin");
-$langs->load("sirene@sirene");
-$langs->load("opendsi@sirene");
-
-if (!$user->admin) accessforbidden();
-$isV14p = version_compare(DOL_VERSION, "14.0.0") >= 0;
-
+// Libraries
+require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+require_once '../lib/sirene.lib.php';
 
 /**
+ * @var Conf $conf
+ * @var DoliDB $db
+ * @var HookManager $hookmanager
+ * @var Translate $langs
+ * @var User $user
+ */
+
+// Translations
+$langs->loadLangs(array("errors", "admin", "sirene@sirene"));
+
+// Access control
+if (!$user->admin) {
+	accessforbidden();
+}
+
+// Parameters
+$action = GETPOST('action', 'aZ09');
+$backtopage = GETPOST('backtopage', 'alpha');
+
+
+/*
+ * Actions
+ */
+
+// None
+
+
+/*
  * View
  */
 
-llxHeader();
+$form = new Form($db);
 
-$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">' . $langs->trans("BackToModuleList") . '</a>';
-print load_fiche_titre($langs->trans("SireneSetup"), $linkback, 'title_setup');
+$help_url = '';
+$title = "SireneSetup";
 
+llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', ['/sirene/css/about.css'], '', 'mod-sirene page-admin_about');
+
+// Subheader
+$linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
+
+print load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
+
+// Configuration header
 $head = sirene_admin_prepare_head();
+print dol_get_fiche_head($head, 'about', $langs->trans($title), 0, 'sirene@sirene');
 
-if ($isV14p) {
-    print dol_get_fiche_head($head, 'about', $langs->trans("Module163027Name"), 0, 'opendsi@sirene');
-} else {
-    dol_fiche_head($head, 'about', $langs->trans("Module163027Name"), 0, 'opendsi@sirene');
-}
-
+dol_include_once('/sirene/core/modules/modSirene.class.php');
 $modClass = new modSirene($db);
-$constantSireneLastVersion = !empty($modClass->getVersion()) ? $modClass->getVersion() : 'NC';
-$constantSireneVersion = getSireneDolGlobalString('MODULE_SIRENE_VERSION', 'NC');
-
-$supportvalue = "/*****"."<br>";
-$supportvalue.= " * Module : Sirene"."<br>";
-$supportvalue.= " * Module version : ".$constantSireneLastVersion."<br>";
-$supportvalue.= " * Module version installation initiale : ".$constantSireneVersion."<br>";
-$supportvalue.= " * Dolibarr version : ".DOL_VERSION."<br>";
-$supportvalue.= " * Dolibarr version installation initiale : ".getSireneDolGlobalString('MAIN_VERSION_LAST_INSTALL')."<br>";
-$supportvalue.= " * Version PHP : ".PHP_VERSION."<br>";
-$supportvalue.= " *****/"."<br><br>";
-$supportvalue.= "Description de votre problème :"."<br>";
-
-// print '<div class="div-table-responsive-no-min">';
-print '<table class="centpercent">';
-
-//print '<tr class="liste_titre"><td colspan="2">' . $langs->trans("Authors") . '</td>';
-//print '</tr>'."\n";
-
-// Opendsi
-print '<tr>';
-print '<form id="ticket" method="POST" target="_blank" action="https://support.opendsi.fr/create_ticket.php">';
-print '<input name=message type="hidden" value="'.$supportvalue.'" />';
-print '<input name=email type="hidden" value="'.$user->email.'" />';
-print '<td class="titlefield center"><img alt="Opendsi" src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";
-print '<td class="left"><p>'.$langs->trans("OpenDsiAboutDesc1").' <button type="submit" >'.$langs->trans("OpenDsiAboutDesc2").'</button> '.$langs->trans("OpenDsiAboutDesc3").'</p></td>'."\n";
-print '</tr>'."\n";
-
-print '</table>'."\n";
-
-if ($isV14p) {
-	print dol_get_fiche_end();
+// TODO : $langs->defaultlang
+$pathoffile = dol_buildpath(strtolower($modClass->name).'/core/tpl/about.tpl.php', 0);
+if (file_exists($pathoffile)) {
+	require_once $pathoffile;
 } else {
-	dol_fiche_end();
+	print $modClass->getDescLong();
 }
 
+// Page end
+print dol_get_fiche_end();
 llxFooter();
 $db->close();

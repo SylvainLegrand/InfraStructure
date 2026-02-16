@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.3.9] - 12-02-2026
+- Ajout page About
+
 ## [10.3.8] - 23-01-2026
 - Correction de clés de traductions sur champs complémentaires et traductions en langue "en_US"
 
@@ -376,7 +379,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.8...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.9...HEAD
+[10.3.9]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.9
 [10.3.8]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.8
 [10.3.7]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.7
 [10.3.6]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.6
