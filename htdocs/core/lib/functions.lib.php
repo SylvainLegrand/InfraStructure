@@ -9969,7 +9969,7 @@ function getCommonSubstitutionArray($outputlangs, $onlykey = 0, $exclude = null,
 		$substitutionarray['__AMOUNT_VAT_FORMATTED__']      = is_object($object) ? (isset($object->total_vat) ? price($object->total_vat, 0, $outputlangs, 0, -1, -1, $conf->currency) : ($object->total_tva ? price($object->total_tva, 0, $outputlangs, 0, -1, -1, $conf->currency) : null)) : '';
 
 		// BEGIN OSDEN Specific. TODO implement "lazy mode"
-		if ($object->element =='facture') {
+		if (!empty($object->element) && $object->element =='facture') {
 			if (is_object($object)) {
 				$totalpaye			= $object->getSommePaiement();
 				$totalcreditnotes	= $object->getSumCreditNotesUsed();
