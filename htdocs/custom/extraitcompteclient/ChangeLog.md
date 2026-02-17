@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.0.21] - 12-02-2025
+- Nouvelle page about
+
 ## [14.0.20] - 10-10-2025
 - Compatibilité V22
 
@@ -211,7 +214,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initial.
 
 
-[Non Distribué]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/compare/14.0.20...HEAD
+[Non Distribué]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/compare/14.0.21...HEAD
+[14.0.21]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.21
 [14.0.20]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.20
 [14.0.19]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.19
 [14.0.18]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.18

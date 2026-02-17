@@ -56,11 +56,11 @@ class modExtraitCompteClient extends DolibarrModules
 
         // Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
         // It is used to group modules by family in module setup page
-        $this->family = 'easya';
+        $this->family = "Opendsi";
         // Module position in the family
         $this->module_position = 10;
         // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        $this->familyinfo = array('easya' => array('position' => '001', 'label' => $langs->trans("easyaFamily")));
+        // $this->familyinfo = array('osden' => array('position' => '001', 'label' => $langs->trans("osdenFamily")));
         // Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
         $this->special = 0;
 
@@ -69,10 +69,10 @@ class modExtraitCompteClient extends DolibarrModules
         // Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
         $this->description = "Description of module \"ExtraitCompteClient\"";
         $this->descriptionlong = "";
-        $this->editor_name	= '<b>Easya Solutions</b>';
-        $this->editor_web	= 'https://easya.solutions';
-        $this->editor_url	= "https://easya.solutions";
-        $this->editor_email	= 'support@easya.solutions';
+        $this->editor_name	= '<b>Opendsi</b>';
+        $this->editor_web	= 'https://opendsi.fr';
+        $this->editor_url	= "https://opendsi.fr";
+        $this->editor_email	= 'support@open-dsi.fr';
         $this->url_last_version = 'https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/-/raw/2024/VERSION';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
@@ -124,9 +124,9 @@ class modExtraitCompteClient extends DolibarrModules
         $this->hidden = false;            // A condition to hide module
         $this->requiredby = array();    // List of modules id to disable if this one is disabled
         $this->conflictwith = array();    // List of modules id this module is in conflict with
-        $easya_info = json_decode(file_get_contents(__DIR__.'/../../.easya_info.json'));
-        $this->phpmin = explode('.', $easya_info->php_min_version);                 // Minimum version of PHP required by module
-        $this->need_dolibarr_version = explode('.', $easya_info->dlb_min_version);  // Minimum version of Dolibarr required by module
+        $opendsi_info = json_decode(file_get_contents(__DIR__.'/../../.opendsi_info.json'));
+        $this->phpmin = explode('.', $opendsi_info->php_min_version);                 // Minimum version of PHP required by module
+        $this->need_dolibarr_version = explode('.', $opendsi_info->dlb_min_version);  // Minimum version of Dolibarr required by module
         $this->langfiles = array("extraitcompteclient@extraitcompteclient", "opendsi@extraitcompteclient");
         $langs->load('extraitcompteclient@extraitcompteclient');
 
