@@ -1,0 +1,21 @@
+# Dolibarr language file - fr_FR - osden
+CHARSET=UTF-8
+Module163082Name = osden
+Module163082Desc = Module spécifique pour osden
+
+#######################################################################
+# Configuration admin
+#######################################################################
+OsdenSetup                            = Configuration du module osden
+LoadConfigurationFile                 = Charger un fichier CSV de configuration
+LoadBackupFile                        = Restaurer un fichier de backup
+ConstantsApplied                      = Paramétrages appliqués avec succès
+BackupIndexDoesNotexist               = Erreur : L'index du fichier de backup indiqué n'existe pas.
+TooLargeFile                          = Erreur : le fichier est trop grand (5Mo maximum).
+PleaseProvideCSV                      = Erreur : le fichier n'est pas un CSV.
+NoPhpFile                             = Erreur : les fichiers PHP sont interdits.
+
+OsdenMaintenanceFileLocation          = Chemin vers le fichier de maintenance
+OsdenMaintenanceFileLocationHelp      = Chemin vers le fichier indiquant une opération de maintenance
+
+Load                                  = Charger
