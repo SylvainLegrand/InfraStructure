@@ -211,6 +211,8 @@ if ($user->hasRight('advancedictionaries', 'disable')) { /* ... */ }
 |------|--------|-----|------------|
 | Dictionnaires avancés | Configuration | `/advancedictionaries/admin/dictionaries.php` | `advancedictionaries->read` |
 
+NB - l'affichage de cette entrée de menu a été modifiée 4 fois par le passé, pour cause d'incompatibilité avec Oblyon qui ne renseigne pas toujours le leftmenu. Si le problème se pose de nouveau, il ne faut pas seulement corriger le problème qu'on voit, mais également tester dans une instance sans Oblyon.
+
 ---
 
 ## Classes Principales

@@ -1,10 +1,11 @@
 <?php
-/* Copyright (C) 2007-2015 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2017      Open-DSI             <support@open-dsi.fr>
+/* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
+ * Copyright (C) 2025		T. Negre <tnegre@opendsi.fr>
+ * Copyright (C) 2024       Frédéric France         <frederic.france@free.fr>
  *
- * This program is free software; you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -13,13 +14,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
- *	    \file       htdocs/advancedictionaries/admin/about.php
- *		\ingroup    advancedictionaries
- *		\brief      Page about of advancedictionaries module
+ * \file    advancedictionaries/admin/about.php
+ * \ingroup advancedictionaries
+ * \brief   About page of module AdvanceDictionaries.
  */
 
 // Load Dolibarr environment
@@ -29,7 +30,10 @@ if (!$res && !empty($_SERVER["CONTEXT_DOCUMENT_ROOT"])) {
 	$res = @include $_SERVER["CONTEXT_DOCUMENT_ROOT"]."/main.inc.php";
 }
 // Try main.inc.php into web root detected using web root calculated from SCRIPT_FILENAME
-$tmp = empty($_SERVER['SCRIPT_FILENAME']) ? '' : $_SERVER['SCRIPT_FILENAME']; $tmp2 = realpath(__FILE__); $i = strlen($tmp) - 1; $j = strlen($tmp2) - 1;
+$tmp = empty($_SERVER['SCRIPT_FILENAME']) ? '' : $_SERVER['SCRIPT_FILENAME'];
+$tmp2 = realpath(__FILE__);
+$i = strlen($tmp) - 1;
+$j = strlen($tmp2) - 1;
 while ($i > 0 && $j > 0 && isset($tmp[$i]) && isset($tmp2[$j]) && $tmp[$i] == $tmp2[$j]) {
 	$i--;
 	$j--;
@@ -41,9 +45,6 @@ if (!$res && $i > 0 && file_exists(dirname(substr($tmp, 0, ($i + 1)))."/main.inc
 	$res = @include dirname(substr($tmp, 0, ($i + 1)))."/main.inc.php";
 }
 // Try main.inc.php using relative path
-if (!$res && file_exists("../main.inc.php")) {
-	$res = @include "../main.inc.php";
-}
 if (!$res && file_exists("../../main.inc.php")) {
 	$res = @include "../../main.inc.php";
 }
@@ -54,66 +55,70 @@ if (!$res) {
 	die("Include of main fails");
 }
 
+// Libraries
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-dol_include_once('/advancedictionaries/lib/advancedictionaries.lib.php');
-dol_include_once('/advancedictionaries/core/modules/modAdvanceDictionaries.class.php');
-
-$langs->load("admin");
-$langs->load("advancedictionaries@advancedictionaries");
-$langs->load("opendsi@advancedictionaries");
-
-if (!$user->admin) accessforbidden();
-
+require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+require_once '../lib/advancedictionaries.lib.php';
 
 /**
+ * @var Conf $conf
+ * @var DoliDB $db
+ * @var HookManager $hookmanager
+ * @var Translate $langs
+ * @var User $user
+ */
+
+// Translations
+$langs->loadLangs(array("errors", "admin", "advancedictionaries@advancedictionaries"));
+
+// Access control
+if (!$user->admin) {
+	accessforbidden();
+}
+
+// Parameters
+$action = GETPOST('action', 'aZ09');
+$backtopage = GETPOST('backtopage', 'alpha');
+
+
+/*
+ * Actions
+ */
+
+// None
+
+
+/*
  * View
  */
 
-$wikihelp='EN:AdvanceDictionaries_En|FR:AdvanceDictionaries_Fr|ES:AdvanceDictionaries_Es';
-llxHeader('', $langs->trans("AdvanceDictionariesSetup"), $wikihelp);
+$form = new Form($db);
 
-$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
-print load_fiche_titre($langs->trans("AdvanceDictionariesSetup"),$linkback,'title_setup');
-print "<br>\n";
+$help_url = '';
+$title = "AdvanceDictionariesSetup";
 
+llxHeader('', $langs->trans($title), $help_url, '', 0, 0, '', ['/advancedictionaries/css/about.css'], '', 'mod-advancedictionaries page-admin_about');
 
-$head=advancedictionaries_prepare_head();
+// Subheader
+$linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
 
-print dol_get_fiche_head($head, 'about', $langs->trans("Module163017Name"), 0, 'opendsi@advancedictionaries');
+print load_fiche_titre($langs->trans($title), $linkback, 'title_setup');
 
+// Configuration header
+$head = advancedictionaries_prepare_head();
+print dol_get_fiche_head($head, 'about', $langs->trans($title), 0, 'advancedictionaries@advancedictionaries');
+
+dol_include_once('/advancedictionaries/core/modules/modAdvanceDictionaries.class.php');
 $modClass = new modAdvanceDictionaries($db);
-$constantLastVersion = !empty($modClass->getVersion()) ? $modClass->getVersion() : 'NC';
-$constantSireneVersion = !empty($conf->global->MODULE_SIRENE_VERSION) ? $conf->global->MODULE_SIRENE_VERSION : 'NC';
+// TODO : $langs->defaultlang
+$pathoffile = dol_buildpath(strtolower($modClass->name).'/core/tpl/about.tpl.php', 0);
+if (file_exists($pathoffile)) {
+	require_once $pathoffile;
+} else {
+	print $modClass->getDescLong();
+}
 
-$supportvalue = "/*****"."<br>";
-$supportvalue.= " * Module : ".$langs->trans("Module163017Name")."<br>";
-$supportvalue.= " * Module version : ".$constantLastVersion."<br>";
-$supportvalue.= " * Dolibarr version : ".DOL_VERSION."<br>";
-$supportvalue.= " * Dolibarr version installation initiale : ".$conf->global->MAIN_VERSION_LAST_INSTALL."<br>";
-$supportvalue.= " * Version PHP : ".PHP_VERSION."<br>";
-$supportvalue.= " *****/"."<br><br>";
-$supportvalue.= "Description de votre probl�me :"."<br>";
-
-// print '<div class="div-table-responsive-no-min">';
-print '<table class="centpercent">';
-
-//print '<tr class="liste_titre"><td colspan="2">' . $langs->trans("Authors") . '</td>';
-//print '</tr>'."\n";
-
-// Opendsi
-print '<tr>';
-print '<form id="ticket" method="POST" target="_blank" action="https://support.opendsi.fr/create_ticket.php">';
-print '<input name=message type="hidden" value="'.$supportvalue.'" />';
-print '<input name=email type="hidden" value="'.$user->email.'" />';
-print '<td class="titlefield center"><img alt="Opendsi" src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";
-print '<td class="left"><p>'.$langs->trans("OpenDsiAboutDesc1").' <button type="submit" >'.$langs->trans("OpenDsiAboutDesc2").'</button> '.$langs->trans("OpenDsiAboutDesc3").'</p></td>'."\n";
-print '</tr>'."\n";
-
-print '</table>'."\n";
-
+// Page end
 print dol_get_fiche_end();
-
-
 llxFooter();
-
 $db->close();
