@@ -116,7 +116,7 @@
 		function init($options = '')
 		{
 			global $langs, $conf;
-			$sql				= array();
+			$sql		= array();
 			$this->_load_tables('/'.$this->name.'/sql/');
 			oblyon_restore_module($this->name);
 			// InfraS change begin
