@@ -1079,14 +1079,20 @@ class Thirdparties extends DolibarrApi
 		}
 
 		$result = $this->company->fetch($id);
-		if (!$result) { // infras change (!is_array($result)) into !($result))
+		// infras change begin - improved error handling for all fetch() return values
+		if ($result < 0) {
+			// -1 = invalid parameters, -2 = duplicate records, -3 = SQL error
+			throw new RestException(500, 'Error when fetching thirdparty: '.$this->company->error);
+		}
+		if ($result == 0) {
 			throw new RestException(404, 'Thirdparty not found');
 		}
+		// infras change end
 
 		$result = $this->company->getSalesRepresentatives(DolibarrApiAccess::$user, $mode);
 		// infras add begin !is_array check for error case
 		if (!is_array($result)) {
-			throw new RestException(500, 'Error while retrieving sales representatives');
+			throw new RestException(500, 'Error while retrieving sales representatives: '.$this->company->error);
 		}
 		// infras add end !is_array check for error case
 		return $result;
