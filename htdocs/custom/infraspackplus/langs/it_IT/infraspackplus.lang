@@ -1,5 +1,5 @@
 # Dolibarr language file - it_IT - InfraS
-CHARSET=UTF-8
+CHARSET                      = UTF-8
 basenamePackPlus             = InfraS
 modnamePackPlus              = infraspackplus
 modcomnamePackPlus           = InfraSPackPlus
@@ -13,14 +13,14 @@ PiloteVersion                = Versione pilota
 InfraSPlusCautionMess        = <center><b>----- da leggere attentamente ! -----</b></center>
 InfraSPlusCaution            = <b>ATTENZIONE !</b>
 InfraSPlusGenModif           = (Modificabile prima di generare il documento)
-InfraSPlusModuleFileError    = <br><center><b>Si è verificato un errore durante l'implementazione della compatibilità tra InfraSPackPlus e %s<br>Les deux modules continueront de fonctionner normalement<br>mais InfraSPackPlus ne prendra pas totalement en charge l'option 'saut de page' de Milestone/Jalon</b><center>
+InfraSPlusModuleFileError    = <br><center><b>Si è verificato un errore durante l'implementazione della compatibilità tra InfraSPackPlus e %s<br>I due moduli continueranno a funzionare normalmente<br>ma InfraSPackPlus non supporterà completamente l'opzione 'salto di pagina' di Milestone/Jalon</b></center>
 InfraSXMLextError            = <br><center>L'estensione PHP 'XML' non è caricata<br>Alcune caratteristiche del modulo non saranno disponibili<center>
 InfraSPlusChangelogXMLError  = Errore changelog.xml
 InfraSPlusnoMinDolVersion    = Nessuna versione minima conosciuta
 InfraSPlusnoMaxDolVersion    = Nessuna versione massima nota
 InfraSPlusSupportInformation = Informazioni tecniche
 
-### Permessi ###
+### Permissions ###
 InfraSPlusPermMenu       = Visualizzare il menu secondario delle impostazioni del modulo (utente non amministratore)
 InfraSPlusPermPDFDol     = Modificare le impostazioni di Dolibarr PDF
 InfraSPlusPermSpecif     = Modificare i parametri specifici di InfraS
@@ -35,21 +35,23 @@ InfraSPlusPermBkpRest    = Salvare / Ripristinare le impostazioni del modulo
 InfraSPlusPermLastOpt    = Permettere/negare la modifica delle opzioni prima di generare il documento (tranne l'inserimento della firma del cliente, se attivata)
 InfraSPlusPermCGV        = Permettere/negare la modifica delle opzioni GTC, CGA e CGI prima di generare il documento
 
-### Dizionari ###
-InfraSPlusDictEnterCodeMention1 = Riferimento per identificare il campo: Inserisci un valore a tua scelta, ma senza caratteri speciali.
-InfraSPlusDictEnterCodeMention2 = per i tipi riguardanti la gestione automatizzata delle dichiarazioni IVA obbligatorie questo codice deve <b>IMPERATIVAMENTE</b> iniziare con "IVA_"
-InfraSPlusDictMentions          = InfraSPackPlus: tipi di informazioni aggiuntive
-InfraSPlusDictMentionsBASE      = Dichiarazione di base
-InfraSPlusDictMentionsASSDEC    = Assicurazione decennale
-InfraSPlusDictMentionsLIMPROP   = Linea di proprietà
-InfraSPlusDictMentionsOTHER     = Altro
-InfraSPlusDictNotes             = InfraSPackPlus: altri tipi di note pubbliche
-InfraSPlusDictNotesBASE         = Note pubbliche di base
-InfraSPlusDictPaiementSpe       = InfraSPackPlus: metodi di pagamento speciali
-InfraSPlusDictListPaiements     = 0:Tipo di pagamento del cliente, 1:Tipo di pagamento del fornitore, 2:Tipo di pagamento del cliente e del fornitore, 3:Tipo di pagamento speciale
-InfraSPlusDictPaymentTypeSpe    = Tipo di pagamento - speciale
+### Dictionnaires ###
+InfraSPlusDictEnterCodeMention1   = Riferimento per identificare il campo: Inserisci un valore a tua scelta, ma senza caratteri speciali.
+InfraSPlusDictEnterCodeMention2   = per i tipi riguardanti la gestione automatizzata delle dichiarazioni IVA obbligatorie questo codice deve <b>IMPERATIVAMENTE</b> iniziare con "IVA_"
+InfraSPlusDictMentions            = InfraSPackPlus: tipi di informazioni aggiuntive
+InfraSPlusDictMentionsBASE        = Dichiarazione di base
+InfraSPlusDictMentionsASSDEC      = Assicurazione decennale
+InfraSPlusDictMentionsLIMPROP     = Linea di proprietà
+InfraSPlusDictMentionsOTHER       = Altro
+InfraSPlusDictNotes               = InfraSPackPlus: altri tipi di note pubbliche
+InfraSPlusDictNotesBASE           = Note pubbliche di base
+InfraSPlusDictPaiementSpe         = InfraSPackPlus: metodi di pagamento speciali
+InfraSPlusDictListPaiements       = 0:Tipo di pagamento del cliente, 1:Tipo di pagamento del fornitore, 2:Tipo di pagamento del cliente e del fornitore, 3:Tipo di pagamento speciale
+InfraSPlusDictPaymentTypeSpe      = Tipo di pagamento - speciale
+DictionarySepaCategoryPurpose     = Contesto o scopo delle transazioni SEPA
+DictionarySepaCommunityInstrument = Tipo di bonifico SEPA (Gestione dei tempi)
 
-### infras lib pagina ###
+### infras lib page ###
 InfraSPlusParamsGeneralPDF  = Impostazioni di Dolibarr PDF
 InfraSPlusParamsPDF         = Parametri specifici InfraS
 InfraSPlusParamsImages      = Immagini
@@ -61,12 +63,12 @@ InfraSPlusParamsDict        = Dizionari
 InfraSPlusParamsGeneration  = Opzioni prima della generazione
 InfraSPlusParamsChangeLog   = Registro delle modifiche/supporto
 
-### modinfras class pagina ###
+### modinfras class page ###
 modfamily                     = Moduli InfraS
 InfraSPlusParamPresentation   = InfraS: pacchetto modello omonimo
 InfraSPlusParamMigrationError = Si è verificato un errore durante la migrazione degli indirizzi delle società (dalla vecchia tabella 'societe_address' alla nuova tabella 'infraspackplus_societe_address').
 
-### GeneralPDF pagina ###
+### GeneralPDF page ###
 infrasplussetup                       = Pacchetto editoriale InfraS
 PDFParamGeneralDol                    = <b>Opzioni comuni a tutte le edizioni di Dolibarr (sono presenti solo le opzioni che hanno effetto sulle edizioni del pacchetto)</b>
 PDFParamMargin                        = Margine da applicare ai documenti (<b>dovrebbe essere tra 4 e 20</b>) :
@@ -95,11 +97,11 @@ PDFParamWarnChgUnits                  = Hai appena modificato la gestione delle 
 PDFParamMergeProductPDF1              = Includere la documentazione del prodotto/servizio con i preventivi
 PDFParamMergeProductPDF2              = <b>I documenti da includere devono essere selezionati sulla scheda del prodotto/servizio in fondo alla scheda 'file allegati'!</b>
 PDFParamAddDescIntoDoc                = Visualizza la descrizione delle categorie di appartenenza del prodotto/servizio (dopo la propria descrizione)
-PDFParamRefInSupplierLine             = Modifica il tipo di riferimento del prodotto nella catena di vendita (%s, %s, %s)
+PDFParamRefInSupplierLine             = Modifica il tipo di riferimento del prodotto nella catena degli acquisti (%s, %s, %s)
 PDFParamRefInSupplierLine0            = 0 =>  interno poi fornitore
 PDFParamRefInSupplierLine1            = 1 =>  solo fornitore
 PDFParamRefInSupplierLine2            = 2 =>  fornitore poi interno
-PDFParamRefInBuyerLine                = Modifie le type de référence produit dans la chaîne des vente => prezzo per opzione cliente attivata (%s, %s, %s)
+PDFParamRefInBuyerLine                = Modifica il tipo di riferimento del prodotto nella catena delle vendite => opzione prezzo per cliente attivata (%s, %s, %s)
 PDFParamRefInBuyerLine0               = 0 =>  interno poi cliente
 PDFParamRefInBuyerLine1               = 1 =>  solo cliente
 PDFParamRefInBuyerLine2               = 2 =>  cliente poi interno
@@ -127,7 +129,7 @@ PDFParamVatRateLabel                  = visualizza aliquota e descrizione
 PDFParamVatCodeLabel                  = visualizza codice e descrizione
 PDFParamBackToPDFConf                 = Aprire la pagina di configurazione generale per le edizioni PDF
 
-### infrasplussetup pagina ###
+### infrasplussetup page ###
 InfraSPlusParamAddFileKo                       = Il file %s non può essere aggiunto!
 InfraSPlusParamAddFileOk                       = Il file %s è stato aggiunto con successo
 InfraSPlusParamAddPDFKo                        = Il file %s non è un file PDF (.pdf) valido!
@@ -145,6 +147,7 @@ InfraSPlusParamChange                          = Cambia
 InfraSPlusParamCopy                            = Copia
 InfraSPlusAutoUpdateContent                    = Copia i parametri da un'altra entità a quella corrente (%s) utilizzando il modulo Multi-Company
 InfraSPackPlusErrorFailedToCopyParameters      = Si è verificato un errore durante la copia dei parametri dall'entità %s all'entità %s!
+InfraSPackPlusParametersCopiedFromEntity       = I parametri del modulo sono stati copiati con successo!
 InfraSPlusParamTitleComp                       = <b>Opzioni per gestire il comportamento delle funzioni di stampa</b>
 InfraSPlusParamTitleGen                        = <b>Opzioni generali per l'aspetto del documento</b>
 InfraSPlusParamTitleHeader                     = <b>Opzioni dell'intestazione del documento</b>
@@ -165,9 +168,9 @@ InfraSPlusParamFilesFromExpensereport          = Unisci gli allegati associati a
 InfraSPlusParamPropalWithRawPrices             = Preventivo => Creazione di un documento aggiuntivo nel prezzo grezzo (I prezzi non tengono conto degli sconti e/o delle tariffe dei clienti; provengono dal prezzo di vendita predefinito della libreria articoli)
 InfraSPlusParamProduitMergePropal              = Gestisci l'unione della documentazione del prodotto/servizio con i preventivi dalle impostazioni finali (casella di controllo)
 InfraSPlusParamCheckProduitMergePropalX2       = Verifica la presenza di file duplicati (file con lo stesso nome associati a diverse referenze di prodotto/servizio) => il file verrà unito una sola volta
-InfraSPlusParamFilesFromAttestationTVA         = Nelle virgolette offri anche il certificato IVA associato al documento come file unificabile
+InfraSPlusParamFilesFromAttestationTVA         = Nei preventivi proporre anche il certificato IVA associato al documento come file unificabile
 InfraSPlusParamRoundingUP                      = Forza il numero di decimali visualizzati per i prezzi unitari a
-InfraSPlusParamRoundingTot                     = Forzar el número de decimales mostrados para los precios totales (líneas y documento) a
+InfraSPlusParamRoundingTot                     = Forzare il numero di decimali visualizzati per i prezzi totali (righe e documento) a
 InfraSPlusParamMultiFilesText                  = Quando si invia il documento per posta tramite Dolibarr, il file PDF in allegato può essere selezionato automaticamente. Affinché questo file provenga da uno dei modelli InfraSPackPlus disponibili, questo modello deve essere selezionato come quello predefinito per la generazione di questo tipo di documento (questa selezione è fatta tramite i parametri del modulo interessato)
 InfraSPlusParamProjectTimeStamp                = Attribuire un timestamp al nome del file del progetto per mantenere una storia dell'evoluzione
 InfraSPlusParamAddPDF                          = Aggiungi un file PDF come maschera di input => un file PHP con lo stesso nome deve essere creato nella directory "/core/modules/specialfile/doc/" del modulo
@@ -295,8 +298,8 @@ InfraSPlusParamDiscountAuto                    = Quando un prezzo cliente è def
 InfraSPlusParamSitFacTotLineAvt                = Nelle fatture di situazione (avanzamento dei lavori) il totale della linea (HT e/o TTC) è calcolato dall'avanzamento totale della linea (se no è l'avanzamento della situazione per questa linea che è usato). Quando un prezzo cliente è definito, visualizza il prezzo di default nella colonna "PU", il prezzo cliente nella colonna "PU scontato" e calcola automaticamente lo sconto corrispondente).
 InfraSPlusParamShowTotLocCur                   = Visualizzare una riga totale aggiuntiva che include l'IVA nella valuta locale, per i documenti in valuta estera
 InfraSPlusParamHideCols                        = Nascondi tutte le colonne tranne la descrizione del prodotto/servizio (Preventivo o Ordine di vendita)
-InfraSPlusParamHidePricesColDevSt              = NNascondi colonne prezzo (prezzi unitari, IVA, sconti, totali, ecc.) tra virgolette senza totali a piè di pagina (InfraSPlus-DST)
-InfraSPlusParamHideTotColDevSt                 = Nascondi la colonna di totali in citazioni senza totali ai piedi del documento (infrasplus-dest)
+InfraSPlusParamHidePricesColDevSt              = Nascondi colonne prezzo (prezzi unitari, IVA, sconti, totali, ecc.) nei preventivi senza totali a piè di pagina (InfraSPlus-DST)
+InfraSPlusParamHideTotColDevSt                 = Nascondi la colonna dei totali nei preventivi senza totali a piè di pagina (InfraSPlus-DST)
 InfraSPlusParamForceAlignLeftRefColumn         = Forza l'allineamento delle colonne 'Num.' (numero di riga) o 'Rif.' (riferimento)
 InfraSPlusParamBoldRefColumn                   = Visualizza il numero di riga o il riferimento in grassetto
 InfraSPlusParamCGVbyDef                        = Opzione abilitata = inclusione dei CGV<b>controllata</b> di default ||disabilitata = inclusione dei CGV<b>non controllata</b> di default
@@ -320,13 +323,13 @@ InfraSPlusParamNumWords1                       = Nei documenti di vendita, attiv
 InfraSPlusParamNumWords2                       = <b>Richiede il modulo Number Words attivo!</b>
 InfraSPlusParamNumWordsLink                    = https://www.dolistore.com/product.php?title=NumberWords&extid=17&l=fr
 InfraSPlusParamNumWordsLinkText                = (scarica qui)
-InfraSPlusParamErrorNumWords                   = Cette option nécessite que le module "Nombre de mots" soit actif !
+InfraSPlusParamErrorNumWords                   = Questa opzione richiede che il modulo "Number Words" sia attivo!
 InfraSPlusParamPayInLine                       = Seleziona il metodo considerato come pagamento online (Stripe, PayPal, ecc…). Per questo tipo di pagamento un link URL sarà automaticamente inserito nella parte inferiore della fattura.
 InfraSPlusParamPayInLineQRcode                 = Visualizza il link di pagamento come codice QR
 InfraSPlusParamBridgeDisplayPaymentLink        = Mostra il link per creare un bonifico Bridge sulla fattura quando il metodo di pagamento è Trasferimento
 InfraSPlusParamBridgeDisplayPaymentLinkPropal  = Mostra il collegamento alla creazione di un trasferimento del ponte sul preventivo e/o sulla fattura quando il metodo di pagamento viene trasferito
-InfraSPlusParamBridgeDisplayPaymentQRCodePropal= Mostra il codice QR alla creazione di un trasferimento di ponte sul preventivo e/o sulla fattura quando il metodo di pagamento viene trasferito
 InfraSPlusParamBridgeDisplayPaymentQRCode      = Visualizza il codice QR per la creazione del trasferimento Bridge sulla fattura quando il metodo di pagamento è Trasferimento
+InfraSPlusParamBridgeDisplayPaymentQRCodePropal = Mostra il codice QR alla creazione di un trasferimento di ponte sul preventivo e/o sulla fattura quando il metodo di pagamento viene trasferito
 InfraSPlusParamDepositsAtEnd                   = Visualizza le rate in calce alla fattura (prima della restante da pagare) indipendentemente dalla modalità di gestione contabile utilizzata
 InfraSPlusParamUsePaySpec                      = Utilizzare metodi di pagamento speciali (per questo tipo di pagamento la tabella dei dettagli del pagamento sarà disabilitata e gli importi saranno separati dal resto dei pagamenti)
 InfraSPlusParamPaySpec                         = Cambia la modalità considerata come insediamento speciale nelle versioni precedenti (nuovo tipo di insediamento)
@@ -390,7 +393,7 @@ InfraSPlusParamLabelBold2                      = <b>funziona solo sugli elementi
 InfraSPlusParamHideQty                         = Nascondere la quantità per riga nei documenti della catena di vendita (preventivi, ordini e fatture dei clienti)
 InfraSPlusParamShowWVCC1                       = Visualizzare informazioni di peso, volume e/o nomenclatura doganale (codice HS) sui documenti di vendita (preventivi, ordini, bolle di consegna, fatture)
 InfraSPlusParamShowWVCC2                       = <b>Disabilita la funzione nativa di copiare le informazioni doganali nella descrizione della riga del documento interessato!</b>
-InfraSPlusParamNoShowWVCCsameCountry            = Non visualizzare informazioni su peso, volume e/o nomenclatura doganale (codice HS) sui documenti di vendita quando i paesi del cliente e del venditore sono gli stessi
+InfraSPlusParamNoShowWVCCsameCountry           = Non visualizzare informazioni su peso, volume e/o nomenclatura doganale (codice HS) sui documenti di vendita quando i paesi del cliente e del venditore sono gli stessi
 InfraSPlusParamShowWVCCbyDef                   = (Visualizzazione delle informazioni doganali selezionata per impostazione predefinita)
 InfraSPlusParamShowSerialOnInvoice             = Quando una fattura cliente è collegata a una bolla di consegna, visualizzare i numeri di serie dei prodotti presenti nella bolla di consegna
 InfraSPlusParamShowSerialOnMRP                 = Mostra i numeri di serie dei prodotti utilizzati nell'ordine di produzione
@@ -465,7 +468,7 @@ InfraSPlusParamNoCGA                           = Nessuna GTC predefinita
 InfraSPlusParamTypeDoc                         = Tipi di documenti interessati :
 InfraSPlusParamTypeDocCGA                      = Tipi di documenti del fornitore interessati:
 InfraSPlusParamListCGV                         = <b>Elenco delle condizioni generali di vendita esistenti</b>
-InfraSPlusParamCGVAtVeryEnd                    = Tra virgolette inserire i T&C <b>dopo</b> i documenti tecnici
+InfraSPlusParamCGVAtVeryEnd                    = Nei preventivi inserire le CGV <b>dopo</b> i documenti tecnici
 InfraSPlusParamCGVFromPro                      = Gestire le Condizioni Generali di Vendita secondo la tipologia di cliente (Privato o Professionista)
 InfraSPlusParamCGVFromProLabel1                = Tipologia di Terze Parti associate a singoli clienti (Vedi dizionario gestionale per tipologie di terzi) => il nome dei file deve contenere il codice del tipo scelto : <b>'Xxx</b>
 InfraSPlusParamCGVFromProLabel2                = <b>TE_PRIVATE</b>
@@ -488,13 +491,13 @@ InfraSPlusParamListLogos                        = <b>Lista di loghi/piedi esiste
 InfraSPlusParamLogoName                         = Nome dell'immagine da creare
 InfraSPlusParamLogoFile                         = Scegliere un file immagine da importare come logo/piè di pagina
 InfraSPlusParamDefaultImageFooter               = Nome del file da visualizzare di default nel piè di pagina
-InfraSPlusParamNoPied                           = Nessun filmato
+InfraSPlusParamNoPied                           = Nessuna immagine a piè di pagina
 InfraSPlusParamDefaultWatermarkImage            = Nome del file da visualizzare di default in filigrana
 InfraSPlusParamNoWatermarkImage                 = Nessuna immagine in filigrana
 InfraSPlusParamUserStickerDefaultWatermarkImage = Nome del file da visualizzare come filigrana sulle carte utente (InfraSPlus_UST)
 InfraSPlusParamDefaultImageHeader               = Logo secondario (da visualizzare sull'intestazione piccola)
 InfraSPlusParamNoHeader                         = Nessuna immagine di intestazione
-InfraSPlusParamDefaultImageSignEmet             = Immagine da includere come firma dell'emittente tra virgolette (timbro e/o firma)
+InfraSPlusParamDefaultImageSignEmet             = Immagine da includere come firma dell'emittente nei preventivi (timbro e/o firma)
 InfraSPlusParamNoSignEmet                       = Nessuna immagine come firma dell'emittente
 InfraSPlusParamDeleteAFile                      = Cancellazione di file
 InfraSPlusParamConfirmDeleteAFile               = Sei sicuro di voler cancellare questo file: 
@@ -506,7 +509,7 @@ InfraSPlusParamPictureInRef                     = Visualizza l'immagine nella co
 InfraSPlusParamPictureReplaceRef                = Non visualizzare il riferimento (o il numero di riga) => l'immagine <b>SOSTITUISCE</b> i valori (altrimenti il ​​riferimento o il numero di riga verranno visualizzati sotto l'immagine)
 InfraSPlusParamAvertissementCalculImage         = <b>L'altezza ha la precedenza sulla larghezza!</b> (il calcolo cerca di applicare la maggiore altezza possibile)
 InfraSPlusParamOnlyOnePicture1                  = Quando più righe nello stesso documento si riferiscono allo stesso prodotto/servizio, non visualizzare l'immagine associata
-InfraSPlusParamOnlyOnePicture2                  = <b>que</b>
+InfraSPlusParamOnlyOnePicture2                  = <b>che</b>
 InfraSPlusParamOnlyOnePicture3                  = alla prima occorrenza di questo riferimento
 InfraSPlusParamPictureAfter1                    = Visualizza Immagine
 InfraSPlusParamPictureAfter2                    = <b>dopo</b>
@@ -614,7 +617,7 @@ InfraSPlusParamEXFLD                  = Visualizzare gli attributi aggiuntivi de
 InfraSPlusParamEXFLC                  = Visualizzare attributi aggiuntivi delle linee di Comando
 InfraSPlusParamEXFLCT                 = Visualizzare gli attributi aggiuntivi delle linee di Contratto
 InfraSPlusParamEXFLFI                 = Visualizzare attributi aggiuntivi delle linee dell'elenco delle attività
-InfraSPlusParamEXFLE                  = Vedi altri attributi della linea di navigazione
+InfraSPlusParamEXFLE                  = Visualizzare gli attributi aggiuntivi delle Linee di spedizione
 InfraSPlusParamEXFLF                  = Visualizzare gli attributi aggiuntivi delle Linee di fattura
 InfraSPlusParamEXFLB                  = Visualizzare gli attributi aggiuntivi delle Linee di nomenclature
 InfraSPlusParamEXFLDF                 = Visualizza ulteriori attributi delle Linee di richiesta di preventivo del fornitore
@@ -628,6 +631,7 @@ InfraSPlusTxtTvaVPI                          = Esenzione IVA, articolo 262 ter, 
 InfraSPlusTxtTvaVSE                          = IVA non applicabile, articolo 259-1 del Codice Generale delle Imposte
 InfraSPlusTxtTvaVSI                          = Esenzione IVA, articolo 283-2 del Codice Generale delle Imposte
 InfraSPlusTxtTvaBTP                          = Autoliquidazione
+InfraSPlusTxtTvaFranchise                    = IVA non applicabile, articolo 293 B del Codice Generale delle Imposte
 InfraSPlusParamConfirmSetTVAauto             = Confermate l'attivazione della gestione automatica delle menzioni IVA?
 InfraSPlusParamGestionMentions               = <b>Gestire gli avalli aggiuntivi nelle edizioni dei pacchetti</b>
 InfraSPlusParamNewMention                    = Aggiungere/modificare una menzione complementare alle edizioni di InfraS Pack
@@ -688,7 +692,8 @@ InfraSPlusParamSlogan               = Strutturate la vostra crescita!
 InfraSPlusParamLienModules          = I nostri moduli
 InfraSPlusParamSupport              = Richiesta di supporto
 InfraSPlusParamLienDocs             = Le nostre documentazioni
-InfraSPlusParamLicense              = sotto GPL v3 e superiori. 
+InfraSPlusParamLicense              = sotto GPL v3 e superiori.
+InfraSPackPlusParamPreferedPartner  = <b>Membro del programma ufficiale Dolibarr Preferred Partner, garanzia di qualità ed esperienza.</b>
 InfraSPlusParamMoreModulesLink      = I nostri moduli sul dolistore
 InfraSPlusParamObjet                = <h3>Oggetto :</h3>
 InfraSPlusParamHistoryUpdates       = <b>Storia dell'aggiornamento:</b>
@@ -781,7 +786,7 @@ Qty                                     = Qtà.
 Unit                                    = Unità
 PriceUHT                                = P.U (IVA Escl.)
 PriceUTTC                               = P.U (IVA Inc.)
-VAT                                     = IVA
+VAT                                      = per l'IVA
 TotalHTShort                            = Totale (IVA Escl.)
 PDFInfraSPlusRawTotalHTShort            = Totale (IVA Escl.) non scontata
 TotalTTCShort                           = Totale (IVA Inc.)
@@ -793,7 +798,7 @@ PDFInfraSPlusRecap                      = Riassunto
 AvailabilityPeriod                      = Tempi di consegna
 SendingMethod                           = Metodo di spedizione
 PaymentConditions                       = Condizioni di pagamento
-PaymentMode                             = Metodo di paginazione
+PaymentMode                             = Metodo di pagamento
 PaymentByChequeOrderedTo                = Pagamento con assegno all'ordine di %s inviato a
 PaymentByChequeOrderedToShort           = Pagamento con assegno all'ordine di
 PaymentByTransferOnThisBankAccount      = Pagamento tramite Bonifico sul seguente Conto Bancario
@@ -906,7 +911,7 @@ ContactNameAndSignature                  = Per %s, nome e firma:
 ### pdf_InfraS_expedition ###
 PDFInfraSPlusExpeditionCL202203007Name        = InfraSPlus_BLC
 PDFInfraSPlusExpeditionCL202203007Description = Modello di bolla di consegna speciale CL202203007 PDF InfraS. Modello BL completo (logo, …)
-PDFInfraSPlusFitter                           = Più in forma
+PDFInfraSPlusFitter                           = Installatore
 
 ### pdf_InfraS_reception_client ###
 PDFInfraSPlusReceiptName        = InfraSPlus_BR
@@ -975,7 +980,7 @@ PDFInfraSPlusLCRRien     = Non inserire nulla sotto questa linea
 ### pdf_InfraS_fichinter ###
 PDFInfraSPlusFicheInterName        = InfraSPlus_FI
 PDFInfraSPlusFicheInterDescription = Foglio d'intervento modello InfraS. Modello di foglio di intervento completo (logo, …)
-PDFInfraSPlusFicheInterIntervening = Altoparlante
+PDFInfraSPlusFicheInterIntervening = Interveniente
 PDFInfraSPlusInter                 = Indirizzo di intervento : 
 PDFInfraSPlusTemps                 = Tempo totale trascorso
 PDFInfraSPlusDateO                 = Data e ora di arrivo
@@ -1004,8 +1009,8 @@ PDFInfraSPlusAddressedTo                = Indirizzato a
 
 ### pdf_InfraS_reception ###
 PDFInfraSPlusReceptionName        = InfraSPlus_RE
-PDFInfraSPlusReceptionDescription = Foglio di accoglienza PDF modèle InfraS. Modello di foglio di accoglienza completo (logo, …)
-ReceptionSheet                    = Foglio di accoglienza
+PDFInfraSPlusReceptionDescription = Bolla di ricezione fornitore PDF modello InfraS. Modello di bolla di ricezione completo (logo, …)
+ReceptionSheet                    = Bolla di ricezione
 
 ### pdf_InfraS_supplier_invoice ###
 PDFInfraSPlusSupplierInvoiceName        = InfraSPlus_FF

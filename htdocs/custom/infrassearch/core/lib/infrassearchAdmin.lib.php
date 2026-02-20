@@ -599,7 +599,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 							'.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? img_picto($langs->trans('Activated'), 'switch_on') : img_picto($langs->trans('Disabled'), 'switch_off')).'
 						</a>';
 		} elseif ($tag == 'input') {
-			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => getDolGlobalString($confkey, ''));
+			// management of the minimum value of number type input fields
+			$inputValue	= getDolGlobalString($confkey, '');
+			if ($metas['type'] == 'number' && !empty($metas['min'])) {
+				$currentValue	= getDolGlobalInt($confkey, $metas['min']);
+				$inputValue		= $currentValue < $metas['min'] ? $metas['min'] : $currentValue;
+			}
+			// default input
+			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
 			$metas			= array_merge ($defaultMetas, $metas);
 			$metascompil	= '';
 			foreach ($metas as $key => $value) {
@@ -644,7 +651,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 				print $doleditor->Create();
 			}
 		} elseif ($tag == 'color') {
-			print $formother->selectColor($metas, $confkey);
+			print $formother->selectColor($metas, $confkey, '', 1, array(), 'right hideifnotset');
 		} elseif ($tag == 'select') {
 			print $metas;
 		} elseif ($tag == 'selectpos') {
@@ -740,67 +747,67 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 		$langs->loadLangs(array('admin', 'errors', 'infrassearch@infrassearch'));
 
-		$supportURL			= 'https://support.infras.fr/create_ticket.php';
-		$headerPath			= dol_buildpath('/'.$appliname.'/img/InfraSheader.png', 1);
-		$logoPath			= dol_buildpath('/'.$appliname.'/img/InfraS.png', 1);
-		$logoDolistorePath	= dol_buildpath('/'.$appliname.'/img/dolistore_logo.png', 1);
-		$gplv3Path			= dol_buildpath('/'.$appliname.'/img/gplv3.png', 1);
-		$listUpD			= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
-		$urlInfraS			= 'https://infras.fr';
-		$urlWiki			= 'https://wiki.infras.fr';
-		$urlstore			= 'https://infras.store/';
-		$urlDoli			= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
-		$InputCarac			= 'class = "butAction" name = "readmore" type = "button"';
-		$supportvalue		= '/******************************'.'<br/>';
-		$supportvalue		.= ' * Module : '.$langs->trans('modcomnameSearch').'<br/>';
-		$supportvalue		.= ' * Module version : '.$version.'<br/>';
-		$supportvalue		.= ' * Dolibarr version : '.DOL_VERSION.'<br/>';
-		$supportvalue		.= ' * PHP version : '.PHP_VERSION.'<br/>';
-		$supportvalue		.= ' ******************************/'.'<br/>';
-		$supportvalue		.= 'Description de votre demande :'.'<br/>';
-		$ret				= '	<form id = "ticket" method = "POST" target = "_blank" action = "'.$supportURL.'">
-									<input name = message type = "hidden" value = "'.$supportvalue.'" />
-									<input name = email type = "hidden" value = "'.$user->email.'" />
-									<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnameSearch'))).'" />
-									<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
-										<tr class = "height75">
-											<td colspan = "3" class = "center bold valignmiddle">
-												<a href = "'.$urlWiki.'" target = "_blank">
-													<span class = "infrassearchColor" style = "font-size: 24px;">'.$langs->trans('InfraSSearchParamPresent').'</span>
-												</a>
-											</td>
-										</tr>
-										<tr class = "height50">
-											<td rowspan = "3" class = "left bold valignbottom widthtrentepercent infrassearchslogan" style = "color: white; font-size: 16px;">
-												<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder width220" src = "'.$logoPath.'"></a>
-												<br/>&nbsp;&nbsp;'.$langs->trans('InfraSSearchParamSlogan').'
-											</td>
-											<td class = "center valignmiddle widthtrentepercent">
-												<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSSearchParamLienModules').'" /></a>
-											</td>
-											<td rowspan = "3" class = "right bold valignbottom widthtrentepercent infrassearchslogan">
-												<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder width270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
-												<br/>'.$langs->trans('InfraSSearchParamMoreModulesLink').'&nbsp;&nbsp;
-											</td>
-										</tr>
-										<tr class = "height50">
-											<td class = "center valignmiddle">
-												<button class = "butAction" type = "submit" >'.$langs->trans('InfraSSearchParamSupport').'</button>
-											</td>
-										</tr>
-										<tr>
-											<td class = "center valignbottom">
-												<img class = "noborder width120" src="'.$gplv3Path.'"/>
-												<br/>'.$langs->trans('InfraSSearchParamLicense').'
-											</td>
-										</tr>
-										<tr class = "height25"><td colspan = "3">&nbsp;</td></tr>
-									</table>
-								</form>';
-		$ret				.= load_fiche_titre('<span class = "infrassearchTitleparam">'.$langs->trans('InfraSSearchParamHistoryUpdates').'</span>', '', $listUpD, 1);
-		$sxe				= infrassearch_getChangelogFile($appliname);
-		$sxelast			= infrassearch_getChangelogFile($appliname, 'dwn');
-		$tblversionslast	= is_object($sxelast) ? $sxelast->Version : array();
+		$supportURL				= 'https://support.infras.fr/create_ticket.php';
+		$headerPath				= dol_buildpath('/'.$appliname.'/img/InfraSheader.png', 1);
+		$logoPath				= dol_buildpath('/'.$appliname.'/img/InfraS.png', 1);
+		$logoDolistorePath		= dol_buildpath('/'.$appliname.'/img/dolistore_logo.png', 1);
+		$preferedPartnerPath	= dol_buildpath('/'.$appliname.'/img/Dolibarr_preferred_partner.png', 1);
+		$listUpD				= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
+		$urlInfraS				= 'https://infras.fr';
+		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname;
+		$urlstore				= 'https://infras.store/';
+		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
+		$InputCarac				= 'class = "button width180 height32" name = "readmore" type = "button"';
+		$supportvalue			= '/******************************'.'<br/>';
+		$supportvalue			.= ' * Module : '.$langs->trans('modcomnameSearch').'<br/>';
+		$supportvalue			.= ' * Module version : '.$version.'<br/>';
+		$supportvalue			.= ' * Dolibarr version : '.DOL_VERSION.'<br/>';
+		$supportvalue			.= ' * PHP version : '.PHP_VERSION.'<br/>';
+		$supportvalue			.= ' ******************************/'.'<br/>';
+		$supportvalue			.= 'Description de votre demande :'.'<br/>';
+		$ret					= '	<form id = "ticket" method = "POST" target = "_blank" action = "'.$supportURL.'">
+										<input name = message type = "hidden" value = "'.$supportvalue.'" />
+										<input name = email type = "hidden" value = "'.$user->email.'" />
+										<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnameSearch'))).'" />
+										<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
+											<tr class = "height75">
+												<td colspan = "3" class = "center bold valignmiddle">
+													<a href = "'.$urlWiki.'" target = "_blank">
+														<span class = "infrassearchColor" style = "font-size: 24px;">'.$langs->trans('InfraSSearchParamPresent').'</span>
+													</a>
+												</td>
+											</tr>
+											<tr class = "height50">
+												<td rowspan = "3" class = "left bold valignbottom widthtrentepercent infrassearchslogan" style = "color: white; font-size: 16px;">
+													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder width220" src = "'.$logoPath.'"></a>
+													<br/>&nbsp;&nbsp;'.$langs->trans('InfraSSearchParamSlogan').'
+												</td>
+												<td class = "center valignmiddle widthtrentepercent">
+													<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSSearchParamLienModules').'" /></a>
+													<button class = "button width180 height32" type = "submit" >'.$langs->trans('InfraSSearchParamSupport').'</button>
+												</td>
+												<td rowspan = "3" class = "right bold valignbottom widthtrentepercent infrassearchslogan">
+													<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder width270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
+													<br/>'.$langs->trans('InfraSSearchParamMoreModulesLink').'&nbsp;&nbsp;
+												</td>
+											</tr>
+											<tr>
+												<td class = "center valignbottom minwidth600imp">
+													<img class = "noborder width220 margintop10imp" src="'.$preferedPartnerPath.'"/>
+												</td>
+											</tr>
+											<tr>
+												<td class = "center valignbottom minwidth600imp">
+													<div class = "margintop10imp">'.$langs->trans('InfraSSearchParamPreferedPartner').'</div>
+												</td>
+											</tr>
+											<tr class = "height25"><td colspan = "3">&nbsp;</td></tr>
+										</table>
+									</form>';
+		$ret					.= load_fiche_titre('<span class = "infrassearchTitleparam">'.$langs->trans('InfraSSearchParamHistoryUpdates').'</span>', '', $listUpD, 1);
+		$sxe					= infrassearch_getChangelogFile($appliname);
+		$sxelast				= infrassearch_getChangelogFile($appliname, 'dwn');
+		$tblversionslast		= is_object($sxelast) ? $sxelast->Version : array();
 		if ($resVersion == -1) {
 			foreach ($tblversions as $error) {
 				$ret	.= $error->message;

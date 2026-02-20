@@ -36,18 +36,20 @@ InfraSPlusPermLastOpt    = Autoriser / Interdire la modification des options ava
 InfraSPlusPermCGV        = Autoriser / Interdire la modification des options de choix de CGV, CGA et CGI avant génération du document
 
 ### Dictionnaires ###
-InfraSPlusDictEnterCodeMention1 = Référence pour identifier le champ : Entrez une valeur de votre choix, mais sans caractères spéciaux
-InfraSPlusDictEnterCodeMention2 = pour les types concernant la gestion automatisée des mentions obligatoires relatives à la TVA ce code doit <b>IMPERATIVEMENT</b> commencer par "TVA_"
-InfraSPlusDictMentions          = InfraSPackPlus : Types de mentions complémentaires
-InfraSPlusDictMentionsBASE      = Mention de base
-InfraSPlusDictMentionsASSDEC    = Assurance décennale
-InfraSPlusDictMentionsLIMPROP   = Limite de propriété
-InfraSPlusDictMentionsOTHER     = Autre
-InfraSPlusDictNotes             = InfraSPackPlus : Types de notes publiques complémentaires
-InfraSPlusDictNotesBASE         = Notes publiques de base
-InfraSPlusDictPaiementSpe       = InfraSPackPlus : Modes de paiements spéciaux
-InfraSPlusDictListPaiements     = 0:Type paiement client, 1:Type paiement fournisseur, 2:Type paiement client et fournisseur, 3:Type paiement spécial
-InfraSPlusDictPaymentTypeSpe    = Type paiement - spécial
+InfraSPlusDictEnterCodeMention1   = Référence pour identifier le champ : Entrez une valeur de votre choix, mais sans caractères spéciaux
+InfraSPlusDictEnterCodeMention2   = pour les types concernant la gestion automatisée des mentions obligatoires relatives à la TVA ce code doit <b>IMPERATIVEMENT</b> commencer par "TVA_"
+InfraSPlusDictMentions            = InfraSPackPlus : Types de mentions complémentaires
+InfraSPlusDictMentionsBASE        = Mention de base
+InfraSPlusDictMentionsASSDEC      = Assurance décennale
+InfraSPlusDictMentionsLIMPROP     = Limite de propriété
+InfraSPlusDictMentionsOTHER       = Autre
+InfraSPlusDictNotes               = InfraSPackPlus : Types de notes publiques complémentaires
+InfraSPlusDictNotesBASE           = Notes publiques de base
+InfraSPlusDictPaiementSpe         = InfraSPackPlus : Modes de paiements spéciaux
+InfraSPlusDictListPaiements       = 0:Type paiement client, 1:Type paiement fournisseur, 2:Type paiement client et fournisseur, 3:Type paiement spécial
+InfraSPlusDictPaymentTypeSpe      = Type paiement - spécial
+DictionarySepaCategoryPurpose     = Contexte ou but des transactions SEPA
+DictionarySepaCommunityInstrument = Type de virement SEPA (Gestion des délais)
 
 ### infras lib page ###
 InfraSPlusParamsGeneralPDF  = Paramètres Dolibarr
@@ -690,7 +692,8 @@ InfraSPlusParamSlogan               = Structurez votre croissance !
 InfraSPlusParamLienModules          = Nos Modules
 InfraSPlusParamSupport              = Demande de support
 InfraSPlusParamLienDocs             = Nos Documentations
-InfraSPlusParamLicense              = sous Licence GPL v3 et supérieur 
+InfraSPlusParamLicense              = sous Licence GPL v3 et supérieur
+InfraSPackPlusParamPreferedPartner  = <b>Membre du programme officiel Dolibarr Preferred Partner, gage de qualité et d’expertise.</b>
 InfraSPlusParamMoreModulesLink      = Nos modules sur le dolistore
 InfraSPlusParamObjet                = <h3>Objet :</h3>
 InfraSPlusParamHistoryUpdates       = <b>Historique des mises à jour :</b>
@@ -1057,4 +1060,3 @@ PDFInfraSPlusUserStickerDescription = Carte d'identification PDF modèle InfraS.
 PDFInfraSPlusGenerateAccountStatutModelsPDF = PDF modèle InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = État de compte tiers. Modèle d'état de compte tiers PDF complet (logo, …)
-PdfCommercialProposalTitle               	= Proposition

@@ -3,6 +3,7 @@
 
 
 ## ***InfraSPackPlus***
+#### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
 * Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 703 options (32 options sont modifiables directement sur la fiche du document) dont
 	 * Les cadres arrondis, l’organisation des colonnes (ordre, affichage, largeur, …)
 	 * Le choix des couleurs de texte, de fond, des images, des filigranes, des types épaisseur et couleurs des lignes, …

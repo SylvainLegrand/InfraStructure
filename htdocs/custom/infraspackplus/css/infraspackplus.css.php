@@ -214,6 +214,11 @@ img.infraspluswidthpictotitle {
 .width270 {
 	width: 270px;
 }
+
+.minwidth600imp {
+	min-width: 600px !important;
+}
+
 .widthquinzepercent {
 	width: 15%;
 }
@@ -228,6 +233,10 @@ img.infraspluswidthpictotitle {
 
 .height75 {
 	height: 75px;
+}
+
+.height32 {
+	height: 32px;
 }
 
 .height50 {
@@ -261,6 +270,10 @@ img.infraspluswidthpictotitle {
 .nopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
+}
+
+.margintop10imp {
+	margin-top: 10px !important;
 }
 
 .fontsizeinherit {

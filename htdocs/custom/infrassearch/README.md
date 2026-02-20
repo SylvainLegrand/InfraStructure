@@ -2,6 +2,8 @@
 
 
 
+## ***InfraSSearch***
+#### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
 * La recherche ***InfraSSearch*** apporte de nombreuses améliorations aux fonctions de base :
 	* Une recherche exhaustive incluant les attributs supplémentaires (extrafields) dans tous les types d'éléments disponibles
 	* Une page dédiée à la présentation des résultats

@@ -67,6 +67,7 @@ InfraSSearchParamSlogan               = Structurez votre croissance !
 InfraSSearchParamLienModules          = Our Modules
 InfraSSearchParamLienDocs             = Our User Guides
 InfraSSearchParamLicense              = Under GPL v3 and higher license
+InfraSSearchParamPreferedPartner      = <b>Member of the official Dolibarr Preferred Partner program, guarantee of quality and experience.</b>
 InfraSSearchParamMoreModulesLink      = Our modules on the dolistore
 InfraSSearchParamObjet                = <h3>Object :</h3>
 InfraSSearchParamHistoryUpdates       = <b>Update history :</b>

@@ -128,6 +128,7 @@
 		$order				= getDolGlobalString('INFRASSEARCH_ORDER', 'DESC');
 		$TResult			= array();
 		$order_field		= '';
+		$customtabelem		= null;
 		switch ($TObjectTypeValid) {
 			case 'agenda':
 				$tables			= array($db->prefix().'actioncomm', $db->prefix().'actioncomm_extrafields', $db->prefix().'societe', $db->prefix().'socpeople');
@@ -467,7 +468,6 @@
 			break;
 		}
 		$sql_where	= ' 0 ';
-		$sql_fields	= '';
 		if (isModEnabled('customtabs') && is_array($customtabelem)) {
 			$restab		= $db->query('SELECT DISTINCT '.$db->prefix().'customtabs.tablename FROM '.$db->prefix().'customtabs WHERE '.$db->prefix().'customtabs.element LIKE "'.$customtabelem['element'].'"');
 			while($tab = $db->fetch_object($restab)) {
@@ -475,36 +475,114 @@
 				$sql_join	.= ' LEFT JOIN '.$db->prefix().'cust_'.$tab->tablename.'_extrafields ON ('.$db->prefix().$customtabelem['maintabl'].'.rowid = '.$db->prefix().'cust_'.$tab->tablename.'_extrafields.fk_object)';
 			}
 		}
-		foreach($tables as $table) {
-			$res	= $db->query('DESCRIBE '.$table);
-			while($tbl = $db->fetch_object($res)) {
+		// Normalisation du mot-clé pour la recherche de numéros de téléphone
+		// On extrait uniquement les chiffres du mot-clé
+		$keywordPhoneDigits	= preg_replace('/[^\d]/', '', $keyword);
+		// Le mot-clé ressemble à un numéro de téléphone si composé uniquement de chiffres, +, espaces, tirets, points, parenthèses, /
+		$looksLikePhone		= !empty($keywordPhoneDigits) && strlen($keywordPhoneDigits) >= 5
+								&& preg_match('/^[\+\d\s\-\.\(\)\/]+$/', trim($keyword));
+		// Recherche croisée local/international pour Madagascar
+		$keywordPhoneLocal	= '';
+		if ($looksLikePhone) {
+			if (strpos($keywordPhoneDigits, '00261') === 0 && strlen($keywordPhoneDigits) >= 14) {
+				// 00261 34 ... → 034 ... (format local)
+				$keywordPhoneLocal	= '0'.substr($keywordPhoneDigits, 5);
+			} elseif (strpos($keywordPhoneDigits, '261') === 0 && strlen($keywordPhoneDigits) >= 12) {
+				// +261 34 ... → 034 ... (format local)
+				$keywordPhoneLocal	= '0'.substr($keywordPhoneDigits, 3);
+			} elseif (strpos($keywordPhoneDigits, '0') === 0 && strlen($keywordPhoneDigits) >= 10) {
+				// 034 ... → 26134 ... (format international sans +)
+				$keywordPhoneLocal	= '261'.substr($keywordPhoneDigits, 1);
+			}
+		}
+		$escapedKeyword			= $db->escape($db->escapeforlike($keyword));
+		$escapedKeyPhDigits		= $db->escape($db->escapeforlike($keywordPhoneDigits));
+		$escapedKeyPhLocal		= !empty($keywordPhoneLocal) ? $db->escape($db->escapeforlike($keywordPhoneLocal)) : '';
+
+		// Pré-calculer les conversions de type une seule fois (au lieu de dans chaque itération de la boucle interne)
+		$d_keyword	= _isDate($keyword);
+		$i_keyword	= 0;
+		if (!$looksLikePhone && is_numeric($keyword)) {
+			$i_keyword	= (double) $keyword;
+			if ($i_keyword > 2147483647 || empty($i_keyword)) {
+				$i_keyword	= 0;
+			}
+		}
+		$escapedKeywordDate	= !empty($d_keyword) ? $db->escape($db->escapeforlike($keyword)) : '';
+
+		// Cache statique des résultats DESCRIBE pour éviter les requêtes répétées
+		// sur les mêmes tables (societe, socpeople, product sont jointes par de nombreux modules)
+		static $describeCache = array();
+
+		// Colonnes techniques à exclure de la recherche (jamais pertinentes pour l'utilisateur)
+		static $skipColumnsMap = null;
+		if ($skipColumnsMap === null) {
+			$skipColumnsMap	= array_flip(array(
+				'rowid', 'entity', 'import_key', 'model_pdf', 'last_main_doc',
+				'extraparams', 'fk_object', 'tms',
+				'multicurrency_code', 'multicurrency_tx', 'fk_multicurrency',
+				'rang', 'special_code', 'fk_unit', 'fk_parent_line',
+				'fk_user_creat', 'fk_user_modif', 'fk_user_valid',
+				'fk_user_author', 'fk_user_approve', 'fk_user_closing'
+			));
+		}
+
+		foreach ($tables as $table) {
+			// Utiliser le cache DESCRIBE si disponible
+			if (!isset($describeCache[$table])) {
+				$resDesc	= $db->query('DESCRIBE '.$table);
+				if (!$resDesc) {
+					$describeCache[$table]	= false;
+					continue;
+				}
+				$describeCache[$table]	= array();
+				while ($tbl = $db->fetch_object($resDesc)) {
+					$describeCache[$table][]	= $tbl;
+				}
+			}
+			if ($describeCache[$table] === false) {
+				continue;
+			}
+			foreach ($describeCache[$table] as $tbl) {
 				$fieldname	= $tbl->Field;
-				$sql_fields	.= ','.$table.'.'.$fieldname.' as '.$table.'_'.$fieldname;
+				// Exclure les colonnes techniques et les clés étrangères (fk_*)
+				if (isset($skipColumnsMap[$fieldname]) || strpos($fieldname, 'fk_') === 0) {
+					continue;
+				}
 				if (strpos($tbl->Type, 'varchar') !== false || strpos($tbl->Type, 'text') !== false) {
-					$sql_where	.= ' OR '.$table.'.'.$fieldname.' LIKE "%'.$db->escape($keyword).'%"';
-				} elseif (strpos($tbl->Type, 'int') !== false || strpos($tbl->Type, 'double')!== false || strpos($tbl->Type, 'float') !== false) {
-					$i_keyword	= is_numeric($keyword) ? (double)$keyword : 0;
+					$sql_where	.= ' OR '.$table.'.'.$fieldname.' LIKE "%'.$escapedKeyword.'%"';
+					// Recherche normalisée pour les champs téléphone/fax : comparaison en chiffres uniquement
+					if ($looksLikePhone && preg_match('/phone|fax|mobile|tel/i', $fieldname)) {
+						$stripPhone	= 'REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE('.$table.'.'.$fieldname.', " ", ""), "-", ""), ".", ""), "(", ""), ")", ""), "/", ""), "+", "")';
+						$sql_where	.= ' OR '.$stripPhone.' LIKE "%'.$escapedKeyPhDigits.'%"';
+						if (!empty($escapedKeyPhLocal)) {
+							$sql_where	.= ' OR '.$stripPhone.' LIKE "%'.$escapedKeyPhLocal.'%"';
+						}
+					}
+				} elseif (strpos($tbl->Type, 'int') !== false || strpos($tbl->Type, 'double') !== false || strpos($tbl->Type, 'float') !== false) {
 					if (!empty($i_keyword)) {
-						$sql_where	.= ' OR '.$table.'.'.$fieldname.' = '.$i_keyword;
+						$sql_where	.= ' OR '.$table.'.'.$fieldname.' = '.((int) $i_keyword);
 					}
 				} elseif (strpos($tbl->Type, 'date') !== false || strpos($tbl->Type, 'time') !== false) {
-					$d_keyword	= _isDate($keyword);
-					if (!empty($d_keyword)) {
-						$sql_where	.= ' OR '.$table.'.'.$fieldname.' LIKE "'.$db->escape($keyword).'%"';
+					if (!empty($escapedKeywordDate)) {
+						$sql_where	.= ' OR '.$table.'.'.$fieldname.' LIKE "'.$escapedKeywordDate.'%"';
 					}
 				} else {
 					$sql_where	.= ' OR '.$table.'.'.$fieldname.' = "'.$db->escape($keyword).'"';
 				}
 			}
 		}
-		$sql_where	.= in_array($db->prefix().'product', $tables) ? ' OR '.$db->prefix().'product.ref LIKE "%'.$db->escape($keyword).'%"' : '';
-		$sql_where	.= in_array($db->prefix().'socpeople', $tables) ? ' OR CONCAT_WS(" ",'.$db->prefix().'socpeople.firstname, '.$db->prefix().'socpeople.lastname) LIKE "%'.$db->escape($keyword).'%" OR CONCAT_WS(" ",'.$db->prefix().'socpeople.lastname, '.$db->prefix().'socpeople.firstname) LIKE "%'.$db->escape($keyword).'%"' : '';
+		$sql_where	.= in_array($db->prefix().'product', $tables) ? ' OR '.$db->prefix().'product.ref LIKE "%'.$escapedKeyword.'%"' : '';
+		$sql_where	.= in_array($db->prefix().'socpeople', $tables) ? ' OR CONCAT_WS(" ",'.$db->prefix().'socpeople.firstname, '.$db->prefix().'socpeople.lastname) LIKE "%'.$escapedKeyword.'%" OR CONCAT_WS(" ",'.$db->prefix().'socpeople.lastname, '.$db->prefix().'socpeople.firstname) LIKE "%'.$escapedKeyword.'%"' : '';
 		$sql		= 'SELECT DISTINCT '.$id_field.' as rowid FROM '.$tables[0].' '.$sql_join.' WHERE ('.$sql_where.') ';
 		$sql		.= !empty($onlyInEntity) ? 'AND '.$tables[0].'.entity = '.$conf->entity.' ' : '';
 		$sql		.= !empty($sort) && !empty($order) && !empty($order_field) ? 'ORDER BY '.$order_field.' '.$order.' ' : '';
 		$sql		.= 'LIMIT '.$nbRows.' ';
 		$res		= $db->query($sql);
-		$nb_results	= $db->num_rows($res);
+		if (!$res) {
+			dol_syslog('InfraSSearch: SQL error for type = '.$TObjectTypeValid.' keyword = '.$keyword.' : '.$db->lasterror(), LOG_ERR);
+		}
+		$nb_results	= $res ? $db->num_rows($res) : 0;
 		if (!$asArray) {	// from the search page (tools)
 			print '<table class = "centpercent noborderspacing">
 								<tr class = "liste_titre">
@@ -537,9 +615,10 @@
 					}
 					$desc	= '';
 					if ($show_find_field) {
+						$keywordRegex	= preg_quote($keyword, '/');
 						foreach($o as $k => $v) {
-							if (is_string($v) && preg_match('/'.$keyword.'/', $v)) {
-								$desc .= '<br/>'.$k.' : '.preg_replace('/'.$keyword.'/', '<span class = "highlight">'.$keyword.'</span>', $v);
+							if (is_string($v) && preg_match('/'.$keywordRegex.'/i', $v)) {
+								$desc .= '<br/>'.$k.' : '.preg_replace('/'.$keywordRegex.'/i', '<span class = "highlight">'.$keyword.'</span>', $v);
 							}
 						}
 					}

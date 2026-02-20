@@ -280,7 +280,16 @@
 	<Version Number="15.3.6" MonthVersion="2025-10">
 		<change type='fix'>Gestion des erreurs</change>
 	</Version>
-	<InfraS Downloaded="20251001"/>
-	<Dolibarr minVersion="15.0.0" maxVersion="22.0.3"/>
-	<PHP minVersion="7.4" maxVersion="8.2"/>
+	<Version Number="15.4.0" MonthVersion="2026-02">
+		<change type='fix'>Recherche téléphone : Corrections multiples (regex, échappement LIKE, dépassement INT, recherche partielle)</change>
+		<change type='chg'>Performance : Cache DESCRIBE, exclusion des colonnes techniques du WHERE, pré-calcul des conversions de type</change>
+		<change type='chg'>Code : Nettoyage (suppression code mort, initialisation variables)</change>
+		<change type='add'>Recherche téléphone : Normalisation des numéros et recherche croisée local/international (034... ↔ +261 34... ↔ 00261 34...)</change>
+		<change type='add'>Recherche : Journalisation des erreurs SQL via dol_syslog</change>
+		<change type='chg'>Nouveau lien vers le Wiki InfraSWorkflow</change>
+		<change type='add'>Ajout d'un fichier descripteur CLAUDE.md</change>
+	</Version>
+	<InfraS Downloaded="20260201"/>
+	<Dolibarr minVersion="15.0.0" maxVersion="22.0.4"/>
+	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

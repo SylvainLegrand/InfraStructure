@@ -251,12 +251,20 @@ img.infrassearchwidthpictotitle {
 	width: 270px;
 }
 
+.minwidth600imp {
+	min-width: 600px !important;
+}
+
 .widthtrentepercent {
 	width: 30%;
 }
 
 .height75 {
 	height: 75px;
+}
+
+.height32 {
+	height: 32px;
 }
 
 .height50 {
@@ -286,6 +294,10 @@ img.infrassearchwidthpictotitle {
 .nopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
+}
+
+.margintop10imp {
+	margin-top: 10px !important;
 }
 
 .fontsizeinherit {

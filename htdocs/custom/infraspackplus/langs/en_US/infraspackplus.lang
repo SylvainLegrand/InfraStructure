@@ -7,7 +7,7 @@ Module550000Name             = Advanced Edition Pack
 Module550000Desc             = Advanced Model pack (Commercial Proposal, Orders, Contracts, Interventions Sheets, Expeditions, Invoices, etc… For both the sales chain and the purchasing chain)
 Module550000DescTrigger      = Trigger for Advanced Model pack InfraS
 easyaFamily                  = Easya Solutions
-DolibarrMinVersionRequired   = Minimum Dolibarr version requiered
+DolibarrMinVersionRequired   = Minimum Dolibarr version required
 NewVersionAvailable          = Last available version
 PiloteVersion                = Pilot version
 InfraSPlusCautionMess        = <center><b>----- to read carefully! -----</b></center>
@@ -36,18 +36,20 @@ InfraSPlusPermLastOpt    = Allow / Prohibit change of options before document ge
 InfraSPlusPermCGV        = Allow / Prohibit change of CGV, CGA and CGI selection options before document generation
 
 ### Dictionnaires ###
-InfraSPlusDictEnterCodeMention1 = Reference to identify the field: Enter a value of your choice, but without special characters.
-InfraSPlusDictEnterCodeMention2 = for the types concerning the automated management of the mandatory information relating to VAT this code must <b>IMPERATIVELY</b> start with "VAT_"
-InfraSPlusDictMentions          = InfraSPackPlus : Types of additional mentions
-InfraSPlusDictMentionsBASE      = Basic statement
-InfraSPlusDictMentionsASSDEC    = Decennial insurance
-InfraSPlusDictMentionsLIMPROP   = Propriety limit
-InfraSPlusDictMentionsOTHER     = Other
-InfraSPlusDictNotes             = InfraSPackPlus : Types of additional notes
-InfraSPlusDictNotesBASE         = Basic public notes
-InfraSPlusDictPaiementSpe       = InfraSPackPlus : Special payment methods
-InfraSPlusDictListPaiements     = 0:Customer payment type, 1:Vendor payment type, 2:Both customers and suppliers payment type, 3:Special payment type
-InfraSPlusDictPaymentTypeSpe    = Payment Type - Special
+InfraSPlusDictEnterCodeMention1   = Reference to identify the field: Enter a value of your choice, but without special characters.
+InfraSPlusDictEnterCodeMention2   = for the types concerning the automated management of the mandatory information relating to VAT this code must <b>IMPERATIVELY</b> start with "VAT_"
+InfraSPlusDictMentions            = InfraSPackPlus : Types of additional mentions
+InfraSPlusDictMentionsBASE        = Basic statement
+InfraSPlusDictMentionsASSDEC      = Decennial insurance
+InfraSPlusDictMentionsLIMPROP     = Propriety limit
+InfraSPlusDictMentionsOTHER       = Other
+InfraSPlusDictNotes               = InfraSPackPlus : Types of additional notes
+InfraSPlusDictNotesBASE           = Basic public notes
+InfraSPlusDictPaiementSpe         = InfraSPackPlus : Special payment methods
+InfraSPlusDictListPaiements       = 0:Customer payment type, 1:Vendor payment type, 2:Both customers and suppliers payment type, 3:Special payment type
+InfraSPlusDictPaymentTypeSpe      = Payment Type - Special
+DictionarySepaCategoryPurpose     = Context or purpose of SEPA transactions
+DictionarySepaCommunityInstrument = Type of SEPA transfer (Deadline management)
 
 ### infras lib page ###
 InfraSPlusParamsGeneralPDF  = PDF Settings for Dolibarr
@@ -118,7 +120,7 @@ PDFParamFactureDepositAsPayments      = Consider the down payment invoices as pa
 PDFParamHidePayCond                   = Hides payment conditions on commercial proposal
 PDFParamHidePayMode                   = Hides payment methods on commercial proposal
 PDFParamNoPayDetInv                   = Hide the details of the payments made in the invoices
-PDFParamTotalVatDisplay               = Type of VAT totals diplayed
+PDFParamTotalVatDisplay               = Type of VAT totals displayed
 PDFParamVatRateOnly                   = show rate only
 PDFParamVatCodeOnly                   = show code only
 PDFParamVatLabelOnly                  = show label only
@@ -145,6 +147,7 @@ InfraSPlusParamChange                          = Change
 InfraSPlusParamCopy                            = Copy
 InfraSPlusAutoUpdateContent                    = Copy the parameters from another entity to the current entity (%s) using the Multi-Company module
 InfraSPackPlusErrorFailedToCopyParameters      = An error occurred while copying parameters from entity %s to entity %s!
+InfraSPackPlusParametersCopiedFromEntity       = Module parameters have been copied successfully!
 InfraSPlusParamTitleComp                       = <b>Print function behavior management options</b>
 InfraSPlusParamTitleGen                        = <b>Options for the general appearance of documents</b>
 InfraSPlusParamTitleHeader                     = <b>Document Header Options</b>
@@ -179,12 +182,12 @@ InfraSPlusParamFont                            = Font to use in documents
 InfraSPlusParamTestFont                        = Test
 InfraSPlusParamActualRVB                       = (the current RGB color code is : '%s')
 InfraSPlusParamInvoiceTitleIfDeposit           = Mention (or translation key) to be added to the title of the invoices in the event of the presence of a deposit (example: 'Balance' for the title 'Invoice Balance'; 'Finale' for 'Invoice Finale'; etc.)
-InfraSPlusParamHeaderTextcolor                 = The text color to apply to the document header
-InfraSPlusParamBodyTextcolor                   = The text color to apply to the document body
+InfraSPlusParamHeaderTextColor                 = The text color to apply to the document header
+InfraSPlusParamBodyTextColor                   = The text color to apply to the document body
 InfraSPlusParamHeaderAfterAddr                 = Move header information under address blocks (document title and reference, dates, customer references, linked documents, etc…)
 InfraSPlusParamSpaceBeforeHeaderAfter          = Height of the additional space between the address block and the header information (a minimum space of 4mm is already provided) => <b>between 0 and 10</b>
-InfraSPlusParamTitlesize                       = Font Size Coefficient of Document Title => 
-InfraSPlusParamFontsize                        = <b>must be between 0.1 and 3</b>
+InfraSPlusParamTitleSize                       = Font Size Coefficient of Document Title => 
+InfraSPlusParamFontSize                        = <b>must be between 0.1 and 3</b>
 InfraSPlusParamHeaderAlignLeft                 = Align the information in the header to the left
 InfraSPlusParamNoDateLinked                    = Hide the date of the objects linked to the document (only the type and the reference will appear)
 InfraSPlusParamShowRefPropal                   = View commercial proposal in the linked objects list
@@ -204,18 +207,18 @@ InfraSPlusParamLineDash0                       = Continuous line
 InfraSPlusParamLineDash1                       = Equal dotted
 InfraSPlusParamLineDash2                       = Uneven dots
 InfraSPlusParamLineDash4                       = Uneven discontinuous line
-InfraSPlusParamFrmELinecolor                   = Sending address frame border color
+InfraSPlusParamFrmELineColor                   = Sending address frame border color
 InfraSPlusParamFrmELineOpacity                 = Sender address frame border opacity
-InfraSPlusParamFrmEBgcolor                     = Sender address frame background color
+InfraSPlusParamFrmEBgColor                     = Sender address frame background color
 InfraSPlusParamFrmEOpacity                     = Sender address frame background opacity
-InfraSPlusParamFrmETextcolor                   = The text color to apply to the sender address frame
+InfraSPlusParamFrmETextColor                   = The text color to apply to the sender address frame
 InfraSPlusParamFrmRLineW                       = Recipient address frame border thickness => 
 InfraSPlusParamFrmRLineDash                    = Recipient Address Frame Border Style :
-InfraSPlusParamFrmRLinecolor                   = Recipient address frame border color
+InfraSPlusParamFrmRLineColor                   = Recipient address frame border color
 InfraSPlusParamFrmRLineOpacity                 = Recipient address frame border opacity
-InfraSPlusParamFrmRBgcolor                     = Recipient frame background color
+InfraSPlusParamFrmRBgColor                     = Recipient frame background color
 InfraSPlusParamFrmROpacity                     = Recipient address frame background opacity
-InfraSPlusParamFrmRTextcolor                   = The text color to apply to the recipient address frame
+InfraSPlusParamFrmRTextColor                   = The text color to apply to the recipient address frame
 InfraSPlusParamshowStatusWithSenderName        = View legal status with company name in sender address frames
 InfraSPlusParamshowStatusWithClientName        = View legal status with company name in recipient address frames
 InfraSPlusParamshowEmetFDetails                = Displays all available details of the sender's address (default Address only, option enabled =  + phone + Fax + Email + Web)
@@ -241,14 +244,14 @@ InfraSPlusParamEnableTestMark                  = Text to display as a watermark 
 InfraSPlusParamCurSymb                         = Display currency symbol with prices in tables and document details
 InfraSPlusParamInfoCur                         = Hide currency information above table header (right)
 InfraSPlusParamCurSymbOnTableauTot             = Display currency symbol with prices in total tables
-InfraSPlusParamBackgroundcolor                 = Background color for specific table elements (minimum => total)
+InfraSPlusParamBackgroundColor                 = Background color for specific table elements (minimum => total)
 InfraSPlusParamtTitleBackground                = Applies the background color defined above on table headline
 InfraSPlusParamTextColorAuto                   = Automatically calculate the text color of elements with the background color defined above (white or black)
-InfraSPlusParamTextcolor                       = The text color to apply to the header of the table (if the previous option is not on automatic)
+InfraSPlusParamTextColor                       = The text color to apply to the header of the table (if the previous option is not on automatic)
 InfraSPlusParamHeightTopTable1                 = Height of the table header => <b>between 4 and 20</b> =>
 InfraSPlusParamHeightTopTable2                 = this value must be greater than or equal to 2 x the value of the angle radius of the table !
 InfraSPlusParamhidetoptable                    = Hide the table header after the first page
-InfraSPlusParamFoldMark                        = Length of fold mark on both size of each page => <b>between 0 </b>(hidden)<b> and 10</b>
+InfraSPlusParamFoldMark                        = Length of fold mark on both sides of each page => <b>between 0 </b>(hidden)<b> and 10</b>
 InfraSPlusParamHeightHeadSep                   = Minimum position (in height) of the table header (allows you to increase the size of the header of the first page => useful for managing window envelopes)
 InfraSPlusParamLeftRecepCorner                 = Position in x (width) of the upper left corner of the recipient address frame (from the right margin of the page)
 InfraSPlusParamTopRecepCorner                  = Position in y (height) of the upper left corner of the recipient address frame (from the top margin of the page)
@@ -302,9 +305,9 @@ InfraSPlusParamBoldRefColumn                   = Display line number or referenc
 InfraSPlusParamCGVbyDef                        = Option enabled =  inclusion of GTS <b>checked</ b> by default || disabled =  inclusion of GTS <b>unchecked</ b> by default
 InfraSPlusParamTblLineW                        = Table lines and borders thickness => 
 InfraSPlusParamTblLineDash                     = Table lines and borders Style :
-InfraSPlusParamTblLinecolor                    = Color of the borders of the table
-InfraSPlusParamVerLinecolor                    = Color of the Vertical lines of the table
-InfraSPlusParamHorLinecolor                    = Color of the horizontal lines of the table
+InfraSPlusParamTblLineColor                    = Color of the borders of the table
+InfraSPlusParamVerLineColor                    = Color of the Vertical lines of the table
+InfraSPlusParamHorLineColor                    = Color of the horizontal lines of the table
 InfraSPlusParamLineSepHight                    = Height of the separation space between the lines (elements) of a document => <b>between 1 and 10</b>
 InfraSPlusParamHtBC                            = Height of bar codes in commercial documents (excluding product data sheet) => <b>between 5 and 20</b>
 InfraSPlusParamLargBC                          = Width of bar codes in commercial documents (excluding product data sheet) => <b>between 25 and 45</b>
@@ -316,17 +319,17 @@ InfraSPlusParamRefColumnWithGencode            = Add the gencode to the product 
 InfraSPlusParamShowSupRefCol                   = Show column 'Ref.' (Reference) in the documents of the chain of purchases => Automatically disables the display of the reference with the description
 InfraSPlusParamEXFecoTaxOnSupplierOrder        = Manage eco-taxes in supplier orders following the same process as in the purchasing chain (the additional attribute dedicated to the product eco-tax will be mentioned as eco-tax included in the product description, totaled in the document and displayed after the Total Price)
 InfraSPlusParamForcealignLeftUnitColumn        = Force alignment of the 'Unit' column
-InfraSPlusParamNumWords1                       = On sell documents, shows "Stop to " + Total TTC write by words.
-InfraSPlusParamNumWords2                       = <b>Needs Number Words module actif!</b>
+InfraSPlusParamNumWords1                       = On sales documents, display "Stopped at" + Total incl. tax written in words.
+InfraSPlusParamNumWords2                       = <b>Requires the Number Words module to be active!</b>
 InfraSPlusParamNumWordsLink                    = https://www.dolistore.com/product.php?title=NumberWords&extid=17&l=fr
 InfraSPlusParamNumWordsLinkText                = (download here)
-InfraSPlusParamErrorNumWords                   = This option needs Number Words module actif !
+InfraSPlusParamErrorNumWords                   = This option requires the Number Words module to be active!
 InfraSPlusParamPayInLine                       = Select the mode considered as online payment (Stripe, PayPal, etc…). For this type of payment a URL link will be inserted automatically at the bottom of the invoice.
 InfraSPlusParamPayInLineQRcode                 = Display the payment link as a QR code
 InfraSPlusParamBridgeDisplayPaymentLink        = Display the link to create a Bridge transfer on the invoice when the payment method is Transfer
-InfraSPlusParamBridgeDisplayPaymentQRCode      = Display the QR code for Bridge transfer creation on the invoice when the payment method is Transfer
 InfraSPlusParamBridgeDisplayPaymentLinkPropal  = Show the link to the creation of a bridge transfer on the quote and/or the invoice when the payment method is transfer
-InfraSPlusParamBridgeDisplayPaymentQRCodePropal= Show QR code to the creation of a bridge transfer on the quote and/or the invoice when the payment method is transfer
+InfraSPlusParamBridgeDisplayPaymentQRCode      = Display the QR code for Bridge transfer creation on the invoice when the payment method is Transfer
+InfraSPlusParamBridgeDisplayPaymentQRCodePropal = Show QR code to the creation of a bridge transfer on the quote and/or the invoice when the payment method is transfer
 InfraSPlusParamDepositsAtEnd                   = Display the deposits at the foot of the invoice (before the remainder to be paid) regardless of the accounting management mode used
 InfraSPlusParamUsePaySpec                      = Use special payment methods (for this type of payment the payment details table will be disabled and the amounts will be separated from the rest of the payments)
 InfraSPlusParamPaySpec                         = Change the mode considered as special payment in the previous versions (new payment type)
@@ -340,7 +343,7 @@ InfraSPlusParamCreatorHeader                   = Displays the name of the creato
 InfraSPlusParamInvoiceAddBelgianQRcode         = Print an EPC (European Payments Council) QR code on invoices (Belgium, Netherlands, Germany, Austria and Finland)
 InfraSPlusParamDatesBR                         = Displays document dates on separate lines
 InfraSPlusParamDatesBold                       = Displays document dates in bold
-InfraSPlusParamFactDateDuecolor                = Text color to apply to the due date of invoices
+InfraSPlusParamFactDateDueColor                = Text color to apply to the due date of invoices
 InfraSPlusParamCFshowCreationDate              = Display the creation date of supplier orders
 InfraSPlusParamRefDFromCustomer                = Display the customer reference as a document reference in quotes / commercial proposals
 InfraSPlusParamPrjDateoNote                    = Displays the opening date of the associated project in the notes of the Production Orders (OF) => sales order template
@@ -385,8 +388,8 @@ InfraSPlusParamShowDescDev                     = Display the product description
 InfraSPlusParamOnlyOneDesc1                    = When several lines of the same document refer to the same product / service, display its long description
 InfraSPlusParamOnlyOneDesc2                    = <b>only</b>
 InfraSPlusParamOnlyOneDesc3                    = for the first occurrence of this reference
-InfraSPlusParamLabelBold                       = Shows product / service short label bold
-InfraSPlusParamLabelBold                       = <b>Works only on library items!</b>
+InfraSPlusParamLabelBold1                      = Display product / service short labels in bold
+InfraSPlusParamLabelBold2                      = <b>only works on library items!</b>
 InfraSPlusParamHideQty                         = Hides line's quantity on commercial proposal, order and invoice
 InfraSPlusParamShowWVCC1                       = Show informations about weight, volume and / or customs nomenclature (HS Code) on sales documents (commercial proposals, orders, delivery notes, invoices)
 InfraSPlusParamShowWVCC2                       = <b>Disables the native function of copying customs information into the description of the line of the document concerned!</b>
@@ -402,18 +405,18 @@ InfraSPlusParamUserStickerJob                  = Display user position / functio
 InfraSPlusParamUserStickerSocTel               = Display company phone number (3rd line, to the right of the photo)
 InfraSPlusParamUserStickerSocMail              = Display company email (4th line, to the right of the photo)
 InfraSPlusParamUserStickerLogo                 = Display company logo (bottom right)
-InfraSPlusParamBodySubTicolor                  = Background color to apply to the subtotal module subtitles
-InfraSPlusParamBodySubTicolor1                 = (the background  opacity will be automatically reduced by 25%% for each title level: level 1 title => 100%%; level 2 title => 75%%; etc …)
-InfraSPlusParamTextSubTicolor                  = The text color to apply to the subtitles of the subtotal module
-InfraSPlusParamTextSubTocolor                  = The text color to apply to the subtotals of the subtotal module
+InfraSPlusParamBodySubTiColor                  = Background color to apply to the subtotal module subtitles
+InfraSPlusParamBodySubTiColor1                 = (the background  opacity will be automatically reduced by 25%% for each title level: level 1 title => 100%%; level 2 title => 75%%; etc …)
+InfraSPlusParamTextSubTiColor                  = The text color to apply to the subtitles of the subtotal module
+InfraSPlusParamTextSubToColor                  = The text color to apply to the subtotals of the subtotal module
 InfraSPlusParamDescSubToColor                  = The text color to apply to the long description of the subtotals of the subtotal module
 InfraSPlusParamBodySubToColor                  = Background color to be applied to subtotals of the subtotal module
 InfraSPlusParamHideBodySubTo                   = Disable the use of a background color (highlighting) for subtotals
 InfraSPlusParamBodySubToColorSubTi             = Coordinate the background color (highlighting) of the subtotals with that of the subtitles
 InfraSPlusParamSubTiWithSubTo                  = Merge subtotals with subtitles (subtotal amounts are displayed on subtitle lines)
-InfraSPlusParamTextJaloncolor                  = The text color to apply to the subtitles of the Milestone/Jalon module
-InfraSPlusParamBodyOuvcolor                    = Background color to apply to the works of the Works / Packages module
-InfraSPlusParamTextOuvcolor                    = The text color to apply to the works of the Works / Packages module
+InfraSPlusParamTextJalonColor                  = The text color to apply to the subtitles of the Milestone/Jalon module
+InfraSPlusParamBodyOuvColor                    = Background color to apply to the works of the Works / Packages module
+InfraSPlusParamTextOuvColor                    = The text color to apply to the works of the Works / Packages module
 InfraSPlusParamTextOuvStyle                    = The text style to apply to the works of the Works / Packages module (<b>B             =  bold</b>, <u>U             =  underlined</u>, <i>I             =  italic</i>)
 InfraSPlusParamDescOuvStyleStd                 = Apply the standard text style to long descriptions of works/packages (otherwise, the style defined above will be applied to the wording as well as to the long description)
 InfraSPlusParamOuvrageBullet                   = Character (or symbol) to use as a bullet marking work details (if empty a simple indentation will be used)
@@ -434,7 +437,7 @@ InfraSPlusParamShowOutStdBill                  = Show the customer outstandings 
 InfraSPlusParamShowLCR                         = Print LCR with customer invoices when it's the selected payment method
 InfraSPlusParamSignLineW                       = Signature fields lines and borders thickness => 
 InfraSPlusParamSignLineDash                    = Signature fields lines and borders style :
-InfraSPlusParamSignLinecolor                   = Signature fields lines and borders color
+InfraSPlusParamSignLineColor                   = Signature fields lines and borders color
 InfraSPlusParamShowESigning                    = Signature fields contain an electronic signature field
 InfraSPlusParamGetCustomerSign                 = Use Customer Signature Entry (PAD Signature)
 InfraSPlusParamCustomerSigncolor               = Customer Signature color
@@ -559,8 +562,8 @@ InfraSPlusParamCodeAddrFact1         = Alias or Code of Customer Billing Address
 InfraSPlusParamCodeAddrFact2         = The Commercial name will be displayed as a business name!
 InfraSPlusParamUseCustomCountryAddr  = Link the sender address to the recipient's country (an address registered above must have for code or alias the code of the recipient's country: example FR, US, ES, etc …)
 InfraSPlusParamWithCountry           = Force country display in addresses
-InfraSPlusParamFactureParentAddrFact = Use the billing address of the parent company (if filled in) instead of the customer address => the entire automation configuration applies to the parent company
 InfraSPlusParamShowSenderAlias       = Use the alternative business name (alias) to replace the social reason if a secondary sender address is selected for the generation of the document
+InfraSPlusParamFactureParentAddrFact = Use the billing address of the parent company (if filled in) instead of the customer address => the entire automation configuration applies to the parent company
 InfraSPlusParamAddrLivrSyst          = Always display a delivery address (even if the automatic billing address is inactive)
 InfraSPlusParamAddrLivrSiFact        = Automatically display (default) a delivery address when the automatic billing address is active
 InfraSPlusParamUseDoliAdrLivr        = Use the native management of delivery addresses (by delivery tracking contacts)
@@ -572,7 +575,7 @@ InfraSPlusParamLabelExfFreeAddrLivr  = Delivery address (manual)
 InfraSPlusParamShowAdrRecep          = Show delivery address on customer documents (commercial proposals, orders, invoices) => This address is selectable before document generation (automatically activates the hidden multi-address management option of third parties)
 InfraSPlusParamAdrLivrMixte          = If the delivery address on the supplier documents (quotations, orders) is activated, allows you to choose the delivery directly to a customer address (main or secondary)
 InfraSPlusParamAdrTiersSsT           = Display the address of a customer's external contact ("CustomLink" module) as a subcontractor's address in Production Orders (OF created from orders)
-InfraSPlusParamTypeContactSsT         = Type of contact used as a subcontractor ID in external contacts of a third party
+InfraSPlusParamTypeContactSsT        = Type of contact used as a subcontractor ID in external contacts of a third party
 InfraSPlusParamNoAddressClass        = <b>The core-change did not execute correctly!<br>some necessary files are missing!</b>
 InfraSPlusParamLabelAlredyExists     = There is already an address with the same alias or code (%s) for this company!
 InfraSPlusParamLabelOrNameEmpty      = The name as the Alias or Code of a company address cannot be empty
@@ -628,6 +631,7 @@ InfraSPlusTxtTvaVPI                          = VAT exemption, article 262 ter, I
 InfraSPlusTxtTvaVSE                          = VAT not applicable, article 259-1 of the General Tax Code
 InfraSPlusTxtTvaVSI                          = VAT exemption, article 283-2 of the General Tax Code
 InfraSPlusTxtTvaBTP                          = Self-liquidation
+InfraSPlusTxtTvaFranchise                    = VAT not applicable, article 293 B of the General Tax Code
 InfraSPlusParamConfirmSetTVAauto             = Do you confirm the activation of the automatic management of the information relating to VAT?
 InfraSPlusParamGestionMentions               = <b>Management of Additional informations usable in the different editions of the InfraS Pack</b>
 InfraSPlusParamNewMention                    = Add / Edit an additional mention to the InfraS Pack editions
@@ -670,7 +674,7 @@ InfraSPlusParamNote2         = for
 InfraSPlusParamNote3         = ; identification label of the note :
 InfraSPlusParamNotesSetup    = <b>Options about public note use for pack editions</b>
 InfraSPlusParamNTUsedAsCover = Type of public note to use as a cover page
-InfraSPlusParamNTBaseDef     = Always display the basic standrd public note for %s
+InfraSPlusParamNTBaseDef     = Always display the basic standard public note for %s
 
 ### Generation page ###
 InfraSPlusParamGenerationSetup = <b>Options for saving settings made before document generation</b>
@@ -689,6 +693,7 @@ InfraSPlusParamLienModules          = Our Modules
 InfraSPlusParamSupport              = Support request
 InfraSPlusParamLienDocs             = Our User Guides
 InfraSPlusParamLicense              = Under GPL v3 and higher license
+InfraSPackPlusParamPreferedPartner  = <b>Member of the official Dolibarr Preferred Partner program, a guarantee of quality and expertise.</b>
 InfraSPlusParamMoreModulesLink      = Our modules on the dolistore
 InfraSPlusParamObjet                = <h3>Object :</h3>
 InfraSPlusParamHistoryUpdates       = <b>Update history :</b>
@@ -703,9 +708,9 @@ InfraSPlusParamFontsFolder          = Directory used to store fonts
 ### actions InfraSPack class ###
 PDFInfraSPlusWarningMaxVersion    = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSPackPlus %s module.<br>The maximum version of Dolibarr supported is version %s.<br>You therefore use this module without guarantee of proper functioning.</center>
 PDFInfraSPlusOptions              = <b>Options for the print module InfraSPack</b>
-PDFInfraSPlusLogo                 = Sender compagny logo
+PDFInfraSPlusLogo                 = Sender company logo
 PDFInfraSPlusDefaultLogo          = Default
-PDFInfraSPlusAddress              = Sender compagny address
+PDFInfraSPlusAddress              = Sender company address
 PDFInfraSPlusDefaultAddress       = Default
 PDFInfraSPlusCustomerAddress      = Delivery address
 PDFInfraSPlusMentionsBase         = basic remark
@@ -781,7 +786,7 @@ Qty                                     = Qty.
 Unit                                    = Unit
 PriceUHT                                = U.P. HT
 PriceUTTC                               = U.P. incl.
-VAT                                     = VAT
+VAT                                      = for VAT
 TotalHTShort                            = Total (net of tax)
 PDFInfraSPlusRawTotalHTShort            = Total (net of tax) not discounted
 TotalTTCShort                           = Total (inc. tax)
@@ -808,16 +813,16 @@ RegisteredOffice                        = Head office
 VATIntraShort                           = VAT number
 PDFInfraSPlusBilling                    = Billing
 
-### ### pdf_InfraS_special_head ###
+### pdf_InfraS_special_head ###
 PDFInfraSPlusPhoto          = Photographer
 PDFInfraSPlusAgency         = Agency
 PDFInfraSPlusAgencyCoontact = Agency contact
 PDFInfraSPlusTypeVente      = Type of sale
 
-pdf_InfraS_devis ###
+### pdf_InfraS_devis ###
 PDFInfraSPlusProposalName        = InfraSPlus_D
 PDFInfraSPlusProposalDescription = PDF commercial proposal from InfraS. Complete PDF proposal model (logo, …)
-PdfCommercialProposalTitle       = Proposal
+PdfCommercialProposalTitle               	= Proposal
 PDFInfraSPlusProposalArrete      = Stops this commercial proposal to the sum of
 ProposalCustomerSignatureEmet    = For %s Stamp and Signature
 ProposalCustomerSignature        = Stamp, Date, Signature and mention "Agreed and signed"
@@ -885,8 +890,8 @@ PDFInfraSPlusEtiquetteDescription        = PDF label from InfraS. Complete PDF l
 PDFInfraSPlusExpeditionXName             = InfraSPlus_BLX
 PDFInfraSPlusExpeditionXDescription      = PDF multiple expedition from InfraS. Complete PDF multiple expedition model (logo, …)
 PDFInfraSPlusExpeditionTitle             = Delivery form
-PDFInfraSPlusExpeditionCustomerSignature = Stamp, Date & Signature
 PDFInfraSPlusSerialRef                   = Serial number
+PDFInfraSPlusExpeditionCustomerSignature = Stamp, Date & Signature
 PDFInfraSPlusExpeditionSgnatureName      = Name of signatory
 PDFInfraSPlusExpeditionSgnatureQuality   = Quality of signer
 PDFInfraSPlusExpeditionSgnatureStamp     = Stamp and signature
@@ -897,13 +902,13 @@ PDFInfraSPlusExpeditionbackorder         = Backorder
 QtyShippedShort                          = Shipped
 PDFInfraSPlusExpeditionTotalShipped      = Number of item(s) sent
 PDFInfraSPlusExpeditionTotalAsked        = Number of item(s) ordered
-PDFInfraSPlusExpeditionTotalRel          = Nombre d'article(s) in balance
+PDFInfraSPlusExpeditionTotalRel          = Number of item(s) on backorder
 PDFInfraSPlusEtiquetteNbrArt             = Number of article(s)
 PDFInfraSPlusEtiquetteDest               = RECIPIENT
 PDFInfraSPlusEtiquetteRet                = Return address
 ContactNameAndSignature                  = For %s, name and signature:
 
-### ### pdf_InfraS_expedition ###
+### pdf_InfraS_expedition ###
 PDFInfraSPlusExpeditionCL202203007Name        = InfraSPlus_BLC
 PDFInfraSPlusExpeditionCL202203007Description = PDF special expedition CL202203007 from InfraS. Complete PDF expedition model (logo, …)
 PDFInfraSPlusFitter                           = Fitter
@@ -1039,7 +1044,7 @@ PDFInfraSPlusEstimatedStockValue = Input stock value
 
 ### pdf_InfraS_societe ###
 PDFInfraSPlusSocieteName        = InfraSPlus_S
-PDFInfraSPlusSocieteDescription = PDF compagny card from InfraS. Complete PDF compagny card model (logo, …)
+PDFInfraSPlusSocieteDescription = PDF company card from InfraS. Complete PDF company card model (logo, …)
 
 ### pdf_InfraS_expensereport ###
 PDFInfraSPlusExpenseName        = InfraSPlus_NDF
