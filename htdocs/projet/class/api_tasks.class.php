@@ -195,7 +195,7 @@ class Tasks extends DolibarrApi
 	 */
 	public function post($request_data = null)
 	{
-		global $conf;	// InfraS add - Backport from V24
+		global $conf;	// Backport from V24
 		if (!DolibarrApiAccess::$user->hasRight('projet', 'creer')) {
 			throw new RestException(403, "Insuffisant rights");
 		}
@@ -218,7 +218,7 @@ class Tasks extends DolibarrApi
 		  }
 		  $this->project->lines = $lines;
 		}*/
-		// Infras add begin -Backport from V24
+		// Backport from V24
 		// Auto-generate the "ref" field if it is set to "auto"
 		if ($this->task->ref == -1 || $this->task->ref === 'auto') {
 			$reldir = '';
@@ -256,14 +256,14 @@ class Tasks extends DolibarrApi
 			}
 			$this->task->ref = $defaultref;
 		}
-		// Infras add end -Backport from V24
+		// end Backport from V24
 		if ($this->task->create(DolibarrApiAccess::$user) < 0) {
 			throw new RestException(500, "Error creating task", array_merge(array($this->task->error), $this->task->errors));
 		}
 
 		return $this->task->id;
 	}
-	// Infras add begin -Backport from V24
+	// Backport from V24
 	/**
 	 * Get time spent of a task
 	 *
@@ -294,7 +294,7 @@ class Tasks extends DolibarrApi
 		}
 		return $result;
 	}
-	// Infras add end -Backport from V24
+	// end Backport from V24
 	/**
 	 * Get roles a user is assigned to a task with
 	 *
@@ -569,7 +569,7 @@ class Tasks extends DolibarrApi
 	 *
 	 * @throws	RestException
 	 */
-	public function getTimeSpentByID($id, $timespent_id) // Infras add -Backport from V24
+	public function getTimeSpentByID($id, $timespent_id) // Backport from V24
 	{
 		dol_syslog("API Rest request::getTimeSpent", LOG_DEBUG);
 		if (! DolibarrApiAccess::$user->hasRight('projet', 'lire')) {
@@ -616,7 +616,7 @@ class Tasks extends DolibarrApi
 	 * @phan-return array{success:array{code:int,message:string}}
 	 * @phpstan-return array{success:array{code:int,message:string}}
 	 */
-	public function addTimeSpent($id, $date, $duration, $product_id = null, $user_id = 0, $note = '', $progress = -1) // Infras add begin -Backport from V24
+	public function addTimeSpent($id, $date, $duration, $product_id = null, $user_id = 0, $note = '', $progress = -1) // Backport from V24
 	{
 		if (!DolibarrApiAccess::$user->hasRight('projet', 'creer')) {
 			throw new RestException(403);
@@ -626,7 +626,7 @@ class Tasks extends DolibarrApi
 			throw new RestException(404, 'Task not found');
 		}
 
-		if (!DolibarrApi::_checkAccessToResource('project', (int) $this->task->fk_project)) {
+		if (!DolibarrApi::_checkAccessToResource('project', (int) $this->task->fk_project)) {	// Backport from V24
 			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
@@ -643,11 +643,11 @@ class Tasks extends DolibarrApi
 		$this->task->timespent_fk_product  = $product_id;
 		$this->task->timespent_fk_user  = $uid;
 		$this->task->timespent_note     = $note;
-		// Infras add -Backport from V24
+		// Backport from V24
 		if (!empty($progress) && $progress >= 0 && $progress <= 100) {
 			$this->task->progress  		= $progress;
 		}
-		// Infras add end - Backport from V24
+		// end Backport from V24
 		$result = $this->task->addTimeSpent(DolibarrApiAccess::$user, 0);
 		if ($result == 0) {
 			throw new RestException(304, 'Error nothing done. May be object is already validated');
@@ -978,7 +978,7 @@ class Tasks extends DolibarrApi
 		}
 		return $object;
 	}
-	 // Infras add begin -Backport from V24
+	 // Backport from V24
 	/**
 	 * Get contacts of given task
 	 *
@@ -1089,5 +1089,5 @@ class Tasks extends DolibarrApi
 		}
 		return $this->_cleanObjectDatas($this->task);
 	}
-	// InfraS add end - Backport from v24
+	// end Backport from v24
 }

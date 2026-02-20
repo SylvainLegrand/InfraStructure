@@ -308,7 +308,7 @@ class Thirdparties extends DolibarrApi
 		if (!DolibarrApiAccess::$user->hasRight('societe', 'creer')) {
 			throw new RestException(403);
 		}
-		// Infras add begin -Backport from V24
+		// Backport from V24
 		// External api user does not know internal country ID
 		if (!isset($request_data['country_id']) && isset($request_data['country_code'])) {
 			$field = strlen($request_data['country_code']) > 2 ? 'code_iso' : 'code';
@@ -318,7 +318,7 @@ class Thirdparties extends DolibarrApi
 			}
 			$request_data['country_id'] = $id;
 		}
-		// Infras add end -Backport from V24
+		// end Backport from V24
 		// Check mandatory fields
 		$result = $this->_validate($request_data);
 
@@ -328,14 +328,14 @@ class Thirdparties extends DolibarrApi
 				$this->company->context['caller'] = sanitizeVal($request_data['caller'], 'aZ09');
 				continue;
 			}
-			// Infras add begin -Backport from V24
+			// Backport from V24
 			if ($field == 'array_options' && is_array($value)) {
 				foreach ($value as $index => $val) {
 					$this->company->array_options[$index] = $this->_checkValForAPI('extrafields', $val, $this->company);
 				}
 				continue;
 			}
-			// Infras add end -Backport from V24
+			// end Backport from V24
 			$this->company->$field = $this->_checkValForAPI($field, $value, $this->company);
 		}
 
@@ -1100,7 +1100,7 @@ class Thirdparties extends DolibarrApi
 	 * @since	7.0.0	Initial implementation
 	 *
 	 * @param	int		$id				ID of the third party
-	 * @param	string	$mode			'customer' or 'supplier' // Infras add -Backport from V24
+	 * @param	string	$mode			'customer' or 'supplier' // Backport from V24
 	 * @param	string	$filter			Filter exceptional discount. "none" will return every discount, "available" returns unapplied discounts, "used" returns applied discounts   {@choice none,available,used}
 	 * @param	string	$sortfield		Sort field
 	 * @param	string	$sortorder		Sort order
@@ -1116,7 +1116,7 @@ class Thirdparties extends DolibarrApi
 	 * @throws RestException 404
 	 * @throws RestException 503
 	 */
-	public function getFixedAmountDiscounts($id, $mode = 'customer', $filter = "none", $sortfield = "f.type", $sortorder = 'ASC') // Infras add -Backport from V24
+	public function getFixedAmountDiscounts($id, $mode = 'customer', $filter = "none", $sortfield = "f.type", $sortorder = 'ASC') // Backport from V24
 	{
 		$obj_ret = array();
 
@@ -1136,7 +1136,7 @@ class Thirdparties extends DolibarrApi
 		if (!$result) {
 			throw new RestException(404, 'Thirdparty not found');
 		}
-		// Infras add begin -Backport from V24
+		// Backport from V24
 		$sql = '';
 		if ($mode === 'customer') {
 		$sql = "SELECT f.ref, f.type as factype, re.fk_facture_source, re.rowid, re.amount_ht, re.amount_tva, re.amount_ttc, re.description, re.fk_facture, re.fk_facture_line";
@@ -1160,14 +1160,14 @@ class Thirdparties extends DolibarrApi
 				$sql .= " AND (re.fk_invoice_supplier IS NOT NULL OR re.fk_invoice_supplier_line IS NOT NULL)";
 			}
 		}
-		// Infras add end -Backport from V24
+		// end Backport from V24
 		$sql .= $this->db->order($sortfield, $sortorder);
 
 		$result = $this->db->query($sql);
 		if (!$result) {
 			throw new RestException(503, $this->db->lasterror());
 		} else {
-			//$num = $this->db->num_rows($result); // Infras add -Backport from V24
+			//$num = $this->db->num_rows($result); // Backport from V24
 			while ($obj = $this->db->fetch_object($result)) {
 				$obj_ret[] = $obj;
 			}
@@ -1175,7 +1175,7 @@ class Thirdparties extends DolibarrApi
 
 		return $obj_ret;
 	}
-	// Infras add begin -Backport from V24
+	// Backport from V24
 	/**
 	 * Split a discount in 2 smaller discount
 	 *
@@ -1324,7 +1324,7 @@ class Thirdparties extends DolibarrApi
 		}
 		return $obj_ret;
 	}
-	// Infras add end -Backport from V24
+	// end Backport from V24
 
 	/**
 	 * Return invoices qualified to be replaced by another invoice
@@ -1467,13 +1467,13 @@ class Thirdparties extends DolibarrApi
 		$notifications = array();
 
 		if ($result) {
-			// Infras add -Backport from V24
+			// Backport from V24
 			$i = 0;
 			$num = $this->db->num_rows($result);
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// Infras add end -Backport from V24
+			// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 				$notifications[] = $obj;
 				$i++;
@@ -1763,13 +1763,13 @@ class Thirdparties extends DolibarrApi
 		$accounts = array();
 
 		if ($result) {
-			// Infras add -Backport from V24
+			// Backport from V24
 			$i = 0;
 			$num = $this->db->num_rows($result);
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// Infras add end -Backport from V24
+			// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 
 				$account = new CompanyBankAccount($this->db);
@@ -1849,7 +1849,7 @@ class Thirdparties extends DolibarrApi
 		if (empty($account->rum)) {
 			require_once DOL_DOCUMENT_ROOT.'/compta/prelevement/class/bonprelevement.class.php';
 			$prelevement = new BonPrelevement($this->db);
-			$account->rum = $prelevement->buildRumNumber((string) $this->company->code_client, $account->datec, (string) $account->id);
+			$account->rum = $prelevement->buildRumNumber((string) $this->company->code_client, $account->datec, (string) $account->id);	// Backport from V24
 			$account->date_rum = dol_now();
 		}
 
@@ -1908,7 +1908,7 @@ class Thirdparties extends DolibarrApi
 		if (empty($account->rum)) {
 			require_once DOL_DOCUMENT_ROOT.'/compta/prelevement/class/bonprelevement.class.php';
 			$prelevement = new BonPrelevement($this->db);
-			$account->rum = $prelevement->buildRumNumber((string) $this->company->code_client, $account->datec, (string) $account->id);
+			$account->rum = $prelevement->buildRumNumber((string) $this->company->code_client, $account->datec, (string) $account->id);	// Backport from V24
 			$account->date_rum = dol_now();
 		}
 
@@ -2024,11 +2024,11 @@ class Thirdparties extends DolibarrApi
 			}
 
 			$num = $this->db->num_rows($result);
-			// Infras add -Backport from V24
+			// Backport from V24
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// Infras add end -Backport from V24
+			// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 
 				$account = new CompanyBankAccount($this->db);
@@ -2100,13 +2100,13 @@ class Thirdparties extends DolibarrApi
 		$i = 0;
 
 		$accounts = array();
-		// Infras add -Backport from V24
+		// Backport from V24
 		$i = 0;
 		$num = $this->db->num_rows($result);
 		//$min = min($num, ($limit <= 0 ? $num : $limit));
 		$min = $num;
 		while ($i < $min) {
-		// Infras add end -Backport from V24
+		// end Backport from V24
 			$obj = $this->db->fetch_object($result);
 			$account = new SocieteAccount($this->db);
 
@@ -2485,13 +2485,13 @@ class Thirdparties extends DolibarrApi
 			throw new RestException(404, 'This third party does not have any account attached or does not exist.');
 		} else {
 			$i = 0;
-			// Infras add -Backport from V24
+			// Backport from V24
 			$i = 0;
 			$num = $this->db->num_rows($result);
 			//$min = min($num, ($limit <= 0 ? $num : $limit));
 			$min = $num;
 			while ($i < $min) {
-			// Infras add end -Backport from V24
+			// end Backport from V24
 				$obj = $this->db->fetch_object($result);
 				$account = new SocieteAccount($this->db);
 				$account->fetch($obj->rowid);

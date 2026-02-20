@@ -219,7 +219,7 @@ class Projects extends DolibarrApi
 
 		$sql = "SELECT t.rowid";
 		$sql .= " FROM ".MAIN_DB_PREFIX."projet as t";
-		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe AS s ON (s.rowid = t.fk_soc)"; // Infras -Backport from V24
+		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe AS s ON (s.rowid = t.fk_soc)"; // -Backport from V24
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."projet_extrafields AS ef ON ef.fk_object = t.rowid";	// So we will be able to filter on extrafields
 		if ($category > 0) {
 			$sql .= ", ".MAIN_DB_PREFIX."categorie_project as c";
@@ -383,7 +383,7 @@ class Projects extends DolibarrApi
 
 		return $this->project->id;
 	}
-	// Infras add begin -Backport from V24
+	// Backport from V24
 	/**
 	 * Adds a contact to an project
 	 *
@@ -459,7 +459,7 @@ class Projects extends DolibarrApi
 		}
 		return $this->_cleanObjectDatas($this->project);
 	}
-	// Infras add end-Backport from V24
+	// end Backport from V24
 	/**
 	 * Get tasks of a project.
 	 * See also API /tasks
@@ -818,7 +818,7 @@ class Projects extends DolibarrApi
 			)
 		);
 	}
-	// Infras add begin-Backport from V24
+	// Backport from V24
 	/**
 	 * Get all timespent
 	 *
@@ -923,7 +923,7 @@ class Projects extends DolibarrApi
 		}
 		return $obj_ret;
 	}
-	// Infras add end-Backport from V24
+	// end Backport from V24
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
 	 * Clean sensible object datas
@@ -996,7 +996,7 @@ class Projects extends DolibarrApi
 	}
 
 
-	// Infras add begin-Backport from V24
+	// Backport from V24
 	/**
 	 * Get contacts of given project
 	 *
@@ -1153,6 +1153,7 @@ class Projects extends DolibarrApi
 		}
 		return $allTimespent;
 	}
+	// end backport from V24
 	// TODO
 	// getSummaryOfTimeSpent
 }
