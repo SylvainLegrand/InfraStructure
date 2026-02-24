@@ -773,7 +773,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 											<tr class = "infrassearchheight75">
 												<td colspan = "3" class = "center bold valignmiddle">
 													<a href = "'.$urlWiki.'" target = "_blank">
-														<span class = "infrassearchColor" style = "font-size: 24px;">'.$langs->trans('InfraSSearchParamPresent1').'<span class = "infraswidgetsneuropolinfras"> InfraS</span>'.$langs->trans('InfraSSearchParamPresent2').'</span>
+														<span class = "infrassearchColor" style = "font-size: 24px;">'.$langs->trans('InfraSSearchParamPresent1').'<span class = "infrassearchneuropolinfras"> InfraS</span>'.$langs->trans('InfraSSearchParamPresent2').'</span>
 													</a>
 												</td>
 											</tr>
@@ -798,7 +798,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 											</tr>
 											<tr>
 												<td class = "center bold valignbottom infrassearchminwidth700imp infrassearchslogan">
-													<div class = "infrassearchmargintop10imp">'.$langs->trans('InfraSSearchParamPreferedPartner1').'<span class = "infraswidgetspuentedolibarr"> Dolibarr </span>'.$langs->trans('InfraSSearchParamPreferedPartner2').'</div>
+													<div class = "infrassearchmargintop10imp">'.$langs->trans('InfraSSearchParamPreferedPartner1').'<span class = "infrassearchpuentedolibarr"> Dolibarr </span>'.$langs->trans('InfraSSearchParamPreferedPartner2').'</div>
 												</td>
 											</tr>
 											<tr class = "infrassearchheight25"><td colspan = "3">&nbsp;</td></tr>

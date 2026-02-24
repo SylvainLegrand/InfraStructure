@@ -73,6 +73,19 @@
 	font-style: normal;
 }
 
+.infrassearchneuropolinfras {
+	font-family: NeuropolRegular, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	color: #19052d;
+}
+
+.infrassearchpuentedolibarr {
+	font-family: puentebold, sans-serif;
+	color: #027991;
+	font-size-adjust:0.6;
+}
+
 #results
 {
 	position:relative;
