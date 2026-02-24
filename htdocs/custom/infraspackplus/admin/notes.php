@@ -172,7 +172,7 @@
 		infraspackplus_print_backup_restore();
 	}
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionNotes').'</span>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "noborder centpercent">';
+	print '			<table class = "infrasplusnoborder centpercent">';
 	$metas	= array('*', '130px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(3), 'InfraSPlusParamNewNote');
@@ -183,7 +183,7 @@
 							<td colspan = "2">';
 		print $form->textwithpicto($langs->trans('InfraSPlusParamNote1'), $langs->trans('AddCRIfTooLong').'<br><br>', 1, 'help', '', 0, 2, 'freetexttooltip').'&nbsp;';
 		print '<label for = "selmodules">'.$langs->trans('InfraSPlusParamNote2').'</label> '.
-		$form->selectarray('selmodules', $listModules, $selmodule, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer" onchange = "doReloadNoteP();"', 1, 0, 0, '', '');
+		$form->selectarray('selmodules', $listModules, $selmodule, 0, 0, 0, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer" onchange = "doReloadNoteP();"', 1, 0, 0, '', '');
 		print select_infraspackplus_dict('c_infraspackplus_note', $labelnote, 'selnotes', 0, 'doReloadNoteP()');
 		print info_admin($langs->trans('YouCanChangeValuesForThisListFromDictionarySetup'), 1, 1, 0);
 		print '				</td>
@@ -202,7 +202,7 @@
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	if (!empty($accessright)) {
 		print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamNotesSetup').'</span>', '', dol_buildpath('/infraspackplus/img/list.png', 1), 1);
-		print '			<table class = "noborder centpercent">';
+		print '			<table class = "infrasplusnoborder centpercent">';
 		$metas		= array('30px', '*', '156px', '120px');
 		infraspackplus_print_colgroup($metas);
 		$metas		= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');

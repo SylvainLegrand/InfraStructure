@@ -245,7 +245,7 @@
 	$typeSsT			= getDolGlobalString('INFRASPLUS_PDF_TYPE_SOUS_TRAITANT', '');
 	$exfFreeLivrIsSet	= infraspackplus_search_extf (0, '', 'INFRASPLUS_PDF_FREE_LIVR_EXF', 'InfraSPlusParamLabelExfFreeAddrLivr', $listElemtypeExfFreeLivr, $listParamsExfFreeLivr);
 	$textDescFreeLivr	= $langs->trans('InfraSPlusParamSetExf', getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', ''));
-	$descFreeLivr		= $langs->trans('InfraSPlusParamFreeLivrExf').($exfFreeLivrIsSet == 0 ? ' <button class = "button nopadding height20" type = "submit" value = "setExfAddrLivr" name = "action">'.$textDescFreeLivr.'</button>': '');
+	$descFreeLivr		= $langs->trans('InfraSPlusParamFreeLivrExf').($exfFreeLivrIsSet == 0 ? ' <button class = "button infrasplusnopadding infrasplusheight20" type = "submit" value = "setExfAddrLivr" name = "action">'.$textDescFreeLivr.'</button>': '');
 
 	// View *****************************************
 	$page_name			= $langs->trans('infrasplussetup') .' - '. $langs->trans('InfraSPlusParamsAdresses');
@@ -328,7 +328,7 @@
 	}
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionAdresses').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/corp.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblGA-3" class = "noborder toggle_bloc" width = "100%">';
+	print '			<table name = "tblGA-3" class = "infrasplusnoborder toggle_bloc" width = "100%">';
 	$metas	= array('125', '400px', '125px', '*', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(5), 'InfraSPlusParamNewAdresse');
@@ -336,13 +336,13 @@
 	if (!empty($accessright)) {
 		print '			<tr>
 							<td class = "fieldrequired"><label for = "label">'.$langs->trans('InfraSPlusParamAdressAlias').'</label></td>
-							<td><input type = "text" class = "minwidth300 nopadding nomargin" id = "label" name = "label" value="'.($address->label ? $address->label : $langs->trans('RequiredField')).'"></td>
+							<td><input type = "text" class = "minwidth300 infrasplusnopadding infrasplusnomargin" id = "label" name = "label" value="'.($address->label ? $address->label : $langs->trans('RequiredField')).'"></td>
 							<td class = "fieldrequired"><label for = "name">'.$langs->trans('InfraSPlusParamAdressName').'</label></td>
-							<td><input type = "text" class = "minwidth300 nopadding nomargin" id = "name" name = "name" value = "'.($address->name ? $address->name : $langs->trans('RequiredField')).'"></td>
+							<td><input type = "text" class = "minwidth300 infrasplusnopadding infrasplusnomargin" id = "name" name = "name" value = "'.($address->name ? $address->name : $langs->trans('RequiredField')).'"></td>
 							<td rowspan = "7" align="center">
-								<button class = "button width110" type = "submit" '.$btnAction.'</button>
+								<button class = "button infraspluswidth110" type = "submit" '.$btnAction.'</button>
 								<br/><br/>
-								<button class = "button width110" type = "submit" value = "cancel" name = "cancel">'.$langs->trans('Cancel').'</button>
+								<button class = "button infraspluswidth110" type = "submit" value = "cancel" name = "cancel">'.$langs->trans('Cancel').'</button>
 							</td>
 						</tr>';
 		print '			<tr>
@@ -361,15 +361,15 @@
 						</tr>';
 		print '			<tr>
 							<td><label for = "phone">'.$langs->trans('Phone').'</label></td>
-							<td><input type = "text" class = "minwidth300 nopadding nomargin" id = "phone" name = "phone" value = "'.$address->phone.'"></td>
+							<td><input type = "text" class = "minwidth300 infrasplusnopadding infrasplusnomargin" id = "phone" name = "phone" value = "'.$address->phone.'"></td>
 							<td><label for = "fax">'.$langs->trans('Fax').'</label></td>
-							<td><input type = "text" class = "minwidth300 nopadding nomargin" id = "fax" name = "fax" value = "'.$address->fax.'"></td>
+							<td><input type = "text" class = "minwidth300 infrasplusnopadding infrasplusnomargin" id = "fax" name = "fax" value = "'.$address->fax.'"></td>
 						</tr>';
 		print '			<tr>
 							<td><label for = "email">'.$langs->trans('Email').'</label></td>
-							<td ><input type = "text" class = "minwidth300 nopadding nomargin" id = "email" name = "email" value = "'.$address->email.'"></td>
+							<td ><input type = "text" class = "minwidth300 infrasplusnopadding infrasplusnomargin" id = "email" name = "email" value = "'.$address->email.'"></td>
 							<td><label for = "url">'.$langs->trans('Web').'</label></td>
-							<td ><input type = "text" class = "minwidth300 nopadding nomargin" id = "url" name = "url" value = "'.$address->url.'"></td>
+							<td ><input type = "text" class = "minwidth300 infrasplusnopadding infrasplusnomargin" id = "url" name = "url" value = "'.$address->url.'"></td>
 						</tr>';
 		print '			<tr>
 							<td class = "tdtop"><label for = "note">'.$langs->trans('Note').'</label></td>
@@ -385,7 +385,7 @@
 		print '			<tr class = "oddeven">
 							<td colspan = "4">
 								<label for = "defaultaddrdeliv">'.$langs->trans('InfraSPlusParamDefaultAddrDeliv').'</label>
-								<select name = "defaultaddrdeliv" class = "select2-choice nopadding nomargin cursorpointer">
+								<select name = "defaultaddrdeliv" class = "select2-choice infrasplusnopadding infrasplusnomargin cursorpointer">
 									<option name = "defaultaddrdeliv" value = "">'.$langs->trans('InfraSPlusParamNoAddrDeliv').'</option>';
 		$selected_addr	= getDolGlobalString('INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', '');
 		foreach ($address->lines as $lineaddress) {
@@ -397,7 +397,7 @@
 		}
 		print '					</select>
 							</td>
-							<td align="center"><button class = "button width110" type = "submit" value = "defaultL" name = "action">'.$langs->trans('Validate').'</button></td>
+							<td align="center"><button class = "button infraspluswidth110" type = "submit" value = "defaultL" name = "action">'.$langs->trans('Validate').'</button></td>
 						</tr>';
 	}
 	print '			</table>
@@ -410,7 +410,7 @@
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamAddressesForMyCompany').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/list.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblLA-3" class = "noborder toggle_bloc" width = "100%">
+	print '			<table name = "tblLA-3" class = "infrasplusnoborder toggle_bloc" width = "100%">
 						<tr class = "liste_titre">
 							<td>'.$langs->trans('InfraSPlusParamAdressAlias').'</td>
 							<td>'.$langs->trans('InfraSPlusParamAdressName').'</td>
@@ -444,7 +444,7 @@
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamAddressesSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblOPT-3" class = "noborder toggle_bloc" width = "100%">';
+	print '			<table name = "tblOPT-3" class = "infrasplusnoborder toggle_bloc" width = "100%">';
 	$metas	= array('30px', '*', '170px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');

@@ -1161,7 +1161,7 @@ EOJS;
 				}
 				// ligne de séparation fin des options InfraSPackPlus
 				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport'))) {
-					$this->resprints	.= '<tr class = "infrasplusbgtrans"><td class = "center nopadding" colspan = "'.$colspan.'"><hr class = "quatrevingtpercent"></td></tr>';
+					$this->resprints	.= '<tr class = "infrasplusbgtrans"><td class = "center infrasplusnopadding" colspan = "'.$colspan.'"><hr class = "quatrevingtpercent"></td></tr>';
 				}
 			}
 			return 0;

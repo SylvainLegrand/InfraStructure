@@ -228,7 +228,7 @@
 		infraspackplus_print_backup_restore();
 	}
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionMentions').'</span>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "noborder centpercent">';
+	print '			<table class = "infrasplusnoborder centpercent">';
 	$metas	= array('*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(3), 'InfraSPlusParamNewMention');
@@ -238,7 +238,7 @@
 		print '			<tr class = "oddeven">
 							<td colspan = "2">';
 		print $form->textwithpicto($langs->trans('InfraSPlusParamMention1'), $langs->trans('AddCRIfTooLong').'<br><br>', 1, 'help', '', 0, 2, 'freetexttooltip').'&nbsp;';
-		print '<label for = "selmodules">'.$langs->trans('InfraSPlusParamMention2').'</label> '.$form->selectarray('selmodules', $listModules, $selmodule, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer" onchange = "doReloadFreeT();"', 1, 0, 0, '', '');
+		print '<label for = "selmodules">'.$langs->trans('InfraSPlusParamMention2').'</label> '.$form->selectarray('selmodules', $listModules, $selmodule, 0, 0, 0, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer" onchange = "doReloadFreeT();"', 1, 0, 0, '', '');
 		print select_infraspackplus_dict('c_infraspackplus_mention', $labelmention, 'selmentions', 0, 'doReloadFreeT()', 1);
 		print info_admin($langs->trans('YouCanChangeValuesForThisListFromDictionarySetup'), 1, 1, 0);
 		print '				</td>
@@ -260,7 +260,7 @@
 				<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamMentionsSetup').'</span>', '', dol_buildpath('/infraspackplus/img/list.png', 1), 1);
-	print '			<table class = "noborder centpercent">';
+	print '			<table class = "infrasplusnoborder centpercent">';
 	$metas	= array('30px', '*', '456px', '130px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');

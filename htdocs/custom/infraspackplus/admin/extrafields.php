@@ -312,17 +312,17 @@
 		$textDescDictPaySpec		= $langs->trans(count($listDictPaySpecToCreate) > 1 ? 'InfraSPlusParamSetDicts' : 'InfraSPlusParamSetDict', implode(', ', $listDictPaySpecToCreate));
 	}
 	$descPaySpec		= $langs->trans('InfraSPlusParamEXFpaySpec');
-	$descPaySpec		.= !empty($listExfPaySpecToCreate) ? ' <button class = "butAction height20 nopadding" type = "submit" value = "setExfPaySpec" name = "action">'.$textDescExfPaySpec.'</button>' : '';
-	$descPaySpec		.= !empty($listDictPaySpecToCreate) ? ' <button class = "butAction height20 nopadding" type = "submit" value = "setDictPaySpec" name = "action">'.$textDescDictPaySpec.'</button>' : '';
+	$descPaySpec		.= !empty($listExfPaySpecToCreate) ? ' <button class = "butAction infrasplusheight20 infrasplusnopadding" type = "submit" value = "setExfPaySpec" name = "action">'.$textDescExfPaySpec.'</button>' : '';
+	$descPaySpec		.= !empty($listDictPaySpecToCreate) ? ' <button class = "butAction infrasplusheight20 infrasplusnopadding" type = "submit" value = "setDictPaySpec" name = "action">'.$textDescDictPaySpec.'</button>' : '';
 	$exfDepositIsSet	= infraspackplus_search_extf (0, '', 'INFRASPLUS_PDF_EXF_DEPOSIT', 'InfraSPlusParamLabelExfDeposit', array('propal'), $listParamsExfDeposit);	// update
 	$textDescDeposit	= $langs->trans('InfraSPlusParamSetExf', getDolGlobalString('INFRASPLUS_PDF_EXF_DEPOSIT', ''));
-	$descDeposit		= $langs->trans('InfraSPlusParamEXFdeposit').($exfDepositIsSet == 0 ? ' <button class = "button height20 nopadding" type = "submit" value = "setExfDeposit" name = "action">'.$textDescDeposit.'</button>': '');
+	$descDeposit		= $langs->trans('InfraSPlusParamEXFdeposit').($exfDepositIsSet == 0 ? ' <button class = "button infrasplusheight20 infrasplusnopadding" type = "submit" value = "setExfDeposit" name = "action">'.$textDescDeposit.'</button>': '');
 	$exfEcoTaxIsSet		= infraspackplus_search_extf (0, '', 'INFRASPLUS_PDF_EXF_ECOTAX', 'InfraSPlusParamLabelExfEcoTax', array('product'), $listParamsExfPrice);	// update
 	$textDescEcoTax		= $langs->trans('InfraSPlusParamSetExf', getDolGlobalString('INFRASPLUS_PDF_EXF_ECOTAX', ''));
-	$descEcoTax			= $langs->trans('InfraSPlusParamEXFecoTax').($exfEcoTaxIsSet == 0 ? ' <button class = "button height20 nopadding" type = "submit" value = "setExfEcoTax" name = "action">'.$textDescEcoTax.'</button>': '');
+	$descEcoTax			= $langs->trans('InfraSPlusParamEXFecoTax').($exfEcoTaxIsSet == 0 ? ' <button class = "button infrasplusheight20 infrasplusnopadding" type = "submit" value = "setExfEcoTax" name = "action">'.$textDescEcoTax.'</button>': '');
 	$exfPropalProvIsSet	= infraspackplus_search_extf (0, '', 'INFRASPLUS_PDF_EXF_PROPALPROV', 'InfraSPlusParamLabelExfPropalProv', array('product'), $listParamsExfDate);	// update
 	$textDescPropalProv	= $langs->trans('InfraSPlusParamSetExf', getDolGlobalString('INFRASPLUS_PDF_EXF_PROPALPROV', ''));
-	$descPropalProv		= $langs->trans('InfraSPlusParamEXFpropalProv').($exfPropalProvIsSet == 0 ? ' <button class = "button height20 nopadding" type = "submit" value = "setExfEcoTax" name = "action">'.$textDescPropalProv.'</button>': '');
+	$descPropalProv		= $langs->trans('InfraSPlusParamEXFpropalProv').($exfPropalProvIsSet == 0 ? ' <button class = "button infrasplusheight20 infrasplusnopadding" type = "submit" value = "setExfEcoTax" name = "action">'.$textDescPropalProv.'</button>': '');
 	$listExfNotes		= array('INFRASPLUS_PDF_EXF_D', 'INFRASPLUS_PDF_EXF_C', 'INFRASPLUS_PDF_EXF_CT', 'INFRASPLUS_PDF_EXF_FI', 'INFRASPLUS_PDF_EXF_E',
 								'INFRASPLUS_PDF_EXF_F', 'INFRASPLUS_PDF_EXF_MRP', 'INFRASPLUS_PDF_EXF_B', 'INFRASPLUS_PDF_EXF_DF', 'INFRASPLUS_PDF_EXF_CF',
 								'INFRASPLUS_PDF_EXF_FF');
@@ -359,7 +359,7 @@
 		infraspackplus_print_backup_restore();
 	}
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamExtraFieldsSetup').'</span>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "noborder centpercent">';
+	print '			<table class = "infrasplusnoborder centpercent">';
 	$metas	= array('30px', '*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');

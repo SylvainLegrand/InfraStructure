@@ -687,13 +687,15 @@ InfraSPlusParamBkpNone         = Sin grabación
 ### About page ###
 
 ### Changelog page ###
-InfraSPlusParamPresent              = <b>Este módulo es una creación de InfraS, su documentación está disponible en nuestra wiki</b>
+InfraSPlusParamPresent1             = <b>Este módulo es una creación de</b>
+InfraSPlusParamPresent2             = <b>, su documentación está disponible en nuestra wiki</b>
 InfraSPlusParamSlogan               = Structurez votre croissance !
 InfraSPlusParamLienModules          = Nuestros módulos
 InfraSPlusParamSupport              = Solicitud de soporte
 InfraSPlusParamLienDocs             = Nuestra Documentacion
 InfraSPlusParamLicense              = Bajo GPL v3 y licencia superior
-InfraSPackPlusParamPreferedPartner  = <b>Miembro del programa oficial Dolibarr Preferred Partner, garantía de calidad y experiencia.</b>
+InfraSPackPlusParamPreferedPartner1 = Miembro del programa oficial
+InfraSPackPlusParamPreferedPartner2 = Preferred Partner, garantía de calidad y experiencia
 InfraSPlusParamMoreModulesLink      = Nuestros módulos en la dolistore
 InfraSPlusParamObjet                = <h3>Objeto :</h3>
 InfraSPlusParamHistoryUpdates       = <b>Históricas de las actualizaciones :</b>

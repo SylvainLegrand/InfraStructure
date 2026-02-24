@@ -188,7 +188,7 @@
 	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype="multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	print load_fiche_titre(''.$langs->trans('PDFParamGeneralDol').'</FONT>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "noborder centpercent">';
+	print '			<table class = "infrasplusnoborder centpercent">';
 	$metas	= array('30px', '*', '356px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -201,28 +201,28 @@
 							<td colspan = "3">
 								<table class = "centpercent">
 									<tr>
-										<td class = "width500 nomargin nopadding noborder">'.$langs->trans('PDFParamMargin').'</td>
-										<td class = "nomargin nopadding noborder">
+										<td class = "width500 infrasplusnomargin infrasplusnopadding infrasplusnoborder">'.$langs->trans('PDFParamMargin').'</td>
+										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
 											<table>
 												<tr>
-													<td class = "center nomargin nopadding noborder">
-														'.$langs->trans('PDFParamMarginTop').'<br/><input type = "number" size = "10" class = "center nomargin nopadding noborder" dir="rtl" id = "MAIN_PDF_MARGIN_TOP" name = "MAIN_PDF_MARGIN_TOP" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 4).'">
+													<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+														'.$langs->trans('PDFParamMarginTop').'<br/><input type = "number" size = "10" class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder" dir="rtl" id = "MAIN_PDF_MARGIN_TOP" name = "MAIN_PDF_MARGIN_TOP" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 4).'">
 													</td>
 												</tr>
 												<tr>
-													<td class = "center nomargin nopadding noborder">
-														'.$langs->trans('PDFParamMarginLeft').'&nbsp;<input type = "number" size = "10" class = "left nomargin nopadding noborder" id = "MAIN_PDF_MARGIN_LEFT" name = "MAIN_PDF_MARGIN_LEFT" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_LEFT', 4).'">
-														&nbsp;&nbsp;&nbsp;<input type = "number" size = "10" class = "right nomargin nopadding noborder" dir="rtl" id = "MAIN_PDF_MARGIN_RIGHT" name = "MAIN_PDF_MARGIN_RIGHT" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT', 4).'">&nbsp;'.$langs->trans('PDFParamMarginRight').'
+													<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+														'.$langs->trans('PDFParamMarginLeft').'&nbsp;<input type = "number" size = "10" class = "left infrasplusnomargin infrasplusnopadding infrasplusnoborder" id = "MAIN_PDF_MARGIN_LEFT" name = "MAIN_PDF_MARGIN_LEFT" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_LEFT', 4).'">
+														&nbsp;&nbsp;&nbsp;<input type = "number" size = "10" class = "right infrasplusnomargin infrasplusnopadding infrasplusnoborder" dir="rtl" id = "MAIN_PDF_MARGIN_RIGHT" name = "MAIN_PDF_MARGIN_RIGHT" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT', 4).'">&nbsp;'.$langs->trans('PDFParamMarginRight').'
 													</td>
 												</tr>
 												<tr>
-													<td class = "center nomargin nopadding noborder">
-														<input type = "number" size = "10" class = "center nomargin nopadding noborder" dir="rtl" id = "MAIN_PDF_MARGIN_BOTTOM" name = "MAIN_PDF_MARGIN_BOTTOM" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 4).'"><br/>'.$langs->trans('PDFParamMarginBottom').'
+													<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+														<input type = "number" size = "10" class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder" dir="rtl" id = "MAIN_PDF_MARGIN_BOTTOM" name = "MAIN_PDF_MARGIN_BOTTOM" min = "4" max = "20" value = "'.getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 4).'"><br/>'.$langs->trans('PDFParamMarginBottom').'
 													</td>
 												</tr>
 											</table>
 										</td>
-										<td class = "right nomargin nopadding noborder">'.$langs->trans('DictionaryPaperFormat').' : '.$formadmin->select_paper_format($selected, 'MAIN_PDF_FORMAT').'</td>
+										<td class = "right infrasplusnomargin infrasplusnopadding infrasplusnoborder">'.$langs->trans('DictionaryPaperFormat').' : '.$formadmin->select_paper_format($selected, 'MAIN_PDF_FORMAT').'</td>
 									</tr>
 								</table>
 							</td>

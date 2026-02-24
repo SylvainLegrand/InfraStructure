@@ -600,7 +600,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	{
 		global $conf, $langs, $mc;
 
-		print '	<table class = "centpercent noborderspacing">';
+		print '	<table class = "centpercent infrasplusnoborderspacing">';
 		$metas	= array('*', '90px', '156px', '120px');
 		infraspackplus_print_colgroup($metas);
 		print '		<tr>
@@ -613,14 +613,14 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		if (isModEnabled('multicompany') && is_object($mc)) {
 			$list	= $mc->getEntitiesList();
 			$label	= $mc->label ? $mc->label : $list[$conf->entity];
-			print '	<tr class = "height75">
+			print '	<tr class = "infrasplusheight75">
 						<td colspan = "2" class = "center infrasplustitleparam">'.$langs->trans('InfraSPlusAutoUpdateContent', $label).'</td>
 						<td class = "center infrasplustitleparam">';
 							print $mc->select_entities('', 'entity', '', false, array($conf->entity), true, false, '', 'minwidth300imp');
 			print'		</td>
-						<td class = "center"><button class = "butAction copyParamsBtn" type = "submit" value = "copyParams" name = "action">'.$langs->trans('InfraSPlusParamCopy').'</button></td>
+						<td class = "center"><button class = "butAction infraspluscopyParamsBtn" type = "submit" value = "copyParams" name = "action">'.$langs->trans('InfraSPlusParamCopy').'</button></td>
 					</tr>
-					<tr><td colspan = "4" class = "center nopadding"><hr></td></tr>';
+					<tr><td colspan = "4" class = "center infrasplusnopadding"><hr></td></tr>';
 		}
 		infraspackplus_print_final(4);
 		print '	</table>';
@@ -647,14 +647,14 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$out	.= '<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
 					<tr class = "liste_titre">';
 		if (!empty($picto)) {
-			$out .= '	<td class = "nobordernopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infraspluswidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
+			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infraspluswidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
 		}
-		$out	.= '	<td class = "nobordernopadding valignmiddle col-title"><div class = "infrasplusDivTitre uppercase inline-block">'.$titre.'</div></td>';
+		$out	.= '	<td class = "infrasplusnoborder infrasplusnopadding valignmiddle col-title"><div class = "infrasplusDivTitre uppercase inline-block">'.$titre.'</div></td>';
 		if (dol_strlen($morehtmlcenter)) {
-			$out .= '	<td class = "nobordernopadding center valignmiddle">'.$morehtmlcenter.'</td>';
+			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
 		}
 		if (dol_strlen($morehtmlright)) {
-			$out .= '	<td class = "nobordernopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
+			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
 		}
 		$out .= '	</tr>
 				</table>';
@@ -671,7 +671,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	{
 		print '	<tr>';
 		foreach ($metas as $values)	{
-			print '<td class = "infrasplusFinal nopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style =" height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
+			print '<td class = "infrasplusFinal infrasplusnopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style =" height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
 		}
 		print '	</tr>';
 	}
@@ -710,7 +710,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 
 		print '	<tr>
 					<td colspan = "'.$cs1.'" class = "'.$alignclass.'">'.$desc.'</td>
-					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button width110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
+					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button infraspluswidth110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
 				</tr>';
 	}
 
@@ -812,7 +812,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 				$inputValue		= $currentValue < $metas['min'] ? $metas['min'] : $currentValue;
 			}
 			// default input
-			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
+			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrasplusnopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
 			$metas			= array_merge ($defaultMetas, $metas);
 			$metascompil	= '';
 			foreach ($metas as $key => $value) {
@@ -825,7 +825,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 					print $meta2;
 					continue;
 				}
-				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding fontsizeinherit', 'name' => $keymeta, 'id' => $keymeta, 'value' => getDolGlobalString($keymeta, ''));
+				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrasplusnopadding infrasplusfontsizeinherit', 'name' => $keymeta, 'id' => $keymeta, 'value' => getDolGlobalString($keymeta, ''));
 				$meta			= array_merge ($defaultMetas, $meta2);
 				$metascompil	= '';
 				foreach ($meta as $key => $value) {
@@ -840,7 +840,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 					print $meta2;
 					continue;
 				}
-				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding fontsizeinherit', 'id' => $keymeta);
+				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrasplusnopadding infrasplusfontsizeinherit', 'id' => $keymeta);
 				$meta			= array_merge ($defaultMetas, $meta2);
 				$metascompil	= '';
 				foreach ($meta as $key => $value) {
@@ -902,15 +902,15 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		print '		<td colspan = "'.$cs1.'">
 						<table class = "centpercent">
 							<tr>
-								<td rowspan = "2" class = "noborder">'.$desc.'</td>';
+								<td rowspan = "2" class = "infrasplusnoborder">'.$desc.'</td>';
 		foreach ($metas[0] as $confkey => $value) {
 			$confkey	= str_replace('_AUTO', '', $confkey);
-			print '				<td class = "center noborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
+			print '				<td class = "center infrasplusnoborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
 		}
 		print '				</tr>
 							<tr>';
 		foreach ($metas[1] as $confkey => $value) {
-			print '				<td class = "center noborder">';
+			print '				<td class = "center infrasplusnoborder">';
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
@@ -955,7 +955,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname;
 		$urlstore				= 'https://infras.store/';
 		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
-		$InputCarac				= 'class = "button width180 height32" name = "readmore" type = "button"';
+		$InputCarac				= 'class = "button infraspluswidth180 infrasplusheight32" name = "readmore" type = "button"';
 		$supportvalue			= '/******************************'.'<br/>';
 		$supportvalue			.= ' * Module : '.$langs->trans('modcomnamePackPlus').'<br/>';
 		$supportvalue			.= ' * Module version : '.$version.'<br/>';
@@ -968,38 +968,38 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 										<input name = email type = "hidden" value = "'.$user->email.'" />
 										<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnamePackPlus'))).'" />
 										<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
-											<tr class = "height75">
+											<tr class = "infrasplusheight75">
 												<td colspan = "3" class = "center bold valignmiddle">
 													<a href = "'.$urlWiki.'" target = "_blank">
-														<span class = "infraspluscolor" style = "font-size: 24px;">'.$langs->trans('InfraSPlusParamPresent').'</span>
+														<span class = "infraspluscolor" style = "font-size: 24px;">'.$langs->trans('InfraSPlusParamPresent1').'<span class = "infrasplusneuropolinfras"> InfraS</span>'.$langs->trans('InfraSPlusParamPresent2').'</span>
 													</a>
 												</td>
 											</tr>
-											<tr class = "height50">
-												<td rowspan = "3" class = "left bold valignbottom widthtrentepercent infrasplusslogan" style = "color: white; font-size: 16px;">
-													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder width220" src = "'.$logoPath.'"></a>
+											<tr class = "infrasplusheight50">
+												<td rowspan = "3" class = "left bold valignbottom infraspluswidthtrentepercent infrasplusslogan" style = "color: white; font-size: 16px;">
+													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "infrasplusnoborder infraspluswidth220" src = "'.$logoPath.'"></a>
 													<br/>&nbsp;&nbsp;'.$langs->trans('InfraSPlusParamSlogan').'
 												</td>
-												<td class = "center valignmiddle widthtrentepercent">
+												<td class = "center valignmiddle infraspluswidthtrentepercent">
 													<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSPlusParamLienModules').'" /></a>
-													<button class = "button width180 height32" type = "submit" >'.$langs->trans('InfraSWorkflowParamSupport').'</button>
+													<button class = "button infraspluswidth180 infrasplusheight32" type = "submit" >'.$langs->trans('InfraSWorkflowParamSupport').'</button>
 												</td>
-												<td rowspan = "3" class = "right bold valignbottom widthtrentepercent infrasplusslogan">
-													<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder width270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
+												<td rowspan = "3" class = "right bold valignbottom infraspluswidthtrentepercent infrasplusslogan">
+													<a href = "'.$urlDoli.'" target = "_blank"><img class = "infrasplusnoborder infraspluswidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
 													<br/>'.$langs->trans('InfraSPlusParamMoreModulesLink').'&nbsp;&nbsp;
 												</td>
 											</tr>
 											<tr>
-												<td class = "center valignbottom minwidth600imp">
-													<img class = "noborder width220 margintop10imp" src="'.$preferedPartnerPath.'"/>
+												<td class = "center valignbottom infrasplusminwidth700imp">
+													<img class = "infrasplusnoborder infraspluswidth220 infrasplusmargintop10imp" src="'.$preferedPartnerPath.'"/>
 												</td>
 											</tr>
 											<tr>
-												<td class = "center valignbottom minwidth600imp">
-													<div class = "margintop10imp">'.$langs->trans('InfraSPackPlusParamPreferedPartner').'</div>
+												<td class = "center valignbottom infrasplusminwidth700imp">
+													<div class = "bold infrasplusslogan infrasplusmargintop10imp">'.$langs->trans('InfraSPackPlusParamPreferedPartner1').'<span class = "infrasplusneuropolinfras"> Dolibarr </span>'.$langs->trans('InfraSPackPlusParamPreferedPartner2').'</div>
 												</td>
 											</tr>
-											<tr class = "height25"><td colspan = "3">&nbsp;</td></tr>
+											<tr class = "infrasplusheight25"><td colspan = "3">&nbsp;</td></tr>
 										</table>
 									</form>';
 		$ret					.= load_fiche_titre('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamHistoryUpdates').'</span>', '', $listUpD, 1);
@@ -1019,7 +1019,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		}
 		$ret	.= '			<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<table class = "noborder" >
+									<table class = "infrasplusnoborder" >
 										<tr class = "liste_titre">
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamNumberVersion').'</th>
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamMonthVersion').'</th>
@@ -1033,7 +1033,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 				$ret			.= '	<tr class = "oddeven">
 											<td class = "center valigntop '.(empty($sxePath) ? 'infrasplusbgorange' : '').'">'.$tblversionslast[$i]->attributes()->Number.'</td>
 											<td class = "center valigntop '.(empty($sxePath) ? 'infrasplusbgorange' : '').'">'.$tblversionslast[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert '.(empty($sxePath) ? 'infrasplusbgorange' : '').'" colspan = "2">';
+											<td class = "left valigntop infrasplusnopaddingvert '.(empty($sxePath) ? 'infrasplusbgorange' : '').'" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infraspluscaution';
@@ -1059,9 +1059,9 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 				$sxelastPath	= $sxelast->xpath('//Version[@Number="'.$tblversions[$i]->attributes()->Number.'"]');
 				$lineversion	= $tblversions[$i]->change;
 				$ret			.= '	<tr class = "oddeven">
-											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrasplusbggreen' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
-											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrasplusbggreen' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert '.(empty($sxelastPath) ? 'infrasplusbggreen' : '').'" colspan = "2">';
+											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrasplusbggreen infrasplusblack' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
+											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrasplusbggreen infrasplusblack' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
+											<td class = "left valigntop infrasplusnopaddingvert '.(empty($sxelastPath) ? 'infrasplusbggreen' : '').'" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infraspluscaution';
@@ -1088,7 +1088,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 				$ret	.= '			<tr class = "oddeven">
 											<td class = "center valigntop">'.$tblversions[$i]->attributes()->Number.'</td>
 											<td class = "center valigntop">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert" colspan = "2">';
+											<td class = "left valigntop infrasplusnopaddingvert" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infraspluscaution';
@@ -1129,7 +1129,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$formatarray	= pdf_InfraSPlus_getFormat();
 		$format			= array($formatarray['width'], $formatarray['height']);
 		$pdf			= pdf_InfraSPlus_getInstance($format, 'mm', 'P');
-		$ret			= '	<table class = "noborder" >
+		$ret			= '	<table class = "infrasplusnoborder" >
 								<tr class = "liste_titre">
 									<th class = "center width400">'.$langs->trans('InfraSPlusSupportInformation').'</th>
 									<th class = "center">'.$langs->trans('Value').'</th>

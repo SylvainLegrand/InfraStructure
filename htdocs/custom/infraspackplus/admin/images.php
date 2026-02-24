@@ -268,7 +268,7 @@
 	}
 	print '			<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionLogos').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/Tools.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblGF" class = "noborder toggle_bloc centpercent">';
+	print '				<table name = "tblGF" class = "infrasplusnoborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '350px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 3), 'NumberingShort', 'InfraSPlusParamNewLogo');
@@ -279,36 +279,36 @@
 								<td class = "center bold">'.$num.'</td>
 								<td>
 									<label for = "InfraSPlusParamLogoFile">'.$langs->trans('InfraSPlusParamLogoFile').'</label>
-									<input type = "file" class = "flat nopadding cursorpointer" id = "InfraSPlusParamLogoFile" name = "InfraSPlusParamLogoFile" accept="image/*">
+									<input type = "file" class = "flat infrasplusnopadding cursorpointer" id = "InfraSPlusParamLogoFile" name = "InfraSPlusParamLogoFile" accept="image/*">
 								</td>
 								<td class = "right">
 									<label for = "InfraSPlusParamLogoName">'.$langs->trans('InfraSPlusParamLogoName').'</label>
-									<input type = "text" class = "flat nopadding cursorpointer" id = "InfraSPlusParamLogoName" name = "InfraSPlusParamLogoName">
+									<input type = "text" class = "flat infrasplusnopadding cursorpointer" id = "InfraSPlusParamLogoName" name = "InfraSPlusParamLogoName">
 								</td>
-								<td class = "center"><button class = "button width110" type = "submit" value = "add" name = "action">'.$langs->trans('Add').'</button></td>
+								<td class = "center"><button class = "button infraspluswidth110" type = "submit" value = "add" name = "action">'.$langs->trans('Add').'</button></td>
 							</tr>';
 		$num++;
-		$metas	= $form->selectarray('defaultpied', $logos, $selected_logo, $langs->trans('InfraSPlusParamNoPied'), 0, 1, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
-		$end	= '<td class = "center"><button class = "button width110" type = "submit" value = "defaultP" name = "action">'.$langs->trans('Validate').'</button></td>';
+		$metas	= $form->selectarray('defaultpied', $logos, $selected_logo, $langs->trans('InfraSPlusParamNoPied'), 0, 1, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
+		$end	= '<td class = "center"><button class = "button infraspluswidth110" type = "submit" value = "defaultP" name = "action">'.$langs->trans('Validate').'</button></td>';
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamDefaultImageFooter'), '', $metas, 1, 1, $end, $num);
 		// $num = 3
-		$metas	= $form->selectarray('defaultwatermark', $logos, $selected_watermark, $langs->trans('InfraSPlusParamNoWatermarkImage'), 0, 1, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
-		$end	= '<td class = "center"><button class = "button width110" type = "submit" value = "defaultW" name = "action">'.$langs->trans('Validate').'</button></td>';
+		$metas	= $form->selectarray('defaultwatermark', $logos, $selected_watermark, $langs->trans('InfraSPlusParamNoWatermarkImage'), 0, 1, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
+		$end	= '<td class = "center"><button class = "button infraspluswidth110" type = "submit" value = "defaultW" name = "action">'.$langs->trans('Validate').'</button></td>';
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamDefaultWatermarkImage'), '', $metas, 1, 1, $end, $num);
-		$metas	= $form->selectarray('defaultwatermarkust', $logos, $selected_watermark_UST, $langs->trans('InfraSPlusParamNoWatermarkImage'), 0, 1, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
-		$end	= '<td class = "center"><button class = "button width110" type = "submit" value = "defaultWUST" name = "action">'.$langs->trans('Validate').'</button></td>';
+		$metas	= $form->selectarray('defaultwatermarkust', $logos, $selected_watermark_UST, $langs->trans('InfraSPlusParamNoWatermarkImage'), 0, 1, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
+		$end	= '<td class = "center"><button class = "button infraspluswidth110" type = "submit" value = "defaultWUST" name = "action">'.$langs->trans('Validate').'</button></td>';
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamUserStickerDefaultWatermarkImage'), '', $metas, 1, 1, $end, $num);
 		// $num = 5
 		if (getDolGlobalString('INFRASPLUS_PDF_LOGO_SECONDARY_SMALL_HEAD', '')) {
-			$metas	= $form->selectarray('defaultheader', $logos, $selected_header, $langs->trans('InfraSPlusParamNoHeader'), 0, 1, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
-			$end	= '<td class = "center"><button class = "button width110" type = "submit" value = "defaultH" name = "action">'.$langs->trans('Validate').'</button></td>';
+			$metas	= $form->selectarray('defaultheader', $logos, $selected_header, $langs->trans('InfraSPlusParamNoHeader'), 0, 1, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
+			$end	= '<td class = "center"><button class = "button infraspluswidth110" type = "submit" value = "defaultH" name = "action">'.$langs->trans('Validate').'</button></td>';
 			$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamDefaultImageHeader'), '', $metas, 1, 1, $end, $num);
 		} else {
 			$num++;
 		}
 		if (getDolGlobalString('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE_EMET', '')) {
-			$metas	= $form->selectarray('defaultsignemet', $logos, $selected_signemet, $langs->trans('InfraSPlusParamNoSignEmet'), 0, 1, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
-			$end	= '<td class = "center"><button class = "button width110" type = "submit" value = "defaultS" name = "action">'.$langs->trans('Validate').'</button></td>';
+			$metas	= $form->selectarray('defaultsignemet', $logos, $selected_signemet, $langs->trans('InfraSPlusParamNoSignEmet'), 0, 1, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"', 0, 0, 0, '', 'centpercent');
+			$end	= '<td class = "center"><button class = "button infraspluswidth110" type = "submit" value = "defaultS" name = "action">'.$langs->trans('Validate').'</button></td>';
 			$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamDefaultImageSignEmet'), '', $metas, 1, 1, $end, $num);
 		} else {
 			$num++;
@@ -329,7 +329,7 @@
 					<input type = "hidden" name = "token" value = "'.newToken().'">
 					<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamImagesSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblOPT" class = "noborder toggle_bloc centpercent">';
+	print '				<table name = "tblOPT" class = "infrasplusnoborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');

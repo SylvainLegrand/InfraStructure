@@ -1376,7 +1376,7 @@ if ($id > 0) {
 		$fieldlist = explode(',', $tabfield[$id]);
 
 		print '<div class="div-table-responsive-no-min">';
-		print '<table class="noborder centpercent">';
+		print '<table class="infrasplusnoborder centpercent">';
 
 		// Line for title
 		print '<!-- line title to add new entry -->';
@@ -1721,7 +1721,7 @@ if ($id > 0) {
 		}
 
 		print '<div class="div-table-responsive">';
-		print '<table class="noborder centpercent">';
+		print '<table class="infrasplusnoborder centpercent">';
 
 		$colspan = 0;
 
@@ -2444,7 +2444,7 @@ if ($id > 0) {
 	$lastlineisempty = false;
 
 	print '<div class="div-table-responsive-no-min">';
-	print '<table class="noborder centpercent">';
+	print '<table class="infrasplusnoborder centpercent">';
 	print '<tr class="liste_titre">';
 	print '<td>'.$langs->trans("Dictionary").'</td>';
 	print '<td></td>';

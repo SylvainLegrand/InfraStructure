@@ -59,6 +59,33 @@
 		header('Cache-Control: no-cache');
 	}
 ?>
+@font-face {
+	font-family: 'puentebold';
+	src: url('<?php print dol_buildpath('/infraspackplus/css/puentebold.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'NeuropolRegular';
+	src: url('<?php print dol_buildpath('/infraspackplus/css/NeuropolRegular.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.infrasplusneuropolinfras {
+	font-family: NeuropolRegular, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	color: #19052d;
+}
+
+.infraspluspuentedolibarr {
+	font-family: puentebold, sans-serif;
+	color: #027991;
+	font-size-adjust:0.6;
+}
+
 .infrasplusNoBCollapse {
 	border-collapse: separate;
 }
@@ -191,94 +218,94 @@ img.infraspluswidthpictotitle {
 	width: 90%;
 }
 
-.width90 {
+.infraspluswidth90 {
 	width: 90px;
 }
 
-.width110 {
+.infraspluswidth110 {
 	width: 110px;
 }
 
-.width120 {
+.infraspluswidth120 {
 	width: 120px;
 }
 
-.width180 {
+.infraspluswidth180 {
 	width: 180px
 }
 
-.width220 {
+.infraspluswidth220 {
 	width: 220px;
 }
 
-.width270 {
+.infraspluswidth270 {
 	width: 270px;
 }
 
-.minwidth600imp {
-	min-width: 600px !important;
+.infrasplusminwidth700imp {
+	min-width: 700px !important;
 }
 
-.widthquinzepercent {
+.infraspluswidthquinzepercent {
 	width: 15%;
 }
 
-.widthtrentepercent {
+.infraspluswidthtrentepercent {
 	width: 30%;
 }
 
-.widthtrentetroispercent {
+.infraspluswidthtrentetroispercent {
 	width: 33%;
 }
 
-.height75 {
+.infrasplusheight75 {
 	height: 75px;
 }
 
-.height32 {
+.infrasplusheight32 {
 	height: 32px;
 }
 
-.height50 {
+.infrasplusheight50 {
 	height: 50px;
 }
 
-.height25 {
+.infrasplusheight25 {
 	height: 25px;
 }
 
-.height20 {
+.infrasplusheight20 {
 	height: 20px;
 }
 
-.lineheight200percent {
+.lineinfrasplusheight200percent {
 	line-height: 200%;
 }
 
-.nomargin {
+.infrasplusnomargin {
 	margin: 0px;
 }
 
-.nopadding {
+.infrasplusnopadding {
 	padding: 0px !important;
 }
 
-.noborder {
+.infrasplusnoborder {
 	border: none;
 }
 
-.nopaddingvert {
+.infrasplusnopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
 }
 
-.margintop10imp {
+.infrasplusmargintop10imp {
 	margin-top: 10px !important;
 }
 
-.fontsizeinherit {
+.infrasplusfontsizeinherit {
 	font-size: inherit;
 }
-button.copyParamsBtn, .copyParamsBtn:hover {
+button.infraspluscopyParamsBtn, .infraspluscopyParamsBtn:hover {
 	padding: 8px 25px 8px 25px;
 }

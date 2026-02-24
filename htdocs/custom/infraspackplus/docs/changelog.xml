@@ -1750,6 +1750,9 @@
 		<change type='chg'>Amélioration/correction des traductions</change>
 		<change type='add'>Ajout d'un fichier descripteur CLAUDE.md</change>
 	</Version>
+	<Version Number="18.14.7" MonthVersion="2026-02">
+		<change type='chg'>Amélioration CSS</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="23.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.2"/>
