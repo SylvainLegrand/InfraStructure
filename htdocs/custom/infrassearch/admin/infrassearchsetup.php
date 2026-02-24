@@ -240,7 +240,7 @@
 		$num	= 1;
 		print '	<div class = "foldable">';
 		print infrassearch_load_title('<span class = "infrassearchTitleparam">'.$langs->trans('InfraSSearchTitleComp').'</span>', $titleoption, dol_buildpath('/infrassearch/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-		print '		<table name = "tblGen" class = "noborder" width = "100%">';
+		print '		<table name = "tblGen" class = "infrassearchnoborder" width = "100%">';
 		$metas	= array('30px', '*', '156px', '120px');
 		infrassearch_print_colgroup($metas);
 		$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -248,7 +248,7 @@
 		infrassearch_print_btn_action('Gen', '<span class = "infrassearchCaution">'.$langs->trans('InfraSSearchCaution').'</span> '.$langs->trans('InfraSSearchParamCautionSave'), 3);
 		$num	= infrassearch_print_input('INFRASSEARCH_SORT', 'on_off', $langs->trans('InfraSSearchParamSort'), '', array(), 1, 1, '', $num);
 		if (getDolGlobalString('INFRASSEARCH_SORT', '')) {
-			$metas	= $form->selectarray('INFRASSEARCH_ORDER', $listSort, getDolGlobalString('INFRASSEARCH_ORDER', ''), 0, 0, 0, 'class = "widthquatrevingtdixpercent nopadding fontsizeinherit cursorpointer"');
+			$metas	= $form->selectarray('INFRASSEARCH_ORDER', $listSort, getDolGlobalString('INFRASSEARCH_ORDER', ''), 0, 0, 0, 'class = "infrassearchwidthquatrevingtdixpercent infrassearchnopadding infrassearchfontsizeinherit cursorpointer"');
 			$num	= infrassearch_print_input('', 'select', $langs->trans('InfraSSearchParamOrder'), '', $metas, 1, 1, '', $num);
 		}
 		else {

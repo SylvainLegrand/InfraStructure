@@ -62,12 +62,14 @@ InfraSSearchParamPosModule      = Position des résultats de la recherche pour l
 ### About page ###
 
 ### Changelog page ###
-InfraSSearchParamPresent              = <b>Ce module est une création InfraS, sa documentation est disponible sur notre wiki</b>
+InfraSSearchParamPresent1             = <b>Ce module est une création</b>
+InfraSSearchParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
 InfraSSearchParamSlogan               = Structurez votre croissance !
 InfraSSearchParamLienModules          = Nos Modules
-InfraSSearchParamLienDocs             = Nos Documentations
-InfraSSearchParamLicense              = sous Licence GPL v3 et supérieur.
-InfraSSearchParamPreferedPartner      = <b>Membre du programme officiel Dolibarr Preferred Partner, gage de qualité et d’expertise.</b>
+InfraSSearchParamSupport              = Demande de support
+InfraSSearchParamLicense              = sous Licence GPL v3 et supérieur
+InfraSSearchParamPreferedPartner1     = Membre du programme officiel
+InfraSSearchParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise
 InfraSSearchParamMoreModulesLink      = Nos modules sur le dolistore
 InfraSSearchParamObjet                = <h3>Objet :</h3>
 InfraSSearchParamHistoryUpdates       = <b>Historique des mises à jour :</b>

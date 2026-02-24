@@ -392,7 +392,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 	{
 		global $conf, $langs;
 
-		print '	<table class = "centpercent noborderspacing">';
+		print '	<table class = "centpercent infrassearchnoborderspacing">';
 		$metas	= array('*', '90px', '156px', '120px');
 		infrassearch_print_colgroup($metas);
 		print '		<tr>
@@ -402,7 +402,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<td class = "center"><button class = "butAction" type = "submit" value = "bkupParams" name = "action">'.$langs->trans('InfraSSearchParamBkup').'</button></td>
 						<td class = "center"><button class = "butActionDelete" type = "submit" value = "restoreParams" name = "action">'.$langs->trans('InfraSSearchParamRestore').'</button></td>
 					</tr>';
-		print '		<tr><td colspan = "4" class = "center nopadding"><hr></td></tr>';
+		print '		<tr><td colspan = "4" class = "center infrassearchnopadding"><hr></td></tr>';
 		print '		<tr><td colspan = "4" class = "infrassearchFinal">&nbsp;</td></tr>';
 		print '	</table>';
 	}
@@ -428,14 +428,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 		$out	.= '<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
 											<tr class = "liste_titre">';
 		if (!empty($picto)) {
-			$out .= '							<td class = "nobordernopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infrassearchwidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
+			$out .= '							<td class = "infrassearchnoborderinfrassearchnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infrassearchwidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
 		}
-		$out	.= '							<td class = "nobordernopadding valignmiddle col-title"><div class = "infrassearchDivTitre uppercase inline-block">'.$titre.'</div></td>';
+		$out	.= '							<td class = "infrassearchnoborderinfrassearchnopadding valignmiddle col-title"><div class = "infrassearchDivTitre uppercase inline-block">'.$titre.'</div></td>';
 		if (dol_strlen($morehtmlcenter)) {
-			$out .= '							<td class = "nobordernopadding center valignmiddle">'.$morehtmlcenter.'</td>';
+			$out .= '							<td class = "infrassearchnoborderinfrassearchnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
 		}
 		if (dol_strlen($morehtmlright)) {
-			$out .= '							<td class = "nobordernopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
+			$out .= '							<td class = "infrassearchnoborderinfrassearchnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
 		}
 		$out .= '							</tr>
 										</table>';
@@ -452,7 +452,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 	{
 		print '	<tr>';
 		foreach ($metas as $values)	{
-			print '<td class = "infrassearchFinal nopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style =" height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
+			print '<td class = "infrassearchFinal infrassearchnopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style =" height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
 		}
 		print '	</tr>';
 	}
@@ -491,7 +491,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 		print '	<tr>
 					<td colspan = "'.$cs1.'" class = "'.$alignclass.'">'.$desc.'</td>
-					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button width110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
+					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button infrassearchwidth110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
 				</tr>';
 	}
 
@@ -606,7 +606,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 				$inputValue		= $currentValue < $metas['min'] ? $metas['min'] : $currentValue;
 			}
 			// default input
-			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
+			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrassearchnopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
 			$metas			= array_merge ($defaultMetas, $metas);
 			$metascompil	= '';
 			foreach ($metas as $key => $value) {
@@ -619,7 +619,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 					print $meta2;
 					continue;
 				}
-				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding fontsizeinherit', 'name' => $keymeta, 'id' => $keymeta, 'value' => getDolGlobalString($keymeta, ''));
+				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrassearchnopadding infrassearchfontsizeinherit', 'name' => $keymeta, 'id' => $keymeta, 'value' => getDolGlobalString($keymeta, ''));
 				$meta			= array_merge ($defaultMetas, $meta2);
 				$metascompil	= '';
 				foreach ($meta as $key => $value) {
@@ -634,7 +634,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 					print $meta2;
 					continue;
 				}
-				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding fontsizeinherit', 'id' => $keymeta);
+				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrassearchnopadding infrassearchfontsizeinherit', 'id' => $keymeta);
 				$meta			= array_merge ($defaultMetas, $meta2);
 				$metascompil	= '';
 				foreach ($meta as $key => $value) {
@@ -656,7 +656,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 			print $metas;
 		} elseif ($tag == 'selectpos') {
 			$numcol	= infrassearch_num_pos($metas['arrayTObjectType'], $metas['validListTObjectType']);
-			print '	<select name = "'.$metas['arrayTObjectType']['select'].'" class = "flat fontsizeinherit nopadding noborder cursorpointer">
+			print '	<select name = "'.$metas['arrayTObjectType']['select'].'" class = "flat infrassearchfontsizeinherit infrassearchnopadding infrassearchnoborder cursorpointer">
 						'.$numcol['options'].'
 					</select>';
 			if ($numcol['err']) {
@@ -704,15 +704,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 		print '		<td colspan = "'.$cs1.'">
 						<table class = "centpercent">
 							<tr>
-								<td rowspan = "2" class = "noborder">'.$desc.'</td>';
+								<td rowspan = "2" class = "infrassearchnoborder">'.$desc.'</td>';
 		foreach ($metas[0] as $confkey => $value) {
 			$confkey	= str_replace('_AUTO', '', $confkey);
-			print '				<td class = "center noborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
+			print '				<td class = "center infrassearchnoborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
 		}
 		print '				</tr>
 							<tr>';
 		foreach ($metas[1] as $confkey => $value) {
-			print '				<td class = "center noborder">';
+			print '				<td class = "center infrassearchnoborder">';
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
@@ -757,7 +757,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname;
 		$urlstore				= 'https://infras.store/';
 		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
-		$InputCarac				= 'class = "button width180 height32" name = "readmore" type = "button"';
+		$InputCarac				= 'class = "button infrassearchwidth180 infrassearchheight32" name = "readmore" type = "button"';
 		$supportvalue			= '/******************************'.'<br/>';
 		$supportvalue			.= ' * Module : '.$langs->trans('modcomnameSearch').'<br/>';
 		$supportvalue			.= ' * Module version : '.$version.'<br/>';
@@ -770,38 +770,38 @@ SET FOREIGN_KEY_CHECKS = 1;
 										<input name = email type = "hidden" value = "'.$user->email.'" />
 										<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnameSearch'))).'" />
 										<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
-											<tr class = "height75">
+											<tr class = "infrassearchheight75">
 												<td colspan = "3" class = "center bold valignmiddle">
 													<a href = "'.$urlWiki.'" target = "_blank">
-														<span class = "infrassearchColor" style = "font-size: 24px;">'.$langs->trans('InfraSSearchParamPresent').'</span>
+														<span class = "infrassearchColor" style = "font-size: 24px;">'.$langs->trans('InfraSSearchParamPresent1').'<span class = "infraswidgetsneuropolinfras"> InfraS</span>'.$langs->trans('InfraSSearchParamPresent2').'</span>
 													</a>
 												</td>
 											</tr>
-											<tr class = "height50">
-												<td rowspan = "3" class = "left bold valignbottom widthtrentepercent infrassearchslogan" style = "color: white; font-size: 16px;">
-													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder width220" src = "'.$logoPath.'"></a>
+											<tr class = "infrassearchheight50">
+												<td rowspan = "3" class = "left bold valignbottom infrassearchwidthtrentepercent infrassearchslogan" style = "color: white; font-size: 16px;">
+													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "infrassearchnoborder infrassearchwidth220" src = "'.$logoPath.'"></a>
 													<br/>&nbsp;&nbsp;'.$langs->trans('InfraSSearchParamSlogan').'
 												</td>
-												<td class = "center valignmiddle widthtrentepercent">
+												<td class = "center valignmiddle infrassearchwidthtrentepercent">
 													<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSSearchParamLienModules').'" /></a>
-													<button class = "button width180 height32" type = "submit" >'.$langs->trans('InfraSSearchParamSupport').'</button>
+													<button class = "button infrassearchwidth180 infrassearchheight32" type = "submit" >'.$langs->trans('InfraSSearchParamSupport').'</button>
 												</td>
-												<td rowspan = "3" class = "right bold valignbottom widthtrentepercent infrassearchslogan">
-													<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder width270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
+												<td rowspan = "3" class = "right bold valignbottom infrassearchwidthtrentepercent infrassearchslogan">
+													<a href = "'.$urlDoli.'" target = "_blank"><img class = "infrassearchnoborder infrassearchwidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
 													<br/>'.$langs->trans('InfraSSearchParamMoreModulesLink').'&nbsp;&nbsp;
 												</td>
 											</tr>
 											<tr>
-												<td class = "center valignbottom minwidth600imp">
-													<img class = "noborder width220 margintop10imp" src="'.$preferedPartnerPath.'"/>
+												<td class = "center valignbottom infrassearchminwidth700imp">
+													<img class = "infrassearchnoborder infrassearchwidth220 infrassearchmargintop10imp" src="'.$preferedPartnerPath.'"/>
 												</td>
 											</tr>
 											<tr>
-												<td class = "center valignbottom minwidth600imp">
-													<div class = "margintop10imp">'.$langs->trans('InfraSSearchParamPreferedPartner').'</div>
+												<td class = "center bold valignbottom infrassearchminwidth700imp infrassearchslogan">
+													<div class = "infrassearchmargintop10imp">'.$langs->trans('InfraSSearchParamPreferedPartner1').'<span class = "infraswidgetspuentedolibarr"> Dolibarr </span>'.$langs->trans('InfraSSearchParamPreferedPartner2').'</div>
 												</td>
 											</tr>
-											<tr class = "height25"><td colspan = "3">&nbsp;</td></tr>
+											<tr class = "infrassearchheight25"><td colspan = "3">&nbsp;</td></tr>
 										</table>
 									</form>';
 		$ret					.= load_fiche_titre('<span class = "infrassearchTitleparam">'.$langs->trans('InfraSSearchParamHistoryUpdates').'</span>', '', $listUpD, 1);
@@ -821,7 +821,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 		}
 		$ret	.= '			<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<table class = "noborder" >
+									<table class = "infrassearchnoborder" >
 										<tr class = "liste_titre">
 														<th class = "center width100">'.$langs->trans('InfraSSearchParamNumberVersion').'</th>
 														<th class = "center width100">'.$langs->trans('InfraSSearchParamMonthVersion').'</th>
@@ -835,7 +835,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 				$ret			.= '	<tr class = "oddeven">
 											<td class = "center valigntop '.(empty($sxePath) ? 'infrassearchbgorange' : '').'">'.$tblversionslast[$i]->attributes()->Number.'</td>
 											<td class = "center valigntop '.(empty($sxePath) ? 'infrassearchbgorange' : '').'">'.$tblversionslast[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert '.(empty($sxePath) ? 'infrassearchbgorange' : '').'" colspan = "2">';
+											<td class = "left valigntop infrassearchnopaddingvert '.(empty($sxePath) ? 'infrassearchbgorange' : '').'" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrassearchcaution';
@@ -861,9 +861,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 				$sxelastPath	= $sxelast->xpath('//Version[@Number="'.$tblversions[$i]->attributes()->Number.'"]');
 				$lineversion	= $tblversions[$i]->change;
 				$ret			.= '	<tr class = "oddeven">
-											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrassearchbggreen' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
-											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrassearchbggreen' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert '.(empty($sxelastPath) ? 'infrassearchbggreen' : '').'" colspan = "2">';
+											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrassearchbggreen infrassearchblack' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
+											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrassearchbggreen infrassearchblack' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
+											<td class = "left valigntop infrassearchnopaddingvert '.(empty($sxelastPath) ? 'infrassearchbggreen' : '').'" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrassearchcaution';
@@ -890,7 +890,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 				$ret	.= '			<tr class = "oddeven">
 											<td class = "center valigntop">'.$tblversions[$i]->attributes()->Number.'</td>
 											<td class = "center valigntop">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert" colspan = "2">';
+											<td class = "left valigntop infrassearchnopaddingvert" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrassearchcaution';
@@ -928,7 +928,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 	{
 		global $db, $langs;
 
-		$ret	= '	<table class = "noborder" >
+		$ret	= '	<table class = "infrassearchnoborder" >
 						<tr class = "liste_titre">
 						<th class = "center width400">'.$langs->trans('InfraSSearchSupportInformation').'</th>
 						<th class = "center">'.$langs->trans('Value').'</th>

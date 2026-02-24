@@ -584,7 +584,7 @@
 		}
 		$nb_results	= $res ? $db->num_rows($res) : 0;
 		if (!$asArray) {	// from the search page (tools)
-			print '<table class = "centpercent noborderspacing">
+			print '<table class = "centpercent infrassearchnoborderspacing">
 								<tr class = "liste_titre">
 									<td colspan = "2" style = "padding: 2px 5px 2px 5px;"><span class = "badge">'.$nb_results.'</span>&nbsp;&nbsp;'.$langs->trans('InfraSSearchLib'.$objname).'</td>
 								</tr>';

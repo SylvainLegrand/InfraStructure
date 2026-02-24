@@ -138,7 +138,7 @@
 														<form method = "post" action = "'.dol_buildpath('/infrassearch/search.php',1).'">
 															<input type = "hidden" name = "token" value = "'.newToken().'">
 															<input type = "hidden" id = "keywords" name = "keywords" value = ""/>
-															<input type = "text" size = "15" id = "search_keyword" name = "search_keyword" title = "'.$langs->trans('Keyword').'" class = "infrassearchbgtrans widthquatrevingtdixpercent ui-autocomplete-input" placeholder = "'.$langs->trans('InfraSSearchInputPlaceHolder').'"/>
+															<input type = "text" size = "15" id = "search_keyword" name = "search_keyword" title = "'.$langs->trans('Keyword').'" class = "infrassearchbgtrans infrassearchwidthquatrevingtdixpercent ui-autocomplete-input" placeholder = "'.$langs->trans('InfraSSearchInputPlaceHolder').'"/>
 														</form>
 													</div>
 												</div>
@@ -229,7 +229,7 @@
 					$nbSec	= getDolGlobalInt('INFRASSEARCH_NB_SEC', 500);
 					$res	= '	<form method = "post" action = "'.dol_buildpath('/infrassearch/search.php',1).'">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<input type = "text" size = "15" name = "keyword" title = "'.$langs->trans('Keyword').'" class = "flat infrassearchbgtrans widthquatrevingtdixpercent" id = "sew_keyword" placeholder = "'.$langs->trans('InfraSSearchInputPlaceHolder').'"/>
+									<input type = "text" size = "15" name = "keyword" title = "'.$langs->trans('Keyword').'" class = "flat infrassearchbgtrans infrassearchwidthquatrevingtdixpercent" id = "sew_keyword" placeholder = "'.$langs->trans('InfraSSearchInputPlaceHolder').'"/>
 								</form>
 								<script type = "text/javascript">
 									$("#sew_keyword").autocomplete({

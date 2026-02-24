@@ -62,12 +62,14 @@ InfraSSearchParamPosModule      = Position of search results for %s
 ### About page ###
 
 ### Changelog page ###
-InfraSSearchParamPresent              = <b>This module is an InfraS creation, its documentation is available on our wiki</b>
+InfraSSearchParamPresent1             = <b>This module is an InfraS creation</b>
+InfraSSearchParamPresent2             = <b>, its documentation is available on our wiki</b>
 InfraSSearchParamSlogan               = Structurez votre croissance !
 InfraSSearchParamLienModules          = Our Modules
-InfraSSearchParamLienDocs             = Our User Guides
+InfraSSearchParamSupport              = Support request
 InfraSSearchParamLicense              = Under GPL v3 and higher license
-InfraSSearchParamPreferedPartner      = <b>Member of the official Dolibarr Preferred Partner program, guarantee of quality and experience.</b>
+InfraSSearchParamPreferedPartner1     = Member of the official
+InfraSSearchParamPreferedPartner2     = Preferred Partner program, guarantee of quality and experience.
 InfraSSearchParamMoreModulesLink      = Our modules on the dolistore
 InfraSSearchParamObjet                = <h3>Object :</h3>
 InfraSSearchParamHistoryUpdates       = <b>Update history :</b>
@@ -78,10 +80,10 @@ InfraSSearchParamChangesVersion       = Modifications
 InfraSSearchParamCheckNewVersion      = New Changelog
 InfraSSearchParamCheckNewVersionTitle = Click to download the changelog of the latest available version
 
-### actions InfraSPack class ###
-InfraSSearchWarningMaxVersion    = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSSearch %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
+### actions InfraSSearch class ###
+InfraSSearchWarningMaxVersion    = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSSearch module %s.<br>The maximum supported version of Dolibarr is %s.<br>You are therefore using this module without any guarantee of proper functioning.</center>
 InfraSSearchBreadcrumb           = InfraSSearchBreadcrumb
-InfraSSearchBreadcrumbShortCut   = Ctrl + Maj + k
+InfraSSearchBreadcrumbShortCut   = Ctrl + Shift + k
 InfraSSearchInputPlaceHolder     = Advanced search
 
 ### search ###

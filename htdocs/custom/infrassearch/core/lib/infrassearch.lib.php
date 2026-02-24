@@ -54,7 +54,7 @@
 						if ($staticobject != null && method_exists(getobjectclass($objp->element, 1), 'fetch')) {
 							$result	= $staticobject->fetch($objp->fk_element);
 							if ($result > 0 && method_exists($staticobject, 'getNomUrl')) {
-								$dropDownBreadCrumbHtml	.= '	<div class = "dropdown-breadcrumb-item dropdown-item">';
+								$dropDownBreadCrumbHtml	.= '	<div class = "infrassearchdropdown-breadcrumb-item infrassearchdropdown-item">';
 								$dropDownBreadCrumbHtml	.= in_array($staticobject->element, $maxInThirdPos) ? $staticobject->getNomUrl(1, '', 30) : $staticobject->getNomUrl(1);
 								$dropDownBreadCrumbHtml	.= '	</div>';
 							}
@@ -63,8 +63,8 @@
 				} catch (Exception $e) {
 					$errorInfo	= handleInfraSearchError($e, 'fetch_object_breadcrumb', $objp->element);
 					$result		= 0;
-					$dropDownBreadCrumbHtml	.= '	<div class="dropdown-breadcrumb-item dropdown-item text-warning">
-														<i class="fa fa-exclamation-triangle"></i> '.$errorInfo['message'].'
+					$dropDownBreadCrumbHtml	.= '	<div class = "infrassearchdropdown-breadcrumb-item infrassearchdropdown-item text-warning">
+														<i class = "fa fa-exclamation-triangle"></i> '.$errorInfo['message'].'
 													</div>';
 				}
 			}

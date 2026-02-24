@@ -62,12 +62,14 @@ InfraSSearchParamPosModule      = Posición de los resultados de búsqueda para 
 ### About page ###
 
 ### Changelog page ###
-InfraSSearchParamPresent              = <b>>Este módulo es una creación de InfraS, su documentación está disponible en nuestra wiki</b>
+InfraSSearchParamPresent1             = <b>Este módulo es una creación</b>
+InfraSSearchParamPresent2             = <b>, una documentación es disponible en nuestro sitio web</b>
 InfraSSearchParamSlogan               = Structurez votre croissance !
 InfraSSearchParamLienModules          = Nuestros módulos
-InfraSSearchParamLienDocs             = Nuestra Documentacion
+InfraSSearchParamSupport              = Solicitud de soporte
 InfraSSearchParamLicense              = Bajo GPL v3 y licencia superior
-InfraSSearchParamPreferedPartner      = <b>Miembro del programa oficial Dolibarr Preferred Partner, garantía de calidad y experiencia.</b>
+InfraSSearchParamPreferedPartner1     = Miembro del programa oficial
+InfraSSearchParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia
 InfraSSearchParamMoreModulesLink      = Nuestros módulos en la dolistore
 InfraSSearchParamObjet                = <h3>Objeto :</h3>
 InfraSSearchParamHistoryUpdates       = <b>Históricas de las actualizaciones :</b>
@@ -78,7 +80,7 @@ InfraSSearchParamChangesVersion       = Modificaciones
 InfraSSearchParamCheckNewVersion      = Nueva Evoluciones
 InfraSSearchParamCheckNewVersionTitle = Haga clic para descargar el registro de cambios de la última versión disponible
 
-### actions InfraSPack class ###
+### actions InfraSSearch class ###
 InfraSSearchWarningMaxVersion    = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSSearch %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
 InfraSSearchBreadcrumb           = Hilo de Ariadna
 InfraSSearchBreadcrumbShortCut   = Ctrl + Maj + k

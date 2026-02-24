@@ -59,6 +59,20 @@
 		header('Cache-Control: no-cache');
 	}
 ?>
+@font-face {
+	font-family: 'puentebold';
+	src: url('<?php print dol_buildpath('/infrassearch/css/puentebold.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'NeuropolRegular';
+	src: url('<?php print dol_buildpath('/infrassearch/css/NeuropolRegular.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
 #results
 {
 	position:relative;
@@ -149,7 +163,7 @@ img.infrassearchwidthpictotitle {
 	font-size: xx-large;
 }
 
-.infrassearchCaution {
+.infrassearchcaution {
 	color: red;
 }
 
@@ -227,88 +241,88 @@ img.infrassearchwidthpictotitle {
 	padding-bottom: 0
 }
 
-.widthquatrevingtdixpercent {
+.infrassearchwidthquatrevingtdixpercent {
 	width: 90%;
 }
 
-.width110 {
+.infrassearchwidth110 {
 	width: 110px;
 }
 
-.width120 {
+.infrassearchwidth120 {
 	width: 120px;
 }
 
-.width180 {
+.infrassearchwidth180 {
 	width: 180px
 }
 
-.width220 {
+.infrassearchwidth220 {
 	width: 220px;
 }
 
-.width270 {
+.infrassearchwidth270 {
 	width: 270px;
 }
 
-.minwidth600imp {
-	min-width: 600px !important;
+.infrassearchminwidth700imp {
+	min-width: 700px !important;
 }
 
-.widthtrentepercent {
+.infrassearchwidthtrentepercent {
 	width: 30%;
 }
 
-.height75 {
+.infrassearchheight75 {
 	height: 75px;
 }
 
-.height32 {
+.infrassearchheight32 {
 	height: 32px;
 }
 
-.height50 {
+.infrassearchheight50 {
 	height: 50px;
 }
 
-.height25 {
+.infrassearchheight25 {
 	height: 25px;
 }
 
-.height20 {
+.infrassearchheight20 {
 	height: 20px;
 }
 
-.nomargin {
+.infrassearchnomargin {
 	margin: 0px;
 }
 
-.nopadding {
+.infrassearchnopadding {
 	padding: 0px !important;
 }
 
-.noborder {
+.infrassearchnoborder {
 	border: none;
 }
 
-.nopaddingvert {
+.infrassearchnopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
 }
 
-.margintop10imp {
+.infrassearchmargintop10imp {
 	margin-top: 10px !important;
 }
 
-.fontsizeinherit {
+.infrassearchfontsizeinherit {
 	font-size: inherit;
 }
 
-.dropdown-item a img {
+.infrassearchdropdown-item a img {
 	max-height: 16px;
 }
 
-.dropdown-breadcrumb-item {
+.infrassearchdropdown-breadcrumb-item {
 	display: block !important;
 	box-sizing: border-box;
 	width: 100%;
@@ -327,6 +341,6 @@ img.infrassearchwidthpictotitle {
 	box-shadow: none;
 }
 
-div.login_block div.dropdown-breadcrumb-item a {
+div.login_block div.infrassearchdropdown-breadcrumb-item a {
 	color: inherit;
 }

@@ -289,6 +289,9 @@
 		<change type='chg'>Nouveau lien vers le Wiki InfraSWorkflow</change>
 		<change type='add'>Ajout d'un fichier descripteur CLAUDE.md</change>
 	</Version>
+	<Version Number="15.4.1" MonthVersion="2026-02">
+		<change type='chg'>Amélioration du CSS</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="22.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
