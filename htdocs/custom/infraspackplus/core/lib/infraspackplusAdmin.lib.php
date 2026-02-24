@@ -995,8 +995,8 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 												</td>
 											</tr>
 											<tr>
-												<td class = "center valignbottom infrasplusminwidth700imp">
-													<div class = "bold infrasplusslogan infrasplusmargintop10imp">'.$langs->trans('InfraSPackPlusParamPreferedPartner1').'<span class = "infrasplusneuropolinfras"> Dolibarr </span>'.$langs->trans('InfraSPackPlusParamPreferedPartner2').'</div>
+												<td class = "center bold valignbottom infrasplusminwidth700imp infrasplusslogan">
+													<div class = "infrasplusmargintop10imp">'.$langs->trans('InfraSPackPlusParamPreferedPartner1').'<span class = "infraspluspuentedolibarr"> Dolibarr </span>'.$langs->trans('InfraSPackPlusParamPreferedPartner2').'</div>
 												</td>
 											</tr>
 											<tr class = "infrasplusheight25"><td colspan = "3">&nbsp;</td></tr>
