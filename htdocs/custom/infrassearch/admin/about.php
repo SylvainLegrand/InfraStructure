@@ -72,9 +72,9 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">
-					<div class = "moduledesclong">'.$content.'<div>
+					<div class = "moduledesclong">'.$content.'</div>
 				</form>
 				<a class = "infrassearchScrollUp" href = "#top">'.img_picto($langs->trans('Top'), 'angle-double-up').'</a>';
 	print dol_get_fiche_end();

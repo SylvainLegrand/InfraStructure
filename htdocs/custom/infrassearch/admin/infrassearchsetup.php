@@ -204,35 +204,48 @@
 	if ($conf->use_javascript_ajax) {
 		print '	<script src = "'.dol_buildpath('/includes/jquery/plugins/jquerytreeview/lib/jquery.cookie.js', 1).'"></script>
 				<script type = "text/javascript">
+					var cookieName = "infrassearch_tblPSexp";
 					jQuery(document).ready(function() {
 						var tblPSexp = "";
-						$.isSet = function(testVar){ return typeof(testVar) !== "undefined" && testVar !== null && testVar !== ""; };
-						if ($.cookie && $.isSet($.cookie("tblPSexp"))) { tblPSexp = $.cookie("tblPSexp"); }
+						$.isSet = function(testVar) {
+							return typeof(testVar) !== "undefined" && testVar !== null && testVar !== "";
+						};
+						if ($.cookie && $.isSet($.cookie(cookieName))) {
+							tblPSexp = $.cookie(cookieName);
+						}
 						$(".toggle_bloc").hide();
-						if (tblPSexp != "") { $("[name=" + tblPSexp + "]").toggle(); }
+						if (tblPSexp != "") {
+							$("[name=" + tblPSexp + "]").toggle();
+						}
 					});
 					$(function () {
 						$(".foldable .toggle_bloc_title").click(function() {
-							if ($(this).siblings().is(":visible")) { $(".toggle_bloc").hide(); }
-							else {
+							if ($(this).siblings().is(":visible")) {
+								$(".toggle_bloc").hide();
+							} else {
 								$(".toggle_bloc").hide();
 								$(this).siblings().show();
 							}
-							$.cookie("tblPSexp", "", { expires: 1, path: "/" });
+							$.cookie(cookieName, "", { expires: 1, path: "/" });
 							$(".toggle_bloc").each(function() {
-								if ($(this).is(":visible")) { $.cookie("tblPSexp", $(this).attr("name"), { expires: 1, path: "/" }); }
+								if ($(this).is(":visible")) {
+									$.cookie(cookieName, $(this).attr("name"), { expires: 1, path: "/" });
+								}
 							});
 						});
 						$(window).scroll(function() {
-							if ($(this).scrollTop() > 200 )	$(".infrassearchScrollUp").css("right", "30px");
-							else							$(".infrassearchScrollUp").removeAttr("style");
+							if ($(this).scrollTop() > 200 ) {
+								$(".infrassearchScrollUp").css("right", "30px");
+							} else {
+								$(".infrassearchScrollUp").removeAttr("style");
+							}
 						});
 					});
 				</script>';
 	}
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.$_SESSION['newtoken'].'">
-				<input type = "hidden" name = "stringListTObjectType"  value = '.$stringListTObjectType.'>';
+				<input type = "hidden" name = "stringListTObjectType"  value = "'.dol_escape_htmltag($stringListTObjectType).'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2)	infrassearch_print_backup_restore();
 	//Comportement général
@@ -245,7 +258,7 @@
 		infrassearch_print_colgroup($metas);
 		$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
 		infrassearch_print_liste_titre($metas);
-		infrassearch_print_btn_action('Gen', '<span class = "infrassearchCaution">'.$langs->trans('InfraSSearchCaution').'</span> '.$langs->trans('InfraSSearchParamCautionSave'), 3);
+		infrassearch_print_btn_action('Gen', '<span class = "infrassearchcaution">'.$langs->trans('InfraSSearchCaution').'</span> '.$langs->trans('InfraSSearchParamCautionSave'), 3);
 		$num	= infrassearch_print_input('INFRASSEARCH_SORT', 'on_off', $langs->trans('InfraSSearchParamSort'), '', array(), 1, 1, '', $num);
 		if (getDolGlobalString('INFRASSEARCH_SORT', '')) {
 			$metas	= $form->selectarray('INFRASSEARCH_ORDER', $listSort, getDolGlobalString('INFRASSEARCH_ORDER', ''), 0, 0, 0, 'class = "infrassearchwidthquatrevingtdixpercent infrassearchnopadding infrassearchfontsizeinherit cursorpointer"');

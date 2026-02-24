@@ -43,7 +43,7 @@
 		}
 	}
 	llxHeader('', $langs->trans('InfraSSearchInputPlaceHolder'), '', '', 0, 0, array('/infrassearch/js/jquery.tile.min.js'));
-	print '<form method = "POST" action = "'.$_SERVER['PHP_SELF'].'"  enctype = "multipart/form-data">
+	print '<form method = "POST" action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'"  enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<table width = "99%">
 					<tr>

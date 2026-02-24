@@ -1,6 +1,6 @@
 # CLAUDE.md — Contexte module infrassearch
 
-## Aperçu
+## Aperçu (Overview)
 
 `infrassearch` est un module externe Dolibarr de recherche avancée multi-objets :
 
@@ -16,9 +16,15 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `22.0.4`
 - Compatibilité PHP : `7.4` à `8.4`
+- Dernière version locale : `15.4.3` (2026-02)
 - Emplacement : `htdocs/custom/infrassearch/`
 
-## Structure (résumé)
+Convention de lecture du descripteur :
+
+- Explications fonctionnelles en français
+- Identifiants techniques conservés en anglais (`hooks`, classes, méthodes, constantes, clés de configuration)
+
+## Structure (Summary)
 
 ```text
 htdocs/custom/infrassearch/
@@ -53,18 +59,20 @@ htdocs/custom/infrassearch/
 │   └── interface.php
 ├── search.php
 └── sql/
-		├── data.sql
-		├── llx_infrassearch_history.sql
-		└── update_data.sql
+    ├── data.sql
+    ├── llx_infrassearch_history.sql
+    └── update_data.sql
 ```
 
-## Descripteur module (`modinfrassearch`)
+## Descripteur module (Module descriptor : `modinfrassearch`)
 
 Dans `core/modules/modinfrassearch.class.php` :
 
 - **Module parts** :
 	- hooks : `adminmodules`, `searchform`, `toprightmenu`
 	- CSS : `/infrassearch/css/infrassearch.css.php`
+- **Dépendances** : aucune dépendance obligatoire
+- **Dictionnaires** : aucun dictionnaire
 - **Boxes** : aucune
 - **Cron** : aucune tâche
 - **Permissions** : 3 permissions
@@ -72,7 +80,7 @@ Dans `core/modules/modinfrassearch.class.php` :
 	- `paramInfraSSearch`
 	- `paramBkpRest`
 
-### Initialisation (`init()`)
+### Initialisation (Lifecycle : `init()`)
 
 `init()` effectue :
 
@@ -84,11 +92,11 @@ Dans `core/modules/modinfrassearch.class.php` :
 	 - `INFRASSEARCH_MAIN_VERSION`
 4. Migration de compatibilité des anciennes constantes `INFRASSEARCH_*` vers `INFRASSEARCH_MOD_*`
 
-### Désactivation (`remove()`)
+### Désactivation (Lifecycle : `remove()`)
 
 `remove()` supprime les constantes `INFRASSEARCH_%` de l’entité courante après sauvegarde module.
 
-## Mécanismes de recherche
+## Fonctionnement principal (Core behavior)
 
 Le module propose 4 points d’intégration :
 
@@ -99,7 +107,7 @@ Le module propose 4 points d’intégration :
 
 Le moteur AJAX est implémenté dans `script/interface.php`.
 
-## Hooks et comportement
+## Hooks et comportement (Hook behavior)
 
 La classe `Actionsinfrassearch` gère principalement :
 
@@ -109,7 +117,7 @@ La classe `Actionsinfrassearch` gère principalement :
 - `doActions` (`adminmodules`) : nettoyage des constantes module désactivé,
 - `printCommonFooter` : historisation des objets visités.
 
-## Données / SQL
+## Données / SQL (Data model)
 
 Table principale :
 
@@ -119,7 +127,7 @@ Colonnes principales : `rowid`, `entity`, `element`, `fk_element`, `fk_user`, `t
 
 Le nettoyage de l’historique est effectué dans le hook `printCommonFooter` (conservation glissante).
 
-## Constantes de configuration (principales)
+## Constantes de configuration (Key settings)
 
 Constantes actives usuelles :
 
@@ -142,7 +150,7 @@ Valeurs seed `sql/data.sql` à connaître :
 - `INFRASSEARCH_SORT = DESC`
 - `INFRASSEARCH_ORDER = 1`
 
-## Conventions de développement
+## Conventions de développement (Development conventions)
 
 Respecter les règles Dolibarr du dépôt parent :
 
@@ -153,7 +161,7 @@ Respecter les règles Dolibarr du dépôt parent :
 - SQL sécurisé : cast `int`, échappement `$db->escape()` / `$db->escapeforlike()`,
 - gestion multi-entité via `entity` / `getEntity()` selon les objets.
 
-## Workflow recommandé après changements structurels
+## Workflow recommandé après changements structurels (Recommended workflow)
 
 Si modification SQL / descripteur / permissions / constantes / hooks :
 
@@ -163,9 +171,17 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 4. Tester les 4 points d’entrée de recherche
 5. Tester le fil d’Ariane et le nettoyage historique
 
-## Points d’attention
+## Points d’attention (Watchpoints)
 
 - La version locale est lue depuis `docs/changelog.xml` (`infrassearch_getLocalVersionMinDoli`)
 - L’extension PHP XML est nécessaire
 - Le module déclenche un avertissement si la version Dolibarr dépasse la version max supportée
 - La recherche téléphone a des règles spécifiques (normalisation et conversions local/international)
+
+## Dernières mises à jour (Recent updates)
+
+- `15.4.3` (2026-02) : isolation du cookie JS de l'état des panneaux (`infrassearch_tblPSexp` au lieu de `tblPSexp`) pour éviter les collisions inter-modules
+- `15.4.3` (2026-02) : variable `cookieName` déplacée au scope script pour corriger la persistance de l'état des panneaux après soumission de formulaire
+- `15.4.2` (2026-02) : échappement des URLs de formulaires basées sur `PHP_SELF` (durcissement XSS)
+- `15.4.2` (2026-02) : échappement de l'affichage de `SERVER_SOFTWARE`
+- `15.4.2` (2026-02) : harmonisation de la documentation `CLAUDE.md` et des tags de traductions `###...###`

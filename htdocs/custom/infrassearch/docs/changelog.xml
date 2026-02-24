@@ -292,6 +292,16 @@
 	<Version Number="15.4.1" MonthVersion="2026-02">
 		<change type='chg'>Amélioration du CSS</change>
 	</Version>
+	<Version Number="15.4.2" MonthVersion="2026-02">
+		<change type='fix'>Sécurité : échappement des URL de formulaires basées sur PHP_SELF pour limiter les risques XSS réfléchis</change>
+		<change type='fix'>Sécurité : échappement de l'affichage de SERVER_SOFTWARE dans les informations techniques</change>
+		<change type='chg'>Documentation : harmonisation et mise à jour du descripteur CLAUDE.md du module</change>
+		<change type='chg'>Traductions : alignement des tags de section ###...### entre langues (en_US, es_ES) sur la référence fr_FR</change>
+	</Version>
+	<Version Number="15.4.3" MonthVersion="2026-02">
+		<change type='fix'>Paramètres : isolation du cookie JS de l'état des panneaux (infrassearch_tblPSexp au lieu de tblPSexp) pour éviter les collisions inter-modules</change>
+		<change type='fix'>Paramètres : variable cookieName déplacée au scope script pour corriger la persistance de l'état des panneaux après soumission de formulaire</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="22.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

@@ -392,7 +392,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 	{
 		global $conf, $langs;
 
-		print '	<table class = "centpercent infrassearchnoborderspacing">';
+		print '	<table class = "centpercent noborderspacing">';
 		$metas	= array('*', '90px', '156px', '120px');
 		infrassearch_print_colgroup($metas);
 		print '		<tr>
@@ -402,8 +402,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<td class = "center"><button class = "butAction" type = "submit" value = "bkupParams" name = "action">'.$langs->trans('InfraSSearchParamBkup').'</button></td>
 						<td class = "center"><button class = "butActionDelete" type = "submit" value = "restoreParams" name = "action">'.$langs->trans('InfraSSearchParamRestore').'</button></td>
 					</tr>';
-		print '		<tr><td colspan = "4" class = "center infrassearchnopadding"><hr></td></tr>';
-		print '		<tr><td colspan = "4" class = "infrassearchFinal">&nbsp;</td></tr>';
+		infrassearch_print_hr(count($metas));
+		infrassearch_print_final(count($metas));
 		print '	</table>';
 	}
 
@@ -591,11 +591,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 					$params	.= '&'.$key.'='.$value;
 				}
 			}
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.$params.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.$params.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 			print ajax_constantonoff($confkey);
 			print '		</a>';
 		} elseif ($tag == 'on_off2') {
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
 							'.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? img_picto($langs->trans('Activated'), 'switch_on') : img_picto($langs->trans('Disabled'), 'switch_off')).'
 						</a>';
 		} elseif ($tag == 'input') {
@@ -716,7 +716,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
-				print '				<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+				print '				<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 				print ajax_constantonoff($confkey);
 				print '				</a>'.($type == 'tests' ? '' : $value);
 			}
@@ -819,9 +819,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 		} else {
 			$dwnbutton	= $dwn ? '<button class = "button" style = "width: 190px; padding: 3px 0px;" type = "submit" value = "dwnChangelog" name = "action" title = "'.$langs->trans('InfraSSearchParamCheckNewVersionTitle').'">'.$langs->trans('InfraSSearchParamCheckNewVersion').'</button>' : '';
 		}
-		$ret	.= '			<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+		$ret	.= '			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<table class = "infrassearchnoborder" >
+									<table class = "infrassearchnoborder centpercent" >
 										<tr class = "liste_titre">
 														<th class = "center width100">'.$langs->trans('InfraSSearchParamNumberVersion').'</th>
 														<th class = "center width100">'.$langs->trans('InfraSSearchParamMonthVersion').'</th>
@@ -951,7 +951,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 					</tr>
 					<tr class="oddeven">
 						<td class = "width400 infrassearchchangelogbase">'.$langs->trans('WebServerVersion').'</td>
-						<td class = "infrassearchchangelogbase">'.$_SERVER['SERVER_SOFTWARE'].'</td>
+						<td class = "infrassearchchangelogbase">'.dol_escape_htmltag($_SERVER['SERVER_SOFTWARE']).'</td>
 					</tr>
 						<tr><td colspan = "3" class = "infrassearchFinal">&nbsp;</td></tr>
 				</table>

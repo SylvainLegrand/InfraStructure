@@ -83,7 +83,7 @@
 .infrassearchpuentedolibarr {
 	font-family: puentebold, sans-serif;
 	color: #027991;
-	font-size-adjust:0.6;
+	font-size-adjust: 0.6;
 }
 
 #results
