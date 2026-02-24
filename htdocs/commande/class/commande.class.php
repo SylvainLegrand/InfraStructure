@@ -1789,11 +1789,9 @@ class Commande extends CommonOrder
 			$this->line->total_localtax2 = (float) $total_localtax2;
 			$this->line->total_ttc = (float) $total_ttc;
 			$this->line->special_code = $special_code;
-			// InfraS add begin Mise en option de la ligne
 			if (empty($qty) && empty($special_code)) {
 				$this->line->special_code = 3;
 			}
-			// InfraS add end
 			$this->line->origin = $origin;
 			$this->line->origin_id = $origin_id;
 			$this->line->fk_parent_line = $fk_parent_line;
@@ -3155,14 +3153,12 @@ class Commande extends CommonOrder
 			if (empty($remise_percent)) {
 				$remise_percent = 0;
 			}
-			// InfraS change begin
 			if (empty($qty) && empty($special_code)) {
 				$special_code = 3; // Set option tag
 			}
 			if (!empty($qty) && $special_code == 3) {
 				$special_code = 0; // Remove option tag
 			}
-			// InfraS change end
 			if (empty($ref_ext)) {
 				$ref_ext = '';
 			}
