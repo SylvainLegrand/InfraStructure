@@ -428,14 +428,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 		$out	.= '<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
 											<tr class = "liste_titre">';
 		if (!empty($picto)) {
-			$out .= '							<td class = "infrassearchnoborderinfrassearchnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infrassearchwidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
+			$out .= '							<td class = "infrassearchnoborder infrassearchnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infrassearchwidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
 		}
-		$out	.= '							<td class = "infrassearchnoborderinfrassearchnopadding valignmiddle col-title"><div class = "infrassearchDivTitre uppercase inline-block">'.$titre.'</div></td>';
+		$out	.= '							<td class = "infrassearchnoborder infrassearchnopadding valignmiddle col-title"><div class = "infrassearchDivTitre uppercase inline-block">'.$titre.'</div></td>';
 		if (dol_strlen($morehtmlcenter)) {
-			$out .= '							<td class = "infrassearchnoborderinfrassearchnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
+			$out .= '							<td class = "infrassearchnoborder infrassearchnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
 		}
 		if (dol_strlen($morehtmlright)) {
-			$out .= '							<td class = "infrassearchnoborderinfrassearchnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
+			$out .= '							<td class = "infrassearchnoborder infrassearchnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
 		}
 		$out .= '							</tr>
 										</table>';
