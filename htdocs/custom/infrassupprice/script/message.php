@@ -23,7 +23,15 @@
 	************************************************/
 
 	// Dolibarr environment *************************
+	if (!defined('NOTOKENRENEWAL')) {
+		define('NOTOKENRENEWAL', 1);
+	}
 	require '../config.php';
+
+	// Access control *******************************
+	if (!$user->hasRight('infrassupprice', 'update')) {
+		accessforbidden();
+	}
 
 	// Translations *********************************
 	$langs->load('infrassupprice@infrassupprice');
@@ -33,15 +41,15 @@
 		$line = 0;	// If $line is not defined, or '' or -1
 	}
 	$line	+= 1;
-	$msg	= GETPOST('msg');
+	$msg	= GETPOST('msg', 'aZ09');
 	if ($msg =='Ok') {
 		setEventMessages($langs->trans('InfraSSupPriceMajOk', (int) $line), null, 'mesgs');
-	} else if ($msg =='Idem') {
+	} elseif ($msg =='Idem') {
 		setEventMessages($langs->trans('InfraSSupPriceMajIdem', (int) $line), null, 'warnings');
-	} else if ($msg =='Ko') {
+	} elseif ($msg =='Ko') {
 		setEventMessages($langs->trans('InfraSSupPriceMajKo', (int) $line), null, 'errors');
-	} else if ($msg =='noCheck') {
+	} elseif ($msg =='noCheck') {
 		setEventMessages($langs->trans('InfraSSupPriceMajNoCheck'), null, 'errors');
 	} else {
-		setEventMessages($langs->trans('InfraSSupPriceMajKoElse', (int) $line, $msg), null, 'errors');
+		setEventMessages($langs->trans('InfraSSupPriceMajKoElse', (int) $line, dol_escape_htmltag($msg)), null, 'errors');
 	}

@@ -1,6 +1,5 @@
 # Dolibarr language file - es_ES - InfraS
 CHARSET                          = UTF-8
-
 basenameInfraSSupPrice           = InfraS
 modnameInfraSSupPrice            = infrassupprice
 modcomnameInfraSSupPrice         = InfraSSupPrice
@@ -23,8 +22,9 @@ InfraSSupPricePermBkpRest = Guardar / Restaurar la configuración del módulo
 InfraSSupPricePermUpdate  = Actualizar tarifas de proveedor
 
 ### infras lib page ###
-InfraSSupPriceParamsSetup    = Ajustes
+InfraSSupPriceParamsSetup    = Configuración de la gestión de tarifas de proveedores
 InfraSSupPriceParamChangelog = Evoluciones
+InfraSSupPriceSetup          = Configuración
 
 ### InfraSSupPrice setup page ###
 InfraSSupPriceParamAction1        = Guardar / Restaurar Todos los parámetros del módulo
@@ -38,15 +38,19 @@ InfraSSupPriceParamQtyNotValueMin = No utilice la cantidad de producto ingresada
 
 ### Changelog page ###
 InfraSSupPriceParamsChangelog           = Registro de cambios / Soporte
-InfraSSupPriceParamPresent              = Este módulo es una creación INFRAS una documentación es disponible en nuestro sitio web
-InfraSSupPriceParamSlogan               = Structurez votre croissance !
+InfraSSupPriceParamPresent1             = <b>Este módulo es una creación de</b>
+InfraSSupPriceParamPresent2             = <b>, su documentación está disponible en nuestro sitio web</b>
+InfraSSupPriceParamSlogan               = ¡Estructura tu crecimiento!
 InfraSSupPriceParamLienModules          = Nuestros módulos
 InfraSSupPriceParamSupport              = Solicitud de soporte
 InfraSSupPriceParamLienDocs             = Nuestra Documentacion
 InfraSSupPriceParamLicense              = Bajo GPL v3 y licencia superior
 InfraSSupPriceParamMoreModulesLink      = Nuestros módulos en la dolistore
 InfraSSupPriceParamObjet                = <h3>Objeto :</h3>
+InfraSSupPriceParamPreferedPartner1     = Miembro del programa oficial
+InfraSSupPriceParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia
 InfraSSupPriceParamHistoryUpdates       = <b>Históricas de las actualizaciones :</b>
+InfraSSupPriceParamPreferedPartner      = Miembro del programa oficial de socios preferidos de Dolibarr, una garantía de calidad y experiencia.
 InfraSSupPriceParamSkipCheck            = Descargar deshabilitado
 InfraSSupPriceParamNumberVersion        = versión #
 InfraSSupPriceParamMonthVersion         = Fecha

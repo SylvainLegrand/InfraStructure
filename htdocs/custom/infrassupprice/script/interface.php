@@ -23,14 +23,22 @@
 	************************************************/
 
 	// Dolibarr environment *************************
+	if (!defined('NOTOKENRENEWAL')) {
+		define('NOTOKENRENEWAL', 1);
+	}
 	require '../config.php';
 
 	// Libraries ************************************
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infrassupprice/class/infrassupprice.class.php');
 
-    $get	= GETPOST('get');
-    $put	= GETPOST('put');
+	// Access control *******************************
+	if (!$user->hasRight('infrassupprice', 'update')) {
+		accessforbidden();
+	}
+
+    $get	= GETPOST('get', 'aZ09');
+    $put	= GETPOST('put', 'aZ09');
     switch($put) {
 		case 'updateprice':
 			ob_start();
@@ -43,6 +51,8 @@
 			$tva_tx		= str_replace('*', '', GETPOST('tvatx', 'alpha'));
 			if (!preg_match('/\((.*)\)/', $tva_tx)) {
 				$tva_tx = price2num($tva_tx);
+			} else {
+				$tva_tx = (float) $tva_tx;
 			}
 			$ret	= $product->InfraS_update_buyprice ($fourn,	// $fourn
 														$id_prod,	// $id_prod

@@ -194,10 +194,10 @@
 		**/
 		function remove($options = '')
 		{
-			global $langs, $conf;
+			global $langs, $conf, $db;
 
 			infrassupprice_bkup_module ($this->name);
-			$sql	= array('DELETE FROM '.MAIN_DB_PREFIX.'const WHERE name like "INFRASSUPPRICE\_%" AND entity = "'.$conf->entity.'"');
+			$sql	= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASSUPPRICE\_%" AND entity = '.((int) $conf->entity));
 			return $this->_remove($sql, $options);
 		}
 
@@ -219,7 +219,7 @@
 			$this->need_dolibarr_version	= explode('.', $currentversion[1]);	// Minimum version of Dolibarr required by module
 			$this->phpmin					= explode('.', $currentversion[5]);	// Minimum version of PHP required by module
 			$this->phpmax					= explode('.', $currentversion[6]);	// Maximum version of PHP required by module
-			if (empty(getDolGlobalString('INFRASSUPPRICE_DISABLE_CHECK_VERSION_MIN', '')) && version_compare($currentversion[1], DOL_VERSION, '>')) {
+			if (!getDolGlobalString('INFRASSUPPRICE_DISABLE_CHECK_VERSION_MIN') && version_compare($currentversion[1], DOL_VERSION, '>')) {
 				$this->disabled	= true;
 			}
 			return $currentversion[0];

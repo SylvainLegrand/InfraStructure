@@ -68,7 +68,30 @@
 	<Version Number="15.1.5" MonthVersion="2025-07">
 		<change type='chg'>Amélioration de la compatibilité CSS avec les thèmes Dolibarr</change>
 	</Version>
-<InfraS Downloaded="20250701"/>
+	<Version Number="15.2.0" MonthVersion="2026-02">
+		<change type='fix'>Sécurité : Correction d'injections SQL dans la classe infrassupprice (SELECT, INSERT, UPDATE) et dans le hook actions</change>
+		<change type='fix'>Sécurité : Correction de failles XSS sur $_SERVER['PHP_SELF'] dans les pages admin (setup, about) et la librairie admin</change>
+		<change type='fix'>Sécurité : Ajout du contrôle d'accès manquant sur les scripts AJAX (interface.php, message.php)</change>
+		<change type='fix'>Sécurité : Ajout de NOTOKENRENEWAL sur les endpoints AJAX pour éviter l'invalidation du token CSRF</change>
+		<change type='fix'>Sécurité : Suppression de l'exposition des requêtes SQL dans les messages d'erreur</change>
+		<change type='fix'>Sécurité : Cast int/float systématique sur toutes les valeurs numériques injectées en SQL</change>
+		<change type='fix'>Sécurité : Échappement des chaînes avec $db->escape() dans les requêtes SQL (ref_fourn, currency_code)</change>
+		<change type='fix'>Sécurité : Validation GETPOST avec type approprié (aZ09, alphanohtml) sur les paramètres non typés</change>
+		<change type='fix'>Bug : Correction de l'attribut HTML cassé (name= manquant) sur le champ refFour dans le hook</change>
+		<change type='fix'>Bug : Remplacement de now() SQL interdit par $db->idate(dol_now())</change>
+		<change type='fix'>Traduction : Ajout de la clé manquante InfraSSupPriceParamPreferedPartner dans en_US et es_ES</change>
+		<change type='fix'>Librairie admin : Correction du modulepart incorrect (infraspackplus au lieu d'infrassupprice)</change>
+		<change type='fix'>Librairie admin : Correction de l'opérateur de concaténation manquant dans _print_input (on_off2)</change>
+		<change type='chg'>Nouveau lien vers le Wiki InfraSSupPrice</change>
+		<change type='chg'>Amélioration du CSS</change>
+		<change type='chg'>Librairie admin : Remplacement des patterns dépréciés empty(getDolGlobalString()) par getDolGlobalString()</change>
+		<change type='chg'>Librairie admin : Normalisation else if vers elseif (PSR-12)</change>
+		<change type='chg'>Librairie admin : Harmonisation des guillemets simples et du formatage</change>
+		<change type='chg'>Librairie admin : Suppression de la variable inutilisée $urldocs</change>
+		<change type='chg'>Script message : Normalisation else if vers elseif (PSR-12) et échappement de $msg en sortie</change>
+		<change type='add'>Documentation : Ajout du fichier CLAUDE.md pour l'assistance de l'IA Claude</change>
+	</Version>
+	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="21.0.3"/>
-	<PHP minVersion="7.4" maxVersion="8.2"/>
+	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

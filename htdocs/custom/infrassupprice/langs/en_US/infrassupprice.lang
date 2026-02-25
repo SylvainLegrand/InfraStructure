@@ -1,6 +1,5 @@
 # Dolibarr language file - en_US - InfraS
 CHARSET                          = UTF-8
-
 basenameInfraSSupPrice           = InfraS
 modnameInfraSSupPrice            = infrassupprice
 modcomnameInfraSSupPrice         = InfraSSupPrice
@@ -14,7 +13,7 @@ InfraSSupPriceXMLextError        = <br><center>The PHP 'XML' extension is not lo
 InfraSSupPriceChangelogXMLError  = changelog.xml error
 InfraSSupPricenoMinDolVersion    = No minimum version known
 InfraSSupPricenoMaxDolVersion    = No maximum version known
-InfraSSupportInformation         = Technical informations
+InfraSSupPricesupportInformation = Technical informations
 
 ### Permissions ###
 InfraSSupPricePermMenu    = Show secondary menu to module settings (non-administrator user)
@@ -23,8 +22,9 @@ InfraSSupPricePermBkpRest = Backup / Restore module settings
 InfraSSupPricePermUpdate  = Update supplier rates
 
 ### infras lib page ###
-InfraSSupPriceParamsSetup    = Settings
+InfraSSupPriceParamsSetup    = Supplier Pricing Management Configuration
 InfraSSupPriceParamChangelog = Changelog
+InfraSSupPriceSetup          = Settings
 
 ### InfraSSupPrice setup page ###
 InfraSSupPriceParamAction1        = Save / Restore all module parameters
@@ -38,15 +38,19 @@ InfraSSupPriceParamQtyNotValueMin = Do not use the product quantity entered in t
 
 ### Changelog page ###
 InfraSSupPriceParamsChangelog           = Changelog / Support
-InfraSSupPriceParamPresent              = <b>This module is an InfraS creation, a documentation is available on our website</b>
-InfraSSupPriceParamSlogan               = Structurez votre croissance !
+InfraSSupPriceParamPresent1             = <b>This module is a creation of</b>
+InfraSSupPriceParamPresent2             = <b>, its documentation is available on our website</b>
+InfraSSupPriceParamSlogan               = Structure your growth!
 InfraSSupPriceParamLienModules          = Our Modules
 InfraSSupPriceParamSupport              = Support request
 InfraSSupPriceParamLienDocs             = Our User Guides
 InfraSSupPriceParamLicense              = Under GPL v3 and higher license
 InfraSSupPriceParamMoreModulesLink      = Our modules on the dolistore
 InfraSSupPriceParamObjet                = <h3>Object :</h3>
+InfraSSupPriceParamPreferedPartner1     = Member of the official program
+InfraSSupPriceParamPreferedPartner2     = Preferred Partner, guarantee of quality and expertise
 InfraSSupPriceParamHistoryUpdates       = <b>Update history :</b>
+InfraSSupPriceParamPreferedPartner      = Member of the official Dolibarr Preferred Partners program, a guarantee of quality and expertise.
 InfraSSupPriceParamSkipCheck            = Download disabled
 InfraSSupPriceParamNumberVersion        = version N°
 InfraSSupPriceParamMonthVersion         = Date

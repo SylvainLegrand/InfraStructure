@@ -3,7 +3,7 @@
 
 
 ## ***InfraSSupPrice***
-
+#### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
 Le pack prix fournisseur ***InfraS*** facilite la mise à jour des tarifs fournisseurs à partir des commandes ou des factures. Il permet de maintenir facilement la base de prix des produits référencés.
 
 

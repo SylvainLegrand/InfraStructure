@@ -59,6 +59,33 @@
 		header('Cache-Control: no-cache');
 	}
 ?>
+@font-face {
+	font-family: 'puentebold';
+	src: url('<?php print dol_buildpath('/infrassupprice/css/puentebold.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'NeuropolRegular';
+	src: url('<?php print dol_buildpath('/infrassupprice/css/NeuropolRegular.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.infrassupneuropolinfras {
+	font-family: NeuropolRegular, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	color: #19052d;
+}
+
+.infrassuppuentedolibarr {
+	font-family: puentebold, sans-serif;
+	color: #027991;
+	font-size-adjust: 0.6;
+}
+
 #infrassupprice {
 	padding: 8px 8px 16px 8px;
 	height: 100%;
@@ -72,7 +99,7 @@
 }
 
 .forminfrassupprice {
-text-align: center;
+	text-align: center;
 }
 
 .forminfrassupprice input {
@@ -80,10 +107,10 @@ text-align: center;
 }
 
 label.titre {
-font-family: roboto,arial,tahoma,verdana,helvetica;
-font-weight: bold;
-color: rgb(90,90,90);
-text-decoration: none;
+	font-family: roboto,arial,tahoma,verdana,helvetica;
+	font-weight: bold;
+	color: rgb(90,90,90);
+	text-decoration: none;
 }
 
 .infrassuppriceNoBCollapse {
@@ -170,6 +197,7 @@ img.infrassuppricewidthpictotitle {
 }
 
 .infrassuppriceslogan {
+	color: #ffffff;
 	font-size: 16px;
 }
 
@@ -196,43 +224,51 @@ img.infrassuppricewidthpictotitle {
 	padding-bottom: 0
 }
 
-.width110 {
+.infrassuppricewidth110 {
 	width: 110px;
 }
 
-.width120 {
+.infrassuppriceWidth120 {
 	width: 120px;
 }
 
-.width180 {
-	width: 180px
+.infrassuppriceWidth180 {
+	width: 180px;
 }
 
-.width220 {
+.infrassuppriceWidth220 {
 	width: 220px;
 }
 
-.width270 {
+.infrassuppriceWidth270 {
 	width: 270px;
 }
 
-.widthtrentepercent {
+.infrassupminwidth800imp {
+	min-width: 800px !important;
+}
+
+.infrassupwidthtrentepercent {
 	width: 30%;
 }
 
-.height75 {
+.infrassuppriceheight75 {
 	height: 75px;
 }
 
-.height50 {
+.infrassuppriceheight32 {
+	height: 32px;
+}
+
+.infrassuppriceheight50 {
 	height: 50px;
 }
 
-.height25 {
+.infrassuppriceheight25 {
 	height: 25px;
 }
 
-.height20 {
+.infrassuppriceheight20 {
 	height: 20px;
 }
 
@@ -251,6 +287,10 @@ img.infrassuppricewidthpictotitle {
 .nopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
+}
+
+.infrassupmargintop10imp {
+	margin-top: 10px !important;
 }
 
 .fontsizeinherit {

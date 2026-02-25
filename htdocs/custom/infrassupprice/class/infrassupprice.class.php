@@ -79,9 +79,9 @@
 				$currency_unitbuyprice	= price2num($currency_unitbuyprice, 'MU');
 				$currency_buyprice		= price2num($currency_buyprice, 'MU');
 				$fk_currency			= MultiCurrency::getIdFromCode($this->db, $currency_code);
-				$sql_search_currency	= ' AND (fk_multicurrency = '.$fk_currency.' OR ISNULL(fk_multicurrency))';
-				$sql_upt_currency		= ', multicurrency_tx = '.$currency_tx;
-				$sql_upt_currency		.= ', multicurrency_price = '.$currency_buyprice;
+				$sql_search_currency	= ' AND (fk_multicurrency = '.((int) $fk_currency).' OR ISNULL(fk_multicurrency))';
+				$sql_upt_currency		= ', multicurrency_tx = '.((float) $currency_tx);
+				$sql_upt_currency		.= ', multicurrency_price = '.((float) $currency_buyprice);
 			}
 			$sql_search		= 'SELECT rowid, price, quantity, remise_percent, tva_tx, fk_multicurrency, multicurrency_tx, multicurrency_price';
 			$sql_search		.= ' FROM '.MAIN_DB_PREFIX.'product_fournisseur_price';
@@ -99,20 +99,20 @@
 						|| ($conf->multicurrency->enabled && $obj_found->fk_multicurrency != $fk_currency)
 						|| ($conf->multicurrency->enabled && $obj_found->fk_multicurrency == $fk_currency && $obj_found->multicurrency_tx != $currency_tx)) {
 						$sql_upt	= 'UPDATE '.MAIN_DB_PREFIX.'product_fournisseur_price';
-						$sql_upt	.= ' SET datec = now()';
-						$sql_upt	.= ', price = '.$buyprice;
-						$sql_upt	.= ', remise_percent = '.$remise_percent;
-						$sql_upt	.= ', unitprice = '.$currency_unitbuyprice;
-						$sql_upt	.= ', tva_tx = '.$tva_tx;
+						$sql_upt	.= ' SET datec = "'.$this->db->idate(dol_now()).'"';
+						$sql_upt	.= ', price = '.((float) $buyprice);
+						$sql_upt	.= ', remise_percent = '.((float) $remise_percent);
+						$sql_upt	.= ', unitprice = '.((float) $currency_unitbuyprice);
+						$sql_upt	.= ', tva_tx = '.((float) $tva_tx);
 						$sql_upt	.= $sql_upt_currency;
-						$sql_upt	.= ' WHERE rowid = '.$obj_found->rowid;
+						$sql_upt	.= ' WHERE rowid = '.((int) $obj_found->rowid);
 						$result_upt	= $this->db->query($sql_upt);
 						if ($result_upt) {
 							$this->db->free($result_upt);
 							$this->db->free($result_search);
 							return 0;
 						} else {
-							$this->description = $this->db->error().' sql = '.$sql_upt;
+							$this->description = $this->db->error();
 							return -1;
 						}
 					} else {
@@ -125,24 +125,24 @@
 					$sql_ins	.= ' delivery_time_days, supplier_reputation, fk_multicurrency, multicurrency_code, multicurrency_tx,';
 					$sql_ins	.= ' multicurrency_price, multicurrency_unitprice)';
 					$sql_ins	.= ' VALUES ';
-					$sql_ins	.= ' ('.$conf->entity;
-					$sql_ins	.= ', now()';
-					$sql_ins	.= ', '.$id_prod;
-					$sql_ins	.= ', '.$fourn->id;
-					$sql_ins	.= ', "'.$ref_fourn.'"';
-					$sql_ins	.= ', '.$buyprice;
-					$sql_ins	.= ', '.$qty;
-					$sql_ins	.= ', '.$remise_percent;
-					$sql_ins	.= ', '.$unitbuyprice;
-					$sql_ins	.= ', '.$tva_tx;
-					$sql_ins	.= ', '.$user->id;
-					$sql_ins	.= ', "0"';
+					$sql_ins	.= ' ('.((int) $conf->entity);
+					$sql_ins	.= ', "'.$this->db->idate(dol_now()).'"';
+					$sql_ins	.= ', '.((int) $id_prod);
+					$sql_ins	.= ', '.((int) $fourn->id);
+					$sql_ins	.= ', "'.$this->db->escape($ref_fourn).'"';
+					$sql_ins	.= ', '.((float) $buyprice);
+					$sql_ins	.= ', '.((float) $qty);
+					$sql_ins	.= ', '.((float) $remise_percent);
+					$sql_ins	.= ', '.((float) $unitbuyprice);
+					$sql_ins	.= ', '.((float) $tva_tx);
+					$sql_ins	.= ', '.((int) $user->id);
+					$sql_ins	.= ', 0';
 					$sql_ins	.= ', "FAVORITE"';
-					$sql_ins	.= ', '.$fk_currency;
-					$sql_ins	.= ', "'.$currency_code.'"';
-					$sql_ins	.= ', '.$currency_tx;
-					$sql_ins	.= ', '.$currency_buyprice;
-					$sql_ins	.= ', '.$currency_unitbuyprice;
+					$sql_ins	.= ', '.((int) $fk_currency);
+					$sql_ins	.= ', "'.$this->db->escape($currency_code).'"';
+					$sql_ins	.= ', '.((float) $currency_tx);
+					$sql_ins	.= ', '.((float) $currency_buyprice);
+					$sql_ins	.= ', '.((float) $currency_unitbuyprice);
 					$sql_ins	.= ')';
 					$result_ins	= $this->db->query($sql_ins);
 					if ($result_ins) {
@@ -150,13 +150,13 @@
 						$this->db->free($result_search);
 						return 0;
 					} else {
-						$this->description	= $this->db->error().' sql = '.$sql_ins;
+						$this->description	= $this->db->error();
 						$this->db->free($result_search);
 						return -2;
 					}
 				}
 			} else {
-				$this->description	= ' sql = '.$sql_search;
+				$this->description	= $this->db->lasterror();
 				$this->db->free($result_search);
 				return -3;
 			}

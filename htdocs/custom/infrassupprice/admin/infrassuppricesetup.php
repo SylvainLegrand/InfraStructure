@@ -51,7 +51,7 @@
 	// On / Off management
 	if (preg_match('/set_(.*)/', $action, $reg)) {
 		$confkey	= $reg[1];
-		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSSupPrice module', $conf->entity);
+		$result		= dolibarr_set_const($db, $confkey, GETPOST('value', 'alphanohtml'), 'chaine', 0, 'InfraSSupPrice module', $conf->entity);
 	}
 	// Retour => message Ok ou Ko
 	if ($result == 1) {
@@ -87,7 +87,7 @@
 					});
 				</script>';
 	}
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">';
 	// Sauvegarde / Restauration
 	if ($accessright == 2)	infrassupprice_print_backup_restore();

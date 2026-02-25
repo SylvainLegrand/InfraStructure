@@ -1,6 +1,5 @@
 # Dolibarr language file - fr_FR - InfraS
 CHARSET                          = UTF-8
-
 basenameInfraSSupPrice           = InfraS
 modnameInfraSSupPrice            = infrassupprice
 modcomnameInfraSSupPrice         = InfraSSupPrice
@@ -39,7 +38,8 @@ InfraSSupPriceParamQtyNotValueMin = Ne pas utiliser la quantité produit renseig
 
 ### Changelog page ###
 InfraSSupPriceParamsChangelog           = Changelog / Support
-InfraSSupPriceParamPresent              = <b>Ce module est une création InfraS, sa documentation est disponible sur notre wiki</b>
+InfraSSupPriceParamPresent1             = <b>Ce module est une création</b>
+InfraSSupPriceParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
 InfraSSupPriceParamSlogan               = Structurez votre croissance !
 InfraSSupPriceParamLienModules          = Nos Modules
 InfraSSupPriceParamSupport              = Demande de support
@@ -47,7 +47,10 @@ InfraSSupPriceParamLienDocs             = Nos Documentations
 InfraSSupPriceParamLicense              = sous Licence GPL v3 et supérieur. 
 InfraSSupPriceParamMoreModulesLink      = Nos modules sur le dolistore
 InfraSSupPriceParamObjet                = <h3>Objet :</h3>
+InfraSSupPriceParamPreferedPartner1     = Membre du programme officiel
+InfraSSupPriceParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise
 InfraSSupPriceParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSSupPriceParamPreferedPartner      = Membre du programme officiel de partenaires préférés de Dolibarr, une garantie de qualité et d'expertise.
 InfraSSupPriceParamSkipCheck            = Téléchargement désactivé
 InfraSSupPriceParamNumberVersion        = N° de version
 InfraSSupPriceParamMonthVersion         = Date
