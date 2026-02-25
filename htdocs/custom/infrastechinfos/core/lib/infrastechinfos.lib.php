@@ -45,7 +45,7 @@
 								'm' => $langs->trans('Months'),
 								'y' => $langs->trans('Years')
 								);
-			} else if ($duration > 0) {
+			} elseif ($duration > 0) {
 				$dur	= array('i' => $langs->trans('Minute'),
 								'h' => $langs->trans('Hour'),
 								'd' => $langs->trans('Day'),

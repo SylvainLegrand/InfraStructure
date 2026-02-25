@@ -72,7 +72,7 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	print infrastechinfos_getChangeLog('infrastechinfos', $currentversion[0], $currentversion[2], $currentversion[3], 1);
 	print infrastechinfos_getSupportInformation($currentversion[0]);

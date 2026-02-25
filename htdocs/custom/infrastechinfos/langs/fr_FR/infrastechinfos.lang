@@ -51,13 +51,17 @@ InfraSTechInfosTotalTimeInDays         = Afficher le total de temps du document 
 InfraSTechInfosOnlyTotalTime           = N'afficher que le total du temps calculé du document
 
 ### About page ###
-InfraSTechInfosParamsChangelog            = Changelog / Support
-InfraSTechInfosParamPresent              = Ce module est une création InfraS, une documentation de celui-ci est disponible sur notre site
+InfraSTechInfosParamsChangelog           = Changelog / Support
+InfraSTechInfosParamPresent1             = <b>Ce module est une création</b>
+InfraSTechInfosParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site web</b>
 InfraSTechInfosParamSlogan               = Structurez votre croissance !
 InfraSTechInfosParamLienModules          = Nos Modules
+InfraSTechInfosParamSupport              = Demande de support
 InfraSTechInfosParamLienDocs             = Nos Documentations
-InfraSTechInfosParamLicense              = sous Licence GPL v3 et supérieur. 
-InfraSTechInfosParamMoreModulesLink      = Vous pouvez trouver tous nos développements sur le dolistore
+InfraSTechInfosParamLicense              = sous Licence GPL v3 et supérieur.
+InfraSTechInfosParamPreferedPartner1     = Membre du programme officiel
+InfraSTechInfosParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise.
+InfraSTechInfosParamMoreModulesLink      = Nos modules sur le dolistore
 InfraSTechInfosParamObjet                = <h3>Objet :</h3>
 InfraSTechInfosParamHistoryUpdates       = <b>Historique des mises à jour :</b>
 InfraSTechInfosParamSkipCheck            = Téléchargement désactivé

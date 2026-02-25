@@ -62,12 +62,12 @@
 			global $db, $conf, $langs, $user;
 
 			if (in_array($object->element, array('propal', 'commande', 'shipping', 'supplier_proposal', 'order_supplier'))) {
-				$duration_workday	= isset($conf->global->MAIN_DURATION_OF_WORKDAY) ? $conf->global->MAIN_DURATION_OF_WORKDAY : 28800;	// in seconds
-				$duration_workweek	= isset($conf->global->INFRASTECHINFOS_DURATION_OF_WORKWEEK) ? $conf->global->INFRASTECHINFOS_DURATION_OF_WORKWEEK : 5;	// in days
+				$duration_workday	= getDolGlobalInt('MAIN_DURATION_OF_WORKDAY', 28800);	// in seconds
+				$duration_workweek	= getDolGlobalInt('INFRASTECHINFOS_DURATION_OF_WORKWEEK', 5);	// in days
 				$nblignes			= count($object->lines);
-				$total_in_days		= isset($conf->global->INFRASTECHINFOS_TOTAL_TIME_IN_DAYS) ? $conf->global->INFRASTECHINFOS_TOTAL_TIME_IN_DAYS : 0;	// in days
-				$only_total_time	= isset($conf->global->INFRASTECHINFOS_ONLY_TOTAL_TIME) ? $conf->global->INFRASTECHINFOS_ONLY_TOTAL_TIME : 0;
-				if ($nblignes > 0 && $user->rights->infrastechinfos->InfraSTechInfosView) {
+				$total_in_days		= getDolGlobalInt('INFRASTECHINFOS_TOTAL_TIME_IN_DAYS', 0);	// in days
+				$only_total_time	= getDolGlobalInt('INFRASTECHINFOS_ONLY_TOTAL_TIME', 0);
+				if ($nblignes > 0 && $user->hasRight('infrastechinfos', 'InfraSTechInfosView')) {
 					$langs->load('infrastechinfos@infrastechinfos');
 					$ligneTech		= '';
 					$ligneTime		= '';
@@ -118,7 +118,7 @@
 											$mult = 0;
 										break;
 									}
-									$timetxt	= ($mult > 0 ? '' : '<FONT color = "red">'.$langs->trans('InfraSTechInfosCaution').'</FONT> '.$langs->trans('InfraSTechInfosCautionTimeUnit')).infrastechinfos_showDurationAndUnit($prodser->duration_value, $prodser->duration_unit);
+											$timetxt	= ($mult > 0 ? '' : '<span class = "infrastechinfoscaution">'.$langs->trans('InfraSTechInfosCaution').'</span> '.$langs->trans('InfraSTechInfosCautionTimeUnit')).infrastechinfos_showDurationAndUnit($prodser->duration_value, $prodser->duration_unit);
 									$timetottxt	= infrastechinfos_showDurationAndUnit($prodser->duration_value * $qty, $prodser->duration_unit);
 									$timedoc	+= $mult > 0 ? $prodser->duration_value * $qty * $mult : 0;
 									if (empty($only_total_time)) {
@@ -236,7 +236,7 @@
 						});
 					</script>
 					<table class = "noborder noshadow centpercent">
-						<body>
+						<tbody>
 							<tr class = "liste_titre liste_titre_add nodrag nodrop foldable_ti">
 								<td colspan = 10 class = "center"><?php echo $langs->trans("InfraSTechInfosTitreMaj") ?></td>
 							</tr>
@@ -293,7 +293,7 @@
 <?php
 					}
 ?>
-						</body>
+						</tbody>
 					</table>
 <?php
 				}

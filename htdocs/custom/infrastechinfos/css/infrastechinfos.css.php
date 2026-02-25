@@ -59,6 +59,33 @@
 		header('Cache-Control: no-cache');
 	}
 ?>
+@font-face {
+	font-family: 'puentebold';
+	src: url('<?php print dol_buildpath('/infrastechinfos/css/puentebold.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'NeuropolRegular';
+	src: url('<?php print dol_buildpath('/infrastechinfos/css/NeuropolRegular.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.infrastechneuropolinfras {
+	font-family: NeuropolRegular, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	color: #19052d;
+}
+
+.infrastechpuentedolibarr {
+	font-family: puentebold, sans-serif;
+	color: #027991;
+	font-size-adjust: 0.6;
+}
+
 #InfraSTechInfos {
 	padding: 8px 8px 16px 8px;
 	height: 100%;
@@ -170,6 +197,7 @@ img.infrastechinfoswidthpictotitle {
 }
 
 .infrastechinfosslogan {
+	color: #ffffff;
 	font-size: 16px;
 }
 
@@ -196,43 +224,51 @@ img.infrastechinfoswidthpictotitle {
 	padding-bottom: 0
 }
 
-.width110 {
+.infrastechwidth110 {
 	width: 110px;
 }
 
-.width120 {
+.infrastechwidth120 {
 	width: 120px;
 }
 
-.width180 {
-	width: 180px
+.infrastechwidth180 {
+	width: 180px;
 }
 
-.width220 {
+.infrastechwidth220 {
 	width: 220px;
 }
 
-.width270 {
+.infrastechwidth270 {
 	width: 270px;
 }
 
-.widthtrentepercent {
+.infrastechminwidth700imp {
+	min-width: 700px !important;
+}
+
+.infrastechwidthtrentepercent {
 	width: 30%;
 }
 
-.height75 {
+.infrastecheight75 {
 	height: 75px;
 }
 
-.height50 {
+.infrastecheight32 {
+	height: 32px;
+}
+
+.infrastecheight50 {
 	height: 50px;
 }
 
-.height25 {
+.infrastecheight25 {
 	height: 25px;
 }
 
-.height20 {
+.infrastecheight20 {
 	height: 20px;
 }
 
@@ -251,6 +287,10 @@ img.infrastechinfoswidthpictotitle {
 .nopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
+}
+
+.margintop10imp {
+	margin-top: 10px !important;
 }
 
 .fontsizeinherit {

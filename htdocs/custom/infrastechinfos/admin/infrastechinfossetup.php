@@ -39,7 +39,7 @@
 	$langs->loadLangs(array('admin', 'errors', 'infrastechinfos@infrastechinfos'));
 
 	// Access control *******************************
-	$accessright	= !empty($user->admin) || !empty($user->rights->infrastechinfos->paramBkpRest) ? 2 : (!empty($user->rights->infrastechinfos->InfraSTechInfosParamSpecif) ? 1 : 0);
+	$accessright	= !empty($user->admin) || !empty($user->hasRight('infrastechinfos', 'paramBkpRest')) ? 2 : (!empty($user->hasRight('infrastechinfos', 'InfraSTechInfosParamSpecif')) ? 1 : 0);
 	if (empty($accessright)) {
 		accessforbidden();
 	}
@@ -62,7 +62,7 @@
 	// On / Off management
 	if (preg_match('/set_(.*)/', $action, $reg)) {
 		$confkey	= $reg[1];
-		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSTechInfos module', $conf->entity);
+		$result		= dolibarr_set_const($db, $confkey, GETPOSTINT('value'), 'chaine', 0, 'InfraSTechInfos module', $conf->entity);
 	}
 	// Update buttons management
 	if (preg_match('/update_(.*)/', $action, $reg)) {
@@ -84,7 +84,7 @@
 	}
 
 	// init variables *******************************
-	$duration_workday	= isset($conf->global->MAIN_DURATION_OF_WORKDAY) ? $conf->global->MAIN_DURATION_OF_WORKDAY : 28800;	// in seconds
+	$duration_workday	= getDolGlobalInt('MAIN_DURATION_OF_WORKDAY', 28800);	// in seconds
 	$duration_workday	= $duration_workday	/ 3600;	// in hours
 
 	// View *****************************************
@@ -140,7 +140,7 @@
 					});
 				</script>';
 	}
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2)	infrastechinfos_print_backup_restore();
@@ -155,7 +155,7 @@
 		$num	= 2;
 		infrastechinfos_print_btn_action('Gen', $langs->trans('InfraSTechInfosExpenseParamCautionSave'), 4);
 		$metas	= array('type' => 'number', 'class' => 'flat quatrevingtpercent right', 'dir' => 'rtl', 'min' => '3600', 'max' => '86400', 'step' => '3600');
-		$desc	= $langs->trans('InfraSTechInfosDurationOfWorkDay1').' <FONT color = "red">'.$langs->trans('InfraSTechInfosCaution').' </FONT>'.$langs->trans('InfraSTechInfosDurationOfWorkDay2', $duration_workday);
+		$desc	= $langs->trans('InfraSTechInfosDurationOfWorkDay1').' <span class = "infrastechinfoscaution">'.$langs->trans('InfraSTechInfosCaution').' </span>'.$langs->trans('InfraSTechInfosDurationOfWorkDay2', $duration_workday);
 		$num	= infrastechinfos_print_input('MAIN_DURATION_OF_WORKDAY', 'input',	$desc, '', $metas, 2, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat quatrevingtpercent right', 'dir' => 'rtl', 'min' => '4', 'max' => '7');
 		$num	= infrastechinfos_print_input('INFRASTECHINFOS_DURATION_OF_WORKWEEK', 'input', $langs->trans('InfraSTechInfosDurationNbDaysPerWeek'), '', $metas, 2, 1, '', $num);

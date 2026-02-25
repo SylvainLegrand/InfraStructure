@@ -72,7 +72,22 @@
 	<Version Number="15.0.5" MonthVersion="2025-07">
 		<change type='chg'>Amélioration de la compatibilité CSS avec les thèmes Dolibarr</change>
 	</Version>
-	<InfraS Downloaded="20250701"/>
-	<Dolibarr minVersion="15.0.0" maxVersion="21.0.3"/>
-	<PHP minVersion="7.4" maxVersion="8.2"/>
+	<Version Number="15.1.0" MonthVersion="2026-02">
+		<change type='fix'>Correction XSS : échappement de $_SERVER['PHP_SELF'] dans les formulaires (about, changelog, setup, lib)</change>
+		<change type='fix'>Correction XSS : échappement de $_SERVER['SERVER_SOFTWARE'] dans getSupportInformation</change>
+		<change type='fix'>Correction injection SQL : cast int sur entity dans la requête de désinstallation du module</change>
+		<change type='fix'>Correction du type de validation GETPOST('value') => GETPOSTINT('value') dans infrastechinfossetup</change>
+		<change type='chg'>Nouveau lien vers le Wiki InfraSTechInfos</change>
+		<change type='chg'>Amélioration du CSS</change>
+		<change type='chg'>Remplacement des accès dépréciés $user->rights-> par $user->hasRight() (setup, hook, module descriptor)</change>
+		<change type='chg'>Remplacement des accès dépréciés $conf->global-> par getDolGlobalInt() / getDolGlobalString() (setup, hook, lib)</change>
+		<change type='chg'>Remplacement des balises HTML dépréciées FONT par SPAN avec class CSS (setup, hook, lib)</change>
+		<change type='chg'>Remplacement de body par tbody dans le tableau du hook addMoreActionsButtons</change>
+		<change type='chg'>Normalisation else if => elseif conforme PSR-12 (lib, infrastechinfos.lib)</change>
+		<change type='chg'>Alignement des fonctions de la lib admin sur les modules infraspackplus, infraswidgets et infrassearch (27 corrections)</change>
+		<change type='add'>Ajout de la documentation technique CLAUDE.md pour l'assistant IA (architecture du module et hooks)</change>
+	</Version>
+	<InfraS Downloaded="20260201"/>
+	<Dolibarr minVersion="15.0.0" maxVersion="22.0.4"/>
+	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -3,7 +3,7 @@
 
 
 ## ***InfraSTechInfos***
-
+#### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
 * Le pack informations techniques ***InfraS*** facilite la lecture des données techniques des produits et services dans les documents commerciaux.
 
 

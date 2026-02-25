@@ -51,13 +51,17 @@ InfraSTechInfosTotalTimeInDays         = Muestra el tiempo total del documento e
 InfraSTechInfosOnlyTotalTime           = Muestra solo el tiempo total calculado del documento
 
 ### About page ###
-InfraSTechInfosParamsChangelog            = Changelog / Support
-InfraSTechInfosParamPresent              = Este módulo es una creación INFRAS una documentación es disponible en nuestro sitio web
-InfraSTechInfosParamSlogan               = Structurez votre croissance !
+InfraSTechInfosParamsChangelog           = Changelog / Support
+InfraSTechInfosParamPresent1             = <b>Este módulo es una creación</b>
+InfraSTechInfosParamPresent2             = <b>, la documentación está disponible en nuestro sitio web</b>
+InfraSTechInfosParamSlogan               = ¡Estructura tu crecimiento!
 InfraSTechInfosParamLienModules          = Nuestros módulos
+InfraSTechInfosParamSupport              = Solicitud de soporte
 InfraSTechInfosParamLienDocs             = Nuestra Documentacion
 InfraSTechInfosParamLicense              = Bajo GPL v3 y licencia superior
-InfraSTechInfosParamMoreModulesLink      = Usted puede encontrar todos nuestros desarrollos en DoliStore
+InfraSTechInfosParamPreferedPartner1     = Miembro del programa oficial
+InfraSTechInfosParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia.
+InfraSTechInfosParamMoreModulesLink      = Nuestros módulos en el dolistore
 InfraSTechInfosParamObjet                = <h3>Objeto :</h3>
 InfraSTechInfosParamHistoryUpdates       = <b>Históricas de las actualizaciones :</b>
 InfraSTechInfosParamSkipCheck            = Descargar deshabilitado

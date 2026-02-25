@@ -161,7 +161,7 @@
 											'langs'		=> $this->name."@".$this->name,																									// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 											'position'	=> 107,
 											'enabled'	=> '$conf->'.$this->name.'->enabled',																							// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-											'perms'		=> '$user->rights->'.$this->name.'->InfraSTechInfosParamMenu && $user->rights->'.$this->name.'->InfraSTechInfosParamSpecif',	// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
+											'perms'		=> '$user->hasRight("'.$this->name.'", "InfraSTechInfosParamMenu") && $user->hasRight("'.$this->name.'", "InfraSTechInfosParamSpecif")',	// Use 'perms'=>'$user->hasRight('mymodule', 'level1', 'level2')' if you want your menu with a permission rules
 											'target'	=> '',																															// '' to replace page or 'blank' to open on a new page
 											'user'		=> 0);																															// 0=Menu for internal users, 1=external users, 2=both
 		}
@@ -197,7 +197,7 @@
 			global $conf;
 
 			infrastechinfos_bkup_module ($this->name);
-			$sql		= array('DELETE FROM '.MAIN_DB_PREFIX.'const WHERE name LIKE "INFRASTECHINFOS\_%" AND entity = "'.$conf->entity.'"');
+			$sql		= array('DELETE FROM '.$this->db->prefix().'const WHERE name LIKE "INFRASTECHINFOS\_%" AND entity = '.((int) $conf->entity));
 			return $this->_remove($sql, $options);
 		}
 
@@ -217,7 +217,7 @@
 			$this->need_dolibarr_version							= $currentversion[1];
 			$this->phpmin											= explode('.', $currentversion[5]);	// Minimum version of PHP required by module
 			$this->phpmax											= explode('.', $currentversion[6]);	// Maximum version of PHP required by module
-			if (empty(getDolGlobalString('INFRASTECHINFOS_DISABLE_CHECK_VERSION_MIN', '')) && version_compare($currentversion[1], DOL_VERSION, '>')) {
+			if (!getDolGlobalString('INFRASTECHINFOS_DISABLE_CHECK_VERSION_MIN', '') && version_compare($currentversion[1], DOL_VERSION, '>')) {
 				$this->disabled	= true;
 			}
 			return $currentversion[0];

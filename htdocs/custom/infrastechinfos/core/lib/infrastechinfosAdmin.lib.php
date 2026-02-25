@@ -29,6 +29,7 @@
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
 
 	/**
@@ -69,7 +70,7 @@
 		global $db, $conf;
 
 		// gestion de la position du menu
-		$sql	= 'SELECT rowid FROM '.MAIN_DB_PREFIX.'menu WHERE mainmenu = "tools" AND leftmenu = "infras" AND entity = '.((int) $conf->entity);
+		$sql	= 'SELECT rowid FROM '.$db->prefix().'menu WHERE mainmenu = "tools" AND leftmenu = "infras" AND entity = '.((int) $conf->entity);
 		$resql	= $db->query($sql);
 		if ($resql) {
 			// il y a un left menu on renvoie 0 : pas besoin d'en créer un nouveau
@@ -126,7 +127,7 @@
 			$currentversion[5]	= (string) $sxe->PHP->attributes()->minVersion;
 			$currentversion[6]	= (string) $sxe->PHP->attributes()->maxVersion;
 		} else {
-			$currentversion[0]	= '<font color=red><b>'.$langs->trans('InfraSTechInfosChangelogXMLError').'</b></font>';
+			$currentversion[0]	= '<span class = "infrastechinfoscaution"><b>'.$langs->trans('InfraSTechInfosChangelogXMLError').'</b></span>';
 			$currentversion[1]	= $langs->trans('InfraSTechInfosnoMinDolVersion');
 			$currentversion[2]	= -1;
 			$currentversion[3]	= $langs->trans('InfraSTechInfosChangelogXMLError');
@@ -198,23 +199,23 @@
 	**/
 	function infrastechinfos_bkup_module ($appliname)
 	{
-		global $db, $conf, $langs, $errormsg;
+		global $db, $conf, $langs;
 
 		// Control dir and file
 		$path		= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').$appliname.'/sql';
 		$bkpfile	= $path.'/update.'.$conf->entity;
 		if (! file_exists($path)) {
 			if (dol_mkdir($path) < 0) {
-				$errormsg	= $langs->transnoentities('ErrorCanNotCreateDir', $path);
-				return 0;
+				setEventMessage($langs->transnoentities('ErrorCanNotCreateDir', $path), 'errors');
+				return -1;
 			}
 		}
 		if (file_exists($path)) {
 			$currentversion	= infrastechinfos_getLocalVersionMinDoli('infrastechinfos');
 			$handle			= fopen($bkpfile, 'w+');
-			if (fwrite($handle, '') === false) {
+			if (fwrite($handle, '') === FALSE) {
 				$langs->load('errors');
-				$errormsg	= $langs->trans('ErrorFailedToWriteInDir');
+				setEventMessage($langs->transnoentities('ErrorFailedToWriteInDir'), 'errors');
 				return -1;
 			}
 			// Print headers and global mysql config vars
@@ -233,7 +234,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$cols_const			= array ('name', 'entity', 'value', 'type', 'visible', 'note');
 			$duplicate_const	= array ('2', 'value', 'name');
 			$sql_const			= 'SELECT '.implode(', ', $cols_const);
-			$sql_const			.= ' FROM '.MAIN_DB_PREFIX.'const';
+			$sql_const			.= ' FROM '.$db->prefix().'const';
 			$sql_const			.= ' WHERE name LIKE "INFRASTECHINFOS\_%"';
 			$sql_const			.= ' AND entity = "'.$conf->entity.'"';
 			$sql_const			.= ' ORDER BY name';
@@ -246,7 +247,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 ';
 			fwrite($handle, $sqlfooter);
 			fclose($handle);
-			if (file_exists($bkpfile))	$moved	= dol_copy($bkpfile, DOL_DATA_ROOT.($conf->entity != 1 ? '/'.$conf->entity : '').'/admin/'.$appliname.'_update'.date('Y-m-d-G-i-s').'.'.$conf->entity);
+			if (file_exists($bkpfile)) {
+				dol_copy($bkpfile, DOL_DATA_ROOT.($conf->entity != 1 ? '/'.$conf->entity : '').'/admin/'.$appliname.'_update'.date('Y-m-d-G-i-s').'.'.$conf->entity);
+			}
 			return 1;
 		}
 		return 0;
@@ -273,11 +276,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 		$sqlnewtable	= '';
 		$result_sql		= $sql ? $db->query($sql) : '';
 		dol_syslog('infrastechinfos.Lib::infrastechinfos_bkup_table sql = '.$sql);
-		if ($result_sql) {
-			$truncate		= $truncate ? 'TRUNCATE TABLE '.MAIN_DB_PREFIX.$table.';
+		if (!empty($result_sql)) {
+			$truncate		= $truncate ? 'TRUNCATE TABLE '.$db->prefix().$table.';
 ' : '';
 			$sqlnewtable	= '
--- Dumping data for table '.MAIN_DB_PREFIX.$table.'
+-- Dumping data for table '.$db->prefix().$table.'
 '.$truncate.$add;
 			while ($row	= $db->fetch_row($result_sql)) {
 				// For each row of data we print a line of INSERT
@@ -285,7 +288,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 				foreach ($listeCols as $col) {
 					$colsInsert	.= $col.', ';
 				}
-				$sqlnewtable	.= 'INSERT INTO '.MAIN_DB_PREFIX.$table.' ('.substr($colsInsert, 0, -2).') VALUES (';
+				$sqlnewtable	.= 'INSERT INTO '.$db->prefix().$table.' ('.substr($colsInsert, 0, -2).') VALUES (';
 				$columns		= count($row);
 				$duplicateValue	= '';
 				for ($j = 0; $j < $columns; $j++) {
@@ -325,12 +328,13 @@ SET FOREIGN_KEY_CHECKS = 1;
 		global $conf;
 
 		$pathsql	= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').$appliname.'/sql';
+		dol_syslog('infrastechinfos.Lib::infrastechinfos_restore_module $pathsql = '.$pathsql);
 		$handle		= @opendir($pathsql);
 		if (is_resource($handle)) {
 			$filesql	= $pathsql.'/'.'update.'.$conf->entity;
 			$moved		= dol_copy($filesql, $filesql.'.sql');
 			if (is_file($filesql.'.sql')) {
-				$result	= run_sql($filesql.'.sql', (empty(getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG', '')) ? 1 : 0), $conf->entity, 1);
+				$result	= run_sql($filesql.'.sql', (!getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG', '') ? 1 : 0), $conf->entity, 1);
 			}
 			$delete	= dol_delete_file($filesql.'.sql');
 			dol_syslog('infrastechinfos.Lib::infrastechinfos_restore_module appliname = '.$appliname.' filesql = '.$filesql.' moved = '.$moved.' result = '.$result.' delete = '.$delete);
@@ -360,8 +364,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<td class = "center"><button class = "butAction" type = "submit" value = "bkupParams" name = "action">'.$langs->trans('InfraSTechInfosParamBkup').'</button></td>
 						<td class = "center"><button class = "butActionDelete" type = "submit" value = "restoreParams" name = "action">'.$langs->trans('InfraSTechInfosParamRestore').'</button></td>
 					</tr>';
-		print '		<tr><td colspan = "4" class = "center nopadding"><hr></td></tr>';
-		print '		<tr><td colspan = "4" class = "infrastechinfosFinal">&nbsp;</td></tr>';
+		infrastechinfos_print_hr(count($metas));
+		infrastechinfos_print_final(count($metas));
 		print '	</table>';
 	}
 
@@ -379,10 +383,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 	**/
 	function infrastechinfos_load_title($titre, $morehtmlright = '', $picto = 'generic', $pictoisfullpath = 0, $id = '', $morecssontable = '', $morehtmlcenter = '')
 	{
-		global $conf;
-
 		$out					= '';
-		if ($picto == 'setup')	$picto	= 'generic';
+		if ($picto == 'setup') {
+			$picto	= 'generic';
+		}
 		$out					.= '	<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
 											<tr class = "liste_titre">';
 		if (!empty($picto)) {
@@ -411,7 +415,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 	{
 		print '	<tr>';
 		foreach ($metas as $values) {
-			print '<td class = "infrastechinfosFinal nopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style = "'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
+			print '<td class = "infrastechinfosFinal nopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style = " height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
 		}
 		print '	</tr>';
 	}
@@ -450,7 +454,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 		print '	<tr>
 					<td colspan = "'.$cs1.'" class = "'.$alignclass.'">'.$desc.'</td>
-					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button width110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
+					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button infrastechwidth110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
 				</tr>';
 	}
 
@@ -519,17 +523,30 @@ SET FOREIGN_KEY_CHECKS = 1;
 			}
 		}
 		if ($tag == 'on_off') {
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(!empty(getDolGlobalString($confkey, '')) ? '0' : '1').'">';
+			$params	= '';
+			if (!empty($metas) && is_array($metas)) {
+				foreach ($metas as $key => $value) {
+					$params	.= '&'.urlencode($key).'='.urlencode($value);
+				}
+			}
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.$params.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 			print ajax_constantonoff($confkey);
 			print '		</a>';
 		} elseif ($tag == 'on_off2') {
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
 							'.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? img_picto($langs->trans('Activated'), 'switch_on') : img_picto($langs->trans('Disabled'), 'switch_off')).'
 						</a>';
 		} elseif ($tag == 'input') {
-			$defaultMetas						= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => getDolGlobalString($confkey, ''));
-			$metas								= array_merge ($defaultMetas, $metas);
-			$metascompil						= '';
+			// management of the minimum value of number type input fields
+			$inputValue	= getDolGlobalString($confkey, '');
+			if ($metas['type'] == 'number' && !empty($metas['min'])) {
+				$currentValue	= getDolGlobalInt($confkey, $metas['min']);
+				$inputValue		= $currentValue < $metas['min'] ? $metas['min'] : $currentValue;
+			}
+			// default input
+			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
+			$metas			= array_merge ($defaultMetas, $metas);
+			$metascompil	= '';
 			foreach ($metas as $key => $value) {
 				$metascompil	.= ' '.$key.($key == 'enabled' || $key == 'disabled' ? '' : ' = "'.$value.'"');
 			}
@@ -565,30 +582,32 @@ SET FOREIGN_KEY_CHECKS = 1;
 			}
 			print !preg_match('/<td(.*)/', $end, $reg) ? $end : '';
 		} elseif ($tag == 'textarea') {
-			if (empty(getDolGlobalString('PDF_ALLOW_HTML_FOR_FREE_TEXT', ''))) {
-				print '<textarea name = "'.$confkey.'" class = "flat" cols = "120">'.$conf->global->$confkey.'</textarea>';
+			if (!getDolGlobalString('PDF_ALLOW_HTML_FOR_FREE_TEXT', '')) {
+				print '<textarea name = "'.$confkey.'" class = "flat" cols = "120">'.dol_escape_htmltag(getDolGlobalString($confkey, '')).'</textarea>';
 			} else {
-				$doleditor	= new DolEditor($confkey, $conf->global->$confkey, 0, 80, 'dolibarr_notes');
+				$doleditor	= new DolEditor($confkey, getDolGlobalString($confkey, ''), 0, 80, 'dolibarr_notes');
 				print $doleditor->Create();
 			}
 		} elseif ($tag == 'color') {
-			print $formother->selectColor($metas, $confkey);
+			print $formother->selectColor($metas, $confkey, '', 1, array(), 'right hideifnotset');
 		} elseif ($tag == 'select') {
 			print $metas;
 		} elseif ($tag == 'select_produits') {
-			$form->select_produits($conf->global->$confkey, $confkey, $metas[0], $metas[1], $metas[2], $metas[3], $metas[4], $metas[5], $metas[6], $metas[7], $metas[8], $metas[9], $metas[10], $metas[11], $metas[12], $metas[13], $metas[14], $metas[15]);
+			$form->select_produits(getDolGlobalString($confkey, ''), $confkey, $metas[0], $metas[1], $metas[2], $metas[3], $metas[4], $metas[5], $metas[6], $metas[7], $metas[8], $metas[9], $metas[10], $metas[11], $metas[12], $metas[13], $metas[14], $metas[15]);
 		} elseif ($tag == 'select_types_paiements') {
-			$form->select_types_paiements($conf->global->$confkey, $confkey, $metas[0], $metas[1], $metas[2], $metas[3], $metas[4]);
+			$form->select_types_paiements(getDolGlobalString($confkey, ''), $confkey, $metas[0], $metas[1], $metas[2], $metas[3], $metas[4]);
 		} elseif ($tag == 'selectTypeContact') {
 			print $formcompany->selectTypeContact($metas[0], $metas[1], $confkey, $metas[2], $metas[3], $metas[4], $metas[5]);
 		} elseif ($tag == 'select_type_actions') {
-			$formactions->select_type_actions($conf->global->$confkey, $confkey, $metas[0], $metas[1], $metas[2]);
+			$formactions->select_type_actions(getDolGlobalString($confkey, ''), $confkey, $metas[0], $metas[1], $metas[2]);
 		} elseif ($tag == 'editor') {
-			$doleditor	= new DolEditor($confkey, $conf->global->$confkey, $metas[0], $metas[1], $metas[2]);
+			$doleditor	= new DolEditor($confkey, getDolGlobalString($confkey, ''), $metas[0], $metas[1], $metas[2]);
 			print $doleditor->Create();
 		}
 		print '		</td>';
-		if (preg_match('/<td(.*)/', $end, $reg))	print $end;
+		if (preg_match('/<td(.*)/', $end, $reg)) {
+			print $end;
+		}
 		print '	</tr>';
 		return $num;
 	}
@@ -607,8 +626,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 	**/
 	function infrastechinfos_print_line_inputs($type = '', $desc = '', $metas = array(), $cs1 = 2, $w = 0, $end = '', $num = 0)
 	{
-		global $conf;
-
 		print '	<tr class = "oddeven">';
 		if (!empty($num)) {
 			print '	<td class = "center bold">'.$num.'</td>';
@@ -617,19 +634,19 @@ SET FOREIGN_KEY_CHECKS = 1;
 		print '		<td colspan = "'.$cs1.'">
 						<table class = "centpercent">
 							<tr>
-								<td rowspan = "2" style = "border: none;">'.$desc.'</td>';
+								<td rowspan = "2" class = "noborder">'.$desc.'</td>';
 		foreach ($metas[0] as $confkey => $value) {
 			$confkey	= str_replace('_AUTO', '', $confkey);
-			print '				<td class = "center noborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (!empty(getDolGlobalString($confkey, '')) ? $value : '&nbsp;') : $value).'</td>';
+			print '				<td class = "center noborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
 		}
 		print '				</tr>
 							<tr>';
 		foreach ($metas[1] as $confkey => $value) {
 			print '				<td class = "center noborder">';
-			if ($type == 'tests' && empty(getDolGlobalString($value, ''))) {
+			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
-				print '				<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(!empty($conf->global->$confkey) ? '0' : '1').'">';
+				print '				<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 				print ajax_constantonoff($confkey);
 				print '				</a>'.($type == 'tests' ? '' : $value);
 			}
@@ -638,7 +655,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 		print '				</tr>
 						</table>
 					</td>';
-		empty($end) ? print '' : print '<td class =  "center">'.$end.'</td>';
+		empty($end) ? print '' : print '<td class = "center">'.$end.'</td>';
 		print '	</tr>';
 		return $num;
 	}
@@ -656,88 +673,83 @@ SET FOREIGN_KEY_CHECKS = 1;
 	**/
 	function infrastechinfos_getChangeLog($appliname, $version, $resVersion, $tblversions, $dwn = 0)
 	{
-		global $langs, $conf, $user;
+		global $langs, $user;
 
 		$langs->loadLangs(array('admin', 'errors', 'infrastechinfos@infrastechinfos'));
 
-		$supportURL			= 'https://support.infras.fr/create_ticket.php';
-		$headerPath			= dol_buildpath('/'.$appliname.'/img/InfraSheader.png', 1);
-		$logoPath			= dol_buildpath('/'.$appliname.'/img/InfraS.png', 1);
-		$logoDolistorePath	= dol_buildpath('/'.$appliname.'/img/dolistore_logo.png', 1);
-		$gplv3Path			= dol_buildpath('/'.$appliname.'/img/gplv3.png', 1);
-		$listUpD			= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
-		$urlInfraS			= 'https://www.infras.fr';
-		$urlWiki			= 'https://wiki.infras.fr';
-		$urlstore			= 'https://infras.store/';
-		$urlDoli			= 'https://www.dolistore.com/index.php?controller=search&search_query=infras';
-		$InputCarac			= 'class = "butAction" name = "readmore" type = "button"';
-		$supportvalue		= '/******************************'.'<br/>';
-		$supportvalue		.= ' * Module : '.$langs->trans('modcomnameInfraSTechInfos').'<br/>';
-		$supportvalue		.= ' * Module version : '.$version.'<br/>';
-		$supportvalue		.= ' * Dolibarr version : '.DOL_VERSION.'<br/>';
-		$supportvalue		.= ' * PHP version : '.PHP_VERSION.'<br/>';
-		$supportvalue		.= ' ******************************/'.'<br/>';
-		$supportvalue		.= 'Description de votre demande :'.'<br/>';
-		$ret				= '	<form id = "ticket" method = "POST" target = "_blank" action = "'.$supportURL.'">
-									<input name = message type = "hidden" value = "'.$supportvalue.'" />
-									<input name = email type = "hidden" value = "'.$user->email.'" />
-									<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnameInfraSTechInfos'))).'" />
-									<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
-										<tr class = "height75">
-											<td colspan = "3" class = "center bold valignmiddle">
-												<a href = "'.$urlWiki.'" target = "_blank">
-													<span class = "infrastechinfoscolor" style = "font-size: 24px;">'.$langs->trans('InfraSTechInfosParamPresent').'</span>
-												</a>
-											</td>
-										</tr>
-										<tr class = "height50">
-											<td rowspan = "3" class = "left bold valignbottom widthtrentepercent infrastechinfosslogan" style = "color: white; font-size: 16px;">
-												<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder width220" src = "'.$logoPath.'"></a>
-												<br/>&nbsp;&nbsp;'.$langs->trans('InfraSTechInfosParamSlogan').'
-											</td>
-											<td class = "center valignmiddle widthtrentepercent">
-												<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSTechInfosParamLienModules').'" /></a>
-											</td>
-											<td rowspan = "3" class = "right bold valignbottom widthtrentepercent infrastechinfosslogan">
-												<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder width270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
-												<br/>'.$langs->trans('InfraSTechInfosParamMoreModulesLink').'&nbsp;&nbsp;
-											</td>
-										</tr>
-										<tr class = "height50">
-											<td class = "center valignmiddle">
-												<button class = "butAction" type = "submit" >'.$langs->trans('InfraSSupportInformation').'</button>
-											</td>
-										</tr>
-										<tr>
-											<td class = "center valignbottom">
-												<img class = "noborder width120" src="'.$gplv3Path.'"/>
-												<br/>'.$langs->trans('InfraSTechInfosParamLicense').'
-											</td>
-										</tr>
-										<tr class = "height25"><td colspan = "3">&nbsp;</td></tr>
-									</table>
-								</form>';
+		$supportURL				= 'https://support.infras.fr/create_ticket.php';
+		$headerPath				= dol_buildpath('/'.$appliname.'/img/InfraSheader.png', 1);
+		$logoPath				= dol_buildpath('/'.$appliname.'/img/InfraS.png', 1);
+		$logoDolistorePath		= dol_buildpath('/'.$appliname.'/img/dolistore_logo.png', 1);
+		$preferedPartnerPath	= dol_buildpath('/'.$appliname.'/img/Dolibarr_preferred_partner.png', 1);
+		$listUpD				= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
+		$urlInfraS				= 'https://www.infras.fr';
+		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname.'/page/presentation-du-module';
+		$urlstore				= 'https://infras.store/';
+		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&search_query=infras';
+		$InputCarac				= 'class = "butAction nopadding infrastechwidth180 infrastecheight32" name = "readmore" type = "button"';
+		$supportvalue			= '/******************************'.'<br/>';
+		$supportvalue			.= ' * Module : '.$langs->trans('modcomnameInfraSTechInfos').'<br/>';
+		$supportvalue			.= ' * Module version : '.$version.'<br/>';
+		$supportvalue			.= ' * Dolibarr version : '.DOL_VERSION.'<br/>';
+		$supportvalue			.= ' * PHP version : '.PHP_VERSION.'<br/>';
+		$supportvalue			.= ' ******************************/'.'<br/>';
+		$supportvalue			.= 'Description de votre demande :'.'<br/>';
+		$ret					= '	<form id = "ticket" method = "POST" target = "_blank" action = "'.$supportURL.'">
+										<input name = message type = "hidden" value = "'.$supportvalue.'" />
+										<input name = email type = "hidden" value = "'.$user->email.'" />
+										<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnameInfraSTechInfos'))).'" />
+										<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
+											<tr class = "infrastechwidth270">
+												<td colspan = "3" class = "center bold valignmiddle">
+													<a href = "'.$urlWiki.'" target = "_blank">
+														<span class = "infrastechinfoscolor" style = "font-size: 24px;">'.$langs->trans('InfraSTechInfosParamPresent1').'<span class = "infrastechneuropolinfras"> InfraS</span>'.$langs->trans('InfraSTechInfosParamPresent2').'</span>
+													</a>
+												</td>
+											</tr>
+											<tr class = "infrastecheight75">
+												<td rowspan = "3" class = "left bold valignbottom infrastechwidthtrentepercent infrastechinfosslogan" style = "color: white; font-size: 16px;">
+													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder infrastechwidth220" src = "'.$logoPath.'"></a>
+													<br/>&nbsp;&nbsp;'.$langs->trans('InfraSTechInfosParamSlogan').'
+												</td>
+												<td class = "center valignmiddle infrastechwidthtrentepercent">
+													<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSTechInfosParamLienModules').'" /></a>
+													<button class = "butAction nopadding infrastechwidth180 infrastecheight32" type = "submit" >'.$langs->trans('InfraSTechInfosParamSupport').'</button>
+												</td>
+												<td rowspan = "3" class = "right bold valignbottom infrastechwidthtrentepercent infrastechinfosslogan">
+													<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder infrastechwidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
+													<br/>'.$langs->trans('InfraSTechInfosParamMoreModulesLink').'&nbsp;&nbsp;
+												</td>
+											</tr>
+											<tr>
+												<td class = "center valignbottom infrastechminwidth700imp">
+													<img class = "noborder infrastechwidth220 margintop10imp" src="'.$preferedPartnerPath.'"/>
+												</td>
+											</tr>
+											<tr>
+												<td class = "center bold valignbottom infrastechminwidth700imp infrastechinfosslogan">
+													<div class = "margintop10imp">'.$langs->trans('InfraSTechInfosParamPreferedPartner1').'<span class = "infrastechpuentedolibarr"> Dolibarr </span>'.$langs->trans('InfraSTechInfosParamPreferedPartner2').'</div>
+												</td>
+											</tr>
+											<tr class = "infrastecheight25"><td colspan = "3">&nbsp;</td></tr>
+										</table>
+									</form>';
 		$ret				.= load_fiche_titre('<span class = "infrastitleparam">'.$langs->trans('InfraSTechInfosParamHistoryUpdates').'</span>', '', $listUpD, 1);
 		$sxe				= infrastechinfos_getChangelogFile($appliname);
 		$sxelast			= infrastechinfos_getChangelogFile($appliname, 'dwn');
 		$tblversionslast	= is_object($sxelast) ? $sxelast->Version : array();
-		if (is_object($sxelast)) {
-			$tblversionslast	= $sxelast->Version;
-		} else {
-			$tblversionslast	= array();
-		}
 		if ($resVersion == -1) {
 			foreach ($tblversions as $error) {
 				$ret	.= $error->message;
 			}
 			return $ret;
 		}
-		if (!empty(getDolGlobalString('INFRAS_SKIP_CHECKVERSION', ''))) {
+		if (getDolGlobalString('INFRAS_SKIP_CHECKVERSION', '')) {
 			$dwnbutton	= $dwn ? $langs->trans('InfraSTechInfosParamSkipCheck') : '';
 		} else {
 			$dwnbutton	= $dwn ? '<button class = "button" style = "width: 190px; padding: 3px 0px;" type = "submit" value = "dwnChangelog" name = "action" title = "'.$langs->trans('InfraSTechInfosParamCheckNewVersionTitle').'">'.$langs->trans('InfraSTechInfosParamCheckNewVersion').'</button>' : '';
 		}
-		$ret	.= '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+		$ret	.= '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 								<input type = "hidden" name = "token" value = "'.newToken().'">
 								<table class = "noborder" >
 									<tr class = "liste_titre">
@@ -757,9 +769,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrastechinfoscaution';
-					} else if ($changeline->attributes()->type == 'add') {
+					} elseif ($changeline->attributes()->type == 'add') {
 						$classcolor	= ' infrastechinfosgreen';
-					} else if ($changeline->attributes()->type == 'chg') {
+					} elseif ($changeline->attributes()->type == 'chg') {
 						$classcolor	= ' infrastechinfosblue';
 					} else {
 						$classcolor	= ' infrastechinfosblack';
@@ -779,15 +791,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 				$sxelastPath	= $sxelast->xpath('//Version[@Number="'.$tblversions[$i]->attributes()->Number.'"]');
 				$lineversion	= $tblversions[$i]->change;
 				$ret			.= '<tr class = "oddeven">
-										<td class = "center valigntop '.(empty($sxelastPath) ? 'infrastechinfosbggreen' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
-										<td class = "center valigntop '.(empty($sxelastPath) ? 'infrastechinfosbggreen' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
+										<td class = "center valigntop '.(empty($sxelastPath) ? 'infrastechinfosbggreen infrastechinfosblack' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
+										<td class = "center valigntop '.(empty($sxelastPath) ? 'infrastechinfosbggreen infrastechinfosblack' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
 										<td class = "left valigntop nopaddingvert '.(empty($sxelastPath) ? 'infrastechinfosbggreen' : '').'" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrastechinfoscaution';
-					} else if ($changeline->attributes()->type == 'add') {
+					} elseif ($changeline->attributes()->type == 'add') {
 						$classcolor	= ' infrastechinfosgreen';
-					} else if ($changeline->attributes()->type == 'chg') {
+					} elseif ($changeline->attributes()->type == 'chg') {
 						$classcolor	= ' infrastechinfosblue';
 					} else {
 						$classcolor	= ' infrastechinfosblack';
@@ -812,9 +824,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrastechinfoscaution';
-					} else if ($changeline->attributes()->type == 'add') {
+					} elseif ($changeline->attributes()->type == 'add') {
 						$classcolor	= ' infrastechinfosgreen';
-					} else if ($changeline->attributes()->type == 'chg') {
+					} elseif ($changeline->attributes()->type == 'chg') {
 						$classcolor	= ' infrastechinfosblue';
 					} else {
 						$classcolor	= ' infrastechinfosblack';
@@ -869,7 +881,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 						</tr>
 						<tr class = "oddeven">
 							<td class = "width400 infraspluschangelogbase">'.$langs->trans('WebServerVersion').'</td>
-							<td class = "infraspluschangelogbase">'.$_SERVER['SERVER_SOFTWARE'].'</td>
+							<td class = "infraspluschangelogbase">'.dol_escape_htmltag($_SERVER['SERVER_SOFTWARE']).'</td>
 						</tr>
 						<tr><td colspan = "3" class = "infrastechinfosFinal">&nbsp;</td></tr>
 					</table>
