@@ -470,7 +470,7 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 			print '<input type="hidden" name="token" value="'.newToken().'">';
 			print '<input type="hidden" name="id" value="'.$object->id.'">';
 
-			print '<table class="noborder centpercent">';
+			print '<table class="infrascuspricenoborder centpercent">';
 
 			print '<tr class="liste_titre">';
 			print '<td>'.$langs->trans("Product").'</td>';
@@ -563,7 +563,7 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 		print '<input type="hidden" name="id" value="'.$object->id.'">';
 
 		print '<div class="div-table-responsive-no-min">';
-		print '<table class="noborder centpercent">';
+		print '<table class="infrascuspricenoborder centpercent">';
 
 		print '<tr class="liste_titre">';
 		print '<td>'.$langs->trans("Ref").'</td>';

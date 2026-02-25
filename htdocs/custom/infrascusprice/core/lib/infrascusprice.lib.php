@@ -55,7 +55,6 @@
 			$path_dst		= '/infrascusprice/substitutionpages/'.$coreVersion.$path;
 			$real_path_dst	= dol_buildpath($path_dst, 0);
 			dol_syslog('infrascusprice.lib.php::infrascusprice_get_substitution_url $path = '.$path.' $real_path_dst = '.$real_path_dst);
-			error_log('DEBUG InfraSCusPrice : valeur de path = '.$path.' $real_path_dst = '.$real_path_dst);
 			if (file_exists($real_path_dst)) {
 				$url_path_dst = dol_buildpath($path_dst, 2);
 				return $url_path_dst;

@@ -124,9 +124,9 @@
 				$soc			= new Societe($db);
 				$soc->fetch($object->parent);
 				$btnTitleSupr	= $langs->trans('InfraSCusPbtnSuprTitle', $soc->name);
-				$linkSupr		= $_SERVER["PHP_SELF"].'?socid='.$object->id.'&action=deleteCustPrices&from=infrascusprice&socid='.$object->id;
+				$linkSupr		= dol_escape_htmltag($_SERVER["PHP_SELF"]).'?socid='.$object->id.'&action=deleteCustPrices&from=infrascusprice&socid='.$object->id;
 				$btnTitleUpd	= $langs->trans('InfraSCusPbtn3thdTitle', $soc->name);
-				$linkUpd		= $_SERVER["PHP_SELF"].'?socid='.$object->id.'&action=updateCustPrices&from=infrascusprice&idParent='.$object->parent;
+				$linkUpd		= dol_escape_htmltag($_SERVER["PHP_SELF"]).'?socid='.$object->id.'&action=updateCustPrices&from=infrascusprice&idParent='.$object->parent;
 				if ($object->parent){
 					print '<div class = "inline-block divButAction"><a class = "butAction" href = "'.$linkSupr.'" title = "'.$btnTitleSupr.'">'.$langs->trans('InfraSCusPbtnSupr').'</a></div>';
 					print '<div class = "inline-block divButAction"><a class = "butAction" href = "'.$linkUpd.'" title = "'.$btnTitleUpd.'">'.$langs->trans('InfraSCusPbtn3thd').'</a></div>';

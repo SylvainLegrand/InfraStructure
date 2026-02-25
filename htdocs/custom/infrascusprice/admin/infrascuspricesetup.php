@@ -65,14 +65,14 @@
 	print dol_get_fiche_head($head, 'infrascuspricesetup', $langs->trans('modcomnameCusP'), 0, $picto);
 
 	// setup page goes here *************************
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">';
 	// Comportement général
 	if (!empty($accessright)) {
 		$num	= 1;
 		print '	<div class = "foldable">';
 		print infrascusp_load_title('<span class = "infrascuspriceTitleparam">'.$langs->trans('InfraSCusPParamNoConfTechInfos').'</span>', $titleoption, dol_buildpath('/infrascusprice/img/option_tool.png', 1), 1, '', '');
-		print '		<table name = "tblGen" class = "noborder" width = "100%">';
+		print '		<table name = "tblGen" class = "infrascuspricenoborder" width = "100%">';
 		$metas	= array('30px', '*', '156px', '120px');
 		infrascusp_print_colgroup($metas);
 		$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');

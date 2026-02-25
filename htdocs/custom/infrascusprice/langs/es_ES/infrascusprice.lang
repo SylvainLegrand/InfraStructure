@@ -42,13 +42,16 @@ InfraSCusPParamRestore         = Restaurar
 InfraSCusPParamChange          = Cambiar
 
 ### About page ###
-InfraSCusPParamPresent              = <b>Este módulo es una creación INFRAS una documentación es disponible en nuestro sitio web</b>
+InfraSCusPParamPresent1             = <b>Este módulo es una creación</b>
+InfraSCusPParamPresent2             = <b>, una documentación está disponible en nuestro sitio web</b>
 InfraSCusPParamSlogan               = ¡Estructura tu crecimiento!
 InfraSCusPParamLienModules          = Nuestros módulos
 InfraSCusPParamMoreModulesLink      = Nuestros módulos en DoliStore
 InfraSCusPParamLienDocs             = Nuestra Documentacion
 InfraSCusPParamLicense              = Bajo GPL v3 y licencia superior
 InfraSCusPParamHistoryUpdates       = <b>Histórico de las actualizaciones :</b>
+InfraSCusPParamPreferedPartner1     = Miembro del programa oficial
+InfraSCusPParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia.
 InfraSCusPParamSkipCheck            = Descargar discapacitados
 InfraSCusPParamNumberVersion        = N° de versión
 InfraSCusPParamMonthVersion         = Fecha

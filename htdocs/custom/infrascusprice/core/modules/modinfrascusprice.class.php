@@ -188,7 +188,7 @@
 		{
 			global $conf;
 
-			$sql	= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASCUSP\_%" AND entity = "'.$conf->entity.'"');
+			$sql	= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASCUSP\_%" AND entity = '.((int) $conf->entity));
 			return $this->_remove($sql);
 		}
 

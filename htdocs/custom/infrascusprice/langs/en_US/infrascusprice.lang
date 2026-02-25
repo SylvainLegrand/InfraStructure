@@ -42,17 +42,21 @@ InfraSCusPParamRestore         = Restore
 InfraSCusPParamChange          = Change
 
 ### About page ###
-InfraSCusPParamPresent              = <b>This module is an InfraS creation, it's documentation is available on our website</b>
+InfraSCusPParamPresent1             = <b>This module is an InfraS creation</b>
+InfraSCusPParamPresent2             = <b>, its documentation is available on our website</b>
 InfraSCusPParamSlogan               = Structure your growth!
 InfraSCusPParamLienModules          = Our Modules
 InfraSCusPParamMoreModulesLink      = Our modules on the dolistore
 InfraSCusPParamLienDocs             = Our user guides
 InfraSCusPParamLicense              = Under GPL v3 and higher license
 InfraSCusPParamHistoryUpdates       = <b>History of updates:</b>
+InfraSCusPParamPreferedPartner1     = Member of the official
+InfraSCusPParamPreferedPartner2     = Preferred Partner program, guarantee of quality and expertise.
 InfraSCusPParamSkipCheck            = Download disabled
 InfraSCusPParamNumberVersion        = version N°
 InfraSCusPParamMonthVersion         = Date
 InfraSCusPParamChangesVersion       = Modifications
+InfraSCusPParamObjet                = <h3>Object :</h3>
 InfraSCusPParamCheckNewVersion      = New Changelog
 InfraSCusPParamCheckNewVersionTitle = Click to download the changelog of the latest available version
 InfraSCusPParamSupport              = Support request

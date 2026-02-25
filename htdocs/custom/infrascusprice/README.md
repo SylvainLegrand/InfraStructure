@@ -3,7 +3,7 @@
 
 
 # ***InfraSCusPrice***
-
+#### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
 * Le déploiement des prix client ***InfraS*** automatise le renseignement des prix des filiales :
 	 * À partir d'un tiers déclaré comme maison mère d'un groupe ayant des prix clients renseignés
 	 * Suite à l'ajout d'une ou plusieurs filiales

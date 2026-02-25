@@ -59,6 +59,32 @@
 		header('Cache-Control: no-cache');
 	}
 ?>
+@font-face {
+	font-family: 'puentebold';
+	src: url('<?php print dol_buildpath('/infrascusprice/css/puentebold.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'NeuropolRegular';
+	src: url('<?php print dol_buildpath('/infrascusprice/css/NeuropolRegular.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.infrascuspriceneuropolinfras {
+	font-family: NeuropolRegular, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	color: #19052d;
+}
+
+.infrascuspricepuentedolibarr {
+	font-family: puentebold, sans-serif;
+	color: #027991;
+	font-size-adjust: 0.6;
+}
 
 img.infrascuspwidthpictotitle {
 	max-width: 48px;
@@ -125,6 +151,7 @@ img.infrascuspwidthpictotitle {
 }
 
 .infrascuspSlogan {
+	color: #ffffff;
 	font-size: 16px;
 }
 
@@ -159,64 +186,76 @@ img.infrascuspwidthpictotitle {
 	width: 90%;
 }
 
-.width110 {
+.infrascuspricewidth110 {
 	width: 110px;
 }
 
-.width120 {
+.infrascuspricewidth120 {
 	width: 120px;
 }
 
-.width180 {
+.infrascuspricewidth180 {
 	width: 180px
 }
 
-.width220 {
+.infrascuspricewidth220 {
 	width: 220px;
 }
 
-.width270 {
+.infrascuspricewidth270 {
 	width: 270px;
 }
 
-.widthtrentepercent {
+.infrascuspriceminwidth700imp {
+	min-width: 700px !important;
+}
+
+.infrascuspricewidthtrentepercent {
 	width: 30%;
 }
 
-.height75 {
+.infrascuspriceheight75 {
 	height: 75px;
 }
 
-.height50 {
+.infrascuspriceheight32 {
+	height: 32px;
+}
+
+.infrascuspriceheight50 {
 	height: 50px;
 }
 
-.height25 {
+.infrascuspriceheight25 {
 	height: 25px;
 }
 
-.height20 {
+.infrascuspriceheight20 {
 	height: 20px;
 }
 
-.nomargin {
+.infrascuspricenomargin {
 	margin: 0px;
 }
 
-.nopadding {
+.infrascuspricenopadding {
 	padding: 0px !important;
 }
 
-.noborder {
+.infrascuspricenoborder {
 	border: none;
 }
 
-.nopaddingvert {
+.infrascuspricenopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
 }
 
-.fontsizeinherit {
+.infrascuspricemargintop10imp {
+	margin-top: 10px !important;
+}
+
+.infrascuspricefontsizeinherit {
 	font-size: inherit;
 }
 

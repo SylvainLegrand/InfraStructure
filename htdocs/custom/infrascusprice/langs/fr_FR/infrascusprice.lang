@@ -41,14 +41,17 @@ InfraSCusPParamBkup            = Sauvegarder
 InfraSCusPParamRestore         = Restaurer
 InfraSCusPParamChange          = Changer
 
-### About page ### 
-InfraSCusPParamPresent              = <b>Ce module est une création InfraS, sa documentation est disponible sur notre wiki</b>
+### About page ###
+InfraSCusPParamPresent1             = <b>Ce module est une création</b>
+InfraSCusPParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site web</b>
 InfraSCusPParamSlogan               = Structurez votre croissance !
 InfraSCusPParamLienModules          = Nos Modules
 InfraSCusPParamMoreModulesLink      = Nos modules sur le dolistore
 InfraSCusPParamLienDocs             = Nos Documentations
 InfraSCusPParamLicense              = sous Licence GPL v3 et supérieur. 
 InfraSCusPParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSCusPParamPreferedPartner1     = Membre du programme officiel
+InfraSCusPParamPreferedPartner2     = Preferred Partner, gage de qualité et d'expertise.
 InfraSCusPParamSkipCheck            = Téléchargement désactivé
 InfraSCusPParamNumberVersion        = N° de version
 InfraSCusPParamMonthVersion         = Date

@@ -23,7 +23,10 @@
 	************************************************/
 	// Libraries ************************************
 	include_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
@@ -39,7 +42,7 @@
 
 		$h				= 0;
 		$head			= array();
-		if (! empty($user->admin) && !empty($user->hasRight('infrascusprice', 'paramInfraSCusPrice'))) {
+		if (!empty($user->admin) || !empty($user->hasRight('infrascusprice', 'paramInfraSCusPrice'))) {
 			$head[$h][0]	= dol_buildpath('/infrascusprice/admin/infrascuspricesetup.php', 1);
 			$head[$h][1]	= $langs->trans('InfraSCusPParams');
 			$head[$h][2]	= 'infrascuspricesetup';
@@ -88,10 +91,10 @@
 
 		$langs->load('infrascusprice@infrascusprice');
 
-		if (extension_loaded('xml')){
-			dolibarr_set_const($db, "INFRAS_PHP_EXT_XML",	1, 'chaine', 0, '', $conf->entity);
+		if (extension_loaded('xml')) {
+			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	1, 'chaine', 0, 'InfraSCusPrice module', $conf->entity);
 		} else {
-			dolibarr_set_const($db, "INFRAS_PHP_EXT_XML",	-1, 'chaine', 0, '', $conf->entity);
+			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	-1, 'chaine', 0, 'InfraSCusPrice module', $conf->entity);
 			setEventMessages('<span class = "infrascuspCaution">'.$langs->trans('InfraSCusPCautionMess').'</span>'.$langs->trans('InfraSXMLextError'), array(), 'warnings');
 		}
 	}
@@ -133,7 +136,7 @@
 			$currentversion[6]	= $langs->trans('InfraSCusPnoMaxDolVersion');
 			foreach (libxml_get_errors() as $error) {
 				$currentversion[3]	.= $error->message;
-				dol_syslog('infrascusprice.lib::infrascusp_getLocalVersionMinDoli error->message = '.$error->message);
+				dol_syslog('infrascuspriceAdmin.Lib::infrascusp_getLocalVersionMinDoli error->message = '.$error->message);
 			}
 		}
 		return $currentversion;
@@ -155,7 +158,7 @@
 			$context	= stream_context_create(array('http' => array('method' => 'GET', 'header' => 'Accept: application/xml')));
 			$changelog	= @file_get_contents($file, false, $context);
 			$sxe		= @simplexml_load_string(rtrim($changelog));
-			dol_syslog('infrascusprice.lib::infrascusp_getchangelogfile appliname = '.$appliname.' context = '.$context.' changelog = '.($changelog ? 'Ok' : 'KO').' sxe = '.($sxe ? 'Ok' : 'KO'));
+			dol_syslog('infrascuspriceAdmin.Lib::infrascusp_getChangelogFile appliname = '.$appliname.' from = '.$from.' context = '.$context.' changelog = '.($changelog ? 'Ok' : 'KO').' sxe = '.($sxe ? 'Ok' : 'KO'));
 			return $sxe;
 		} else {
 			return false;
@@ -242,8 +245,8 @@
 						<td class = "center"><button class = "butAction" type = "submit" value = "bkupParams" name = "action">'.$langs->trans('InfraSCusPParamBkup').'</button></td>
 						<td class = "center"><button class = "butActionDelete" type = "submit" value = "restoreParams" name = "action">'.$langs->trans('InfraSCusPParamRestore').'</button></td>
 					</tr>';
-		print '		<tr><td colspan = "4" class = "center nopadding"><hr></td></tr>';
-		print '		<tr><td colspan = "4" class = "infrascuspFinal">&nbsp;</td></tr>';
+		infrascusp_print_hr(count($metas));
+		infrascusp_print_final(count($metas));
 		print '	</table>';
 	}
 
@@ -266,19 +269,19 @@
 			$picto	= 'generic';
 		}
 		$out	.= '<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
-											<tr class = "liste_titre">';
+					<tr class = "liste_titre">';
 		if (!empty($picto)) {
-			$out .= '							<td class = "nobordernopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infrascuspwidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
+			$out .= '	<td class = "infrascuspricenoborder infrascuspricenopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infrascuspwidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
 		}
-		$out	.= '							<td class = "nobordernopadding valignmiddle col-title"><div class = "infrascuspDivTitre uppercase inline-block">'.$titre.'</div></td>';
+		$out	.= '	<td class = "infrascuspricenoborder infrascuspricenopadding valignmiddle col-title"><div class = "infrascuspDivTitre uppercase inline-block">'.$titre.'</div></td>';
 		if (dol_strlen($morehtmlcenter)) {
-			$out .= '							<td class = "nobordernopadding center valignmiddle">'.$morehtmlcenter.'</td>';
+			$out .= '	<td class = "infrascuspricenoborder infrascuspricenopadding center valignmiddle">'.$morehtmlcenter.'</td>';
 		}
 		if (dol_strlen($morehtmlright)) {
-			$out .= '							<td class = "nobordernopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
+			$out .= '	<td class = "infrascuspricenoborder infrascuspricenopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
 		}
-		$out .= '							</tr>
-										</table>';
+		$out .= '	</tr>
+				</table>';
 		return $out;
 	}
 
@@ -292,7 +295,7 @@
 	{
 		print '	<tr>';
 		foreach ($metas as $values)	{
-			print '<td class = "infrascuspFinal nopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style =" height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
+			print '<td class = "infrascuspFinal infrascuspricenopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style =" height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
 		}
 		print '	</tr>';
 	}
@@ -331,7 +334,7 @@
 
 		print '	<tr>
 					<td colspan = "'.$cs1.'" class = "'.$alignclass.'">'.$desc.'</td>
-					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button width110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
+					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button infrascuspricewidth110" type = "submit" value = "update_'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
 				</tr>';
 	}
 
@@ -431,17 +434,24 @@
 					$params	.= '&'.$key.'='.$value;
 				}
 			}
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.$params.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.$params.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 			print ajax_constantonoff($confkey);
 			print '		</a>';
 		} elseif ($tag == 'on_off2') {
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
 							'.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? img_picto($langs->trans('Activated'), 'switch_on') : img_picto($langs->trans('Disabled'), 'switch_off')).'
 						</a>';
 		} elseif ($tag == 'input') {
-			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => getDolGlobalString($confkey, ''));
-			$metas			= array_merge ($defaultMetas, $metas);
-			$metascompil	= '';
+			// management of the minimum value of number type input fields
+			$inputValue	= getDolGlobalString($confkey, '');
+			if ($metas['type'] == 'number' && !empty($metas['min'])) {
+				$currentValue	= getDolGlobalInt($confkey, $metas['min']);
+				$inputValue		= $currentValue < $metas['min'] ? $metas['min'] : $currentValue;
+			}
+			// default input
+			$defaultMetas		= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrascuspricenopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
+			$metas				= array_merge ($defaultMetas, $metas);
+			$metascompil		= '';
 			foreach ($metas as $key => $value) {
 				$metascompil	.= ' '.$key.($key == 'enabled' || $key == 'disabled' ? '' : ' = "'.$value.'"');
 			}
@@ -452,7 +462,7 @@
 					print $meta2;
 					continue;
 				}
-				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding fontsizeinherit', 'name' => $keymeta, 'id' => $keymeta, 'value' => getDolGlobalString($keymeta, ''));
+				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrascuspricenopadding infrascuspricefontsizeinherit', 'name' => $keymeta, 'id' => $keymeta, 'value' => getDolGlobalString($keymeta, ''));
 				$meta			= array_merge ($defaultMetas, $meta2);
 				$metascompil	= '';
 				foreach ($meta as $key => $value) {
@@ -467,7 +477,7 @@
 					print $meta2;
 					continue;
 				}
-				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent nopadding fontsizeinherit', 'id' => $keymeta);
+				$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent infrascuspricenopadding infrascuspricefontsizeinherit', 'id' => $keymeta);
 				$meta			= array_merge ($defaultMetas, $meta2);
 				$metascompil	= '';
 				foreach ($meta as $key => $value) {
@@ -484,12 +494,12 @@
 				print $doleditor->Create();
 			}
 		} elseif ($tag == 'color') {
-			print $formother->selectColor($metas, $confkey);
+			print $formother->selectColor($metas, $confkey, '', 1, array(), 'right hideifnotset');
 		} elseif ($tag == 'select') {
 			print $metas;
 		} elseif ($tag == 'selectpos') {
 			$numcol	= infrascusp_num_pos($metas['arrayTObjectType'], $metas['validListTObjectType']);
-			print '	<select name = "'.$metas['arrayTObjectType']['select'].'" class = "flat fontsizeinherit nopadding noborder cursorpointer">
+			print '	<select name = "'.$metas['arrayTObjectType']['select'].'" class = "flat infrascuspricefontsizeinherit infrascuspricenopadding infrascuspricenoborder cursorpointer">
 						'.$numcol['options'].'
 					</select>';
 			if ($numcol['err']) {
@@ -537,19 +547,19 @@
 		print '		<td colspan = "'.$cs1.'">
 						<table class = "centpercent">
 							<tr>
-								<td rowspan = "2" class = "noborder">'.$desc.'</td>';
+								<td rowspan = "2" class = "infrascuspricenoborder">'.$desc.'</td>';
 		foreach ($metas[0] as $confkey => $value) {
 			$confkey	= str_replace('_AUTO', '', $confkey);
-			print '				<td class = "center noborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
+			print '				<td class = "center infrascuspricenoborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
 		}
 		print '				</tr>
 							<tr>';
 		foreach ($metas[1] as $confkey => $value) {
-			print '				<td class = "center noborder">';
+			print '				<td class = "center infrascuspricenoborder">';
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
-				print '				<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+				print '				<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 				print ajax_constantonoff($confkey);
 				print '				</a>'.($type == 'tests' ? '' : $value);
 			}
@@ -580,67 +590,67 @@
 
 		$langs->loadLangs(array('admin', 'errors', 'infrascusprice@infrascusprice'));
 
-		$supportURL			= 'https://support.infras.fr/create_ticket.php';
-		$headerPath			= dol_buildpath('/'.$appliname.'/img/InfraSheader.png', 1);
-		$logoPath			= dol_buildpath('/'.$appliname.'/img/InfraS.png', 1);
-		$logoDolistorePath	= dol_buildpath('/'.$appliname.'/img/dolistore_logo.png', 1);
-		$gplv3Path			= dol_buildpath('/'.$appliname.'/img/gplv3.png', 1);
-		$listUpD			= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
-		$urlInfraS			= 'https://infras.fr';
-		$urlWiki			= 'https://wiki.infras.fr';
-		$urlstore			= 'https://infras.store/';
-		$urlDoli			= 'http://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
-		$InputCarac			= 'class = "butAction" name = "readmore" type = "button"';
-		$supportvalue		= '/******************************'.'<br/>';
-		$supportvalue		.= ' * Module : '.$langs->trans('modcomnameCusP').'<br/>';
-		$supportvalue		.= ' * Module version : '.$version.'<br/>';
-		$supportvalue		.= ' * Dolibarr version : '.DOL_VERSION.'<br/>';
-		$supportvalue		.= ' * PHP version : '.PHP_VERSION.'<br/>';
-		$supportvalue		.= ' ******************************/'.'<br/>';
-		$supportvalue		.= 'Description de votre demande :'.'<br/>';
-		$ret				= '	<form id = "ticket" method = "POST" target = "_blank" action = "'.$supportURL.'">
-									<input name = message type = "hidden" value = "'.$supportvalue.'" />
-									<input name = email type = "hidden" value = "'.$user->email.'" />
-									<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnameCusP'))).'" />
-									<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
-										<tr class = "height75">
-											<td colspan = "3" class = "center bold valignmiddle">
-												<a href = "'.$urlWiki.'" target = "_blank">
-													<span class = "infrascuspColor" style = "font-size: 24px;">'.$langs->trans('InfraSCusPParamPresent').'</span>
-												</a>
-											</td>
-										</tr>
-										<tr class = "height50">
-											<td rowspan = "3" class = "left bold valignbottom widthtrentepercent infrascuspSlogan" style = "color: white; font-size: 16px;">
-												<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder width220" src = "'.$logoPath.'"></a>
-												<br/>&nbsp;&nbsp;'.$langs->trans('InfraSCusPParamSlogan').'
-											</td>
-											<td class = "center valignmiddle widthtrentepercent">
-												<a class = "center" href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSCusPParamLienModules').'" /></a>
-											</td>
-											<td rowspan = "3" class = "right bold valignbottom widthtrentepercent infrascuspSlogan">
-												<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder width270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
-												<br/>'.$langs->trans('InfraSCusPParamMoreModulesLink').'&nbsp;&nbsp;
-											</td>
-										</tr>
-										<tr class = "height50">
-											<td class = "center valignmiddle">
-												<button class = "butAction" type = "submit" >'.$langs->trans('InfraSCusPParamSupport').'</button>
-											</td>
-										</tr>
-										<tr>
-											<td class = "center valignbottom">
-												<img class = "noborder width120" src="'.$gplv3Path.'"/>
-												<br/>'.$langs->trans('InfraSCusPParamLicense').'
-											</td>
-										</tr>
-										<tr class = "height25"><td colspan = "3">&nbsp;</td></tr>
-									</table>
-								</form>';
-		$ret				.= load_fiche_titre('<span class = "infrascuspTitleparam">'.$langs->trans('InfraSCusPParamHistoryUpdates').'</span>', '', $listUpD, 1);
-		$sxe				= infrascusp_getChangelogFile($appliname);
-		$sxelast			= infrascusp_getChangelogFile($appliname, 'dwn');
-		$tblversionslast	= is_object($sxelast) ? $sxelast->Version : array();
+		$supportURL				= 'https://support.infras.fr/create_ticket.php';
+		$headerPath				= dol_buildpath('/'.$appliname.'/img/InfraSheader.png', 1);
+		$logoPath				= dol_buildpath('/'.$appliname.'/img/InfraS.png', 1);
+		$logoDolistorePath		= dol_buildpath('/'.$appliname.'/img/dolistore_logo.png', 1);
+		$preferedPartnerPath	= dol_buildpath('/'.$appliname.'/img/Dolibarr_preferred_partner.png', 1);
+		$listUpD				= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
+		$urlInfraS				= 'https://infras.fr';
+		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname.'/page/presentation-du-module';
+		$urlstore				= 'https://infras.store/';
+		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
+		$InputCarac				= 'class = "butAction infrascuspricenopadding infrascuspricewidth180 infrascuspriceheight32" name = "readmore" type = "button"';
+		$supportvalue			= '/******************************'.'<br/>';
+		$supportvalue			.= ' * Module : '.$langs->trans('modcomnameCusP').'<br/>';
+		$supportvalue			.= ' * Module version : '.$version.'<br/>';
+		$supportvalue			.= ' * Dolibarr version : '.DOL_VERSION.'<br/>';
+		$supportvalue			.= ' * PHP version : '.PHP_VERSION.'<br/>';
+		$supportvalue			.= ' ******************************/'.'<br/>';
+		$supportvalue			.= 'Description de votre demande :'.'<br/>';
+		$ret					= '	<form id = "ticket" method = "POST" target = "_blank" action = "'.$supportURL.'">
+										<input name = message type = "hidden" value = "'.$supportvalue.'" />
+										<input name = email type = "hidden" value = "'.$user->email.'" />
+										<input name = category_code type = "hidden" value = "'.(strtoupper($langs->trans('modcomnameCusP'))).'" />
+										<table class = "centpercent" style = "padding: 10; background: url('.$headerPath.'); background-size: cover;">
+											<tr class = "infrascuspriceheight75">
+												<td colspan = "3" class = "center bold valignmiddle">
+													<a href = "'.$urlWiki.'" target = "_blank">
+														<span class = "infrascuspColor" style = "font-size: 24px;">'.$langs->trans('InfraSCusPParamPresent1').'<span class = "infrascuspriceneuropolinfras"> InfraS</span>'.$langs->trans('InfraSCusPParamPresent2').'</span>
+													</a>
+												</td>
+											</tr>
+											<tr class = "infrascuspriceheight75">
+												<td rowspan = "3" class = "left bold valignbottom infrascuspricewidthtrentepercent infrascuspSlogan" style = "color: white; font-size: 16px;">
+													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "infrascuspricenoborder infrascuspricewidth220" src = "'.$logoPath.'"></a>
+													<br/>&nbsp;&nbsp;'.$langs->trans('InfraSCusPParamSlogan').'
+												</td>
+												<td class = "center valignmiddle infrascuspricewidthtrentepercent">
+													<a class = "center" href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSCusPParamLienModules').'" /></a>
+													<button class = "butAction infrascuspricenopadding infrascuspricewidth180 infrascuspriceheight32" type = "submit" >'.$langs->trans('InfraSCusPParamSupport').'</button>
+												</td>
+												<td rowspan = "3" class = "right bold valignbottom infrascuspricewidthtrentepercent infrascuspSlogan">
+													<a href = "'.$urlDoli.'" target = "_blank"><img class = "infrascuspricenoborder infrascuspricewidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
+													<br/>'.$langs->trans('InfraSCusPParamMoreModulesLink').'&nbsp;&nbsp;
+												</td>
+											</tr>
+											<tr>
+												<td class = "center valignbottom infrascuspriceminwidth700imp">
+													<img class = "infrascuspricenoborder infrascuspricewidth220 infrascuspricemargintop10imp" src="'.$preferedPartnerPath.'"/>
+												</td>
+											</tr>
+											<tr>
+												<td class = "center bold valignbottom infrascuspriceminwidth700imp infrascuspSlogan">
+													<div class = "infrascuspricemargintop10imp">'.$langs->trans('InfraSCusPParamPreferedPartner1').'<span class = "infrascuspricepuentedolibarr"> Dolibarr </span>'.$langs->trans('InfraSCusPParamPreferedPartner2').'</div>
+												</td>
+											</tr>
+											<tr class = "infrascuspriceheight25"><td colspan = "3">&nbsp;</td></tr>
+										</table>
+									</form>';
+		$ret					.= load_fiche_titre('<span class = "infrascuspTitleparam">'.$langs->trans('InfraSCusPParamHistoryUpdates').'</span>', '', $listUpD, 1);
+		$sxe					= infrascusp_getChangelogFile($appliname);
+		$sxelast				= infrascusp_getChangelogFile($appliname, 'dwn');
+		$tblversionslast		= is_object($sxelast) ? $sxelast->Version : array();
 		if ($resVersion == -1) {
 			foreach ($tblversions as $error) {
 				$ret	.= $error->message;
@@ -650,11 +660,11 @@
 		if (getDolGlobalString('INFRAS_SKIP_CHECKVERSION', '')) {
 			$dwnbutton	= $dwn ? $langs->trans('InfraSCusPParamSkipCheck') : '';
 		} else {
-			$dwnbutton	= $dwn ? '<button class = "button width180" type = "submit" value = "dwnChangelog" name = "action" title = "'.$langs->trans('InfraSCusPParamCheckNewVersionTitle').'">'.$langs->trans('InfraSCusPParamCheckNewVersion').'</button>' : '';
+			$dwnbutton	= $dwn ? '<button class = "button infrascuspricewidth180" type = "submit" value = "dwnChangelog" name = "action" title = "'.$langs->trans('InfraSCusPParamCheckNewVersionTitle').'">'.$langs->trans('InfraSCusPParamCheckNewVersion').'</button>' : '';
 		}
-		$ret	.= '			<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+		$ret	.= '			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<table class = "noborder" >
+									<table class = "infrascuspricenoborder centpercent" >
 										<tr class = "liste_titre">
 														<th class = "center width100">'.$langs->trans('InfraSCusPParamNumberVersion').'</th>
 														<th class = "center width100">'.$langs->trans('InfraSCusPParamMonthVersion').'</th>
@@ -668,7 +678,7 @@
 				$ret			.= '	<tr class = "oddeven">
 											<td class = "center valigntop '.(empty($sxePath) ? 'infrascuspbgorange' : '').'">'.$tblversionslast[$i]->attributes()->Number.'</td>
 											<td class = "center valigntop '.(empty($sxePath) ? 'infrascuspbgorange' : '').'">'.$tblversionslast[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert '.(empty($sxePath) ? 'infrascuspbgorange' : '').'" colspan = "2">';
+											<td class = "left valigntop infrascuspricenopaddingvert '.(empty($sxePath) ? 'infrascuspbgorange' : '').'" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrascuspCaution';
@@ -694,9 +704,9 @@
 				$sxelastPath	= $sxelast->xpath('//Version[@Number="'.$tblversions[$i]->attributes()->Number.'"]');
 				$lineversion	= $tblversions[$i]->change;
 				$ret			.= '	<tr class = "oddeven">
-											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrascuspbggreen' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
-											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrascuspbggreen' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert '.(empty($sxelastPath) ? 'infrascuspbggreen' : '').'" colspan = "2">';
+											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrascuspbggreen infrascuspblack' : '').'">'.$tblversions[$i]->attributes()->Number.'</td>
+											<td class = "center valigntop '.(empty($sxelastPath) ? 'infrascuspbggreen infrascuspblack' : '').'">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
+											<td class = "left valigntop infrascuspricenopaddingvert '.(empty($sxelastPath) ? 'infrascuspbggreen' : '').'" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrascuspCaution';
@@ -723,7 +733,7 @@
 				$ret	.= '			<tr class = "oddeven">
 											<td class = "center valigntop">'.$tblversions[$i]->attributes()->Number.'</td>
 											<td class = "center valigntop">'.$tblversions[$i]->attributes()->MonthVersion.'</td>
-											<td class = "left valigntop nopaddingvert" colspan = "2">';
+											<td class = "left valigntop infrascuspricenopaddingvert" colspan = "2">';
 				foreach ($lineversion as $changeline) {
 					if ($changeline->attributes()->type == 'fix') {
 						$classcolor	= ' infrascuspCaution';
@@ -761,7 +771,7 @@
 	{
 		global $db, $langs;
 
-		$ret	= '<table class = "noborder" >
+		$ret	= '<table class = "infrascuspricenoborder" >
 						<tr class = "liste_titre">
 						<th class = "center width400">'.$langs->trans('InfraSCusPSupportInformation').'</th>
 						<th class = "center">'.$langs->trans('Value').'</th>
@@ -784,7 +794,7 @@
 					</tr>
 					<tr class="oddeven">
 						<td class = "width400 infrascuspchangelogbase">'.$langs->trans('WebServerVersion').'</td>
-						<td class = "infrascuspchangelogbase">'.$_SERVER['SERVER_SOFTWARE'].'</td>
+						<td class = "infrascuspchangelogbase">'.dol_escape_htmltag($_SERVER['SERVER_SOFTWARE']).'</td>
 					</tr>
 						<tr><td colspan = "3" class = "infrascuspFinal">&nbsp;</td></tr>
 				</table>
