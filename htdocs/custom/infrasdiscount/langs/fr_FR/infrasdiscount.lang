@@ -66,11 +66,13 @@ InfraSDiscountTypeServiceOnly               = Service uniquement
 InfraSDiscountTypeProductAndService         = Produit et Service
 InfraSDiscountLabelModify                   = Modifier les Remises
 ErrorAddingDiscountLine                     = Impossible d'ajouter la ligne de Remise.
+
 ### About page ###
 
 ### Changelog page ###
 InfraSDiscountParamsChangelog           = Changelog / Support
-InfraSDiscountParamPresent              = <b>Ce module est une création InfraS, sa documentation est disponible sur notre wiki</b>
+InfraSDiscountParamPresent1             = <b>Ce module est une création</b>
+InfraSDiscountParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
 InfraSDiscountParamSlogan               = Structurez votre croissance !
 InfraSDiscountParamLienModules          = Nos Modules
 InfraSDiscountParamSupport              = Demande de support
@@ -78,6 +80,8 @@ InfraSDiscountParamLienDocs             = Nos Documentations
 InfraSDiscountParamLicense              = sous Licence GPL v3 et supérieur 
 InfraSDiscountParamMoreModulesLink      = Nos modules sur le dolistore
 InfraSDiscountParamObjet                = <h3>Objet :</h3>
+InfraSDiscountParamPreferedPartner1     = Membre du programme officiel
+InfraSDiscountParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise
 InfraSDiscountParamHistoryUpdates       = <b>Historique des mises à jour :</b>
 InfraSDiscountParamSkipCheck            = Téléchargement désactivé
 InfraSDiscountParamNumberVersion        = N° de version

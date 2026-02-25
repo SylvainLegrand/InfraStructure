@@ -115,7 +115,25 @@
 	<Version Number="15.2.13" MonthVersion="2026-02">
 		<change type='fix'>Refonte complet du logique de creation et modification de remise en utilisant des fonctions helpers</change>
 	</Version>
+	<Version Number="15.3.0" MonthVersion="2026-02">
+		<change type='fix'>Sécurité : Correction des appels GETPOST sans type ou avec type déprécié 'none' => utilisation de 'alphanohtml' et 'alpha'</change>
+		<change type='fix'>Sécurité : Restriction de la regex set_(.*) à set_(INFRASDISCOUNT_.*) pour empêcher la modification de constantes arbitraires</change>
+		<change type='fix'>Sécurité : Ajout du contrôle de permission dans doActions() et renforcement du contrôle pour les actions de sauvegarde/restauration</change>
+		<change type='fix'>Sécurité : Échappement de $_SERVER['PHP_SELF'] et $_SERVER['SERVER_SOFTWARE'] avec dol_escape_htmltag() contre les failles XSS</change>
+		<change type='fix'>Sécurité : Remplacement du secret OAuth2 en dur par getDolGlobalString() et suppression du token d'accès dans les logs</change>
+		<change type='fix'>Sécurité : Remplacement de addslashes() par $db->escape() dans la fonction de sauvegarde SQL</change>
+		<change type='fix'>Sécurité : Correction du cast de entity en integer dans la requête SQL de sauvegarde</change>
+		<change type='fix'>Correction de l'appel à infraspackplus_print_input() remplacé par infrasdiscount_print_input()</change>
+		<change type='fix'>Correction du lien de téléchargement du backup (modulepart=infraspackplus => modulepart=infrasdiscount)</change>
+		<change type='fix'>Correction du chemin dol_buildpath() sans slash initial dans la fonction Prepare_Head</change>
+		<change type='fix'>JavaScript : Correction du nom de cookie 'tblPSexp' non préfixé par le module => 'infrasdiscount_tblPSexp' (cohérence avec les autres modules InfraS)</change>
+		<change type='chg'>Nouveau lien vers le Wiki InfraSDiscount</change>
+		<change type='chg'>Amélioration du CSS</change>
+		<change type='chg'>Remplacement de la syntaxe dépréciée $user->rights->infrasdiscount->use par $user->hasRight()</change>
+		<change type='chg'>Alignement du bloc JavaScript sur les conventions des modules infraspackplus, infrassearch et infraswidgets</change>
+		<change type='add'>Ajout du fichier CLAUDE.md complet pour guider le développement avec l'IA (Documentation complète de l'architecture, des fonctions, des calculs de remises et du support multi-devises)</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="22.0.2"/>
-	<PHP minVersion="7.4" maxVersion="8.2"/>
+	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

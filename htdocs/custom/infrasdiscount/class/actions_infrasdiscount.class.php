@@ -75,9 +75,9 @@
 			if ($object->element == 'facture' && getDolGlobalString('INFRASDISCOUNT_ON_INVOICE', '')) {
 				$elementValid[]	= $object->element;
 			}
-			if (in_array($object->element, $elementValid) && $user->rights->infrasdiscount->use) {
+			if (in_array($object->element, $elementValid) && $user->hasRight('infrasdiscount', 'use')) {
 				print '	<div class = "inline-block divButAction">
-							<a class = "butAction" href = "'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=remise">'.$langs->trans('InfraSDiscountLabelSubmit').'</a>
+							<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&action=remise">'.$langs->trans('InfraSDiscountLabelSubmit').'</a>
 						</div>';
 				// Vérifier s'il existe au moins une ligne de remise
 				$hasRemiseLine	= false;
@@ -91,7 +91,7 @@
 				}
 				if ($hasRemiseLine) {
 					print '	<div class = "inline-block divButAction">
-								<a class = "butAction" href = "'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=modify_remise">'.$langs->trans('InfraSDiscountLabelModify').'</a>
+								<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&action=modify_remise">'.$langs->trans('InfraSDiscountLabelModify').'</a>
 							</div>';
 				}
 			}
@@ -228,7 +228,7 @@
 																}
 															</script>'
 											);
-				$this->resprints	= $form->formconfirm($_SERVER['PHP_SELF'].'?id='.$object->id, $langs->trans('InfraSDiscountLabelBox'), '', 'InfraSDiscountRemise', $formquestion, 'yes', 1, 0, 700);
+				$this->resprints	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id), $langs->trans('InfraSDiscountLabelBox'), '', 'InfraSDiscountRemise', $formquestion, 'yes', 1, 0, 700);
 			}
 			// New code for 'modify_remise' action
 			if (in_array($object->element, array('propal', 'commande', 'facture')) && $action == 'modify_remise') {
@@ -413,7 +413,7 @@
 										'value'	=> implode(',', $listLines)
 										);
 			$form				= new Form($this->db);
-			$this->resprints	= $form->formconfirm($_SERVER['PHP_SELF'].'?id='.$object->id.'&action=modify_remise', $langs->trans('InfraSDiscountLabelModify'), $langs->trans('InfraSDiscountConfirmModifyRemise'), 'modify_remise', $formquestion, 'yes', 1, 0, 1000);
+			$this->resprints	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&action=modify_remise', $langs->trans('InfraSDiscountLabelModify'), $langs->trans('InfraSDiscountConfirmModifyRemise'), 'modify_remise', $formquestion, 'yes', 1, 0, 1000);
 			return 0;
 		}
 		/**
@@ -432,6 +432,11 @@
 
 			$result	= 0;
 
+			// Permission check
+			if (!$user->hasRight('infrasdiscount', 'use')) {
+				return 0;
+			}
+
 			/*
 			 * Créations des Remises
 			 */
@@ -447,7 +452,7 @@
 
 				// Redirection pour éviter la réouverture du popup
 				if ($result >= 0) {
-					header("Location: ".$_SERVER['PHP_SELF']."?id=".$object->id);
+					header("Location: ".dol_escape_htmltag($_SERVER['PHP_SELF'])."?id=".((int) $object->id));
 					exit;
 				}
 			}
@@ -473,7 +478,7 @@
 			$myRemise_is			= GETPOST('myRemise_is', 'alpha');
 			$myRemise_type			= GETPOST('myRemise_type', 'int');
 			$libelle				= GETPOST('libelle', 'alpha');
-			$tva_tx					= GETPOST('remise_tva_tx') ? GETPOST('remise_tva_tx') : 0;
+			$tva_tx					= GETPOST('remise_tva_tx', 'alpha') ? GETPOST('remise_tva_tx', 'alpha') : 0;
 			$tva_npr				= (preg_match('/\*/', $tva_tx) ? 1 : 0);
 			$tva_tx					= str_replace('*', '', $tva_tx);
 

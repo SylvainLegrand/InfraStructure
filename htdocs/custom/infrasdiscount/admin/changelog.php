@@ -55,7 +55,7 @@
 	print load_fiche_titre($page_name, $linkback, 'title_setup');
 
 	// Configuration header *************************
-	$head			= infrasdiscount_Prepare_Head();
+	$head			= infrasdiscount_admin_Prepare_Head();
 	$picto			= 'infrasdiscount@infrasdiscount';
 	print dol_get_fiche_head($head, 'changelog', $langs->trans('modcomnameInfrasdiscount'), 0, $picto);
 

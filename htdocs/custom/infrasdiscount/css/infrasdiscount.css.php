@@ -60,6 +60,33 @@
 		header('Cache-Control: no-cache');
 	}
 ?>
+@font-face {
+	font-family: 'puentebold';
+	src: url('<?php print dol_buildpath('/infrasdiscount/css/puentebold.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'NeuropolRegular';
+	src: url('<?php print dol_buildpath('/infrasdiscount/css/NeuropolRegular.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.infrasdiscountneuropolinfras {
+	font-family: NeuropolRegular, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	color: #19052d;
+}
+
+.infrasdiscountpuentedolibarr {
+	font-family: puentebold, sans-serif;
+	color: #027991;
+	font-size-adjust: 0.6;
+}
+
 #InfraSDiscount {
 	padding: 8px 8px 16px 8px;
 	height: 100%;
@@ -73,7 +100,7 @@
 }
 
 .formInfraSDiscount {
-text-align: center;
+	text-align: center;
 }
 
 .formInfraSDiscount input {
@@ -81,10 +108,10 @@ text-align: center;
 }
 
 label.titre {
-font-family: roboto,arial,tahoma,verdana,helvetica;
-font-weight: bold;
-color: rgb(90,90,90);
-text-decoration: none;
+	font-family: roboto,arial,tahoma,verdana,helvetica;
+	font-weight: bold;
+	color: rgb(90,90,90);
+	text-decoration: none;
 }
 
 .infrasdiscountNoBCollapse {
@@ -171,6 +198,7 @@ img.infrasdiscountwidthpictotitle {
 }
 
 .infrasdiscountslogan {
+	color: #ffffff;
 	font-size: 16px;
 }
 
@@ -197,63 +225,75 @@ img.infrasdiscountwidthpictotitle {
 	padding-bottom: 0
 }
 
-.width110 {
+.infrasdiscountwidth110 {
 	width: 110px;
 }
 
-.width120 {
+.infrasdiscountwidth120 {
 	width: 120px;
 }
 
-.width180 {
-	width: 180px
+.infrasdiscountwidth180 {
+	width: 180px;
 }
 
-.width220 {
+.infrasdiscountwidth220 {
 	width: 220px;
 }
 
-.width270 {
+.infrasdiscountwidth270 {
 	width: 270px;
 }
 
-.widthtrentepercent {
+.infrasdiscountminwidth700imp {
+	min-width: 700px !important;
+}
+
+.infrasdiscountwidthtrentepercent {
 	width: 30%;
 }
 
-.height75 {
+.infrasdiscountheight75 {
 	height: 75px;
 }
 
-.height50 {
+.infrasdiscountheight32 {
+	height: 32px;
+}
+
+.infrasdiscountheight50 {
 	height: 50px;
 }
 
-.height25 {
+.infrasdiscountheight25 {
 	height: 25px;
 }
 
-.height20 {
+.infrasdiscountheight20 {
 	height: 20px;
 }
 
-.nomargin {
+.infrasdiscountnomargin {
 	margin: 0px;
 }
 
-.nopadding {
+.infrasdiscountnopadding {
 	padding: 0px !important;
 }
 
-.noborder {
+.infrasdiscountnoborder {
 	border: none;
 }
 
-.nopaddingvert {
+.infrasdiscountnopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
 }
 
-.fontsizeinherit {
+.infrasdiscountmargintop10imp {
+	margin-top: 10px !important;
+}
+
+.infrasdiscountfontsizeinherit {
 	font-size: inherit;
 }

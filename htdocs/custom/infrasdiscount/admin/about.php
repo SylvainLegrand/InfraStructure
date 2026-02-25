@@ -59,7 +59,7 @@
 	print load_fiche_titre($page_name, $linkback, 'title_setup');
 
 	// Configuration header *************************
-	$head		= infrasdiscount_Prepare_Head();
+	$head		= infrasdiscount_admin_Prepare_Head();
 	$picto		= 'infrasdiscount@infrasdiscount';
 	print dol_get_fiche_head($head, 'about', $langs->trans('modcomnamePackPlus'), 0, $picto);
 
@@ -78,7 +78,7 @@
 					});
 				</script>';
 	}
-	print '		<form class = "infrasdiscountformabout" action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form class = "infrasdiscountformabout" action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">
 					<div class = "moduledesclong">'.$content.'<div>
 				</form>

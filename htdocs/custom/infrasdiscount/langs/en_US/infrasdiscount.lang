@@ -67,12 +67,12 @@ InfraSDiscountTypeProductAndService         = Product and Service
 InfraSDiscountLabelModify                   = Modify discounts
 ErrorAddingDiscountLine                     = Unable to add the discount line.
 
-
 ### About page ###
 
 ### Changelog page ###
-InfraSDiscountParamChangelog            = Changelog /Support
-InfraSDiscountParamPresent              = <b> This module is an infras creation, its documentation is available on our wiki </b>
+InfraSDiscountParamsChangelog           = Changelog /Support
+InfraSDiscountParamPresent1             = <b>This module is a creation by</b>
+InfraSDiscountParamPresent2             = <b>, documentation is available on our website</b>
 InfraSDiscountParamSlogan               = Structure your growth!
 InfraSDiscountParamLienModules          = Our Modules
 InfraSDiscountParamSupport              = Support request
@@ -80,6 +80,8 @@ InfraSDiscountParamLienDocs             = Our Documentations
 InfraSDiscountParamLicense              = Under LPG V3 and Superior License
 InfraSDiscountParamMoreModulesLink      = Our dolistore modules
 InfraSDiscountParamObjet                = <h3> objet: </ h3>
+InfraSDiscountParamPreferedPartner1     = Member of the official program
+InfraSDiscountParamPreferedPartner2     = Preferred Partner, guarantee of quality and expertise
 InfraSDiscountParamHistoryUpdates       = <b> History of updates: </b>
 InfraSDiscountParamSkipCheck            = Download Disabled
 InfraSDiscountParamNumberVersion        = Version number

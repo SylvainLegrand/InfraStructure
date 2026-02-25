@@ -56,16 +56,16 @@
 	$confirm		= GETPOST('confirm', 'alpha');
 	$result			= '';
 	// Sauvegarde / Restauration
-	if ($action == 'bkupParams') {
+	if ($action == 'bkupParams' && $accessright == 2) {
 		$result	= infrasdiscount_bkup_module ('infrasdiscount');
 	}
-	if ($action == 'restoreParams') {
+	if ($action == 'restoreParams' && $accessright == 2) {
 		$result	= infrasdiscount_restore_module ('infrasdiscount');
 	}
 	// On / Off management
-	if (preg_match('/set_(.*)/', $action, $reg)) {
+	if (preg_match('/set_(INFRASDISCOUNT_.*)/', $action, $reg)) {
 		$confkey	= $reg[1];
-		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSDiscount module', $conf->entity);
+		$result		= dolibarr_set_const($db, $confkey, GETPOST('value', 'alphanohtml'), 'chaine', 0, 'InfraSDiscount module', $conf->entity);
 	}
 	// Update buttons management
 	if (preg_match('/update_(.*)/', $action, $reg)) {
@@ -86,7 +86,7 @@
 							);
 		$confkey	= $reg[1];
 		foreach ($list[$confkey] as $constname){
-			$value	= GETPOST($constname, 'none');
+			$value	= GETPOST($constname, 'alphanohtml');
 			if ($constname == 'INFRASDISCOUNT_PRODUCT_AFFILIATE') {
 				$value	= implode(',', GETPOST($constname, 'array'));
 			}
@@ -134,7 +134,7 @@
 	$titleoption	= img_picto($langs->trans('Setup'), 'setup', '', false, 0, 0, '', 'fa-15 paddingright10imp');
 
 	// Configuration header *************************
-	$head			= infrasdiscount_Prepare_Head();
+	$head			= infrasdiscount_admin_Prepare_Head();
 	$picto			= 'infrasdiscount@infrasdiscount';
 	print dol_get_fiche_head($head, 'settings', $langs->trans('modcomnameInfrasdiscount'), 0, $picto);
 
@@ -142,16 +142,17 @@
 	if ($conf->use_javascript_ajax) {
 		print '	<script src = "'.dol_buildpath('/includes/jquery/plugins/jquerytreeview/lib/jquery.cookie.js', 1).'"></script>
 				<script type = "text/javascript">
+					var cookieName = "infrasdiscount_tblPSexp";
 					jQuery(document).ready(function() {
 						var tblPSexp = "";
-						$.isSet = function(testVar){
+						$.isSet = function(testVar) {
 							return typeof(testVar) !== "undefined" && testVar !== null && testVar !== "";
 						};
-						if ($.cookie && $.isSet($.cookie("tblPSexp"))) {
-							tblPSexp = $.cookie("tblPSexp");
+						if ($.cookie && $.isSet($.cookie(cookieName))) {
+							tblPSexp = $.cookie(cookieName);
 						}
 						$(".toggle_bloc").hide();
-						if (tblPSexp != "") {
+						if (tblPSexp) {
 							$("[name=" + tblPSexp + "]").toggle();
 						}
 					});
@@ -163,10 +164,10 @@
 								$(".toggle_bloc").hide();
 								$(this).siblings().show();
 							}
-							$.cookie("tblPSexp", "", { expires: 1, path: "/" });
+							$.cookie(cookieName, "", { expires: 1, path: "/" });
 							$(".toggle_bloc").each(function() {
 								if ($(this).is(":visible")) {
-									$.cookie("tblPSexp", $(this).attr("name"), { expires: 1, path: "/" });
+									$.cookie(cookieName, $(this).attr("name"), { expires: 1, path: "/" });
 								}
 							});
 						});
@@ -180,13 +181,13 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	// Sauvegarde / Restauration
 	if ($accessright == 2)	infrasdiscount_print_backup_restore();
 	print '			<div class = "foldable">';
 	print infrasdiscount_load_title('<span class = "infrasdiscounttitleparam">'.$langs->trans('InfraSDiscountFeatures').'</span>', $titleoption, dol_buildpath('/infrasdiscount/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblAG" class = "noborder toggle_bloc" centpercent>';
+	print '				<table name = "tblAG" class = "infrasdiscountnoborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '256px', '120px');
 	infrasdiscount_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -213,19 +214,19 @@
 		} else {
 			$num++;
 		}
-		$metas	= array(1, 0, 0, 1, 2, '', 1, array(), 0, '1', 0, 'quatrevingtpercent', 1, '', null, 0, -1);
+		$metas	= array(1, 0, 0, 1, 2, '', 1, array(), 0, '1', 0, 'flat quatrevingtpercent infrasdiscountnopadding', 1, '', null, 0, -1);
 		$num	= infrasdiscount_print_input('INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT', 'select_produits', $langs->trans('InfraSDiscountServiceLinkToDiscount'), 'InfraSDiscountServiceLinkToDiscountHelp', $metas, 2, 1, '', $num);
-		$metas	= array(0, 0, 0, 1, 2, '', 1, array(), 0, '1', 0, 'quatrevingtpercent', 1, '', null, 0, -1);
+		$metas	= array(0, 0, 0, 1, 2, '', 1, array(), 0, '1', 0, 'flat quatrevingtpercent infrasdiscountnopadding', 1, '', null, 0, -1);
 		$num	= infrasdiscount_print_input('INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT', 'select_produits', $langs->trans('InfraSDiscountProductLinkToDiscount'), 'InfraSDiscountProductLinkToDiscountHelp', $metas, 2, 1, '', $num);
 		// $num = 9
-		$metas	= array('type' => 'number', 'step' => '0.01', 'min' => '0', 'max' => '100', 'class' => 'quatrevingtpercent right');
+		$metas	= array('type' => 'number', 'step' => '0.01', 'min' => '0', 'max' => '100', 'class' => 'flat quatrevingtpercent infrasdiscountnopadding right');
 		$num	= infrasdiscount_print_input('INFRASDISCOUNT_DEFAULT_REM_VALUE', 'input', $langs->trans('InfraSDiscountDefaultRemValue'), '', $metas, 2, 1, '', $num);
 	}
 	print '				</table>
 					</div>';
 	print '			<div class = "foldable">';
 	print infrasdiscount_load_title('<span class = "infrasdiscounttitleparam">'.$langs->trans('InfraSDiscountAuto').'</span>', $titleoption, dol_buildpath('/infrasdiscount/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblHP" class = "noborder toggle_bloc" centpercent>';
+	print '				<table name = "tblHP" class = "infrasdiscountnoborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '256px', '120px');
 	infrasdiscount_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -237,16 +238,16 @@
 		foreach($productlist as $product) {
 			$options[$product['key']]	= $product['label'];
 		}
-		$metas			= array('type' => 'number', 'class' => 'quatrevingtpercent right');
+		$metas			= array('type' => 'number', 'class' => 'flat quatrevingtpercent infrasdiscountnopadding right');
 		$num			= infrasdiscount_print_input('INFRASDISCOUNT_NUMBER_DISCOUNT_ALLOW', 'input', $langs->trans('InfraSDiscountNumberofDiscountAllowed'), 'InfraSDiscountNumberofDiscountAllowedHelp', $metas, 2, 1, '', $num);
-		$metas			= array('type' => 'number', 'class' => 'quatrevingtpercent right');
+		$metas			= array('type' => 'number', 'class' => 'flat quatrevingtpercent infrasdiscountnopadding right');
 		$num			= infrasdiscount_print_input('INFRASDISCOUNT_FREE_LINE', 'input', $langs->trans('InfraSDiscountNumberofFree'), 'InfraSDiscountNumberofFreeHelp', $metas, 2, 1, '', $num);
-		$metas			= $form->multiselectarray('INFRASDISCOUNT_PRODUCT_AFFILIATE', $options, $arrayProdAffiliate, 0, 0, '', 0, '80%');
+		$metas			= $form->multiselectarray('INFRASDISCOUNT_PRODUCT_AFFILIATE', $options, $arrayProdAffiliate, 0, 0, 'flat quatrevingtpercent infrasdiscountnopadding', 0, '80%');
 		$num			= infrasdiscount_print_input('INFRASDISCOUNT_PRODUCT_AFFILIATE', 'select', $langs->trans('InfraSDiscountProductAffiliate'), 'InfraSDiscountProductAffiliateHelp', $metas, 2, 1, '', $num);
 		$productLabels	= array('' => '') + $productLabels;
-		$metas			= $form->selectarray('INFRASDISCOUNT_PONDERATION', $productLabels, $ponderations, 0, 0, 0, '', 0, 0, 0, '', 'centpercent', 1, '', 0, 0);
+		$metas			= $form->selectarray('INFRASDISCOUNT_PONDERATION', $productLabels, $ponderations, 0, 0, 0, '', 0, 0, 0, '', 'flat quatrevingtpercent infrasdiscountnopadding', 1, '', 0, 0);
 		$num			= infrasdiscount_print_input('INFRASDISCOUNT_PONDERATION', 'select', $langs->trans('InfraSDiscountPonderation'), 'InfraSDiscountPonderationHelp', $metas, 2, 1, '', $num);
-		$num			= infraspackplus_print_input('INFRASDISCOUNT_DESC_FREETEXT', 'textarea', $langs->trans('InfraSDiscountParamDescFreeText'), '', array(), 2, 1, '', $num);
+		$num			= infrasdiscount_print_input('INFRASDISCOUNT_DESC_FREETEXT', 'textarea', $langs->trans('InfraSDiscountParamDescFreeText'), '', array(), 2, 1, '', $num);
 		// $num = 6
 	}
 	print '				</table>

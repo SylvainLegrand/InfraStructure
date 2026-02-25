@@ -513,10 +513,14 @@
 		private function payFacture($object)
 		{
 			// URL de l'API pour obtenir le token
-			$url			= 'https://connection.sortandgroup.fr/realms/front/protocol/openid-connect/token';
-			// Identifiants client
-			$client_id		= 'dolibarr';
-			$client_secret	= 'U3VbPua5Y7j2mm1gh54YynT0V7dJL6rJ';
+			$url			= getDolGlobalString('INFRASDISCOUNT_OAUTH_URL', 'https://connection.sortandgroup.fr/realms/front/protocol/openid-connect/token');
+			// Identifiants client (stockés en base via la page de configuration)
+			$client_id		= getDolGlobalString('INFRASDISCOUNT_OAUTH_CLIENT_ID', '');
+			$client_secret	= getDolGlobalString('INFRASDISCOUNT_OAUTH_CLIENT_SECRET', '');
+			if (empty($client_id) || empty($client_secret)) {
+				dol_syslog("payFacture: OAuth2 credentials not configured (INFRASDISCOUNT_OAUTH_CLIENT_ID / INFRASDISCOUNT_OAUTH_CLIENT_SECRET)", LOG_ERR);
+				return -1;
+			}
 			// Type de grant pour l'authentification
 			$grant_type		= 'client_credentials';
 			// Initialiser cURL
@@ -547,7 +551,7 @@
 			}
 			// Récupérer le token d'accès
 			$accessToken	= $responseData['access_token'];
-			dol_syslog("Token d'accès récupéré : ".$accessToken, LOG_DEBUG);
+			dol_syslog("Token d'accès récupéré avec succès", LOG_DEBUG);
 			// Call the payment API with the batch ID and access token
 			$batch_id	= $object->array_options['options_uid'];	// Assuming 'options_uid' contains the batch ID
 			$products	= array();

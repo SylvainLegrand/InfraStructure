@@ -3,7 +3,7 @@
 
 
 # ***InfraSMultiDiscount***
-
+#### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
 * La saisie des remises ***InfraS*** simplifie votre gestion commerciale :
 	 * Vous pouvez saisir des remises en pourcentage ou en valeur (monétaire)
 	 * Les remises en pourcentage s'appliquent en cascade sur le total du document (ces remises sont cumulables : 10% + 5%)
