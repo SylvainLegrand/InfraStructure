@@ -171,21 +171,25 @@
 		{
 			global $conf;
 
-			$sql	= 'SELECT * FROM '.$this->db->prefix().'stock_mouvement AS m WHERE';
+			$sql	= 'SELECT COUNT(*) as nbtotalofrecords FROM '.$this->db->prefix().'stock_mouvement AS m WHERE';
 			switch (getDolGlobalString('INFRASPROJECT_SEARCHMODE')) {
 				case 1:
-					$sql	.= ' m.label LIKE "%'.addslashes($object->ref).'%"';
+					$sql	.= ' m.label LIKE "%'.$this->db->escape($object->ref).'%"';
 				break;
 				case 2:
-					$sql	.= ' m.inventorycode LIKE "'.addslashes(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%"';
+					$sql	.= ' m.inventorycode LIKE "'.$this->db->escape(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%"';
 				break;
 				case 3:
-					$sql	.= ' (m.inventorycode LIKE "'.addslashes(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%" OR m.label LIKE "%'.addslashes($object->ref).'%")';
+					$sql	.= ' (m.inventorycode LIKE "'.$this->db->escape(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%" OR m.label LIKE "%'.$this->db->escape($object->ref).'%")';
 				break;
 			}
 			$nbtotalofrecords	= 0;
 			$result				= $this->db->query($sql);
-			$nbtotalofrecords	= $this->db->num_rows($result);
+			if ($result) {
+				$obj				= $this->db->fetch_object($result);
+				$nbtotalofrecords	= $obj->nbtotalofrecords;
+				$this->db->free($result);
+			}
 			return $nbtotalofrecords;
 		}
 

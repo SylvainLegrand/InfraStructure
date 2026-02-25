@@ -258,19 +258,19 @@
 			$factFour		= new FactureFournisseur($this->db);
 			$factFour->fetch($object->fk_facture_fourn);	// Facture fournisseur d'origine
 			$fk_projectLine	= infrasproject_printprj($object->id, 1);	// Récupération du projet de la ligne de facture fournisseur
-			$lineprojectid	= !empty(GETPOSTINT('lineprojectid')) ? GETPOSTINT('lineprojectid') : (!empty($fk_projectLine) && empty(GETPOSTINT('infraslineedit')) ? $fk_projectLine : 'null');
+			$lineprojectid	= !empty(GETPOSTINT('lineprojectid')) ? GETPOSTINT('lineprojectid') : (!empty($fk_projectLine) && empty(GETPOSTINT('infraslineedit')) ? $fk_projectLine : 0);
 			$sql			= 'UPDATE '.$this->db->prefix().'facture_fourn_det SET';
-			$sql			.= ' entity = '.(isset($factFour->entity) ? $factFour->entity : $conf->entity).',';
-			$sql			.= ' fk_soc = '.(isset($factFour->fk_soc) ? $factFour->fk_soc : 'null').',';
-			$sql			.= ' fk_projet = '.$this->db->escape($lineprojectid);
-			$sql			.= ' WHERE rowid = '.$object->id.';';
+			$sql			.= ' entity = '.((int) (isset($factFour->entity) ? $factFour->entity : $conf->entity)).',';
+			$sql			.= ' fk_soc = '.(isset($factFour->fk_soc) ? ((int) $factFour->fk_soc) : 'null').',';
+			$sql			.= ' fk_projet = '.(!empty($lineprojectid) ? ((int) $lineprojectid) : 'null');
+			$sql			.= ' WHERE rowid = '.((int) $object->id).';';
 			$resql			= $this->db->query($sql);
 			if (!$resql) {
 				setEventMessage($this->db->lasterror(), 'errors');
 				return -1;
 			}
 			// If the supplier invoice is linked to a project, it's removed because the distribution on the projects is done at the level of the lines
-			if (!empty($lineprojectid) && $lineprojectid != 'null') {
+			if (!empty($lineprojectid) && $lineprojectid > 0) {
 				return $factFour->setProject(0);
 			}
 			return 1;

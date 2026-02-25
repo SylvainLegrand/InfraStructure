@@ -91,8 +91,8 @@
 												GETPOST('objectType', 'alpha'),	// objectType
 												$id,							// rowid of origin element
 												$datem,							// Force date of movement (timestamp)
-												GETPOST('eatby'),				// eat-by date. Will be used if lot does not exists yet and will be created.
-												GETPOST('sellby'),				// sell-by date. Will be used if lot does not exists yet and will be created.
+												GETPOST('eatby', 'alpha'),		// eat-by date. Will be used if lot does not exists yet and will be created.
+												GETPOST('sellby', 'alpha'),		// sell-by date. Will be used if lot does not exists yet and will be created.
 												$batch_number					// batch number or name of user link to consumption
 												);
 				if ($result > 0) {

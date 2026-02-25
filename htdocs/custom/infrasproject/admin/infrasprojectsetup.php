@@ -56,16 +56,18 @@
 	$confirm		= GETPOST('confirm', 'alpha');
 	$result			= '';
 	// Sauvegarde / Restauration
-	if ($action == 'bkupParams') {
+	if ($action == 'bkupParams' && $accessright == 2) {
 		$result	= infrasproject_bkup_module ('infrasproject');
 	}
-	if ($action == 'restoreParams') {
+	if ($action == 'restoreParams' && $accessright == 2) {
 		$result	= infrasproject_restore_module ('infrasproject');
 	}
 	// On / Off management
 	if (preg_match('/set_(.*)/', $action, $reg)) {
 		$confkey	= $reg[1];
-		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSProject module', $conf->entity);
+		if (preg_match('/^(INFRASPROJECT_|STOCK_MOVEMENT_INTO_PROJECT_OVERVIEW|STOCK_SUPPORTS_SERVICES|PRODUCT_DISABLE_)/', $confkey)) {
+			$result		= dolibarr_set_const($db, $confkey, GETPOST('value', 'alphanohtml'), 'chaine', 0, 'InfraSProject module', $conf->entity);
+		}
 	}
 	// Update buttons management
 	if (preg_match('/update_(.*)/', $action, $reg)) {
@@ -137,21 +139,21 @@
 					});
 				</script>';
 	}
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">';
 	// Sauvegarde / Restauration
 	if ($accessright == 2)	infrasproject_print_backup_restore();
 	// Comportement général
 	print '		<div class = "foldable">';
 	print infrasproject_load_title('<span class = "infrasprojecttitleparam">'.$langs->trans('InfraSProjectParamModule').'</span>', $titleoption, dol_buildpath('/infrasproject/img/option_tool.png', 1), 1, '', '');
-	print '			<table name = "tblAG" class = "noborder toggle_bloc" width = "100%">';
+	print '			<table name = "tblAG" class = "infrasprojectnoborder toggle_bloc" width = "100%">';
 	$metas	= array('30px', '*', '200px', '200px', '120px');
 	infrasproject_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
 	infrasproject_print_liste_titre($metas);
 	if (!empty($accessright)) {
 		$num	= 1;
-		infrasproject_print_btn_action('Gen', '<FONT color = "red">'.$langs->trans('InfraSProjectCaution').'</FONT> '.$langs->trans('InfraSProjectCautionSave'), 4, 'center', 'Modify', false);
+		infrasproject_print_btn_action('Gen', '<span class = "infrasprojectcaution">'.$langs->trans('InfraSProjectCaution').'</span> '.$langs->trans('InfraSProjectCautionSave'), 4, 'center', 'Modify', false);
 		$num	= infrasproject_print_input('INFRASPROJECT_INVCODEPREFIX', 'input', $langs->trans('InfraSProjectPrefixInvcod'), '', array(), 2, 1, '', $num);
 		$metas	= $form->selectarray('INFRASPROJECT_SEARCHMODE', array('1' => 'InfraSProjectSearch1', '2' => 'InfraSProjectSearch2', '3' => 'InfraSProjectSearch3'), $searchMode, 0, 0, 0, '', 1, 0, 0, '', 'quatrevingtpercent');
 		$num	= infrasproject_print_input('', 'select', $langs->trans('InfraSProjectSearchMode'), '', $metas, 2, 1, '', $num);
@@ -183,11 +185,11 @@
 				$num++;
 			}
 			$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100');
-			$num		= infraspackplus_print_input('INFRASPROJECT_FIRST_MARK_RATE_TO_BE_APPLIED', 'input', $langs->trans('InfraSProjectFirstMarkRateToBeApplied'), '', $metas, 2, 1, '&nbsp;%', $num);
+			$num		= infrasproject_print_input('INFRASPROJECT_FIRST_MARK_RATE_TO_BE_APPLIED', 'input', $langs->trans('InfraSProjectFirstMarkRateToBeApplied'), '', $metas, 2, 1, '&nbsp;%', $num);
 			$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100');
-			$num		= infraspackplus_print_input('INFRASPROJECT_SECOND_MARK_RATE_TO_BE_APPLIED', 'input', $langs->trans('InfraSProjectSecondMarkRateToBeApplied'), '', $metas, 2, 1, '&nbsp;%', $num);
+			$num		= infrasproject_print_input('INFRASPROJECT_SECOND_MARK_RATE_TO_BE_APPLIED', 'input', $langs->trans('InfraSProjectSecondMarkRateToBeApplied'), '', $metas, 2, 1, '&nbsp;%', $num);
 			$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100');
-			$num		= infraspackplus_print_input('INFRASPROJECT_THIRD_MARK_RATE_TO_BE_APPLIED', 'input', $langs->trans('InfraSProjectThirdMarkRateToBeApplied'), '', $metas, 2, 1, '&nbsp;%', $num);
+			$num		= infrasproject_print_input('INFRASPROJECT_THIRD_MARK_RATE_TO_BE_APPLIED', 'input', $langs->trans('InfraSProjectThirdMarkRateToBeApplied'), '', $metas, 2, 1, '&nbsp;%', $num);
 		} else {
 			$num += 6;
 		}
@@ -237,7 +239,7 @@
 	if (isModEnabled('productbatch')) {
 		print '	<div class = "foldable">';
 		print infrasproject_load_title('<span class = "infrasprojecttitleparam">'.$langs->trans('InfraSProjectParamDolibarr').'</span>', $titleoption, dol_buildpath('/infrasproject/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-		print '		<table name = "tblDOL" class = "noborder toggle_bloc" width = "100%">';
+		print '		<table name = "tblDOL" class = "infrasprojectnoborder toggle_bloc" width = "100%">';
 		$metas	= array('30px', '*', '200px');
 		infrasproject_print_colgroup($metas);
 		$metas	= array(array(1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'));

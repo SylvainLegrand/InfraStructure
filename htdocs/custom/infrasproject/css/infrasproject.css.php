@@ -59,6 +59,33 @@
 		header('Cache-Control: no-cache');
 	}
 ?>
+@font-face {
+	font-family: 'puentebold';
+	src: url('<?php print dol_buildpath('/infrasproject/css/puentebold.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'NeuropolRegular';
+	src: url('<?php print dol_buildpath('/infrasproject/css/NeuropolRegular.ttf', 1); ?>') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.infrasprojectneuropolinfras {
+	font-family: NeuropolRegular, sans-serif;
+	font-weight: bold;
+	font-style: italic;
+	color: #19052d;
+}
+
+.infrasprojectpuentedolibarr {
+	font-family: puentebold, sans-serif;
+	color: #027991;
+	font-size-adjust: 0.6;
+}
+
 .infrasprojectNoBCollapse {
 	border-collapse: separate;
 }
@@ -143,6 +170,7 @@ img.infrasprojectwidthpictotitle {
 }
 
 .infrasprojectslogan {
+	color: #ffffff;
 	font-size: 16px;
 }
 
@@ -169,63 +197,75 @@ img.infrasprojectwidthpictotitle {
 	padding-bottom: 0
 }
 
-.width110 {
+.infrasprojectwidth110 {
 	width: 110px;
 }
 
-.width120 {
+.infrasprojectwidth120 {
 	width: 120px;
 }
 
-.width180 {
+.infrasprojectwidth180 {
 	width: 180px
 }
 
-.width220 {
+.infrasprojectwidth220 {
 	width: 220px;
 }
 
-.width270 {
+.infrasprojectwidth270 {
 	width: 270px;
 }
 
-.widthtrentepercent {
+.infrasprojectminwidth700imp {
+	min-width: 700px !important;
+}
+
+.infrasprojectwidthtrentepercent {
 	width: 30%;
 }
 
-.height75 {
+.infrasprojectheight75 {
 	height: 75px;
 }
 
-.height50 {
+.infrasprojectheight32 {
+	height: 32px;
+}
+
+.infrasprojectheight50 {
 	height: 50px;
 }
 
-.height25 {
+.infrasprojectheight25 {
 	height: 25px;
 }
 
-.height20 {
+.infrasprojectheight20 {
 	height: 20px;
 }
 
-.nomargin {
+.infrasprojectnomargin {
 	margin: 0px;
 }
 
-.nopadding {
+.infrasprojectnopadding {
 	padding: 0px !important;
 }
 
-.noborder {
+.infrasprojectnoborder {
 	border: none;
 }
 
-.nopaddingvert {
+.infrasprojectnopaddingvert {
 	padding-top: 0;
 	padding-bottom: 0;
 }
 
-.fontsizeinherit {
+.infrasprojectmargintop10imp {
+	margin-top: 10px !important;
+}
+
+.infrasprojectfontsizeinherit {
 	font-size: inherit;
 }

@@ -68,8 +68,7 @@
 			if (!infrasproject_is_substitution_page($path_src)) {
 				$url = infrasproject_get_substitution_url($path_src);
 				if (!empty($url)) {
-					$params	= array_merge($_POST, $_GET);
-					$params	= http_build_query($params);
+					$params	= http_build_query($_GET);
 					header('Location: '.$url.(!empty($params) ? '?'.$params : ''));
 					exit;
 				}
@@ -94,8 +93,7 @@
 			if (!infrasproject_is_substitution_page($path_src)) {
 				$url = infrasproject_get_substitution_url($path_src);
 				if (!empty($url)) {
-					$params	= array_merge($_POST, $_GET);
-					$params	= http_build_query($params);
+					$params	= http_build_query($_GET);
 					header('Location: '.$url.(!empty($params) ? '?'.$params : ''));
 					exit;
 				}
@@ -247,7 +245,7 @@
 				if (class_exists('Contacttracking') && getDolGlobalInt('INFRASPROJECT_SHOW_LAST_EXCHANGE', 0)) {
 					$comment	= '';
 					$sql		= 'SELECT ct.rowid AS id FROM '.$this->db->prefix().'contacttracking AS ct';
-					$sql		.= ' WHERE ct.entity = "'.$conf->entity.'" AND ct.element_type LIKE "projet" AND ct.fk_element_id = '.$object->id;
+					$sql		.= ' WHERE ct.entity = '.((int) $conf->entity).' AND ct.element_type LIKE "projet" AND ct.fk_element_id = '.((int) $object->id);
 					$sql		.= ' ORDER BY ct.date_creation DESC LIMIT 1';
 					$resql		= $this->db->query($sql);
 					if (!empty($resql)) {
@@ -265,7 +263,7 @@
 				if (getDolGlobalInt('INFRASPROJECT_SHOW_NEXT_ACTION', 0)) {
 					$action		= '';
 					$sql		= 'SELECT ac.id FROM '.$this->db->prefix().'actioncomm AS ac';
-					$sql		.= ' WHERE ac.entity = "'.$conf->entity.'" AND ac.fk_project = '.$object->id;
+					$sql		.= ' WHERE ac.entity = '.((int) $conf->entity).' AND ac.fk_project = '.((int) $object->id);
 					$sql		.= ' ORDER BY ac.datep DESC LIMIT 1';
 					$resql		= $this->db->query($sql);
 					if (!empty($resql)) {

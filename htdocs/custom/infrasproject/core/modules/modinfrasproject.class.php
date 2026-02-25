@@ -231,7 +231,7 @@
 			global $conf;
 
 			infrasproject_bkup_module ($this->name);
-			$sql	= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPROJECT\_%" AND entity = "'.$conf->entity.'"');
+			$sql	= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPROJECT\_%" AND entity = '.((int) $conf->entity));
 			return $this->_remove($sql);
 		}
 

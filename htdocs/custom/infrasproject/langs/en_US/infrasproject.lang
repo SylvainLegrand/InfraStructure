@@ -51,10 +51,10 @@ ProjectCanAddTimeSpentOnTask            = Add time spent on tasks
 
 ### Setup page ###
 InfraSProjectParamModule                         = Module settings
-InfraSProjectParamAction1                        = Configuration of global discounts
-InfraSProjectParamAction2                        = Save / restore all module settings
-InfraSProjectParamBkup                           = <br> (after a restoration refresh the page (F5) to view the result)
-InfraSProjectParamRestore                        = To safeguard
+InfraSProjectParamAction1                        = Save / restore all module settings
+InfraSProjectParamAction2                        = <br>(after a restoration refresh the page (F5) to view the result)
+InfraSProjectParamBkup                           = Backup
+InfraSProjectParamRestore                        = Restore
 InfraSProjectCautionSave                         = Click the '<b>Edit</b>' button after any changes!
 InfraSProjectPrefixInvcod                        = Prefix for inventory code
 InfraSProjectSearchMode                          = Search mode
@@ -71,6 +71,8 @@ InfraSProjectDisableSellBy                       = Hide the expiration date (DLC
 InfraSInfraSProjectShowLastExchange              = Show the latest project related exchange on the main tab
 InfraSInfraSProjectShowNextAction                = Show next planned action related to the project on the main tab
 InfraSInfraSProjectShowMarginProv                = Show provisional profit in the "Overview" tab of projects
+InfraSInfraSProjectElementsForMinusMargin        = Items to be considered as deductions in the provisional profit calculation
+InfraSInfraSProjectElementsForPlusMargin         = Items to be considered as additions in the provisional profit calculation
 InfraSProjectShowMarginProvFirst                 = Show the provisional profit calculation table first
 InfraSProjectTypeFeesNotIncludedInMargin1        = Expense report line types to be
 InfraSProjectTypeFeesNotIncludedInMargin2        = <b>DO NOT TAKE INTO ACCOUNT</b>
@@ -92,15 +94,18 @@ InfrasprojectOrderLinked                         = Linked Supplier Order
 
 ### Changelog page ###
 InfraSProjectParamsChangelog           = Changelog / Support
-InfraSProjectParamPresent              = <b>This module is an InfraS creation, its documentation is available on our site</b>
+InfraSProjectParamPresent1             = <b>This module is an InfraS creation</b>
+InfraSProjectParamPresent2             = <b>, its documentation is available on our site</b>
 InfraSProjectParamSlogan               = Structure your growth!
 InfraSProjectParamLienModules          = Our Modules
 InfraSProjectParamSupport              = Support request
 InfraSProjectParamLienDocs             = Our Documentation
 InfraSProjectParamLicense              = under GPL v3 and subsequent licenses
-InfraSProjectParamMoreModulesLink      = You can find all our developments on the Dolistore
-InfraSProjectParamObjet                = <h3>Objet :</h3>
+InfraSProjectParamMoreModulesLink      = Our modules on the Dolistore
+InfraSProjectParamObjet                = <h3>Object :</h3>
 InfraSProjectParamHistoryUpdates       = <b>Update history :</b>
+InfraSProjectParamPreferedPartner1     = Member of the official program
+InfraSProjectParamPreferedPartner2     = Preferred Partner, guarantee of quality and expertise.
 InfraSProjectParamSkipCheck            = Download is off
 InfraSProjectParamNumberVersion        = Number of version
 InfraSProjectParamMonthVersion         = Date

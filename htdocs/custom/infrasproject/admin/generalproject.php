@@ -52,7 +52,9 @@
 	// On / Off management
 	if (preg_match('/set_(.*)/', $action, $reg)) {
 		$confkey	= $reg[1];
-		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSProject module', $conf->entity);
+		if (preg_match('/^(PROJECT_|TIMESPENT_)/', $confkey)) {
+			$result		= dolibarr_set_const($db, $confkey, GETPOST('value', 'alphanohtml'), 'chaine', 0, 'InfraSProject module', $conf->entity);
+		}
 	}
 	// Update buttons management
 	if (preg_match('/update_(.*)/', $action, $reg)) {
@@ -121,12 +123,12 @@
 					});
 				</script>';
 	}
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">';
 	// Comportement général
 	print '		<div class = "foldable">';
 	print infrasproject_load_title('<span class = "infrasprojecttitleparam">'.$langs->trans('InfraSProjectParamsGeneral').'</span>', $titleoption, dol_buildpath('/infrasproject/img/option_tool.png', 1), 1, '', '');
-	print '			<table name = "tblAG" class = "noborder toggle_bloc" width = "100%">';
+	print '			<table name = "tblAG" class = "infrasprojectnoborder toggle_bloc" width = "100%">';
 	$metas	= array('30px', '*', '200px', '200px', '120px');
 	infrasproject_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -134,7 +136,7 @@
 	// Paramètres Dolibarr natif
 	if (!empty($accessright)) {
 		$num	= 1;
-		infrasproject_print_btn_action('Gen', '<FONT color = "red">'.$langs->trans('InfraSProjectCaution').'</FONT> '.$langs->trans('InfraSProjectCautionSave'), 4, 'center', 'Modify', false);
+		infrasproject_print_btn_action('Gen', '<span class = "infrasprojectcaution">'.$langs->trans('InfraSProjectCaution').'</span> '.$langs->trans('InfraSProjectCautionSave'), 4, 'center', 'Modify', false);
 		$metas 	= $form->multiselectarray('PROJECT_ALLOW_TO_LINK_FROM_OTHER_COMPANY', $thirdpartieslist, $selectedThirdparty, 0, 0, 'centpercent', 0, 0, '', '', '');
 		$num	= infrasproject_print_input('', 'select', $langs->trans('ProjectAllowLinkFromOtherCompany'), '', $metas, 1, 2, '', $num);
 		$num	= infrasproject_print_input('PROJECT_CAN_ALWAYS_LINK_TO_ALL_SUPPLIERS', 'on_off', $langs->trans('ProjectCanAlwaysLinkToAllSuppliers'), '', array(), 2, 1, '', $num);

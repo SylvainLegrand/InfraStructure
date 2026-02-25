@@ -43,7 +43,7 @@
 	$action		= GETPOST('action','alpha');
 
 	// init variables *******************************
-	$content	= dolMd2Html(file_get_contents(dol_buildpath('infrasproject/README.md', 0)),
+	$content	= dolMd2Html(file_get_contents(dol_buildpath('/infrasproject/README.md', 0)),
 							 'parsedown',
 							 array ('doc/'		=> dol_buildpath('infrasproject/doc/', 1),
 									'img/'		=> dol_buildpath('infrasproject/img/', 1),
@@ -76,7 +76,7 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">
 					<div class = "moduledesclong">'.$content.'<div>
 				</form>

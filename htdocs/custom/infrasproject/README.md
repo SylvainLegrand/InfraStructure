@@ -3,7 +3,7 @@
 
 
 ## ***InfraSProject***
-
+#### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
 * La gestion avancée des projects ***InfraSProject*** apporte de nombreuses améliorations aux fonctions de base :
 	 * Un tableau récapitulatif des projets (vue d'ensemble) améliuoré :
 	   * Affichage du bénéfice provisoire => Total des devis signés - (total des commandes fournisseur + total des factures fournisseurs non liées à une commande + total des types de frais désirés + total des dépassements de facturation fournisseur) (affichage optionnel)

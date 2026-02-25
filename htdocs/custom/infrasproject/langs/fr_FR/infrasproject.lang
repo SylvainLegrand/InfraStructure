@@ -49,7 +49,6 @@ ProjectCreateNoDraft                    = Valider un projet dès la création
 ProjectEnabledSubProject                = Activer les sous-projets
 ProjectCanAddTimeSpentOnTask            = Ajouter du temps passé sur les tâches
 
-
 ### Setup page ###
 InfraSProjectParamModule                         = Paramètres du module
 InfraSProjectParamAction1                        = Sauvegarder / Restaurer l'ensemble des paramètres du module
@@ -95,15 +94,18 @@ InfrasprojectOrderLinked                         = Commande Fournisseur liée
 
 ### Changelog page ###
 InfraSProjectParamsChangelog           = Changelog / Support
-InfraSProjectParamPresent              = <b>Ce module est une création InfraS; sa documentation est disponible sur notre site</b>
+InfraSProjectParamPresent1             = <b>Ce module est une création</b>
+InfraSProjectParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
 InfraSProjectParamSlogan               = Structurez votre croissance !
 InfraSProjectParamLienModules          = Nos Modules
 InfraSProjectParamSupport              = Demande de support
 InfraSProjectParamLienDocs             = Nos Documentations
 InfraSProjectParamLicense              = sous Licence GPL v3 et ultérieures
-InfraSProjectParamMoreModulesLink      = Vous pouvez trouver tous nos développements sur le Dolistore
+InfraSProjectParamMoreModulesLink      = Nos modules sur le Dolistore
 InfraSProjectParamObjet                = <h3>Objet :</h3>
 InfraSProjectParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSProjectParamPreferedPartner1     = Membre du programme officiel
+InfraSProjectParamPreferedPartner2     = Preferred Partner, gage de qualité et d'expertise.
 InfraSProjectParamSkipCheck            = Téléchargement désactivé
 InfraSProjectParamNumberVersion        = N° de version
 InfraSProjectParamMonthVersion         = Date

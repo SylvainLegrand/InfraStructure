@@ -497,7 +497,7 @@ if (isModEnabled('stock')) {
 ob_start();	// InfraS add
 print load_fiche_titre($langs->trans("Profit"), '', 'title_accountancy');
 
-print '<table class="noborder centpercent">';
+print '<table class="infrasprojectnoborder centpercent">';
 print '<tr class="liste_titre">';
 print '<td class="left" width="200">';
 $tooltiponprofit = $langs->trans("ProfitIsCalculatedWith")."<br>\n";
@@ -756,7 +756,7 @@ $Margin = ob_get_clean();
 ob_start();
 if (getDolGlobalInt('INFRASPROJECT_SHOW_MARGIN_PROV', 0)) {
 	print load_fiche_titre($langs->trans('InfraSProjectMarginProv'), '', 'title_accountancy');
-	print '<table class = "noborder centpercent">';
+	print '<table class = "infrasprojectnoborder centpercent">';
 	print '<tr class = "liste_titre">';
 	print '<td class = "left" width = "200">';
 	$tooltiponprovmargin		= $langs->trans("ProfitIsCalculatedWith")."<br>\n";
@@ -1209,7 +1209,7 @@ foreach ($listofreferent as $key => $value) {
 
 		print "\n".'<!-- Table for tablename = '.$tablename.' -->'."\n";
 		print '<div class="div-table-responsive">';
-		print '<table class="noborder centpercent">';
+		print '<table class="infrasprojectnoborder centpercent">';
 
 		print '<tr class="liste_titre">';
 		// Remove link column

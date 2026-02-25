@@ -131,7 +131,7 @@
 		global $db;
 
 		$out	= '';
-		$sql	= 'SELECT fk_projet FROM '.$db->prefix().'facture_fourn_det WHERE rowid = '.$lineid;
+		$sql	= 'SELECT fk_projet FROM '.$db->prefix().'facture_fourn_det WHERE rowid = '.((int) $lineid);
 		$resql	= $db->query($sql);
 		dol_syslog('infrasproject.lib::infrasproject_printprj sql = '.$sql);
 		if ($resql) {

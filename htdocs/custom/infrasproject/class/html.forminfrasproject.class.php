@@ -125,15 +125,15 @@
 								$("#id_entrepot").change(function() {
 									console.log("We have changed the warehouse - Reload page");
 									// reload page
-									window.location.href = "'.$_SERVER['PHP_SELF'].'?objectType='.$module.'&id='.$object->id.'&id_entrepot=" + $(this).val();
+									window.location.href = "'.dol_escape_js(dol_escape_htmltag($_SERVER['PHP_SELF'])).'?objectType='.urlencode($module).'&id='.((int) $object->id).'&id_entrepot=" + $(this).val();
 								});
 							});
 						</script>
-						<form name = "consowrite" action = "'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&objectType='.$module.'" method = "post">
+						<form name = "consowrite" action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&objectType='.urlencode($module).'" method = "post">
 							<input type = "hidden" name = "token" value = "'.newToken().'">
 							<input type = "hidden" name = "action" value = "conso">
 							<input type = "hidden" name = "label" value = "'.$libelle.' '.$object->ref.'">
-							<table class = "noborder centpercent">';
+							<table class = "infrasprojectnoborder centpercent">';
 				print '			<tr>
 									<td class = "fieldrequired">'.$langs->trans('Warehouse').'</td>
 									<td>'.$formproduct->selectWarehouses($id_entrepot, 'id_entrepot', '', 1).'</td>
@@ -153,7 +153,7 @@
 				if (isModEnabled('productbatch')) {
 					print '		<tr>
 									<td>'.$langs->trans('batch_number').'</td>
-									<td colspan = "5"><input type = "text" name = "batch_number" size = "40" value = "'.GETPOST('batch_number').'"></td>
+									<td colspan = "5"><input type = "text" name = "batch_number" size = "40" value = "'.dol_escape_htmltag(GETPOST('batch_number', 'alphanohtml')).'"></td>
 								</tr>';
 					if (empty($disableEatBy) || empty($disableSellBy)) {
 						print '	<tr>';
@@ -332,13 +332,13 @@
 			$sql	.= ' AND e.entity IN ('.getEntity('stock').')';
 			switch (getDolGlobalInt('INFRASPROJECT_SEARCHMODE',0)) {
 				case 1:
-					$sql	.= ' AND m.label LIKE "%'.addslashes($object->ref).'%"';
+					$sql	.= ' AND m.label LIKE "%'.$this->db->escape($object->ref).'%"';
 				break;
 				case 2:
-					$sql	.= ' AND m.inventorycode LIKE "'.addslashes(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%"';
+					$sql	.= ' AND m.inventorycode LIKE "'.$this->db->escape(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%"';
 				break;
 				case 3:
-					$sql	.= ' AND  (m.inventorycode LIKE "'.addslashes(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%" OR m.label LIKE "%'.addslashes($object->ref).'%")';
+					$sql	.= ' AND  (m.inventorycode LIKE "'.$this->db->escape(getDolGlobalString('INFRASPROJECT_INVCODEPREFIX').$object->ref).'%" OR m.label LIKE "%'.$this->db->escape($object->ref).'%")';
 				break;
 			}
 			if (!getDolGlobalInt('STOCK_SUPPORTS_SERVICES', 0)) {
@@ -366,7 +366,7 @@
 				$sql	.= natural_search('p.label', $search_product);
 			}
 			if ($search_warehouse > 0) {
-				$sql	.= ' AND e.rowid = "'.$this->db->escape($search_warehouse).'"';
+				$sql	.= ' AND e.rowid = '.((int) $search_warehouse);
 			}
 			if (! empty($search_user)) {
 				$sql	.= natural_search('u.login', $search_user);
@@ -462,16 +462,16 @@
 				}
 				// Add $param from extra fields
 				include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_param.tpl.php';
-				print '	<form method = "POST" action = "'.$_SERVER['PHP_SELF'].'?id='.$id.'&objectType='.$objectType.'">
-							<input type = "hidden" name = "token" value = "'.newToken().'">
-							<input type = "hidden" name = "formfilteraction" id = "formfilteraction" value = "list">
-							<input type = "hidden" name = "action" value = "list">
-							<input type = "hidden" name = "sortfield" value = "'.$sortfield.'">
-							<input type = "hidden" name = "sortorder" value = "'.$sortorder.'">
-							<input type = "hidden" name = "page" value = "'.$page.'">
-							<input type = "hidden" name = "objectType" value = "'.$objectType.'">
-							<input type = "hidden" name = "contextpage" value = "'.$contextpage.'">';
-				print_barre_liste($texte, $page, $_SERVER['PHP_SELF'].'?id='.$id.'&objectType=project', $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'title_generic', 0, '', '', $limit);
+			print '	<form method = "POST" action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $id).'&objectType='.urlencode($objectType).'">
+						<input type = "hidden" name = "token" value = "'.newToken().'">
+						<input type = "hidden" name = "formfilteraction" id = "formfilteraction" value = "list">
+						<input type = "hidden" name = "action" value = "list">
+						<input type = "hidden" name = "sortfield" value = "'.dol_escape_htmltag($sortfield).'">
+						<input type = "hidden" name = "sortorder" value = "'.dol_escape_htmltag($sortorder).'">
+						<input type = "hidden" name = "page" value = "'.((int) $page).'">
+						<input type = "hidden" name = "objectType" value = "'.dol_escape_htmltag($objectType).'">
+						<input type = "hidden" name = "contextpage" value = "'.dol_escape_htmltag($contextpage).'">';
+				print_barre_liste($texte, $page, dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $id).'&objectType=project', $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'title_generic', 0, '', '', $limit);
 				$moreforfilter	= '';
 				if (!empty($moreforfilter)) {
 					print '	<div class = "liste_titre liste_titre_bydiv centpercent">'.$moreforfilter.'</div>';
