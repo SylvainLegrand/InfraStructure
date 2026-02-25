@@ -115,15 +115,15 @@
 	if (preg_match('/update_(.*)/', $action, $reg)) {
 		foreach ($listOptions as $option => $transKey) {
 			$constname	= 'INFRASPLUS_PDF_OPTION_'.$option;
-			$result		= dolibarr_set_const($db, $constname, GETPOST($constname), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+			$result		= dolibarr_set_const($db, $constname, GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			if ($option == 'adrSst') {
-				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_Sst', GETPOST($constname), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_Sst', GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			}
 			if ($option == 'adrlivrfour') {
-				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_typeadr', GETPOST($constname), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_typeadr', GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			}
 			if ($option == 'usentascover') {
-				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_showntusedascover', GETPOST($constname), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_showntusedascover', GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			}
 		}
 	}
@@ -189,7 +189,7 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2) {

@@ -185,7 +185,7 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype="multipart/form-data">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype="multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	print load_fiche_titre(''.$langs->trans('PDFParamGeneralDol').'</FONT>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
 	print '			<table class = "infrasplusnoborder centpercent">';

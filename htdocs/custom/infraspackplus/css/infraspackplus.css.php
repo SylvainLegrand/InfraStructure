@@ -83,7 +83,7 @@
 .infraspluspuentedolibarr {
 	font-family: puentebold, sans-serif;
 	color: #027991;
-	font-size-adjust:0.6;
+	font-size-adjust: 0.6;
 }
 
 .infrasplusNoBCollapse {
@@ -231,7 +231,7 @@ img.infraspluswidthpictotitle {
 }
 
 .infraspluswidth180 {
-	width: 180px
+	width: 180px;
 }
 
 .infraspluswidth220 {

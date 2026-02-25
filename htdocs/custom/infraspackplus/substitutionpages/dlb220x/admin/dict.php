@@ -1930,7 +1930,7 @@ if ($id > 0) {
 		}
 
 		print '<div class="div-table-responsive">';
-		print '<table class="infrasplusnoborder centpercent infrasplusnoborder">';
+		print '<table class="infrasplusnoborder centpercent">';
 
 		$colspan = 0;
 

@@ -77,7 +77,7 @@
 					});
 				</script>';
 	}
-	print '		<form class = "infrasplusformabout" action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form class = "infrasplusformabout" action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">
 					<div class = "moduledesclong">'.$content.'<div>
 				</form>

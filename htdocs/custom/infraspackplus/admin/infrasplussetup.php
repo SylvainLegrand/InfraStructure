@@ -369,7 +369,7 @@
 	}
 	// Suppression CGV && Fichiers spéciaux
 	if (((float) DOL_VERSION <= 14.0 && $action == 'delete') || ((float) DOL_VERSION >= 15.0 && $action == 'deletefile')) {
-		$confirm_mesg	= $form->formconfirm($_SERVER['PHP_SELF'].'?urlfile='.$urlfile.'&typefile='.$typefile, $langs->trans('InfraSPlusParamDeleteAFile'), $langs->trans('InfraSPlusParamConfirmDeleteAFile').' '.$urlfile.' ?', 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
+		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?urlfile='.$urlfile.'&typefile='.$typefile, $langs->trans('InfraSPlusParamDeleteAFile'), $langs->trans('InfraSPlusParamConfirmDeleteAFile').' '.$urlfile.' ?', 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
 	}
 	if ($action == 'delete_ok' && $confirm == 'yes') {
 		$urlfile_dirname	= pathinfo($urlfile, PATHINFO_DIRNAME);
@@ -810,13 +810,14 @@
 	if (!empty($conf->use_javascript_ajax)) {
 		print '	<script src = "'.dol_buildpath('/includes/jquery/plugins/jquerytreeview/lib/jquery.cookie.js', 1).'"></script>
 				<script type = "text/javascript">
+					var cookieName = "infraspackplus_tblPSexp";
 					jQuery(document).ready(function() {
 						var tblPSexp = "";
 						$.isSet = function(testVar) {
 							return typeof(testVar) !== "undefined" && testVar !== null && testVar !== "";
 						};
-						if ($.cookie && $.isSet($.cookie("tblPSexp"))) {
-							tblPSexp = $.cookie("tblPSexp");
+						if ($.cookie && $.isSet($.cookie(cookieName))) {
+							tblPSexp = $.cookie(cookieName);
 						}
 						$(".toggle_bloc").hide();
 						if (tblPSexp) {
@@ -831,10 +832,10 @@
 								$(".toggle_bloc").hide();
 								$(this).siblings().show();
 							}
-							$.cookie("tblPSexp", "", { expires: 1, path: "/" });
+							$.cookie(cookieName, "", { expires: 1, path: "/" });
 							$(".toggle_bloc").each(function() {
 								if ($(this).is(":visible")) {
-									$.cookie("tblPSexp", $(this).attr("name"), { expires: 1, path: "/" });
+									$.cookie(cookieName, $(this).attr("name"), { expires: 1, path: "/" });
 								}
 							});
 						});
@@ -848,7 +849,7 @@
 					});
 				</script>';
 	}
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">';
 	// Sauvegarde / Restauration
 	if ($accessright == 2) {
@@ -1387,7 +1388,7 @@
 		print '			<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
-								<table class = "infrasplusnoborderbottom centpercent">
+								<table class = "noborderbottom centpercent">
 									<tr>
 										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
@@ -1473,7 +1474,7 @@
 		print '			<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
-								<table class = "infrasplusnoborderbottom centpercent">';
+								<table class = "noborderbottom centpercent">';
 		print '						<tr>
 										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
@@ -1541,7 +1542,7 @@
 		print '			<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
-								<table class = "infrasplusnoborderbottom centpercent">';
+								<table class = "noborderbottom centpercent">';
 		print '						<tr>
 										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
@@ -1603,7 +1604,7 @@
 			print '		<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
-								<table class = "infrasplusnoborderbottom centpercent">';
+								<table class = "noborderbottom centpercent">';
 			print '					<tr>
 										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
@@ -1673,7 +1674,7 @@
 			print '		<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
-								<table class = "infrasplusnoborderbottom centpercent">';
+								<table class = "noborderbottom centpercent">';
 			print '					<tr>
 										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
 											'.$langs->trans('InfraSPlusParamColNum').'

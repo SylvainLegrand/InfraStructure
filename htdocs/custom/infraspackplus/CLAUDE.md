@@ -1,6 +1,6 @@
 # CLAUDE.md — Contexte module infraspackplus
 
-## Aperçu
+## Aperçu (Overview)
 
 `infraspackplus` est un module externe Dolibarr orienté génération documentaire PDF avancée :
 
@@ -16,11 +16,17 @@ Informations module (issues du code et du changelog local) :
 - Numéro module : `550000`
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `23.0.4`
-- Compatibilité PHP : `7.4` à `8.2`
+- Compatibilité PHP : `7.4` à `8.4`
+- Dernière version locale : `18.14.8` (2026-02)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
-## Structure (résumé)
+Convention de lecture du descripteur :
+
+- Explications fonctionnelles en français
+- Identifiants techniques conservés en anglais (`hooks`, classes, méthodes, constantes, clés de configuration)
+
+## Structure (Summary)
 
 ```text
 htdocs/custom/infraspackplus/
@@ -82,7 +88,7 @@ htdocs/custom/infraspackplus/
 └── ttf/
 ```
 
-## Descripteur module (`modinfraspackplus`)
+## Descripteur module (Module descriptor : `modinfraspackplus`)
 
 Dans `core/modules/modinfraspackplus.class.php` :
 
@@ -99,21 +105,21 @@ Dans `core/modules/modinfraspackplus.class.php` :
 	- `paramExtraFields`, `paramMentions`, `paramNotes`, `paramDict`
 	- `paramGeneration`, `paramBkpRest`, `paramLastOpt`, `paramCGV`
 
-### Initialisation (`init()`)
+### Initialisation (Lifecycle : `init()`)
 
 `init()` effectue notamment :
 
-1. chargement SQL module,
-2. synchronisation de ressources (polices, templates selon version),
-3. migration/contrôle de configuration,
-4. restauration de constantes sauvegardées,
-5. activation des modèles et mécanismes liés.
+1. Chargement SQL module
+2. Synchronisation de ressources (polices, templates selon version)
+3. Migration/contrôle de configuration
+4. Restauration de constantes sauvegardées
+5. Activation des modèles et mécanismes liés
 
-### Désactivation (`remove()`)
+### Désactivation (Lifecycle : `remove()`)
 
 `remove()` effectue sauvegarde module, nettoyage des constantes et retrait des éléments injectés par le module.
 
-## Fonctionnement principal
+## Fonctionnement principal (Core behavior)
 
 Le module s’appuie sur :
 
@@ -123,7 +129,16 @@ Le module s’appuie sur :
 - `address.class.php` pour la gestion multi-adresses tiers,
 - le trigger `interface_90_modinfraspackplus_Infraspackplustrigger.class.php` (évènements société).
 
-## Données / SQL
+## Hooks et comportement (Hook behavior)
+
+La classe `actions_infraspackplus` intervient principalement sur :
+
+- les contextes de génération PDF (`pdfgeneration`) avant/après production,
+- les formulaires de documents (`formfile`) pour enrichir les options,
+- les contextes tiers/globaux (`thirdpartycard`, `globalcard`) pour les informations complémentaires,
+- les contextes de notes (`*note`) et la logique transversale (`main`, `login`) selon configuration.
+
+## Données / SQL (Data model)
 
 Tables principales :
 
@@ -138,30 +153,49 @@ Tables principales :
 - `updates.sql` (évolutions),
 - `clean_from_infraspack.sql` (migration/historique).
 
-## Conventions de développement
+## Constantes de configuration (Key settings)
+
+Constantes actives usuelles :
+
+- `INFRASPLUS_*` (famille principale de paramètres d’affichage et de génération),
+- constantes liées aux options de documents (CGV/CGA/CGI, signatures, images, colonnes),
+- constantes liées aux dictionnaires de mentions/notes,
+- constantes de versions/migrations utilisées au chargement du module.
+
+Point de vigilance : conserver la cohérence globale des constantes `INFRASPLUS_*` avant toute modification massive.
+
+## Conventions de développement (Development conventions)
 
 Respecter les règles Dolibarr du dépôt parent :
 
-- compatibilité PHP (code base : 7.1–8.4 ; module : 7.4–8.2 selon changelog),
+- compatibilité PHP (code base : 7.1–8.4 ; module : 7.4–8.4 selon changelog),
 - pas de framework lourd / pas de Composer en core,
 - entrées utilisateur via `GETPOST*`,
 - constantes via `getDolGlobalString()`, `getDolGlobalInt()`, `getDolGlobalBool()`,
 - SQL sécurisé : cast `int`, échappement `$db->escape()` / `$db->escapeforlike()`,
 - gestion multi-entité via `entity` / `getEntity()` selon les objets.
 
-## Workflow recommandé après changements structurels
+## Workflow recommandé après changements structurels (Recommended workflow)
 
 Si modification SQL / descripteur / permissions / hooks / templates PDF :
 
-1. désactiver puis réactiver le module,
-2. vérifier tables et dictionnaires (`mention`, `note`, `societe_address`),
-3. vérifier chargement des modèles PDF InfraSPlus,
-4. vérifier hooks de génération (`formBuilddocOptions`, `beforePDFCreation`, `afterPDFCreation`),
-5. vérifier un cas de génération réel (devis/facture) avec options actives.
+1. Désactiver puis réactiver le module
+2. Vérifier tables et dictionnaires (`mention`, `note`, `societe_address`)
+3. Vérifier chargement des modèles PDF InfraSPlus
+4. Vérifier hooks de génération (`formBuilddocOptions`, `beforePDFCreation`, `afterPDFCreation`)
+5. Vérifier un cas de génération réel (devis/facture) avec options actives
 
-## Points d’attention
+## Points d’attention (Watchpoints)
 
 - La version locale est lue depuis `docs/changelog.xml` (`infraspackplus_getLocalVersionMinDoli`)
 - L’extension PHP XML est nécessaire
 - Le module applique des substitutions de pages selon version Dolibarr (répertoire `substitutionpages/`)
 - Les constantes `INFRASPLUS_*` sont nombreuses ; éviter les changements massifs sans test de génération PDF
+
+## Dernières mises à jour (Recent updates)
+
+- `18.14.8` (2026-02) : durcissements sécurité sur les URLs/formulaires basés sur `PHP_SELF` (échappement HTML)
+- `18.14.8` (2026-02) : échappement de l’affichage de `SERVER_SOFTWARE`
+- `18.14.8` (2026-02) : typage `GETPOST(..., 'alpha')` sur les options radio de génération
+- `18.14.8` (2026-02) : isolation du cookie JS de l'état des panneaux (`infraspackplus_tblPSexp` au lieu de `tblPSexp`)
+- `18.14.8` (2026-02) : variable `cookieName` déplacée au scope script (hors `jQuery(document).ready()`) pour accès inter-closures

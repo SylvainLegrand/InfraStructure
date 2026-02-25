@@ -600,7 +600,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	{
 		global $conf, $langs, $mc;
 
-		print '	<table class = "centpercent infrasplusnoborderspacing">';
+		print '	<table class = "centpercent noborderspacing">';
 		$metas	= array('*', '90px', '156px', '120px');
 		infraspackplus_print_colgroup($metas);
 		print '		<tr>
@@ -619,10 +619,10 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 							print $mc->select_entities('', 'entity', '', false, array($conf->entity), true, false, '', 'minwidth300imp');
 			print'		</td>
 						<td class = "center"><button class = "butAction infraspluscopyParamsBtn" type = "submit" value = "copyParams" name = "action">'.$langs->trans('InfraSPlusParamCopy').'</button></td>
-					</tr>
-					<tr><td colspan = "4" class = "center infrasplusnopadding"><hr></td></tr>';
+					</tr>';
 		}
-		infraspackplus_print_final(4);
+		infraspackplus_print_hr(count($metas));
+		infraspackplus_print_final(count($metas));
 		print '	</table>';
 	}
 
@@ -797,11 +797,11 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			}
 		}
 		if ($tag == 'on_off') {
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 			print ajax_constantonoff($confkey);
 			print '		</a>';
 		} elseif ($tag == 'on_off2') {
-			print '		<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
 							'.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? img_picto($langs->trans('Activated'), 'switch_on') : img_picto($langs->trans('Disabled'), 'switch_off')).'
 						</a>';
 		} elseif ($tag == 'input') {
@@ -914,7 +914,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
-				print '				<a href = "'.$_SERVER['PHP_SELF'].'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+				print '				<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 				print ajax_constantonoff($confkey);
 				print '				</a>'.($type == 'tests' ? '' : $value);
 			}
@@ -1017,9 +1017,9 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		} else {
 			$dwnbutton	= $dwn ? '<button class = "button" style = "width: 190px; padding: 3px 0px;" type = "submit" value = "dwnChangelog" name = "action" title = "'.$langs->trans('InfraSPlusParamCheckNewVersionTitle').'">'.$langs->trans('InfraSPlusParamCheckNewVersion').'</button>' : '';
 		}
-		$ret	.= '			<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+		$ret	.= '			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<table class = "infrasplusnoborder" >
+									<table class = "infrasplusnoborder centpercent" >
 										<tr class = "liste_titre">
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamNumberVersion').'</th>
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamMonthVersion').'</th>
@@ -1156,7 +1156,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 								</tr>
 								<tr class = "oddeven">
 									<td class = "width400 infraspluschangelogbase">'.$langs->trans('WebServerVersion').'</td>
-									<td class = "infraspluschangelogbase">'.$_SERVER['SERVER_SOFTWARE'].'</td>
+									<td class = "infraspluschangelogbase">'.dol_escape_htmltag($_SERVER['SERVER_SOFTWARE']).'</td>
 								</tr>
 								<tr><td colspan = "3" class = "infrasplusFinal">&nbsp;</td></tr>
 							</table>

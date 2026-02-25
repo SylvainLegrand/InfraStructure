@@ -352,7 +352,7 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2) {

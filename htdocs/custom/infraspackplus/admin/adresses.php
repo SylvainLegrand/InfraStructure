@@ -184,7 +184,7 @@
 		$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', GETPOST('defaultaddrdeliv'),'chaine',0,'',$conf->entity);
 	}
 	if ($action == 'delete') {
-		$confirm_mesg	= $form->formconfirm($_SERVER['PHP_SELF'].'?id='.GETPOST('id', 'int'), $langs->trans('InfraSPlusParamDeleteAddress'), $langs->trans('InfraSPlusParamConfirmDeleteAddress'), 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
+		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.GETPOST('id', 'int'), $langs->trans('InfraSPlusParamDeleteAddress'), $langs->trans('InfraSPlusParamConfirmDeleteAddress'), 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
 	}
 	if ($action == 'delete_ok' && $confirm == 'yes') {
 		$result_supp			= $address->delete(GETPOST('id', 'int'));
@@ -318,7 +318,7 @@
 					});
 				</script>';
 	}
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data" name = "formsoc">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data" name = "formsoc">
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<input type = "hidden" name = "action" value = "add"/>
 				<input type = "hidden" name = "id" value = "'.$address->id.'"/>';
@@ -406,7 +406,7 @@
 		print '<script src="'.dol_buildpath('/adressefrance/js/search.js', 1).'"></script>';
 	}
 	print '	</form>';
-	print '	<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamAddressesForMyCompany').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/list.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
@@ -430,8 +430,8 @@
 							<td>'.$lineaddress->country.'</td>
 							<td>'.$lineaddress->email.'</td>
 							<td>'.$lineaddress->url.'</td>
-							<td><a href = "'.$_SERVER['PHP_SELF'].'?action=edit&id='.$lineaddress->id.'" class = "deletefilelink">'.img_edit().'</a></td>
-							<td><a href = "'.$_SERVER['PHP_SELF'].'?action=delete&id='.$lineaddress->id.'&token='.newToken().'" class = "deletefilelink">'.img_delete().'</a></td>
+							<td><a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=edit&id='.$lineaddress->id.'" class = "deletefilelink">'.img_edit().'</a></td>
+							<td><a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=delete&id='.$lineaddress->id.'&token='.newToken().'" class = "deletefilelink">'.img_delete().'</a></td>
 						</tr>';
 			}
 		}
@@ -440,7 +440,7 @@
 	print '			</table>
 				</div>
 			</form>
-			<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype="multipart/form-data">
+			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype="multipart/form-data">
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamAddressesSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');

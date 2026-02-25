@@ -41,6 +41,9 @@
 	$cancel		= GETPOST('cancel', 'alpha');
 	$confirm	= GETPOST('confirm','alpha');
 	$backtopage	= GETPOST('backtopage','alpha');
+	if (!empty($backtopage)) {
+		$backtopage = dol_sanitizeUrl($backtopage);
+	}
 	$origin		= GETPOST('origin','alpha');
 	$originid	= GETPOST('originid','int');
 	$socid		= $user->socid ? $user->socid : (GETPOST('socid', 'int') ? GETPOST('socid', 'int') : GETPOST('id', 'int'));
@@ -180,10 +183,10 @@
 			}
 			print load_fiche_titre($langs->trans('AddAddress'));
 			print '			<br/>';
-			print '			<form action = "'.$_SERVER['PHP_SELF'].'" method = "POST" name = "formsoc">
+			print '			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "POST" name = "formsoc">
 								<input type = "hidden" name = "token" value = "'.newToken().'"/>
 								<input type = "hidden" name = "socid" value = "'.$socid.'"/>
-								<input type = "hidden" name = "backtopage" value = "'.$backtopage.'"/>
+								<input type = "hidden" name = "backtopage" value = "'.dol_escape_htmltag($backtopage).'"/>
 								<input type = "hidden" name = "origin" value = "'.$origin.'"/>
 								<input type = "hidden" name = "originid" value = "'.$originid.'"/>
 								<input type = "hidden" name = "action" value = "add"/>
@@ -320,10 +323,10 @@
 					$object->country		= $tmparray['label'];
 				}
 			}
-			print '			<form action = "'.$_SERVER['PHP_SELF'].'?socid='.$object->socid.'" method = "POST" name = "formsoc">
+			print '			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$object->socid.'" method = "POST" name = "formsoc">
 								<input type = "hidden" name = "token" value = "'.newToken().'"/>
 								<input type = "hidden" name = "socid" value = "'.$object->socid.'"/>
-								<input type = "hidden" name = "backtopage" value = "'.$backtopage.'"/>
+								<input type = "hidden" name = "backtopage" value = "'.dol_escape_htmltag($backtopage).'"/>
 								<input type = "hidden" name = "origin" value = "'.$origin.'"/>
 								<input type = "hidden" name = "originid" value = "'.$originid.'"/>
 								<input type = "hidden" name = "action" value = "update"/>
@@ -442,7 +445,7 @@
 		}
 		// Confirmation delete
 		if ($action == 'delete') {
-			print $form->formconfirm($_SERVER['PHP_SELF'].'?socid='.$socid.'&id='.$id, $langs->trans('DeleteAddress'), $langs->trans('ConfirmDeleteAddress'), 'confirm_delete');
+			print $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id, $langs->trans('DeleteAddress'), $langs->trans('ConfirmDeleteAddress'), 'confirm_delete');
 		}
 		$nblines	= count($object->lines);
 		if (!empty($nblines)) {
@@ -520,15 +523,15 @@
 		if (empty($reshook) && $action != 'presend') {
 			if (!empty($user->hasRight('societe', 'creer'))) {
 				print '				<div class = "inline-block divButAction">
-										<a class = "butAction" href = "'.$_SERVER['PHP_SELF'].'?socid='.$socid.'&action=create&backtopage='.urlencode($backtopage).'">'.$langs->trans('Add').'</a>
+										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&action=create&backtopage='.urlencode($backtopage).'">'.$langs->trans('Add').'</a>
 									</div>';
 				print '				<div class = "inline-block divButAction">
-										<a class = "butAction" href = "'.$_SERVER['PHP_SELF'].'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=edit&backtopage='.urlencode($backtopage).'">'.$langs->trans('Modify').'</a>
+										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=edit&backtopage='.urlencode($backtopage).'">'.$langs->trans('Modify').'</a>
 									</div>';
 			}
 			if (!empty($user->hasRight('societe', 'supprimer')))
 				print '				<div class = "inline-block divButAction">
-										<a class = "butActionDelete" href = "'.$_SERVER['PHP_SELF'].'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=delete&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
+										<a class = "butActionDelete" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=delete&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
 									</div>';
 		}
 		print '				</div>';

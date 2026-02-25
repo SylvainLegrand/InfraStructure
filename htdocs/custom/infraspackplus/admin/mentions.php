@@ -175,7 +175,7 @@
 	$country		= !empty($mysoc->country_code) ? $mysoc->country_code : substr($langs->defaultlang, -2);
 	$franchise		= $country == 'FR' && empty($mysoc->tva_assuj) ? 1 : 0;
 	if (!empty($franchise) && !getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', '')) {
-		$confirm_mesg	= $form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('InfraSPlusParamTVAauto'), $langs->trans('InfraSPlusParamConfirmSetTVAauto'), 'confirm_TVAauto', '', 'yes', 1);
+		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']), $langs->trans('InfraSPlusParamTVAauto'), $langs->trans('InfraSPlusParamConfirmSetTVAauto'), 'confirm_TVAauto', '', 'yes', 1);
 	}
 
 	// View *****************************************
@@ -221,7 +221,7 @@
 					});
 				</script>';
 	}
-	print '		<form name="frm1" id="frm1" action = "'.$_SERVER['PHP_SELF'].'" method = "post">
+	print '		<form name="frm1" id="frm1" action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2) {
@@ -257,7 +257,7 @@
 	}
 	print '			</table>
 				</form>
-				<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+				<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamMentionsSetup').'</span>', '', dol_buildpath('/infraspackplus/img/list.png', 1), 1);
 	print '			<table class = "infrasplusnoborder centpercent">';

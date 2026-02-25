@@ -147,7 +147,7 @@
 		$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_SIGNATURE_EMET', GETPOST('defaultsignemet'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
 	if (((float) DOL_VERSION <= 14.0 && $action == 'delete') || ((float) DOL_VERSION >= 15.0 && $action == 'deletefile')) {
-		$confirm_mesg	= $form->formconfirm($_SERVER['PHP_SELF'].'?urlfile='.$urlfile, $langs->trans('InfraSPlusParamDeleteAFile'), $langs->trans('InfraSPlusParamConfirmDeleteAFile').' '.$urlfile.' ?', 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
+		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?urlfile='.$urlfile, $langs->trans('InfraSPlusParamDeleteAFile'), $langs->trans('InfraSPlusParamConfirmDeleteAFile').' '.$urlfile.' ?', 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
 	}
 	if ($action == 'delete_ok' && $confirm == 'yes') {
 		$urlfile_dirname	= pathinfo($urlfile, PATHINFO_DIRNAME);
@@ -260,7 +260,7 @@
 					});
 				</script>';
 	}
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2) {
@@ -325,7 +325,7 @@
 	$formfile->list_of_documents($logo_files, null, 'mycompany', '', 1, 'logos/', 1, 0, $langs->trans('NoLogo'), 0, 'none');
 	print '			</div>
 				</div>';
-	print '		<form action = "'.$_SERVER['PHP_SELF'].'" method = "post">
+	print '		<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post">
 					<input type = "hidden" name = "token" value = "'.newToken().'">
 					<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamImagesSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');

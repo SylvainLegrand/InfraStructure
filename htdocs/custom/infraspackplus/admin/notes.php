@@ -165,7 +165,7 @@
 					}
 				</script>';
 	}
-	print '		<form name = "frm1" id = "frm1" action = "'.$_SERVER['PHP_SELF'].'" method = "post">
+	print '		<form name = "frm1" id = "frm1" action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2) {
@@ -198,7 +198,7 @@
 	}
 	print '			</table>
 				</form>
-				<form action = "'.$_SERVER['PHP_SELF'].'" method = "post" enctype = "multipart/form-data">
+				<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	if (!empty($accessright)) {
 		print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamNotesSetup').'</span>', '', dol_buildpath('/infraspackplus/img/list.png', 1), 1);
