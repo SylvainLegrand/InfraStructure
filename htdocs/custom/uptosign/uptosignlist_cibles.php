@@ -308,7 +308,7 @@ $form = new Form($db);
 $formmailing = new FormMailing($db);
 
 
-if ($object->status != UptoSignList::STATUS_VALIDATED) {
+if ($object->status != UptoSignList::STATUS_DRAFT) {
 	$head = uptosignlistPrepareHead($object);
 	print dol_get_fiche_head($head, 'targets', $langs->trans("UptoSignList"), -1, $object->picto);
 	print '	<div class="fichecenter">' . "\n";

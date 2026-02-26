@@ -353,7 +353,17 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 				if ($object instanceof Contrat && getDolGlobalInt('UPTOSIGN_ACTIVATE_SERVICES_ON_CONTRACT_SIGNED')) {
 					$object->fetch_lines();
 					$error			= 0;
-					$date_start		= dol_now(); //TODO check when date_sign will be available
+					$date_start		= dol_now();
+					$uptosignLookup = new UptoSign($this->db);
+					$records = $uptosignLookup->fetchByObject($object->id, 'contrat');
+					if (is_array($records)) {
+						foreach ($records as $record) {
+							if (!empty($record->date_sign)) {
+								$date_start = $record->date_sign;
+								break;
+							}
+						}
+					}
 					foreach ($object->lines as $line) {
 						if ($line->statut != ContratLigne::STATUS_OPEN) {
 							$result	= $line->active_line($user, $date_start, -1, '');

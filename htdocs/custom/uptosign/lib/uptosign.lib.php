@@ -2464,11 +2464,11 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 
 
 
-function uptosignAddActionComm($object, $actioncode, $label, $description, $postactionmessages, $extraparams)
+function uptosignAddActionComm($object, $actioncode, $label, $description, $postactionmessages, $extraparams, $date = null)
 {
 	global $db, $user;
 	dol_syslog("* uptosignAddActionComm Record event for payment result - " . $description);
-	$now = dol_now();
+	$now = (!empty($date)) ? $date : dol_now();
 	// Insert record of payment (success or error)
 	$actioncomm = new ActionComm($db);
 

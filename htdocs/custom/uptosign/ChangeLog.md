@@ -1,5 +1,9 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.2 -- 20260226
+
+- fix date_sign into database with real date
+
 ## 2.4.1 -- 20260212
 
 - cron to keep signed files as archives into dolibarr

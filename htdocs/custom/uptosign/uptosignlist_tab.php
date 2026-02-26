@@ -391,7 +391,7 @@ if ($action == 'uptosign') {
 // if (($action == 'confirm_uptosign' || $action == 'confirm_uptoseal')) {
 // }
 
-if ($object->status != UptoSignList::STATUS_VALIDATED) {
+if ($object->status != UptoSignList::STATUS_DRAFT) {
 	print dol_get_fiche_head($head, 'uptosignlisttab', $langs->trans("UptoSign"), -1, $object->picto);
 	print '	<div class="fichecenter">' . "\n";
 	print ' 	<div class="fichethirdleft" style="padding:10px; max-width: 200px">' . "\n";

@@ -457,7 +457,8 @@ class UptoSign extends CommonObject
 
 		// print json_encode($object);exit;
 		$now = dol_now();
-		$date = dol_print_date(dol_now(), "%d/%m/%Y %H:%M:%S");
+		$eventDate = (!empty($this->date_sign)) ? $this->date_sign : $now;
+		$date = dol_print_date($eventDate, "%d/%m/%Y %H:%M:%S");
 		$evt = new ActionComm($this->db);
 		$mustCreate = true;
 
@@ -501,7 +502,7 @@ class UptoSign extends CommonObject
 							arsort($unique);
 							dol_syslog("uptosign: ... de moins de 10 minutes, apres ajout note unique= " . json_encode($unique), LOG_DEBUG);
 							$evt->note_private = nl2br(implode("\n", $unique));
-							$evt->datef = $now;
+							$evt->datef = $eventDate;
 							$user = $this->findUserToUse($user, $this);
 							$evt->update($user, 1);
 							dol_syslog("uptosign: ... de moins de 10 minutes, apres ajout notes= " . json_encode($notes), LOG_DEBUG);
@@ -520,8 +521,8 @@ class UptoSign extends CommonObject
 			$evt->type_code   = 'AC_OTH_AUTO'; //
 			$evt->code        = 'AC_' . strtoupper($signOrSeal);
 			$evt->label = $object->ref . ": " . $title;
-			$evt->datep = $now;
-			$evt->datef = $now;
+			$evt->datep = $eventDate;
+			$evt->datef = $eventDate;
 			$evt->percentage = -1;
 			$evt->socid = $object->socid;
 			$evt->contact_id    = 0;
@@ -1787,6 +1788,12 @@ class UptoSign extends CommonObject
 			$id = $this->fk_object;
 			$hallobj = uptosign_handle_all_type_of_objects($objectType, $id);
 			$object = $hallobj['object'];
+			$displayname = $hallobj['displayname'];
+
+			//TODO please double check that
+			if($displayname) {
+				return $displayname;
+			}
 			if (method_exists($object, 'getNomUrl')) {
 				return $object->getNomUrl();
 			}
@@ -2780,13 +2787,13 @@ class UptoSign extends CommonObject
 						//pour la suite
 						$status = $child->status;
 
-						$dateCreate = new DateTime($resultContent['createdAt']);
+						$dateCreate = new DateTime($resultContent['createdAt'], new DateTimeZone('UTC'));
 						$child->date_creation = $dateCreate->getTimestamp();
 						$dateCreate = null;
 
 						//date de signature = date de dernière modification du document sur le serveur
 						if (isset($resultContent['updatedAt'])) {
-							$dateSign = new DateTime($resultContent['updatedAt']);
+							$dateSign = new DateTime($resultContent['updatedAt'], new DateTimeZone('UTC'));
 							if (!empty($dateSign)) {
 								$child->date_sign = $dateSign->getTimestamp();
 								$dateSign = null;
