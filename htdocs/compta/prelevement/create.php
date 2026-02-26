@@ -66,11 +66,64 @@ $executiondate = dol_mktime(0, 0, 0, GETPOSTINT('remonth'), GETPOSTINT('reday'),
 
 $limit = GETPOSTINT('limit') ? GETPOSTINT('limit') : $conf->liste_limit;
 $page = GETPOSTISSET('pageplusone') ? (GETPOSTINT('pageplusone') - 1) : GETPOSTINT("page");
-if (empty($page) || $page == -1) {
+// Infras add begin
+$search_btn = GETPOST('button_search', 'alpha');
+$search_remove_btn = GETPOST('button_removefilter', 'alpha');
+if (empty($page) || $page == -1 || !empty($search_btn) || !empty($search_remove_btn)) {
+// Infras add end
 	$page = 0;
 }     // If $page is not defined, or '' or -1
 $offset = $limit * $page;
+// Infras add begin
+$pageprev = $page - 1;
+$pagenext = $page + 1;
 
+$contextpage = GETPOST('contextpage', 'aZ') ? GETPOST('contextpage', 'aZ') : 'directdebitcreatecard';
+// Search/filter parameters
+$search_all = trim((GETPOST('search_all', 'alphanohtml') != '') ? GETPOST('search_all', 'alphanohtml') : GETPOST('sall', 'alphanohtml'));
+$search_ref = GETPOST('search_ref', 'alpha');
+$search_ref_supplier = GETPOST('search_ref_supplier', 'alpha');
+$search_datelimit_startday = GETPOSTINT('search_datelimit_startday');
+$search_datelimit_startmonth = GETPOSTINT('search_datelimit_startmonth');
+$search_datelimit_startyear = GETPOSTINT('search_datelimit_startyear');
+$search_datelimit_endday = GETPOSTINT('search_datelimit_endday');
+$search_datelimit_endmonth = GETPOSTINT('search_datelimit_endmonth');
+$search_datelimit_endyear = GETPOSTINT('search_datelimit_endyear');
+$search_datelimit_start = dol_mktime(0, 0, 0, $search_datelimit_startmonth, $search_datelimit_startday, $search_datelimit_startyear);
+$search_datelimit_end = dol_mktime(23, 59, 59, $search_datelimit_endmonth, $search_datelimit_endday, $search_datelimit_endyear);
+$search_company = GETPOST('search_company', 'alpha');
+$search_account = GETPOST('search_account', 'alpha');
+$filter = GETPOST('filtre', 'alpha');
+if (!GETPOST('sortorder', 'aZ09')) {
+	$sortorder = "DESC";
+} else {
+	$sortorder = GETPOST('sortorder', 'aZ09');
+}
+if (!GETPOST('sortfield', 'aZ09')) {
+	$sortfield = "f.date_lim_reglement,f.rowid";
+} else {
+	$sortfield = GETPOST('sortfield', 'aZ09');
+}
+// List of fields to search into when doing a "search in all"
+$fieldstosearchall = array(
+	'f.ref' => 'Ref',
+	's.nom' => "ThirdParty",
+);
+// Array fields for column selection
+$arrayfields = array(
+	'f.ref' => array('label' => ($type == 'bank-transfer' ? 'SupplierInvoice' : 'Invoice'), 'checked' => '1'),
+	'f.date_lim_reglement' => array('label' => "DateDue", 'checked' => '1'),
+	's.nom' => array('label' => "ThirdParty", 'checked' => '1'),
+	'f.fk_account' => array('label' => "BankAccount", 'checked' => '1'),
+	'pfd.fk_soc_rib' => array('label' => "SupplierIBAN", 'checked' => '1'),
+	'rum' => array('label' => "RUM", 'checked' => '1'),
+	'pfd.amount' => array('label' => "AmountTTC", 'checked' => '1'),
+	'pfd.date_demande' => array('label' => "DateRequest", 'checked' => '1')
+);
+if ($type == 'bank-transfer') {
+	$arrayfields['f.ref_supplier'] = array('label' => 'RefSupplier', 'checked' => '1');
+}
+// Infras add end
 $hookmanager->initHooks(array('directdebitcreatecard', 'globalcard'));
 
 // Security check
@@ -95,6 +148,7 @@ $error = 0;
 $option = "";
 $mesg = '';
 
+$object = new BonPrelevement($db);
 
 /*
  * Actions
@@ -111,6 +165,30 @@ if ($reshook < 0) {
 }
 
 if (empty($reshook)) {
+	// Infras add begin
+	if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
+		include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+		// Reset filters
+		if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter', 'alpha') || GETPOST('button_removefilter.x', 'alpha')) {
+			$search_all = "";
+			$search_ref = "";
+			$search_ref_supplier = "";
+			$search_company = "";
+			$search_account = "";
+			$search_datelimit_startday = '';
+			$search_datelimit_startmonth = '';
+			$search_datelimit_startyear = '';
+			$search_datelimit_endday = '';
+			$search_datelimit_endmonth = '';
+			$search_datelimit_endyear = '';
+			$search_datelimit_start = '';
+			$search_datelimit_end = '';
+			$toselect = '';
+			$filter = '';
+			$option = '';
+		}
+	}
+	// Infras add end
 	if ($action == 'create' && $permissiontocreate) {
 		$default_account = ($type == 'bank-transfer' ? 'PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT' : 'PRELEVEMENT_ID_BANKACCOUNT');
 		//var_dump($default_account);var_dump(getDolGlobalString($default_account));var_dump($id_bankaccount);exit;
@@ -335,7 +413,13 @@ if ($nb) {
 		print $langs->trans('ExecutionDate').' ';
 		$datere = $executiondate;
 		print $form->selectDate($datere, 're');
-
+		// Infras add begin
+		// Total checked display
+		if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
+			print '<span class="hideonsmartphone">'.$langs->trans('Total').' </span>';
+			print '<input id="total_checked" value="0" disabled class="maxwidth100">';
+		}
+		// Infras add end
 
 		if ($mysoc->isInSEPA()) {
 			$title = $langs->trans("CreateForSepa");
@@ -403,6 +487,21 @@ print '<script>
 				form_create_transfer.append(line);
 			})
 		})
+		// Infras add begin
+		// Compute total checked
+		function computeTotalChecked() {
+			let total_checked = 0;
+			let checked_pfd = Array.from($("[id^=cb].checkforselect:checked"));
+			checked_pfd.forEach((pfd) => {
+				let amount = Number(pfd.getAttribute("amount"));
+				total_checked += amount;
+			})
+			let precision = Math.pow(10, '.getDolGlobalInt('MAIN_MAX_DECIMALS_TOT', 2).');
+			$("#total_checked").val(Math.round(total_checked * precision) / precision);
+		}
+		$(".checkforselect").change(computeTotalChecked);
+		computeTotalChecked();
+		// Infras add end
 	})
 </script>';
 
@@ -421,18 +520,21 @@ print '<br>';
  * Invoices waiting for withdraw
  */
 if ($sourcetype != 'salary') {
-	$sql = "SELECT f.ref, f.rowid, f.total_ttc, s.nom as name, s.rowid as socid,";
+	// Infras add begin
+	$sql = "SELECT f.ref, f.rowid, f.date_lim_reglement as datelimite, f.total_ttc, f.fk_account, s.nom as name, s.rowid as socid,"; 
 	if ($type == 'bank-transfer') {
 		$sql .= " f.ref_supplier,";
 	}
 	$sql .= " pd.rowid as request_row_id, pd.date_demande, pd.amount, pd.fk_societe_rib as soc_rib_id";
 	if ($type == 'bank-transfer') {
-		$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f,";
+		$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f";
 	} else {
-		$sql .= " FROM ".MAIN_DB_PREFIX."facture as f,";
+		$sql .= " FROM ".MAIN_DB_PREFIX."facture as f";
 	}
-	$sql .= " ".MAIN_DB_PREFIX."societe as s,";
-	$sql .= " ".MAIN_DB_PREFIX."prelevement_demande as pd";
+	$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_account AS ba ON f.fk_account = ba.rowid";
+	// Infras add end
+	$sql .= ", ".MAIN_DB_PREFIX."societe as s";
+	$sql .= ", ".MAIN_DB_PREFIX."prelevement_demande as pd";
 	$sql .= " WHERE s.rowid = f.fk_soc";
 	$sql .= " AND f.entity IN (".getEntity('invoice').")";
 	if (!getDolGlobalString('WITHDRAWAL_ALLOW_ANY_INVOICE_STATUS')) {
@@ -450,6 +552,48 @@ if ($sourcetype != 'salary') {
 	if ($socid > 0) {
 		$sql .= " AND f.fk_soc = ".((int) $socid);
 	}
+	// Infras add begin
+	// Add search filters
+	if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
+		$searchsql = '';
+		if ($search_ref) {
+			$searchsql .= natural_search('f.ref', $search_ref);
+		}
+		if ($search_ref_supplier) {
+			$searchsql .= natural_search('f.ref_supplier', $search_ref_supplier);
+		}
+		if ($search_company) {
+			$searchsql .= natural_search('s.nom', $search_company);
+		}
+		if ($search_account) {
+			$searchsql .= natural_search(array('ba.ref', 'ba.label', 'ba.bank'), $search_account);
+		}
+		if ($search_datelimit_start) {
+			$searchsql .= " AND f.date_lim_reglement >= '".$db->idate($search_datelimit_start)."'";
+		}
+		if ($search_datelimit_end) {
+			$searchsql .= " AND f.date_lim_reglement <= '".$db->idate($search_datelimit_end)."'";
+		}
+		if ($option == 'late') {
+			$searchsql .= " AND f.date_lim_reglement < '".$db->idate(dol_now() - $conf->facture->fournisseur->warning_delay)."'";
+		}
+		if ($filter && $filter != -1) {
+			$aFilter = explode(',', $filter);
+			foreach ($aFilter as $fil) {
+				$filt = explode(':', $fil);
+				$searchsql .= ' AND '.$db->escape(trim($filt[0]))." = '".$db->escape(trim($filt[1]))."'";
+			}
+		}
+		if ($search_all) {
+			$searchsql .= natural_search(array_keys($fieldstosearchall), $search_all);
+		}
+		$sql .= !empty($searchsql) ? $searchsql : '';
+		$sql .= $db->order($sortfield, $sortorder);
+	} else {
+		// Default sort when extended list is disabled
+		$sql .= " ORDER BY f.date_lim_reglement ASC, f.rowid ASC";
+		}
+		// Infras add end
 } else {
 	$sql = "SELECT s.ref, s.rowid, s.amount, CONCAT(u.lastname, ' ', u.firstname) as name, u.rowid as uid,";
 	$sql .= " pd.rowid as request_row_id, pd.date_demande, pd.amount, pd.fk_societe_rib as soc_rib_id";
@@ -466,6 +610,8 @@ if ($sourcetype != 'salary') {
 	$sql .= " AND pd.ext_payment_id IS NULL";
 	$sql .= " AND s.rowid = pd.fk_salary AND s.paye = ".Salary::STATUS_UNPAID;
 	$sql .= " AND pd.traite = 0";
+	// Default sort for salary
+	$sql .= " ORDER BY s.rowid ASC"; // Infras add
 }
 
 $nbtotalofrecords = '';
@@ -485,7 +631,76 @@ $resql = $db->query($sql);
 if ($resql) {
 	$num = $db->num_rows($resql);
 	$i = 0;
+	// Infras add begin
+	if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
+		$arrayofselected = is_array($toselect) ? $toselect : array();
 
+		$param = '&socid='.$socid;
+		if (!empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) {
+			$param .= '&contextpage='.urlencode($contextpage);
+		}
+		if ($type) {
+			$param .= '&type=' . urlencode((string) $type);
+		}
+		if ($sourcetype) {
+			$param .= '&sourcetype=' . urlencode((string) $sourcetype);
+		}
+		if ($limit > 0 && $limit != $conf->liste_limit) {
+			$param .= '&limit='.((int) $limit);
+		}
+		if ($search_all) {
+			$param .= '&search_all='.urlencode($search_all);
+		}
+		if ($search_ref) {
+			$param .= '&search_ref='.urlencode($search_ref);
+		}
+		if ($search_ref_supplier) {
+			$param .= '&search_ref_supplier='.urlencode($search_ref_supplier);
+		}
+		if ($search_company) {
+			$param .= '&search_company='.urlencode($search_company);
+		}
+		if ($search_account) {
+			$param .= '&search_account='.urlencode($search_account);
+		}
+		if ($search_datelimit_startday) {
+			$param .= '&search_datelimit_startday='.urlencode((string)$search_datelimit_startday);
+		}
+		if ($search_datelimit_startmonth) {
+			$param .= '&search_datelimit_startmonth='.urlencode((string)$search_datelimit_startmonth);
+		}
+		if ($search_datelimit_startyear) {
+			$param .= '&search_datelimit_startyear='.urlencode((string)$search_datelimit_startyear);
+		}
+		if ($search_datelimit_endday) {
+			$param .= '&search_datelimit_endday='.urlencode((string)$search_datelimit_endday);
+		}
+		if ($search_datelimit_endmonth) {
+			$param .= '&search_datelimit_endmonth='.urlencode((string)$search_datelimit_endmonth);
+		}
+		if ($search_datelimit_endyear) {
+			$param .= '&search_datelimit_endyear='.urlencode((string)$search_datelimit_endyear);
+		}
+		if ($option) {
+			$param .= "&search_option=".urlencode($option);
+		}
+		// List of mass actions available
+		$arrayofmassactions = array();
+		if (in_array($massaction, array('presend', 'predelete'))) {
+			$arrayofmassactions = array();
+		}
+		$massactionbutton = $form->selectMassAction('', $arrayofmassactions);
+		print '<form method="POST" id="searchFormList" action="'.$_SERVER["PHP_SELF"].'">';
+		print '<input type="hidden" name="token" value="'.newToken().'">';
+		print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
+		print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
+		print '<input type="hidden" name="type" value="'.$type.'">';
+		print '<input type="hidden" name="sourcetype" value="'.$sourcetype.'">';
+		print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
+	} else {
+		// Original simple display
+		$arrayofselected = is_array($toselect) ? $toselect : array();
+		// Infras add end
 	$param = '';
 	if ($type) {
 		$param .= '&type=' . urlencode((string) $type);
@@ -508,6 +723,7 @@ if ($resql) {
 	}
 	if ($type != '') {
 		print '<input type="hidden" name="type" value="'.$type.'">';
+		}
 	}
 	$title = $langs->trans("InvoiceWaitingWithdraw");
 	$picto = 'bill';
@@ -519,9 +735,125 @@ if ($resql) {
 			$picto = 'salary';
 		}
 	}
-	print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, '', '', $massactionbutton, $num, $nbtotalofrecords, $picto, 0, '', '', $limit);
+	// Infras add begin
+	if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
+		// Show search fields description
+		if ($search_all) {
+			foreach ($fieldstosearchall as $key => $val) {
+				$fieldstosearchall[$key] = $langs->trans($val);
+			}
+			print '<div class="divsearchfieldfilter">'.$langs->trans("FilterOnInto", $search_all).implode(', ', $fieldstosearchall).'</div>';
+		}
+		$varpage = empty($contextpage) ? $_SERVER["PHP_SELF"] : $contextpage;
+		$selectedfields = $form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, $varpage, getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN', ''));
+		$selectedfields .= $form->showCheckAddButtons('checkforselect', 1);
+		print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, $picto, 0, '', '', $limit, 0, 0, 1);
 
+		print '<div class="div-table-responsive-no-min">';
+		print '<table class="tagtable liste">';
 
+		// Line for filters
+		print '<tr class="liste_titre_filter">';
+		// Action column
+		if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+			print '<td class="liste_titre center maxwidthsearch">';
+			$searchpicto = $form->showFilterButtons('left');
+			print $searchpicto;
+			print '</td>';
+		}
+		// Ref
+		if (!empty($arrayfields['f.ref']['checked'])) {
+			print '<td class="liste_titre left">';
+			print '<input class="flat maxwidth50" type="text" name="search_ref" value="'.dol_escape_htmltag($search_ref).'">';
+			print '</td>';
+		}
+		// Ref supplier
+		if ($type == 'bank-transfer' && !empty($arrayfields['f.ref_supplier']['checked'])) {
+			print '<td class="liste_titre left">';
+			print '<input class="flat maxwidth50" type="text" name="search_ref_supplier" value="'.dol_escape_htmltag($search_ref_supplier).'">';
+			print '</td>';
+		}
+		// Date due
+		if (!empty($arrayfields['f.date_lim_reglement']['checked'])) {
+			print '<td class="liste_titre center">';
+			print '<div class="nowrap">';
+			print $form->selectDate($search_datelimit_end ? $search_datelimit_end : -1, 'search_datelimit_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans("Before"));
+			print '<br><input type="checkbox" name="search_option" value="late"'.($option == 'late' ? ' checked' : '').'> '.$langs->trans("Alert");
+			print '</div>';
+			print '</td>';
+		}
+		// Thirdparty
+		if (!empty($arrayfields['s.nom']['checked'])) {
+			print '<td class="liste_titre"><input class="flat maxwidth50" type="text" name="search_company" value="'.dol_escape_htmltag($search_company).'"></td>';
+		}
+		// Bank account
+		if (!empty($arrayfields['f.fk_account']['checked'])) {
+			print '<td class="liste_titre"><input class="flat maxwidth50" type="text" name="search_account" value="'.dol_escape_htmltag($search_account).'"></td>';
+		}
+		// RIB
+		if (!empty($arrayfields['pfd.fk_soc_rib']['checked'])) {
+			print '<td class="liste_titre">&nbsp;</td>';
+		}
+		// RUM
+		if (!empty($arrayfields['rum']['checked'])) {
+			print '<td class="liste_titre">&nbsp;</td>';
+		}
+		// Amount
+		if (!empty($arrayfields['pfd.amount']['checked'])) {
+			print '<td class="liste_titre">&nbsp;</td>';
+		}
+		// Date request
+		if (!empty($arrayfields['pfd.date_demande']['checked'])) {
+			print '<td class="liste_titre">&nbsp;</td>';
+		}
+		// Action column
+		if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+			print '<td class="liste_titre center maxwidthsearch">';
+			$searchpicto = $form->showFilterButtons();
+			print $searchpicto;
+			print '</td>';
+		}
+		print "</tr>\n";
+		// Column headers
+		print '<tr class="liste_titre">';
+		// Action column
+		if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+			print_liste_field_titre($selectedfields, $_SERVER['PHP_SELF'], '', '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
+		}
+		if (!empty($arrayfields['f.ref']['checked'])) {
+			print_liste_field_titre($arrayfields['f.ref']['label'], $_SERVER['PHP_SELF'], 'f.ref,f.rowid', '', $param, '', $sortfield, $sortorder);
+		}
+		if ($type == 'bank-transfer' && !empty($arrayfields['f.ref_supplier']['checked'])) {
+			print_liste_field_titre($arrayfields['f.ref_supplier']['label'], $_SERVER['PHP_SELF'], 'f.ref_supplier,f.rowid', '', $param, '', $sortfield, $sortorder);
+		}
+		if (!empty($arrayfields['f.date_lim_reglement']['checked'])) {
+			print_liste_field_titre($arrayfields['f.date_lim_reglement']['label'], $_SERVER['PHP_SELF'], 'f.date_lim_reglement', '', $param, '', $sortfield, $sortorder, 'center ');
+		}
+		if (!empty($arrayfields['s.nom']['checked'])) {
+			print_liste_field_titre($arrayfields['s.nom']['label'], $_SERVER['PHP_SELF'], 's.nom', '', $param, '', $sortfield, $sortorder);
+		}
+		if (!empty($arrayfields['f.fk_account']['checked'])) {
+			print_liste_field_titre($arrayfields['f.fk_account']['label'], $_SERVER['PHP_SELF'], 'f.fk_account', '', $param, '', $sortfield, $sortorder);
+		}
+		if (!empty($arrayfields['pfd.fk_soc_rib']['checked'])) {
+			print_liste_field_titre($arrayfields['pfd.fk_soc_rib']['label'], $_SERVER['PHP_SELF'], '', '', $param, '', $sortfield, $sortorder);
+		}
+		if (!empty($arrayfields['rum']['checked'])) {
+			print_liste_field_titre($arrayfields['rum']['label'], $_SERVER['PHP_SELF'], '', '', $param, '', $sortfield, $sortorder);
+		}
+		if (!empty($arrayfields['pfd.amount']['checked'])) {
+			print_liste_field_titre($arrayfields['pfd.amount']['label'], $_SERVER['PHP_SELF'], 'pd.amount', '', $param, '', $sortfield, $sortorder, 'right ');
+		}
+		if (!empty($arrayfields['pfd.date_demande']['checked'])) {
+			print_liste_field_titre($arrayfields['pfd.date_demande']['label'], $_SERVER['PHP_SELF'], 'pd.date_demande', '', $param, '', $sortfield, $sortorder, 'center ');
+		}
+		if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+			print_liste_field_titre($selectedfields, $_SERVER['PHP_SELF'], '', '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
+		}
+		print "</tr>\n";
+	} else {
+		// Original simple table headers
+		// Infras add end
 	$tradinvoice = "Invoice";
 	if ($type == 'bank-transfer') {
 		if ($sourcetype != 'salary') {
@@ -530,6 +862,7 @@ if ($resql) {
 			$tradinvoice = "RefSalary";
 		}
 	}
+		print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, '', '', '', $num, $nbtotalofrecords, $picto, 0, '', '', $limit); // Infras add
 
 	print '<div class="div-table-responsive-no-min">';
 	print '<table class="noborder centpercent">';
@@ -555,7 +888,7 @@ if ($resql) {
 	// BAN
 	print '<td>'.$langs->trans("RIB").'</td>';
 	// RUM
-	if (empty($type) || $type == 'direc-debit') {
+		if (empty($type) || $type == 'direct-debit') { // Infras add: RUM is only relevant for direct debit
 		print '<td>'.$langs->trans("RUM").'</td>';
 	}
 	print '<td class="right">';
@@ -571,7 +904,7 @@ if ($resql) {
 		print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
 	}
 	print '</tr>';
-
+	}
 	if ($num) {
 		if ($sourcetype != 'salary') {
 			require_once DOL_DOCUMENT_ROOT.'/societe/class/companybankaccount.class.php';
@@ -579,13 +912,25 @@ if ($resql) {
 			require_once DOL_DOCUMENT_ROOT.'/user/class/userbankaccount.class.php';
 			require_once DOL_DOCUMENT_ROOT.'/salaries/class/salary.class.php';
 		}
-
+		// Infras add begin
+		$totalarray = array('nbfield' => 0, 'pos' => array(), 'val' => array( 'pfd.amount' => 0));
+		$bankaccountstatic = new Account($db);
+		// Infras add end
 		while ($i < $num && $i < $limit) {
 			$obj = $db->fetch_object($resql);
 			if ($sourcetype != 'salary') {
 				$bac = new CompanyBankAccount($db);	// Must include the new in loop so the fetch is clean
-				$bac->fetch($obj->soc_rib_id ?? 0, '', $obj->socid);
+				// Infras add begin
+				if (!empty($obj->soc_rib_id)) {
+					$bac->fetch($obj->soc_rib_id);
+				} else {
+					$bac->fetch(0, '', $obj->socid);
+				}
 
+				$datelimit = $db->jdate($obj->datelimite);
+				$invoicestatic->fetch($obj->rowid);
+				$thirdpartystatic->fetch($obj->socid);
+				// Infras add end
 				$invoicestatic->id = $obj->rowid;
 				$invoicestatic->ref = $obj->ref;
 				if ($type == 'bank-transfer') {
@@ -598,6 +943,7 @@ if ($resql) {
 
 				$salary = new Salary($db);
 				$salary->fetch($obj->rowid);
+				$datelimit = null; // Infras add
 			}
 			print '<tr class="oddeven">';
 
@@ -605,13 +951,136 @@ if ($resql) {
 			if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
 				print '<td class="nowrap center">';
 				$selected = 0;
-				if (in_array($obj->request_row_id, $arrayofselected)) {
+				if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) { // Infras add
 					$selected = 1;
 				}
-				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').'>';
+				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';
 				print '</td>';
 			}
+			// Infras add begin
+			if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
+				// Extended display with arrayfields
+				// Ref invoice
+				if (!empty($arrayfields['f.ref']['checked'])) {
+					print '<td class="tdoverflowmax150">';
+					if ($sourcetype != 'salary' || $salary === null) {
+						print $invoicestatic->getNomUrl(1, 'withdraw', 0, 0, '', 0, -1, 1);
+					} else {
+						print $salary->getNomUrl(1, 'withdraw');
+					}
+					print "</td>\n";
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
 
+				// Ref supplier
+				if ($type == 'bank-transfer' && !empty($arrayfields['f.ref_supplier']['checked'])) {
+					print '<td class="tdoverflowmax100" title="'.dol_escape_htmltag($invoicestatic->ref_supplier).'">';
+					print dol_escape_htmltag($invoicestatic->ref_supplier);
+					print "</td>\n";
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+				// Date limit
+				if (!empty($arrayfields['f.date_lim_reglement']['checked'])) {
+					print '<td class="center nowraponall">'.dol_print_date($datelimit, 'day');
+					if ($invoicestatic->hasDelay()) {
+						print img_warning($langs->trans('Alert').' - '.$langs->trans('Late'));
+					}
+					print '</td>';
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+				// Third party
+				if (!empty($arrayfields['s.nom']['checked'])) {
+					if ($sourcetype != 'salary') {
+						print '<td class="tdoverflowmax200">';
+						print $thirdpartystatic->getNomUrl(1, 'ban');
+						print '</td>';
+					} else {
+						print '<td class="tdoverflowmax200">';
+						$user->fetch($obj->uid);
+						print $user->getNomUrl(-1);
+						print '</td>';
+					}
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+				// Bank account
+				if (!empty($arrayfields['f.fk_account']['checked'])) {
+					if (!empty($obj->fk_account)) {
+						$bankaccountstatic->fetch($obj->fk_account);
+						print '<td class="tdoverflowmax200">'.$bankaccountstatic->getNomUrl(1, '', 'reflabel');
+						print "</td>\n";
+					} else {
+						print '<td class="tdoverflowmax200">&nbsp;</td>'."\n";
+					}
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+				// RIB
+				if (!empty($arrayfields['pfd.fk_soc_rib']['checked'])) {
+					print '<td>';
+					if ($bac->id > 0) {
+						if (!empty($bac->iban) || !empty($bac->bic)) {
+							print (!empty($bac->label) ? $bac->label.' - ' : '').$bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
+							if ($bac->verif() <= 0) {
+								print img_warning('Error on default bank number for IBAN : '.$langs->trans($bac->error));
+							}
+						} else {
+							print img_warning($langs->trans("IBANNotDefined"));
+						}
+					} else {
+						print img_warning($langs->trans("NoBankAccountDefined"));
+					}
+					print '</td>';
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+				// RUM
+				if (!empty($arrayfields['rum']['checked'])) {
+					print '<td>';
+					$rumToShow = $thirdpartystatic->display_rib('rum');
+					if ($rumToShow) {
+						print $rumToShow;
+						$format = $thirdpartystatic->display_rib('format');
+						if ($type != 'bank-transfer') {
+							if ($format) {
+								print ' ('.$format.')';
+							}
+						}
+					} else {
+						print img_warning($langs->trans("NoBankAccountDefined"));
+					}
+					print '</td>';
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+				// Amount
+				if (!empty($arrayfields['pfd.amount']['checked'])) {
+					print '<td class="right nowrap"><span id="amount_'.$obj->request_row_id.'" class="amount">'.price($obj->amount)."</span></td>\n";
+					if (!$i) {
+						$totalarray['nbfield']++;
+						$totalarray['pos'][$totalarray['nbfield']] = 'pfd.amount';
+					}
+					$totalarray['val']['pfd.amount'] += $obj->amount;
+				}
+				// Date request
+				if (!empty($arrayfields['pfd.date_demande']['checked'])) {
+					print '<td class="center nowraponall">'.dol_print_date($db->jdate($obj->date_demande), 'day').'</td>';
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+			} else {
+				// Simple display without arrayfields
 			// Ref invoice
 			print '<td class="tdoverflowmax150">';
 			if ($sourcetype != 'salary' || $salary === null) {
@@ -647,6 +1116,11 @@ if ($resql) {
 					print $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
 					if ($bac->verif() <= 0) {
 						print img_warning('Error on default bank number for IBAN : '.$langs->trans($bac->error));
+						}
+						if ($obj->soc_rib_id > 0) {
+							print $form->textwithpicto('', $langs->trans("BankAccountForcedOnRequest"));
+						} else {
+							print $form->textwithpicto('', $langs->trans("BankAccountUsedByDefault").'<br><b>'.$langs->trans("Label").'</b> : '.$bac->label.'<br><b>'.$langs->trans("BankName").'</b> : '.$bac->bank, 1, 'help', 'valigmiddle warning');
 					}
 				} else {
 					print img_warning($langs->trans("IBANNotDefined"));
@@ -688,19 +1162,25 @@ if ($resql) {
 			print '<td class="right">';
 			print dol_print_date($db->jdate($obj->date_demande), 'day');
 			print '</td>';
+			}
+			// Infras add end
 			// Action column
 			if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
 				print '<td class="nowrap center">';
 				$selected = 0;
-				if (in_array($obj->request_row_id, $arrayofselected)) {
+				if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) {
 					$selected = 1;
 				}
-				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').'>';
+				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';
 				print '</td>';
 			}
 			print '</tr>';
 			$i++;
 		}
+		// Infras add begin
+		// Show total line
+		include DOL_DOCUMENT_ROOT.'/core/tpl/list_print_total.tpl.php';
+		// Infras add end
 	} else {
 		$colspan = 6;
 		if ($type == 'bank-transfer') {
