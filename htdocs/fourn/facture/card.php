@@ -509,6 +509,8 @@ if (empty($reshook)) {
 			}
 		}
 		// InfraS Add begin: contrôle de la date de facturation ---
+		if (getDolGlobalInt('SUPPLIER_INVOICE_CHECK_DATE', 0)) {
+			$dateButoir			= getDolGlobalInt('SUPPLIER_INVOICE_CHECK_DATE', 0);
 		$currentDay			= (int) dol_print_date(dol_now(), '%d');
 		$currentMonth		= (int) dol_print_date(dol_now(), '%m');
 		$currentYear		= (int) dol_print_date(dol_now(), '%Y');
@@ -521,26 +523,27 @@ if (empty($reshook)) {
 		$forceDate			= false;
 		// Si la date proposée est trop ancienne
 		if ($invoiceYear < $currentYear || ($invoiceYear == $currentYear && $invoiceMonth < $previousMonth)) {
-			if ($currentDay < 10) {
-				// Avant le 10, on force à Août si on est en septembre, sinon au mois précédent
+				if ($currentDay < $dateButoir) {
+					// Avant la date butoir, on force au mois précédent
 				$forceMonth	= $previousMonth;
 				$forceYear	= $previousYear;
 			} else {
-				// Après le 10, on force au 1er du mois courant
+					// Après la date butoir, on force au 1er du mois courant
 				$forceMonth	= $currentMonth;
 				$forceYear	= $currentYear;
 			}
 			$newdate		= dol_mktime(0, 0, 0, $forceMonth, 1, $forceYear, 'tzserver');
 			$forceDate		= true;
 		} elseif ($invoiceYear == $currentYear && $invoiceMonth == $previousMonth) {
-			// Si la date est dans le mois précédent, on accepte si avant le 10, sinon on force au 1er du mois courant
-			if ($currentDay >= 10) {
+				// Si la date est dans le mois précédent, on accepte si avant la date butoir, sinon on force au 1er du mois courant
+				if ($currentDay >= $dateButoir) {
 				$newdate	= dol_mktime(0, 0, 0, $currentMonth, 1, $currentYear, 'tzserver');
 				$forceDate	= true;
 			}
 		}
 		if ($forceDate) {
-			setEventMessages($langs->trans('factureDateChangeWarning'), array(), 'warnings');
+				setEventMessages($langs->trans('La date de facturation a été modifiée en raison de la date butoir'), array(), 'warnings');
+			}
 		}
 		// InfraS Add end
 		$object->fetch($id);
@@ -3191,7 +3194,7 @@ if ($action == 'create') {
 					$object->fetch($id);
 					$object->date	= $newdate;
 					$result			= $object->update($user);
-					setEventMessages($langs->trans('factureDateChangeWarning'), array(), 'warnings');
+					setEventMessages($langs->trans('La date de facturation a été modifiée en raison de la date butoir'), array(), 'warnings');
 				}
 			}
 			// InfraS add end
