@@ -1130,7 +1130,7 @@ class BonPrelevement extends CommonObject
 
 			$obj = $this->db->fetch_object($resql);
 			if ($obj) {
-				$thirdpartyBANId = $obj->fk_societe_rib;
+				$thirdpartyBANId = $obj->fk_societe_rib ?: $thirdpartyBANId;	// InfraS change: if fk_societe_rib is null, we keep the default value 0 instead of setting it to null
 
 				dol_syslog(__METHOD__ . " Found an BAN ID to use: ".$thirdpartyBANId);
 			}
