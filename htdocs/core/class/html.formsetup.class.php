@@ -16,6 +16,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+require_once DOL_DOCUMENT_ROOT . '/webportal/lib/functions.lib.php';
+
 /**
  * This class help you create setup render.
  *
@@ -139,11 +141,13 @@ class FormSetup
 	/**
 	 * Generate the form (in read or edit mode depending on $editMode)
 	 *
-	 * @param 	bool 	$editMode 	true will display output on edit mod
-	 * @param	bool	$hideTitle	True to hide the first title line
-	 * @return 	string				Html output
+	 * @param 	bool 	$editMode 		True will display output on edit mod
+	 * @param	bool	$hideTitle		True to hide the first title line
+	 * @param	string	$title			Title of first line
+	 * @param	string	$cssfirstcolumn	CSS first column
+	 * @return 	string					Html output
 	 */
-	public function generateOutput($editMode = false, $hideTitle = false)
+	public function generateOutput($editMode = false, $hideTitle = false, $title = '', $cssfirstcolumn = '')
 	{
 		global $hookmanager, $action;
 
@@ -165,6 +169,7 @@ class FormSetup
 
 			if ($editMode) {
 				$out .= '<form ' . self::generateAttributesStringFromArray($this->formAttributes) . ' >';
+				$out .= '<input type="hidden" name="page_y" value="">';
 
 				// generate hidden values from $this->formHiddenInputs
 				if (!empty($this->formHiddenInputs) && is_array($this->formHiddenInputs)) {
@@ -175,7 +180,7 @@ class FormSetup
 			}
 
 			// generate output table
-			$out .= $this->generateTableOutput($editMode, $hideTitle);
+			$out .= $this->generateTableOutput($editMode, $hideTitle, $title, $cssfirstcolumn);
 
 
 			$reshook = $hookmanager->executeHooks('formSetupBeforeGenerateOutputButton', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
@@ -208,11 +213,13 @@ class FormSetup
 	/**
 	 * generateTableOutput
 	 *
-	 * @param 	bool 	$editMode 	True will display output on edit modECM
-	 * @param	bool	$hideTitle	True to hide the first title line
-	 * @return 	string				Html output
+	 * @param 	bool 	$editMode 		True will display output on edit modECM
+	 * @param	bool	$hideTitle		True to hide the first title line
+	 * @param	string	$title			Title of first line
+	 * @param	string	$cssfirstcolumn	CSS first column
+	 * @return 	string					Html output
 	 */
-	public function generateTableOutput($editMode = false, $hideTitle = false)
+	public function generateTableOutput($editMode = false, $hideTitle = false, $title = '', $cssfirstcolumn = '')
 	{
 		global $hookmanager, $action;
 		require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
@@ -230,9 +237,12 @@ class FormSetup
 		} else {
 			$out = '<table class="noborder centpercent">';
 			if (empty($hideTitle)) {
+				if (empty($title)) {
+					$title = $this->langs->transnoentitiesnoconv("Parameter");
+				}
 				$out .= '<thead>';
 				$out .= '<tr class="liste_titre">';
-				$out .= '	<td>' . $this->langs->trans("Parameter") . '</td>';
+				$out .= '	<td'.($cssfirstcolumn ? ' class="'.$cssfirstcolumn.'"' : '').'>' . dolPrintHTML($title) . '</td>';
 				$out .= '	<td></td>';
 				$out .= '</tr>';
 				$out .= '</thead>';
@@ -401,9 +411,9 @@ class FormSetup
 		 */
 
 		$item = new FormSetupItem($confKey);
-		// need to be ignored from scrutinizer setTypeFromTypeString was created as deprecated to incite developer to use object oriented usage
-		// @phan-suppress-next-line PhanDeprecatedFunction
-		/** @scrutinizer ignore-deprecated */ $item->setTypeFromTypeString((string) $params['type']);
+		// setTypeFromTypeString was created as deprecated to incite developer to use object oriented usage
+		/** @phan-suppress-next-line PhanDeprecatedFunction */
+		$item->setTypeFromTypeString((string) $params['type']);
 
 		if (!empty($params['enabled']) && is_numeric($params['enabled'])) {
 			$item->enabled = (int) $params['enabled'];
@@ -899,6 +909,8 @@ class FormSetupItem
 			$out .= $this->generateInputFieldMultiSelect();
 		} elseif ($this->type == 'select') {
 			$out .= $this->generateInputFieldSelect();
+		} elseif ($this->type == 'radio') {
+			$out .= $this->generateInputFieldRadio();
 		} elseif ($this->type == 'selectUser') {
 			$out .= $this->generateInputFieldSelectUser();
 		} elseif ($this->type == 'textarea') {
@@ -910,10 +922,24 @@ class FormSetupItem
 		} elseif ($this->type == 'yesno') {
 			if (!empty($conf->use_javascript_ajax)) {
 				$input = $this->fieldParams['input'] ?? array();
-				$revertonoff = !empty($this->fieldParams['revertonoff']) ? 1 : 0;
-				$forcereload = !empty($this->fieldParams['forcereload']) ? 1 : 0;
+				$revertonoff = empty($this->fieldParams['revertonoff']) ? 0 : 1;
+				$forcereload = empty($this->fieldParams['forcereload']) ? 0 : 1;
+				$suffixarray = array(
+					'ifoff' => '',
+					'ifon' => '',
+				);
+				if (!empty($this->fieldParams['alertifoff'])) {
+					$suffixarray['ifoff'] = '_red';
+				} elseif (!empty($this->fieldParams['warningifoff'])) {
+					$suffixarray['ifoff'] = '_warning';
+				}
+				if (!empty($this->fieldParams['alertifon'])) {
+					$suffixarray['ifon'] = '_red';
+				} elseif (!empty($this->fieldParams['warningifon'])) {
+					$suffixarray['ifon'] = '_warning';
+				}
 
-				$out .= ajax_constantonoff($this->confKey, $input, $this->entity, $revertonoff, 0, $forcereload, 2, 0, 0, '', '', $this->cssClass);
+				$out .= ajax_constantonoff($this->confKey, $input, $this->entity, $revertonoff, 0, $forcereload, 2, 0, 0, $suffixarray, '', $this->cssClass);
 			} else {
 				$out .= $this->form->selectyesno($this->confKey, $this->fieldValue, 1, false, 0, 0, $this->cssClass);
 			}
@@ -930,6 +956,7 @@ class FormSetupItem
 		} elseif ($this->type == 'product') {
 			if (isModEnabled("product") || isModEnabled("service")) {
 				$selected = (empty($this->fieldValue) ? '' : $this->fieldValue);
+				$out .= img_picto('', 'product', 'class="pictofixedwidth"');
 				$out .= $this->form->select_produits((int) $selected, $this->confKey, '', 0, 0, 1, 2, '', 0, array(), 0, '1', 0, $this->cssClass, 0, '', null, 1);
 			}
 		} elseif ($this->type == 'selectBankAccount') {
@@ -941,6 +968,12 @@ class FormSetupItem
 			$out .= $this->generateInputFieldPassword('dolibarr');
 		} elseif ($this->type == 'genericpassword') {
 			$out .= $this->generateInputFieldPassword('generic');
+		} elseif ($this->type == 'price') {
+			$out .= $this->generateInputFieldPrice();
+		} elseif ($this->type == 'email') {
+			$out .= $this->generateInputFieldEmail();
+		} elseif ($this->type == 'url') {
+			$out .= $this->generateInputFieldUrl();
 		} else {
 			$out .= $this->generateInputFieldText();
 		}
@@ -959,6 +992,48 @@ class FormSetupItem
 			$this->fieldAttr['class'] = 'flat '.(empty($this->cssClass) ? 'minwidth200' : $this->cssClass);
 		}
 		return '<input '.FormSetup::generateAttributesStringFromArray($this->fieldAttr).' />';
+	}
+
+	/**
+	 * Generate default input field
+	 *
+	 * @return string
+	 */
+	public function generateInputFieldPrice()
+	{
+		global $langs, $mysoc;
+
+		if (empty($this->fieldAttr) || empty($this->fieldAttr['class'])) {
+			$this->fieldAttr['class'] = 'flat '.(empty($this->cssClass) ? 'minwidth40 maxwidth75' : $this->cssClass);
+		}
+		//return img_picto('', 'currency', 'class="pictofixedwidth"').'<input '.FormSetup::generateAttributesStringFromArray($this->fieldAttr).' /> '.$langs->getCurrencySymbol($mysoc->currency_code);
+		return '<input '.FormSetup::generateAttributesStringFromArray($this->fieldAttr).' /> '.$langs->getCurrencySymbol($mysoc->currency_code);
+	}
+
+	/**
+	 * Generate default input field
+	 *
+	 * @return string
+	 */
+	public function generateInputFieldEmail()
+	{
+		if (empty($this->fieldAttr) || empty($this->fieldAttr['class'])) {
+			$this->fieldAttr['class'] = 'flat '.(empty($this->cssClass) ? 'minwidth100 maxwidth500' : $this->cssClass);
+		}
+		return img_picto('', 'email', 'class="pictofixedwidth"').'<input '.FormSetup::generateAttributesStringFromArray($this->fieldAttr).' />';
+	}
+
+	/**
+	 * Generate default input field
+	 *
+	 * @return string
+	 */
+	public function generateInputFieldUrl()
+	{
+		if (empty($this->fieldAttr) || empty($this->fieldAttr['class'])) {
+			$this->fieldAttr['class'] = 'flat '.(empty($this->cssClass) ? 'minwidth100 maxwidth500' : $this->cssClass);
+		}
+		return img_picto('', 'url', 'class="pictofixedwidth"').'<input '.FormSetup::generateAttributesStringFromArray($this->fieldAttr).' />';
 	}
 
 	/**
@@ -1097,6 +1172,9 @@ class FormSetupItem
 			$out .= ' maxlength="' . $max . '"';
 		}
 		$out .= '>';
+
+		$out .= '<span class="fa fa-eye paddingleft paddingright" onclick="javascript: console.log(\'click on show-hide pass\'); newtype = (jQuery(\'#'.trim($this->confKey).'\').attr(\'type\') == \'text\' ? \'password\' : \'text\'); jQuery(\'#'.trim($this->confKey).'\').attr(\'type\', newtype);"></span>';
+
 		return $out;
 	}
 
@@ -1117,7 +1195,6 @@ class FormSetupItem
 		return $this->form->multiselectarray($this->confKey, $this->fieldOptions, $TSelected, 0, 0, '', 0, 0, 'style="min-width:100px"');
 	}
 
-
 	/**
 	 * generateInputFieldSelect
 	 *
@@ -1131,6 +1208,23 @@ class FormSetupItem
 		}
 
 		$s .= $this->form->selectarray($this->confKey, $this->fieldOptions, $this->fieldValue, 0, 0, 0, '', 0, 0, 0, '', $this->cssClass);
+
+		return $s;
+	}
+
+	/**
+	 * generateInputFieldSelect
+	 *
+	 * @return string
+	 */
+	public function generateInputFieldRadio()
+	{
+		$s = '';
+		if ($this->picto) {
+			$s .= img_picto('', $this->picto, 'class="pictofixedwidth"');
+		}
+
+		$s .= $this->radio($this->confKey, $this->fieldOptions, $this->fieldValue, ['attrLabel' => ['class' => $this->cssClass]]);
 
 		return $s;
 	}
@@ -1257,7 +1351,7 @@ class FormSetupItem
 			if ($result < 0) {
 				$this->setErrors($c->errors);
 			}
-			$ways = $c->print_all_ways(' &gt;&gt; ', 'none', 0, 1); // $ways[0] = "ccc2 >> ccc2a >> ccc2a1" with html formatted text
+			$ways = $c->print_all_ways('auto', 'none', 0, 1); // $ways[0] = "ccc2 >> ccc2a >> ccc2a1" with html formatted text
 			$toprint = array();
 			foreach ($ways as $way) {
 				$toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories"' . ($c->color ? ' style="background: #' . $c->color . ';"' : ' style="background: #bbb"') . '>' . $way . '</li>';
@@ -1449,6 +1543,17 @@ class FormSetupItem
 	}
 
 	/**
+	 * Set type of input as string
+	 *
+	 * @return self
+	 */
+	public function setAsUrl()
+	{
+		$this->type = 'url';
+		return $this;
+	}
+
+	/**
 	 * Set type of input as color
 	 *
 	 * @return self
@@ -1538,6 +1643,17 @@ class FormSetupItem
 	}
 
 	/**
+	 * Set type of input as product
+	 *
+	 * @return self
+	 */
+	public function setAsPrice()
+	{
+		$this->type = 'price';
+		return $this;
+	}
+
+	/**
 	 * Set type of input as a category selector
 	 * TODO add default value
 	 *
@@ -1594,6 +1710,23 @@ class FormSetupItem
 		return $this;
 	}
 
+
+	/**
+	 * Set type of input as a simple title. No data to store
+	 *
+	 * @param  ?array<string,string|array{id:string,label:string,picto?:string,labelIsHtml?:bool}> $fieldOptions  A table of field options
+	 * @return self
+	 */
+	public function setAsRadio($fieldOptions)
+	{
+		if (is_array($fieldOptions)) {
+			$this->fieldOptions = $fieldOptions;
+		}
+
+		$this->type = 'radio';
+		return $this;
+	}
+
 	/**
 	 * Set type of input as a simple title. No data to store
 	 *
@@ -1638,5 +1771,78 @@ class FormSetupItem
 	{
 		$this->type = 'genericpassword';
 		return $this;
+	}
+
+	/**
+	 * Generates a set of HTML radio inputs from an array of key-value items.
+	 *
+	 * @param string $htmlName Name of the HTML input group
+	 * @param array<string, string|array{label: string,value?: string|int,attr?: array<string, string|int|bool|null>, unescapedAttr?: string[],attrLabel?: array<string, string|int|bool|null>,unescapedAttrLabel?: string[],disabled?: bool,css?: string,labelIsHtml?: bool}> $radioItems Array of items in the form key => label or key => array of item properties
+	 * @param string|int $selected Preselected key for selection.
+	 * @param array<string, array<string, string|int|bool|null>|string|bool> $moreGlobalParams Additional global parameters applied to all items (e.g., attributes)
+	 *
+	 * @return string HTML string containing all radio inputs wrapped in <label> tags
+	 */
+	public function radio($htmlName, $radioItems, $selected = '', $moreGlobalParams = [])
+	{
+		// Default parameters for each radio input
+		$defaultParams = [
+			'disabled' => false,
+			'attr' => [
+				'type' => 'radio',
+				'name' => $htmlName,
+			],
+			'unescapedAttr' => [],
+			'attrLabel' => [],
+			'unescapedAttrLabel' => [],
+			'labelIsHtml' => false
+		];
+
+		// Merge global parameters with defaults
+		$params = array_merge_recursive_distinct($defaultParams, $moreGlobalParams);
+
+		$out = '';
+		if (!empty($radioItems)) {
+			foreach ($radioItems as $key => $item) {
+				// Normalize item to array structure if it's a simple string
+				if (!is_array($item)) {
+					$item = [
+						'attr' => [
+							'value' => $key,
+						],
+						'label' => $item
+					];
+				}
+
+				// Default properties for individual item
+				$defaultItem = [
+					'attr' => [
+						'value' => !isset($item['attr']['value']) ? $key : '',
+					],
+					'label' => '',
+				];
+
+				// Merge defaults with global params and item-specific properties
+				$defaultItem = array_merge_recursive_distinct($params, $defaultItem);
+				$item = array_merge_recursive_distinct($defaultItem, $item);
+
+				// Determine if this radio should be checked
+				if ((is_array($selected) && in_array($item['attr']['value'], $selected, true)) || $selected === $item['attr']['value']) {
+					$item['attr']['checked'] = true;
+				}
+
+				// Build HTML attributes for input and label
+				$inputAttributes = implode(' ', commonHtmlAttributeBuilder($item['attr'], $item['unescapedAttr']));
+				$labelAttributes = implode(' ', commonHtmlAttributeBuilder($item['attrLabel'], $item['unescapedAttrLabel']));
+
+				// prevent accidental Xss todo : escape $item['label'] but html friendly compatible
+				$text = $item['labelIsHtml'] ? $item['label'] : htmlspecialchars($item['label'], ENT_QUOTES | ENT_SUBSTITUTE);
+
+				// Generate HTML
+				$out .= '<label ' . $labelAttributes . '><input ' . $inputAttributes . ' /> ' . $text . '</label> ';
+			}
+		}
+
+		return $out;
 	}
 }
