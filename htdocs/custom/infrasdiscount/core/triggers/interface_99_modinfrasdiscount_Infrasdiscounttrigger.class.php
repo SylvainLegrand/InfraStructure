@@ -161,6 +161,7 @@
 			// validate
 			if (in_array($action, $validate_actions)) {
 				dol_syslog('Trigger"'.$this->name.'" for action '.$action.' launched by '.__FILE__.' id = '.$object->rowid);
+				$res	= 0;
 				switch ($action) {
 					case 'ORDER_VALIDATE':
 						$res	= $this->validateRemiseAutomatique( $object);

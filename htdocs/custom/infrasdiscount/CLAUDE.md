@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `22.0.2`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.3.0` (2026-02)
+- Dernière version locale : `15.3.1` (2026-02)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrasdiscount/`
 
@@ -142,6 +142,17 @@ La classe `ActionsInfraSDiscount` intervient sur les contextes `propalcard`, `or
 - `doActions` : traitement des soumissions de formulaire de remise (création, modification, suppression, recalcul),
 - `formObjectOptions` : injection du formulaire popup de remise dans la fiche document.
 
+## Trigger (Trigger behavior)
+
+Le trigger `interface_99_modinfrasdiscount_Infrasdiscounttrigger` écoute les actions suivantes :
+
+- `ORDER_VALIDATE` : déclenchement des remises automatiques sur validation de commande,
+- `BILL_PAYED` : appel API de paiement Sort&Group (si activé),
+- `LINEPROPAL_*`, `LINEORDER_*`, `LINEBILL_*` : recalcul automatique des remises après ajout, modification ou suppression de lignes,
+- nettoyage automatique des lignes de remise à montant nul après recalcul,
+- régénération PDF après recalcul des remises (respecte `MAIN_DISABLE_PDF_AUTOUPDATE`),
+- prévention de récursion infinie via flag statique `$isUpdating` dans un bloc `try/finally`.
+
 ## Données / SQL (Data model)
 
 Le module ne crée aucune table SQL propre. Toute la configuration est stockée dans `llx_const`.
@@ -200,13 +211,14 @@ Si modification SQL / descripteur / permissions / hooks / triggers :
 
 - La version locale est lue depuis `docs/changelog.xml` (`infrasdiscount_getLocalVersionMinDoli`)
 - L'extension PHP XML est nécessaire pour parser le changelog
-- Le module auto-désactivé si la version Dolibarr est inférieure au minimum requis
+- Le module est auto-désactivé si la version Dolibarr est inférieure au minimum requis
 - La position des lignes de remise dans le document compte pour le calcul en cascade
 - Les lignes du module Subtotal (titres, sous-totaux, textes libres) sont exclues via `infrasdiscount_isSubtotalLine()`
 - La constante `INVOICE_KEEP_DISCOUNT_LINES_AS_IN_ORIGIN` est activée automatiquement pour préserver les remises lors de la transformation devis → commande → facture
 
 ## Dernières mises à jour (Recent updates)
 
+- `15.3.1` (2026-02) : correction du trigger `BILL_PAYED` quand l'authentification Sort&Group n'est pas activée
 - `15.3.0` (2026-02) : durcissements sécurité — sanitisation GETPOST, protection XSS sur `PHP_SELF` et `SERVER_SOFTWARE`, restriction regex des constantes, externalisation OAuth2, contrôles permissions, remplacement `addslashes()` par `$db->escape()`
 - `15.3.0` (2026-02) : correction de l'appel `infraspackplus_print_input()` → `infrasdiscount_print_input()`, du modulepart backup et du slash manquant dans `dol_buildpath()`
 - `15.3.0` (2026-02) : isolation du cookie JS (`infrasdiscount_tblPSexp`) et alignement sur les conventions des modules InfraS

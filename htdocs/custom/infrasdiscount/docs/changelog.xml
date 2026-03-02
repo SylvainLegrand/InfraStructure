@@ -133,6 +133,9 @@
 		<change type='chg'>Alignement du bloc JavaScript sur les conventions des modules infraspackplus, infrassearch et infraswidgets</change>
 		<change type='add'>Ajout du fichier CLAUDE.md complet pour guider le développement avec l'IA (Documentation complète de l'architecture, des fonctions, des calculs de remises et du support multi-devises)</change>
 	</Version>
+	<Version Number="15.3.1" MonthVersion="2026-02">
+		<change type='fix'>Trigger : Correction de l'action BILL_PAYED quand l'authentification Sort&Group n'est pas activée</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="22.0.2"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
