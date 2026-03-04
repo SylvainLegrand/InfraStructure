@@ -181,6 +181,7 @@ Constantes actives usuelles :
 - `INFRASDISCOUNT_AUTO_DISCOUNT_PRODUCTS` — liste de références produit éligibles (séparées par virgule)
 - `INFRASDISCOUNT_AUTO_DISCOUNT_PONDERAT` — référence produit utilisée comme pondérateur
 - `INFRASDISCOUNT_AUTO_DISCOUNT_COMMENT` — commentaire ajouté aux descriptions de remise auto
+- `INFRASDISCOUNT_SORTANDGROUP` — utilisation de l'API de payement SortAndGroup
 - `INFRASDISCOUNT_OAUTH_CLIENT_ID` / `INFRASDISCOUNT_OAUTH_CLIENT_SECRET` / `INFRASDISCOUNT_OAUTH_URL` — identifiants OAuth2 pour l'API de paiement (externalisés en base)
 
 Point de vigilance : les constantes OAuth2 doivent être configurées en base via `dolibarr_set_const` et ne jamais être écrites en dur dans le code.
@@ -218,6 +219,7 @@ Si modification SQL / descripteur / permissions / hooks / triggers :
 
 ## Dernières mises à jour (Recent updates)
 
+- `15.3.2` (2026-03) : Modification du trigger `BILL_PAYED` ajout d'une option pour l'utilisation du lien SortAndGroup
 - `15.3.1` (2026-02) : correction du trigger `BILL_PAYED` quand l'authentification Sort&Group n'est pas activée
 - `15.3.0` (2026-02) : durcissements sécurité — sanitisation GETPOST, protection XSS sur `PHP_SELF` et `SERVER_SOFTWARE`, restriction regex des constantes, externalisation OAuth2, contrôles permissions, remplacement `addslashes()` par `$db->escape()`
 - `15.3.0` (2026-02) : correction de l'appel `infraspackplus_print_input()` → `infrasdiscount_print_input()`, du modulepart backup et du slash manquant dans `dol_buildpath()`

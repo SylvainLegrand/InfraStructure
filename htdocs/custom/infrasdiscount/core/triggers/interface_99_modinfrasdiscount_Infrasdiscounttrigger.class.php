@@ -167,7 +167,9 @@
 						$res	= $this->validateRemiseAutomatique( $object);
 					break;
 					case 'BILL_PAYED':
-						$res	= $this->payFacture($object);
+						if (getDolGlobalInt('INFRASDISCOUNT_SORTANDGROUP', 0)) {
+							$res	= $this->payFacture($object);
+						}
 					break;
 					}
 				return $res;
