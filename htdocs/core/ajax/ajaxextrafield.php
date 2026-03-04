@@ -170,6 +170,12 @@ if ($object instanceof CommonObject) {
 			} else {
 				$keyList = $InfoFieldList[2] . ' as rowid';
 			}
+			// Infras add begin
+			// Re-add parent field that was removed by keyList reset above
+			if (!empty($parentField)) {
+				$keyList .= ', ' . $parentField;
+			}
+			// Infras add end
 		}
 
 		$filter_categorie = false;
