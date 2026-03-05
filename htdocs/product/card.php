@@ -1226,7 +1226,7 @@ if (empty($reshook)) {
 					$price_base_type,
 					$pu_ttc,
 					0,
-					0,
+					$object->type, // infras change
 					-1,
 					0,
 					0,
@@ -1269,7 +1269,7 @@ if (empty($reshook)) {
 					$pu_ttc,
 					'',
 					'',
-					0,
+					$object->type, // infras change
 					-1,
 					0,
 					0,
