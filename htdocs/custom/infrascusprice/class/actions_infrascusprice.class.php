@@ -87,9 +87,10 @@
 		{
 			global $langs;
 
+			$langs->load('infrascusprice@infrascusprice');
 			$currentversion	= array();
 			$currentversion	= infrascusp_getLocalVersionMinDoli('infrascusprice');
-			if (!getDolGlobalString('INFRASCUSPRICE_DISABLE_CHECK_VERSION_MAX', '') && version_compare(DOL_VERSION, $currentversion[4], '>')) {
+			if (!getDolGlobalString('INFRASCUSPRICE_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
 				setEventMessages($langs->trans('InfraSCusPWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
 			}
 			$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT,'/').'/i','', $_SERVER['PHP_SELF']);

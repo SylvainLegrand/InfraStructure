@@ -25,7 +25,13 @@
 	$isV20p = version_compare(DOL_VERSION, '20.0.0') >= 0;	// InfraS add
 	$isV21p = version_compare(DOL_VERSION, '21.0.0') >= 0;	// InfraS add
 	$isV22p = version_compare(DOL_VERSION, '22.0.0') >= 0;	// InfraS add
-	if ($isV22p) {
+	$isV23p = version_compare(DOL_VERSION, '23.0.0') >= 0;	// InfraS add
+	$isV24p = version_compare(DOL_VERSION, '24.0.0') >= 0;	// InfraS add
+	if ($isV24p) {
+		include dol_buildpath('infrasproject/core/tpl/objectline_edit_24.tpl.php', 0);
+	} elseif ($isV23p) {
+		include dol_buildpath('infrasproject/core/tpl/objectline_edit_23.tpl.php', 0);
+	} elseif ($isV22p) {
 		include dol_buildpath('infrasproject/core/tpl/objectline_edit_22.tpl.php', 0);
 	} elseif ($isV21p) {
 		include dol_buildpath('infrasproject/core/tpl/objectline_edit_21.tpl.php', 0);

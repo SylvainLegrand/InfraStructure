@@ -87,7 +87,11 @@
 		<change type='chg'>Alignement des fonctions de la lib admin sur les modules infraspackplus, infraswidgets et infrassearch (27 corrections)</change>
 		<change type='add'>Ajout de la documentation technique CLAUDE.md pour l'assistant IA (architecture du module et hooks)</change>
 	</Version>
-	<InfraS Downloaded="20260201"/>
-	<Dolibarr minVersion="15.0.0" maxVersion="22.0.4"/>
+	<Version Number="15.2.0" MonthVersion="2026-03">
+		<change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
+		<change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr supportée (avertissement si version non supportée)</change>
+	</Version>
+	<InfraS Downloaded="20260301"/>
+	<Dolibarr minVersion="15.0.0" maxVersion="24.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

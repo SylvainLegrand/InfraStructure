@@ -128,6 +128,7 @@ InfraSProjectForThisproject     = pour ce projet
 TypeOfFees                      = Types de notes de frais
 
 ### actions class ###
+InfraSProjectWarningMaxVersion         = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSProject %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
 InfraSProjectLinesBillsSuppliers       = Lignes de factures fournisseurs
 InfraSProjectListSupplierInvoicesLines = Liste des lignes de factures fournisseurs associées au projet
 InfraSProjectWarningLineWithProject    = Des lignes de facture sont déjà associées à un projet !

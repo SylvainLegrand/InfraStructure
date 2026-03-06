@@ -30,7 +30,7 @@
 	dol_include_once('/infrassupprice/core/lib/infrassuppriceAdmin.lib.php');
 
 	// Translations *********************************
-	$langs->loadLangs(array('admin', 'errors', 'infrassupprice@infrassupprice'));
+	$langs->loadLangs(array('admin', 'errors', 'other', 'infrassupprice@infrassupprice'));
 
 	// Access control *******************************
 	$accessright	= !empty($user->admin) || !empty($user->hasRight('infrassupprice', 'paramBkpRest')) ? 2 : (!empty($user->hasRight('infrassupprice', 'paramInfraSSupPrice')) ? 1 : 0);

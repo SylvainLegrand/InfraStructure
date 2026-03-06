@@ -28,6 +28,7 @@
 	include_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 	dol_include_once('/infrasproject/class/infrasproject.class.php');
 	dol_include_once('/infrasproject/core/lib/infrasproject.lib.php');
+	dol_include_once('/infrasproject/core/lib/infrasprojectAdmin.lib.php');
 	if (isModEnabled('contacttracking'))	dol_include_once('/contacttracking/class/contacttracking.class.php');
 
 	/************************************************
@@ -87,8 +88,13 @@
 		**/
 		public function afterLogin($parameters, &$object, &$action, $hookmanager)
 		{
-			global $user;
+			global $langs;
 
+			$currentversion	= array();
+			$currentversion	= infrasproject_getLocalVersionMinDoli('infrasproject');
+			if (!getDolGlobalString('INFRASPROJECT_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
+				setEventMessages($langs->trans('InfraSProjectWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
+			}
 			$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT,'/').'/i','', $_SERVER['PHP_SELF']);
 			if (!infrasproject_is_substitution_page($path_src)) {
 				$url = infrasproject_get_substitution_url($path_src);

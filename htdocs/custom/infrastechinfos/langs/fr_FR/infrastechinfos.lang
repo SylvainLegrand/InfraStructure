@@ -78,3 +78,4 @@ InfraSTechInfosColRef          = Référence
 InfraSTechInfosColDim          = L x l x H
 InfraSTechInfosCautionTimeUnit = l'unité de temps utilisée pour ce service n'est pas pris en compte
 InfraSTechInfosLines           = Ligne(s)
+InfraSTechInfosWarningMaxVersion = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSTechInfos %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>

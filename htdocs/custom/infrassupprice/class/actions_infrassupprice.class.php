@@ -22,6 +22,8 @@
 	* 	\brief		Hook to overload class file for the module InfraS
 	************************************************/
 
+	// Libraries ************************************
+	dol_include_once('/infrassupprice/core/lib/infrassuppriceAdmin.lib.php');
 	/************************************************
 	 * Class infrassupprice
 	************************************************/
@@ -38,6 +40,25 @@
 			$this->db	= $db;
 		}
 
+		/**
+		* When login (../main.inc.php)
+		*
+		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+		* @param	string			&$action		Current action (if set). Generally create or edit or null
+		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
+		* @return	int								< 0 on error
+		**/
+		public function afterLogin($parameters, &$object, &$action, $hookmanager)
+		{
+			global $langs;
+			$currentversion	= array();
+			$currentversion	= infrassupprice_getLocalVersionMinDoli('infrassupprice');
+			if (!getDolGlobalString('INFRASSUPPRICE_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
+				setEventMessages($langs->trans('InfraSSupPriceWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
+			}
+			return 0;
+		}
 		/**
 		 * Overloading the doActions function : replacing the parent's function with the one below
 		 *

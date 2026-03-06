@@ -29,7 +29,7 @@
 	dol_include_once('/infrascusprice/core/lib/infrascuspriceAdmin.lib.php');
 
 	// Translations *********************************
-	$langs->loadLangs(array('admin', 'errors', 'infrascusprice@infrascusprice'));
+	$langs->loadLangs(array('admin', 'errors', 'other', 'infrascusprice@infrascusprice'));
 
 	// Access control *******************************
 	$accessright	= !empty($user->admin) || !empty($user->hasRight('infrascusprice', 'paramInfraSCusPrice')) ? 1 : 0;
