@@ -25,6 +25,7 @@
 	// Libraries ************************************
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 	dol_include_once('/infrassearch/core/lib/infrassearch.lib.php');
+	dol_include_once('/infrassearch/core/lib/infrassearchAdmin.lib.php');
 
 	/************************************************
 	* Class infrassearch
@@ -62,7 +63,7 @@
 
 			$currentversion	= array();
 			$currentversion	= infrassearch_getLocalVersionMinDoli('infrassearch');
-			if (!getDolGlobalString('INFRASSEARCH_DISABLE_CHECK_VERSION_MAX', '') && version_compare(DOL_VERSION, $currentversion[4], '>=')) {
+			if (!getDolGlobalString('INFRASSEARCH_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
 				setEventMessages($langs->trans('InfraSSearchWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
 			}
 			return 0;

@@ -64,7 +64,7 @@ InfraSSupPriceColLineN         = Linea N°
 InfraSSupPriceColRef           = Referencia
 InfraSSupPriceColCodeFour      = Código del proveedor
 InfraSSupPriceColTVA           = IVA
-InfraSSupPriceColPu            = Pecio U
+InfraSSupPriceColPu             = Precio U
 InfraSSupPriceColQty           = Cantidad min.
 InfraSSupPriceColQtyMin        = Precio Cantidad min.
 InfraSSupPriceColRem           = Descuento
@@ -75,7 +75,8 @@ InfraSSupPriceActualVat        = IVA actual:
 InfraSSupPriceActualQtyTxt     = (para una cantidad mínima de %s)
 InfraSSupPriceActualQty        = Cantidad mínima actual:
 InfraSSupPriceActualNotDefined = No hay precio establecido para este producto de este proveedor y para esta cantidad mínima
-InfraSSupPricebtnModif         = Cambio las Tarifas de Proveedores
+InfraSSupPricebtnModif          = Cambiar las Tarifas de Proveedores
+InfraSSupPriceWarningMaxVersion = <center><br>Su versión de Dolibarr (%s) aún no es compatible con el módulo InfraSSupPrice %s.<br>La versión máxima de Dolibarr compatible es la versión %s.<br>Por lo tanto, está utilizando este módulo sin garantía de funcionamiento.</center>
 
 ### Message ###
 InfraSSupPriceMajOk      = ¡actualización de Tarifa de la linea %s hecho !

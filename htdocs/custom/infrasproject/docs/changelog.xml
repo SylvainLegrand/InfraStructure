@@ -201,7 +201,14 @@
 		<change type='chg'>Alignement du code avec les autres modules InfraS (infraspackplus, infraswidgets, infrassearch)</change>
 		<change type='chg'>Amélioration de la documentation PHPDoc</change>
 	</Version>
-	<InfraS Downloaded="20260201"/>
-	<Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
+	<Version Number="18.8.1" MonthVersion="2026-03">
+		<change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr supportée (avertissement si version non supportée)</change>
+		<change type='add'>Compatibilité Dolibarr v23 (fichiers templates et pages de substitution)</change>
+		<change type='add'>Compatibilité Dolibarr v24 (fichiers templates et pages de substitution)</change>
+		<change type='chg'>Mise à jour des fichiers de routage TPL pour la détection des versions Dolibarr v23 et v24</change>
+		<change type='chg'>Documentation : refonte complète des Notes techniques du CLAUDE.md</change>
+	</Version>
+	<InfraS Downloaded="20260301"/>
+	<Dolibarr minVersion="18.0.0" maxVersion="24.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

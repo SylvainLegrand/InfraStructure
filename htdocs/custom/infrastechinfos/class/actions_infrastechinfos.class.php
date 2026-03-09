@@ -49,6 +49,26 @@
 		}
 
 		/**
+		* When login (../main.inc.php)
+		*
+		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+		* @param	string			&$action		Current action (if set). Generally create or edit or null
+		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
+		* @return	int								< 0 on error
+		**/
+		public function afterLogin($parameters, &$object, &$action, $hookmanager)
+		{
+			global $langs;
+			$langs->load('infrastechinfos@infrastechinfos');
+			$currentversion	= array();
+			$currentversion	= infrastechinfos_getLocalVersionMinDoli('infrastechinfos');
+			if (!getDolGlobalString('INFRASTECHINFOS_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
+				setEventMessages($langs->trans('InfraSTechInfosWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
+			}
+			return 0;
+		}
+		/**
 		* Add new action button on document page
 		*
 		* @param	array()			$parameters		Hook metadatas (context, etc...)

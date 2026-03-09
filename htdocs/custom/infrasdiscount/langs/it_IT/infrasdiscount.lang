@@ -90,6 +90,8 @@ InfraSDiscountParamChangesVersion       = Modifiche
 InfraSDiscountParamCheckNewVersion      = Nuovo Changelog
 InfraSDiscountParamCheckNewVersionTitle = Fare clic per scaricare il Changelog dell'ultima versione disponibile
 
+### actions InfraSDiscount class ###
+PDFInfraSDiscountWarningMaxVersion = <center><br>La tua versione di Dolibarr (%s) non è ancora supportata dal modulo InfraSDiscount %s.<br>La versione massima di Dolibarr supportata è la versione %s.<br>Utilizzi quindi questo modulo senza garanzia di corretto funzionamento.</center>
 ### Popup ###
 InfraSDiscountLabelBox              = Inserisci uno sconto globale
 InfraSDiscountDiscountValue         = Tasso di sconto o importo fisso

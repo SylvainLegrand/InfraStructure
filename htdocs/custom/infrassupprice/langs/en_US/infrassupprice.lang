@@ -76,6 +76,7 @@ InfraSSupPriceActualQtyTxt     = (for a minimum Qty of %s)
 InfraSSupPriceActualQty        = Current minimum qty:
 InfraSSupPriceActualNotDefined = No price set for this product from this supplier and for this minimum quantity
 InfraSSupPricebtnModif         = Change Supplier price
+InfraSSupPriceWarningMaxVersion = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSSupPrice module %s.<br>The maximum supported version of Dolibarr is %s.<br>You are therefore using this module without any guarantee of proper functioning.</center>
 
 ### Message ###
 InfraSSupPriceMajOk      = Update price line %s done !

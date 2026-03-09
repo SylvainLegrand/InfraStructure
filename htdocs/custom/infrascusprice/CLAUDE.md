@@ -14,9 +14,9 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS
 - Numéro module : `500077`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `18.0.0` à `22.0.2`
+- Compatibilité Dolibarr : `18.0.0` à `22.0.4`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.0` (2026-02)
+- Dernière version locale : `18.1.1` (2026-03)
 - Emplacement : `htdocs/custom/infrascusprice/`
 
 Convention de lecture du descripteur :
@@ -119,7 +119,7 @@ Le module s'appuie sur :
 La classe `Actionsinfrascusprice` intervient sur :
 
 - `updateSession` : redirige vers la page de substitution avant chargement si la substitution est active,
-- `afterLogin` : affiche un avertissement de compatibilité si Dolibarr > version max supportée, gère les redirections post-login,
+- `afterLogin` : affiche un avertissement de compatibilité si la version majeure de Dolibarr > version max supportée (comparaison sur le numéro de branche majeur uniquement via `explode()`), gère les redirections post-login,
 - `addMoreActionsButtons` (contexte `thirdpartycustomerprice`) : ajoute les boutons « Supprimer les prix » et « Déployer les prix parent »,
 - `doActions` (contexte `thirdpartycustomerprice`) : traite les actions `deleteCustPrices` et `updateCustPrices`.
 
@@ -177,119 +177,120 @@ Si modification du descripteur / permissions / hooks / constantes :
 - `18.1.0` (2026-02) : typage `GETPOST(..., 'alpha')` sur les champs de recherche prix des pages de substitution
 - `18.1.0` (2026-02) : échappement XSS des valeurs de recherche et encodage URL dans les pages de substitution
 - `18.1.0` (2026-02) : nouveau lien Wiki InfraSDiscount, amélioration CSS, ajout documentation CLAUDE.md
-- Per-version changelog entries (type: `add`, `chg`, `fix`)
+- `18.1.1` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
+- Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
-The module auto-disables if Dolibarr version is below the minimum required. A warning is shown on login if Dolibarr exceeds the maximum supported version.
+Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
 
-## Technical Notes
+## Notes techniques (Technical notes)
 
 ### Substitution vs Hooks
 
-Unlike most modules that use hooks, InfraSCusPrice uses **page substitution**:
-- **Advantages**: Full control over page behavior, can modify any aspect of the original page
-- **Disadvantages**: Must maintain separate files for each Dolibarr version, requires updates when core page changes significantly
-- **Strategy**: Module maintains version-specific copies only for major Dolibarr releases (18.x, 19.x, 20.x, 21.x, 22.x)
+Contrairement à la plupart des modules qui utilisent les hooks, InfraSCusPrice repose sur la **substitution de pages** :
+- **Avantages** : contrôle total du comportement de la page, possibilité de modifier n'importe quel aspect de la page d'origine
+- **Inconvénients** : nécessite de maintenir des fichiers séparés pour chaque version majeure de Dolibarr ; toute évolution significative de la page core impose une mise à jour
+- **Stratégie** : le module maintient des copies spécifiques uniquement par version majeure (18.x, 19.x, 20.x, 21.x, 22.x)
 
-### Price Update Mechanism
+### Mécanisme de mise à jour des prix (Price update mechanism)
 
-The module leverages Dolibarr's built-in `Productcustomerprice::update()` cascade feature:
+Le module exploite la fonctionnalité de cascade intégrée à `Productcustomerprice::update()` :
 ```php
-// In infrascusp_actions() when action='update'
+// Dans infrascusp_actions() lorsque action='update'
 $prodcustpriceline->update($user, 0, 1);
-// Parameters:
-// - $user: Current user (for log)
-// - 0: Not a price level update
-// - 1: Update child companies (cascades to subsidiaries)
+// Paramètres :
+// - $user : utilisateur courant (pour le log)
+// - 0 : pas de mise à jour par niveaux de prix
+// - 1 : mettre à jour les filiales (cascade vers les sociétés enfants)
 ```
 
-The third parameter triggers Dolibarr's internal logic to copy the price to all subsidiaries linked via the `parent` field.
+Le troisième paramètre déclenche la logique interne de Dolibarr pour copier le prix vers toutes les filiales liées via le champ `parent`.
 
-### Redirect Flow
+### Flux de redirection (Redirect flow)
 
 ```
-User accesses /societe/price.php
+L'utilisateur accède à /societe/price.php
     ↓
-Hook updateSession() or afterLogin() executes
+Le hook updateSession() ou afterLogin() s'exécute
     ↓
-infrascusp_is_substitution_page() checks if already on substitute (prevent loop)
+infrascusp_is_substitution_page() vérifie si on est déjà sur la page substituée (prévention de boucle)
     ↓
-infrascusp_get_substitution_url() generates versioned substitute URL
+infrascusp_get_substitution_url() génère l'URL substituée versionnée
     ↓
-Check if constant INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE = 1
+Vérification de la constante INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE = 1
     ↓
-Get Dolibarr major version (e.g., 22) → 'dlb220x'
+Récupération de la version majeure Dolibarr (ex. 22) → 'dlb220x'
     ↓
-Build path: /infrascusprice/substitutionpages/dlb220x/societe/price.php
+Construction du chemin : /infrascusprice/substitutionpages/dlb220x/societe/price.php
     ↓
-Verify file exists with dol_buildpath()
+Vérification de l'existence du fichier via dol_buildpath()
     ↓
-header('Location: ...') redirect with query params preserved
+Redirection header('Location: ...') avec conservation des paramètres de requête
 ```
 
-### Changelog Structure
+### Structure du changelog (Changelog structure)
 
 ```xml
 <changelog>
-    <Version Number="18.0.8" MonthVersion="2025-08">
-        <change type='fix'>Correction du lien vers le Dolistore</change>
+    <Version Number="18.1.1" MonthVersion="2026-03">
+        <change type='fix'>Correction de la comparaison de version max Dolibarr</change>
     </Version>
-    <InfraS Downloaded="20250801"/>
-    <Dolibarr minVersion="18.0.0" maxVersion="22.0.2"/>
-    <PHP minVersion="7.4" maxVersion="8.2"/>
+    <InfraS Downloaded="20260201"/>
+    <Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
+    <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
 
-The `infrascusp_getLocalVersionMinDoli()` function parses this XML and returns an array:
+La fonction `infrascusp_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.0.8",           // Current version
-    1 => "18.0.0",           // Min Dolibarr
-    2 => "20250801",         // Downloaded date
-    3 => "",                 // (unused)
-    4 => "22.0.2",           // Max Dolibarr
-    5 => "7.4",              // Min PHP
-    6 => "8.2"               // Max PHP
+    0 => "18.1.1",           // Version courante
+    1 => "18.0.0",           // Version min Dolibarr
+    2 => "20260201",         // Date de téléchargement
+    3 => "",                 // (non utilisé)
+    4 => "22.0.4",           // Version max Dolibarr
+    5 => "7.4",              // Version min PHP
+    6 => "8.4"               // Version max PHP
 ]
 ```
 
-### Adding Support for New Dolibarr Versions
+### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 
-To support a new Dolibarr major version (e.g., 23.x):
+Pour supporter une nouvelle version majeure de Dolibarr (ex. 23.x) :
 
-1. Create new directory: `substitutionpages/dlb230x/`
-2. Copy latest version folder contents: `cp -r dlb220x/* dlb230x/`
-3. Review and update core page changes from upstream Dolibarr
-4. Update `docs/changelog.xml`:
+1. Créer le répertoire : `substitutionpages/dlb230x/`
+2. Copier le contenu du dossier de la version précédente : `cp -r dlb220x/* dlb230x/`
+3. Vérifier et adapter les évolutions de la page core Dolibarr en amont
+4. Mettre à jour `docs/changelog.xml` :
    ```xml
    <Version Number="X.Y.Z" MonthVersion="YYYY-MM">
        <change type='add'>Compatibilité avec Dolibarr v23</change>
    </Version>
    <Dolibarr minVersion="18.0.0" maxVersion="23.0.x"/>
    ```
-5. Test substitution page redirection and button functionality
+5. Tester la redirection de la page de substitution et le fonctionnement des boutons d'actions
 
-## Common Use Cases
+## Cas d'usage courants (Common use cases)
 
-### Use Case 1: Initial Setup for Corporate Group
+### Cas 1 : Mise en place initiale pour un groupe de sociétés
 
-1. Create parent company (set as "Not a subsidiary")
-2. Configure customer-specific prices for parent
-3. Create subsidiary companies (set `parent` field to parent company)
-4. Navigate to subsidiary → Customer prices tab
-5. Click "Deploy parent prices" button
-6. All parent prices are copied to subsidiary
+1. Créer la société mère (définie comme « N'est pas une filiale »)
+2. Configurer les prix clients spécifiques pour la société mère
+3. Créer les filiales (renseigner le champ `parent` vers la société mère)
+4. Accéder à la filiale → onglet Prix clients
+5. Cliquer sur le bouton « Déployer les prix parent »
+6. Tous les prix de la société mère sont copiés vers la filiale
 
-### Use Case 2: Detaching Subsidiary from Group
+### Cas 2 : Détachement d'une filiale du groupe
 
-1. Navigate to subsidiary → Customer prices tab
-2. Click "Delete prices" button (removes all customer prices)
-3. Edit subsidiary Third Party card
-4. Clear `parent` field (detach from group)
-5. Configure new independent pricing
+1. Accéder à la filiale → onglet Prix clients
+2. Cliquer sur le bouton « Supprimer les prix » (supprime tous les prix clients)
+3. Modifier la fiche Tiers de la filiale
+4. Vider le champ `parent` (détacher du groupe)
+5. Configurer une tarification indépendante
 
-### Use Case 3: Adding New Product to Group
+### Cas 3 : Ajout d'un nouveau produit au groupe
 
-1. Add product to parent company's customer prices
-2. Visit each subsidiary → Customer prices tab
-3. Click "Deploy parent prices" (updates existing + adds new)
-4. Or configure `update_child_soc` in core to auto-cascade on parent price creation
+1. Ajouter le produit aux prix clients de la société mère
+2. Accéder à chaque filiale → onglet Prix clients
+3. Cliquer sur « Déployer les prix parent » (met à jour les existants + ajoute les nouveaux)
+4. Ou configurer `update_child_soc` dans le core pour cascader automatiquement à la création d'un prix parent

@@ -10,13 +10,13 @@
 
 Informations module (issues du code et du changelog local) :
 
-- Éditeur : InfraS
+- Éditeur : InfraS - Sylvain Legrand
 - Numéro module : `500060`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `15.0.0` à `22.0.4`
+- Compatibilité Dolibarr : `15.0.0` à `24.0.4`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.1.0` (2026-02)
-- Dépendance obligatoire : extension PHP `xml`
+- Dernière version locale : `15.2.0` (2026-03)
+- Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrastechinfos/`
 
 Convention de lecture du descripteur :
@@ -69,6 +69,8 @@ Dans `core/modules/modinfrastechinfos.class.php` :
 - **Dictionnaires** : aucun dictionnaire
 - **Boxes** : aucune
 - **Cron** : aucune tâche
+- **ExtraFields** : aucun
+- **Constantes** : aucune constante prédéfinie (les constantes sont créées via `data.sql` et `init()`)
 - **Permissions** : 4 permissions
 	- `InfraSTechInfosParamMenu` (défaut : activée)
 	- `paramBkpRest`
@@ -79,7 +81,7 @@ Dans `core/modules/modinfrastechinfos.class.php` :
 
 `init()` effectue :
 
-1. Chargement SQL (`_load_tables('/infrastechinfos/sql/')`)
+1. Chargement SQL (`_load_tables('/infrastechinfos/sql/')`) — exécute `data.sql`
 2. Restauration des constantes module (`infrastechinfos_restore_module`)
 3. Initialisation de constantes clés :
 	 - `INFRASTECHINFOS_DOL_VERSION`
@@ -87,52 +89,108 @@ Dans `core/modules/modinfrastechinfos.class.php` :
 
 ### Désactivation (Lifecycle : `remove()`)
 
-`remove()` effectue sauvegarde module, puis suppression des constantes `INFRASTECHINFOS_%` de l'entité courante.
+`remove()` effectue :
+- sauvegarde module (`infrastechinfos_bkup_module`),
+- suppression des constantes `INFRASTECHINFOS_%` de l'entité courante.
 
 ## Fonctionnement principal (Core behavior)
 
 Le module s'appuie sur :
 
-- `actions_infrastechinfos.class.php` pour le hook d'injection du tableau technique sur les documents,
-- `infrastechinfos.lib.php` pour les fonctions d'affichage (`showDurationAndUnit`, `showDimInBestUnit`),
-- `infrastechinfosAdmin.lib.php` pour l'administration (tabs, version, backup/restore, changelog XML, UI helpers).
+- `actions_infrastechinfos.class.php` pour les hooks d'injection du tableau technique sur les documents,
+- `infrastechinfos.lib.php` pour les fonctions de calcul et d'affichage (`showDurationAndUnit`, `showDimInBestUnit`),
+- `infrastechinfosAdmin.lib.php` pour les fonctions admin (onglets, changelog, backup/restore, vérification de mise à jour, UI helpers).
 
-### Conversions d'unités
+### Types de données techniques
+Deux catégories de données sont traitées :
+1. **Produits** (`product_type=0`) : dimensions (L×l×H), surface, volume et poids — avec calcul du total par quantité et agrégation par document
+2. **Services** (`product_type=1`) : durées — avec conversion en secondes et totalisation par document
+### Conversions d'unités (Unit conversion)
 
-Produits (unités exotiques auto-converties en SI avant agrégation) :
-- **Poids** : Ounce → 0.0283495 kg, Pound → 0.45359237 kg
-- **Volume** : Cubic foot → 0.028317 m³, Cubic inch → 0.000016 m³, Fluid ounce → 0.0000284 m³, Gallon → 0.004546 m³
-- **Surface** : Square foot → 0.092903 m², Square inch → 0.000645 m²
+Produits — unités exotiques auto-converties en SI avant agrégation :
 
-Services : durées en mois/années affichent un avertissement (longueur variable non convertible).
+| Grandeur | Unité exotique | Code | Facteur de conversion |
+|----------|---------------|------|----------------------|
+| Poids | Ounce | 98 | 0.0283495 kg |
+| Poids | Pound | 99 | 0.45359237 kg |
+| Volume | Cubic foot | 88 | 0.028316846592 m³ |
+| Volume | Cubic inch | 89 | 0.000016387064 m³ |
+| Volume | Fluid ounce | 98 | 0.0000284130625 m³ |
+| Volume | Gallon | 99 | 0.00454609 m³ |
+| Surface | Square foot | 98 | 0.09290304 m² |
+| Surface | Square inch | 99 | 0.00064516 m² |
 
+Unités standard (code < 50) : facteur = `pow(10, code)` (puissance de 10 de l'unité officielle).
+
+Services — conversion de durées en secondes :
+| Unité | Code | Multiplicateur |
+|-------|------|---------------|
+| Heures | `h` | 3600 |
+| Jours | `d` | `MAIN_DURATION_OF_WORKDAY` (défaut : 28800 s) |
+| Semaines | `w` | `MAIN_DURATION_OF_WORKDAY` × `INFRASTECHINFOS_DURATION_OF_WORKWEEK` |
+| Mois | `m` | 0 (non convertible — avertissement affiché) |
+| Années | `y` | 0 (non convertible — avertissement affiché) |
 ## Hooks et comportement (Hook behavior)
 
-La classe `Actionsinfrastechinfos` intervient sur :
+La classe `Actionsinfrastechinfos` intervient sur les contextes `propalcard`, `ordercard`, `expeditioncard`, `supplier_proposalcard`, `ordersuppliercard` :
+- `afterLogin` : vérifie la version max Dolibarr supportée
+    via `explode('.', DOL_VERSION)[0]` vs `explode('.', maxVersion)[0]`
+- `addMoreActionsButtons` : injection d'un tableau technique repliable sur les fiches documents
 
-- **`addMoreActionsButtons`** : injection d'un tableau technique repliable (jQuery `.foldable_ti`) sur les fiches documents (devis, commandes, expéditions, demandes prix fournisseur, commandes fournisseur)
-- **`login`** (via le descripteur) : avertissement version si Dolibarr hors plage supportée
+### Flux des hooks (Hook workflow)
+```
+L'utilisateur accède à une fiche document (devis/commande/expédition/demande prix fournisseur/commande fournisseur)
+    ↓
+afterLogin() : vérifie la version max Dolibarr supportée
+    via explode('.', DOL_VERSION)[0] vs explode('.', maxVersion)[0]
+    ↓
+addMoreActionsButtons() : injecte le tableau technique repliable
+    (conditionné par : lignes > 0, permission 'InfraSTechInfosView',
+     élément dans ['propal', 'commande', 'shipping', 'supplier_proposal', 'order_supplier'])
+    ↓
+Pour chaque ligne du document :
+    → Ignore les lignes sans fk_product
+    → Charge le produit/service via Product::fetch()
+    → Si service (type=1) : calcule la durée unitaire et totale,
+                             avertissement si unité mois/année
+    → Si produit (type=0) : extrait dimensions, surface, volume, poids,
+                             convertit les unités exotiques en SI,
+                             cumule les totaux document
+    ↓
+Affichage du tableau HTML avec jQuery toggle (.foldable_ti)
+    → Section produits : N°, Réf, Dimensions, Surface, Volume, Poids, Qté, Totaux
+    → Section services : N°, Réf, Durée, Qté, Durée totale
+    → Ligne de totaux document (surface, volume, poids, durée)
+```
 
-Le tableau affiche les données produits (dimensions, surface, volume, poids) et services (durées) avec totaux par document et conversions d'unités intelligentes.
+### Modes d'affichage des durées
 
+Trois modes contrôlés par constantes :
+| Mode | Constante | Comportement |
+|------|-----------|-------------|
+| Détaillé | `INFRASTECHINFOS_ONLY_TOTAL_TIME = 0` | Tableau complet avec chaque ligne de service |
+| Total seul | `INFRASTECHINFOS_ONLY_TOTAL_TIME = 1` | Une seule ligne avec la liste des N° de lignes et le total |
+| En jours | `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS = 1` | Total affiché en semaines/jours/heures au lieu d'heures/minutes |
 ## Données / SQL (Data model)
 
-Aucune table propre au module. Le module est stateless et lit uniquement les données produit/service existantes de Dolibarr.
+Le module ne crée aucune table SQL propre. Toute la configuration est stockée dans `llx_const`.
 
 Fichier SQL :
-- `data.sql` : données initiales (configuration minimale)
+- `data.sql` : constantes initiales (`INFRASTECHINFOS_DURATION_OF_WORKWEEK`, `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS`, `INFRASTECHINFOS_ONLY_TOTAL_TIME`)
 
+Le module est stateless et lit uniquement les données produit/service existantes de Dolibarr (`llx_product`).
 ## Constantes de configuration (Key settings)
 
 Constantes actives usuelles :
 
-- `INFRASTECHINFOS_DURATION_OF_WORKWEEK` : jours ouvrés par semaine (défaut : 5)
-- `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS` : afficher le total temps en jours au lieu d'heures
-- `INFRASTECHINFOS_ONLY_TOTAL_TIME` : afficher uniquement le total sans détail par ligne
-- `INFRASTECHINFOS_DOL_VERSION` : version Dolibarr au moment de l'activation
-- `INFRASTECHINFOS_MAIN_VERSION` : version module au moment de l'activation
-- `INFRASTECHINFOS_DISABLE_CHECK_VERSION_MIN` : désactiver le contrôle de version minimale (debug)
-- `MAIN_DURATION_OF_WORKDAY` : constante Dolibarr utilisée pour la conversion durées (défaut : 28800 s)
+- `INFRASTECHINFOS_DURATION_OF_WORKWEEK` — jours ouvrés par semaine (défaut : 5)
+- `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS` — afficher le total temps en jours au lieu d'heures
+- `INFRASTECHINFOS_ONLY_TOTAL_TIME` — afficher uniquement le total sans détail par ligne
+- `INFRASTECHINFOS_DOL_VERSION` — version Dolibarr au moment de l'activation
+- `INFRASTECHINFOS_MAIN_VERSION` — version module au moment de l'activation
+- `INFRASTECHINFOS_DISABLE_CHECK_VERSION_MIN` — désactiver le contrôle de version minimale (debug)
+- `INFRASTECHINFOS_DISABLE_CHECK_VERSION_MAX` — désactiver le contrôle de version maximale (debug)
+- `MAIN_DURATION_OF_WORKDAY` — constante Dolibarr utilisée pour la conversion durées (défaut : 28800 s = 8 h)
 
 ## Conventions de développement (Development conventions)
 
@@ -159,193 +217,199 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 
 - La version locale est lue depuis `docs/changelog.xml` (`infrastechinfos_getLocalVersionMinDoli`)
 - L'extension PHP XML est nécessaire pour parser le changelog
-- Le module auto-désactive si la version Dolibarr est inférieure à la version minimale requise
+- Le module est auto-désactivé si la version Dolibarr est inférieure au minimum requis
+- Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée
 - Les durées en mois/années ne sont pas convertibles en secondes et affichent un avertissement
 - Le menu InfraS parent est créé automatiquement si aucun autre module InfraS ne l'a déjà fait (`infrastechinfos_no_topmenu()`)
+- Les lignes sans `fk_product` sont ignorées (lignes libres sans référence produit)
 
 ## Dernières mises à jour (Recent updates)
 
-- `15.1.0` (2026-02) : correction XSS sur `$_SERVER['PHP_SELF']` dans les formulaires (about, changelog, setup, lib)
-- `15.1.0` (2026-02) : correction XSS sur `$_SERVER['SERVER_SOFTWARE']` dans getSupportInformation
-- `15.1.0` (2026-02) : correction injection SQL (cast int sur entity) dans la désinstallation module
-- `15.1.0` (2026-02) : typage `GETPOSTINT('value')` dans infrastechinfossetup
-- `15.1.0` (2026-02) : remplacement `$user->rights->` par `$user->hasRight()` (setup, hook, descriptor)
-- `15.1.0` (2026-02) : remplacement `$conf->global->` par `getDolGlobalInt()` / `getDolGlobalString()` (setup, hook, lib)
-- `15.1.0` (2026-02) : remplacement des balises HTML `<FONT>` par `<span>` avec classes CSS
-- `15.1.0` (2026-02) : remplacement `<body>` par `<tbody>` dans le hook addMoreActionsButtons
-- `15.1.0` (2026-02) : normalisation `else if` → `elseif` conforme PSR-12
 - `15.1.0` (2026-02) : alignement des fonctions lib admin sur infraspackplus, infraswidgets et infrassearch (27 corrections)
+- `15.1.0` (2026-02) : ajout du fichier CLAUDE.md
+- `15.2.0` (2026-03) : ajout d'un test de comparaison de la version majeure Dolibarr (avertissement si version non supportée)
+- `15.2.0` (2026-03) : amélioration du descripteur CLAUDE.md : ajout des Notes techniques
+- Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
-### Known Limitations
+Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
 
-1. **Month/year durations** - Cannot accurately convert to seconds (variable length) - displays warning
-2. **Exotic units outside predefined set** - Will aggregate in base unit without conversion factor
-3. **No caching** - Technical info recalculated on every document page load
-4. **No PDF integration** - Table only appears in web UI, not in generated PDFs
+## Notes techniques (Technical notes)
 
-## Calculation Flow Examples
+### Moteur de calcul technique (Technical calculation engine)
 
-### Product Dimensions and Volume Calculation
+Le fichier `infrastechinfos.lib.php` contient les deux fonctions de calcul/affichage du module :
 
-1. Order contains 3 product lines:
-   - Line 1: 10 boxes of 50×40×30 cm each
-   - Line 2: 5 pallets of 120×80×15 cm each
-   - Line 3: 2 containers of 2×1.5×1 m each
+**`infrastechinfos_showDurationAndUnit($duration, $unit)`** :
+- Formate une durée avec son libellé d'unité localisé
+- Gère automatiquement le singulier/pluriel (`Hour` vs `Hours`)
+- Unités supportées : `i` (minutes), `h` (heures), `d` (jours), `w` (semaines), `m` (mois), `y` (années)
 
-2. Module calculates individual line volumes:
-   - Line 1: 10 × (0.5 × 0.4 × 0.3) = 0.6 m³
-   - Line 2: 5 × (1.2 × 0.8 × 0.15) = 0.72 m³
-   - Line 3: 2 × (2 × 1.5 × 1) = 6 m³
+**`infrastechinfos_showDimInBestUnit($dimension, $unit, $type, $outputlangs, $round, $forceunitoutput)`** :
+- Convertit et affiche une dimension dans l'unité la plus lisible
+- Utilise `measuring_units_string()` de Dolibarr pour les labels d'unités
+- Utilise `price()` pour le formatage numérique localisé
 
-3. **Total volume**: 0.6 + 0.72 + 6 = 7.32 m³
+Logique de sélection automatique de l'unité d'affichage :
 
-4. Display uses intelligent unit selection:
-   - Small volume (< 0.1 m³) → displays in L or dm³
-   - Medium volume (0.1-100 m³) → displays in m³
-   - Large volume (> 100 m³) → keeps in m³
-
-### Service Duration Aggregation with Conversion
-
-1. Project proposal with mixed service durations:
-   - Service A: 3 days × 2 units = 6 days
-   - Service B: 16 hours × 1 unit = 16 hours
-   - Service C: 2 weeks × 1 unit = 2 weeks
-
-2. Configuration:
-   - `MAIN_DURATION_OF_WORKDAY` = 28800 (8 hours)
-   - `INFRASTECHINFOS_DURATION_OF_WORKWEEK` = 5 days
-
-3. Conversion to common unit (hours):
-   - 6 days × 8 hours/day = 48 hours
-   - 16 hours = 16 hours
-   - 2 weeks × 5 days/week × 8 hours/day = 80 hours
-
-4. **Total**: 48 + 16 + 80 = 144 hours
-
-5. Optional display as workdays:
-   - `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS` = 1
-   - Display: 144 hours ÷ 8 = 18 workdays
-
-### Weight Conversion with Exotic Units
-
-1. Supplier order with international products:
-   - Product A: 50 kg × 10 units = 500 kg
-   - Product B: 10 lb × 5 units = 50 lb → 22.68 kg
-   - Product C: 200 oz × 3 units = 600 oz → 17.01 kg
-
-2. Conversion to base unit (kg):
-   - 1 lb = 0.45359237 kg
-   - 1 oz = 0.0283495 kg
-
-3. **Total weight**: 500 + 22.68 + 17.01 = 539.69 kg
-
-4. Display with 2 decimal precision: **539.69 kg**
-
-### Surface Calculation with Mixed Units
-
-1. Quote for flooring materials:
-   - Tile A: 30 cm × 30 cm × 100 units = 90,000 cm²
-   - Tile B: 1 m × 0.5 m × 20 units = 10 m²
-   - Total: 90,000 cm² + 10 m² = 9 m² + 10 m² = 19 m²
-
-2. Intelligent unit display:
-   - Original: 190,000 cm² (hard to read)
-   - Converted: **19.00 m²** (readable)
-
-## Common Functions Reference
-
-### Display Functions (`core/lib/infrastechinfos.lib.php`)
-
-```php
-// Format and display a duration with proper unit label
-infrastechinfos_showDurationAndUnit($duration, $unit)
-// Parameters:
-//   $duration - numeric duration value
-//   $unit - 'i'=minutes, 'h'=hours, 'd'=days, 'w'=weeks, 'm'=months, 'y'=years
-// Returns: Formatted string (e.g., "5 Hours", "1 Day")
-// Note: Handles singular/plural forms automatically
-
-// Display dimension in best readable unit with automatic conversion
-infrastechinfos_showDimInBestUnit($dimension, $unit, $type, $outputlangs, $round = -1, $forceunitoutput = 'no')
-// Parameters:
-//   $dimension - numeric value in base unit
-//   $unit - current unit scale (0=base, -3=milli, 3=kilo, etc.)
-//   $type - 'weight', 'volume', 'surface'
-//   $outputlangs - Translate object for localization
-//   $round - decimal places (-1=auto, 0-9=fixed)
-//   $forceunitoutput - 'no' for auto, or numeric scale to force
-// Returns: Formatted string with best unit (e.g., "15.50 kg", "2.30 m³")
-// Logic:
-//   - dimension < 0.0001 → convert to micro units (-6)
-//   - dimension < 0.1 → convert to milli units (-3)
-//   - dimension > 100,000,000 → convert to mega units (+6)
-//   - dimension > 100,000 → convert to kilo units (+3)
+```
+dimension < 0.0001       → micro (×1 000 000, unit -6)
+dimension < 0.1          → milli (×1 000, unit -3)  [surface: unit -2]
+dimension > 100 000 000  → méga  (÷1 000 000, unit +6)
+dimension > 100 000      → kilo  (÷1 000, unit +3)  [surface: ÷10 000, unit +4]
+sinon                    → unité de base
 ```
 
-### Admin Functions (`core/lib/infrastechinfosAdmin.lib.php`)
+### Flux de calcul dans le hook (Calculation flow in hook)
 
-```php
-// Build admin page tabs array
-infrastechinfos_admin_prepare_head()
-// Returns: Array of tab definitions for dol_get_fiche_head()
+Le hook `addMoreActionsButtons` parcourt toutes les lignes du document :
+**Pour les produits (type=0)** :
+1. Charge le produit via `Product::fetch($idprod)`
+2. **Dimensions** : concatène L×l×H avec l'unité (`measuring_units_string`)
+3. **Poids** : calcule le poids unitaire × quantité, convertit les unités exotiques (codes 98/99) en kg
+4. **Volume** : calcule le volume unitaire × quantité, convertit les unités exotiques (codes 88/89/98/99) en m³
+5. **Surface** : calcule la surface unitaire × quantité, convertit les unités exotiques (codes 98/99) en m²
+6. Cumule les totaux document pour poids, volume et surface
 
-// Check if InfraS top menu already exists
-infrastechinfos_no_topmenu()
-// Returns: 0 if menu exists, 1 if needs creation
+**Pour les services (type=1)** :
+1. Charge le service via `Product::fetch($idprod)`
+2. Convertit la durée unitaire en secondes selon le multiplicateur d'unité
+3. Si unité mois (`m`) ou année (`y`) : multiplicateur = 0, avertissement affiché en rouge
+4. Cumule le total document en secondes
+5. Affiche via `convertSecondToTime()` de Dolibarr (format `allhourmin` ou `all` selon configuration)
 
-// Test required PHP extensions (xml)
-infrastechinfos_test_php_ext()
-// Side effect: Sets INFRAS_PHP_EXT_XML constant (1=OK, -1=missing)
+### Page de configuration (Setup page)
 
-// Get local version from changelog.xml
-infrastechinfos_getLocalVersionMinDoli($appliname)
-// Returns: Array [version, minDolibarr, errorFlag, versionsList, maxDolibarr, minPHP, maxPHP]
+`admin/infrastechinfossetup.php` gère les paramètres du module :
 
-// Parse changelog.xml file
-infrastechinfos_getChangelogFile($appliname, $from = '')
-// Returns: SimpleXMLElement object or false on error
+| Action | Constantes modifiées |
+|--------|---------------------|
+| `bkupParams` | Sauvegarde toutes les constantes `INFRASTECHINFOS_%` dans un fichier SQL |
+| `restoreParams` | Restaure les constantes depuis le fichier de sauvegarde |
+| `set_{confkey}` | Active/désactive un toggle on/off |
+| `update_Gen` | Met à jour `MAIN_DURATION_OF_WORKDAY` et `INFRASTECHINFOS_DURATION_OF_WORKWEEK` |
 
-// Download changelog from remote server
-infrastechinfos_dwnChangelog($appliname)
-// Returns: Download status message
+Paramètres configurables :
 
-// Backup module configuration to SQL file
-infrastechinfos_bkup_module($appliname)
-// Side effect: Creates backup SQL file in DOL_DATA_ROOT/admin/infrastechinfos/
+| N° | Constante | Type | Valeur | Description |
+|----|-----------|------|--------|-------------|
+| 2 | `MAIN_DURATION_OF_WORKDAY` | number (3600–86400, step 3600) | 28800 | Durée d'un jour ouvré en secondes |
+| 3 | `INFRASTECHINFOS_DURATION_OF_WORKWEEK` | number (4–7) | 5 | Nombre de jours ouvrés par semaine |
+| 4 | `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS` | on/off | 0 | Afficher le total en jours |
+| 5 | `INFRASTECHINFOS_ONLY_TOTAL_TIME` | on/off | 0 | Afficher uniquement le total |
 
-// Restore module configuration from SQL file
-infrastechinfos_restore_module($appliname)
-// Side effect: Executes SQL from backup file if exists
+### Gestion des menus (Menu management)
 
-// UI helper - print title section
-infrastechinfos_load_title($titre, $morehtmlright = '', $picto = 'generic', ...)
+Le module gère sa propre entrée dans le menu « Outils » :
 
-// UI helper - print form input field
-infrastechinfos_print_input($confkey, $tag = 'on_off', $desc = '', $help = '', ...)
-// Supported tags: 'on_off', 'text', 'select', 'multiselect', 'textarea'
+1. `infrastechinfos_no_topmenu()` vérifie si un menu InfraS existe déjà (`SELECT rowid FROM llx_menu WHERE mainmenu = "tools" AND leftmenu = "infras"`)
+2. Si aucun menu InfraS n'existe : crée l'entrée parent « InfraS » sous « Outils »
+3. Crée les sous-entrées : titre module, lien changelog, lien paramètres
+4. Le lien paramètres est conditionné par les permissions `InfraSTechInfosParamMenu` ET `InfraSTechInfosParamSpecif`
+
+### Structure du changelog (Changelog structure)
+
+```xml
+<changelog>
+    <Version Number="15.2.0" MonthVersion="2026-03">
+        <change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
+        <change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr supportée</change>
+    </Version>
+    <InfraS Downloaded="20260301"/>
+    <Dolibarr minVersion="15.0.0" maxVersion="22.0.4"/>
+    <PHP minVersion="7.4" maxVersion="8.4"/>
+</changelog>
 ```
 
-## Integration with Dolibarr Core
+La fonction `infrastechinfos_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
+```php
+[
+    0 => "15.2.0",           // Version courante
+    1 => "15.0.0",           // Version min Dolibarr
+    2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
+    3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
+    4 => "22.0.4",           // Version max Dolibarr
+    5 => "7.4",              // Version min PHP
+    6 => "8.4"               // Version max PHP
+]
+```
 
-The module extends core Dolibarr functionality:
+### Cycle de vie du module (Module lifecycle)
 
-- **Product data**: Reads `weight`, `weight_units`, `length`, `width`, `height`, `length_units`, `surface`, `surface_units`, `volume`, `volume_units` from `llx_product`
-- **Service data**: Reads `duration_value`, `duration_unit` from `llx_product` for services
-- **Document lines**: Accesses `$object->lines` array with product/service references and quantities
-- **Unit system**: Uses `measuring_units_string()` from `/core/lib/product.lib.php` for unit labels
-- **Multi-entity**: Respects entity boundaries when fetching product data
-- **Permissions**: Integrates with Dolibarr rights system (`$user->rights->infrastechinfos->InfraSTechInfosView`)
+**`init()`** effectue dans l'ordre :
+1. Chargement des tables SQL (`_load_tables('/infrastechinfos/sql/')`) — exécute `data.sql`
+2. Restauration des paramètres sauvegardés (`infrastechinfos_restore_module`)
+3. Enregistrement de `INFRASTECHINFOS_DOL_VERSION` et `INFRASTECHINFOS_MAIN_VERSION`
+4. Appel de `$this->_init()` standard
 
-## Technical Notes
+**`remove()`** effectue :
+1. Sauvegarde des paramètres (`infrastechinfos_bkup_module`)
+2. Suppression des constantes `INFRASTECHINFOS_%` de l'entité courante
 
-- **Unit conversion accuracy**: All conversions use exact SI conversion factors (no approximations)
-- **Performance**: Product data fetched once per document load (not cached) - consider enabling Dolibarr's object cache for large orders
-- **jQuery dependency**: Requires jQuery (standard in Dolibarr) for collapsible table toggle
-- **Responsive design**: CSS adapts column widths for mobile/tablet viewing
-- **Rounding precision**: Line-by-line values rounded to raw precision, totals to 2 decimals for readability
-- **Empty value handling**: Lines with empty/zero technical fields are not displayed (reduces clutter)
-- **Document types**: Only works on documents with line items (not applicable to third parties, projects, etc.)
-- **PDF limitation**: Technical info table is HTML-only - PDF generation hooks not yet implemented
-- **Month/year warning**: Red caution message appears when services use monthly/yearly durations (cannot convert to seconds reliably)
-- **Multi-currency**: Module is currency-agnostic (works with all currencies since it only displays physical units)
-- **Backward compatibility**: Maintains compatibility with Dolibarr 15+ through conditional function checks
+**`getLocalVersion()`** effectue :
+1. Vérifie l'extension PHP XML via `INFRAS_PHP_EXT_XML`
+
+2. Parse `docs/changelog.xml` via `infrastechinfos_getLocalVersionMinDoli()`
+3. Définit `need_dolibarr_version`, `phpmin`, `phpmax`
+4. Désactive le module si `DOL_VERSION < minVersion` (sauf si `INFRASTECHINFOS_DISABLE_CHECK_VERSION_MIN`)
+5. Retourne le numéro de version courante
+
+### Sauvegarde et restauration (Backup and restore)
+
+Le mécanisme de backup/restore permet de préserver les paramètres lors de la désactivation/réactivation :
+
+**`infrastechinfos_bkup_module()`** :
+1. Crée le répertoire `DOL_DATA_ROOT/{entity}/infrastechinfos/sql/` si nécessaire
+2. Écrit un dump SQL des constantes `INFRASTECHINFOS_%` dans `update.{entity}`
+3. Copie le fichier de sauvegarde horodaté dans `DOL_DATA_ROOT/{entity}/admin/`
+4. Utilise `__ENTITY__` comme placeholder pour la portabilité multi-entité
+5. Gère les conflits via `ON DUPLICATE KEY UPDATE`
+
+**`infrastechinfos_restore_module()`** :
+1. Cherche le fichier `update.{entity}` dans le répertoire SQL
+2. Le copie avec extension `.sql` puis l'exécute via `run_sql()`
+3. Supprime le fichier temporaire `.sql` après exécution
+
+### Intégration avec les données Dolibarr (Dolibarr data integration)
+
+Le module lit les données techniques directement depuis les objets Dolibarr :
+
+| Donnée | Champ produit | Champ unité | Type d'objet |
+|--------|--------------|-------------|-------------|
+| Poids | `weight` | `weight_units` | Produit |
+| Volume | `volume` | `volume_units` | Produit |
+| Surface | `surface` | `surface_units` | Produit |
+| Longueur | `length` | `length_units` | Produit |
+| Largeur | `width` | `length_units` | Produit |
+| Hauteur | `height` | `length_units` | Produit |
+| Durée | `duration_value` | `duration_unit` | Service |
+
+Les dimensions du document sont basées sur `$object->lines[$i]->ref`, `$object->lines[$i]->qty` et `$object->lines[$i]->fk_product`.
+
+### Limitations connues (Known limitations)
+
+1. **Durées en mois/années** — ne peuvent pas être converties en secondes de manière fiable (longueur variable), avertissement affiché en rouge
+2. **Unités exotiques hors ensemble prédéfini** — agrégées en unité de base sans facteur de conversion
+3. **Pas de cache** — les informations techniques sont recalculées à chaque chargement de page
+4. **Pas d'intégration PDF** — le tableau n'apparaît que dans l'interface web, pas dans les documents PDF générés
+5. **Lignes sans référence produit** — les lignes libres (sans `fk_product`) sont ignorées
+
+### Cas d'usage courants (Common use cases)
+
+#### Cas 1 : Consultation du poids total d'une commande
+
+1. Ouvrir une commande avec des produits ayant un poids renseigné
+2. Le tableau technique apparaît automatiquement en bas de page (replié par défaut)
+3. Cliquer sur la barre de titre pour déplier
+4. Lire le poids par ligne (unitaire × quantité) et le total document
+5. Les unités exotiques (lb, oz) sont automatiquement converties en kg
+
+#### Cas 2 : Totalisation des durées de services sur un devis
+1. Créer un devis avec plusieurs lignes de services ayant des durées différentes (heures, jours, semaines)
+2. Le tableau calcule le total en secondes en utilisant les facteurs de conversion configurés
+3. Le total est affiché en heures:minutes (ou semaines/jours/heures si `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS=1`)
+4. Si une ligne utilise des mois ou années, un avertissement rouge est affiché
+#### Cas 3 : Configuration des durées de travail
+1. Accéder à l'admin du module (Outils → InfraS → Paramètres)
+2. Ajuster la durée de la journée de travail (`MAIN_DURATION_OF_WORKDAY`, en secondes)
+3. Ajuster le nombre de jours par semaine (`INFRASTECHINFOS_DURATION_OF_WORKWEEK`)
+4. Les totaux de durées sont recalculés selon ces paramètres

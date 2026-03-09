@@ -31,6 +31,7 @@
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/margin/lib/margins.lib.php';
 	dol_include_once('/infrasdiscount/core/lib/infrasdiscount.lib.php');
+	dol_include_once('/infrasdiscount/core/lib/infrasdiscountAdmin.lib.php');
 
 	// Description and activation class *************
 	class ActionsInfraSDiscount
@@ -44,6 +45,25 @@
 		public function __construct($db)	// Constructor
 		{
 			$this->db	= $db;
+		}
+		/**
+		* When login (../main.inc.php)
+		*
+		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+		* @param	string			&$action		Current action (if set). Generally create or edit or null
+		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
+		* @return	int								< 0 on error
+		**/
+		public function afterLogin($parameters, &$object, &$action, $hookmanager)
+		{
+			global $langs;
+			$currentversion	= array();
+			$currentversion	= infrasdiscount_getLocalVersionMinDoli('infrasdiscount');
+			if (!getDolGlobalString('INFRASDISCOUNT_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
+				setEventMessages($langs->trans('PDFInfraSDiscountWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
+			}
+			return 0;
 		}
 
 		/**

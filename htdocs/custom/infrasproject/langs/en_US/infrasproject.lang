@@ -128,6 +128,7 @@ InfraSProjectForThisproject     = for this project
 TypeOfFees                      = Types of expense reports
 
 ### actions class ###
+InfraSProjectWarningMaxVersion         = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSProject %s module.<br>The maximum version of Dolibarr supported is version %s.<br>You therefore use this module without guarantee of proper functioning.</center>
 InfraSProjectLinesBillsSuppliers       = Suppliers invoices lines
 InfraSProjectListSupplierInvoicesLines = List of supplier invoice lines associated with the project
 InfraSProjectWarningLineWithProject    = Invoice lines are already associated with a project!
