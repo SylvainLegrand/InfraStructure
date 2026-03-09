@@ -1758,6 +1758,9 @@
 		<change type='fix'>Sécurité : échappement de l'affichage de SERVER_SOFTWARE dans les informations techniques</change>
 		<change type='chg'>Durcissement des entrées : typage GETPOST des options de génération (valeurs radio)</change>
 	</Version>
+	<Version Number="18.14.9" MonthVersion="2026-03">
+		<change type='fix'>Compatibilité avec PHP 8.4</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="23.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

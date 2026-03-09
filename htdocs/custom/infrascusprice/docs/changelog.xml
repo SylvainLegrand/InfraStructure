@@ -71,6 +71,9 @@
 		<change type='fix'>Correction de la comparaison de version max Dolibarr : utilisation du numéro de branche majeur uniquement</change>
 		<change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
 	</Version>
+	<Version Number="18.1.2" MonthVersion="2026-03">
+		<change type='fix'>Compatibilité avec PHP 8.4</change>
+	</Version>
 	<InfraS Downloaded="20260201"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

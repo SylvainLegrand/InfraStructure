@@ -16,7 +16,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `22.0.4`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.1` (2026-03)
+- Dernière version locale : `18.1.2` (2026-03)
 - Emplacement : `htdocs/custom/infrascusprice/`
 
 Convention de lecture du descripteur :
