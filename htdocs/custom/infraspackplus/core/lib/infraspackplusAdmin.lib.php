@@ -807,7 +807,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		} elseif ($tag == 'input') {
 			// management of the minimum value of number type input fields
 			$inputValue	= getDolGlobalString($confkey, '');
-			if ($metas['type'] == 'number' && !empty($metas['min'])) {
+			if (!empty($metas['type']) && $metas['type'] == 'number' && !empty($metas['min'])) {
 				$currentValue	= getDolGlobalInt($confkey, $metas['min']);
 				$inputValue		= $currentValue < $metas['min'] ? $metas['min'] : $currentValue;
 			}

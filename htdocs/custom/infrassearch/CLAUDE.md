@@ -16,7 +16,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `24.0.4`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.4.3` (2026-02)
+- Dernière version locale : `15.4.5` (2026-02)
 - Emplacement : `htdocs/custom/infrassearch/`
 
 Convention de lecture du descripteur :

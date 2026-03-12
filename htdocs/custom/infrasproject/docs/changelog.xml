@@ -208,6 +208,9 @@
 		<change type='chg'>Mise à jour des fichiers de routage TPL pour la détection des versions Dolibarr v23 et v24</change>
 		<change type='chg'>Documentation : refonte complète des Notes techniques du CLAUDE.md</change>
 	</Version>
+	<Version Number="18.8.2" MonthVersion="2026-03">
+		<change type='fix'>Compatibilité avec PHP 8.4</change>
+	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.0.4"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

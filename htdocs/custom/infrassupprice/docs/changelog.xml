@@ -95,6 +95,9 @@
 		<change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
 		<change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr supportée (avertissement si version non supportée)</change>
 	</Version>
+	<Version Number="15.3.1" MonthVersion="2026-03">
+		<change type='fix'>Compatibilité avec PHP 8.4</change>
+	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="21.0.3"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
