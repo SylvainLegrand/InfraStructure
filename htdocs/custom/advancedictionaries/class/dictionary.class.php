@@ -1388,28 +1388,31 @@ class Dictionary extends CommonObject
 	 * @param   array   $fieldsValues   Values of the fields array(name => value, ...)
 	 * @param   User    $user           User who add this line
 	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
+	 * @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	 */
 	public function addLine($fieldsValues, $user, $noTrigger = 0)
 	{
-		$this->db->begin();
-		$error = 0;
+		if ($this->lineCanBeAdded) {
+			$this->db->begin();
+			$error = 0;
 
-		$dictionaryLine = new $this->dictionaryLineClassName($this->db, $this);
+			$dictionaryLine = $this->getNewDictionaryLine();
+			$res = $dictionaryLine->insert($fieldsValues, $user, $noTrigger);
+			if ($res < 0) {
+				$error++;
+				$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
+			}
 
-		$res = $dictionaryLine->insert($fieldsValues, $user, $noTrigger);
-		if ($res < 0) {
-			$error++;
-			$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
+			if (!$error) {
+				$this->db->commit();
+				return 1;
+			} else {
+				$this->db->rollback();
+				return -1;
+			}
 		}
 
-		if (!$error) {
-			$this->db->commit();
-			return 1;
-		} else {
-			$this->db->rollback();
-			return -1;
-		}
+		return 0;
 	}
 
 	/**
@@ -1419,34 +1422,38 @@ class Dictionary extends CommonObject
 	 * @param   array   $fieldsValues   Values of the fields array(name => value, ...)
 	 * @param   User    $user           User who add this line
 	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
+	 * @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	 */
 	public function updateLine($lineId, $fieldsValues, $user, $noTrigger = 0)
 	{
-		$this->db->begin();
-		$error = 0;
-
-		$dictionaryLine = new $this->dictionaryLineClassName($this->db, $this);
+		$dictionaryLine = $this->getNewDictionaryLine();
 
 		$res = $dictionaryLine->fetch($lineId);
 		if ($res > 0) {
-			$res = $dictionaryLine->update($fieldsValues, $user, $noTrigger);
-			if ($res < 0) {
-				$error++;
-				$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
+			if ($this->isLineCanBeUpdated($dictionaryLine)) {
+				$this->db->begin();
+				$error = 0;
+
+				$res = $dictionaryLine->update($fieldsValues, $user, $noTrigger);
+				if ($res < 0) {
+					$error++;
+					$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
+				}
+
+				if (!$error) {
+					$this->db->commit();
+					return 1;
+				} else {
+					$this->db->rollback();
+					return -1;
+				}
 			}
 		} elseif ($res < 0) {
-			$error++;
 			$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
-		}
-
-		if (!$error) {
-			$this->db->commit();
-			return 1;
-		} else {
-			$this->db->rollback();
 			return -1;
 		}
+
+		return 0;
 	}
 
 	/**
@@ -1455,34 +1462,38 @@ class Dictionary extends CommonObject
 	 * @param   int     $lineId         Id of the line
 	 * @param   User    $user           User who add this line
 	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
+	 * @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	 */
 	public function deleteLine($lineId, $user, $noTrigger = 0)
 	{
-		$this->db->begin();
-		$error = 0;
-
-		$dictionaryLine = new $this->dictionaryLineClassName($this->db, $this);
+		$dictionaryLine = $this->getNewDictionaryLine();
 
 		$res = $dictionaryLine->fetch($lineId);
 		if ($res > 0) {
-			$res = $dictionaryLine->delete($user, $noTrigger);
-			if ($res < 0) {
-				$error++;
-				$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
+			if ($this->isLineCanBeDeleted($dictionaryLine)) {
+				$this->db->begin();
+				$error = 0;
+
+				$res = $dictionaryLine->delete($user, $noTrigger);
+				if ($res < 0) {
+					$error++;
+					$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
+				}
+
+				if (!$error) {
+					$this->db->commit();
+					return 1;
+				} else {
+					$this->db->rollback();
+					return -1;
+				}
 			}
 		} elseif ($res < 0) {
-			$error++;
 			$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
-		}
-
-		if (!$error) {
-			$this->db->commit();
-			return 1;
-		} else {
-			$this->db->rollback();
 			return -1;
 		}
+
+		return 0;
 	}
 
 	/**
@@ -1492,38 +1503,38 @@ class Dictionary extends CommonObject
 	 * @param   int     $status         Status of the line, 0: desactived, 1: actived
 	 * @param   User    $user           User who add this line
 	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
+	 * @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	 */
 	public function activeLine($lineId, $status, $user, $noTrigger = 0)
 	{
-		$this->db->begin();
-		$error = 0;
-
-		$dictionaryLine = new $this->dictionaryLineClassName($this->db, $this);
+		$dictionaryLine = $this->getNewDictionaryLine();
 
 		$res = $dictionaryLine->fetch($lineId);
 		if ($res > 0) {
 			if ($this->isLineCanBeDisabled($dictionaryLine) === true) {
+				$this->db->begin();
+				$error = 0;
+
 				$res = $dictionaryLine->active($status, $user, $noTrigger);
 				if ($res < 0) {
 					$error++;
 					$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
 				}
-			} else {
-				return 0;
+
+				if (!$error) {
+					$this->db->commit();
+					return 1;
+				} else {
+					$this->db->rollback();
+					return -1;
+				}
 			}
 		} elseif ($res < 0) {
-			$error++;
 			$this->errors = array_merge($this->errors, (array) $dictionaryLine->errors);
-		}
-
-		if (!$error) {
-			$this->db->commit();
-			return 1;
-		} else {
-			$this->db->rollback();
 			return -1;
 		}
+
+		return 0;
 	}
 
 	/**
@@ -1698,7 +1709,7 @@ class Dictionary extends CommonObject
 			} else {
 				$lines = array();
 				while ($obj = $this->db->fetch_array($resql)) {
-					$line = new $this->dictionaryLineClassName($this->db, $this);
+					$line = $this->getNewDictionaryLine();
 
 					$line->id = $obj[$this->rowid_field];
 					$line->active = $obj[$this->active_field];
@@ -3355,12 +3366,16 @@ class DictionaryLine extends CommonObjectLine
 	 * @param   array   $fieldsValue   Values of the fields array(name => value, ...)
 	 * @param   User    $user           User who add this line
 	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
+	 * @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	 */
 	public function insert($fieldsValue, $user, $noTrigger = 0)
 	{
 		global $conf;
 		dol_syslog(__METHOD__ . " fieldsValues: " . http_build_query($fieldsValue));
+
+		if (!$this->dictionary->lineCanBeAdded) {
+			return 0;
+		}
 
 		if ($this->checkFieldsValues($fieldsValue) > 0) {
 			$this->db->begin();
@@ -3499,11 +3514,15 @@ class DictionaryLine extends CommonObjectLine
 	 * @param   array   $fieldsValue    Values of the fields array(name => value, ...)
 	 * @param   User    $user           User who add this line
 	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
+	 * @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	 */
 	public function update($fieldsValue, $user, $noTrigger = 0)
 	{
 		dol_syslog(__METHOD__ . " lineId: " . $this->id . "; fieldsValues: " . http_build_query($fieldsValue));
+
+		if (!$this->dictionary->isLineCanBeUpdated($this)) {
+			return 0;
+		}
 
 		if ($this->checkFieldsValues($fieldsValue) > 0) {
 			$this->db->begin();
@@ -3636,12 +3655,16 @@ class DictionaryLine extends CommonObjectLine
 	 *
 	 * @param   User    $user           User who add this line
 	 * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
+	 * @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	 */
 	public function delete($user, $noTrigger = 0)
 	{
 		global $langs;
 		dol_syslog(__METHOD__ . " lineId: " . $this->id);
+
+		if (!$this->dictionary->isLineCanBeDeleted($this)) {
+			return 0;
+		}
 
 		$langs->load('advancedictionaries@advancedictionaries');
 		$this->db->begin();
@@ -3744,11 +3767,15 @@ class DictionaryLine extends CommonObjectLine
 	* @param   int     $status         Status of the line, 0: desactived, 1: actived
 	* @param   User    $user           User who add this line
 	* @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	* @return  int                     <0 if not ok, >0 if ok
+	* @return  int                     Result =0 if nothing, <0 if not ok, >0 if ok
 	*/
 	public function active($status, $user, $noTrigger = 0)
 	{
 		dol_syslog(__METHOD__ . " lineId: " . $this->id . "; status: " . $status);
+
+		if ($this->dictionary->isLineCanBeDisabled($this) !== true) {
+			return 0;
+		}
 
 		$this->db->begin();
 		$error = 0;

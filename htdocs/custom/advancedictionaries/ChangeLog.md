@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.0.20] - 11-03-2026
+- Correction de la prise en compte des authorisations d'ajout, modification, suppression et activation des lignes (définie dans le code de la classe du dictionnaire).
+
 ## [14.0.19] - 11-02-2026
 - Gestion de l'affichage de l'entrée de menu dans le leftmenu setup.
 
@@ -304,7 +307,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/14.0.19...HEAD
+[Non Distribué]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/14.0.20...HEAD
+[14.0.20]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.20
 [14.0.19]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.19
 [14.0.18]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.18
 [14.0.17]: https://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/14.0.17
