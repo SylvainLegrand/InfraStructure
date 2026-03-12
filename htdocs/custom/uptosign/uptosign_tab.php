@@ -520,7 +520,15 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		// Send
 		$api_name = uptosign_unify_api_name($signOrSeal);
-		$result = $uptoSign->fetchByObject((int) $id, uptosign_unify_object_type($modulepart), array('api_name' => $api_name, 'path_file' => $pdfFileChoosedFullPath));
+		// InfraS add begin
+		// Construct full path if not yet set (when pdfFileChoosed comes from GET parameter)
+		if (empty($pdfFileChoosedFullPath) && !empty($pdfFileChoosed) && !empty($upload_dir)) {
+			$pdfFileChoosedFullPath = dol_osencode(dol_sanitizePathName($upload_dir . '/' . $pdfFileChoosed));
+		}
+		// Convert to relative path to match DB storage (uptosign stores relative paths via uptosign_relative_path)
+		$pathFileFilter = !empty($pdfFileChoosedFullPath) ? uptosign_relative_path($pdfFileChoosedFullPath) : '';
+		// InfraS add end
+		$result = $uptoSign->fetchByObject((int) $id, uptosign_unify_object_type($modulepart), array('api_name' => $api_name, 'path_file' => $pathFileFilter));	// InfraS change
 		$signed = false;
 		// print "<p>UptoSignSignedNoModify : "  .  json_encode($result). "</p>";
 		// print json_encode($uptoSign);
