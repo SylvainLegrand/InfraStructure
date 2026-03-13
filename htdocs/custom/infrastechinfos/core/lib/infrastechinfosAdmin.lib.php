@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	*	Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	*	Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	*	This program is free software: you can redistribute it and/or modify
 	*	it under the terms of the GNU General Public License as published by
@@ -236,7 +236,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const			= 'SELECT '.implode(', ', $cols_const);
 			$sql_const			.= ' FROM '.$db->prefix().'const';
 			$sql_const			.= ' WHERE name LIKE "INFRASTECHINFOS\_%"';
-			$sql_const			.= ' AND entity = "'.$conf->entity.'"';
+			$sql_const			.= ' AND entity = '.((int) $conf->entity);
 			$sql_const			.= ' ORDER BY name';
 			fwrite($handle, infrastechinfos_bkup_table ('const', $sql_const, $cols_const, $duplicate_const, 0, ''));
 			// Enabling back the keys/index checking
@@ -298,7 +298,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 					} elseif (is_string($row[$j]) && $row[$j] == '') {
 						$row[$j]	= '\'\'';	// if it's an empty string, we set it as an empty string
 					} else {
-						$row[$j]	= addslashes($row[$j]);
+						$row[$j]	= $db->escape($row[$j]);
 						$row[$j]	= preg_replace('#\n#', '\\n', $row[$j]);
 						$row[$j]	= '\''.$row[$j].'\'';
 					}
@@ -866,8 +866,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<tr class = "oddeven">
 							<td class = "width400 infraspluschangelogbase">'.$langs->trans('DolibarrVersion').'</td>
 							<td class = "infraspluschangelogbase">'.DOL_VERSION.'</td>
-						</tr>
-						<tr class = "oddeven">
+						</tr>';
+		if (getDolGlobalString('DOLINFRAS_VERSION', '')) {
+			$ret	.= '<tr class = "oddeven">
+							<td class = "width400 infraspluschangelogbase">'.$langs->trans('InfraSTechInfosParamDolinfrasVersion').'</td>
+							<td class = "infraspluschangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
+						</tr>';
+		}
+		$ret		.= '<tr class = "oddeven">
 							<td class = "width400 infraspluschangelogbase">'.$langs->trans('ModuleVersion').'</td>
 							<td class = "infraspluschangelogbase">'.$currentversion.'</td>
 						</tr>

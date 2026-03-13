@@ -129,12 +129,36 @@ Le module s'appuie sur :
 
 ## Hooks et comportement (Hook behavior)
 
-La classe `ActionsInfrasproject` intervient principalement sur :
+La classe `ActionsInfrasproject` (dans `class/actions_infrasproject.class.php`) gère principalement :
 
-- `afterLogin` / `updateSession` : redirection vers les pages de substitution selon constantes de configuration,
-- `projectOverview` (`printFieldListOption1/2`, `printFieldListValue1/2`) : injection du tableau de marge provisionnelle et infos ContactTracking,
-- `projectcard` : ajout de l'onglet consommation stock, personnalisation de l'affichage projet,
-- `invoicesuppliercard` : répartition multi-projets des lignes de factures fournisseur.
+- **Substitution de pages** (`afterLogin`, `updateSession`) : redirection automatique vers les pages de substitution selon version Dolibarr et constantes de configuration,
+- **Enrichissement overview projet** (`projectOverview`) : injection du tableau de marge provisionnelle et des informations ContactTracking via les hooks `printFieldListOption1/2` et `printFieldListValue1/2`,
+- **Onglet consommation stock** (`projectcard`) : ajout de l'onglet « Consommation Stock » sur la fiche projet, personnalisation de l'affichage,
+- **Répartition multi-projets** (`invoicesuppliercard`) : ventilation des lignes de factures fournisseur par projet.
+
+## Trigger (Trigger behavior)
+
+Le trigger `interface_98_modinfrasproject_infrasprojecttrigger` (dans `core/triggers/`) écoute les événements suivants :
+
+| Événement | Condition | Action |
+|-----------|-----------|--------|
+| `PROPAL_CLOSE_SIGNED` | `INFRASPROJECT_PROJECT_ON_SIGN_PROPAL` activé | Création automatique d'un projet au titre du devis avec validation optionnelle (`INFRASPROJECT_VALIDATE_PROJECT_ON_CREATE`) |
+| `LINEBILL_SUPPLIER_CREATE` | Toujours | Ventile la ligne de facture fournisseur par projet via `supplierInvoiceLineProject()` |
+| `LINEBILL_SUPPLIER_MODIFY` | Toujours | Met à jour la ventilation projet de la ligne de facture fournisseur |
+
+**Comportement création projet** (`PROPAL_CLOSE_SIGNED`) :
+1. Vérifie l'activation de `INFRASPROJECT_PROJECT_ON_SIGN_PROPAL`
+2. Crée un projet avec le titre du devis (`Propal::title`)
+3. Associe le tiers (`fk_soc`) et la date (`datep`)
+4. Copie les extrafields du devis vers le projet
+5. Valide automatiquement le projet si `INFRASPROJECT_VALIDATE_PROJECT_ON_CREATE` actif
+6. Lie le devis au projet créé
+
+**Comportement ventilation facture fournisseur** (`LINEBILL_SUPPLIER_*`) :
+1. Charge la facture fournisseur parent
+2. Lit le projet sélectionné au niveau de la ligne
+3. Met à jour `facture_fourn_det` avec `entity`, `fk_soc`, `fk_projet` de la ligne
+4. Désassocie le projet global de la facture pour éviter les doublons dans les calculs
 
 ## Données / SQL (Data model)
 
@@ -221,6 +245,77 @@ Le module se désactive automatiquement si la version Dolibarr est inférieure a
 
 ## Notes techniques (Technical notes)
 
+### Substitution de pages vs hooks
+
+Comme InfraSPackPlus et InfraSCusPrice, InfraSProject utilise la **substitution de pages** pour remplacer certaines pages standard de Dolibarr par des versions personnalisées :
+
+- **Pages substituables** : `projet/overview.php`, `projet/tasks.php`, `projet/tasks/list.php`, etc.
+- **Constantes d'activation** : générées dynamiquement depuis le chemin (ex. `/projet/overview.php` → `INFRASPROJECT_SUBSTITUTE_PROJECT_OVERVIEW`)
+- **Branches maintenues** : `dlb180x`, `dlb180x-Easya`, `dlb190x`, `dlb200x`, `dlb210x`, `dlb220x`, `dlb220x-Easya`, `dlb230x`, `dlb240x` (9 variantes incluant Easya)
+- **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs Easya)
+- **Inconvénients** : maintenance d'un fichier par page et par version majeure
+
+### Flux de redirection (Redirect flow)
+
+```
+L'utilisateur accède à une page substituable (ex. /projet/overview.php)
+    ↓
+Le hook afterLogin() ou updateSession() s'exécute
+    ↓
+infrasproject_is_substitution_page() vérifie via strpos() si on est déjà
+    sur une page substituée (prévention de boucle infinie)
+    ↓
+Pour chaque constante INFRASPROJECT_SUBSTITUTE_* activée :
+    → infrasproject_getSubstitutionRedirectUrl() génère l'URL substituée
+    → Vérifie l'existence physique du fichier via dol_buildpath()
+    → Construit le chemin : /infrasproject/substitutionpages/dlb{major}0x{-Easya}/
+    → Filtre les paramètres GET (exclusion du token CSRF pour éviter les conflits)
+    ↓
+Redirection header('Location: ...') avec conservation des paramètres GET filtrés → exit
+```
+
+**Détection de version** : La redirection choisit automatiquement le répertoire de substitution selon la version Dolibarr détectée via `DOL_VERSION` (ex. `20.0.3` → `dlb200x`).
+
+**Protection Easya** : Si la distribution Easya est détectée via présence de fichiers spécifiques, le suffixe `-Easya` est ajouté au chemin.
+
+### Templates versionnés (Versioned TPL)
+
+Le répertoire `core/tpl/` contient des templates versionnés pour les lignes de documents (devis, commandes, factures, etc.) :
+
+| Template | Versions disponibles | Rôle |
+|----------|---------------------|------|
+| `objectline_create*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | Formulaire de création de ligne |
+| `objectline_edit*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | Formulaire d'édition de ligne |
+| `objectline_title*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | En-têtes de tableau |
+| `objectline_view*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | Affichage en lecture seule |
+
+**Routage automatique** : Les pages de substitution incluent le bon template selon la version Dolibarr détectée :
+
+```php
+// Exemple : détection version Dolibarr
+$dolversion = DOL_VERSION; // ex. "20.0.3"
+$tpl_suffix = '_20'; // Pour Dolibarr 20.x
+
+if (strpos($dolversion, '18.') === 0) $tpl_suffix = '_18';
+elseif (strpos($dolversion, '19.') === 0) $tpl_suffix = '_19';
+elseif (strpos($dolversion, '20.') === 0) $tpl_suffix = '_20';
+// etc.
+
+include DOL_DOCUMENT_ROOT.'/custom/infrasproject/core/tpl/objectline_view'.$tpl_suffix.'.tpl.php';
+```
+
+### Hooks — récapitulatif des comportements
+
+| Hook | Contexte | Retour | Rôle |
+|------|----------|--------|------|
+| `afterLogin` | `login` | 0 | Redirection initiale vers pages de substitution |
+| `updateSession` | `main` | 0 | Redirection continue vers pages de substitution |
+| `completeTabsHead` | `projectcard` | 0 | Ajout de l'onglet « Consommation Stock » avec badge de compteur |
+| `printFieldListOption1/2` | `projectOverview` | 0 | Injection des en-têtes du tableau de marge provisionnelle |
+| `printFieldListValue1/2` | `projectOverview` | 0 | Injection des valeurs (CA, marge HT/TTC, taux) dans l'overview |
+| `completeListOfReferent` | `projectOverview` | 0 | Ajout de `invoice_supplier_det` (lignes factures fournisseur) dans les éléments liés |
+| `formObjectOptions` | `invoicesuppliercard` | 0 | Affichage du sélecteur de projet par ligne de facture fournisseur |
+
 ### Consommation de stock (`correct_stock()`)
 
 `InfraSProject::correct_stock()` dans `class/infrasproject.class.php` gère la décrémentation/incrémentation de stock sur un projet :
@@ -305,36 +400,6 @@ Le hook `doActions` sur `invoicesuppliercard` :
 - Bloque le changement de projet global (`classin`) si des lignes ont déjà un projet assigné (avertissement)
 - Autorise `addlink` / `dellink` même avec seulement les droits de lecture si `INFRASPROJECT_SHOW_MARGIN_PROV` est activé
 
-### Substitution de pages vs hooks
-Comme InfraSPackPlus, InfraSProject utilise la **substitution de pages** pour certaines pages Dolibarr :
-- **Pages substituées** : `projet/overview.php` (vue d'ensemble projet) et `projet/tasks.php` (tâches projet)
-- **Constante d'activation** : générée dynamiquement depuis le chemin (ex. `/projet/overview.php` → `INFRASPROJECT_PS_ACTIVE_PROJET_OVERVIEW`)
-- **Branches maintenues** : `dlb180x`, `dlb180x-Easya`, `dlb190x`, `dlb200x`, `dlb210x`, `dlb220x`, `dlb220x-Easya`, `dlb230x`, `dlb240x` (9 variantes incluant Easya et versions 23, 24)
-- **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs Easya)
-- **Inconvénients** : maintenance d'un fichier par page et par version majeure
-
-### Flux de redirection (Redirect flow)
-
-**Depuis la version 18.9.1**, le flux de redirection utilise `infrasproject_getSubstitutionRedirectUrl()` pour centraliser la logique :
-
-```
-L'utilisateur accède à une page substituée (ex. /projet/overview.php)
-    ↓
-Le hook updateSession() ou afterLogin() s'exécute
-    ↓
-infrasproject_getSubstitutionRedirectUrl() :
-    → infrasproject_is_substitution_page() vérifie via strpos() si on est
-      déjà sur une page substituée (prévention de boucle)
-    → infrasproject_get_substitution_url() génère l'URL substituée :
-      • Vérifie la constante INFRASPROJECT_PS_ACTIVE_<PATH_UPPER>
-      • Construit le chemin : /infrasproject/substitutionpages/dlb{major}0x{-Easya}/
-      • Vérifie l'existence physique du fichier via dol_buildpath()
-    → Filtre les paramètres GET : exclusion du token CSRF (page-specific)
-    → Retourne l'URL complète avec query string filtrée
-    ↓
-Redirection header('Location: ...') → exit
-```
-
 ### Trigger (`interface_98_modinfrasproject_infrasprojecttrigger`)
 
 Le trigger filtre d'abord par élément (`propal`, `facture_fourn_det`) et par action :
@@ -347,16 +412,52 @@ Le trigger filtre d'abord par élément (`propal`, `facture_fourn_det`) et par a
 
 La génération de la référence projet utilise le modèle de numérotation configuré dans `PROJECT_ADDON`.
 
-### Hooks — récapitulatif
+### Structure du changelog (Changelog structure)
 
-| Hook | Contexte | Rôle |
-|------|----------|------|
-| `updateSession` | `main` | Redirection vers pages de substitution |
-| `afterLogin` | `login` | Redirection + contrôle version max Dolibarr |
-| `completeTabsHead` | `fileslib` (Project) | Badge compteur sur l'onglet « Consommation Stock » |
-| `completeListOfReferent` | `projectOverview` | Ajout entrée `invoice_supplier_det` + reconfiguration `margin` |
-| `doActions` | `invoicesuppliercard` | Avertissement classin + bypass droits pour liens factures |
-| `formObjectOptions` | `projectcard` | Affichage ContactTracking (dernier échange, prochaine action) |
+```xml
+<changelog>
+  <Version Number="18.8.3" MonthVersion="2026-03">
+      <change type='add'>Added feature description.</change>
+      <change type='chg'>Changed feature description.</change>
+      <change type='fix'>Fixed bug description.</change>
+  </Version>
+  <InfraS Downloaded="20260301"/>
+  <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
+  <PHP minVersion="7.4" maxVersion="8.4"/>
+</changelog>
+```
+
+- Types de changement : `add` (ajout, vert), `chg` (modification, bleu), `fix` (correction, rouge/caution)
+- L'attribut `Downloaded` est mis à jour automatiquement lors du téléchargement de la version distante
+- Versions ordonnées chronologiquement (la dernière est la plus récente)
+- Parsé par `infrasproject_getChangelogFile()` / `infrasproject_getLocalVersionMinDoli()`
+
+La fonction `infrasproject_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
+```php
+[
+    0 => "18.8.3",          // Version courante
+    1 => "18.0.0",          // Version min Dolibarr
+    2 => 0,                 // Flag erreur (-1 = KO, 0 = OK)
+    3 => "24.x.x",          // Version max Dolibarr
+    4 => "NOT_RETRIEVED",   // Réservé
+    5 => "7.4",             // Version min PHP
+    6 => "8.4"              // Version max PHP
+]
+```
+
+### Cycle de vie du module (Module lifecycle)
+
+**Activation (`init()`)** :
+
+1. `_load_tables('/infrasproject/sql/')` — exécute `data.sql` et `update.sql`
+2. `infrasproject_restore_module('infrasproject')` — restaure les constantes sauvegardées
+3. Initialise `INFRASPROJECT_DOL_VERSION` et `INFRASPROJECT_MAIN_VERSION`
+
+**Désactivation (`remove()`)** :
+
+1. `infrasproject_bkup_module('infrasproject')` — sauvegarde les constantes `INFRASPROJECT_%`
+2. Supprime toutes les constantes `INFRASPROJECT_%` de l'entité courante
+3. Copie le fichier de sauvegarde dans `admin/` avec horodatage
 
 ### Intégration ContactTracking
 
@@ -427,53 +528,6 @@ Dégradation gracieuse : l'include de `contacttracking.class.php` est conditionn
 | `infrasproject_print_btn_action(...)` | Bouton d'action dans les formulaires admin |
 | `infrasproject_print_hr($cs)` / `infrasproject_print_final($cs)` | Séparateurs HTML |
 | `infrasproject_print_input(...)` | Champ de formulaire universel : `on_off`, `on_off2`, `input`, `input2`, `radio`, `textarea`, `color`, `select`, `select_produits`, `select_types_paiements`, `selectTypeContact`, `select_type_actions`, `select_warehouse`, `multiselect_type_fees`, `editor` |
-
-### Templates TPL versionnés
-
-Les templates dans `core/tpl/` sont dupliqués par version Dolibarr majeure :
-
-```text
-objectline_create_18.tpl.php, ..._19, ..._20, ..._21, ..._22, ..._22-Easya
-objectline_edit_18.tpl.php, ..._19, ..._20, ..._21, ..._22, ..._22-Easya
-objectline_title_18.tpl.php, ..._19, ..._20, ..._21, ..._22, ..._22-Easya
-objectline_view_18.tpl.php, ..._19, ..._20, ..._21, ..._22, ..._22-Easya
-```
-
-Chaque fichier correspond à une version du core Dolibarr et intègre les spécificités de cette version (champs, classes CSS, méthodes disponibles). La variante `22-Easya` prend en charge les différences de la distribution Easya.
-
-### Structure du changelog (`docs/changelog.xml`)
-
-```xml
-<changelog>
-  <Version Number="18.8.3" MonthVersion="2026-03">
-    <change type='add'>Description de l'ajout</change>
-    <change type='chg'>Description du changement</change>
-    <change type='fix'>Description du correctif</change>
-  </Version>
-  <InfraS Downloaded="20260301"/>
-  <Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
-  <PHP minVersion="7.4" maxVersion="8.4"/>
-</changelog>
-```
-
-- Types de changement : `add` (vert), `chg` (bleu), `fix` (rouge/caution)
-- L'attribut `Downloaded` est mis à jour automatiquement lors du téléchargement de la version distante
-- Versions ordonnées chronologiquement (la dernière est la plus récente)
-- Parsé par `infrasproject_getChangelogFile()` / `infrasproject_getLocalVersionMinDoli()`
-
-### Cycle de vie du module
-
-**Activation (`init()`)** :
-
-1. `_load_tables('/infrasproject/sql/')` — exécute `data.sql` et `update.sql`
-2. `infrasproject_restore_module('infrasproject')` — restaure les constantes sauvegardées
-3. Initialise `INFRASPROJECT_DOL_VERSION` et `INFRASPROJECT_MAIN_VERSION`
-
-**Désactivation (`remove()`)** :
-
-1. `infrasproject_bkup_module('infrasproject')` — sauvegarde les constantes `INFRASPROJECT_%`
-2. Supprime toutes les constantes `INFRASPROJECT_%` de l'entité courante
-3. Copie le fichier de sauvegarde dans `admin/` avec horodatage
 
 ### Page consommation stock (`infrasproject_tab.php`)
 

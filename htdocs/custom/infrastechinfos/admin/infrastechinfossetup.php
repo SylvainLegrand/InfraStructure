@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <http://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <http://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -101,17 +101,20 @@
 	print dol_get_fiche_head($head, 'infrastechinfossetup', $langs->trans('InfraSTechInfos'), 0, $picto);
 
 	// setup page goes here *************************
-	if ($conf->use_javascript_ajax) {
+	if (!empty($conf->use_javascript_ajax)) {
 		print '	<script src = "'.dol_buildpath('/includes/jquery/plugins/jquerytreeview/lib/jquery.cookie.js', 1).'"></script>
 				<script type = "text/javascript">
+					var cookieName = "infrastechinfos_tblPSexp";
 					jQuery(document).ready(function() {
-						var tblPSexp	= "";
-						$.isSet			= function(testVar){ return typeof(testVar) !== "undefined" && testVar !== null && testVar !== ""; };
-						if ($.cookie && $.isSet($.cookie("tblPSexp"))) {
-							tblPSexp = $.cookie("tblPSexp");
+						var tblPSexp = "";
+						$.isSet = function(testVar) {
+							return typeof(testVar) !== "undefined" && testVar !== null && testVar !== "";
+						};
+						if ($.cookie && $.isSet($.cookie(cookieName))) {
+							tblPSexp = $.cookie(cookieName);
 						}
 						$(".toggle_bloc").hide();
-						if (tblPSexp != "") {
+						if (tblPSexp) {
 							$("[name=" + tblPSexp + "]").toggle();
 						}
 					});
@@ -123,15 +126,15 @@
 								$(".toggle_bloc").hide();
 								$(this).siblings().show();
 							}
-							$.cookie("tblPSexp", "", { expires: 1, path: "/" });
+							$.cookie(cookieName, "", { expires: 1, path: "/" });
 							$(".toggle_bloc").each(function() {
 								if ($(this).is(":visible")) {
-									$.cookie("tblPSexp", $(this).attr("name"), { expires: 1, path: "/" });
+									$.cookie(cookieName, $(this).attr("name"), { expires: 1, path: "/" });
 								}
 							});
 						});
 						$(window).scroll(function() {
-							if ($(this).scrollTop() > 200 ) {
+							if ($(this).scrollTop() > 200 )	{
 								$(".infrastechinfosScrollUp").css("right", "30px");
 							} else {
 								$(".infrastechinfosScrollUp").removeAttr("style");

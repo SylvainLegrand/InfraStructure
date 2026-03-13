@@ -52,9 +52,11 @@
 			$this->editor_url		= $editor_web;
 			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
 			$this->rights_class		= $this->name;																			// Key text used to identify module (for permissions, menus, etc...)
-			$family					= getDolGlobalString('EASYA_VERSION', '') ? 'easya' : 'Modules '.$langs->trans('basenamePackPlus');
+			$isDolinfras			= isModEnabled('dolinfras');
+			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameInfraSPackPlus');
 			$this->family			= $family;																				// used to group modules in module setup page
 			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+			$this->module_position	= 100002;
 			$this->description		= $langs->trans('Module550000Desc');												// Module description
 			$this->version			= $this->getLocalVersion();																// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);										// llx_const table to save module status enabled/disabled

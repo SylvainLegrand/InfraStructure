@@ -2088,3 +2088,52 @@
 		$db->commit();
 		return 1;
 	}
+
+	/**
+	*	Split a product/service label string into label part and description part
+	*	by finding the first line break (HTML or plain text).
+	*	Also fixes malformed HTML patterns like <p> <br> </p>.
+	*
+	*	@param	string		$labelproductservice	The full label+description string (modified by reference if HTML fix is needed)
+	*	@return	array|false							Array with 'pos' (end of label) and 'startdesc' (start of description), or false if no break found
+	**/
+	function infraspackplus_splitLabelDescription(&$labelproductservice)
+	{
+		$pos		= false;
+		$startdesc	= 0;
+
+		if (dol_textishtml($labelproductservice)) {
+			$retchararray	= array('<br>', '<br/>', '<br />', '</p>');
+			$isbr			= false;
+			$retcharlen		= 0;
+			foreach ($retchararray as $retchar) {	// Get first position of a html return
+				$posfound	= strpos($labelproductservice, $retchar);
+				if ($pos === false || ($posfound !== false && $posfound < $pos)) {
+					$pos		= $posfound;
+					$isbr		= $retchar != '</p>';
+					$retcharlen	= strlen($retchar);
+				}
+			}
+			if ($pos !== false) {
+				if (!empty($isbr)) {	// Fix html to <br> <p> </p> if it's the case <p> <br> </p>
+					$posfound	= strpos($labelproductservice, '<p>');
+					if ($posfound !== false && $posfound < $pos) {
+						$labelproductservice	= substr_replace($labelproductservice, '<p>', $pos + $retcharlen, 0);
+						$labelproductservice	= substr_replace($labelproductservice, '', $posfound, strlen('<p>'));
+						$pos					-= strlen('<p>');
+					}
+				}
+				// Fix the real positions
+				$pos		= $isbr ? $pos					: $pos + $retcharlen;
+				$startdesc	= $isbr ? $pos + $retcharlen	: $pos;
+			}
+		} else {
+			$pos		= strpos($labelproductservice, "\n");
+			$startdesc	= $pos + strlen("\n");
+		}
+
+		if ($pos === false) {
+			return false;
+		}
+		return array('pos' => $pos, 'startdesc' => $startdesc);
+	}

@@ -143,26 +143,6 @@
 	}
 
 	/**
-	* Read the Dolibarr VERSION file and store its value in the DOLINFRAS_VERSION constant
-	*
-	* @return	string		Version string read from VERSION file, or empty string on failure
-	**/
-	function infrasdiscount_getVersionDolinfras()
-	{
-		global $db, $conf;
-
-		$version	= '';
-		$file		= DOL_DOCUMENT_ROOT.'/VERSION';
-		if (is_file($file)) {
-			$version = trim(file_get_contents($file));
-		}
-		if (!empty($version) && getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
-			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'InfraSDiscount module', $conf->entity);
-		}
-		return $version;
-	}
-
-	/**
 	* Function called to check module name from local changelog
 	* Control of the min version of Dolibarr needed and get versions list
 	*
@@ -922,12 +902,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<tr class = "oddeven">
 							<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('DolibarrVersion').'</td>
 							<td class = "infrasdiscountchangelogbase">'.DOL_VERSION.'</td>
-						</tr>
-						<tr class = "oddeven">
-							<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('InfraSDiscountParamDolinfrasVersion').'</td>
-							<td class = "infrasdiscountchangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
-						</tr>
-						<tr class = "oddeven">
+						</tr>';
+		if (getDolGlobalString('DOLINFRAS_VERSION', '')) {
+			$ret		.= '	<tr class = "oddeven">
+									<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('InfraSDiscountParamDolinfrasVersion').'</td>
+									<td class = "infrasdiscountchangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
+								</tr>';
+		}
+		$ret	.= '	<tr class = "oddeven">
 							<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('ModuleVersion').'</td>
 							<td class = "infrasdiscountchangelogbase">'.$currentversion.'</td>
 						</tr>

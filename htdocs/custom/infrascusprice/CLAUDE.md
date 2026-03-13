@@ -16,7 +16,8 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.3` (2026-03)
+- Dernière version locale : `18.1.4` (2026-03)
+- Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrascusprice/`
 
 Convention de lecture du descripteur :
@@ -81,13 +82,20 @@ Dans `core/modules/modinfrascusprice.class.php` :
 
 `init()` effectue :
 
-1. Activation de la substitution de page : `INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE = 1`
-2. Activation de la fonctionnalité prix clients Dolibarr : `PRODUIT_CUSTOMER_PRICES = 1`
-3. Chargement SQL via `_init()`
+1. Chargement SQL (`_load_tables('/infrascusprice/sql/')`)
+2. Restauration des constantes module (`infrascusp_restore_module`)
+3. Activation de la substitution de page : `INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE = 1`
+4. Activation de la fonctionnalité prix clients Dolibarr : `PRODUIT_CUSTOMER_PRICES = 1`
+5. Initialisation de constantes clés :
+	 - `INFRASCUSPRICE_DOL_VERSION`
+	 - `INFRASCUSPRICE_MAIN_VERSION`
 
 ### Désactivation (Lifecycle : `remove()`)
 
-`remove()` supprime les constantes `INFRASCUSP_%` de l'entité courante.
+`remove()` effectue :
+
+- sauvegarde module (`infrascusp_bkup_module`),
+- suppression des constantes `INFRASCUSP_%` de l'entité courante.
 
 ## Fonctionnement principal (Core behavior)
 
@@ -116,12 +124,17 @@ Le module s'appuie sur :
 
 ## Hooks et comportement (Hook behavior)
 
-La classe `Actionsinfrascusprice` intervient sur :
+La classe `Actionsinfrascusprice` (dans `class/actions_infrascusprice.class.php`) intervient principalement sur :
 
-- `updateSession` : redirige vers la page de substitution avant chargement si la substitution est active,
-- `afterLogin` : affiche un avertissement de compatibilité si la version majeure de Dolibarr > version max supportée (comparaison sur le numéro de branche majeur uniquement via `explode()`), gère les redirections post-login,
-- `addMoreActionsButtons` (contexte `thirdpartycustomerprice`) : ajoute les boutons « Supprimer les prix » et « Déployer les prix parent »,
-- `doActions` (contexte `thirdpartycustomerprice`) : traite les actions `deleteCustPrices` et `updateCustPrices`.
+- **Substitution de pages** (`updateSession`, `afterLogin`) : redirection automatique vers les pages de substitution selon version Dolibarr et constantes de configuration,
+- **Enrichissement onglet prix clients** (`thirdpartycustomerprice`) :
+  - `addMoreActionsButtons` : injection des boutons « Supprimer les prix » et « Déployer les prix parent »,
+  - `doActions` : traitement des actions `deleteCustPrices` et `updateCustPrices`,
+- **Vérification de version** (`afterLogin`) : affiche un avertissement de compatibilité si la version majeure de Dolibarr > version max supportée (comparaison sur le numéro de branche majeur uniquement via `explode()`).
+
+## Trigger (Trigger behavior)
+
+Le module ne possède pas de trigger. Aucun événement n'est écouté (pas de répertoire `core/triggers/` avec trigger actif).
 
 ## Données / SQL (Data model)
 
@@ -132,13 +145,21 @@ Le module ne crée aucune table propre. Il opère sur les tables Dolibarr exista
 
 ## Constantes de configuration (Key settings)
 
-Constantes actives usuelles :
+Constantes système utilisées par le module :
 
-- `INFRASCUSP_DOL_VERSION` — version Dolibarr au moment de l'activation
-- `INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE` — active la substitution de `societe/price.php`
-- `PRODUIT_CUSTOMER_PRICES` — active la fonctionnalité prix clients Dolibarr
-- `INFRASCUSPRICE_DISABLE_CHECK_VERSION_MIN` — désactive le contrôle de version minimum
-- `INFRASCUSPRICE_DISABLE_CHECK_VERSION_MAX` — désactive l'avertissement de version max
+| Constante | Type | Description |
+|-----------|------|-------------|
+| `INFRASCUSP_DOL_VERSION` | string | Version Dolibarr au moment de l'activation du module |
+| `INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE` | int | Active la substitution de `societe/price.php` (1=actif) |
+| `PRODUIT_CUSTOMER_PRICES` | int | Active la fonctionnalité prix clients Dolibarr (1=actif, activée automatiquement par le module) |
+| `INFRASCUSPRICE_DOL_VERSION` | string | Version Dolibarr enregistrée lors de l'initialisation |
+| `INFRASCUSPRICE_MAIN_VERSION` | string | Version du module enregistrée lors de l'initialisation |
+| `INFRASCUSPRICE_DISABLE_CHECK_VERSION_MIN` | bool | Désactive le contrôle de version minimum Dolibarr |
+| `INFRASCUSPRICE_DISABLE_CHECK_VERSION_MAX` | bool | Désactive l'avertissement de version max Dolibarr |
+| `INFRAS_PHP_EXT_XML` | int | État de l'extension PHP XML (1=ok, -1=absente) |
+| `DOLINFRAS_VERSION` | string | Version de Dolibarr lue depuis le fichier `VERSION` (branding dynamique) |
+
+Point de vigilance : la constante `PRODUIT_CUSTOMER_PRICES` est une constante core Dolibarr qui est automatiquement activée par le module (le module ne peut pas fonctionner sans cette option).
 
 ## Conventions de développement (Development conventions)
 
@@ -167,7 +188,8 @@ Si modification du descripteur / permissions / hooks / constantes :
 - L'extension PHP XML est nécessaire pour parser le changelog
 - Le module déclenche un avertissement si la version Dolibarr dépasse la version max supportée
 - Les pages de substitution sont des copies adaptées du core Dolibarr ; toute montée de version Dolibarr peut nécessiter une mise à jour de ces pages
-- Le menu « Paramètres spécifique InfraS » pointe vers `infrassearchsetup.php` (ligne 171 du descripteur) — lien potentiellement incorrect
+- Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis
+- La constante `PRODUIT_CUSTOMER_PRICES` est essentielle et activée automatiquement par le module
 
 ## Dernières mises à jour (Recent updates)
 
@@ -181,6 +203,7 @@ Si modification du descripteur / permissions / hooks / constantes :
 - `18.1.2` (2026-03) : compatibilité avec PHP 8.4
 - `18.1.3` (2026-03) : ajout de `infrascusp_getSubstitutionRedirectUrl()` — gestion centralisée des redirections avec filtrage des paramètres GET (exclusion du token CSRF)
 - `18.1.3` (2026-03) : simplification de `infrascusp_is_substitution_page()` — utilisation de `strpos()` au lieu de regex complexe
+- `18.1.4` (2026-03) : ajout d'une nouvelle famille dédiée aux modules d'hébergement (branding dynamique)
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -239,9 +262,10 @@ Redirection header('Location: ...') → exit
 
 ```xml
 <changelog>
-    <Version Number="18.1.3" MonthVersion="2026-03">
-        <change type='fix'>Simplification de la fonction infrascusp_is_substitution_page()</change>
-        <change type='chg'>Ajout de la fonction infrascusp_getSubstitutionRedirectUrl()</change>
+    <Version Number="18.1.4" MonthVersion="2026-03">
+      <change type='add'>Added feature description.</change>
+      <change type='chg'>Changed feature description.</change>
+      <change type='fix'>Fixed bug description.</change>
     </Version>
     <InfraS Downloaded="20260301"/>
     <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
@@ -252,10 +276,10 @@ Redirection header('Location: ...') → exit
 La fonction `infrascusp_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.1.3",           // Version courante
+    0 => "18.1.4",           // Version courante du module
     1 => "18.0.0",           // Version min Dolibarr
-    2 => "20260301",         // Date de téléchargement
-    3 => "",                 // (non utilisé)
+    2 => "20260301",         // Date de téléchargement InfraS
+    3 => "",                 // Erreur (vide si ok)
     4 => "24.x.x",           // Version max Dolibarr
     5 => "7.4",              // Version min PHP
     6 => "8.4"               // Version max PHP
@@ -264,19 +288,24 @@ La fonction `infrascusp_getLocalVersionMinDoli()` parse ce XML et retourne un ta
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 
-Pour supporter une nouvelle version majeure de Dolibarr (ex. 23.x) :
+Pour supporter une nouvelle version majeure de Dolibarr (ex. 25.x) :
 
-1. Créer le répertoire : `substitutionpages/dlb230x/`
-2. Copier le contenu du dossier de la version précédente : `cp -r dlb220x/* dlb230x/`
-3. Vérifier et adapter les évolutions de la page core Dolibarr en amont
-4. Mettre à jour `docs/changelog.xml` :
+1. **Créer le répertoire** : `substitutionpages/dlb250x/societe/`
+2. **Copier la page de la version précédente** : `cp substitutionpages/dlb240x/societe/price.php substitutionpages/dlb250x/societe/`
+3. **Comparer avec le core Dolibarr** : `diff htdocs/societe/price.php substitutionpages/dlb250x/societe/price.php`
+4. **Adapter les évolutions** : fusionner les changements du core Dolibarr v25 (nouveaux champs, méthodes, logique métier)
+5. **Mettre à jour le changelog** :
    ```xml
    <Version Number="X.Y.Z" MonthVersion="YYYY-MM">
-       <change type='add'>Compatibilité avec Dolibarr v23</change>
+       <change type='add'>Compatibilité avec Dolibarr v25</change>
    </Version>
-   <Dolibarr minVersion="18.0.0" maxVersion="23.0.x"/>
+   <Dolibarr minVersion="18.0.0" maxVersion="25.x.x"/>
    ```
-5. Tester la redirection de la page de substitution et le fonctionnement des boutons d'actions
+6. **Tester** :
+   - Vérifier la redirection automatique vers la page substituée
+   - Tester le bouton « Déployer les prix parent » sur une filiale
+   - Tester le bouton « Supprimer les prix » sur une filiale
+   - Vérifier que les recherches de prix fonctionnent (champs `search_price`, `search_price_ttc`)
 
 ## Cas d'usage courants (Common use cases)
 

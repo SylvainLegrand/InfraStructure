@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -150,26 +150,6 @@
 			}
 		}
 		return $currentversion;
-	}
-
-	/**
-	* Read the Dolibarr VERSION file and store its value in the DOLINFRAS_VERSION constant
-	*
-	* @return	string		Version string read from VERSION file, or empty string on failure
-	**/
-	function infrasproject_getVersionDolinfras()
-	{
-		global $db, $conf;
-
-		$version	= '';
-		$file		= DOL_DOCUMENT_ROOT.'/VERSION';
-		if (is_file($file)) {
-			$version = trim(file_get_contents($file));
-		}
-		if (!empty($version) && getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
-			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'InfraSProject module', $conf->entity);
-		}
-		return $version;
 	}
 
 	/**
@@ -845,8 +825,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<tr class="oddeven">
 							<td class = "width400 infrasprojectchangelogbase">'.$langs->trans('DolibarrVersion').'</td>
 							<td class = "infrasprojectchangelogbase">'.DOL_VERSION.'</td>
-						</tr>
-						<tr class="oddeven">
+						</tr>';
+		if (getDolGlobalString('DOLINFRAS_VERSION', '')) {
+			$ret	.= '<tr class = "oddeven">
+							<td class = "width400 infrasprojectchangelogbase">'.$langs->trans('InfraSProjectParamDolinfrasVersion').'</td>
+							<td class = "infrasprojectchangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
+						</tr>';
+		}
+		$ret	.= '	<tr class="oddeven">
 							<td class = "width400 infrasprojectchangelogbase">'.$langs->trans('ModuleVersion').'</td>
 							<td class = "infrasprojectchangelogbase">'.$currentversion.'</td>
 						</tr>

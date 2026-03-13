@@ -108,6 +108,7 @@ InfraSProjectParamPreferedPartner1     = Miembro del programa oficial
 InfraSProjectParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia.
 InfraSProjectParamSkipCheck            = Descarga deshabilitada
 InfraSProjectParamNumberVersion        = Número de versión
+InfraSProjectParamDolinfrasVersion     = Número de versión LTS
 InfraSProjectParamMonthVersion         = Fecha
 InfraSProjectParamChangesVersion       = Cambios
 InfraSProjectParamCheckNewVersion      = Nuevo Changelog

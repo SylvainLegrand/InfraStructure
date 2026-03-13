@@ -78,6 +78,9 @@
 		<change type='fix'>Simplification de la fonction infrascusp_is_substitution_page() : utilisation de strpos() au lieu de regex complexe</change>
 		<change type='chg'>Ajout de la fonction infrascusp_getSubstitutionRedirectUrl() pour gérer les redirections avec filtrage des paramètres GET (exclusion du token CSRF)</change>
 	</Version>
+	<Version Number="18.1.4" MonthVersion="2026-03">
+		<change type='chg'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
+	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

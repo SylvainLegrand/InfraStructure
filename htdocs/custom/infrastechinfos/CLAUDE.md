@@ -13,7 +13,7 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS - Sylvain Legrand
 - Numéro module : `500060`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `15.0.0` à `24.0.4`
+- Compatibilité Dolibarr : `15.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
 - Dernière version locale : `15.2.1` (2026-03)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
@@ -138,11 +138,12 @@ Services — conversion de durées en secondes :
 
 ## Hooks et comportement (Hook behavior)
 
-La classe `Actionsinfrastechinfos` intervient sur les contextes `propalcard`, `ordercard`, `expeditioncard`, `supplier_proposalcard`, `ordersuppliercard` :
+La classe `Actionsinfrastechinfos` (dans `class/actions_infrastechinfos.class.php`) intervient sur les contextes `propalcard`, `ordercard`, `expeditioncard`, `supplier_proposalcard`, `ordersuppliercard` :
 
-- `afterLogin` : vérifie la version max Dolibarr supportée
-    via `explode('.', DOL_VERSION)[0]` vs `explode('.', maxVersion)[0]`
-- `addMoreActionsButtons` : injection d'un tableau technique repliable sur les fiches documents
+| Hook | Contexte | Retour | Rôle |
+|------|----------|--------|------|
+| `afterLogin` | `login` | 0 | Vérifie la version max Dolibarr supportée via `explode('.', DOL_VERSION)[0]` vs `explode('.', maxVersion)[0]` et affiche un avertissement si dépassement (sauf si `INFRASTECHINFOS_DISABLE_CHECK_VERSION_MAX` activé) |
+| `addMoreActionsButtons` | `propalcard`, `ordercard`, `expeditioncard`, `supplier_proposalcard`, `ordersuppliercard` | 0 | Injection d'un tableau technique repliable en bas des fiches documents (conditionné par : lignes > 0, permission `InfraSTechInfosView`, élément dans `['propal', 'commande', 'shipping', 'supplier_proposal', 'order_supplier']`) |
 
 ### Flux des hooks (Hook workflow)
 
@@ -236,10 +237,20 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 
 ## Dernières mises à jour (Recent updates)
 
+- `15.0.0` (2024-07) : version initiale — fork d'InfraSTechInfo pour compatibilité Dolibarr 15+
+- `15.0.1` (2024-09) : correction de la détection de version PHP XML
+- `15.0.2` (2024-11) : amélioration de l'affichage des totaux
 - `15.1.0` (2026-02) : alignement des fonctions lib admin sur infraspackplus, infraswidgets et infrassearch (27 corrections)
-- `15.1.0` (2026-02) : ajout du fichier CLAUDE.md
+- `15.1.0` (2026-02) : ajout du fichier CLAUDE.md pour l'intégration avec Claude Code (IA)
+- `15.1.0` (2026-02) : audit de sécurité : corrections XSS, CSRF, typage des variables
+- `15.1.0` (2026-02) : remplacement des balises HTML obsolètes (`<FONT>`) par du CSS
+- `15.1.0` (2026-02) : amélioration de la documentation PHPDoc
 - `15.2.0` (2026-03) : ajout d'un test de comparaison de la version majeure Dolibarr (avertissement si version non supportée)
+- `15.2.0` (2026-03) : correction de la logique de détection de version max (utilisation de `explode()` au lieu de `strstr()`)
 - `15.2.0` (2026-03) : amélioration du descripteur CLAUDE.md : ajout des Notes techniques
+- `15.2.1` (2026-03) : isolation du cookie JS de l'état des panneaux (`infrastechinfos_tblPSexp` au lieu de `tblPSexp`)
+- `15.2.1` (2026-03) : variable `cookieName` déplacée au scope script (hors `jQuery(document).ready()`) pour accès inter-closures
+- `15.2.1` (2026-03) : test défensif `!empty($conf->use_javascript_ajax)` au lieu de `$conf->use_javascript_ajax`
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -289,6 +300,17 @@ Le hook `addMoreActionsButtons` parcourt toutes les lignes du document :
 4. Cumule le total document en secondes
 5. Affiche via `convertSecondToTime()` de Dolibarr (format `allhourmin` ou `all` selon configuration)
 
+### Affichage du changelog (`infrastechinfos_getChangeLog`)
+
+La fonction génère un HTML complet comprenant :
+
+1. **Bannière de support** : header avec logo InfraS, liens vers le wiki, le store, le dolistore, le formulaire de support (pré-rempli avec module/version/PHP/Dolibarr), et le badge Dolibarr Preferred Partner
+2. **Tableau comparatif** : trois cas d'affichage selon la comparaison local vs téléchargé :
+   - **Nouvelles versions disponibles** (`count(downloaded) > count(local)`) : fond orange (`.infrastechinfoschangelogbgorange`) pour les versions non installées
+   - **Version en avance** (`count(downloaded) < count(local)`) : fond vert (`.infrastechinfoschangelogbggreen`) pour les versions en avance
+   - **À jour ou pas de connexion** : affichage simple sans coloration
+3. **Bouton de vérification** : soumission de formulaire pour déclencher `infrastechinfos_dwnChangelog()` (masqué si `INFRAS_SKIP_CHECKVERSION` est activé)
+
 ### Page de configuration (Setup page)
 
 `admin/infrastechinfossetup.php` gère les paramètres du module :
@@ -322,12 +344,13 @@ Le module gère sa propre entrée dans le menu « Outils » :
 
 ```xml
 <changelog>
-    <Version Number="15.2.0" MonthVersion="2026-03">
-        <change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
-        <change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr supportée</change>
+    <Version Number="15.2.1" MonthVersion="2026-03">
+      <change type='add'>Added feature description.</change>
+      <change type='chg'>Changed feature description.</change>
+      <change type='fix'>Fixed bug description.</change>
     </Version>
     <InfraS Downloaded="20260301"/>
-    <Dolibarr minVersion="15.0.0" maxVersion="22.0.4"/>
+    <Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
@@ -335,11 +358,11 @@ Le module gère sa propre entrée dans le menu « Outils » :
 La fonction `infrastechinfos_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "15.2.0",           // Version courante
+    0 => "15.2.1",           // Version courante
     1 => "15.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
-    4 => "22.0.4",           // Version max Dolibarr
+    4 => "24.x.x",           // Version max Dolibarr
     5 => "7.4",              // Version min PHP
     6 => "8.4"               // Version max PHP
 ]
@@ -354,8 +377,9 @@ La fonction `infrastechinfos_getLocalVersionMinDoli()` parse ce XML et retourne 
 4. Appel de `$this->_init()` standard
 
 **`remove()`** effectue :
-1. Sauvegarde des paramètres (`infrastechinfos_bkup_module`)
-2. Suppression des constantes `INFRASTECHINFOS_%` de l'entité courante
+1. Sauvegarde des paramètres (`infrastechinfos_bkup_module`) dans `DOL_DATA_ROOT/{entity}/infrastechinfos/sql/update.{entity}`
+2. Nettoyage SQL : suppression des constantes `INFRASTECHINFOS_%` de l'entité courante
+3. **Note** : le module ne crée pas de tables SQL, donc aucun DROP TABLE nécessaire
 
 **`getLocalVersion()`** effectue :
 1. Vérifie l'extension PHP XML via `INFRAS_PHP_EXT_XML`
@@ -395,6 +419,37 @@ Le module lit les données techniques directement depuis les objets Dolibarr :
 | Durée | `duration_value` | `duration_unit` | Service |
 
 Les dimensions du document sont basées sur `$object->lines[$i]->ref`, `$object->lines[$i]->qty` et `$object->lines[$i]->fk_product`.
+
+**Flux d'extraction des données** :
+```php
+// Pour chaque ligne du document
+foreach ($object->lines as $line) {
+    if (empty($line->fk_product)) continue; // Ignore lignes libres
+    
+    $product = new Product($db);
+    $product->fetch($line->fk_product);
+    
+    if ($product->type == 1) { // Service
+        $duration_seconds = $line->duration_value * $unit_multiplier;
+        $total_seconds += $duration_seconds;
+    } else { // Produit
+        $weight_total = $product->weight * $line->qty * $unit_factor;
+        $volume_total = $product->volume * $line->qty * $unit_factor;
+        // etc.
+    }
+}
+```
+
+### Sécurité (Security)
+
+Le module implémente les protections standards Dolibarr :
+
+- **CSRF** : token Dolibarr (`newToken()`) inclus dans tous les formulaires
+- **XSS** : toutes les sorties utilisateur échappées via `dol_escape_htmltag()`
+- **PHP_SELF** : échappé via `dol_escape_htmltag()` dans les attributs `action` des formulaires
+- **XXE** : `simplexml_load_string()` appelé avec `LIBXML_NONET` pour bloquer les entités externes lors du parsing du changelog
+- **Contrôle d'accès** : permission `InfraSTechInfosView` requise pour afficher le tableau technique
+- **Injection SQL** : non applicable (le module ne fait pas de requêtes SQL custom, utilise uniquement l'ORM Dolibarr)
 
 ### Limitations connues (Known limitations)
 

@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <http://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <http://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -51,8 +51,12 @@
 			$this->editor_url		= $editor_web;
 			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
 			$this->rights_class		= $this->name;											// Key text used to identify module (for permissions, menus, etc...)
-			$this->family			= 'Modules '.$langs->trans("basenameTechInfos");		// used to group modules in module setup page
-			$this->description		= $langs->trans('Module500060Desc');					// Module description
+			$isDolinfras			= isModEnabled('dolinfras');
+			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameTechInfos');
+			$this->family			= $family;																				// used to group modules in module setup page
+			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+			$this->module_position	= 100008;
+			$this->description		= $langs->trans('Module500060Desc');				// Module description
 			$this->version			= $this->getLocalVersion();								// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);		// llx_const table to save module status enabled/disabled
 			$this->special			= 0;													// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)

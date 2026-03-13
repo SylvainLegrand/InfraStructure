@@ -16,7 +16,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `21.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.3.2` (2026-03)
+- Dernière version locale : `15.3.3` (2026-03)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrassupprice/`
 
@@ -211,8 +211,10 @@ Si modification SQL / descripteur / permissions / hooks / constantes :
 - `15.2.0` (2026-02) : ajout du fichier CLAUDE.md
 - `15.3.0` (2026-03) : amélioration du descripteur CLAUDE.md : ajout des Notes techniques
 - `15.3.0` (2026-03) : ajout d'un test de comparaison de la version majeure Dolibarr (avertissement si version non supportée)
+- `15.3.1` (2026-03) : compatibilité avec PHP 8.4
 - `15.3.2` (2026-03) : ajout de l'affichage de la version Dolinfras dans `infrassupprice_getSupportInformation()`
 - `15.3.2` (2026-03) : ajout de la clé de traduction `InfraSSupPriceParamDolinfrasVersion` (fr_FR, en_US, es_ES)
+- `15.3.3` (2026-03) : ajout d'une nouvelle famille dynamique dédiée aux modules d'hébergement (branding « Dolibarr LTS by InfraS »)
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -353,6 +355,44 @@ Le fichier `core/lib/infrassuppriceAdmin.lib.php` contient les fonctions transve
 
 ```xml
 <changelog>
+    <Version Number="15.3.3" MonthVersion="2026-03">
+      <change type='add'>Added feature description.</change>
+      <change type='chg'>Changed feature description.</change>
+      <change type='fix'>Fixed bug description.</change>
+    </Version>
+    <InfraS Downloaded="20260301"/>
+    <Dolibarr minVersion="15.0.0" maxVersion="21.x.x"/>
+    <PHP minVersion="7.4" maxVersion="8.4"/>
+</changelog>
+```
+
+La fonction `infrassupprice_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
+```php
+[
+    0 => "15.3.3",           // Version courante
+    1 => "15.0.0",           // Version min Dolibarr
+    2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
+    3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
+    4 => "21.x.x",           // Version max Dolibarr
+    5 => "7.4",              // Version min PHP
+    6 => "8.4"               // Version max PHP
+]
+```
+
+### Branding dynamique (Dynamic branding)
+
+Le module implémente le système de branding centralisé InfraS :
+
+1. **Détection du module dolinfras** : dans le constructeur, le descripteur vérifie si le module `dolinfras` est activé via `isModEnabled('dolinfras')`
+2. **Choix de la famille** :
+   - Si `dolinfras` est activé : utilise `getDolGlobalString('DOLINFRAS_FAMILY')` qui contient le HTML de branding « Dolibarr LTS by InfraS » avec polices personnalisées
+   - Sinon : utilise la famille standard « Modules InfraS »
+3. **Avantages** : branding cohérent sur tous les modules InfraS d'une instance, personnalisation centralisée, affichage enrichi avec polices InfraS
+
+### Structure du changelog (Changelog structure)
+
+```xml
+<changelog>
     <Version Number="15.3.0" MonthVersion="2026-03">
         <change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
         <change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr supportée</change>
@@ -361,19 +401,6 @@ Le fichier `core/lib/infrassuppriceAdmin.lib.php` contient les fonctions transve
     <Dolibarr minVersion="15.0.0" maxVersion="21.0.3"/>
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
-```
-
-La fonction `infrassupprice_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
-```php
-[
-    0 => "15.3.2",           // Version courante
-    1 => "15.0.0",           // Version min Dolibarr
-    2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
-    3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
-    4 => "21.x.x",           // Version max Dolibarr
-    5 => "7.4",              // Version min PHP
-    6 => "8.4"               // Version max PHP
-]
 ```
 
 ### Cycle de vie du module (Module lifecycle)

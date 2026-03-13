@@ -54,6 +54,7 @@ InfraSCusPParamPreferedPartner1     = Membre du programme officiel
 InfraSCusPParamPreferedPartner2     = Preferred Partner, gage de qualité et d'expertise.
 InfraSCusPParamSkipCheck            = Téléchargement désactivé
 InfraSCusPParamNumberVersion        = N° de version
+InfraSCusPriceParamDolinfrasVersion = Numero de version LTS
 InfraSCusPParamMonthVersion         = Date
 InfraSCusPParamChangesVersion       = Modifications
 InfraSCusPParamObjet                = <h3>Objet :</h3>

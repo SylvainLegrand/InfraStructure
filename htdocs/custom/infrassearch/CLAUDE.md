@@ -11,12 +11,13 @@
 
 Informations module (issues du code et du changelog local) :
 
-- Éditeur : InfraS
+- Éditeur : InfraS - Sylvain Legrand
 - Numéro module : `550080`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `15.0.0` à `24.0.4`
+- Compatibilité Dolibarr : `15.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.4.5` (2026-02)
+- Dernière version locale : `15.4.6` (2026-03)
+- Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrassearch/`
 
 Convention de lecture du descripteur :
@@ -49,6 +50,7 @@ htdocs/custom/infrassearch/
 │   ├── infrassearch.css.php
 │   └── puentebold.ttf
 ├── docs/changelog.xml
+├── img/
 ├── js/
 │   └── jquery.tile.min.js
 ├── langs/
@@ -76,9 +78,10 @@ Dans `core/modules/modinfrassearch.class.php` :
 - **Boxes** : aucune
 - **Cron** : aucune tâche
 - **Permissions** : 3 permissions
-	- `paramMenu`
+	- `paramMenu` (par défaut : activée)
 	- `paramInfraSSearch`
 	- `paramBkpRest`
+- **Famille** : `Dolibarr LTS by InfraS` (branding dynamique si module dolinfras activé) ou `Modules Recherche`
 
 ### Initialisation (Lifecycle : `init()`)
 
@@ -95,7 +98,38 @@ Dans `core/modules/modinfrassearch.class.php` :
 ### Désactivation (Lifecycle : `remove()`)
 
 `remove()` supprime les constantes `INFRASSEARCH_%` de l’entité courante après sauvegarde module.
+### Gestion de version (Lifecycle : `getLocalVersion()`)
 
+Lecture depuis `docs/changelog.xml` via `infrassearch_getLocalVersionMinDoli()` :
+
+- renseigne `need_dolibarr_version`, `phpmin`, `phpmax`,
+- désactive automatiquement le module si la version Dolibarr est inférieure au minimum requis.
+
+### Menus (Menu structure)
+
+Le module crée deux niveaux de menus dans le menu Outils :
+
+1. **Menu principal InfraS** (si aucun autre module InfraS n'a créé le menu) :
+   - Position : 50 dans le menu Outils
+   - Condition : `infrassearch_no_topmenu()` retourne `true`
+   - Permission : aucune (visible pour tous)
+
+2. **Sous-menu InfraSSearch** (trois entrées) :
+   - **Titre module** (position 65) : accès à la configuration
+     - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
+   - **Changelog** (position 66) : historique des versions
+     - URL : `/infrassearch/admin/changelog.php`
+     - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
+   - **Paramètres** (position 67) : configuration du module
+     - URL : `/infrassearch/admin/infrassearchsetup.php`
+     - Permission : `$user->hasRight('infrassearch', 'paramInfraSSearch')`
+   - **À propos** (position 68) : présentation et informations
+     - URL : `/infrassearch/admin/about.php`
+     - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
+   - **Recherche** (position 100) : page de recherche dédiée
+     - URL : `/infrassearch/search.php`
+     - Icône : `object_search@infrassearch`
+     - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
 ## Fonctionnement principal (Core behavior)
 
 Le module propose 4 points d’intégration :
@@ -117,6 +151,10 @@ La classe `Actionsinfrassearch` gère principalement :
 - `doActions` (`adminmodules`) : nettoyage des constantes module désactivé,
 - `printCommonFooter` : historisation des objets visités.
 
+## Trigger (Trigger behavior)
+
+Le module ne possède pas de trigger. Aucun événement n'est écouté (pas de répertoire `core/triggers/` avec trigger actif). L'historisation des objets consultés se fait via le hook `printCommonFooter`.
+
 ## Données / SQL (Data model)
 
 Table principale :
@@ -126,24 +164,63 @@ Table principale :
 Colonnes principales : `rowid`, `entity`, `element`, `fk_element`, `fk_user`, `tms`.
 
 Le nettoyage de l’historique est effectué dans le hook `printCommonFooter` (conservation glissante).
+## Fonctions utilitaires (Library functions)
 
+### `infrassearch.lib.php`
+
+Bibliothèque principale contenant les fonctions de recherche et d'affichage :
+
+| Fonction | Description |
+|----------|-------------|
+| `getobjectclass($element)` | Résout le classpath, classname et classfile d'un type d'objet |
+| `_search($type, $keyword, $ajax)` | Moteur de recherche dynamique multi-tables avec introspection SQL |
+| `printDropdownBreadCrumb()` | Affiche le dropdown fil d'Ariane dans le menu haut |
+| `handleInfraSearchError($error, $context, $objecttype)` | Gestion centralisée des erreurs avec journalisation |
+| `infrassearch_load_title()` | Génère un titre de section avec icône et classe CSS |
+
+### `infrassearchAdmin.lib.php`
+
+Bibliothèque d'administration contenant les fonctions de paramétrage :
+
+| Fonction | Description |
+|----------|-------------|
+| `infrassearch_admin_prepare_head()` | Génère les onglets admin (Paramètres, À propos, Changelog) |
+| `infrassearch_no_topmenu()` | Vérifie si le menu InfraS existe dans le menu Outils |
+| `infrassearch_test_php_ext()` | Vérifie la présence de l'extension PHP XML |
+| `infrassearch_getLocalVersionMinDoli($appliname)` | Parse le changelog XML local et retourne [version, minDoli, errFlag, versionsArray, maxDoli, minPHP, maxPHP] |
+| `infrassearch_dwnChangelog($appliname)` | Télécharge le changelog depuis infras.fr |
+| `infrassearch_getChangeLog($appliname, $version, $resversion, $tblversions, $dwn)` | Affichage HTML du changelog avec comparaison local/téléchargé |
+| `infrassearch_getSupportInformation($version)` | Affichage HTML des infos techniques (versions) |
+| `infrassearch_bkup_module($appliname)` | Sauvegarde des paramètres en SQL |
+| `infrassearch_restore_module($appliname)` | Restauration des paramètres depuis le fichier SQL |
+| `infrassearch_num_pos()` | Génère les options HTML de numérotation de position (tri des modules) |
+| `infrassearch_print_*()` | Fonctions d'affichage HTML pour les tableaux admin |
 ## Constantes de configuration (Key settings)
 
-Constantes actives usuelles :
+Constantes système utilisées par le module :
 
-- `INFRASSEARCH_ON_TOP_MENU`
-- `INFRASSEARCH_REPLACE_STD`
-- `INFRASSEARCH_BREADCRUMB`
-- `INFRASSEARCH_NB_BREADCRUMB`
-- `INFRASSEARCH_NB_CAR`
-- `INFRASSEARCH_NB_SEC`
-- `INFRASSEARCH_NB_ROWS`
-- `INFRASSEARCH_ONLY_IN_ENTITY`
-- `INFRASSEARCH_SORT`
-- `INFRASSEARCH_ORDER`
-- `INFRASSEARCH_SHOW_FIND_FIELD`
-- `INFRASSEARCH_MOD_<TYPE>`
-- `INFRASSEARCH_POS_<TYPE>`
+| Constante | Type | Description |
+|-----------|------|-------------|
+| `INFRASSEARCH_ON_TOP_MENU` | bool | Affiche la zone de recherche dans le menu haut (1=actif) |
+| `INFRASSEARCH_REPLACE_STD` | bool | Remplace la recherche standard par la recherche InfraS (1=actif) |
+| `INFRASSEARCH_BREADCRUMB` | bool | Active le fil d'Ariane dans le menu haut (1=actif) |
+| `INFRASSEARCH_NB_BREADCRUMB` | int | Nombre d'objets à afficher dans le fil d'Ariane (défaut : 5) |
+| `INFRASSEARCH_NB_CAR` | int | Nombre minimum de caractères pour déclencher la recherche (défaut : 3) |
+| `INFRASSEARCH_NB_SEC` | int | Délai en millisecondes avant déclenchement de la recherche (défaut : 500) |
+| `INFRASSEARCH_NB_ROWS` | int | Nombre maximum de résultats par type d'objet (défaut : 10) |
+| `INFRASSEARCH_ONLY_IN_ENTITY` | bool | Restreint la recherche à l'entité courante (1=actif) |
+| `INFRASSEARCH_SORT` | bool | Active le tri des résultats par date (1=actif) |
+| `INFRASSEARCH_ORDER` | int | Ordre de tri : 1=DESC (décroissant), 0=ASC (croissant) |
+| `INFRASSEARCH_SHOW_FIND_FIELD` | bool | Affiche le champ contenant l'expression recherchée (1=actif) |
+| `INFRASSEARCH_MOD_<TYPE>` | bool | Active la recherche sur le type d'objet (1=actif, 0=inactif) |
+| `INFRASSEARCH_POS_<TYPE>` | int | Position d'affichage du type d'objet dans les résultats (ordre croissant) |
+| `INFRASSEARCH_LISTTOBJECTTYPE` | string | Liste CSV des types d'objets disponibles |
+| `INFRASSEARCH_DOL_VERSION` | string | Version de Dolibarr lors de l'activation du module |
+| `INFRASSEARCH_MAIN_VERSION` | string | Version du module lors de l'activation |
+| `INFRASSEARCH_DISABLE_CHECK_VERSION_MIN` | bool | Désactive la vérification de version minimum Dolibarr |
+| `INFRASSEARCH_DISABLE_CHECK_VERSION_MAX` | bool | Désactive l'avertissement de version max Dolibarr |
+| `INFRAS_PHP_EXT_XML` | int | État de l'extension PHP XML (1=ok, -1=absente) |
+| `MAIN_USE_TOP_MENU_SEARCH_DROPDOWN` | bool | Affiche la recherche standard comme dropdown dans le menu haut (native Dolibarr) |
 
 Valeurs seed `sql/data.sql` à connaître :
 
@@ -177,6 +254,14 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - L’extension PHP XML est nécessaire
 - Le module déclenche un avertissement si la version Dolibarr dépasse la version max supportée
 - La recherche téléphone a des règles spécifiques (normalisation et conversions local/international)
+- Le moteur de recherche utilise l'introspection SQL (`DESCRIBE`) avec mise en cache statique
+- Le fil d'Ariane conserve l'historique pendant environ 1 mois (nettoyage glissant au 1er de chaque mois)
+- La recherche téléphone est calibrée pour Madagascar (indicatif +261), adapter pour autres pays
+- Les constantes `INFRASSEARCH_MOD_*` sont automatiquement nettoyées lors de la désactivation d'un module
+- La position d'affichage `INFRASSEARCH_POS_*` est recalculée automatiquement lors de l'ajout/suppression d'un type
+- Le cookie `infrassearch_tblPSexp` est isolé pour éviter les collisions avec d'autres modules InfraS
+- La recherche peut générer des requêtes SQL complexes — surveiller les performances sur de gros volumes
+- Le hook `printCommonFooter` s'exécute sur toutes les pages — attention aux impacts de performance
 
 ## Dernières mises à jour (Recent updates)
 
@@ -187,6 +272,8 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - `15.4.3` (2026-02) : isolation du cookie JS de l'état des panneaux (`infrassearch_tblPSexp` au lieu de `tblPSexp`) pour éviter les collisions inter-modules
 - `15.4.4` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
 - `15.4.4` (2026-03) : Documentation : enrichissement des Notes Techniques du descripteur CLAUDE.md
+- `15.4.5` (2026-03) : amélioration de l'affichage lors de la recherche (gif loading)
+- `15.4.6` (2026-03) : amélioration de la compatibilité avec le module externe et thème Oblyon
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -366,12 +453,13 @@ Le module dispose d'un mécanisme de sauvegarde/restauration des paramètres acc
 
 ```xml
 <changelog>
-    <Version Number="15.4.4" MonthVersion="2026-03">
-        <change type='fix'>Correction de la comparaison de version max Dolibarr</change>
-        <change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
+    <Version Number="15.4.6" MonthVersion="2026-03">
+      <change type='add'>Added feature description.</change>
+      <change type='chg'>Changed feature description.</change>
+      <change type='fix'>Fixed bug description.</change>
     </Version>
-    <InfraS Downloaded="20260201"/>
-    <Dolibarr minVersion="15.0.0" maxVersion="23.0.4"/>
+    <InfraS Downloaded="20260301"/>
+    <Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
@@ -379,11 +467,11 @@ Le module dispose d'un mécanisme de sauvegarde/restauration des paramètres acc
 La fonction `infrassearch_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "15.4.4",           // Version courante
+    0 => "15.4.6",           // Version courante
     1 => "15.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
-    4 => "23.0.4",           // Version max Dolibarr
+    4 => "24.x.x",           // Version max Dolibarr
     5 => "7.4",              // Version min PHP
     6 => "8.4"               // Version max PHP
 ]

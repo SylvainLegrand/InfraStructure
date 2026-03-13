@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <http://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -51,9 +51,11 @@
 			$this->editor_url		= $editor_web;
 			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
 			$this->rights_class		= $this->name;																			// Key text used to identify module (for permissions, menus, etc...)
-			$family					= 'Modules '.$langs->trans('basenameInfraSSupPrice');
+			$isDolinfras			= isModEnabled('dolinfras');
+			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameInfraSSupPrice');
 			$this->family			= $family;																				// used to group modules in module setup page
 			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+			$this->module_position	= 100007;
 			$this->description		= $langs->trans('Module500056Desc');												// Module description
 			$this->version			= $this->getLocalVersion();																// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);										// llx_const table to save module status enabled/disabled

@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -56,7 +56,6 @@
 
 			$currentversion	= array();
 			$currentversion	= infrassupprice_getLocalVersionMinDoli('infrassupprice');
-			infrassupprice_getVersionDolinfras();
 			if (!getDolGlobalString('INFRASSUPPRICE_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
 				setEventMessages($langs->trans('InfraSSupPriceWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
 			}

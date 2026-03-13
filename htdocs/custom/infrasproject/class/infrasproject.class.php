@@ -1,7 +1,7 @@
 <?php
 	/************************************************
 	* Copyright (C) 2018-2020	Jeremie Ter-Heide	<jeremie@ter-heide.fr>
-	* Copyright (C) 2020-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2020-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by

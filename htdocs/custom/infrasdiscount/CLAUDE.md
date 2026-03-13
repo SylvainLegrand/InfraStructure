@@ -415,15 +415,21 @@ Le module détecte et exclut les lignes des modules externes des calculs de remi
 
 ```xml
 <changelog>
-    <Version Number="15.3.2" MonthVersion="2026-03">
-        <change type='chg'>Trigger : ajout d'une option pour l'utilisation du lien SortAndGroup</change>
-        <change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr</change>
-    </Version>
-    <InfraS Downloaded="20260301"/>
-    <Dolibarr minVersion="15.0.0" maxVersion="23.0.4"/>
-    <PHP minVersion="7.4" maxVersion="8.4"/>
+  <Version Number="15.3.4" MonthVersion="2026-03">
+      <change type='add'>Added feature description.</change>
+      <change type='chg'>Changed feature description.</change>
+      <change type='fix'>Fixed bug description.</change>
+  </Version>
+  <InfraS Downloaded="20260301"/>
+  <Dolibarr minVersion="15.0.0" maxVersion="23.x.x"/>
+  <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
+
+- Types de changement : `add` (ajout, vert), `chg` (modification, bleu), `fix` (correction, rouge/caution)
+- L'attribut `Downloaded` est mis à jour automatiquement lors du téléchargement de la version distante
+- Versions ordonnées chronologiquement (la dernière est la plus récente)
+- Parsé par `infrasdiscount_getChangelogFile()` / `infrasdiscount_getLocalVersionMinDoli()`
 
 La fonction `infrasdiscount_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php

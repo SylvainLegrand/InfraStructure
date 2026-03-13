@@ -1,7 +1,7 @@
 <?php
 	/************************************************
 	* Copyright (C) 2018-2020	Jeremie Ter-Heide - <jeremie@ter-heide.fr>
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@
 	// Security check *******************************
 	$socid = 0;
 	if ($user->socid > 0) $socid = $user->socid;
-	$id			= GETPOST('id', 'int');
+	$id			= GETPOSTINT('id');
 	$ref		= GETPOST('ref', 'alpha');
 	$objectType	= GETPOST('objectType', 'alpha');
 	$action		= GETPOST('action', 'aZ09');
@@ -64,16 +64,24 @@
 	$object			= new Project($db);
 	$object->fetch($id, $ref);
 	$object->fetch_thirdparty();
+	
+	// Security check - check user access to project
+	restrictedArea($user, 'projet', $object->id, 'projet&project');
+	
 	$conso			= new InfraSProject($db);
 	$product		= new Product($db);
 	if ($action == 'conso' && empty(GETPOST('cancel'))) {
-		$qty	= GETPOST('nbpiece', 'int');
-		$datem	= dol_mktime(0, 0, 0, GETPOST('datem_month', 'int'), GETPOST('datem_day', 'int'), GETPOST('datem_year', 'int'));
+		// Check user has write permission on project
+		if (!$user->hasRight('infrasproject', 'writeproject')) {
+			accessforbidden();
+		}
+		$qty	= GETPOSTINT('nbpiece');
+		$datem	= dol_mktime(0, 0, 0, GETPOSTINT('datem_month'), GETPOSTINT('datem_day'), GETPOSTINT('datem_year'));
 		if (!empty($qty)) {
-			$result	= $product->fetch(GETPOST('product', 'int'));
+			$result	= $product->fetch(GETPOSTINT('product'));
 			if ($result > 0) {
 				$linkToUser	= getDolGlobalInt('INFRASPROJECT_LINK_TO_USER', 0);
-				$userlink	= GETPOST('userlink', 'int');
+				$userlink	= GETPOSTINT('userlink');
 				if (!isModEnabled('productbatch') && !empty($linkToUser) && !empty($userlink)) {
 					$userstatic->fetch($userlink);
 					$batch_number	= $userstatic->firstname.' '.$userstatic->lastname;
@@ -82,7 +90,7 @@
 				}
 				$result	= $conso->correct_stock($product->id,					// id
 												$user,							// user
-												GETPOST('id_entrepot', 'int'),	// entrepot
+												GETPOSTINT('id_entrepot'),	// entrepot
 												$qty,							// nb piece
 												1,								// Direction of movement:0=input (stock increase by a stock transfer), 1=output (stock decrease after by a stock transfer),2=output (stock decrease), 3=input (stock increase)
 												GETPOST('label', 'alpha'),		// label

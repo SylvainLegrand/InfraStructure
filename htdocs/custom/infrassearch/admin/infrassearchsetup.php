@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -244,7 +244,7 @@
 				</script>';
 	}
 	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
-				<input type = "hidden" name = "token" value = "'.$_SESSION['newtoken'].'">
+				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<input type = "hidden" name = "stringListTObjectType"  value = "'.dol_escape_htmltag($stringListTObjectType).'">';
 	//Sauvegarde / Restauration
 	if ($accessright == 2)	infrassearch_print_backup_restore();

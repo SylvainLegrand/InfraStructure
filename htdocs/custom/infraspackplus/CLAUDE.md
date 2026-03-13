@@ -199,3 +199,159 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - `18.14.8` (2026-02) : typage `GETPOST(..., 'alpha')` sur les options radio de génération
 - `18.14.8` (2026-02) : isolation du cookie JS de l'état des panneaux (`infraspackplus_tblPSexp` au lieu de `tblPSexp`)
 - `18.14.8` (2026-02) : variable `cookieName` déplacée au scope script (hors `jQuery(document).ready()`) pour accès inter-closures
+- `18.14.9` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
+- `18.14.9` (2026-03) : Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques
+- Entrées du changelog par version (types : `add`, `chg`, `fix`)
+
+Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+
+## Notes techniques (Technical notes)
+
+### Substitution de pages vs hooks
+
+Comme InfraSCusPrice, InfraSPackPlus utilise la **substitution de pages** pour certaines pages Dolibarr :
+- **Pages substituées** : `societe/contact.php` (contacts société) et `admin/dict.php` (dictionnaires admin)
+- **Constante d'activation** : générée dynamiquement depuis le chemin (ex. `/societe/contact.php` → `INFRASPACKPLUS_PS_ACTIVE_SOCIETE_CONTACT`)
+- **Branches maintenues** : `dlb180x`, `dlb180x-Easya`, `dlb190x`, `dlb200x`, `dlb210x`, `dlb220x`, `dlb220x-Easya` (7 variantes incluant Easya)
+- **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs Easya)
+- **Inconvénients** : maintenance d'un fichier par page et par version majeure
+
+### Flux de redirection (Redirect flow)
+
+```
+L'utilisateur accède à une page substituée (ex. /societe/contact.php)
+    ↓
+Le hook updateSession() ou afterLogin() s'exécute
+    ↓
+infraspackplus_is_substitution_page() vérifie via regex sur $dolibarr_main_url_root_alt
+    si on est déjà sur une page substituée (prévention de boucle)
+    ↓
+infraspackplus_get_substitution_url() génère l'URL substituée :
+    → Vérifie la constante INFRASPACKPLUS_PS_ACTIVE_<PATH_UPPER>
+    → Construit le chemin : /infraspackplus/substitutionpages/dlb{major}0x{-Easya}/
+    → Vérifie l'existence physique du fichier via dol_buildpath()
+    ↓
+Redirection header('Location: ...') avec conservation des paramètres GET/POST → exit
+```
+
+### Mécanisme de génération PDF (PDF generation mechanism)
+
+Le module intervient via trois hooks principaux sur le contexte `pdfgeneration` :
+
+**`formBuilddocOptions()`** (hook `formfile`) :
+- Affiche les options de génération avancées sous le formulaire standard de génération des documents
+- Couvre tous les types d'objets : `propal`, `commande`, `facture`, `contrat`, `fichinter`, `shipping`, `reception`, `delivery`, `supplier_proposal`, `order_supplier`, `product`, `mo`, `bom`, `project`, `expensereport`
+- Options : logo émetteur, adresses (expéditeur/destinataire/livraison/facturation), mentions (dictionnaire `c_infraspackplus_mention`), notes publiques (dictionnaire `c_infraspackplus_note`), CGV/CGI/CGA, fichiers joints, zone de signature client (canvas JS), infos douanières, images produits, etc.
+- Contrôle des droits via la permission `paramLastOpt`
+
+**`beforePDFCreation()`** (hook `pdfgeneration`) :
+- Enregistre `$_SESSION['InfraSPackPlus_model'] = true` pour signaler l'utilisation du template InfraSPlus
+- Récupère les paramètres par défaut via `infraspackplus_defaultParam($object)`
+- Collecte et sauvegarde les choix dans **4 niveaux de constantes** :
+  - `INFRASPLUS_PDF_PARAMS_{element}_USER_{user_id}` — par utilisateur
+  - `INFRASPLUS_PDF_PARAMS_{element}_DOC_{object_id}` — par document
+  - `INFRASPLUS_PDF_PARAMS_{element}_TYPE` — par type de document
+  - `INFRASPLUS_PDF_PARAMS_{element}_CUST_{thirdparty_id}` — par client/tiers
+
+**`afterPDFCreation()`** (hook `pdfgeneration`) :
+- Nettoie la variable de session `$_SESSION['InfraSPackPlus_model']`
+
+### Autres hooks notables
+
+| Hook | Contexte | Rôle |
+|------|----------|------|
+| `formObjectOptions()` | `thirdpartycard` | Gestion du logo émetteur par tiers sur la fiche société |
+| `doActions()` | `globalcard` | Génération semi-automatique des PDF (à la validation, changement de notes, d'extrafields, etc.) |
+| `printObjectLine()` | `formfile` | Affichage personnalisé des lignes de document (remises, descriptions, multilingue) |
+
+### Classe `Address` (Gestion multi-adresses)
+
+Fichier : `class/address.class.php` — opère sur la table `llx_infraspackplus_societe_address`
+
+| Méthode | Description |
+|---------|-------------|
+| `create($user)` | Création d'une adresse avec vérification (`verify()`), transaction, puis `update()` pour compléter |
+| `update($id, $user)` | Mise à jour de tous les champs, gestion des doublons |
+| `verify()` | Vérifie que `label` et `name` sont non vides |
+| `fetch($rowid, $socid, $label)` | Charge par `rowid` ou par couple `(socid, label)`. Détecte les doublons (retourne 2) |
+| `fetch_lines($socid, $all)` | Charge les adresses d'une société. Mode -1 = internes, 1 = toutes triées, 2 = toutes + adresses principales clients |
+| `delete($rowid)` | Suppression simple |
+
+Support multi-entité via filtre `getEntity('address')` et champ `entity` par défaut à `$conf->entity`.
+
+### Trigger (`Infraspackplustrigger`)
+
+Le trigger écoute uniquement les événements sur l'élément `societe` :
+
+| Événement | Condition | Action |
+|-----------|-----------|--------|
+| `COMPANY_CREATE` | `INFRASPLUS_PDF_SET_LOGO_EMET_TIERS` activé | Associe un logo émetteur au tiers via `infraspackplus_setLogoEmet()` |
+| `COMPANY_DELETE` | Toujours | Supprime toutes les adresses secondaires liées via `Address::fetch_lines()` + `Address::delete()` (cascade en PHP) |
+
+### Structure du changelog (Changelog structure)
+
+```xml
+<changelog>
+  <Version Number="18.14.9" MonthVersion="2026-03">
+      <change type='add'>Added feature description.</change>
+      <change type='chg'>Changed feature description.</change>
+      <change type='fix'>Fixed bug description.</change>
+  </Version>
+  <InfraS Downloaded="20260301"/>
+  <Dolibarr minVersion="18.0.0" maxVersion="23.x.x"/>
+  <PHP minVersion="7.4" maxVersion="8.4"/>
+</changelog>
+```
+
+- Types de changement : `add` (ajout, vert), `chg` (modification, bleu), `fix` (correction, rouge/caution)
+- L'attribut `Downloaded` est mis à jour automatiquement lors du téléchargement de la version distante
+- Versions ordonnées chronologiquement (la dernière est la plus récente)
+- Parsé par `infraspackplus_getChangelogFile()` / `infraspackplus_getLocalVersionMinDoli()`
+
+La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
+```php
+[
+    0 => "18.14.9",          // Version courante
+    1 => "18.0.0",           // Version min Dolibarr
+    2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
+    3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
+    4 => "23.0.4",           // Version max Dolibarr
+    5 => "7.4",              // Version min PHP
+    6 => "8.4"               // Version max PHP
+]
+```
+
+### Cycle de vie du module (Module lifecycle)
+
+**`init()`** effectue dans l'ordre :
+1. Copie des polices TCPDF du core vers `DOL_DATA_ROOT/{entity}/infraspackplus/fonts`
+2. Copie des polices personnalisées du module
+3. Chargement des tables SQL (`_load_tables`)
+4. Restauration des paramètres sauvegardés (`infraspackplus_restore_module`)
+5. Migration de la table `societe_address` si nécessaire
+6. Initialisation de `SOCIETE_ADDRESSES_MANAGEMENT` si non défini
+7. Enregistrement de `INFRASPLUS_DOL_VERSION` et `INFRASPLUS_MAIN_VERSION`
+8. Appel de `$this->_init()` standard
+
+**`remove()`** effectue :
+1. Sauvegarde des paramètres (`infraspackplus_bkup_module`)
+2. Nettoyage SQL : suppression des constantes `INFRASPLUS_%` et `INFRASPACKPLUS_PS_%`, des modèles PDF `InfraSPlus_%`, des constantes `%_ADDON_PDF` liées
+3. **DROP TABLE** : `infraspackplus_societe_address`, `c_infraspackplus_mention`, `c_infraspackplus_note`
+4. Suppression des extrafields via `infraspackplus_search_extf(-1)`
+
+### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
+
+Pour supporter une nouvelle version majeure de Dolibarr (ex. 24.x) :
+
+1. Créer le répertoire : `substitutionpages/dlb240x/`
+2. Copier le contenu du dossier de la version précédente : `cp -r dlb220x/* dlb240x/`
+3. Si la distribution Easya est ciblée : créer aussi `dlb240x-Easya/`
+4. Vérifier et adapter les évolutions des pages core Dolibarr en amont (`societe/contact.php`, `admin/dict.php`)
+5. Mettre à jour `docs/changelog.xml` :
+   ```xml
+   <Version Number="X.Y.Z" MonthVersion="YYYY-MM">
+       <change type='add'>Compatibilité avec Dolibarr v24</change>
+   </Version>
+   <Dolibarr minVersion="18.0.0" maxVersion="24.0.x"/>
+   ```
+6. Tester la redirection des pages de substitution et le fonctionnement de la génération PDF

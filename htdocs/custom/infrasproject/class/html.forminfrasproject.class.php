@@ -1,7 +1,7 @@
  <?php
 	/************************************************
 	* Copyright (C) 2018-2020	Jeremie Ter-Heide  <jeremie@ter-heide.fr>
-	* Copyright (C) 2020-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2020-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@
 			$form				= new Form ($this->db);
 			$objectCat			= new Categorie($this->db);
 			$formproduct		= new FormProduct($this->db);
-			$id_entrepot		= !empty(GETPOST('id_entrepot','int')) ? GETPOST('id_entrepot','int') : $defaultwarehouse;
+			$id_entrepot		= !empty(GETPOSTINT('id_entrepot')) ? GETPOSTINT('id_entrepot') : $defaultwarehouse;
 			switch($module) {
 				case 'project':
 					$right		= $object->statut > 0 && $user->hasRight('infrasproject', 'writeproject');
@@ -217,8 +217,8 @@
 			$cancel					= GETPOST('cancel','alpha');
 			$idproduct				= GETPOSTINT('idproduct');
 			$search_ref				= GETPOST('search_ref', 'alpha');
-			$search_date_start		= dol_mktime(0, 0, 0, GETPOST('search_date_start_month', 'int'), GETPOST('search_date_start_day', 'int'), GETPOST('search_date_start_year', 'int'));
-			$search_date_end		= dol_mktime(23, 59, 59, GETPOST('search_date_end_month', 'int'), GETPOST('search_date_end_day', 'int'), GETPOST('search_date_end_year', 'int'));
+			$search_date_start		= dol_mktime(0, 0, 0, GETPOSTINT('search_date_start_month'), GETPOSTINT('search_date_start_day'), GETPOSTINT('search_date_start_year'));
+			$search_date_end		= dol_mktime(23, 59, 59, GETPOSTINT('search_date_end_month'), GETPOSTINT('search_date_end_day'), GETPOSTINT('search_date_end_year'));
 			$search_product_ref		= trim(GETPOST('search_product_ref'));
 			$search_product			= trim(GETPOST('search_product'));
 			$search_batch			= trim(GETPOST('search_batch'));

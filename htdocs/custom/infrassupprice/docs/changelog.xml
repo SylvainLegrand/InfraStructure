@@ -100,6 +100,10 @@
 	</Version>
 	<Version Number="15.3.2" MonthVersion="2026-03">
 		<change type='add'>Informations techniques : ajout de l'affichage de la version Dolinfras dans infrassupprice_getSupportInformation()</change>
+	</Version>
+	<Version Number="15.3.3" MonthVersion="2026-03">
+		<change type='chg'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
+	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="21.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

@@ -1137,10 +1137,16 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 								<tr class = "oddeven">
 									<td class = "width400 infraspluschangelogbase">'.$langs->trans('DolibarrVersion').'</td>
 									<td class = "infraspluschangelogbase">'.DOL_VERSION.'</td>
-								</tr>
-								<tr class = "oddeven">
-									<td class = "width400 infraspluschangelogbase">'.$langs->trans('ModuleVersion').'</td>
-									<td class = "infraspluschangelogbase">'.$currentversion.'</td>
+								</tr>';
+		if (getDolGlobalString('DOLINFRAS_VERSION', '')) {
+			$ret		.= '	<tr class = "oddeven">
+									<td class = "width400 infraspluschangelogbase">'.$langs->trans('InfraSPlusParamDolinfrasVersion').'</td>
+									<td class = "infraspluschangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
+								</tr>';
+		}
+		$ret			.= '	<tr class = "oddeven">
+									<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('ModuleVersion').'</td>
+									<td class = "infrasdiscountchangelogbase">'.$currentversion.'</td>
 								</tr>
 								<tr class = "oddeven">
 									<td class = "width400 infraspluschangelogbase">'.$langs->trans('InfraSPlusParamFontsFolder').'</td>

@@ -214,6 +214,7 @@
 	<Version Number="18.8.3" MonthVersion="2026-03">
 		<change type='fix'>Simplification de la fonction infrasproject_is_substitution_page() : utilisation de strpos() au lieu de regex complexe</change>
 		<change type='chg'>Ajout de la fonction infrasproject_getSubstitutionRedirectUrl() pour gérer les redirections avec filtrage des paramètres GET (exclusion du token CSRF)</change>
+		<change type='add'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
 	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>

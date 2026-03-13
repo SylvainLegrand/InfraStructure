@@ -449,8 +449,8 @@
 				$posypicture		= ($formatpage['hauteur'] - $imgsize['height']) / 2;	// centre l'image dans la page
 				$pdf->Image($filigrane, $posxpicture, $posypicture, $imgsize['width'], $imgsize['height'], '', '', '', false, 300, '', false, false, 0);	// set bacground image
 				$pdf->SetAutoPageBreak($auto_page_break, $bMargin);	// restore auto-page-break status
+				$pdf->SetAlpha(1);	// restore full opacity before page mark so subsequent content inserted at intmrk is not affected by watermark alpha
 				$pdf->setPageMark();	// set the starting point for the page content
-				$pdf->SetAlpha(1);
 			}
 		}
 		if (!empty($test_watermark) && !empty($outputlangs)) {
@@ -2357,7 +2357,7 @@
 										'border'		=> false,
 										'hpadding'		=> '0',
 										'vpadding'		=> '0',
-										'fgcolor'		=> array($bodytxtcolor[0], $bodytxtcolor[1], $bodytxtcolor[2]),
+										'fgcolor'		=> array((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]),
 										'bgcolor'		=> false,
 										'text'			=> true,
 										'label'			=> $prodser->barcode,
@@ -2374,7 +2374,7 @@
 											'border'		=> false,
 											'hpadding'		=> '0',
 											'vpadding'		=> '0',
-											'fgcolor'		=> array($bodytxtcolor[0], $bodytxtcolor[1], $bodytxtcolor[2]),
+											'fgcolor'		=> array((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]),
 											'bgcolor'		=> false,	// array(255,255,255)
 											'module_width'	=> 1,		// width of a single module in points
 											'module_height'	=> 1		// height of a single module in points
@@ -2607,6 +2607,7 @@
 
 		$bodytxtcolor		= getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '0,0,0');
 		$bodytxtcolor		= explode(',', $bodytxtcolor);
+		$bodyColorSpan		= '<span style="color:rgb('.((int) $bodytxtcolor[0]).','.((int) $bodytxtcolor[1]).','.((int) $bodytxtcolor[2]).');">';
 		$picture_in_ref		= getDolGlobalInt('INFRASPLUS_PDF_PICTURE_IN_REF', 0);
 		$cleanFont			= getDolGlobalInt('INFRASPLUS_PDF_DESC_CLEAN_FONT', 0);
 		$descFullLineWitdh	= getDolGlobalInt('INFRASPLUS_PDF_DESC_FULL_LINE_WIDTH', 0);
@@ -2677,6 +2678,13 @@
 			if (!empty($cleanFont)) {
 				$labelproductservice	= dol_string_neverthesehtmltags($labelproductservice, $disallowed_tags = array('span'));
 			}
+			// Strip background-color CSS to prevent TCPDF ColorFlag bug: when an HTML element's
+			// background-color matches the body text color, TCPDF stops wrapping text in q/Q color
+			// operators, causing text after page breaks to render in default black instead of bodytxtcolor
+			$labelproductservice	= preg_replace('/background-color\s*:\s*[^;"\']+;?/i', '', $labelproductservice);
+			if (!empty($fulllabel['subdesc'])) {
+				$fulllabel['subdesc']	= preg_replace('/background-color\s*:\s*[^;"\']+;?/i', '', $fulllabel['subdesc']);
+			}
 			// Ligne ATM - Saut de page
 			if (!empty($isATMLine) && $object->lines[$i]->info_bits > 0) {
 				$pdf->addPage();
@@ -2690,41 +2698,17 @@
 				$wd						= $formatpage['largeur'] - $xPos - $formatpage['mdroite'];
 				$decal					= $wd * ((1 - ($descFullLineWitdh / 100)) / 2);
 				$labelproductservice	= (!empty($isSubTotalLine) && $object->lines[$i]->qty == 50 ? '<br />' : '').$labelproductservice;	// Free text of SubTotal
-				if (dol_textishtml($labelproductservice)) {
-					$retchararray	= array('<br>', '<br/>', '<br />', '</p>');
-					$pos			= false;
-					$isbr			= false;
-					$retcharlen		= 0;
-					foreach ($retchararray as $retchar) {	// Get first position of a html return
-						$posfound	= strpos($labelproductservice, $retchar);
-						if ($pos === false || ($posfound !== false && $posfound < $pos)) {
-							$pos		= $posfound;
-							$isbr		= $retchar != '</p>';
-							$retcharlen	= strlen($retchar);
-						}
-					}
-					if ($pos !== false) {
-						if (!empty($isbr)) {	// Fix html to <br> <p> </p> if it's the case <p> <br> </p>
-							$posfound	= strpos($labelproductservice, '<p>');
-							if ($posfound !== false && $posfound < $pos) {
-								$labelproductservice	= substr_replace($labelproductservice, '<p>', $pos + $retcharlen, 0);
-								$labelproductservice	= substr_replace($labelproductservice, '', $posfound, strlen('<p>'));
-								$pos					-= strlen('<p>');
-							}
-						}
-						// Fix the real positions
-						$pos		= $isbr ? $pos					: $pos + $retcharlen;
-						$startdesc	= $isbr ? $pos + $retcharlen	: $pos;
-					}
-				} else {
-					$pos		= strpos($labelproductservice, "\n");
-					$startdesc	= $pos + strlen("\n");
-				}
+				$splitResult			= infraspackplus_splitLabelDescription($labelproductservice);
+				$pos					= $splitResult !== false ? $splitResult['pos'] : false;
+				$startdesc				= $splitResult !== false ? $splitResult['startdesc'] : 0;
 				if ($pos !== false) {
 					// Label
 					$heightline			= $pdf->getStringHeight($w - $fulllabel['decal'], $outputlangs->convToOutputCharset(substr($labelproductservice, 0, $pos)));
 					$fulllabel['decal']	+= !empty($fulllabel['decal']) ? pdf_InfraSPlus_write_bullet($pdf, $outputlangs, 0, $h, (!empty($desc_full_line) && $isSubFreeT ? $xPos : $posx) + $fulllabel['decal'], $posy, $workBullet, 0, 1, false, true, '', true) : 0;
-					$pdf->writeHTMLCell((!empty($desc_full_line) && $isSubFreeT ? $wd : $w) - $fulllabel['decal'], $h, (!empty($desc_full_line) && $isSubFreeT ? $xPos : $posx) + $fulllabel['decal'], $posy, $outputlangs->convToOutputCharset(substr($labelproductservice, 0, $pos)), 0, 1, false, true, 'L', true);
+					// Force grayscale FillColor ('g' format) which can never match RGB TextColor ('rg' format) => ColorFlag always true
+					$pdf->SetFillColor(255);
+					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);
+					$pdf->writeHTMLCell((!empty($desc_full_line) && $isSubFreeT ? $wd : $w) - $fulllabel['decal'], $h, (!empty($desc_full_line) && $isSubFreeT ? $xPos : $posx) + $fulllabel['decal'], $posy, $bodyColorSpan.$outputlangs->convToOutputCharset(substr($labelproductservice, 0, $pos)).'</span>', 0, 1, false, true, 'L', true);
 					$posy				= $picture_in_ref ? ($pageposbefore == $pdf->getPage()? $posy + $heightline : $pdf->GetY()) : $pdf->GetY();
 					// Picture between label and description
 					if (!empty($with_picture) && !empty($picture_under) && !empty($imglinesize['height']) && $imglinesize['height'] > 1) {
@@ -2735,7 +2719,9 @@
 					if (empty($hidedesc) && !empty($descFullLineWitdh)) {
 						$pdf->line($xPos + $decal, $posy + 1, $formatpage['largeur'] - $formatpage['mdroite'] - $decal, $posy + 1, $LineStyle);
 					}
-					$pdf->writeHTMLCell((!empty($desc_full_line) ? $wd : $w) - $fulllabel['decal'], $h, (!empty($desc_full_line) ? $xPos : $posx) + $fulllabel['decal'], $posy + 2, $outputlangs->convToOutputCharset(substr($labelproductservice, $startdesc)), 0, 1, false, true, 'L', true);
+					$pdf->SetFillColor(255);
+					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);
+					$pdf->writeHTMLCell((!empty($desc_full_line) ? $wd : $w) - $fulllabel['decal'], $h, (!empty($desc_full_line) ? $xPos : $posx) + $fulllabel['decal'], $posy + 2, $bodyColorSpan.$outputlangs->convToOutputCharset(substr($labelproductservice, $startdesc)).'</span>', 0, 1, false, true, 'L', true);
 				} else {
 					// Picture between label and description
 					if (!empty($with_picture) && !empty($picture_under) && !empty($imglinesize['height']) && $imglinesize['height'] > 1) {
@@ -2743,7 +2729,9 @@
 						$posy		= $pageposbefore == $pdf->getPage() ? $PictureY + $picture_padding : $pdf->GetY();
 					}
 					$fulllabel['decal']	+= !empty($fulllabel['decal']) ? pdf_InfraSPlus_write_bullet($pdf, $outputlangs, 0, $h, $posx + $fulllabel['decal'], $posy, $workBullet, 0, 1, false, true, '', true) : 0;
-					$pdf->writeHTMLCell($w - $fulllabel['decal'], $h, $posx + $fulllabel['decal'], $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1, false, true, 'L', true);
+					$pdf->SetFillColor(255);
+					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);
+					$pdf->writeHTMLCell($w - $fulllabel['decal'], $h, $posx + $fulllabel['decal'], $posy, $bodyColorSpan.$outputlangs->convToOutputCharset($labelproductservice).'</span>', 0, 1, false, true, 'L', true);
 				}
 			} elseif (!empty($isSubTotal) || !empty($isSubTitle)) {	// ligne de sous-titre ou de sous-total ATM
 				$bodysubticolor		= getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '220,220,220');
@@ -2763,16 +2751,21 @@
 					$pdf->SetFont('', $style);
 					$tmpAlpha		= ($object->lines[$i]->qty - 1) * 0.25;
 					$pdf->SetAlpha(1 - ($tmpAlpha >= 0 ? $tmpAlpha : 1));
+					// desc_full_line: use full page width for subtitle
+					$subTiX			= !empty($desc_full_line) ? $formatpage['mgauche'] : $posx;
+					$subTiW			= !empty($desc_full_line) ? $formatpage['largeur'] - $formatpage['mgauche'] - $formatpage['mdroite'] : $w;
 					if ($frm == 'F') {
 						$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h, 1, '1111', $frm, $frmstyle, $bodybgsubcolor);
 					}
 					$pdf->SetAlpha(1);
-					$pdf->writeHTMLCell($w, $h, $posx, $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1, false, true, 'L', true);
+					$pdf->writeHTMLCell($subTiW, $h, $subTiX, $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1, false, true, 'L', true);
 					$pdf->SetTextColor($bodydescsubticolor[0], $bodydescsubticolor[1], $bodydescsubticolor[2]);
 					$pdf->SetFont('', '', pdf_getPDFFontSize($outputlangs) - 1);	// On repositionne la police par defaut
 					if (!empty($fulllabel['subdesc'])) {
-						$pdf->writeHTMLCell($w, $h, $posx, $posy + $h, $outputlangs->convToOutputCharset($fulllabel['subdesc']), 0, 1, false, true, 'L', true);
+						$pdf->writeHTMLCell($subTiW, $h, $subTiX, $posy + $h, $outputlangs->convToOutputCharset($fulllabel['subdesc']), 0, 1, false, true, 'L', true);
 					}
+					$pdf->SetFillColor(255);
+					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);	// Restore default text color after subtitle
 				} elseif (!empty($isSubTotal)) {	// Sous-total ATM
 					$hideBg				= getDolGlobalInt('INFRASPLUS_PDF_HIDE_BODY_SUBTO', 0);
 					$bgSubToColor		= getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTO_COLOR', '255,255,255');
@@ -2799,6 +2792,8 @@
 					}
 					$pdf->writeHTMLCell($w, $h, $posx, $posy, $txt, 0, 1, false, true, ($isRecap ? 'L' : 'R'), true);
 					$pdf->SetFont('', '', pdf_getPDFFontSize($outputlangs) - 1);	// On repositionne la police par defaut
+					$pdf->SetFillColor(255);
+					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);	// Restore default text color after subtotal
 				}
 			} elseif ($isOuvrage > 1) {	// ligne d'ouvrage Inovea
 				$pageposbefore	= $pdf->getPage();
@@ -2821,19 +2816,21 @@
 				$pdf->SetFont('', '', pdf_getPDFFontSize($outputlangs) - 1);	// On repositionne la police par defaut
 				$posy				= ($pageposbefore == $pdf->getPage()) ? $posy + $h : $pdf->GetY();
 				if (!empty($descstylestd)) {
-					$pdf->SetTextColor($bodytxtcolor[0], $bodytxtcolor[1], $bodytxtcolor[2]); // retour à la normal
+					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]); // retour à la normal
 				}
 				if (!empty($fulllabel['subdesc'])) {
 					$pdf->writeHTMLCell($w - $fulllabel['decal'], $h, $posx + $fulllabel['decal'], $posy, $outputlangs->convToOutputCharset($fulllabel['subdesc']), 0, 1, false, true, 'L', true);
 				}
 			} else {
 				$fulllabel['decal']	+= !empty($fulllabel['decal']) ? pdf_InfraSPlus_write_bullet($pdf, $outputlangs, 0, $h, $posx + $fulllabel['decal'], $posy, $workBullet, 0, 1, false, true, '', true) : 0;
-				$pdf->writeHTMLCell($w - $fulllabel['decal'], $h, $posx + $fulllabel['decal'], $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1, false, true, 'L', true);
+				$pdf->SetFillColor(255);
+				$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);
+				$pdf->writeHTMLCell($w - $fulllabel['decal'], $h, $posx + $fulllabel['decal'], $posy, $bodyColorSpan.$outputlangs->convToOutputCharset($labelproductservice).'</span>', 0, 1, false, true, 'L', true);
 			}
 			$result	.= $labelproductservice;
 		}
 		if ($object->lines[$i]->product_type == 9) {
-			$pdf->SetTextColor($bodytxtcolor[0], $bodytxtcolor[1], $bodytxtcolor[2]); // retour à la normal
+			$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]); // retour à la normal
 		}
 		return $result;
 	}
@@ -4279,6 +4276,9 @@
 		}
 		$savx				= $pdf->getX();
 		$savy				= $pdf->getY();
+		$savFont			= $pdf->getFontFamily();
+		$savFontStyle		= $pdf->getFontStyle();
+		$savFontSizePt		= $pdf->getFontSizePt();
 		$watermark_angle	= 20 / 180 * pi();	// angle de rotation 20° en radian
 		$center_x			= $w / 2;			// x centre
 		$pdf->SetFont('', 'B', 40);
@@ -4294,6 +4294,7 @@
 		$pdf->_out('Q');
 		$pdf->SetXY($savx, $savy);
 		$pdf->SetAlpha(1);
+		$pdf->SetFont($savFont, $savFontStyle, $savFontSizePt);
 	}
 
 	/**

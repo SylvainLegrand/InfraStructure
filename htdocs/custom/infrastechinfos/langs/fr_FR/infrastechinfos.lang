@@ -66,6 +66,7 @@ InfraSTechInfosParamObjet                = <h3>Objet :</h3>
 InfraSTechInfosParamHistoryUpdates       = <b>Historique des mises à jour :</b>
 InfraSTechInfosParamSkipCheck            = Téléchargement désactivé
 InfraSTechInfosParamNumberVersion        = N° de version
+InfraSTechInfosParamDolinfrasVersion     = N° de version LTS
 InfraSTechInfosParamMonthVersion         = Date
 InfraSTechInfosParamChangesVersion       = Modifications
 InfraSTechInfosParamCheckNewVersion      = Nouveau Changelog

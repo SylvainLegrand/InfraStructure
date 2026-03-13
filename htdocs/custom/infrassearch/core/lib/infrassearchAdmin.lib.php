@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2018-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2018-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -936,8 +936,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 					<tr class="oddeven">
 						<td class = "width400 infrassearchchangelogbase">'.$langs->trans('DolibarrVersion').'</td>
 						<td class = "infrassearchchangelogbase">'.DOL_VERSION.'</td>
-					</tr>
-					<tr class="oddeven">
+					</tr>';
+	if (getDolGlobalString('DOLINFRAS_VERSION', '')) {
+		$ret	.= '<tr class = "oddeven">
+						<td class = "width400 infrassearchchangelogbase">'.$langs->trans('InfraSSearchParamDolinfrasVersion').'</td>
+						<td class = "infrassearchchangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
+					</tr>';
+	}
+	$ret	.= '	<tr class="oddeven">
 						<td class = "width400 infrassearchchangelogbase">'.$langs->trans('ModuleVersion').'</td>
 						<td class = "infrassearchchangelogbase">'.$currentversion.'</td>
 					</tr>

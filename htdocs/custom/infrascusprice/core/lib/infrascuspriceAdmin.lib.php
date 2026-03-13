@@ -1,6 +1,6 @@
 <?php
 	/************************************************
-	* Copyright (C) 2016-2025	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -142,25 +142,6 @@
 		return $currentversion;
 	}
 
-	/**
-	* Read the Dolibarr VERSION file and store its value in the DOLINFRAS_VERSION constant
-	*
-	* @return	string		Version string read from VERSION file, or empty string on failure
-	**/
-	function infrascusp_getVersionDolinfras()
-	{
-		global $db, $conf;
-
-		$version	= '';
-		$file		= DOL_DOCUMENT_ROOT.'/VERSION';
-		if (is_file($file)) {
-			$version = trim(file_get_contents($file));
-		}
-		if (!empty($version) && getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
-			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'InfraSCusPrice module', $conf->entity);
-		}
-		return $version;
-	}
 	/**
 	* Function called to check module name from local changelog
 	* Control of the min version of Dolibarr needed and get versions list
@@ -790,33 +771,39 @@
 	{
 		global $db, $langs;
 
-		$ret	= '<table class = "infrascuspricenoborder" >
+		$ret	= '	<table class = "infrascuspricenoborder" >
 						<tr class = "liste_titre">
-						<th class = "center width400">'.$langs->trans('InfraSCusPSupportInformation').'</th>
-						<th class = "center">'.$langs->trans('Value').'</th>
-					</tr>
-					<tr class="oddeven">
-						<td class = "width400 infrascuspchangelogbase">'.$langs->trans('DolibarrVersion').'</td>
-						<td class = "infrascuspchangelogbase">'.DOL_VERSION.'</td>
-					</tr>
-					<tr class="oddeven">
-						<td class = "width400 infrascuspchangelogbase">'.$langs->trans('ModuleVersion').'</td>
-						<td class = "infrascuspchangelogbase">'.$currentversion.'</td>
-					</tr>
-					<tr class="oddeven">
-						<td class = "width400 infrascuspchangelogbase">'.$langs->trans('PHPVersion').'</td>
-						<td class = "infrascuspchangelogbase">'.version_php().'</td>
-					</tr>
-					<tr class="oddeven">
-						<td class = "width400 infrascuspchangelogbase">'.$langs->trans('DatabaseVersion').'</td>
-						<td class = "infrascuspchangelogbase">'.$db::LABEL.' '.$db->getVersion().'</td>
-					</tr>
-					<tr class="oddeven">
-						<td class = "width400 infrascuspchangelogbase">'.$langs->trans('WebServerVersion').'</td>
-						<td class = "infrascuspchangelogbase">'.dol_escape_htmltag($_SERVER['SERVER_SOFTWARE']).'</td>
-					</tr>
+							<th class = "center width400">'.$langs->trans('InfraSCusPSupportInformation').'</th>
+							<th class = "center">'.$langs->trans('Value').'</th>
+						</tr>
+						<tr class="oddeven">
+							<td class = "width400 infrascuspchangelogbase">'.$langs->trans('DolibarrVersion').'</td>
+							<td class = "infrascuspchangelogbase">'.DOL_VERSION.'</td>
+						</tr>';
+		if (getDolGlobalString('DOLINFRAS_VERSION', '')) {
+			$ret	.= '<tr class = "oddeven">
+							<td class = "width400 infrascuspchangelogbase">'.$langs->trans('InfraSCusPriceParamDolinfrasVersion').'</td>
+							<td class = "infrascuspchangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
+						</tr>';
+		}
+		$ret	.= '	<tr class="oddeven">
+							<td class = "width400 infrascuspchangelogbase">'.$langs->trans('ModuleVersion').'</td>
+							<td class = "infrascuspchangelogbase">'.$currentversion.'</td>
+						</tr>
+						<tr class="oddeven">
+							<td class = "width400 infrascuspchangelogbase">'.$langs->trans('PHPVersion').'</td>
+							<td class = "infrascuspchangelogbase">'.version_php().'</td>
+						</tr>
+						<tr class="oddeven">
+							<td class = "width400 infrascuspchangelogbase">'.$langs->trans('DatabaseVersion').'</td>
+							<td class = "infrascuspchangelogbase">'.$db::LABEL.' '.$db->getVersion().'</td>
+						</tr>
+						<tr class="oddeven">
+							<td class = "width400 infrascuspchangelogbase">'.$langs->trans('WebServerVersion').'</td>
+							<td class = "infrascuspchangelogbase">'.dol_escape_htmltag($_SERVER['SERVER_SOFTWARE']).'</td>
+						</tr>
 						<tr><td colspan = "3" class = "infrascuspFinal">&nbsp;</td></tr>
-				</table>
+					</table>
 				<br/>';
 		return $ret;
 	}

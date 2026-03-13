@@ -1,7 +1,7 @@
 <?php
 	/************************************************
 	* Copyright (C) 2016-2026	Sylvain Legrand				- <contact@infras.fr>	InfraS - <https://www.infras.fr>
-	* Copyright (C) 2025-2026	Fallinah Ranasolonirina 	- <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	* Copyright (C) 2026		Fallinah Ranasolonirina - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by

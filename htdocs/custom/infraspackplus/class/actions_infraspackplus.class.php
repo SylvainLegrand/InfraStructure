@@ -110,7 +110,7 @@
 
 			$currentversion	= array();
 			$currentversion	= infraspackplus_getLocalVersionMinDoli('infraspackplus');
-			if (!getDolGlobalString('INFRASPACKPLUS_DISABLE_CHECK_VERSION_MAX', '') && version_compare(DOL_VERSION, $currentversion[4], '>')) {
+			if (!getDolGlobalString('INFRASPACKPLUS_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
 				setEventMessages($langs->trans('PDFInfraSPlusWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
 			}
 			infraspackplus_test_new_fields('infraspackplus');	// Check the database configuration
