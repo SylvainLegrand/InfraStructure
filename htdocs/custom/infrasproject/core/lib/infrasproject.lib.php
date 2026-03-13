@@ -34,9 +34,7 @@
 	**/
 	function infrasproject_is_substitution_page($path)
 	{
-		global $dolibarr_main_url_root_alt;
-
-		if (preg_match('/^\/(|'.preg_quote(trim($dolibarr_main_url_root_alt, '/'), '/').'\/)substitutionpages/i', $path) == 1) {
+		if (strpos($path, 'infrasproject/substitutionpages/') !== false) {
 			return true;
 		}
 		return false;
@@ -115,8 +113,31 @@
 	**/
 	function infrasproject_get_const_name_from_substitution_path($path)
 	{
-		$const_name = 'INFRASPROJECT_PS_ACTIVE'.strtoupper(str_replace('/', '_', str_replace('.php', '', $path)));
+		$const_name	= 'INFRASPROJECT_PS_ACTIVE'.strtoupper(str_replace('/', '_', str_replace('.php', '', $path)));
 		return $const_name;
+	}
+
+	/**
+	* Get substitution redirect URL with filtered query params
+	*
+	* @return	string		Redirect URL or empty string if no redirect needed
+	**/
+	function infrasproject_getSubstitutionRedirectUrl()
+	{
+		$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT, '/').'/i', '', $_SERVER['PHP_SELF']);
+		if (infrasproject_is_substitution_page($path_src)) {
+			return '';
+		}
+		$url	= infrasproject_get_substitution_url($path_src);
+		if (empty($url)) {
+			return '';
+		}
+		// Forward only GET params (not POST which may contain login credentials)
+		// Exclude token (CSRF) which is page-specific and would be invalid on redirect target
+		$params	= $_GET;
+		unset($params['token']);
+		$query	= http_build_query($params);
+		return $url.(!empty($query) ? '?'.$query : '');
 	}
 
 	/**
