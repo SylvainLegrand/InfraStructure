@@ -188,12 +188,18 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - `15.4.4` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
 - `15.4.4` (2026-03) : Documentation : enrichissement des Notes Techniques du descripteur CLAUDE.md
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
+
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+
 ## Notes techniques (Technical notes)
+
 ### Moteur de recherche AJAX (`script/interface.php`)
+
 Le moteur de recherche est un endpoint AJAX appelé par jQuery UI Autocomplete. Il reçoit deux modes :
+
 - `get=search-all` (menu haut) : recherche sur **tous** les modules activés, retourne un JSON groupé par catégorie
 - `get=search` (page dédiée) : recherche sur **un seul** type d'objet, affiche le HTML directement
+
 **Flux de la recherche `search-all`** :
 ```
 Saisie utilisateur dans le champ de recherche (≥ INFRASSEARCH_NB_CAR caractères)
@@ -214,8 +220,11 @@ Résultat JSON : { "NomModule": [ {categorie, label, label_clean, url, desc, sta
     ↓
 jQuery UI Autocomplete _renderItem affiche les résultats groupés avec en-têtes en gras
 ```
+
 ### Algorithme de recherche dynamique (`_search()`)
+
 La fonction `_search()` effectue une recherche en profondeur sur toutes les colonnes de toutes les tables liées à un type d'objet :
+
 1. **Configuration** : un `switch` définit pour chaque type d'objet (`propal`, `facture`, `commande`, etc.) :
    - `$tables` : liste des tables à inspecter (table principale + extrafields + lignes + jointures)
    - `$sql_join` : jointures LEFT JOIN vers les tables liées (produits, tiers, contacts)
@@ -223,33 +232,44 @@ La fonction `_search()` effectue une recherche en profondeur sur toutes les colo
    - `$order_field` : champ de tri (date du document)
    - `$objname` : nom de la classe PHP pour `fetch()` + `getNomUrl()`
    - `$complete_label` : champ de complément d'information (ex. `ref_client`, `label`)
+
 2. **Introspection dynamique** : pour chaque table de `$tables`, un `DESCRIBE` (mis en cache statique `$describeCache`) récupère les colonnes et leurs types
+
 3. **Construction du WHERE** :
    - Colonnes `varchar`/`text` → `LIKE "%keyword%"`
    - Colonnes `int`/`double`/`float` → `= (int) keyword` (si valeur numérique, ≤ 2147483647)
    - Colonnes `date`/`time` → `LIKE "keyword%"` (si la saisie est une date valide)
    - Colonnes techniques exclues : `rowid`, `entity`, `import_key`, `model_pdf`, `last_main_doc`, `tms`, `fk_*`, etc.
+
 4. **Recherche croisée** :
    - Produits : `product.ref LIKE "%keyword%"` ajouté si la table `product` est jointe
    - Contacts : `CONCAT_WS(" ", firstname, lastname)` dans les deux ordres (prénom+nom et nom+prénom)
+
 5. **Compatibilité modules externes** :
    - `customtabs` (Patas-Monkey) : ajout dynamique des tables d'extrafields personnalisées
    - `infraspackplus` : jointure sur `infraspackplus_societe_address` si module actif et version ≥ 15.6.1
    - Modules tiers supportés : `contacttracking`, `domain`, `hosting`, `ticketsup`, `propalehistory`, `rmindr`, `factory`, `equipement`, `ndfp`
+
 ### Normalisation téléphone (Phone normalization)
+
 Lorsque le mot-clé ressemble à un numéro de téléphone (≥ 5 chiffres, uniquement `+`, chiffres, espaces, tirets, points, parenthèses, `/`), le moteur :
+
 1. **Extrait les chiffres** : `preg_replace('/[^\d]/', '', $keyword)` → `$keywordPhoneDigits`
 2. **Calcule la variante locale/internationale** (Madagascar) :
    - `00261 34...` ou `+261 34...` → `034...` (format local)
    - `034...` → `26134...` (format international sans `+`)
 3. **Recherche normalisée** : sur les champs dont le nom contient `phone`, `fax`, `mobile` ou `tel`, le moteur compare en chiffres uniquement via `REPLACE()` imbriqués (suppression espaces, tirets, points, parenthèses, `/`, `+`)
 4. **Recherche croisée** : les deux variantes (locale et internationale) sont testées simultanément
+
 ### Résolution de classes (`getobjectclass()`)
+
 La fonction `getobjectclass()` dans `infrassearch.lib.php` traduit un type d'objet (`element`) en :
 - **classpath** : chemin vers le fichier de classe (ex. `comm/propal/class`)
 - **classname** : nom de la classe PHP (ex. `Commande`, `FactureFournisseur`)
 - **classfile** : nom du fichier (ex. `fournisseur.facture`)
+
 Trois séries de `if/elseif` gèrent les cas non standards de Dolibarr où le classpath, le classname ou le classfile ne suivent pas la convention `element/class/element.class.php` :
+
 ```php
 // Exemples de mappings non triviaux :
 'propal'             → comm/propal/class/propal.class.php → Propal
@@ -260,24 +280,32 @@ Trois séries de `if/elseif` gèrent les cas non standards de Dolibarr où le cl
 'action'             → comm/action/class/actioncomm.class.php → ActionComm
 'member'             → adherents/class/adherent.class.php → Adherent
 ```
+
 ### Fil d'Ariane — historisation (`printCommonFooter` hook)
+
 Le hook `printCommonFooter` de `Actionsinfrassearch` enregistre chaque objet consulté :
+
 1. **Nettoyage glissant** : suppression des entrées antérieures au 1er du mois précédent (conservation ≈ 1 mois)
 2. **Dédoublonnage** : suppression de l'entrée existante pour le même couple (`element`, `fk_element`)
 3. **Insertion** : nouvel enregistrement dans `llx_infrassearch_history` (l'horodatage `tms` se met à jour automatiquement)
 4. **Filtrage** : éléments `commonsign` exclus ; l'objet doit avoir un `id` ou `rowid` non vide
+
 L'affichage du fil d'Ariane (`printDropdownBreadCrumb()`) :
 - Clone le `$hookmanager` pour éviter les effets de bord avec multicompany
 - Charge les N derniers objets (`INFRASSEARCH_NB_BREADCRUMB`, défaut 5) triés par `tms DESC`
 - Utilise `getobjectclass()` pour instancier et `fetch()` chaque objet
 - Affiche via `getNomUrl(1)` avec troncature à 30 caractères pour certains types (`commande`, `contact`, `facture`, `product`, etc.)
 - Gestion des erreurs HTTP 500 via `handleInfraSearchError()` avec affichage d'un avertissement dans le dropdown
+
 ### Gestion des erreurs (`handleInfraSearchError()`)
+
 Fonction centralisée de gestion des erreurs dans `infrassearch.lib.php` :
 - Classe les erreurs en 3 niveaux : HTTP 500 (critique), HTTP 4xx-5xx (critique), générales
 - Journalise via `dol_syslog()` avec le niveau approprié (`LOG_ERR`, `LOG_WARNING`, `LOG_INFO`)
 - Retourne un tableau structuré (`is_http_500`, `is_critical`, `message`, `code`, `context`, `objecttype`)
+
 ### Hooks — récapitulatif des comportements
+
 | Hook | Contexte | Retour | Rôle |
 |------|----------|--------|------|
 | `afterLogin` | `login` | 0 | Avertissement si version Dolibarr > max supportée |
@@ -286,11 +314,15 @@ Fonction centralisée de gestion des erreurs dans `infrassearch.lib.php` :
 | `addSearchEntry` | `searchform` | 0 | Ajoute une entrée de recherche dans la recherche standard |
 | `doActions` | `adminmodules` | 0 | Nettoie `INFRASSEARCH_MOD_*` et `INFRASSEARCH_POS_*` lors de la désactivation d'un module |
 | `printCommonFooter` | global | 0 | Historise l'objet courant dans `llx_infrassearch_history` |
+
 ### Providers de recherche (Search providers)
+
 Chaque type d'objet est contrôlé par deux constantes :
 - `INFRASSEARCH_MOD_<TYPE>` : `1` = activé, `0` = désactivé
 - `INFRASSEARCH_POS_<TYPE>` : ordre d'affichage (entier croissant, `0` = fin de liste)
+
 La liste complète des types est stockée dans `INFRASSEARCH_LISTTOBJECTTYPE` (CSV) et comprend :
+
 | Type | Classe | Modules natifs |
 |------|--------|----------------|
 | `societe` | `Societe` | Tiers |
@@ -311,19 +343,27 @@ La liste complète des types est stockée dans `INFRASSEARCH_LISTTOBJECTTYPE` (C
 | `agenda` | `ActionComm` | Agenda/Événements |
 | `categorie` | `Categorie` | Catégories |
 | `knowledgemanagement` | `KnowledgeRecord` | Base de connaissances |
+
 Types issus de modules externes : `contacttracking`, `domain`, `hosting`, `ticketsup`, `propalehistory`, `rmindr`, `factory`, `equipement`, `ndfp`.
+
 Lors de la désactivation d'un module Dolibarr, le hook `doActions` (contexte `adminmodules`) supprime automatiquement les constantes `INFRASSEARCH_MOD_*` et `INFRASSEARCH_POS_*` du module désactivé.
+
 ### Sauvegarde/restauration des paramètres
+
 Le module dispose d'un mécanisme de sauvegarde/restauration des paramètres accessible en administration :
+
 **Sauvegarde** (`infrassearch_bkup_module()`) :
 1. Crée un fichier SQL dans `DOL_DATA_ROOT/{entity}/infrassearch/sql/update.{entity}`
 2. Exporte les constantes `INFRASSEARCH_%` de `llx_const` avec `ON DUPLICATE KEY UPDATE`
 3. Exporte les données de `llx_infrassearch_history`
 4. Copie de sécurité horodatée dans `DOL_DATA_ROOT/{entity}/admin/`
+
 **Restauration** (`infrassearch_restore_module()`) :
 1. Lit le fichier SQL de sauvegarde
 2. Exécute via `run_sql()` avec gestion multi-entité (`__ENTITY__`)
+
 ### Structure du changelog (Changelog structure)
+
 ```xml
 <changelog>
     <Version Number="15.4.4" MonthVersion="2026-03">
@@ -335,6 +375,7 @@ Le module dispose d'un mécanisme de sauvegarde/restauration des paramètres acc
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
+
 La fonction `infrassearch_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
@@ -347,7 +388,9 @@ La fonction `infrassearch_getLocalVersionMinDoli()` parse ce XML et retourne un 
     6 => "8.4"               // Version max PHP
 ]
 ```
+
 ### Cycle de vie du module (Module lifecycle)
+
 **`init()`** effectue dans l'ordre :
 1. Chargement des tables SQL (`_load_tables('/infrassearch/sql/')`)
 2. Restauration des paramètres sauvegardés (`infrassearch_restore_module`)
@@ -355,18 +398,24 @@ La fonction `infrassearch_getLocalVersionMinDoli()` parse ce XML et retourne un 
 4. Enregistrement de `INFRASSEARCH_DOL_VERSION` et `INFRASSEARCH_MAIN_VERSION`
 5. Migration de compatibilité des anciennes constantes `INFRASSEARCH_*` vers `INFRASSEARCH_MOD_*`
 6. Appel de `$this->_init()` standard
+
 **`remove()`** effectue :
 1. Sauvegarde des paramètres (`infrassearch_bkup_module`)
 2. Suppression des constantes `INFRASSEARCH_%` de l'entité courante
 3. Appel de `$this->_remove()` standard
+
 ### Page de recherche dédiée (`search.php`)
+
 La page accessible depuis le menu Outils propose :
 - Un champ de saisie libre
 - Un bouton « Rechercher » + prise en charge de la touche Entrée
 - L'exécution parallèle d'un appel AJAX par type d'objet activé (`get=search`)
 - Affichage des résultats dans des blocs HTML tuilés via `jquery.tile.min.js`
+
 ### Bibliothèque admin (`infrassearchAdmin.lib.php`)
+
 Fonctions utilitaires pour les pages d'administration :
+
 | Fonction | Rôle |
 |----------|------|
 | `infrassearch_admin_prepare_head()` | Génère les onglets admin (Paramètres, À propos, Changelog) |
@@ -380,20 +429,27 @@ Fonctions utilitaires pour les pages d'administration :
 | `infrassearch_restore_module()` | Restauration des paramètres depuis le fichier SQL |
 | `infrassearch_num_pos()` | Génère les options HTML de numérotation de position (tri des modules) |
 | `infrassearch_print_*()` | Fonctions d'affichage HTML pour les tableaux admin |
+
 ## Cas d'usage courants (Common use cases)
+
 ### Cas 1 : Activation de la recherche avancée dans le menu haut
+
 1. Activer le module InfraSSearch
 2. Aller dans les paramètres du module
 3. Activer `INFRASSEARCH_ON_TOP_MENU`
 4. Cocher les types d'objets à inclure (`INFRASSEARCH_MOD_SOCIETE`, `INFRASSEARCH_MOD_FACTURE`, etc.)
 5. Configurer l'ordre d'affichage via `INFRASSEARCH_POS_*` (les résultats Tiers apparaîtront en premier si position = 1)
 6. Taper ≥ 3 caractères dans le champ de recherche du menu haut → résultats en autocomplete
+
 ### Cas 2 : Recherche d'un numéro de téléphone
+
 1. Saisir un numéro (ex. `034 12 345 67`)
 2. Le moteur normalise en chiffres : `0341234567`
 3. Recherche croisée sur les formats : `0341234567` (local) et `2611234567` (international)
 4. Tous les tiers/contacts dont le champ `phone`, `fax` ou `mobile` contient une variante sont retournés
+
 ### Cas 3 : Ajout d'un nouveau module externe à la recherche
+
 1. Ajouter le type d'objet dans `INFRASSEARCH_LISTTOBJECTTYPE` (CSV)
 2. Ajouter le `case` correspondant dans le `switch` de `_search()` (dans `interface.php`)
 3. Ajouter le mapping dans `getobjectclass()` si le classpath/classname est non standard
