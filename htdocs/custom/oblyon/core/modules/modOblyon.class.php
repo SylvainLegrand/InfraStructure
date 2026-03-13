@@ -54,9 +54,11 @@
 			$this->editor_email				= 'support@inovea-conseil.com';
 			$this->url_last_version 		= 'https://raw.githubusercontent.com/aspangaro/oblyon/14.0/htdocs/custom/oblyon/VERSION';
 			$this->rights_class				= $this->name;																			// Key text used to identify module (for permissions, menus, etc...)
-			$this->family					= 'Inovea Conseil';																		// used to group modules in module setup page
-			$this->module_position			= 10;
-			$this->module_position			= 1;
+			$isDolinfras					= isModEnabled('dolinfras');
+			$family							= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Inovea Conseil';
+			$this->family					= $family;																		// used to group modules in module setup page
+			$this->familyinfo				= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+			$this->module_position			= 100016;
 			$this->description				= $langs->trans('Module432573Desc');												// Module description
 			$this->version					= file_get_contents(__DIR__.'/../../VERSION');								// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 			$this->const_name				= 'MAIN_MODULE_'.strtoupper($this->name);										// llx_const table to save module status enabled/disabled

@@ -146,7 +146,7 @@ html, body {
 
 body {
 <?php print 'direction: '.$langs->trans("DIRECTION").";\n"; ?>
-<?php if (GETPOST("optioncss") == 'print') {	?>
+<?php if (GETPOST("optioncss", "aZ09") == 'print') {	?>
     background-color: #fff !important;
 <?php } else { ?>
     background-color: var(--bgcolor)!important;
@@ -2523,7 +2523,7 @@ div.login_block_other {
 }
 
 #id-right {
-<?php if (GETPOST("optioncss") == 'print') { ?>
+<?php if (GETPOST("optioncss", "aZ09") == 'print') { ?>
     padding-top: 10px;
     <?php } elseif(getDolGlobalString('OBLYON_STICKY_TOPBAR')) { ?>
         <?php if (getDolGlobalString('OBLYON_PADDING_RIGHT_BOTTOM')) { ?>
@@ -2931,7 +2931,7 @@ img.photorefnoborder {
 */
 
 #tmenu_tooltip {
-    <?php if (GETPOST("optioncss") == 'print') { ?>
+    <?php if (GETPOST("optioncss", "aZ09") == 'print') { ?>
         display: none;
     <?php } else { ?>
         display: block;
@@ -2972,7 +2972,7 @@ img.photorefnoborder {
 }
 
 .main-nav {
-    <?php if (GETPOST("optioncss") == 'print') { ?>
+    <?php if (GETPOST("optioncss", "aZ09") == 'print') { ?>
         display: none;
     <?php } else { ?>
         /*background-color: rgb(<?php print (!empty($colorback1) ? $colorback1 : 0); ?>);*/
@@ -3140,7 +3140,7 @@ transition: all .2s ease-in-out;
 }
 
 #tmenu_tooltipinvert {
-<?php if (GETPOST("optioncss") == 'print') { ?>
+<?php if (GETPOST("optioncss", "aZ09") == 'print') { ?>
     display: none;
 <?php } else { ?>
     display: inline-table;
@@ -3373,7 +3373,7 @@ div.login_block {
     top: 0;
     <?php print $right; ?>: 0px;
     z-index: 100;
-    <?php if (GETPOST("optioncss") == 'print') { ?>
+    <?php if (GETPOST("optioncss", "aZ09") == 'print') { ?>
         display: none;
     <?php } ?>
 }
@@ -4322,7 +4322,7 @@ else
 ?>
 
 .tmenudiv {
-    <?php if (GETPOST("optioncss") == 'print') {	?>
+    <?php if (GETPOST("optioncss", "aZ09") == 'print') {	?>
         display: none;
     <?php } else { ?>
         color: #fcfcfc;
@@ -4640,7 +4640,7 @@ div.vmenu {
 <?php } ?>
 
 .vmenu {
-    <?php if (GETPOST("optioncss") == 'print') { ?>
+    <?php if (GETPOST("optioncss", "aZ09") == 'print') { ?>
         display: none;
     <?php } ?>
 }
@@ -5174,14 +5174,14 @@ div.tabsAction {
         position: sticky;
         z-index: 4;
         bottom: 0;
-        <?php if (GETPOST("optioncss") == 'print') {	?>
+        <?php if (GETPOST("optioncss", "aZ09") == 'print') {	?>
             background-color: #fff !important;
         <?php } else { ?>
             background-color: var(--bgcolor) !important;
         <?php } ?>
     <?php } ?>
 }
-<?php if (getDolGlobalString('FIX_ABSOLUTE_BUTTONS_ACTION_CARD') && GETPOST("optioncss") != 'print') { ?>
+<?php if (getDolGlobalString('FIX_ABSOLUTE_BUTTONS_ACTION_CARD') && GETPOST("optioncss", "aZ09") != 'print') { ?>
     /* Sticky action bar: raise z-index of dropdown above the bar (z-index 4) */
     /* The --up class is applied automatically by JS when the dropdown overflows the viewport */
     div.tabsAction .dropdown-holder {
@@ -10919,7 +10919,7 @@ div.tabs:first-of-type, .fiche > div.tabs
         display: none;
     }
     div#tmenu_tooltip, #tmenu_tooltipinvert {
-        <?php if (GETPOST("optioncss") == 'print') {	?>
+        <?php if (GETPOST("optioncss", "aZ09") == 'print') {	?>
             display:none;
         <?php } else { ?>
             padding-<?php print $right; ?>: 92px;

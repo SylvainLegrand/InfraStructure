@@ -442,7 +442,9 @@ if ($action == 'restoreParams') {
 // On / Off management
 if (preg_match('/set_(.*)/', $action, $reg)) {
 	$confkey	= $reg[1];
-	$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'Oblyon module', $conf->entity);
+	if (preg_match('/^(OBLYON_|THEME_|MAIN_|FIX_|DISABLE_)/', $confkey)) {
+		$result		= dolibarr_set_const($db, $confkey, GETPOST('value', 'alphanohtml'), 'chaine', 0, 'Oblyon module', $conf->entity);
+	}
 }
 // Update buttons management
 if (preg_match('/update_(.*)/', $action, $reg)) {
@@ -496,7 +498,7 @@ print '	<script type = "text/javascript">
 				});
 			</script>';
 
-print '<form action = "'.$_SERVER['PHP_SELF'].'" method = "POST" enctype = "multipart/form-data">
+print '<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "POST" enctype = "multipart/form-data">
 				<input type="hidden" name="token" value="'.newToken().'" />
 				<input type="hidden" name="action" value="update">
 				<input type="hidden" name="page_y" value="">
@@ -519,7 +521,7 @@ print '<form action = "'.$_SERVER['PHP_SELF'].'" method = "POST" enctype = "mult
 	print '				<tr>';
 	foreach ($listtheme as $name => $values) {
 		print '				<td class = "center">
-								<a title = "'.$langs->trans('Oblyon'.$name).'" href = "'.$_SERVER['PHP_SELF'].'?action=update_theme&token='.newToken().'&value='.$name.'">'.img_picto($langs->trans('Oblyon'.$name), 'oblyon'.$name.'.png@oblyon', 'width = "50%"').'
+								<a title = "'.$langs->trans('Oblyon'.$name).'" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=update_theme&token='.newToken().'&value='.urlencode($name).'">'.img_picto($langs->trans('Oblyon'.$name), 'oblyon'.$name.'.png@oblyon', 'width = "50%"').'
 									<br/>'.$langs->trans('Oblyon'.$name).'
 								</a>
 							</td>';
