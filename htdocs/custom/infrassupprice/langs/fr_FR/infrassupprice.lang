@@ -53,29 +53,30 @@ InfraSSupPriceParamHistoryUpdates       = <b>Historique des mises à jour :</b>
 InfraSSupPriceParamPreferedPartner      = Membre du programme officiel de partenaires préférés de Dolibarr, une garantie de qualité et d'expertise.
 InfraSSupPriceParamSkipCheck            = Téléchargement désactivé
 InfraSSupPriceParamNumberVersion        = N° de version
+InfraSSupPriceParamDolinfrasVersion     = N° de version LTS
 InfraSSupPriceParamMonthVersion         = Date
 InfraSSupPriceParamChangesVersion       = Modifications
 InfraSSupPriceParamCheckNewVersion      = Nouveau Changelog
 InfraSSupPriceParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
 
 ### Actionsinfrassupprice ###
-InfraSSupPriceTitreMaj         = Mise à jour des tarifs fournisseur
-InfraSSupPriceColLineN         = Ligne N°
-InfraSSupPriceColRef           = Référence
-InfraSSupPriceColCodeFour      = Code Fournisseur
-InfraSSupPriceColTVA           = TVA
-InfraSSupPriceColPu            = Prix U
-InfraSSupPriceColQty           = Qty min.
-InfraSSupPriceColQtyMin        = Prix Qty min.
-InfraSSupPriceColRem           = Remise
-InfraSSupPriceActualUp         = Prix unitaire en cours :
-InfraSSupPriceActualSubPrice   = Prix pour qty minimum en cours :
-InfraSSupPriceActuaRem         = Remise en cours :
-InfraSSupPriceActualVat        = TVA en cours :
-InfraSSupPriceActualQtyTxt     = (pour une Qty minimum de %s)
-InfraSSupPriceActualQty        = Qty minimum en cours :
-InfraSSupPriceActualNotDefined = Pas de tarif défini pour ce produit chez ce fournisseur et pour cette quantité minimum.
-InfraSSupPricebtnModif         = Modifier les tarifs fournisseur
+InfraSSupPriceTitreMaj             = Mise à jour des tarifs fournisseur
+InfraSSupPriceColLineN             = Ligne N°
+InfraSSupPriceColRef               = Référence
+InfraSSupPriceColCodeFour          = Code Fournisseur
+InfraSSupPriceColTVA               = TVA
+InfraSSupPriceColPu                = Prix U
+InfraSSupPriceColQty               = Qty min.
+InfraSSupPriceColQtyMin            = Prix Qty min.
+InfraSSupPriceColRem               = Remise
+InfraSSupPriceActualUp             = Prix unitaire en cours :
+InfraSSupPriceActualSubPrice       = Prix pour qty minimum en cours :
+InfraSSupPriceActuaRem             = Remise en cours :
+InfraSSupPriceActualVat            = TVA en cours :
+InfraSSupPriceActualQtyTxt         = (pour une Qty minimum de %s)
+InfraSSupPriceActualQty            = Qty minimum en cours :
+InfraSSupPriceActualNotDefined     = Pas de tarif défini pour ce produit chez ce fournisseur et pour cette quantité minimum.
+InfraSSupPricebtnModif             = Modifier les tarifs fournisseur
 InfraSSupPriceWarningMaxVersion    = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSSupPrice %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
 
 ### Message ###

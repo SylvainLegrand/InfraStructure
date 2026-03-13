@@ -14,9 +14,9 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS - Sylvain Legrand
 - Numéro module : `500056`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `15.0.0` à `21.0.3`
+- Compatibilité Dolibarr : `15.0.0` à `21.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.3.1` (2026-03)
+- Dernière version locale : `15.3.2` (2026-03)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrassupprice/`
 
@@ -67,17 +67,17 @@ htdocs/custom/infrassupprice/
 Dans `core/modules/modinfrassupprice.class.php` :
 
 - **Module parts** :
-- hooks : `supplier_proposalcard`, `ordersuppliercard`, `invoicesuppliercard`
-- CSS : `/infrassupprice/css/infrassupprice.css.php`
+	- hooks : `supplier_proposalcard`, `ordersuppliercard`, `invoicesuppliercard`
+	- CSS : `/infrassupprice/css/infrassupprice.css.php`
 - **Dépendances** : aucune dépendance module ; extension PHP `xml` requise
 - **Dictionnaires** : aucun dictionnaire
 - **Boxes** : aucune
 - **Cron** : aucune tâche
 - **Permissions** : 4 permissions
 	- `paramMenu` (défaut : activée)
-- `paramInfraSSupPrice`
-- `paramBkpRest`
-- `update`
+	- `paramInfraSSupPrice`
+	- `paramBkpRest`
+	- `update`
 
 ### Initialisation (Lifecycle : `init()`)
 
@@ -86,12 +86,13 @@ Dans `core/modules/modinfrassupprice.class.php` :
 1. Chargement SQL (`_load_tables('/infrassupprice/sql/')`)
 2. Restauration des constantes module (`infrassupprice_restore_module`)
 3. Initialisation de constantes clés :
- - `INFRASSUPPRICE_DOL_VERSION`
- - `INFRASSUPPRICE_MAIN_VERSION`
+	 - `INFRASSUPPRICE_DOL_VERSION`
+	 - `INFRASSUPPRICE_MAIN_VERSION`
 
 ### Désactivation (Lifecycle : `remove()`)
 
 `remove()` effectue :
+
 - sauvegarde module (`infrassupprice_bkup_module`),
 - suppression des constantes `INFRASSUPPRICE_%` de l'entité courante.
 
@@ -117,13 +118,19 @@ La classe `Actionsinfrassupprice` intervient sur les contextes `supplier_proposa
 
 - `afterLogin` : vérifie la version max Dolibarr supportée (avertissement si version non supportée),
 - `addMoreActionsButtons` : injection du tableau de comparaison des tarifs fournisseurs sur les fiches document.
+
 ### Conditions d'affichage du tableau
+
 Le tableau n'est affiché que si **toutes** les conditions sont réunies :
+
 - Le document contient au moins une ligne (`count($object->lines) > 0`),
 - Le document est validé (`$object->statut >= 1`),
 - L'utilisateur a la permission `update` (`$user->hasRight('infrassupprice', 'update')`).
+
 ### Construction du tableau
+
 Pour chaque ligne produit du document, le hook :
+
 1. Récupère les données du document : référence, prix unitaire, TVA, quantité, remise, devise
 2. Interroge `llx_product_fournisseur_price` pour trouver le tarif fournisseur existant en base (même ref, même quantité, même fournisseur)
 3. Affiche les valeurs en base en tooltip sur les champs (prix, quantité min, remise, TVA)
@@ -141,6 +148,7 @@ Le hook construit un tableau HTML avec JavaScript jQuery intégré pour :
 Le module ne crée aucune table SQL propre. Toute la configuration est stockée dans `llx_const`.
 
 Tables Dolibarr core utilisées :
+
 | Table | Usage |
 |-------|-------|
 | `llx_product_fournisseur_price` | Stockage des tarifs fournisseur par produit/fournisseur/quantité (INSERT ou UPDATE) |
@@ -203,18 +211,30 @@ Si modification SQL / descripteur / permissions / hooks / constantes :
 - `15.2.0` (2026-02) : ajout du fichier CLAUDE.md
 - `15.3.0` (2026-03) : amélioration du descripteur CLAUDE.md : ajout des Notes techniques
 - `15.3.0` (2026-03) : ajout d'un test de comparaison de la version majeure Dolibarr (avertissement si version non supportée)
+- `15.3.2` (2026-03) : ajout de l'affichage de la version Dolinfras dans `infrassupprice_getSupportInformation()`
+- `15.3.2` (2026-03) : ajout de la clé de traduction `InfraSSupPriceParamDolinfrasVersion` (fr_FR, en_US, es_ES)
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
+
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+
 ## Notes techniques (Technical notes)
+
 ### Classe métier `InfraSSupPrice` (Business class)
+
 Fichier : `class/infrassupprice.class.php` — étend `Product`
+
 La classe ne possède qu'une seule méthode publique :
+
 **`InfraS_update_buyprice($fourn, $id_prod, $ref_fourn, $tva_tx, $currency_tx, $currency_code, $currency_unitbuyprice, $unitbuyprice, $qty, $currency_buyprice, $buyprice, $remise_percent)`**
+
 Algorithme en trois étapes :
+
 1. **Recherche** : interroge `llx_product_fournisseur_price` pour trouver un tarif existant (même entité, fournisseur, référence fournisseur, quantité, et devise si multicurrency activé)
 2. **Mise à jour** (`UPDATE`) : si un tarif existant est trouvé ET que le prix, la TVA, la remise ou la devise ont changé → mise à jour du tarif
 3. **Création** (`INSERT`) : si aucun tarif existant n'est trouvé → insertion d'un nouveau tarif avec `supplier_reputation = "FAVORITE"` et `delivery_time_days = 0`
+
 Codes retour :
+
 | Retour | Signification |
 |--------|---------------|
 | `0` | Tarif créé ou mis à jour avec succès |
@@ -222,15 +242,22 @@ Codes retour :
 | `-1` | Erreur lors du UPDATE |
 | `-2` | Erreur lors de l'INSERT |
 | `-3` | Erreur lors du SELECT de recherche |
+
 ### Gestion multi-devises (Multi-currency management)
+
 Le module supporte le multi-devises lorsque le module Dolibarr `multicurrency` est activé :
+
 - La recherche de tarif existant inclut un filtre sur `fk_multicurrency` (via `MultiCurrency::getIdFromCode()`)
 - Le UPDATE/INSERT inclut les colonnes `multicurrency_tx`, `multicurrency_price`, `multicurrency_unitprice`
 - Le tableau du hook affiche les prix en devise étrangère si `$object->multicurrency_tx != 1`
 - Colonnes multi-devises concernées : `fk_multicurrency`, `multicurrency_code`, `multicurrency_tx`, `multicurrency_price`, `multicurrency_unitprice`
+
 ### Scripts AJAX (`script/interface.php` et `script/message.php`)
+
 Les deux scripts AJAX constituent le mécanisme de communication entre le tableau HTML (côté client) et la logique métier (côté serveur).
+
 **`interface.php`** — Point d'entrée AJAX pour la mise à jour des prix :
+
 ```
 Requête POST avec put=updateprice
     ↓
@@ -244,7 +271,9 @@ Appel InfraS_update_buyprice() avec tous les paramètres GETPOST
     ↓
 Retour JSON : { id: <code_retour>, desc: <description_erreur> }
 ```
+
 **`message.php`** — Affichage des notifications Dolibarr après mise à jour :
+
 | Valeur `msg` | Type notification | Traduction |
 |--------------|-------------------|------------|
 | `Ok` | `mesgs` (succès) | `InfraSSupPriceMajOk` |
@@ -252,9 +281,13 @@ Retour JSON : { id: <code_retour>, desc: <description_erreur> }
 | `Ko` | `errors` | `InfraSSupPriceMajKo` |
 | `noCheck` | `errors` | `InfraSSupPriceMajNoCheck` |
 | autre | `errors` | `InfraSSupPriceMajKoElse` (avec message serveur) |
+
 Les deux scripts définissent `NOTOKENRENEWAL` pour éviter l'invalidation du token CSRF lors d'appels AJAX séquentiels, et implémentent un contrôle d'accès via `accessforbidden()`.
+
 ### Flux des hooks (Hook workflow)
+
 La classe `Actionsinfrassupprice` intervient sur les contextes `supplier_proposalcard`, `ordersuppliercard`, `invoicesuppliercard` selon ce flux :
+
 ```
 L'utilisateur accède à une fiche document fournisseur (demande de prix/commande/facture)
     ↓
@@ -281,20 +314,27 @@ JavaScript : appel AJAX vers message.php avec le code retour
     → setEventMessages() côté serveur pour notification Dolibarr
     → location.reload() pour rafraîchir la page
 ```
+
 ### Librairie d'administration (`infrassuppriceAdmin.lib.php`)
+
 Le fichier `core/lib/infrassuppriceAdmin.lib.php` contient les fonctions transverses d'administration :
+
 **Fonctions de navigation** :
 - `infrassupprice_admin_prepare_head()` — prépare les onglets admin (Paramètres, À propos, Changelog)
 - `infrassupprice_no_topmenu()` — vérifie si le menu InfraS existe déjà dans le top menu Outils
+
 **Fonctions de version et changelog** :
 - `infrassupprice_test_php_ext()` — teste la disponibilité de l'extension PHP XML, stocke le résultat dans `INFRAS_PHP_EXT_XML`
 - `infrassupprice_getLocalVersionMinDoli($appliname)` — parse `docs/changelog.xml` et retourne les informations de version
 - `infrassupprice_getChangelogFile($appliname, $from)` — charge et parse un fichier XML changelog (local ou téléchargé)
 - `infrassupprice_dwnChangelog($appliname)` — télécharge le dernier changelog depuis `infras.fr` pour comparaison
+- `infrasdiscount_getLocalVersionMinDoli($appliname)` — récupère les informations de version du module infrasdiscount (retourne un tableau vide en cas d'échec, depuis 15.3.2)
+
 **Fonctions de sauvegarde/restauration** :
 - `infrassupprice_bkup_module($appliname)` — sauvegarde les constantes `INFRASSUPPRICE_%` dans un fichier SQL sous `DOL_DATA_ROOT/{entity}/infrassupprice/sql/update.{entity}`
 - `infrassupprice_bkup_table($table, $sql, $listeCols, $duplicate, $truncate, $add)` — génère le SQL d'INSERT pour un jeu de résultats avec support `ON DUPLICATE KEY UPDATE` et remplacement d'entité par `__ENTITY__`
 - `infrassupprice_restore_module($appliname)` — restaure les constantes depuis le fichier de sauvegarde via `run_sql()`
+
 **Fonctions d'affichage admin** :
 - `infrassupprice_print_backup_restore()` — section HTML sauvegarde/restauration
 - `infrassupprice_load_title()` — titre avec picto pour les sections admin
@@ -307,8 +347,10 @@ Le fichier `core/lib/infrassuppriceAdmin.lib.php` contient les fonctions transve
 - `infrassupprice_print_input()` — entrée de formulaire polymorphe (`on_off`, `on_off2`, `input`, `input2`, `radio`, `textarea`, `color`, `select`, `select_produits`, `select_types_paiements`, `selectTypeContact`, `select_type_actions`, `editor`)
 - `infrassupprice_print_line_inputs()` — ligne multi-champs avec toggle on/off
 - `infrassupprice_getChangeLog()` — affichage HTML complet du changelog avec comparaison version locale/téléchargée (versions nouvelles en orange, versions avancées en vert)
-- `infrassupprice_getSupportInformation()` — tableau d'informations de support (versions Dolibarr, module, PHP, BDD, serveur web)
+- `infrassupprice_getSupportInformation()` — tableau d'informations de support (versions Dolibarr, Dolinfras, module, PHP, BDD, serveur web)
+
 ### Structure du changelog (Changelog structure)
+
 ```xml
 <changelog>
     <Version Number="15.3.0" MonthVersion="2026-03">
@@ -320,50 +362,66 @@ Le fichier `core/lib/infrassuppriceAdmin.lib.php` contient les fonctions transve
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
+
 La fonction `infrassupprice_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "15.3.0",           // Version courante
+    0 => "15.3.2",           // Version courante
     1 => "15.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
-    4 => "21.0.3",           // Version max Dolibarr
+    4 => "21.x.x",           // Version max Dolibarr
     5 => "7.4",              // Version min PHP
     6 => "8.4"               // Version max PHP
 ]
 ```
+
 ### Cycle de vie du module (Module lifecycle)
+
 **`init()`** effectue dans l'ordre :
 1. Chargement des tables SQL (`_load_tables('/infrassupprice/sql/')`) — exécute `data.sql`
 2. Restauration des paramètres sauvegardés (`infrassupprice_restore_module`)
 3. Initialisation des constantes `INFRASSUPPRICE_DOL_VERSION` et `INFRASSUPPRICE_MAIN_VERSION`
+
 **`remove()`** effectue :
 1. Sauvegarde des paramètres (`infrassupprice_bkup_module`)
 2. Suppression des constantes `INFRASSUPPRICE_%` de l'entité courante (`DELETE FROM llx_const WHERE name LIKE 'INFRASSUPPRICE\_%' AND entity = ...`)
+
 ### Page de configuration (`admin/infrassuppricesetup.php`)
+
 La page d'administration propose :
+
 - **Sauvegarde / Restauration** (visible si `paramBkpRest` ou `admin`) : boutons de sauvegarde et restauration des constantes module
 - **Comportement général** : tableau des options avec toggle on/off
   - Option `INFRASSUPPRICE_QTE_NOT_VALUE_MIN` : force la quantité minimum à 1
+
 Le contrôle d'accès est à deux niveaux :
 - Niveau 2 (`admin` ou `paramBkpRest`) : accès complet avec sauvegarde/restauration
 - Niveau 1 (`paramInfraSSupPrice`) : accès aux paramètres uniquement
 - Niveau 0 : accès refusé (`accessforbidden()`)
+
 Les actions `set_*` sont gérées par regex sur le paramètre `action` : `preg_match('/set_(.*)/', $action, $reg)` pour basculer n'importe quelle constante on/off.
+
 ### Cas d'usage courants (Common use cases)
+
 #### Cas 1 : Mise à jour d'un tarif fournisseur depuis une commande
+
 1. Ouvrir une commande fournisseur validée (statut ≥ 1)
 2. Le tableau de comparaison s'affiche en bas de la fiche (replié par défaut)
 3. Déplier le tableau : chaque ligne produit affiche le prix du document et le prix en base (tooltip)
 4. Cocher les lignes à mettre à jour
 5. Cliquer sur le bouton « Mise à jour »
 6. Les tarifs sont créés ou mis à jour dans `llx_product_fournisseur_price`
+
 #### Cas 2 : Mise à jour avec modification de référence fournisseur
+
 1. Si aucun tarif n'existe en base pour un produit, le champ « Réf. fournisseur » est éditable
 2. Saisir ou modifier la référence fournisseur
 3. Cocher la ligne et lancer la mise à jour
 4. Un nouveau tarif fournisseur est créé avec cette référence
+
 #### Cas 3 : Utilisation en multi-devises
+
 1. Le module `multicurrency` Dolibarr doit être activé
 2. Sur une commande fournisseur en devise étrangère (`multicurrency_tx != 1`)
 3. Le tableau affiche automatiquement les prix en devise étrangère

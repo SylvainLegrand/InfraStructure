@@ -53,29 +53,30 @@ InfraSSupPriceParamHistoryUpdates       = <b>Update history :</b>
 InfraSSupPriceParamPreferedPartner      = Member of the official Dolibarr Preferred Partners program, a guarantee of quality and expertise.
 InfraSSupPriceParamSkipCheck            = Download disabled
 InfraSSupPriceParamNumberVersion        = version N°
+InfraSSupPriceParamDolinfrasVersion     = LTS version N°
 InfraSSupPriceParamMonthVersion         = Date
 InfraSSupPriceParamChangesVersion       = Modifications
 InfraSSupPriceParamCheckNewVersion      = New Changelog
 InfraSSupPriceParamCheckNewVersionTitle = Click to download the changelog of the latest available version
 
 ### Actionsinfrassupprice ###
-InfraSSupPriceTitreMaj         = Update Supplier price
-InfraSSupPriceColLineN         = Line N°
-InfraSSupPriceColRef           = Reference
-InfraSSupPriceColCodeFour      = Supplier Code
-InfraSSupPriceColTVA           = VAT
-InfraSSupPriceColPu            = Unit Price
-InfraSSupPriceColQty           = Min. Qty
-InfraSSupPriceColQtyMin        = Min. Qty Price
-InfraSSupPriceColRem           = Discount
-InfraSSupPriceActualUp         = Current unit price:
-InfraSSupPriceActualSubPrice   = Price for current minimum qty:
-InfraSSupPriceActuaRem         = Current discount:
-InfraSSupPriceActualVat        = Current VAT:
-InfraSSupPriceActualQtyTxt     = (for a minimum Qty of %s)
-InfraSSupPriceActualQty        = Current minimum qty:
-InfraSSupPriceActualNotDefined = No price set for this product from this supplier and for this minimum quantity
-InfraSSupPricebtnModif         = Change Supplier price
+InfraSSupPriceTitreMaj          = Update Supplier price
+InfraSSupPriceColLineN          = Line N°
+InfraSSupPriceColRef            = Reference
+InfraSSupPriceColCodeFour       = Supplier Code
+InfraSSupPriceColTVA            = VAT
+InfraSSupPriceColPu             = Unit Price
+InfraSSupPriceColQty            = Min. Qty
+InfraSSupPriceColQtyMin         = Min. Qty Price
+InfraSSupPriceColRem            = Discount
+InfraSSupPriceActualUp          = Current unit price:
+InfraSSupPriceActualSubPrice    = Price for current minimum qty:
+InfraSSupPriceActuaRem          = Current discount:
+InfraSSupPriceActualVat         = Current VAT:
+InfraSSupPriceActualQtyTxt      = (for a minimum Qty of %s)
+InfraSSupPriceActualQty         = Current minimum qty:
+InfraSSupPriceActualNotDefined  = No price set for this product from this supplier and for this minimum quantity
+InfraSSupPricebtnModif          = Change Supplier price
 InfraSSupPriceWarningMaxVersion = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSSupPrice module %s.<br>The maximum supported version of Dolibarr is %s.<br>You are therefore using this module without any guarantee of proper functioning.</center>
 
 ### Message ###

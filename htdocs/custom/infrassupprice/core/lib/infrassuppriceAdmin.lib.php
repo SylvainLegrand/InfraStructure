@@ -140,6 +140,26 @@
 	}
 
 	/**
+	* Read the Dolibarr VERSION file and store its value in the DOLINFRAS_VERSION constant
+	*
+	* @return	string		Version string read from VERSION file, or empty string on failure
+	**/
+	function infrassupprice_getVersionDolinfras()
+	{
+		global $db, $conf;
+
+		$version	= '';
+		$file		= DOL_DOCUMENT_ROOT.'/VERSION';
+		if (is_file($file)) {
+			$version = trim(file_get_contents($file));
+		}
+		if (!empty($version) && getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
+			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'InfraSSupPrice module', $conf->entity);
+		}
+		return $version;
+	}
+
+	/**
 	* Function called to check module name from local changelog
 	* Control of the min version of Dolibarr needed and get versions list
 	*
@@ -871,6 +891,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<tr class = "oddeven">
 							<td class = "width400 infrassuppricechangelogbase">'.$langs->trans('DolibarrVersion').'</td>
 							<td class = "infrassuppricechangelogbase">'.DOL_VERSION.'</td>
+						</tr>
+						<tr class = "oddeven">
+							<td class = "width400 infrassuppricechangelogbase">'.$langs->trans('InfraSSupPriceParamDolinfrasVersion').'</td>
+							<td class = "infrassuppricechangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
 						</tr>
 						<tr class = "oddeven">
 							<td class = "width400 infrassuppricechangelogbase">'.$langs->trans('ModuleVersion').'</td>
