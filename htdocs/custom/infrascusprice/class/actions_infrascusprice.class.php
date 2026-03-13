@@ -59,19 +59,13 @@
 		**/
 		function updateSession($parameters, $user, $action)
 		{
-			global $user;
-
-			$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT,'/').'/i','', $_SERVER['PHP_SELF']);
-			if (!infrascusp_is_substitution_page($path_src)) {
-				$url 	= infrascusp_get_substitution_url($path_src);
-				if (!empty($url)) {
-					$params	= array_merge($_POST, $_GET);
-					$params	= http_build_query($params);
-					header('Location: '.$url.(!empty($params) ? '?'.$params : ''));
-					exit;
-				}
+			$redirect_url	= infrascusp_getSubstitutionRedirectUrl();
+			if (!empty($redirect_url)) {
+				session_write_close();
+				header('Location: '.$redirect_url);
+				exit;
 			}
-			return 0;
+			return 0; // or return 1 to replace standard code
 		}
 
 		/**
@@ -88,20 +82,20 @@
 			global $langs;
 
 			$langs->load('infrascusprice@infrascusprice');
+
 			$currentversion	= array();
 			$currentversion	= infrascusp_getLocalVersionMinDoli('infrascusprice');
 			if (!getDolGlobalString('INFRASCUSPRICE_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
 				setEventMessages($langs->trans('InfraSCusPWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
 			}
-			$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT,'/').'/i','', $_SERVER['PHP_SELF']);
-			if (!infrascusp_is_substitution_page($path_src)) {
-				$url = infrascusp_get_substitution_url($path_src);
-				if (!empty($url)) {
-					$params	= array_merge($_POST, $_GET);
-					$params	= http_build_query($params);
-					header('Location: '.$url.(!empty($params) ? '?'.$params : ''));
-					exit;
-				}
+			infrascusp_getVersionDolinfras();
+			$redirect_url	= infrascusp_getSubstitutionRedirectUrl();
+			if (!empty($redirect_url)) {
+				// Commit the DB transaction opened by main.inc.php (update_last_login_date + USER_LOGIN trigger)
+				$this->db->commit();
+				session_write_close();
+				header('Location: '.$redirect_url);
+				exit;
 			}
 			return 0;
 		}

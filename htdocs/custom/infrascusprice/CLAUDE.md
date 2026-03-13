@@ -14,9 +14,9 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS
 - Numéro module : `500077`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `18.0.0` à `22.0.4`
+- Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.2` (2026-03)
+- Dernière version locale : `18.1.3` (2026-03)
 - Emplacement : `htdocs/custom/infrascusprice/`
 
 Convention de lecture du descripteur :
@@ -178,6 +178,9 @@ Si modification du descripteur / permissions / hooks / constantes :
 - `18.1.0` (2026-02) : échappement XSS des valeurs de recherche et encodage URL dans les pages de substitution
 - `18.1.0` (2026-02) : nouveau lien Wiki InfraSDiscount, amélioration CSS, ajout documentation CLAUDE.md
 - `18.1.1` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
+- `18.1.2` (2026-03) : compatibilité avec PHP 8.4
+- `18.1.3` (2026-03) : ajout de `infrascusp_getSubstitutionRedirectUrl()` — gestion centralisée des redirections avec filtrage des paramètres GET (exclusion du token CSRF)
+- `18.1.3` (2026-03) : simplification de `infrascusp_is_substitution_page()` — utilisation de `strpos()` au lieu de regex complexe
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -187,6 +190,9 @@ Le module se désactive automatiquement si la version Dolibarr est inférieure a
 ### Substitution vs Hooks
 
 Contrairement à la plupart des modules qui utilisent les hooks, InfraSCusPrice repose sur la **substitution de pages** :
+- **Page substituée** : `societe/price.php` (onglet prix clients)
+- **Constante d'activation** : `INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE`
+- **Branches maintenues** : `dlb180x`, `dlb190x`, `dlb200x`, `dlb210x`, `dlb220x` (5 variantes)
 - **Avantages** : contrôle total du comportement de la page, possibilité de modifier n'importe quel aspect de la page d'origine
 - **Inconvénients** : nécessite de maintenir des fichiers séparés pour chaque version majeure de Dolibarr ; toute évolution significative de la page core impose une mise à jour
 - **Stratégie** : le module maintient des copies spécifiques uniquement par version majeure (18.x, 19.x, 20.x, 21.x, 22.x)
@@ -207,35 +213,38 @@ Le troisième paramètre déclenche la logique interne de Dolibarr pour copier l
 
 ### Flux de redirection (Redirect flow)
 
+**Depuis la version 18.1.3**, le flux de redirection utilise `infrascusp_getSubstitutionRedirectUrl()` pour centraliser la logique :
+
 ```
 L'utilisateur accède à /societe/price.php
     ↓
 Le hook updateSession() ou afterLogin() s'exécute
     ↓
-infrascusp_is_substitution_page() vérifie si on est déjà sur la page substituée (prévention de boucle)
+infrascusp_getSubstitutionRedirectUrl() :
+    → infrascusp_is_substitution_page() vérifie via strpos() si on est
+      déjà sur une page substituée (prévention de boucle)
+    → infrascusp_get_substitution_url() génère l'URL substituée :
+      • Vérifie la constante INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE
+      • Construit le chemin : /infrascusprice/substitutionpages/dlb{major}0x/societe/price.php
+      • Vérifie l'existence physique du fichier via dol_buildpath()
+    → Filtre les paramètres GET : exclusion du token CSRF (page-specific)
+    → Retourne l'URL complète avec query string filtrée
     ↓
-infrascusp_get_substitution_url() génère l'URL substituée versionnée
-    ↓
-Vérification de la constante INFRASCUSP_PS_ACTIVE_SOCIETE_PRICE = 1
-    ↓
-Récupération de la version majeure Dolibarr (ex. 22) → 'dlb220x'
-    ↓
-Construction du chemin : /infrascusprice/substitutionpages/dlb220x/societe/price.php
-    ↓
-Vérification de l'existence du fichier via dol_buildpath()
-    ↓
-Redirection header('Location: ...') avec conservation des paramètres de requête
+Redirection header('Location: ...') → exit
 ```
+
+**Amélioration de sécurité** : la fonction exclut automatiquement les paramètres POST (pouvant contenir des credentials) et le token CSRF qui est spécifique à la page d'origine.
 
 ### Structure du changelog (Changelog structure)
 
 ```xml
 <changelog>
-    <Version Number="18.1.1" MonthVersion="2026-03">
-        <change type='fix'>Correction de la comparaison de version max Dolibarr</change>
+    <Version Number="18.1.3" MonthVersion="2026-03">
+        <change type='fix'>Simplification de la fonction infrascusp_is_substitution_page()</change>
+        <change type='chg'>Ajout de la fonction infrascusp_getSubstitutionRedirectUrl()</change>
     </Version>
-    <InfraS Downloaded="20260201"/>
-    <Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
+    <InfraS Downloaded="20260301"/>
+    <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
@@ -243,11 +252,11 @@ Redirection header('Location: ...') avec conservation des paramètres de requêt
 La fonction `infrascusp_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.1.1",           // Version courante
+    0 => "18.1.3",           // Version courante
     1 => "18.0.0",           // Version min Dolibarr
-    2 => "20260201",         // Date de téléchargement
+    2 => "20260301",         // Date de téléchargement
     3 => "",                 // (non utilisé)
-    4 => "22.0.4",           // Version max Dolibarr
+    4 => "24.x.x",           // Version max Dolibarr
     5 => "7.4",              // Version min PHP
     6 => "8.4"               // Version max PHP
 ]

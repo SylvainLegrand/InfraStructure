@@ -74,7 +74,11 @@
 	<Version Number="18.1.2" MonthVersion="2026-03">
 		<change type='fix'>Compatibilité avec PHP 8.4</change>
 	</Version>
-	<InfraS Downloaded="20260201"/>
-	<Dolibarr minVersion="18.0.0" maxVersion="22.0.4"/>
+	<Version Number="18.1.3" MonthVersion="2026-03">
+		<change type='fix'>Simplification de la fonction infrascusp_is_substitution_page() : utilisation de strpos() au lieu de regex complexe</change>
+		<change type='chg'>Ajout de la fonction infrascusp_getSubstitutionRedirectUrl() pour gérer les redirections avec filtrage des paramètres GET (exclusion du token CSRF)</change>
+	</Version>
+	<InfraS Downloaded="20260301"/>
+	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

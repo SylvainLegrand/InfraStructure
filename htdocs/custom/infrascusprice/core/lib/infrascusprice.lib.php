@@ -34,33 +34,10 @@
 	**/
 	function infrascusp_is_substitution_page($path)
 	{
-		global $dolibarr_main_url_root_alt;
-		if (preg_match('/^\/(|'.preg_quote(trim($dolibarr_main_url_root_alt, '/'), '/').'\/)substitutionpages/i', $path) == 1) {
+		if (strpos($path, 'infrascusprice/substitutionpages/') !== false) {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Get substitution url if exists
-	 * @param	string		$path		Relative path from the root of Dolibarr of the page to be substituted
-	 * @return	string					substitution url
-	 **/
-	function infrascusp_get_substitution_url($path)
-	{
-		$const_name	= infrascusp_get_const_name_from_substitution_path($path);
-		if (!empty(getDolGlobalString($const_name, ''))) {
-			$dolibranch		= explode('.', DOL_VERSION);
-			$coreVersion	= 'dlb'.$dolibranch[0].'0x';
-			$path_dst		= '/infrascusprice/substitutionpages/'.$coreVersion.$path;
-			$real_path_dst	= dol_buildpath($path_dst, 0);
-			dol_syslog('infrascusprice.lib.php::infrascusprice_get_substitution_url $path = '.$path.' $real_path_dst = '.$real_path_dst);
-			if (file_exists($real_path_dst)) {
-				$url_path_dst = dol_buildpath($path_dst, 2);
-				return $url_path_dst;
-			}
-		}
-		return '';
 	}
 
 	/**
@@ -73,8 +50,52 @@
 	function infrascusp_get_const_name_from_substitution_path($path)
 	{
 		$const_name	= 'INFRASCUSP_PS_ACTIVE'.strtoupper(str_replace('/', '_', str_replace('.php', '', $path)));
-		dol_syslog('infrascusprice.lib::infrascusp_get_const_name_from_substitution_path $path = '.$path.' $const_name = '.$const_name);
 		return $const_name;
+	}
+
+	/**
+	* Get substitution url if exists
+	* @param	string		$path		Relative path from the root of Dolibarr of the page to be substituted
+	* @return	string					substitution url
+	**/
+	function infrascusp_get_substitution_url($path)
+	{
+		$const_name	= infrascusp_get_const_name_from_substitution_path($path);
+		if (getDolGlobalString($const_name, '')) {
+			$dolibranch		= explode('.', DOL_VERSION);
+			$coreVersion	= 'dlb'.$dolibranch[0].'0x'.(getDolGlobalString('EASYA_VERSION', '') ? '-Easya' : '');
+			$path_dst		= '/infrascusprice/substitutionpages/'.$coreVersion.$path;
+			$real_path_dst	= dol_buildpath($path_dst, 0);
+			dol_syslog('infrascusprice.lib.php::infrascusprice_get_substitution_url $path = '.$path.' $real_path_dst = '.$real_path_dst);
+			if (file_exists($real_path_dst)) {
+				$url_path_dst = dol_buildpath($path_dst, 2);
+				return $url_path_dst;
+			}
+		}
+		return '';
+	}
+
+	/**
+	* Get substitution redirect URL with filtered query params
+	*
+	* @return	string		Redirect URL or empty string if no redirect needed
+	**/
+	function infrascusp_getSubstitutionRedirectUrl()
+	{
+		$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT, '/').'/i', '', $_SERVER['PHP_SELF']);
+		if (infrascusp_is_substitution_page($path_src)) {
+			return '';
+		}
+		$url	= infrascusp_get_substitution_url($path_src);
+		if (empty($url)) {
+			return '';
+		}
+		// Forward only GET params (not POST which may contain login credentials)
+		// Exclude token (CSRF) which is page-specific and would be invalid on redirect target
+		$params	= $_GET;
+		unset($params['token']);
+		$query	= http_build_query($params);
+		return $url.(!empty($query) ? '?'.$query : '');
 	}
 
 	/**
