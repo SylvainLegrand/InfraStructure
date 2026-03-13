@@ -4,7 +4,6 @@ basenameInfraSDiscount          = InfraS
 modcomnameInfrasdiscount        = InfraSMultiDiscount
 Module500058Name                = Inserimento Sconti
 Module500058Desc                = Consente di inserire rapidamente sconti globali, a cascata o di valore su preventivi, ordini e fatture. Supporta più valute.
-easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Versione minima richiesta di Dolibarr
 NewVersionAvailable             = Ultima versione disponibile
 PiloteVersion                   = Versione pilota
@@ -77,7 +76,7 @@ InfraSDiscountParamSlogan               = Struttura la tua crescita!
 InfraSDiscountParamLienModules          = Moduli NOS
 InfraSDiscountParamSupport              = Richiesta di supporto
 InfraSDiscountParamLienDocs             = Documentazioni NOS
-InfraSDiscountParamLicense              = Sotto LPG V3 e Licenza Superior
+InfraSDiscountParamLicense              = Sotto GPL V3 e Licenza Superiore
 InfraSDiscountParamMoreModulesLink      = I nostri moduli Dolistore
 InfraSDiscountParamObjet                = <h3>objet :</h3>
 InfraSDiscountParamPreferedPartner1     = Membro del programma ufficiale
@@ -85,6 +84,7 @@ InfraSDiscountParamPreferedPartner2     = Preferred Partner, garanzia di qualit�
 InfraSDiscountParamHistoryUpdates       = <b>Cronologia degli aggiornamenti:</b>
 InfraSDiscountParamSkipCheck            = Scarica disabili
 InfraSDiscountParamNumberVersion        = Numero di versione
+InfraSDiscountParamDolinfrasVersion     = Numero di versione LTS
 InfraSDiscountParamMonthVersion         = Data
 InfraSDiscountParamChangesVersion       = Modifiche
 InfraSDiscountParamCheckNewVersion      = Nuovo Changelog
@@ -92,6 +92,7 @@ InfraSDiscountParamCheckNewVersionTitle = Fare clic per scaricare il Changelog d
 
 ### actions InfraSDiscount class ###
 PDFInfraSDiscountWarningMaxVersion = <center><br>La tua versione di Dolibarr (%s) non è ancora supportata dal modulo InfraSDiscount %s.<br>La versione massima di Dolibarr supportata è la versione %s.<br>Utilizzi quindi questo modulo senza garanzia di corretto funzionamento.</center>
+
 ### Popup ###
 InfraSDiscountLabelBox              = Inserisci uno sconto globale
 InfraSDiscountDiscountValue         = Tasso di sconto o importo fisso

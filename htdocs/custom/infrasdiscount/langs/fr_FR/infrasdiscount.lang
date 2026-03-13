@@ -4,7 +4,6 @@ basenameInfraSDiscount          = InfraS
 modcomnameInfrasdiscount        = InfraSMultiDiscount
 Module500058Name                = Saisie de remises
 Module500058Desc                = Permet de saisir rapidement des remises globales, en cascade ou en valeur sur les devis, commandes et factures. Gère le multi-devises
-easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Version minimum de Dolibarr nécessaire
 NewVersionAvailable             = Dernière version disponible
 PiloteVersion                   = Version pilote
@@ -85,6 +84,7 @@ InfraSDiscountParamPreferedPartner2     = Preferred Partner, gage de qualité et
 InfraSDiscountParamHistoryUpdates       = <b>Historique des mises à jour :</b>
 InfraSDiscountParamSkipCheck            = Téléchargement désactivé
 InfraSDiscountParamNumberVersion        = N° de version
+InfraSDiscountParamDolinfrasVersion     = N° de version LTS
 InfraSDiscountParamMonthVersion         = Date
 InfraSDiscountParamChangesVersion       = Modifications
 InfraSDiscountParamCheckNewVersion      = Nouveau Changelog
@@ -92,6 +92,7 @@ InfraSDiscountParamCheckNewVersionTitle = Cliquez pour télécharger le changelo
 
 ### actions InfraSDiscount class ###
 PDFInfraSDiscountWarningMaxVersion = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSDiscount %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
+
 ### Popup ###
 InfraSDiscountLabelBox              = Saisir une remise globale
 InfraSDiscountDiscountValue         = Taux de remise ou Montant fixe

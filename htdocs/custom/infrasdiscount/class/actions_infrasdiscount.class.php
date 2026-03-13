@@ -46,6 +46,7 @@
 		{
 			$this->db	= $db;
 		}
+
 		/**
 		* When login (../main.inc.php)
 		*
@@ -58,6 +59,7 @@
 		public function afterLogin($parameters, &$object, &$action, $hookmanager)
 		{
 			global $langs;
+
 			$currentversion	= array();
 			$currentversion	= infrasdiscount_getLocalVersionMinDoli('infrasdiscount');
 			if (!getDolGlobalString('INFRASDISCOUNT_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {

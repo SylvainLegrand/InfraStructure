@@ -127,7 +127,7 @@
 			$currentversion[5]	= (string) $sxe->PHP->attributes()->minVersion;
 			$currentversion[6]	= (string) $sxe->PHP->attributes()->maxVersion;
 		} else {
-			$currentversion[0]	= '<font color = red><b>'.$langs->trans('InfraSDiscountChangelogXMLError').'</b></font>';
+			$currentversion[0]	= '<span class = "infrasdiscountCaution"><b>'.$langs->trans('InfraSDiscountChangelogXMLError').'</b></span>';
 			$currentversion[1]	= $langs->trans('InfraSDiscountnoMinDolVersion');
 			$currentversion[2]	= -1;
 			$currentversion[3]	= $langs->trans('InfraSDiscountChangelogXMLError');
@@ -140,6 +140,26 @@
 			}
 		}
 		return $currentversion;
+	}
+
+	/**
+	* Read the Dolibarr VERSION file and store its value in the DOLINFRAS_VERSION constant
+	*
+	* @return	string		Version string read from VERSION file, or empty string on failure
+	**/
+	function infrasdiscount_getVersionDolinfras()
+	{
+		global $db, $conf;
+
+		$version	= '';
+		$file		= DOL_DOCUMENT_ROOT.'/VERSION';
+		if (is_file($file)) {
+			$version = trim(file_get_contents($file));
+		}
+		if (!empty($version) && getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
+			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'InfraSDiscount module', $conf->entity);
+		}
+		return $version;
 	}
 
 	/**
@@ -902,6 +922,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 						<tr class = "oddeven">
 							<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('DolibarrVersion').'</td>
 							<td class = "infrasdiscountchangelogbase">'.DOL_VERSION.'</td>
+						</tr>
+						<tr class = "oddeven">
+							<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('InfraSDiscountParamDolinfrasVersion').'</td>
+							<td class = "infrasdiscountchangelogbase">'.getDolGlobalString('DOLINFRAS_VERSION', '').'</td>
 						</tr>
 						<tr class = "oddeven">
 							<td class = "width400 infrasdiscountchangelogbase">'.$langs->trans('ModuleVersion').'</td>

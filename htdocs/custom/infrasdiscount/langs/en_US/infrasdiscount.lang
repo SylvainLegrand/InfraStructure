@@ -4,7 +4,6 @@ basenameInfraSDiscount          = InfraS
 modcomnameInfrasdiscount        = InfraSMultiDiscount
 Module500058Name                = Discount Entry
 Module500058Desc                = Allows you to quickly enter global, cascading, or value discounts on quotes, orders, and invoices. Supports multi-currency
-easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Minimum required Dolibarr version
 NewVersionAvailable             = Latest available version
 PiloteVersion                   = Pilot version
@@ -77,7 +76,7 @@ InfraSDiscountParamSlogan               = Structure your growth!
 InfraSDiscountParamLienModules          = Our Modules
 InfraSDiscountParamSupport              = Support request
 InfraSDiscountParamLienDocs             = Our Documentations
-InfraSDiscountParamLicense              = Under LPG V3 and Superior License
+InfraSDiscountParamLicense              = Under GPL V3 and Superior License
 InfraSDiscountParamMoreModulesLink      = Our dolistore modules
 InfraSDiscountParamObjet                = <h3> objet: </ h3>
 InfraSDiscountParamPreferedPartner1     = Member of the official program
@@ -85,6 +84,7 @@ InfraSDiscountParamPreferedPartner2     = Preferred Partner, guarantee of qualit
 InfraSDiscountParamHistoryUpdates       = <b> History of updates: </b>
 InfraSDiscountParamSkipCheck            = Download Disabled
 InfraSDiscountParamNumberVersion        = Version number
+InfraSDiscountParamDolinfrasVersion     = LTS version number
 InfraSDiscountParamMonthVersion         = Date
 InfraSDiscountParamChangesVersion       = Modifications
 InfraSDiscountParamCheckNewVersion      = New Changelog
@@ -92,6 +92,7 @@ InfraSDiscountParamCheckNewVersionTitle = Click to download the Changelog of the
 
 ### actions InfraSDiscount class ###
 PDFInfraSDiscountWarningMaxVersion = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSDiscount %s module.<br>The maximum version of Dolibarr supported is version %s.<br>You therefore use this module without guarantee of proper functioning.</center>
+
 ### Popup ###
 InfraSDiscountLabelBox              = Enter a global discount
 InfraSDiscountDiscountValue         = Discount rate or fixed amount

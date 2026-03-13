@@ -297,3 +297,4 @@ img.infrasdiscountwidthpictotitle {
 .infrasdiscountfontsizeinherit {
 	font-size: inherit;
 }
+

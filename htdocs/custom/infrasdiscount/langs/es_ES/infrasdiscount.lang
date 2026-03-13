@@ -4,7 +4,6 @@ basenameInfraSDiscount          = InfraS
 modcomnameInfrasdiscount        = InfraSMultiDiscount
 Module500058Name                = Agregar descuento (descuentos globales)
 Module500058Desc                = Permite introducir rápidamente descuentos globales, en cascada o por valor en cotizaciones, pedidos y facturas. Compatible con múltiples divisas.
-easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Se requiere una versión mínima de Dolibarr
 NewVersionAvailable             = Última versión disponible
 PiloteVersion                   = Versión piloto
@@ -14,7 +13,7 @@ InfraSDiscountXMLextError       = <br><center>La extensión PHP 'XML' no está c
 InfraSDiscountChangelogXMLError = Error changelog.xml
 InfraSDiscountnoMinDolVersion   = No hay versión mínima conocida
 InfraSDiscountnoMaxDolVersion   = No hay versión máxima conocida
-InfraSSupportInformation        = Informacion tecnica
+InfraSSupportInformation        = Información técnica
 
 ### Permissions ###
 InfraSDiscountPermMenu    = Visualiza menú secundario a la configuración del módulo (usuario no administrador)
@@ -77,7 +76,7 @@ InfraSDiscountParamSlogan               = Estructura tu crecimiento!
 InfraSDiscountParamLienModules          = Módulos NOS
 InfraSDiscountParamSupport              = Solicitud de soporte
 InfraSDiscountParamLienDocs             = Documentación de NOS
-InfraSDiscountParamLicense              = Bajo LPG V3 y licencia superior
+InfraSDiscountParamLicense              = Bajo GPL V3 y licencia superior
 InfraSDiscountParamMoreModulesLink      = Nuestros módulos Dolistore
 InfraSDiscountParamObjet                = <h3> objetón: </h3>
 InfraSDiscountParamPreferedPartner1     = Miembro del programa oficial
@@ -85,6 +84,7 @@ InfraSDiscountParamPreferedPartner2     = Preferred Partner, garantía de calida
 InfraSDiscountParamHistoryUpdates       = <b> Historial de actualizaciones: </b>
 InfraSDiscountParamSkipCheck            = Descargar discapacitados
 InfraSDiscountParamNumberVersion        = Número de versión
+InfraSDiscountParamDolinfrasVersion     = N.º de versión LTS
 InfraSDiscountParamMonthVersion         = Fecha
 InfraSDiscountParamChangesVersion       = Modificaciones
 InfraSDiscountParamCheckNewVersion      = NUEVO CHANGELOG
@@ -92,6 +92,7 @@ InfraSDiscountParamCheckNewVersionTitle = Haga clic para descargar el ChangeLog 
 
 ### actions InfraSDiscount class ###
 PDFInfraSDiscountWarningMaxVersion = <center><br>Su versión de Dolibarr (%s) aún no es compatible con el módulo InfraSDiscount %s.<br>La versión máxima de Dolibarr admitida es la versión %s.<br>Por lo tanto, utiliza este módulo sin garantía de funcionamiento adecuado.</center>
+
 ### Popup ###
 InfraSDiscountLabelBox              = Ingrese un descuento global
 InfraSDiscountDiscountValue         = Tasa de descuento o cantidad fija
