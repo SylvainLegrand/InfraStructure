@@ -90,6 +90,7 @@ Dans `core/modules/modinfrastechinfos.class.php` :
 ### Désactivation (Lifecycle : `remove()`)
 
 `remove()` effectue :
+
 - sauvegarde module (`infrastechinfos_bkup_module`),
 - suppression des constantes `INFRASTECHINFOS_%` de l'entité courante.
 
@@ -102,9 +103,12 @@ Le module s'appuie sur :
 - `infrastechinfosAdmin.lib.php` pour les fonctions admin (onglets, changelog, backup/restore, vérification de mise à jour, UI helpers).
 
 ### Types de données techniques
+
 Deux catégories de données sont traitées :
+
 1. **Produits** (`product_type=0`) : dimensions (L×l×H), surface, volume et poids — avec calcul du total par quantité et agrégation par document
 2. **Services** (`product_type=1`) : durées — avec conversion en secondes et totalisation par document
+
 ### Conversions d'unités (Unit conversion)
 
 Produits — unités exotiques auto-converties en SI avant agrégation :
@@ -123,6 +127,7 @@ Produits — unités exotiques auto-converties en SI avant agrégation :
 Unités standard (code < 50) : facteur = `pow(10, code)` (puissance de 10 de l'unité officielle).
 
 Services — conversion de durées en secondes :
+
 | Unité | Code | Multiplicateur |
 |-------|------|---------------|
 | Heures | `h` | 3600 |
@@ -130,14 +135,17 @@ Services — conversion de durées en secondes :
 | Semaines | `w` | `MAIN_DURATION_OF_WORKDAY` × `INFRASTECHINFOS_DURATION_OF_WORKWEEK` |
 | Mois | `m` | 0 (non convertible — avertissement affiché) |
 | Années | `y` | 0 (non convertible — avertissement affiché) |
+
 ## Hooks et comportement (Hook behavior)
 
 La classe `Actionsinfrastechinfos` intervient sur les contextes `propalcard`, `ordercard`, `expeditioncard`, `supplier_proposalcard`, `ordersuppliercard` :
+
 - `afterLogin` : vérifie la version max Dolibarr supportée
     via `explode('.', DOL_VERSION)[0]` vs `explode('.', maxVersion)[0]`
 - `addMoreActionsButtons` : injection d'un tableau technique repliable sur les fiches documents
 
 ### Flux des hooks (Hook workflow)
+
 ```
 L'utilisateur accède à une fiche document (devis/commande/expédition/demande prix fournisseur/commande fournisseur)
     ↓
@@ -166,11 +174,13 @@ Affichage du tableau HTML avec jQuery toggle (.foldable_ti)
 ### Modes d'affichage des durées
 
 Trois modes contrôlés par constantes :
+
 | Mode | Constante | Comportement |
 |------|-----------|-------------|
 | Détaillé | `INFRASTECHINFOS_ONLY_TOTAL_TIME = 0` | Tableau complet avec chaque ligne de service |
 | Total seul | `INFRASTECHINFOS_ONLY_TOTAL_TIME = 1` | Une seule ligne avec la liste des N° de lignes et le total |
 | En jours | `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS = 1` | Total affiché en semaines/jours/heures au lieu d'heures/minutes |
+
 ## Données / SQL (Data model)
 
 Le module ne crée aucune table SQL propre. Toute la configuration est stockée dans `llx_const`.
@@ -179,6 +189,7 @@ Fichier SQL :
 - `data.sql` : constantes initiales (`INFRASTECHINFOS_DURATION_OF_WORKWEEK`, `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS`, `INFRASTECHINFOS_ONLY_TOTAL_TIME`)
 
 Le module est stateless et lit uniquement les données produit/service existantes de Dolibarr (`llx_product`).
+
 ## Constantes de configuration (Key settings)
 
 Constantes actives usuelles :
@@ -262,6 +273,7 @@ sinon                    → unité de base
 ### Flux de calcul dans le hook (Calculation flow in hook)
 
 Le hook `addMoreActionsButtons` parcourt toutes les lignes du document :
+
 **Pour les produits (type=0)** :
 1. Charge le produit via `Product::fetch($idprod)`
 2. **Dimensions** : concatène L×l×H avec l'unité (`measuring_units_string`)
@@ -347,7 +359,6 @@ La fonction `infrastechinfos_getLocalVersionMinDoli()` parse ce XML et retourne 
 
 **`getLocalVersion()`** effectue :
 1. Vérifie l'extension PHP XML via `INFRAS_PHP_EXT_XML`
-
 2. Parse `docs/changelog.xml` via `infrastechinfos_getLocalVersionMinDoli()`
 3. Définit `need_dolibarr_version`, `phpmin`, `phpmax`
 4. Désactive le module si `DOL_VERSION < minVersion` (sauf si `INFRASTECHINFOS_DISABLE_CHECK_VERSION_MIN`)
@@ -404,11 +415,14 @@ Les dimensions du document sont basées sur `$object->lines[$i]->ref`, `$object-
 5. Les unités exotiques (lb, oz) sont automatiquement converties en kg
 
 #### Cas 2 : Totalisation des durées de services sur un devis
+
 1. Créer un devis avec plusieurs lignes de services ayant des durées différentes (heures, jours, semaines)
 2. Le tableau calcule le total en secondes en utilisant les facteurs de conversion configurés
 3. Le total est affiché en heures:minutes (ou semaines/jours/heures si `INFRASTECHINFOS_TOTAL_TIME_IN_DAYS=1`)
 4. Si une ligne utilise des mois ou années, un avertissement rouge est affiché
+
 #### Cas 3 : Configuration des durées de travail
+
 1. Accéder à l'admin du module (Outils → InfraS → Paramètres)
 2. Ajuster la durée de la journée de travail (`MAIN_DURATION_OF_WORKDAY`, en secondes)
 3. Ajuster le nombre de jours par semaine (`INFRASTECHINFOS_DURATION_OF_WORKWEEK`)

@@ -60,7 +60,9 @@
 		public function afterLogin($parameters, &$object, &$action, $hookmanager)
 		{
 			global $langs;
+
 			$langs->load('infrastechinfos@infrastechinfos');
+
 			$currentversion	= array();
 			$currentversion	= infrastechinfos_getLocalVersionMinDoli('infrastechinfos');
 			if (!getDolGlobalString('INFRASTECHINFOS_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
