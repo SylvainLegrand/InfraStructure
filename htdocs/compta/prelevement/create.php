@@ -153,7 +153,7 @@ $error = 0;
 $option = "";
 $mesg = '';
 
-$object = new BonPrelevement($db);
+$object = new BonPrelevement($db);	// InfraS add
 
 /*
  * Actions
@@ -529,21 +529,19 @@ print '<br>';
  * Invoices waiting for withdraw
  */
 if ($sourcetype != 'salary') {
-	// Infras add begin
-	$sql = "SELECT f.ref, f.rowid, f.datef, f.date_lim_reglement as datelimite, f.total_ttc, f.fk_account, s.nom as name, s.rowid as socid,"; 
+	$sql = "SELECT f.ref, f.rowid, f.datef, f.date_lim_reglement as datelimite, f.total_ttc, f.fk_account, s.nom as name, s.rowid as socid,";	// InfraS change
 	if ($type == 'bank-transfer') {
 		$sql .= " f.ref_supplier,";
 	}
 	$sql .= " pd.rowid as request_row_id, pd.date_demande, pd.amount, pd.fk_societe_rib as soc_rib_id";
 	if ($type == 'bank-transfer') {
-		$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f";
+		$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f,";
 	} else {
-		$sql .= " FROM ".MAIN_DB_PREFIX."facture as f";
+		$sql .= " FROM ".MAIN_DB_PREFIX."facture as f,";
 	}
-	$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_account AS ba ON f.fk_account = ba.rowid";
-	// Infras add end
-	$sql .= ", ".MAIN_DB_PREFIX."societe as s";
-	$sql .= ", ".MAIN_DB_PREFIX."prelevement_demande as pd";
+	$sql .= " ".MAIN_DB_PREFIX."societe as s,";
+	$sql .= " ".MAIN_DB_PREFIX."prelevement_demande as pd";
+	$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_account AS ba ON f.fk_account = ba.rowid";	// InfraS add
 	$sql .= " WHERE s.rowid = f.fk_soc";
 	$sql .= " AND f.entity IN (".getEntity('invoice').")";
 	if (!getDolGlobalString('WITHDRAWAL_ALLOW_ANY_INVOICE_STATUS')) {
@@ -748,7 +746,7 @@ if ($resql) {
 	if ($type != '') {
 		print '<input type="hidden" name="type" value="'.$type.'">';
 		}
-	}
+	}	// InfraS add
 	$title = $langs->trans("InvoiceWaitingWithdraw");
 	$picto = 'bill';
 	if ($type == 'bank-transfer') {
@@ -940,7 +938,7 @@ if ($resql) {
 		print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
 	}
 	print '</tr>';
-	}
+	}	// InfraS add
 	if ($num) {
 		if ($sourcetype != 'salary') {
 			require_once DOL_DOCUMENT_ROOT.'/societe/class/companybankaccount.class.php';
@@ -991,10 +989,10 @@ if ($resql) {
 				if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) { // Infras add
 					$selected = 1;
 				}
-				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';
+				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';	// InfraS change
 				print '</td>';
 			}
-			// Infras add begin
+			// Infras change begin
 			if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
 				// Extended display with arrayfields
 				// Ref invoice
@@ -1163,11 +1161,11 @@ if ($resql) {
 					print $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
 					if ($bac->verif() <= 0) {
 						print img_warning('Error on default bank number for IBAN : '.$langs->trans($bac->error));
-						}
-						if ($obj->soc_rib_id > 0) {
-							print $form->textwithpicto('', $langs->trans("BankAccountForcedOnRequest"));
-						} else {
-							print $form->textwithpicto('', $langs->trans("BankAccountUsedByDefault").'<br><b>'.$langs->trans("Label").'</b> : '.$bac->label.'<br><b>'.$langs->trans("BankName").'</b> : '.$bac->bank, 1, 'help', 'valigmiddle warning');
+					}
+					if ($obj->soc_rib_id > 0) {
+						print $form->textwithpicto('', $langs->trans("BankAccountForcedOnRequest"));
+					} else {
+						print $form->textwithpicto('', $langs->trans("BankAccountUsedByDefault").'<br><b>'.$langs->trans("Label").'</b> : '.$bac->label.'<br><b>'.$langs->trans("BankName").'</b> : '.$bac->bank, 1, 'help', 'valigmiddle warning');
 					}
 				} else {
 					print img_warning($langs->trans("IBANNotDefined"));
@@ -1210,12 +1208,12 @@ if ($resql) {
 			print dol_print_date($db->jdate($obj->date_demande), 'day');
 			print '</td>';
 			}
-			// Infras add end
+			// Infras change end
 			// Action column
 			if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
 				print '<td class="nowrap center">';
 				$selected = 0;
-				if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) {
+				if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) {	// InfraS change
 					$selected = 1;
 				}
 				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';
