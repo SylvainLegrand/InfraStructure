@@ -83,7 +83,8 @@
 																 ),
 											'tpl'		=> 1,
 											'triggers'	=> 1,
-											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php')
+											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php'),
+											'js'		=> array('js' => '/'.$this->name.'/js/'.$this->name.'.js')
 											);
 			$this->dirs				= array('/mycompany/logos/thumbs',
 											'/'.$this->name.'/fonts',

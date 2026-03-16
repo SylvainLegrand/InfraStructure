@@ -186,6 +186,26 @@
 	}
 
 	/**
+	* Read the Dolibarr VERSION file and store its value in the DOLINFRAS_VERSION constant
+	*
+	* @return	string		Version string read from VERSION file, or empty string on failure
+	**/
+	function infraspackplus_getVersionDolinfras()
+	{
+		global $db, $conf;
+
+		$version	= '';
+		$file		= DOL_DOCUMENT_ROOT.'/VERSION';
+		if (is_file($file)) {
+			$version = trim(file_get_contents($file));
+		}
+		if (!empty($version) && getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
+			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+		}
+		return $version;
+	}
+
+	/**
 	* Function called to check module name from local changelog
 	* Control of the min version of Dolibarr needed and get versions list
 	*
