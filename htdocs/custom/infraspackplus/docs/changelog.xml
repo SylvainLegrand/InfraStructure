@@ -1760,7 +1760,12 @@
 	</Version>
 	<Version Number="18.14.9" MonthVersion="2026-03">
 		<change type='fix'>Correction de la comparaison de version max Dolibarr : utilisation du numéro de branche majeur uniquement</change>
+		<change type='fix'>Compatibilité avec PHP 8.4</change>
 		<change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
+	</Version>
+	<Version Number="18.14.10" MonthVersion="2026-03">
+		<change type='fix'>Simplification de la fonction infraspackplus_is_substitution_page() : utilisation de strpos() au lieu de regex complexe</change>
+		<change type='chg'>Ajout de la fonction infraspackplus_getSubstitutionRedirectUrl() pour gérer les redirections avec filtrage des paramètres GET (exclusion du token CSRF)</change>
 	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="23.x.x"/>

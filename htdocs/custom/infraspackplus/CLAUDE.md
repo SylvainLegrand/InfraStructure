@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `23.0.4`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.14.8` (2026-02)
+- Dernière version locale : `18.14.10` (2026-03)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 

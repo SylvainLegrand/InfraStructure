@@ -80,17 +80,11 @@
 		**/
 		function updateSession($parameters, $user, $action)
 		{
-			global $user;
-
-			$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT,'/').'/i','', $_SERVER['PHP_SELF']);
-			if (!infraspackplus_is_substitution_page($path_src)) {
-				$url = infraspackplus_get_substitution_url($path_src);
-				if (!empty($url)) {
-					$params	= array_merge($_POST, $_GET);
-					$params	= http_build_query($params);
-					header('Location: '.$url.(!empty($params) ? '?'.$params : ''));
-					exit;
-				}
+			$redirect_url	= infraspackplus_getSubstitutionRedirectUrl();
+			if (!empty($redirect_url)) {
+				session_write_close();
+				header('Location: '.$redirect_url);
+				exit;
 			}
 			return 0; // or return 1 to replace standard code
 		}
@@ -114,15 +108,13 @@
 				setEventMessages($langs->trans('PDFInfraSPlusWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
 			}
 			infraspackplus_test_new_fields('infraspackplus');	// Check the database configuration
-			$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT,'/').'/i','', $_SERVER['PHP_SELF']);
-			if (!infraspackplus_is_substitution_page($path_src)) {
-				$url = infraspackplus_get_substitution_url($path_src);
-				if (!empty($url)) {
-					$params	= array_merge($_POST, $_GET);
-					$params	= http_build_query($params);
-					header('Location: '.$url.(!empty($params) ? '?'.$params : ''));
-					exit;
-				}
+			$redirect_url	= infraspackplus_getSubstitutionRedirectUrl();
+			if (!empty($redirect_url)) {
+				// Commit the DB transaction opened by main.inc.php (update_last_login_date + USER_LOGIN trigger)
+				$this->db->commit();
+				session_write_close();
+				header('Location: '.$redirect_url);
+				exit;
 			}
 			return 0;
 		}

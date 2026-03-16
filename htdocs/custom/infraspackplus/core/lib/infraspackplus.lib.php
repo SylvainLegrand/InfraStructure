@@ -1116,12 +1116,23 @@
 	**/
 	function infraspackplus_is_substitution_page($path)
 	{
-		global $dolibarr_main_url_root_alt;
-
-		if (preg_match('/^\/(|'.preg_quote(trim($dolibarr_main_url_root_alt, '/'), '/').'\/)substitutionpages/i', $path) == 1) {
+		if (strpos($path, 'infraspackplus/substitutionpages/') !== false) {
 			return true;
 		}
 		return false;
+	}
+
+    /**
+	* Get const name from substitution path
+	*
+	* @param	string	$path	Relative path from the root of Dolibarr of the page to be substituted.
+	*
+	* @return	string		Substitution url or empty
+	**/
+	function infraspackplus_get_const_name_from_substitution_path($path)
+	{
+		$const_name	= 'INFRASPACKPLUS_PS_ACTIVE'.strtoupper(str_replace('/', '_', str_replace('.php', '', $path)));
+		return $const_name;
 	}
 
 	/**
@@ -1133,8 +1144,6 @@
 	**/
 	function infraspackplus_get_substitution_url($path)
 	{
-		global $conf;
-
 		$const_name	= infraspackplus_get_const_name_from_substitution_path($path);
 		if (getDolGlobalString($const_name, '')) {
 			$dolibranch		= explode('.', DOL_VERSION);
@@ -1148,19 +1157,6 @@
 			}
 		}
 		return '';
-	}
-
-	/**
-	* Get const name from substitution path
-	*
-	* @param	string	$path	Relative path from the root of Dolibarr of the page to be substituted.
-	*
-	* @return	string		Substitution url or empty
-	**/
-	function infraspackplus_get_const_name_from_substitution_path($path)
-	{
-		$const_name = 'INFRASPACKPLUS_PS_ACTIVE'.strtoupper(str_replace('/', '_', str_replace('.php', '', $path)));
-		return $const_name;
 	}
 
 	/**
