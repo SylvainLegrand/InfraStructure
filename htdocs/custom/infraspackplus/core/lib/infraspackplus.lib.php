@@ -1160,6 +1160,29 @@
 	}
 
 	/**
+	* Get substitution redirect URL with filtered query params
+	*
+	* @return	string		Redirect URL or empty string if no redirect needed
+	**/
+	function infraspackplus_getSubstitutionRedirectUrl()
+	{
+		$path_src	= preg_replace('/^'.preg_quote(DOL_URL_ROOT, '/').'/i', '', $_SERVER['PHP_SELF']);
+		if (infraspackplus_is_substitution_page($path_src)) {
+			return '';
+		}
+		$url	= infraspackplus_get_substitution_url($path_src);
+		if (empty($url)) {
+			return '';
+		}
+		// Forward only GET params (not POST which may contain login credentials)
+		// Exclude token (CSRF) which is page-specific and would be invalid on redirect target
+		$params	= $_GET;
+		unset($params['token']);
+		$query	= http_build_query($params);
+		return $url.(!empty($query) ? '?'.$query : '');
+	}
+
+	/**
 	* Get list of product in warehouse
 	*
 	*	@param	int			$id		Object warehouse ID
