@@ -105,6 +105,6 @@
 		<change type='chg'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
 	</Version>
 	<InfraS Downloaded="20260301"/>
-	<Dolibarr minVersion="15.0.0" maxVersion="21.x.x"/>
+	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
