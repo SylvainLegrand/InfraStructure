@@ -160,6 +160,9 @@ if($objectType == "societe") {
 	$upload_dir = $conf->{$modulepart}->multidir_output[$object->entity] . '/' . dol_sanitizeFileName($object->ref);
 } elseif (isset($conf->{$modulepart}->dir_output)) {
 	$upload_dir = $conf->{$modulepart}->dir_output . '/' . dol_sanitizeFileName($object->ref);
+} elseif (!empty($hallobj['pdfpath'])) {
+	// Fallback: use pdfpath from uptosign_handle_all_type_of_objects (handles ficheinter, etc.)
+	$upload_dir = $hallobj['pdfpath'] . '/' . dol_sanitizeFileName($object->ref);
 }
 if (empty($pdfFileChoosed)) {
 	if (!empty($pdfFileName)) {
@@ -520,15 +523,13 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		// Send
 		$api_name = uptosign_unify_api_name($signOrSeal);
-		// InfraS add begin
 		// Construct full path if not yet set (when pdfFileChoosed comes from GET parameter)
 		if (empty($pdfFileChoosedFullPath) && !empty($pdfFileChoosed) && !empty($upload_dir)) {
 			$pdfFileChoosedFullPath = dol_osencode(dol_sanitizePathName($upload_dir . '/' . $pdfFileChoosed));
 		}
 		// Convert to relative path to match DB storage (uptosign stores relative paths via uptosign_relative_path)
 		$pathFileFilter = !empty($pdfFileChoosedFullPath) ? uptosign_relative_path($pdfFileChoosedFullPath) : '';
-		// InfraS add end
-		$result = $uptoSign->fetchByObject((int) $id, uptosign_unify_object_type($modulepart), array('api_name' => $api_name, 'path_file' => $pathFileFilter));	// InfraS change
+		$result = $uptoSign->fetchByObject((int) $id, uptosign_unify_object_type($modulepart), array('api_name' => $api_name, 'path_file' => $pathFileFilter));
 		$signed = false;
 		// print "<p>UptoSignSignedNoModify : "  .  json_encode($result). "</p>";
 		// print json_encode($uptoSign);
