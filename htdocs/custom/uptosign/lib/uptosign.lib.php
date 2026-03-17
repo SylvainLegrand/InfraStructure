@@ -2109,6 +2109,8 @@ function uptosignFindFileToUse(CommonObject $obj, $last_main_doc)
 		$dir = $conf->contrat->dir_output;
 	} elseif ($obj->element == 'facture') {
 		$dir = $conf->invoice->dir_output;
+	} elseif ($obj->element == 'fichinter') {
+		$dir = $conf->ficheinter->dir_output;
 	} elseif ($obj->element == 'project') {
 		$dir = $conf->projet->dir_output;
 	}
@@ -2142,7 +2144,14 @@ function uptosignListOfFilesLinkedTo(CommonObject $obj)
 	// dol_syslog("ecm :: " . json_encode($filearray));
 	require_once DOL_DOCUMENT_ROOT . '/ecm/class/ecmfiles.class.php';
 	$ecmfile = new EcmFiles($obj->db);
-	$result = $ecmfile->fetchAll('', '', 0, 0, array('t.src_object_type' => $obj->element, 't.src_object_id' => $obj->id));
+	// Check Dolibarr version to adapt options syntax for extrafields (use of Universal Search Criteria in v20.0.0 and later)
+	$isV20p = version_compare(DOL_VERSION, "20.0.0") >= 0;
+	if ($isV20p) {
+		$filter	= "(t.src_object_type:=:'".$obj->db->escape($obj->table_element)."') AND (t.src_object_id:=:".((int) $obj->id).")";
+	} else {
+		$filter	= "t.src_object_type = '".$obj->db->escape($obj->table_element)."' AND t.src_object_id = ".((int) $obj->id);
+	}
+	$result = $ecmfile->fetchAll('', '', 0, 0, $filter);
 	$filearray = array();
 	if (is_array($ecmfile->lines) && count($ecmfile->lines) > 0) {
 		foreach ($ecmfile->lines as $key => $fileEntry) {
@@ -2564,7 +2573,7 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		} else {
 			dol_syslog("uptoSignGetSpecimen delivery object is for Dolibarr 13.0", LOG_WARNING);
 		}
-	} elseif ($objectType == 'ficheinter') {
+	} elseif ($objectType == 'ficheinter'|| $objectType == 'intervention') {
 		require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 		$object = new Fichinter($db);
 		$modulepart = "fichinter";
