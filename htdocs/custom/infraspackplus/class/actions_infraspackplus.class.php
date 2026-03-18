@@ -1684,7 +1684,7 @@ EOJS;
 						$text					= $product_static->getNomUrl(1);
 						if (getDolGlobalString('MAIN_MULTILANGS', '')) {	// Define output language and label
 							if (property_exists($object, 'socid') && !is_object($object->thirdparty)) {
-								dol_print_error('', 'Error: Method printObjectLine was called on an object and object->fetch_thirdparty was not done before');
+								dol_print_error(null, 'Error: Method printObjectLine was called on an object and object->fetch_thirdparty was not done before');
 								return 0;
 							}
 							$prod			= new Product($db);

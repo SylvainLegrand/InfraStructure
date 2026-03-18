@@ -38,7 +38,6 @@
 	************************************************/
 	class pdf_InfraSPlus_CT extends ModelePDFContract
 	{
-		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
@@ -58,9 +57,13 @@
 		public $option_draft_watermark;
 		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
 		public $type;
-		public $phpmin	= array(7, 4);
 		public $emetteur;
 		public $atleastonediscount;
+		public $tva;
+		public $tva_array;
+		public $localtax1;
+		public $localtax2;
+		public $atleastoneratenotnull;
 		public $use_fpdf;
 		public $main_umask;
 		public $page_largeur;
@@ -74,6 +77,13 @@
 		public $use_iso_location;
 		public $dash_between_line;
 		public $product_use_unit;
+		public $hide_vat_ifnull;
+		public $vat_label_code_or_rate;
+		public $chq_num;
+		public $diffsize_title;
+		public $hidechq_address;
+		public $rib_num;
+		public $text_TVA_auto;
 		public $multi_files;
 		public $font;
 		public $headertxtcolor;
@@ -102,6 +112,7 @@
 		public $code_cli_compt_frm;
 		public $add_creator_in_header;
 		public $fold_mark;
+		public $hide_info_cur;
 		public $tblLineW;
 		public $tblLineDash;
 		public $tblLineColor;
@@ -109,11 +120,16 @@
 		public $verLineColor;
 		public $showverline;
 		public $horLineColor;
+		public $subti_with_subto;
 		public $lineSep_hight;
 		public $show_num_col;
 		public $force_align_left_ref;
+		public $picture_in_ref;
+		public $picture_replace_ref;
 		public $force_align_left_unit;
 		public $desc_full_line;
+		public $show_desc;
+		public $hidden_ouv;
 		public $only_one_desc;
 		public $hide_qty;
 		public $hide_up;
@@ -123,6 +139,7 @@
 		public $hide_vat_col;
 		public $show_ttc_vat_tot;
 		public $hide_vat;
+		public $only_ttc;
 		public $larg_ref;
 		public $larg_qty;
 		public $larg_unit;
@@ -144,11 +161,28 @@
 		public $num_progress;
 		public $num_totalht;
 		public $num_totalttc;
+		public $ht_space_info;
+		public $ht_space_tot;
+		public $show_paymenttermcond_2l;
+		public $show_qty_prod_tot;
+		public $efPaySpec;
+		public $IBAN_with_CB;
+		public $IBAN_All;
+		public $bank_only_number;
+		public $invert_bg_ht_ttc;
+		public $show_disc_tot;
+		public $show_disc_ttc;
+		public $show_tot_local_cur;
+		public $show_tot_Cur_Symb;
+		public $number_words;
+		public $listPrefixEcotax;
+		public $exfEcoTax;
 		public $ht_signarea;
 		public $signLineW;
 		public $signLineDash;
 		public $signLineColor;
 		public $e_signing;
+		public $free_text_end;
 		public $type_foot;
 		public $hidepagenum;
 		public $maxsizeimgfoot;
@@ -159,6 +193,7 @@
 		public $linkpictureurl;
 		public $old_path_photo;
 		public $cat_hq_image;
+		public $alpha;
 		public $exftxtcolor;
 		public $exfltxtcolor;
 		public $logo;
@@ -179,7 +214,6 @@
 		public $showwvccchk;
 		public $show_tot_disc;
 		public $signvalue;
-		public $hideInnerLines;
 		public $stdLineW = 0.2; // Default line width in TCPDF = 0.2
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
@@ -197,8 +231,6 @@
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $signLineStyle = array();
 		public $TotRem = array('HT' => 0, 'TTC' => 0, 'multicurrency_HT' => 0, 'multicurrency_TTC' => 0);
-		public $hasService = 0;
-		public $hasProduct = 0;
 		public $only_ht;
 		public $use_multicurrency;
 		public $larg_util_cadre;
@@ -235,6 +267,9 @@
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
+		public $largcol11;
+		public $posystamp;
+		public $typeadr;
 
 
 		/**
@@ -844,12 +879,21 @@
 								$pagenb++;
 								$pdf->setPage($pagenb);
 								$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
+								// Save auto-break content so watermark goes behind it (z-order fix)
+								$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
 								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 								if (empty($this->small_head2)) {
 									$this->_pagehead($pdf, $object, 0, $outputlangs);
 								} else {
 									$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 								}
+								// Restore auto-break content after watermark/header
+								if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+									$pdf->dropPageContent($savedContent);
+								}
+								// Restore grayscale FillColor after _pagehead to keep ColorFlag true
+								$pdf->SetFillColor(255);
+								$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 							}
 							if (isset($object->lines[$i + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
 								$this->heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 0);
@@ -869,6 +913,9 @@
 								} else {
 									$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 								}
+								// Restore grayscale FillColor after _pagehead to keep ColorFlag true
+								$pdf->SetFillColor(255);
+								$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 								$nextY	= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
 							}
 						}

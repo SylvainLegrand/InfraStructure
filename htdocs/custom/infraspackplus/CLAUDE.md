@@ -15,7 +15,7 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS
 - Numéro module : `550000`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `18.0.0` à `23.0.4`
+- Compatibilité Dolibarr : `18.0.0` à `23.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
 - Dernière version locale : `18.14.10` (2026-03)
 - Dépendance obligatoire : `modECM`
@@ -48,7 +48,8 @@ htdocs/custom/infraspackplus/
 ├── backport/
 ├── class/
 │   ├── actions_infraspackplus.class.php
-│   └── address.class.php
+│   ├── address.class.php
+│   └── tcpdf_infrasplus.class.php
 ├── comm/
 ├── config.php
 ├── core/
@@ -126,6 +127,7 @@ Le module s’appuie sur :
 - `actions_infraspackplus.class.php` pour les hooks de génération PDF et substitutions,
 - `infraspackplus.lib.php` pour la logique transverse,
 - `infraspackplus.pdf.lib.php` pour le rendu PDF,
+- `tcpdf_infrasplus.class.php` pour les surcharges TCPDF/TCPDI (correction `ColorFlag` et z-order),
 - `address.class.php` pour la gestion multi-adresses tiers,
 - le trigger `interface_90_modinfraspackplus_Infraspackplustrigger.class.php` (évènements société).
 
@@ -201,6 +203,11 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - `18.14.8` (2026-02) : variable `cookieName` déplacée au scope script (hors `jQuery(document).ready()`) pour accès inter-closures
 - `18.14.9` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
 - `18.14.9` (2026-03) : Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques
+- `18.14.10` (2026-03) : correction des lignes de remise PDF — utilisation de la description comme label quand le label de ligne est vide
+- `18.14.10` (2026-03) : nouvelle fonction `infraspackplus_getSubstitutionRedirectUrl()` pour les redirections avec filtrage des paramètres GET (exclusion du token CSRF)
+- `18.14.10` (2026-03) : simplification de `infraspackplus_is_substitution_page()` — `strpos()` au lieu de regex complexe
+- `18.14.10` (2026-03) : ajout du mécanisme z-order (`liftPageContent()` / `dropPageContent()`) dans tous les modèles PDF (~24 fichiers) pour que le filigrane et l'en-tête soient placés en arrière-plan du contenu auto-break
+- `18.14.10` (2026-03) : correction du bug TCPDF `ColorFlag` — nouvelles classes `TCPDF_InfraS` / `TCPDI_InfraS` forçant `ColorFlag = true` après chaque appel de couleur, corrigeant la perte de couleur de texte sur les pages suivantes
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -223,8 +230,11 @@ L'utilisateur accède à une page substituée (ex. /societe/contact.php)
     ↓
 Le hook updateSession() ou afterLogin() s'exécute
     ↓
-infraspackplus_is_substitution_page() vérifie via regex sur $dolibarr_main_url_root_alt
+infraspackplus_is_substitution_page() vérifie via strpos() sur le chemin
     si on est déjà sur une page substituée (prévention de boucle)
+    ↓
+infraspackplus_getSubstitutionRedirectUrl() génère l'URL de redirection :
+    → Filtre les paramètres GET (exclusion du token CSRF)
     ↓
 infraspackplus_get_substitution_url() génère l'URL substituée :
     → Vérifie la constante INFRASPACKPLUS_PS_ACTIVE_<PATH_UPPER>
@@ -292,7 +302,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="18.14.9" MonthVersion="2026-03">
+  <Version Number="18.14.10" MonthVersion="2026-03">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -311,11 +321,11 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.14.9",          // Version courante
+    0 => "18.14.10",         // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
-    4 => "23.0.4",           // Version max Dolibarr
+    4 => "23.x.x",           // Version max Dolibarr
     5 => "7.4",              // Version min PHP
     6 => "8.4"               // Version max PHP
 ]
@@ -338,6 +348,41 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
 2. Nettoyage SQL : suppression des constantes `INFRASPLUS_%` et `INFRASPACKPLUS_PS_%`, des modèles PDF `InfraSPlus_%`, des constantes `%_ADDON_PDF` liées
 3. **DROP TABLE** : `infraspackplus_societe_address`, `c_infraspackplus_mention`, `c_infraspackplus_note`
 4. Suppression des extrafields via `infraspackplus_search_extf(-1)`
+
+### Classes TCPDF/TCPDI InfraS (PDF rendering override)
+
+Fichier : `class/tcpdf_infrasplus.class.php` — surcharges TCPDF et TCPDI pour corriger le rendu PDF.
+
+Deux classes : `TCPDF_InfraS` (étend `TCPDF`) et `TCPDI_InfraS` (étend `TCPDI`).
+
+**Correction du bug `ColorFlag`** :
+Quand une couleur CSS `background-color` correspondait à la couleur de texte, TCPDF ne générait pas les opérateurs `q/Q` de changement d'état graphique. Résultat : le texte passait en noir après un saut de page automatique. Les classes InfraS forcent `$this->ColorFlag = true` dans les méthodes surchargées :
+
+| Méthode | Rôle |
+|---------|------|
+| `setColor()` | Force `ColorFlag = true` après chaque appel parent |
+| `setSpotColor()` | Idem |
+| `setGraphicVars()` | Critique lors des changements de page |
+
+**Mécanisme z-order (filigrane en arrière-plan)** :
+
+| Méthode | Description |
+|---------|-------------|
+| `liftPageContent()` | Sauvegarde et vide le contenu de page courant (permet d'insérer le filigrane/en-tête derrière) |
+| `dropPageContent($saved)` | Réinsère le contenu sauvegardé après le filigrane (texte en avant-plan) |
+
+Patron utilisé dans les ~24 modèles PDF aux changements de page :
+```php
+$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
+pdf_InfraSPlus_bg_watermark(...);
+$this->_pagehead(...) ou $this->_pagesmallhead(...);
+if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+    $pdf->dropPageContent($savedContent);
+}
+```
+
+**Priorité d'instanciation** dans `infraspackplus.pdf.lib.php` :
+`TCPDI_InfraS` → `TCPDF_InfraS` → `TCPDI` → `TCPDF`
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 

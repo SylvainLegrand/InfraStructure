@@ -61,10 +61,7 @@
 		public $option_draft_watermark;
 		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
 		public $type;
-		public $phpmin = array(7, 4);
 		public $emetteur;
-		public $Sst;
-		public $adrSst;
 		public $atleastonediscount;
 		public $tva;
 		public $tva_array;
@@ -84,6 +81,13 @@
 		public $use_iso_location;
 		public $dash_between_line;
 		public $product_use_unit;
+		public $hide_vat_ifnull;
+		public $vat_label_code_or_rate;
+		public $chq_num;
+		public $diffsize_title;
+		public $hidechq_address;
+		public $rib_num;
+		public $text_TVA_auto;
 		public $multi_files;
 		public $font;
 		public $headertxtcolor;
@@ -132,16 +136,51 @@
 		public $hidden_ouv;
 		public $only_one_desc;
 		public $hide_qty;
+		public $hide_up;
+		public $show_up_discounted;
+		public $discount_auto;
+		public $show_ttc_col;
+		public $hide_vat_col;
+		public $show_ttc_vat_tot;
+		public $hide_vat;
+		public $only_ttc;
 		public $larg_ref;
 		public $larg_qty;
 		public $larg_unit;
+		public $larg_up;
+		public $larg_tva;
+		public $larg_discount;
+		public $larg_updisc;
+		public $larg_progress;
+		public $larg_totalht;
+		public $larg_totalttc;
 		public $num_ref;
 		public $num_desc;
 		public $num_qty;
 		public $num_unit;
+		public $num_up;
+		public $num_tva;
+		public $num_discount;
+		public $num_updisc;
+		public $num_progress;
+		public $num_totalht;
+		public $num_totalttc;
 		public $ht_space_info;
+		public $ht_space_tot;
+		public $show_paymenttermcond_2l;
 		public $show_qty_prod_tot;
+		public $efPaySpec;
+		public $IBAN_with_CB;
+		public $IBAN_All;
+		public $bank_only_number;
+		public $invert_bg_ht_ttc;
+		public $show_disc_tot;
+		public $show_disc_ttc;
+		public $show_tot_local_cur;
+		public $show_tot_Cur_Symb;
 		public $number_words;
+		public $listPrefixEcotax;
+		public $exfEcoTax;
 		public $ht_signarea;
 		public $signLineW;
 		public $signLineDash;
@@ -158,6 +197,7 @@
 		public $linkpictureurl;
 		public $old_path_photo;
 		public $cat_hq_image;
+		public $alpha;
 		public $exftxtcolor;
 		public $exfltxtcolor;
 		public $logo;
@@ -196,6 +236,7 @@
 		public $signLineStyle = array();
 		public $nbrProdTot = 0;
 		public $nbrProdDif = array();
+		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
 		public $posx_G_txt;
@@ -203,7 +244,8 @@
 		public $posxcol1;
 		public $posxcol2;
 		public $posxcol3;
-		public $posxcol4;		public $largcol1;
+		public $posxcol4;
+		public $largcol1;
 		public $largcol2;
 		public $largcol3;
 		public $largcol4;
@@ -216,7 +258,11 @@
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
+		public $Sst;
+		public $adrSst;
 		public $show_2sign_area;
+		public $posystamp;
+		public $typeadr;
 
 		/**
 		*	Constructor
@@ -983,12 +1029,21 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
+							// Save auto-break content so watermark goes behind it (z-order fix)
+							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Restore auto-break content after watermark/header
+							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+								$pdf->dropPageContent($savedContent);
+							}
+							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
 						if (isset($object->lines[$i + $nbChildren + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
 							$this->heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 0);
@@ -1006,6 +1061,9 @@
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 							$nexY	= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
 						}
 					}

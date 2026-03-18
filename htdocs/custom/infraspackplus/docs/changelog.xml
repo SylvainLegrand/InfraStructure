@@ -1766,6 +1766,7 @@
 	<Version Number="18.14.10" MonthVersion="2026-03">
 		<change type='fix'>Simplification de la fonction infraspackplus_is_substitution_page() : utilisation de strpos() au lieu de regex complexe</change>
 		<change type='chg'>Ajout de la fonction infraspackplus_getSubstitutionRedirectUrl() pour gérer les redirections avec filtrage des paramètres GET (exclusion du token CSRF)</change>
+		<change type='fix'>Corrections du couleur de texte dans les deuxièmes pages des pdf</change>
 	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="23.x.x"/>

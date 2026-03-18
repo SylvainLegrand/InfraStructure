@@ -309,16 +309,3 @@ img.infraspluswidthpictotitle {
 button.infraspluscopyParamsBtn, .infraspluscopyParamsBtn:hover {
 	padding: 8px 25px 8px 25px;
 }
-
-/* Dark background overrides (class set by infraspackplus.js) */
-.infras-dark-bg .infrasplusneuropolinfras {
-	color: #c8b0e0;
-}
-
-.infras-dark-bg .infraspluscolor {
-	color: #c8b0e0;
-}
-
-.infras-dark-bg .infrasplusblack {
-	color: #e0e0e0;
-}

@@ -52,8 +52,6 @@
 		public $titlekey;
 		public $defaulttemplate;
 		public $draft_watermark;
-		public $use_doli_addr_livr;
-		public $doli_addr_livr_recep;
 		public $show_sign_area;
 		public $show_ExtraFieldsLines;
 		public $option_logo;
@@ -68,8 +66,6 @@
 		public $option_draft_watermark;
 		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
 		public $type;
-		public $phpmin = array(7, 4);
-		public $version = 'dolibarr';
 		public $emetteur;
 		public $atleastonediscount;
 		public $tva;
@@ -309,15 +305,24 @@
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
-		public $use_tva_forfait;
-		public $tva_forfait;
 		public $pagewithoutheader = array();
 		public $tableHeaderBefore = array();
 		public $signvalueEmet;
 		public $show_sign_emet_width;
+		public $cgv_at_very_end;
 		public $hide_pricescol;
 		public $hide_totcol;
-		public $cgv_at_very_end;
+		public $largcol11;
+		public $mergeproduct;
+		public $posystamp;
+		public $product_merge;
+		public $product_merge_check_x2;
+		public $produit_pdf_merge;
+		public $raw_prices;
+		public $show_pay_spec;
+		public $show_sign_area_emet;
+		public $show_sign_area_name_function;
+		public $typeadr;
 
 		/**
 		*	Constructor
@@ -1377,12 +1382,21 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
+							// Save auto-break content so watermark goes behind it (z-order fix)
+							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Restore auto-break content after watermark/header
+							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+								$pdf->dropPageContent($savedContent);
+							}
+							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
 						if (isset($object->lines[$i + $nbChildren + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
 							$this->heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 0);
@@ -1402,6 +1416,9 @@
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 							$nexY	= $heightforheader - (!empty($this->tableHeaderBefore) && in_array(($pagenb - 1), $this->pagewithoutheader) ? $this->ht_top_table : 0);
 						}
 					}
@@ -1441,6 +1458,8 @@
 						} else {
 							$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 						}
+						$pdf->SetFillColor(255);
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						$posytotrecap	= pdf_InfraSPlus_subtotal_recap($pdf, $object, $tab_top_newpage, $outputlangs, $subtotalRecap, $this, $ht1_coltotal, $this->heightforfooter);
 						$pageposafter	= $pdf->getPage();
 						// Detect if some page were added automatically and output header, table and footer for past pages
@@ -1450,12 +1469,20 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
+							// Save auto-break content so watermark goes behind it (z-order fix)
+							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Restore auto-break content after watermark/header
+							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+								$pdf->dropPageContent($savedContent);
+							}
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
 						$bottomlasttab	= $this->page_hauteur - $ht1_coltotal - $this->heightforfooter - 1;
 						$this->_pagefoot($pdf, $object, $outputlangs, 0);

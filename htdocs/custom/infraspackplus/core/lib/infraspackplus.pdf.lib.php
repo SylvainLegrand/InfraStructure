@@ -310,11 +310,17 @@
 		if (!getDolGlobalString('MAIN_DISABLE_TCPDI', '')) {
 			require_once TCPDI_PATH.'tcpdi.php';
 		}
+		// Load InfraS subclasses that fix TCPDF ColorFlag bug (text color lost on page breaks)
+		dol_include_once('/infraspackplus/class/tcpdf_infrasplus.class.php');
 		if (!empty($onlyConf)) {
 			return 1;
 		}
 		$pdfa	= getDolGlobalString('PDF_USE_A', false);	// PDF/A-1 ou PDF/A-3
-		if (class_exists('TCPDI')) {
+		if (class_exists('TCPDI_InfraS')) {
+			$pdf	= new TCPDI_InfraS($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
+		} elseif (class_exists('TCPDF_InfraS')) {
+			$pdf	= new TCPDF_InfraS($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
+		} elseif (class_exists('TCPDI')) {
 			$pdf	= new TCPDI($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
 		} else {
 			$pdf	= new TCPDF($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
@@ -2678,13 +2684,11 @@
 			if (!empty($cleanFont)) {
 				$labelproductservice	= dol_string_neverthesehtmltags($labelproductservice, $disallowed_tags = array('span'));
 			}
-			// Strip background-color CSS to prevent TCPDF ColorFlag bug: when an HTML element's
-			// background-color matches the body text color, TCPDF stops wrapping text in q/Q color
-			// operators, causing text after page breaks to render in default black instead of bodytxtcolor
-			$labelproductservice	= preg_replace('/background-color\s*:\s*[^;"\']+;?/i', '', $labelproductservice);
-			if (!empty($fulllabel['subdesc'])) {
-				$fulllabel['subdesc']	= preg_replace('/background-color\s*:\s*[^;"\']+;?/i', '', $fulllabel['subdesc']);
-			}
+			// Note: background-color CSS is no longer stripped here.
+			// The TCPDF ColorFlag bug (text color lost on page breaks when background-color
+			// matches text color) is now fixed via TCPDF_InfraS / TCPDI_InfraS subclasses
+			// that force ColorFlag = true (see tcpdf_infrasplus.class.php).
+
 			// Ligne ATM - Saut de page
 			if (!empty($isATMLine) && $object->lines[$i]->info_bits > 0) {
 				$pdf->addPage();
@@ -2885,6 +2889,11 @@
 		$label			= $prodfichinter ? $prodfichinter['label']		: (!empty($object->lines[$i]->label)		? $object->lines[$i]->label			: (!empty($object->lines[$i]->product_label) ? $object->lines[$i]->product_label : ''));
 		dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_getlinedesc $object->lines[$i]->label = '.$object->lines[$i]->label.' $object->lines[$i]->product_label = '.$object->lines[$i]->product_label);
 		$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+		// For discount lines (info_bits & 2), when line's own label is empty, use line description as label instead of product label
+		if (!empty($object->lines[$i]->info_bits) && ($object->lines[$i]->info_bits & 2) && empty($object->lines[$i]->label)) {
+			$label		= $desc;
+			$desc		= '';
+		}
 		$note			= (!empty($object->lines[$i]->note) ? $object->lines[$i]->note : '');
 		$dbatch			= (!empty($object->lines[$i]->detail_batch) ? $object->lines[$i]->detail_batch : false);
 		$subTotalNewF	= getDolGlobalInt('SUBTOTAL_USE_NEW_FORMAT', 0);
