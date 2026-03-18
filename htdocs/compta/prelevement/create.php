@@ -1241,7 +1241,7 @@ if ($resql) {
 					if (!$i) {
 						$totalarray['nbfield']++;
 					}
-					InfraS add end
+					// InfraS add end
 				}
 			}
 			print '</tr>';
