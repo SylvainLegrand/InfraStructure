@@ -117,6 +117,11 @@ $fieldstosearchall = array(
 $arrayfields = array(
 	'f.ref' => array('label' => ($type == 'bank-transfer' ? 'SupplierInvoice' : 'Invoice'), 'checked' => '1'),
 	'f.datef' => array('label' => "InvoiceDate", 'checked' => '1'), // Infras add
+);
+if ($type == 'bank-transfer') {
+	$arrayfields['f.ref_supplier'] = array('label' => 'RefSupplier', 'checked' => '1');
+}
+$arrayfields += array(
 	'f.date_lim_reglement' => array('label' => "DateDue", 'checked' => '1'),
 	's.nom' => array('label' => "ThirdParty", 'checked' => '1'),
 	'f.fk_account' => array('label' => "BankAccount", 'checked' => '1'),
@@ -125,9 +130,6 @@ $arrayfields = array(
 	'pfd.amount' => array('label' => "AmountTTC", 'checked' => '1'),
 	'pfd.date_demande' => array('label' => "DateRequest", 'checked' => '1')
 );
-if ($type == 'bank-transfer') {
-	$arrayfields['f.ref_supplier'] = array('label' => 'RefSupplier', 'checked' => '1');
-}
 // Infras add end
 $hookmanager->initHooks(array('directdebitcreatecard', 'globalcard'));
 
@@ -219,19 +221,19 @@ if (empty($reshook)) {
 			$action = '';
 			$error++;
 		}
-
+		// InfraS add begin
 		if (empty($toselect)) {
             $errormessage = $langs->trans('ErrorBankTransferNoPaymentRequestSelected');
             setEventMessages($errormessage, null, 'errors');
             $action = '';
             $error++;
         }
-
+		// InfraS add end
 		$bprev = new BonPrelevement($db);
 
 		if (!$error) {
 			// getDolGlobalString('PRELEVEMENT_CODE_BANQUE') and getDolGlobalString('PRELEVEMENT_CODE_GUICHET') should be empty (we don't use them anymore)
-			$result = $bprev->create(getDolGlobalString('PRELEVEMENT_CODE_BANQUE'), getDolGlobalString('PRELEVEMENT_CODE_GUICHET'), $mode, $format, $executiondate, 0, $type, $toselect, 0, $sourcetype);
+			$result = $bprev->create(getDolGlobalString('PRELEVEMENT_CODE_BANQUE'), getDolGlobalString('PRELEVEMENT_CODE_GUICHET'), $mode, $format, $executiondate, 0, $type, $toselect, 0, $sourcetype);	// InfraS change
 			if ($result < 0) {
 				$mesg = '';
 
@@ -311,7 +313,7 @@ if ($type != 'bank-transfer') {
 $bprev = new BonPrelevement($db);
 $arrayofselected = is_array($toselect) ? $toselect : array();
 // List of mass actions available
-$arrayofmassactions = array();
+$arrayofmassactions = array();	// InfraS change
 if (GETPOSTINT('nomassaction') || in_array($massaction, array('presend', 'predelete'))) {
 	$arrayofmassactions = array();
 }
@@ -388,7 +390,7 @@ print dol_get_fiche_end();
 
 print '<div class="tabsAction">'."\n";
 
-print '<form id="createBankTransfer" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
+print '<form id="createBankTransfer" action="'.$_SERVER['PHP_SELF'].'" method="POST">';	// InfraS change
 print '<input type="hidden" name="action" value="create">';
 print '<input type="hidden" name="token" value="'.newToken().'">';
 print '<input type="hidden" name="type" value="'.$type.'">';
@@ -485,6 +487,7 @@ if ($nb) {
 
 print "</form>\n";
 
+// Infras add begin
 // Send selected lines to build the transfer file
 print '<script>
 	$().ready(() => {
@@ -496,7 +499,6 @@ print '<script>
 				form_create_transfer.append(line);
 			})
 		})
-		// Infras add begin
 		// Compute total checked
 		function computeTotalChecked() {
 			let total_checked = 0;
@@ -510,10 +512,9 @@ print '<script>
 		}
 		$(".checkforselect").change(computeTotalChecked);
 		computeTotalChecked();
-		// Infras add end
 	})
 </script>';
-
+// Infras add end
 print "</div>\n";
 
 // Show errors or warnings
@@ -535,13 +536,13 @@ if ($sourcetype != 'salary') {
 	}
 	$sql .= " pd.rowid as request_row_id, pd.date_demande, pd.amount, pd.fk_societe_rib as soc_rib_id";
 	if ($type == 'bank-transfer') {
-		$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f,";
+		$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f";	// InfraS change
 	} else {
-		$sql .= " FROM ".MAIN_DB_PREFIX."facture as f,";
+		$sql .= " FROM ".MAIN_DB_PREFIX."facture as f";	// InfraS change
 	}
+	$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_account AS ba ON f.fk_account = ba.rowid,";	// InfraS add
 	$sql .= " ".MAIN_DB_PREFIX."societe as s,";
 	$sql .= " ".MAIN_DB_PREFIX."prelevement_demande as pd";
-	$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_account AS ba ON f.fk_account = ba.rowid";	// InfraS add
 	$sql .= " WHERE s.rowid = f.fk_soc";
 	$sql .= " AND f.entity IN (".getEntity('invoice').")";
 	if (!getDolGlobalString('WITHDRAWAL_ALLOW_ANY_INVOICE_STATUS')) {
@@ -605,8 +606,8 @@ if ($sourcetype != 'salary') {
 	} else {
 		// Default sort when extended list is disabled
 		$sql .= " ORDER BY f.date_lim_reglement ASC, f.rowid ASC";
-		}
-		// Infras add end
+	}
+	// Infras add end
 } else {
 	$sql = "SELECT s.ref, s.rowid, s.amount, CONCAT(u.lastname, ' ', u.firstname) as name, u.rowid as uid,";
 	$sql .= " pd.rowid as request_row_id, pd.date_demande, pd.amount, pd.fk_societe_rib as soc_rib_id";
@@ -723,29 +724,31 @@ if ($resql) {
 		// Original simple display
 		$arrayofselected = is_array($toselect) ? $toselect : array();
 		// Infras add end
-	$param = '';
-	if ($type) {
-		$param .= '&type=' . urlencode((string) $type);
-	}
-	if ($limit > 0 && $limit != $conf->liste_limit) {
-		$param .= '&limit='.((int) $limit);
-	}
-	if ($socid) {
-		$param .= '&socid='.urlencode((string) ($socid));
-	}
-	if ($option) {
-		$param .= "&option=".urlencode($option);
-	}
-
-	print '<form method="POST" id="searchFormList" action="'.$_SERVER["PHP_SELF"].'">';
-	print '<input type="hidden" name="token" value="'.newToken().'">';
-	print '<input type="hidden" name="page" value="'.$page.'">';
-	if (!empty($limit)) {
-		print '<input type="hidden" name="limit" value="'.$limit.'"/>';
-	}
-	if ($type != '') {
-		print '<input type="hidden" name="type" value="'.$type.'">';
+		// InfraS change begin
+		$param = '';
+		if ($type) {
+			$param .= '&type=' . urlencode((string) $type);
 		}
+		if ($limit > 0 && $limit != $conf->liste_limit) {
+			$param .= '&limit='.((int) $limit);
+		}
+		if ($socid) {
+			$param .= '&socid='.urlencode((string) ($socid));
+		}
+		if ($option) {
+			$param .= "&option=".urlencode($option);
+		}
+
+		print '<form method="POST" id="searchFormList" action="'.$_SERVER["PHP_SELF"].'">';
+		print '<input type="hidden" name="token" value="'.newToken().'">';
+		print '<input type="hidden" name="page" value="'.$page.'">';
+		if (!empty($limit)) {
+			print '<input type="hidden" name="limit" value="'.$limit.'"/>';
+		}
+		if ($type != '') {
+			print '<input type="hidden" name="type" value="'.$type.'">';
+		}
+		// InfraS change end
 	}	// InfraS add
 	$title = $langs->trans("InvoiceWaitingWithdraw");
 	$picto = 'bill';
@@ -771,14 +774,14 @@ if ($resql) {
 		$selectedfields .= $form->showCheckAddButtons('checkforselect', 1);
 		print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, $picto, 0, '', '', $limit, 0, 0, 1);
 
-		print '<div class="div-table-responsive-no-min">';
-		print '<table class="tagtable liste">';
+		print '<div class="div-table-responsive">';
+		print '<table class="tagtable nobottomiftotal liste">';
 
 		// Line for filters
 		print '<tr class="liste_titre_filter">';
 		// Action column
 		if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-			print '<td class="liste_titre center maxwidthsearch">';
+			print '<td class="liste_titre center maxwidthsearch actioncolumn">';
 			$searchpicto = $form->showFilterButtons('left');
 			print $searchpicto;
 			print '</td>';
@@ -839,7 +842,7 @@ if ($resql) {
 		}
 		// Action column
 		if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-			print '<td class="liste_titre center maxwidthsearch">';
+			print '<td class="liste_titre center maxwidthsearch actioncolumn">';
 			$searchpicto = $form->showFilterButtons();
 			print $searchpicto;
 			print '</td>';
@@ -849,7 +852,7 @@ if ($resql) {
 		print '<tr class="liste_titre">';
 		// Action column
 		if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-			print_liste_field_titre($selectedfields, $_SERVER['PHP_SELF'], '', '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
+			print_liste_field_titre($selectedfields, $_SERVER['PHP_SELF'], '', '', $param, 'style="z-index:3"', $sortfield, $sortorder, 'maxwidthsearch center ');
 		}
 		if (!empty($arrayfields['f.ref']['checked'])) {
 			print_liste_field_titre($arrayfields['f.ref']['label'], $_SERVER['PHP_SELF'], 'f.ref,f.rowid', '', $param, '', $sortfield, $sortorder);
@@ -882,62 +885,66 @@ if ($resql) {
 			print_liste_field_titre($arrayfields['pfd.date_demande']['label'], $_SERVER['PHP_SELF'], 'pd.date_demande', '', $param, '', $sortfield, $sortorder, 'center ');
 		}
 		if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-			print_liste_field_titre($selectedfields, $_SERVER['PHP_SELF'], '', '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
+			print_liste_field_titre($selectedfields, $_SERVER['PHP_SELF'], '', '', $param, 'style="z-index:3"', $sortfield, $sortorder, 'maxwidthsearch center ');
 		}
 		print "</tr>\n";
 	} else {
 		// Original simple table headers
 		// Infras add end
-	$tradinvoice = "Invoice";
-	if ($type == 'bank-transfer') {
-		if ($sourcetype != 'salary') {
-			$tradinvoice = "SupplierInvoice";
-		} else {
-			$tradinvoice = "RefSalary";
+		// InfraS change begin
+		$tradinvoice = "Invoice";
+		if ($type == 'bank-transfer') {
+			if ($sourcetype != 'salary') {
+				$tradinvoice = "SupplierInvoice";
+			} else {
+				$tradinvoice = "RefSalary";
+			}
 		}
-	}
 		print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, '', '', '', $num, $nbtotalofrecords, $picto, 0, '', '', $limit); // Infras add
 
-	print '<div class="div-table-responsive-no-min">';
-	print '<table class="noborder centpercent">';
-	print '<tr class="liste_titre">';
-	// Action column
-	if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-		if ($num) {
-			print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
+		print '<div class="div-table-responsive-no-min">';
+		print '<table class="noborder centpercent">';
+		print '<tr class="liste_titre">';
+		// Action column
+		if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+			if ($massactionbutton || $massaction) { // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
+				print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
+			}
 		}
-	}
-	// Ref invoice or salary
-	print '<td>'.$langs->trans($tradinvoice).'</td>';
-	// Ref supplier
-	if ($type == 'bank-transfer' && $sourcetype != 'salary') {
-		print '<td>'.$langs->trans("RefSupplier").'</td>';
-	}
-	// Thirdparty or user
-	if ($sourcetype != 'salary') {
-		print '<td>'.$langs->trans("ThirdParty").'</td>';
-	} else {
-		print '<td>'.$langs->trans("Employee").'</td>';
-	}
-	// BAN
-	print '<td>'.$langs->trans("RIB").'</td>';
-	// RUM
-		if (empty($type) || $type == 'direct-debit') { // Infras add: RUM is only relevant for direct debit
-		print '<td>'.$langs->trans("RUM").'</td>';
-	}
-	print '<td class="right">';
-	if ($sourcetype == 'salary') {
-		print $langs->trans("Amount");
-	} else {
-		print $langs->trans("AmountTTC");
-	}
-	print '</td>';
-	print '<td class="right">'.$langs->trans("PendingSince").'</td>';
-	// Action column
-	if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-		print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
-	}
-	print '</tr>';
+		// Ref invoice or salary
+		print '<td>'.$langs->trans($tradinvoice).'</td>';
+		// Ref supplier
+		if ($type == 'bank-transfer' && $sourcetype != 'salary') {
+			print '<td>'.$langs->trans("RefSupplier").'</td>';
+		}
+		// Thirdparty or user
+		if ($sourcetype != 'salary') {
+			print '<td>'.$langs->trans("ThirdParty").'</td>';
+		} else {
+			print '<td>'.$langs->trans("Employee").'</td>';
+		}
+		// BAN
+		print '<td>'.$langs->trans("RIB").'</td>';
+		// RUM
+			if (empty($type) || $type == 'direct-debit') {
+			print '<td>'.$langs->trans("RUM").'</td>';
+		}
+		print '<td class="right">';
+		if ($sourcetype == 'salary') {
+			print $langs->trans("Amount");
+		} else {
+			print $langs->trans("AmountTTC");
+		}
+		print '</td>';
+		print '<td class="right">'.$langs->trans("PendingSince").'</td>';
+		// Action column
+		if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+			if ($massactionbutton || $massaction) { // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
+				print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
+			}
+		}
+		print '</tr>';
+		// InfraS change end
 	}	// InfraS add
 	if ($num) {
 		if ($sourcetype != 'salary') {
@@ -984,15 +991,22 @@ if ($resql) {
 
 			// Action column
 			if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-				print '<td class="nowrap center">';
-				$selected = 0;
-				if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) { // Infras add
-					$selected = 1;
+				if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST') || $massactionbutton || $massaction) { // InfraS change: always show checkbox for extended list
+					print '<td class="nowrap center">';
+					$selected = 0;
+					if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) { // Infras change
+						$selected = 1;
+					}
+					print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';	// InfraS change
+					print '</td>';
+					// InfraS add begin
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+					// InfraS add end
 				}
-				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';	// InfraS change
-				print '</td>';
 			}
-			// Infras change begin
+			// Infras add begin
 			if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST')) {
 				// Extended display with arrayfields
 				// Ref invoice
@@ -1125,109 +1139,118 @@ if ($resql) {
 					}
 				}
 			} else {
-				// Simple display without arrayfields
-			// Ref invoice
-			print '<td class="tdoverflowmax150">';
-			if ($sourcetype != 'salary' || $salary === null) {
-				print $invoicestatic->getNomUrl(1, 'withdraw');
-			} else {
-				print $salary->getNomUrl(1, 'withdraw');
-			}
-			print '</td>';
-
-			if ($type == 'bank-transfer' && $sourcetype != 'salary') {
-				print '<td class="tdoverflowmax100" title="'.dol_escape_htmltag($invoicestatic->ref_supplier).'">';
-				print dol_escape_htmltag($invoicestatic->ref_supplier);
-				print '</td>';
-			}
-
-			// Thirdparty
-			if ($sourcetype != 'salary') {
-				print '<td class="tdoverflowmax100">';
-				$thirdpartystatic->fetch($obj->socid);
-				print $thirdpartystatic->getNomUrl(1, 'ban');
-				print '</td>';
-			} else {
-				print '<td class="tdoverflowmax100">';
-				$user->fetch($obj->uid);
-				print $user->getNomUrl(-1);
-				print '</td>';
-			}
-
-			// BAN
-			print '<td>';
-			if ($bac->id > 0) {
-				if (!empty($bac->iban) || !empty($bac->bic)) {
-					print $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
-					if ($bac->verif() <= 0) {
-						print img_warning('Error on default bank number for IBAN : '.$langs->trans($bac->error));
-					}
-					if ($obj->soc_rib_id > 0) {
-						print $form->textwithpicto('', $langs->trans("BankAccountForcedOnRequest"));
-					} else {
-						print $form->textwithpicto('', $langs->trans("BankAccountUsedByDefault").'<br><b>'.$langs->trans("Label").'</b> : '.$bac->label.'<br><b>'.$langs->trans("BankName").'</b> : '.$bac->bank, 1, 'help', 'valigmiddle warning');
-					}
+			// Simple display without arrayfields
+			// InfraS add end
+			// InfraS change begin
+				// Ref invoice
+				print '<td class="tdoverflowmax150">';
+				if ($sourcetype != 'salary' || $salary === null) {
+					print $invoicestatic->getNomUrl(1, 'withdraw');
 				} else {
-					print img_warning($langs->trans("IBANNotDefined"));
+					print $salary->getNomUrl(1, 'withdraw');
 				}
-			} else {
-				$langs->load("banks");
-				print img_warning($langs->trans("NoBankAccountDefined"));
-			}
-			print '</td>';
+				print '</td>';
 
-			// RUM
-			if (empty($type) || $type == 'direct-debit') {
+				if ($type == 'bank-transfer' && $sourcetype != 'salary') {
+					print '<td class="tdoverflowmax100" title="'.dol_escape_htmltag($invoicestatic->ref_supplier).'">';
+					print dol_escape_htmltag($invoicestatic->ref_supplier);
+					print '</td>';
+				}
+
+				// Thirdparty
+				if ($sourcetype != 'salary') {
+					print '<td class="tdoverflowmax100">';
+					$thirdpartystatic->fetch($obj->socid);
+					print $thirdpartystatic->getNomUrl(1, 'ban');
+					print '</td>';
+				} else {
+					print '<td class="tdoverflowmax100">';
+					$user->fetch($obj->uid);
+					print $user->getNomUrl(-1);
+					print '</td>';
+				}
+
+				// BAN
 				print '<td>';
-				if (!empty($bac->rum)) {
-					print $bac->rum;
-				} else {
-					$rumToShow = $thirdpartystatic->display_rib('rum');
-					if ($rumToShow) {
-						print $rumToShow;
-						$format = $thirdpartystatic->display_rib('format');
-						if ($type != 'bank-transfer') {
-							if ($format) {
-								print ' ('.$format.')';
-							}
+				if ($bac->id > 0) {
+					if (!empty($bac->iban) || !empty($bac->bic)) {
+						print $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
+						if ($bac->verif() <= 0) {
+							print img_warning('Error on default bank number for IBAN : '.$langs->trans($bac->error));
 						}
+						// InfraS add begin
+						if ($obj->soc_rib_id > 0) {
+							print $form->textwithpicto('', $langs->trans("BankAccountForcedOnRequest"));
+						} else {
+							print $form->textwithpicto('', $langs->trans("BankAccountUsedByDefault").'<br><b>'.$langs->trans("Label").'</b> : '.$bac->label.'<br><b>'.$langs->trans("BankName").'</b> : '.$bac->bank, 1, 'help', 'valigmiddle warning');
+						}
+						// InfraS add end
 					} else {
-						$langs->load("banks");
-						print img_warning($langs->trans("NoBankAccountDefined"));
+						print img_warning($langs->trans("IBANNotDefined"));
 					}
+				} else {
+					$langs->load("banks");
+					print img_warning($langs->trans("NoBankAccountDefined"));
 				}
 				print '</td>';
-			}
 
-			// Amount
-			print '<td class="right amount">';
-			print price($obj->amount, 0, $langs, 0, 0, -1, $conf->currency);
-			print '</td>';
-			// Date
-			print '<td class="right">';
-			print dol_print_date($db->jdate($obj->date_demande), 'day');
-			print '</td>';
-			}
-			// Infras change end
+				// RUM
+				if (empty($type) || $type == 'direct-debit') {
+					print '<td>';
+					if (!empty($bac->rum)) {
+						print $bac->rum;
+					} else {
+						$rumToShow = $thirdpartystatic->display_rib('rum');
+						if ($rumToShow) {
+							print $rumToShow;
+							$format = $thirdpartystatic->display_rib('format');
+							if ($type != 'bank-transfer') {
+								if ($format) {
+									print ' ('.$format.')';
+								}
+							}
+						} else {
+							$langs->load("banks");
+							print img_warning($langs->trans("NoBankAccountDefined"));
+						}
+					}
+					print '</td>';
+				}
+
+				// Amount
+				print '<td class="right amount">';
+				print price($obj->amount, 0, $langs, 0, 0, -1, $conf->currency);
+				print '</td>';
+				// Date
+				print '<td class="right">';
+				print dol_print_date($db->jdate($obj->date_demande), 'day');
+				print '</td>';
+				// InfraS change end
+			}	// Infras add
 			// Action column
 			if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
-				print '<td class="nowrap center">';
-				$selected = 0;
-				if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) {	// InfraS change
-					$selected = 1;
+				if (getDolGlobalString('WITHDRAW_ENABLED_EXTENDED_LIST') || $massactionbutton || $massaction) { // InfraS change: always show checkbox for extended list
+					print '<td class="nowrap center">';
+					$selected = 0;
+					if (in_array($obj->request_row_id, $arrayofselected) || empty($arrayofselected)) {	// InfraS change
+						$selected = 1;
+					}
+					print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';	// InfraS change
+					print '</td>';
+					// InfraS add begin
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+					InfraS add end
 				}
-				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').' amount="'.$obj->amount.'">';
-				print '</td>';
 			}
 			print '</tr>';
 			$i++;
 		}
-		// Infras add begin
 		// Show total line
-		include DOL_DOCUMENT_ROOT.'/core/tpl/list_print_total.tpl.php';
-		// Infras add end
+		include DOL_DOCUMENT_ROOT.'/core/tpl/list_print_total.tpl.php';	// Infras add
 	} else {
-		$colspan = 7;
+		$colspan = 7;	// InfraS change
 		if ($type == 'bank-transfer') {
 			$colspan++;
 		}

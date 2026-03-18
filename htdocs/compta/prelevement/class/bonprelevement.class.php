@@ -1066,12 +1066,12 @@ class BonPrelevement extends CommonObject
 	 *  @param	string	$sourcetype			'invoice' or 'salary'
 	 *	@return	int							Return integer <0 if KO, No of invoice included into file if OK
 	 */
-    public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $dids = 0, $fk_bank_account = 0, $sourcetype = 'invoice')
+    public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $dids = 0, $fk_bank_account = 0, $sourcetype = 'invoice')	// InfraS change
 	{
 		// phpcs:enable
 		global $conf, $langs, $user;
 
-        dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".$dids." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".$dids." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);	// InfraS change
 
 		require_once DOL_DOCUMENT_ROOT . "/compta/facture/class/facture.class.php";
 		require_once DOL_DOCUMENT_ROOT . "/societe/class/societe.class.php";
@@ -1083,20 +1083,21 @@ class BonPrelevement extends CommonObject
 				return -1;
 			}
 		}
-
+		// InfraS add begin
         if (!is_int($dids) && !is_array($dids)) {
             $this->error = 'ErrorBadParametersForDirectDebitFileCreateDids';
             return -1;
         }
-
+		// InfraS add end
 		// Clean params
 		if (empty($fk_bank_account)) {
 			$fk_bank_account = ($type == 'bank-transfer' ? getDolGlobalInt('PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT') : getDolGlobalInt('PRELEVEMENT_ID_BANKACCOUNT'));
 		}
+		// InfraS add begin
 		if (is_int($dids)) {
             $dids = array($dids);
         }
-
+		// InfraS add end
 
 		$error = 0;
 		// Pre-store some values into variables to simplify following sql requests
@@ -1115,10 +1116,10 @@ class BonPrelevement extends CommonObject
 		$thirdpartyBANId = 0;
 
 		// Check if there is an iban associated to the bank transfer request or if we take the default
-		if ($dids !== [0] && !empty($dids)) {
+		if ($dids !== [0] && !empty($dids)) {	// Infras change
 			$sql = "SELECT pd.fk_societe_rib";
 			$sql .= " FROM " . $this->db->prefix() . "prelevement_demande as pd";
-			$sql .= " WHERE pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
+			$sql .= " WHERE pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";	// Infras change
 
 			$resql = $this->db->query($sql);
 
@@ -1158,7 +1159,7 @@ class BonPrelevement extends CommonObject
 		$factures_errors = array();
 
 		if (!$error) {
-			dol_syslog(__METHOD__ . " Read invoices for dids=" . implode(', ', $dids), LOG_DEBUG);
+			dol_syslog(__METHOD__ . " Read invoices for dids=" . implode(', ', $dids), LOG_DEBUG);	// Infras change
 
 			$sql = "SELECT f.rowid, pd.rowid as pfdrowid";
 			$sql .= ", f.".$this->db->sanitize($socOrUser);		// fk_soc or fk_user
@@ -1199,8 +1200,8 @@ class BonPrelevement extends CommonObject
 			if ($sourcetype != 'salary') {
 				$sql .= " AND sr.type = 'ban'";		// TODO Add AND sr.type = 'ban' for users too
 			}
-			if ($dids !== [0] && !empty($dids)) {
-				$sql .= " AND pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
+			if ($dids !== [0] && !empty($dids)) {	// Infras change
+				$sql .= " AND pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";	// Infras change
 			}
 
 			$resql = $this->db->query($sql);
@@ -2308,7 +2309,7 @@ class BonPrelevement extends CommonObject
 	public function EnregDestinataireSEPA($row_code_client, $row_nom, $row_address, $row_zip, $row_town, $row_country_code, $row_cb, $row_cg, $row_cc, $row_somme, $row_ref, $row_idfac, $row_iban, $row_bic, $row_datec, $row_drum, $row_rum, $type = 'direct-debit', $row_comment = '')
 	{
 		// phpcs:enable
-		global $conf, $mysoc, $hookmanager;
+		global $conf, $mysoc, $hookmanager;	// Infras change
 
 		if (getDolGlobalString('SEPA_FORCE_TWO_DECIMAL')) {
 			$row_somme = number_format((float) price2num($row_somme, 'MT'), 2, ".", "");
@@ -2327,7 +2328,7 @@ class BonPrelevement extends CommonObject
 
 		// Define date of RUM signature
 		$DtOfSgntr = dol_print_date($row_datec, '%Y-%m-%d');
-
+		// InfraS add begin
 		$XML_RESULT = '';
 		if (!is_object($hookmanager)) {
 			include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
@@ -2343,6 +2344,8 @@ class BonPrelevement extends CommonObject
 		);
 		$reshook = $hookmanager->executeHooks('enregDestinataireSEPA', $parameters, $this);    // Note that $action and $object may have been modified by some hooks
 		if (empty($reshook)) {
+			// InfraS add end
+			// InfraS change begin
 			if ($type != 'bank-transfer') {
 				// SEPA Paiement Information of buyer for Direct Debit
 				$XML_DEBITOR = '';
@@ -2478,13 +2481,17 @@ class BonPrelevement extends CommonObject
 				$XML_CREDITOR .= '			</CdtTrfTxInf>' . $CrLf;
 
 				$XML_RESULT = $XML_CREDITOR;
+				// InfraS change end
+				// Infras add begin
 			}
 		} elseif ($reshook > 0) {
 			$XML_RESULT = $hookmanager->resPrint;
+			// InfraS add end
 		}
+		// InfraS add begin
 		$XML_RESULT .= $hookmanager->resPrint;
-
 		return $XML_RESULT;
+		// InfraS add end
 	}
 
 
