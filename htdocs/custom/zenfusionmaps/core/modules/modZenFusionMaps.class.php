@@ -54,11 +54,16 @@ class modZenFusionMaps extends DolibarrModules
      */
     public function __construct($db)
     {
+		global $langs;
+
         $this->db = $db;
         $this->numero = 105005;
         $this->rights_class = 'zenfusionmaps';
-        $this->family = "other";
-        $this->module_position = -1;
+		$isDolinfras	= isModEnabled('dolinfras');
+		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'other';
+		$this->family = $family;
+		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+		$this->module_position	= 100019;
         $this->name = preg_replace('/^mod/i', '', get_class($this));
         $this->description = "Google Maps";
         $this->descriptionlong = "Add links to Google Maps on addresses.";

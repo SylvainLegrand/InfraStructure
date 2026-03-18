@@ -65,11 +65,10 @@ class modMultismtp extends DolibarrModules
         // Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
         // It is used to group modules by family in module setup page
 		$isDolinfras	= isModEnabled('dolinfras');
-		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'easya';
-        $this->family = $family;
-        // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        $this->familyinfo = array('easya' => array('position' => '009', 'label' => $langs->trans("easyaFamily")));
-		$this->module_position	= 10;
+		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'base';
+		$this->family = $family;
+		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+		$this->module_position	= 100018;
 
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = 'Multi SMTP';

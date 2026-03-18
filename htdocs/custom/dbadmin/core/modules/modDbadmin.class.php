@@ -49,9 +49,11 @@ class modDbadmin extends DolibarrModules
 		$this->rights_class = 'dbadmin';
 		// Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
 		// It is used to group modules by family in module setup page
-		$this->family = "base";
-		// Module position in the family on 2 digits ('01', '10', '20', ...)
-		$this->module_position = '90';
+		$isDolinfras	= isModEnabled('dolinfras');
+		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'base';
+		$this->family = $family;
+		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+		$this->module_position	= 100017;
 		// Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
 		//$this->familyinfo = array('myownfamily' => array('position' => '01', 'label' => $langs->trans("MyOwnFamily")));
 		// Module label (no space allowed), used if translation string 'ModuleDbadminName' not found (Dbadmin is name of module).
