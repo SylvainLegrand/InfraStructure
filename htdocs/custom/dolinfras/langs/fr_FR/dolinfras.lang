@@ -1,0 +1,34 @@
+# Dolibarr language file - fr_FR - DolInfraS
+CHARSET                    = UTF-8
+basenameDolinfraS          = InfraS
+modnameDolinfraS           = dolinfras
+modcomnameDolinfraS        = DolInfraS
+Module500100Name           = DolInfraS
+Module500100Desc           = Dolibarr LTS par InfraS
+DolInfraSCautionMess       = <center><b>----- à lire attentivement ! -----</b></center>
+InfraSXMLextError          = <center>L’extension PHP <b>%s</b> n’est pas chargée<br>Certaines fonctionnalités du module ne seront pas disponibles</center>
+DolInfraSChangelogXMLError = Erreur changelog.xml
+DolInfraSnoMinDolVersion   = Pas de version minimum connue
+DolInfraSnoMaxDolVersion   = Pas de version maximum connue
+DolInfraSWarningMaxVersion = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module DolInfraS %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
+
+### Lib functions ###
+DolInfraSVersionUnknown = Version inconnue
+DolInfraSIncompatible   = Version de Dolibarr incompatible
+
+### Changelog / About ###
+DolInfraSParamPresent1             = <b>Ce module est une création</b>
+DolInfraSParamPresent2             = <b>, sa documentation est disponible sur notre wiki</b>
+DolInfraSParamSlogan               = Structurez votre croissance !
+DolInfraSParamLienModules          = Nos Modules
+DolInfraSParamSupport              = Demande de support
+DolInfraSParamMoreModulesLink      = Nos modules sur le dolistore
+DolInfraSParamPreferedPartner1     = Membre du programme officiel
+DolInfraSParamPreferedPartner2     = Preferred Partner, gage de qualité et d'expertise
+DolInfraSParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+DolInfraSParamSkipCheck            = Téléchargement désactivé
+DolInfraSParamNumberVersion        = N° de version
+DolInfraSParamMonthVersion         = Date
+DolInfraSParamChangesVersion       = Modifications
+DolInfraSParamCheckNewVersion      = Nouveau Changelog
+DolInfraSParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible

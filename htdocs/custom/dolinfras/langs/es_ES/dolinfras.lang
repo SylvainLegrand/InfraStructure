@@ -1,0 +1,34 @@
+# Dolibarr language file - es_ES - InfraS Template
+CHARSET                    = UTF-8
+basenameDolinfraS          = InfraS
+modnameDolinfraS           = dolinfras
+modcomnameDolinfraS        = DolInfraS
+Module500100Name           = DolInfraS
+Module500100Desc           = Dolibarr LTS por parte de InfraS
+DolInfraSCautionMess       = <center><b>----- leer con cuidado ! -----</b></center>
+InfraSXMLextError          = <center>La extensión PHP <b>%s</b> no está cargada<br>Algunas funcionalidades del módulo no estarán disponibles</center>
+DolInfraSChangelogXMLError = Error changelog.xml
+DolInfraSnoMinDolVersion   = No hay versión mínima conocida
+DolInfraSnoMaxDolVersion   = No hay versión máxima conocida
+DolInfraSWarningMaxVersion = <center><br>Su versión de Dolibarr (%s) aún no es compatible con el módulo DolInfraS %s.<br>La versión máxima de Dolibarr compatible es la versión %s.<br>Está utilizando este módulo sin garantía de buen funcionamiento.</center>
+
+### Lib functions ###
+DolInfraSVersionUnknown = Versión desconocida
+DolInfraSIncompatible   = Versión de Dolibarr incompatible
+
+### Changelog / About ###
+DolInfraSParamPresent1             = <b>Este módulo es una creación de</b>
+DolInfraSParamPresent2             = <b>, su documentación está disponible en nuestro wiki</b>
+DolInfraSParamSlogan               = ¡Estructura tu crecimiento!
+DolInfraSParamLienModules          = Nuestros Módulos
+DolInfraSParamSupport              = Solicitud de soporte
+DolInfraSParamMoreModulesLink      = Nuestros módulos en Dolistore
+DolInfraSParamPreferedPartner1     = Miembro del programa oficial
+DolInfraSParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia
+DolInfraSParamHistoryUpdates       = <b>Historial de actualizaciones:</b>
+DolInfraSParamSkipCheck            = Descarga desactivada
+DolInfraSParamNumberVersion        = N° de versión
+DolInfraSParamMonthVersion         = Fecha
+DolInfraSParamChangesVersion       = Modificaciones
+DolInfraSParamCheckNewVersion      = Nuevo Changelog
+DolInfraSParamCheckNewVersionTitle = Haga clic para descargar el changelog de la última versión disponible

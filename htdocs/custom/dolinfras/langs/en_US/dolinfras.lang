@@ -1,0 +1,34 @@
+# Dolibarr language file - en_US - InfraS Template
+CHARSET                    = UTF-8
+basenameDolinfraS          = InfraS
+modnameDolinfraS           = dolinfras
+modcomnameDolinfraS        = DolInfraS
+Module500100Name           = DolInfraS
+Module500100Desc           = Dolibarr LTS by InfraS
+DolInfraSCautionMess       = <center><b>----- read carefully ! -----</b></center>
+InfraSXMLextError          = <center>The PHP extension <b>%s</b> is not loaded<br>Some features of the module will not be available</center>
+DolInfraSChangelogXMLError = changelog.xml error
+DolInfraSnoMinDolVersion   = No minimum version known
+DolInfraSnoMaxDolVersion   = No maximum version known
+DolInfraSWarningMaxVersion = <center><br>Your Dolibarr version (%s) is not yet supported by the DolInfraS module %s.<br>The maximum supported Dolibarr version is %s.<br>You are using this module without any guarantee of proper operation.</center>
+
+### Lib functions ###
+DolInfraSVersionUnknown = Unknown version
+DolInfraSIncompatible   = Incompatible Dolibarr version
+
+### Changelog / About ###
+DolInfraSParamPresent1             = <b>This module is a creation of</b>
+DolInfraSParamPresent2             = <b>, its documentation is available on our wiki</b>
+DolInfraSParamSlogan               = Structure your growth!
+DolInfraSParamLienModules          = Our Modules
+DolInfraSParamSupport              = Support request
+DolInfraSParamMoreModulesLink      = Our modules on Dolistore
+DolInfraSParamPreferedPartner1     = Member of the official
+DolInfraSParamPreferedPartner2     = Preferred Partner program, quality and expertise guaranteed
+DolInfraSParamHistoryUpdates       = <b>Update history:</b>
+DolInfraSParamSkipCheck            = Download disabled
+DolInfraSParamNumberVersion        = Version number
+DolInfraSParamMonthVersion         = Date
+DolInfraSParamChangesVersion       = Changes
+DolInfraSParamCheckNewVersion      = New Changelog
+DolInfraSParamCheckNewVersionTitle = Click to download the changelog of the latest available version

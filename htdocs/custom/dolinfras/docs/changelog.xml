@@ -1,0 +1,8 @@
+<changelog>
+	<Version Number="18.0.0" MonthVersion="2026-03">
+		<change type='add'>Initiale release.</change>
+	</Version>
+	<InfraS Downloaded="20260301"/>
+	<Dolibarr minVersion="18.0.0" maxVersion="23.x.x"/>
+	<PHP minVersion="7.4" maxVersion="8.4"/>
+</changelog>
