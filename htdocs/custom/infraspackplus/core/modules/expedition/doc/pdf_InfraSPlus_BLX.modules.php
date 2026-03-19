@@ -243,13 +243,13 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Expedition	$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
 		*	@param		int			$hidedesc			Do not show desc
 		*	@param		int			$hideref			Do not show ref
-		*	@return	int							1=OK, 0=KO
+		*	@return	int									1=OK, 0=KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
@@ -289,8 +289,8 @@
 					$parameters			= array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
 					global $action;
 					$reshook			= $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);	// Note that $action and $object may have been modified by some hooks
-	//				$this->logo			= !empty($hookmanager->resArray['logo']) ? $hookmanager->resArray['logo'] : '';
-	//				$this->adrlivr		= !empty($hookmanager->resArray['adrlivr']) ? $hookmanager->resArray['adrlivr'] : '';
+					// $this->logo			= !empty($hookmanager->resArray['logo']) ? $hookmanager->resArray['logo'] : '';
+					// $this->adrlivr		= !empty($hookmanager->resArray['adrlivr']) ? $hookmanager->resArray['adrlivr'] : '';
 					$this->pied			= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
 					$nblignes			= count($object->lines);	// Set nblignes with the new facture lines content after hook
 					// Create pdf instance
@@ -326,20 +326,23 @@
 					if (file_exists($template) && is_readable($template)) {
 						$finfo	= finfo_open(FILEINFO_MIME_TYPE);
 						if (finfo_file($finfo, $template) == 'application/pdf') {
-							try
-							{
-								$isTemplate		= true;
-								$nbPtemplate	= $pdf->setSourceFile($template);
-								for ($i = 1; $i <= $nbPtemplate; $i ++) {
-									$tplIdx	= $pdf->importPage($i);
-									if ($tplIdx === false) {
-										$isTemplate	= false;
-										setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template)), 'warnings');
+							// Check if TCPDI methods are available (setSourceFile and importPage are TCPDI methods, not TCPDF)
+							if (method_exists($pdf, 'setSourceFile') && method_exists($pdf, 'importPage')) {
+								try
+								{
+									$isTemplate		= true;
+									$nbPtemplate	= $pdf->setSourceFile($template);
+									for ($i = 1; $i <= $nbPtemplate; $i ++) {
+										$tplIdx	= $pdf->importPage($i);
+										if ($tplIdx === false) {
+											$isTemplate	= false;
+											setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template)), 'warnings');
+										}
 									}
 								}
-							}
-							catch (exception $e) {
-								setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template).$outputlangs->trans("PDFInfraSPlusPdfFileError2", $e->getMessage())), 'warnings');
+								catch (exception $e) {
+									setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template).$outputlangs->trans("PDFInfraSPlusPdfFileError2", $e->getMessage())), 'warnings');
+								}
 							}
 						}
 					}
@@ -418,7 +421,7 @@
 										$pdf->useTemplate($tplIdx);
 										// Default PDF parameters
 										$pdf->MultiCell(0, 3, '');		// Set interline to 3
-										$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+										$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 										$pdf->SetFont('', '', $default_font_size - 3);
 										$pdf->SetDrawColor(0, 0, 0);
 										if ($pdf->getPage() == ($pageposbefore + 1))	// first page of the template
@@ -434,7 +437,7 @@
 											$pdf->MultiCell(0, $this->heightline, $obj_adrlivr->zip,	0, 'L', 0, 1, 25, 107.5,	true, 0, 0, false, 0, 'M', false);	// zip
 											$pdf->MultiCell(0, $this->heightline, $obj_adrlivr->town,	0, 'L', 0, 1, 19, 114,		true, 0, 0, false, 0, 'M', false);	// town
 											$pdf->MultiCell(0, $this->heightline, $qtyByAdr,			0, 'L', 0, 1, 53, 140,		true, 0, 0, false, 0, 'M', false);	// product Qty
-											pdf_InfraSPlus_writelinedesc($pdf, $object, $j, $outputlangs, $this->formatpage, '', 0, $this->heightline, 29, 159.3, 1, 1, 0, '');	// Product label
+											pdf_InfraSPlus_writelinedesc($pdf, $object, $j, $outputlangs, $this->formatpage, array(), 0, $this->heightline, 29, 159.3, 1, 1, 0, '');	// Product label
 											$pdf->MultiCell(0, $this->heightline, $ref,					0, 'L', 0, 1, 24, 197.7,	true, 0, 0, false, 0, 'M', false);	// product Ref
 										}
 										$pdf->MultiCell(0, $this->heightline, $this->nameCli, 0, 'L', 0, 1, 8, 286.5, true, 0, 0, false, 0, 'M', false);	// Custommer Social name
@@ -455,7 +458,7 @@
 										$pdf->useTemplate($tplIdx);
 										// Default PDF parameters
 										$pdf->MultiCell(0, 3, '');		// Set interline to 3
-										$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+										$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 										$pdf->SetFont('', '', $default_font_size);
 										$pdf->SetDrawColor(0, 0, 0);
 										if ($pdf->getPage() == ($pageposbefore + 1)) {	// third page of the template (just +1 because we start at the third page) {
@@ -519,15 +522,9 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		PDF			$pdf			The PDF factory
+		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		Expedition	$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@param		Societe		$fromcompany	Object company
-		*	@param		int			$marge_basse	Margin bottom we use for the autobreak
-		*	@param		int			$marge_gauche	Margin left
-		*	@param		int			$page_hauteur	Page height
-		*	@param		Object		$object			Object shown in PDF
-		*	@param		int			$showdetails	Show company details into footer
-		*	@param		int			$hidesupline	Completly hide the line up to footer (for some edition with only table)
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text
 		**/

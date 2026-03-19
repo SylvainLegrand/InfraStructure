@@ -952,10 +952,10 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$preferedPartnerPath	= dol_buildpath('/'.$appliname.'/img/Dolibarr_preferred_partner.png', 1);
 		$listUpD				= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
 		$urlInfraS				= 'https://infras.fr';
-		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname;
+		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname.'/presentation-d-module';
 		$urlstore				= 'https://infras.store/';
 		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
-		$InputCarac				= 'class = "button infraspluswidth180 infrasplusheight32" name = "readmore" type = "button"';
+		$InputCarac				= 'class = "butAction infraspluswidth180 infrasplusheight32" name = "readmore" type = "button"';
 		$supportvalue			= '/******************************'.'<br/>';
 		$supportvalue			.= ' * Module : '.$langs->trans('modcomnamePackPlus').'<br/>';
 		$supportvalue			.= ' * Module version : '.$version.'<br/>';
@@ -982,7 +982,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 												</td>
 												<td class = "center valignmiddle infraspluswidthtrentepercent">
 													<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSPlusParamLienModules').'" /></a>
-													<button class = "button infraspluswidth180 infrasplusheight32" type = "submit" >'.$langs->trans('InfraSWorkflowParamSupport').'</button>
+													<button class = "butAction infraspluswidth180 infrasplusheight32" type = "submit" >'.$langs->trans('InfraSWorkflowParamSupport').'</button>
 												</td>
 												<td rowspan = "3" class = "right bold valignbottom infraspluswidthtrentepercent infrasplusslogan">
 													<a href = "'.$urlDoli.'" target = "_blank"><img class = "infrasplusnoborder infraspluswidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;

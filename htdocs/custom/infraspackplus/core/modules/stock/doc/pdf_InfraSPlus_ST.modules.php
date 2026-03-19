@@ -38,6 +38,7 @@
 	************************************************/
 	class pdf_InfraSPlus_ST extends ModelePDFStock
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
@@ -248,11 +249,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'companies', 'stocks', 'orders', 'deliveries', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusStockName');
 			$this->description					= $langs->trans('PDFInfraSPlusStockDescription');
 			$this->titlekey						= 'Warehouse';
@@ -281,13 +283,13 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		object		$object				Object to generate
+		*	@param		Entrepot	$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
-		*	@return	int							1 = OK, <= 0 KO
+		*	@return	int									1 = OK, <= 0 KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $nblignes;
+			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -318,7 +320,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters			= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
@@ -371,14 +373,14 @@
 					$this->signLineCap		= 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 					$this->signLineStyle	= array('width'=>$this->signLineW, 'dash'=>$this->signLineDash, 'cap'=>$this->signLineCap, 'color'=>$this->signLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// First loop on each lines to prepare calculs and variables
 					$valpmpproducts			= 0;
 					$valsellproducts		= 0;
 					$valbuyproducts			= 0;
 					$valbuyproduct			= array();
-					$product_fourn			= new ProductFournisseur($db);
+					$product_fourn			= new ProductFournisseur($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						$valpmpproducts	+= price2num($object->lines[$i]->ppmp * $object->lines[$i]->qty, 'MT');
 					//	if (empty($conf->global->PRODUIT_MULTIPRICES))	$valsellproducts	+= price2num($object->lines[$i]->price * $object->lines[$i]->qty, 'MT');
@@ -445,7 +447,7 @@
 					$heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 1) + $this->heightline;
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Indication de location
-					if (!empty( isModEnabled('infrasloc'))) {
+					if (isModEnabled('infrasloc') && function_exists('infrasloc_getOriginLead')) {
 						$leadID	= infrasloc_getOriginLead($object->id);
 						if ($leadID > 0) {
 							$txtloc	= '<b>'.$outputlangs->transnoentities('PDFInfraSPlusTxtLoc').' : </b>';
@@ -474,7 +476,7 @@
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						$curY								= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-						$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						if (empty($this->hide_top_table))	$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
 						else								$pdf->setTopMargin($tab_top_newpage);
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
@@ -639,14 +641,13 @@
 		/**
 		*	Show top header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Entrepot	$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= hight of header
+		*	@return		array						Array with height of header (totalhead) and height of header without logo (headnologo)
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs) {
-			global $conf, $hookmanager;
 
 			$specialHead	= infraspackplus_fetchAllSpecialHeads(array($object->element));
 			if (!empty($specialHead['rootFileName'])) {
@@ -658,7 +659,7 @@
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
 			$dimCadres			= array ('S' => ($this->page_largeur - ($this->marge_gauche + 6 + $this->left_recep_corner + $this->marge_droite)), 'R' => $this->left_recep_corner);	// page width = 210 (A4) 92 + 92  = 184 => keep 210 - 184 for margins => 26 ; 10 right and left and 6 on the middle
 			$w					= $this->header_align_left ? 92 - $this->decal_round : 100;
@@ -690,14 +691,13 @@
 		/**
 		*	Show top small header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Entrepot	$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		void
 		**/
 		protected function _pagesmallhead(&$pdf, $object, $showaddress, $outputlangs) {
-			global $conf, $hookmanager;
 
 			$fromcompany	= $this->emetteur;
 			$title			= $outputlangs->transnoentities($this->titlekey);	// $titlekey);
@@ -707,23 +707,25 @@
 		/**
 		*	Show table for lines
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Entrepot	$object			Object to show
 		*	@param		string		$tab_top		Top position of table
 		*	@param		string		$tab_height		Height of table (rectangle)
 		*	@param		Translate	$outputlangs	Langs object
 		*	@param		int			$hidetop		1=Hide top bar of array and title, 0=Hide nothing, -1=Hide only title
 		*	@param		int			$hidebottom		Hide bottom bar of array
+		*	@param		int			$pagenb			Number of page where we are
 		*	@return		void
 		**/
 		protected function _tableau(&$pdf, $object, $tab_top, $tab_height, $outputlangs, $hidetop = 0, $hidebottom = 0, $pagenb) {
+
 			global $conf;
 
 			// Force to disable hidetop and hidebottom
 			$hidebottom				= 0;
 			if (!empty($hidetop))	$hidetop	= -1;
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
 			// Output Rounded Rectangle
 			if (empty($hidetop) || $pagenb == 1) {
@@ -751,7 +753,7 @@
 			}
 			// En-tête tableau
 			$pdf->SetFont('', 'B', $default_font_size - 1);
-			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			if (empty($hidetop) || $pagenb == 1) {
 				$pdf->MultiCell($this->tableau['ref']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Ref'), '', 'C', 0, 1, $this->tableau['ref']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 				$pdf->MultiCell($this->tableau['desc']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Designation'), '', 'C', 0, 1, $this->tableau['desc']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
@@ -768,8 +770,8 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		PDF			$pdf			The PDF factory
-		*	@param		Object		$object			Object shown in PDF
+		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		Entrepot	$object				Object shown in PDF
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text

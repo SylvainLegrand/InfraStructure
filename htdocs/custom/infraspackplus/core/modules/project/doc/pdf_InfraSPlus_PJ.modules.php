@@ -52,6 +52,7 @@
 	************************************************/
 	class pdf_InfraSPlus_PJ extends ModelePDFProjects
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
@@ -260,11 +261,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'projects', 'trips', 'agenda', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db 							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusProjectName');
 			$this->description					= $langs->trans('PDFInfraSPlusProjectDescription');
 			$this->titlekey						= 'Project';
@@ -281,13 +283,13 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		object		$object					Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@return	int							1 = OK, <= 0 KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $nblignes;
+			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -318,7 +320,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters				= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
@@ -328,9 +330,9 @@
 					$this->listnotep		= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied				= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
 					$this->files			= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
-					$task					= new Task($db);
+					$task					= new Task($this->db);
 					$tasksarray				= array();
-					$tasksarray				= $task->getTasksArray(0, 0, $object->id);
+					$tasksarray				= $task->getTasksArray(null, null, $object->id);
 					if (! $object->id > 0)	$tasksarray	= array_slice($tasksarray, 0, min(5, count($tasksarray)));	// Special case when used with object = specimen, we may return all lines
 					$object->lines			= $tasksarray;
 					$nblignes				= count($object->lines);
@@ -373,7 +375,7 @@
 					$this->tblLineStyle		= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>(!empty($this->title_bg) && empty($this->showtblline) ? $this->bg_color : $this->tblLineColor));
 					$this->horLineStyle		= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>$this->horLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Define width and position of notes frames
 					$this->larg_util_txt	= $this->page_largeur - ($this->marge_gauche + $this->marge_droite + ($this->Rounded_rect * 2) + 2);
@@ -452,13 +454,13 @@
 						$pdf->line($this->marge_gauche + ($largCol * 2),	$curY, $this->marge_gauche + ($largCol * 2),	$curY + $tab_height, $this->tblLineStyle);
 					}
 					$pdf->SetFont('', 'B', $default_font_size - 1);
-					!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->MultiCell($largCol, $this->ht_top_table, 'Montant opportunité', '', 'C', 0, 1, $this->marge_gauche, $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($largCol, $this->ht_top_table, 'Budget', '', 'C', 0, 1, $this->marge_gauche + $largCol, $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($largCol, $this->ht_top_table, 'Marge', '', 'C', 0, 1, $this->marge_gauche + ($largCol * 2), $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$curY	+= $this->ht_top_table;
 					$pdf->SetFont('', '', $default_font_size - 1);
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->MultiCell($largCol, $this->tab_hl * 2, pdf_InfraSPlus_price($object, $oppAmount, $outputlangs, 0, 0, 'T'), '', 'C', 0, 1, $this->marge_gauche, $curY, true, 0, 0, true, $this->tab_hl * 2, 'M', false);
 					$pdf->MultiCell($largCol, $this->tab_hl * 2, pdf_InfraSPlus_price($object, $budgetAmount, $outputlangs, 0, 0, 'T'), '', 'C', 0, 1, $this->marge_gauche + $largCol, $curY, true, 0, 0, true, $this->tab_hl * 2, 'M', false);
 					$pdf->MultiCell($largCol, $this->tab_hl * 2, pdf_InfraSPlus_price($object, $marge, $outputlangs, 0, 0, 'T'), '', 'C', 0, 1, $this->marge_gauche + ($largCol * 2), $curY, true, 0, 0, true, $this->tab_hl * 2, 'M', false);
@@ -590,7 +592,7 @@
 					foreach ($listofreferent as $key => $referent) {
 						if (! $referent['test'] || ! $referent['list1'])	continue;
 						$listKeyOk[]										= $key;
-						$element											= new $referent['class']($db);
+						$element											= new $referent['class']($this->db);
 						$elementarray										= $object->get_element_list($key, $referent['table'], $referent['datefieldname'], $dates, $datee, !empty($referent['fk_projet']) ? $referent['fk_projet'] : 'fk_projet');
 						$num												= count($elementarray);
 						if (is_array($elementarray) && $num > 0) {
@@ -602,7 +604,7 @@
 							for ($i = 0; $i < $num; $i ++) {
 								$idofelement	= $elementarray[$i];
 								if ($referent['class'] == 'ExpenseReport') {	// We get id of expense report
-									$expensereportline						= new ExpenseReportLine($db);
+									$expensereportline						= new ExpenseReportLine($this->db);
 									$expensereportline->fetch($idofelement);
 									$idofelement							= $expensereportline->fk_expensereport;
 									if ($idofelement == $previdofelement)	continue;
@@ -653,13 +655,13 @@
 					}
 					// En-tête tableau
 					$totalLarg	= $this->tableau['ref']['larg'] + $this->tableau['date']['larg'] + $this->tableau['tiers']['larg'];
-					!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->MultiCell($totalLarg, $this->ht_top_table, $outputlangs->transnoentities("element"), '', 'C', 0, 1, $this->tableau['ref']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['totalht']['larg'], $this->ht_top_table, $outputlangs->transnoentities("AmountHTShort"), '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['totalttc']['larg'], $this->ht_top_table, $outputlangs->transnoentities("AmountTTCShort"), '', 'R', 0, 1, $this->tableau['totalttc']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['status']['larg'], $this->ht_top_table, $outputlangs->transnoentities("Nombre"), '', 'C', 0, 1, $this->tableau['status']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->SetFont('', '', $default_font_size - 1);
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$totalHT	= 0;
 					$totalTTC	= 0;
 					foreach ($listKeyOk as $keyOk) {
@@ -683,7 +685,7 @@
 					$previdofelement	= 0;
 					foreach ($listofreferent as $key => $referent) {
 						if (! $referent['test'] || ! $referent['list2'])	continue;
-						$element		= new $referent['class']($db);
+						$element		= new $referent['class']($this->db);
 						$elementarray	= $object->get_element_list($key, $referent['table'], $referent['datefieldname'], $dates, $datee, !empty($referent['fk_projet']) ? $referent['fk_projet'] : 'fk_projet');
 						$num			= count($elementarray);
 						if ($num >= 0) {
@@ -699,7 +701,7 @@
 								for ($i = 0; $i < $num; $i ++) {
 									$curY								= $nexY;
 									$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-									$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+									$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 									if (empty($this->hide_top_table))	$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
 									else								$pdf->setTopMargin($tab_top_newpage);
 									$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
@@ -707,7 +709,7 @@
 									$showpricebeforepagebreak			= 1;
 									$idofelement						= $elementarray[$i];
 									if ($referent['class'] == 'ExpenseReport') {	// We get id of expense report
-										$expensereportline						= new ExpenseReportLine($db);
+										$expensereportline						= new ExpenseReportLine($this->db);
 										$expensereportline->fetch($idofelement);
 										$idofelement							= $expensereportline->fk_expensereport;
 										if ($idofelement == $previdofelement)	continue;
@@ -769,7 +771,7 @@
 									$pdf->MultiCell($this->tableau['date']['larg'], $this->heightline, $date, '', 'C', 0, 1, $this->tableau['date']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
 									// Name
 									if ($referent['class'] == 'ExpenseReport') {
-										$fuser		= new User($db);
+										$fuser		= new User($this->db);
 										$fuser->fetch($element->fk_user_author);
 										$txtName	= $fuser->getFullName($outputlangs);
 									}
@@ -898,8 +900,8 @@
 		/**
 		*	Show top header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		object		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		array		$hauteurhead	'totalhead'		= hight of header
@@ -918,7 +920,7 @@
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
 			$w					= $this->header_align_left ? 92 - $this->decal_round : 100;
 			$align				= $this->header_align_left ? 'L' : 'R';
@@ -938,7 +940,7 @@
 				$txtref .= ' - '.$outputlangs->transnoentities("NotValidated");
 			}
 			$pdf->MultiCell($w, $this->tab_hl, $txtref, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
-			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', ($this->datesbold ? 'B' : ''), $default_font_size - 2);
 			$posy	+= $this->tab_hl;
 			$txtdtS	= $outputlangs->transnoentities("DateStart").' : '.dol_print_date($object->date_start, "day", false, $outputlangs, true);
@@ -962,8 +964,8 @@
 		/**
 		*	Show top small header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		object		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		void
@@ -980,8 +982,8 @@
 		/**
 		*	Show table for lines
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		object		$object			Object to show
 		*	@param		string		$tab_top		Top position of table
 		*	@param		string		$tab_height		Height of table (rectangle)
 		*	@param		Translate	$outputlangs	Langs object
@@ -997,7 +999,7 @@
 			$hidebottom				= 0;
 			if (!empty($hidetop))	$hidetop	= -1;
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size - 1);
 			$pdf->setPage($pagenb);
 			// Output Rounded Rectangle
@@ -1021,7 +1023,7 @@
 				if ($this->posxcol6 > $this->posxcol5 && $this->posxcol6 < ($this->marge_gauche + $this->larg_util_cadre))		$pdf->line($this->posxcol6,		$tab_top, $this->posxcol6,	$tab_top + $tab_height, $this->verLineStyle);
 			}
 			// En-tête tableau
-			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			if (empty($hidetop) || $pagenb == 1) {
 				$pdf->MultiCell($this->tableau['ref']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Ref'), '', 'C', 0, 1, $this->tableau['ref']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 				$pdf->MultiCell($this->tableau['date']['larg'], $this->ht_top_table, $outputlangs->transnoentities(($referent['table'] == 'projet_task' ? 'Time' : 'Date')), '', 'C', 0, 1, $this->tableau['date']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
@@ -1038,8 +1040,8 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		PDF			$pdf			The PDF factory
-		*	@param		Object		$object			Object shown in PDF
+		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		object		$object				Object shown in PDF
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text

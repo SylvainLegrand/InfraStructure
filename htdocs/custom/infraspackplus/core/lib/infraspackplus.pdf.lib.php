@@ -546,7 +546,7 @@
 				$pdf->SetFont('', 'B', $default_font_size - 2);
 				$pdf->MultiCell($w, $tab_hl, $outputlangs->transnoentities('PDFInfraSPlusLogoFileNotFound', $logo), '', 'L', 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 				$pdf->MultiCell($w, $tab_hl, $outputlangs->transnoentities('ErrorGoToGlobalSetup'), '', 'L', 0, 1, $posx, $pdf->getY() + 1, true, 0, 0, false, 0, 'M', false);
-				$pdf->SetTextColor($headertxtcolor[0], $headertxtcolor[1], $headertxtcolor[2]);
+				$pdf->SetTextColor((int) $headertxtcolor[0], (int) $headertxtcolor[1], (int) $headertxtcolor[2]);
 				$heightLogo	= $pdf->getY() + 1;
 			}
 		} else {
@@ -1454,7 +1454,7 @@
 			// Show sender
 			$posy	= $dimCadres['Y'];
 			if (empty($ticket)) {
-				$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
+				$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
 			}
 			// Show sender name
 			$pdf->SetFont('', 'B', $default_font_size - ($ticket ? 2 : 0));
@@ -1473,7 +1473,7 @@
 			$posy	= $posyendsender;
 		}
 		if (empty($ticket)) {
-			$pdf->SetTextColor($frmrTxtColor[0], $frmrTxtColor[1], $frmrTxtColor[2]);
+			$pdf->SetTextColor((int) $frmrTxtColor[0], (int) $frmrTxtColor[1], (int) $frmrTxtColor[2]);
 		}
 		// Show recipient name
 		$pdf->SetFont('', 'B', $default_font_size - ($ticket ? 2 : 0));
@@ -1509,7 +1509,7 @@
 		$logosmallheadheight	= getDolGlobalInt('INFRASPLUS_PDF_LOGO_SMALL_HEAD_HEIGHT', 6);
 		$logo					= !empty($logosheader2) && !empty($logosecondarysmallhead) ? $logosheader2 : $logo;
 		$default_font_size		= pdf_getPDFFontSize($outputlangs);
-		$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
+		$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
 		$pdf->SetFont('','', $default_font_size - 2);
 		$posy					= $formatpage['mhaute'];
 		$posx					= $formatpage['largeur'] - $formatpage['mdroite'] - 100 - $decal_round;
@@ -1524,7 +1524,7 @@
 				$pdf->SetFont('', 'B', $default_font_size - 2);
 				$pdf->MultiCell(100, 4, $outputlangs->transnoentities('PDFInfraSPlusLogoFileNotFound', $logo), '', 'L', 0, 1, $formatpage['mgauche'], $posy, true, 0, 0, false, 0, 'M', false);
 				$pdf->MultiCell(100, 4, $outputlangs->transnoentities('ErrorGoToGlobalSetup'), '', 'L', 0, 1, $formatpage['mgauche'], $posy + 8, true, 0, 0, false, 0, 'M', false);
-				$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
+				$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
 			}
 		} else {
 			$text	= $fromcompany->name;
@@ -2477,7 +2477,7 @@
 	*	Return line weight volume dimensions and Customs code into array
 	*
 	*	@param	object		$object			Object shown in PDF
-	*	@param	int			$i				Current line number (0 = first line, 1 = second line, ...)
+	*	@param	int|string	$i				Current line number (0 = first line, 1 = second line, ...) or 'P' to get product info instead of line info
 	*	@param	Translate	$outputlangs	Object langs for output
 	*	@param	object		$emetteur		Object company
 	*	@return string						html code with elements found
@@ -2645,7 +2645,7 @@
 				$bodytxtsubticolor	= explode(',', $bodytxtsubticolor);
 				$bodybgsubticolor	= getDolGlobalString('MILESTONE_BACKGROUND_COLOR', 'e6e6e6');
 				$bodybgsubticolor	= colorStringToArray($bodybgsubticolor);
-				$pdf->SetTextColor($bodytxtsubticolor[0], $bodytxtsubticolor[1], $bodytxtsubticolor[2]);	// Sous-titre Milestone/Jalon
+				$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);	// Sous-titre Milestone/Jalon
 				$frm				= implode(',', $bodybgsubticolor) == '255, 255, 255' ? '' : 'F';
 				$frmstyle			= array('width'=>'0.2', 'dash'=>'0', 'cap'=>'butt', 'color'=>'255, 255, 255');
 				$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h--, 0.001, '1111', $frm, $frmstyle, $bodybgsubticolor);
@@ -2751,7 +2751,7 @@
 					$style			= getDolGlobalString('SUBTOTAL_TITLE_STYLE', ($object->lines[$i]->qty == 1 ? 'BU' : 'BUI'));
 					$bodybgsubcolor	= colorStringToArray($bodysubticolor);
 					$frm			= implode(',', $bodybgsubcolor) == '255, 255, 255' ? '' : 'F';
-					$pdf->SetTextColor($bodytxtsubticolor[0], $bodytxtsubticolor[1], $bodytxtsubticolor[2]);
+					$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);
 					$pdf->SetFont('', $style);
 					$tmpAlpha		= ($object->lines[$i]->qty - 1) * 0.25;
 					$pdf->SetAlpha(1 - ($tmpAlpha >= 0 ? $tmpAlpha : 1));
@@ -2763,7 +2763,7 @@
 					}
 					$pdf->SetAlpha(1);
 					$pdf->writeHTMLCell($subTiW, $h, $subTiX, $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1, false, true, 'L', true);
-					$pdf->SetTextColor($bodydescsubticolor[0], $bodydescsubticolor[1], $bodydescsubticolor[2]);
+					$pdf->SetTextColor((int) $bodydescsubticolor[0], (int) $bodydescsubticolor[1], (int) $bodydescsubticolor[2]);
 					$pdf->SetFont('', '', pdf_getPDFFontSize($outputlangs) - 1);	// On repositionne la police par defaut
 					if (!empty($fulllabel['subdesc'])) {
 						$pdf->writeHTMLCell($subTiW, $h, $subTiX, $posy + $h, $outputlangs->convToOutputCharset($fulllabel['subdesc']), 0, 1, false, true, 'L', true);
@@ -2778,7 +2778,7 @@
 					$style				= getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B');
 					$txt				= $outputlangs->convToOutputCharset($labelproductservice);
 					$txt				= $isRecap && !empty($subTotNewF) ? substr($txt, 0, strlen($txt) - 13) : $txt;
-					$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
+					$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
 					$pdf->SetFont('', $style);
 					if (empty($hideBg)) {
 						if (!empty($bgSubToColor) && $bgSubToColor != '255,255,255') {	// Personalized background color for subtotals
@@ -2810,7 +2810,7 @@
 				$bodyouvcolor	= colorStringToArray($bodyouvcolor);
 				$h				= $pdf->getStringHeight($w, $labelproductservice);
 				$frm			= implode(',', $bodyouvcolor) == '255, 255, 255' ? '' : 'F';
-				$pdf->SetTextColor($txtouvcolor[0], $txtouvcolor[1], $txtouvcolor[2]);
+				$pdf->SetTextColor((int) $txtouvcolor[0], (int) $txtouvcolor[1], (int) $txtouvcolor[2]);
 				$pdf->SetFont('', $txtouvstyle);
 				if ($frm == 'F') {
 					$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h, 1, '1111', $frm, $frmstyle, $bodyouvcolor);
@@ -3335,12 +3335,12 @@
 		if (!empty($isSubTitle)) {	// Sous-titre ATM
 			$bodytxtsubticolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '0,0,0');
 			$bodytxtsubticolor	= explode(',', $bodytxtsubticolor);
-			$pdf->SetTextColor($bodytxtsubticolor[0], $bodytxtsubticolor[1], $bodytxtsubticolor[2]);
+			$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		} elseif (!empty($isSubTotal)) {	// Sous-total ATM
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
-			$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
+			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		}
 		if (is_object($hookmanager)) {
@@ -3773,7 +3773,7 @@
 		if (!empty($isSubTotal)) {	// Sous-total ATM
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
-			$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
+			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		}
 		if (is_object($hookmanager)) {
@@ -3859,7 +3859,7 @@
 		if (!empty($isSubTotal)) {	// Sous-total ATM
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
-			$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
+			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		}
 		if (is_object($hookmanager)) {
@@ -4370,7 +4370,7 @@
 	{
 		global $conf, $user;
 
-		$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
+		$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
 		$footer_bold	= getDolGlobalInt('INFRASPLUS_PDF_REFD_FROM_CUSTOMER', 0);
 		$noendline		= !empty($noendline) || getDolGlobalInt('INFRASPLUS_PDF_NO_LINE_FOOTER') ? 1 : 0;
 		$pdf->SetFont('', $footer_bold ? 'B' : '', 7);

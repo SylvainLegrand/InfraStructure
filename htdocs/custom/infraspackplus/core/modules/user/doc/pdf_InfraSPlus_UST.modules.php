@@ -35,6 +35,7 @@
 	************************************************/
 	class pdf_InfraSPlus_UST extends ModelePDFUser
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
@@ -209,11 +210,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'companies', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusUserStickerName');
 			$this->description					= $langs->trans('PDFInfraSPlusUserStickerDescription');
 			$this->titlekey						= getDolGlobalString('INFRASPLUS_PDF_USER_STICKER_TITLE', '');
@@ -244,13 +246,17 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		User		$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
-		*	@return	int							1 = OK, <= 0 KO
+		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
+		*	@param		int			$hidedetails		Do not show line details
+		*	@param		int			$hidedesc			Do not show desc
+		*	@param		int			$hideref			Do not show ref
+		*	@return		int								1 = OK, <= 0 KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager;
+			global $user, $langs, $conf, $hookmanager;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -280,7 +286,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters			= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
@@ -311,7 +317,7 @@
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs, $this->watermark);	// Show Watermarks
 					$pagenb					= 1;
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Calculs de positions
 					$this->larg_util_cadre	= $this->page_largeur - ($this->marge_gauche + $this->marge_droite);

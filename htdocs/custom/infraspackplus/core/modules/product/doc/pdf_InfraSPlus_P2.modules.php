@@ -38,6 +38,7 @@
 	************************************************/
 	class pdf_InfraSPlus_P2 extends ModelePDFProduct
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $defaulttemplate;
@@ -237,11 +238,12 @@
 		********************************************/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'products', 'companies', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusProductName2');
 			$this->description					= $langs->trans('PDFInfraSPlusProductDescription');
 			$this->update_main_doc_field		= 0;	// Save the name of generated file as the main doc when generating a doc with this template
@@ -281,7 +283,7 @@
 		********************************************/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $nblignes;
+			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -302,7 +304,7 @@
 					$dir		= $baseDir.'/'.$objectref;
 					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
 				}
-				$productFournisseur		= new ProductFournisseur($db);
+				$productFournisseur		= new ProductFournisseur($this->db);
 				$supplierprices			= $productFournisseur->list_product_fournisseur_price($object->id);
 				$object->supplierprices	= $supplierprices;
 				if (! file_exists($dir)) {
@@ -315,7 +317,7 @@
 					if (! is_object($hookmanager))	// Add pdfgeneration hook
 					{
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters				= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
@@ -367,7 +369,7 @@
 					$this->tblLineStyle					= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>(!empty($this->title_bg) && empty($this->showtblline) ? $this->bg_color : $this->tblLineColor));
 					$this->horLineStyle					= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>$this->horLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Define width and position of notes frames
 					$this->larg_util_txt				= $this->page_largeur - ($this->marge_gauche + $this->marge_droite + 2);
@@ -385,7 +387,7 @@
 					$sortorder							= 'asc';
 					$posxpicture						= $this->posx_G_txt;
 					$posypicture						= $curY + 0.5;
-					if (!empty($this->old_path_photo))	$pdir = get_exdir($this->id,2,0,0,$this,'product') . $this->id ."/photos/";
+					if (!empty($this->old_path_photo))	$pdir = get_exdir($this->id,2,0,0,$object,'product') . $this->id ."/photos/";
 					else								$pdir = get_exdir(0, 0, 0, 0, $object, 'product').dol_sanitizeFileName($object->ref).'/';
 					$dir								= $baseDir.'/'.$pdir;
 					// Defined relative dir to DOL_DATA_ROOT
@@ -454,12 +456,12 @@
 					}
 					$curY	= $tab_top + $this->ht_top_table + $this->bgLineW + ($this->tab_hl * 0.5);
 					// Label and Ref.
-					$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+					$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 					$pdf->SetFont('', 'B', $default_font_size * $this->title_size);
 					$title			= $outputlangs->transnoentities($object->label);
 					$pdf->writeHTMLCell($this->larg_util_txt, $this->tab_hl, $this->posx_G_txt, $curY, dol_htmlentitiesbr($title), 0, 1, 0);
 					$curY			= $pdf->GetY() + $this->tab_hl;
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$txtref			= $outputlangs->transnoentities('Ref').' : '.$outputlangs->convToOutputCharset($object->ref);
 					$pdf->writeHTMLCell($this->larg_util_txt, $this->tab_hl, $this->posx_G_txt, $curY, dol_htmlentitiesbr($txtref), 0, 1, 0);
 					$curY			= $pdf->GetY();
@@ -473,7 +475,7 @@
 						$curY			+= $height_note;
 						// Description
 						$pdf->SetFont('', '', $default_font_size - 1);
-						$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						if (!empty($hasimg2)) {
 							if ($realpath)			$imglinesize	= pdf_InfraSPlus_getSizeForImage($realpath, $this->larg_util_txt / 3, $this->page_hauteur / 6, 1);
 							if (!empty($imglinesize['width']) && !empty($imglinesize['height'])) {
@@ -503,7 +505,7 @@
 						else	$pdf->commitTransaction();
 					}
 					$this->_tableau($pdf, $object, $tab_top, $height_note, $bottomlasttab - $tab_top, $outputlangs, 0, 0, $pagenb);
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $bottomlasttab, $outputlangs, $this->emetteur, $this->listfreet, 0, 0);
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
 					if (method_exists($pdf, 'AliasNbPages'))	$pdf->AliasNbPages();
@@ -536,8 +538,8 @@
 		/**
 		*	Show table for lines
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Product		$object			Object to show
 		*	@param		float		$tab_top		Top position of table
 
 		*	@param		float		$tab_height		Height of table (rectangle)
@@ -553,7 +555,7 @@
 			$hidebottom				= 0;
 			if (!empty($hidetop))	$hidetop	= -1;
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
 			// Output Rounded Rectangle
 			if (!empty($this->title_bg))	$pdf->RoundedRect(0, $tab_top, $this->page_largeur, $this->ht_top_table / 2, 0, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
@@ -567,15 +569,9 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*,
-		*	@param		PDF			$pdf			The PDF factory
+		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		Product		$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@param		Societe		$fromcompany	Object company
-		*	@param		int			$marge_basse	Margin bottom we use for the autobreak
-		*	@param		int			$marge_gauche	Margin left
-		*	@param		int			$page_hauteur	Page height
-		*	@param		Object		$object			Object shown in PDF
-		*	@param		int			$showdetails	Show company details into footer
-		*	@param		int			$hidesupline	Completly hide the line up to footer (for some edition with only table)
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text
 		********************************************/

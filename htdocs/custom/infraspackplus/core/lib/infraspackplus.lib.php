@@ -1147,7 +1147,8 @@
 		$const_name	= infraspackplus_get_const_name_from_substitution_path($path);
 		if (getDolGlobalString($const_name, '')) {
 			$dolibranch		= explode('.', DOL_VERSION);
-			$coreVersion	= 'dlb'.$dolibranch[0].'0x'.(getDolGlobalString('EASYA_VERSION', '') ? '-Easya' : '');
+			$dolinfras		= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
+			$coreVersion	= 'dlb'.$dolibranch[0].'0x'.($dolinfras ? '-DolInfraS' : '');
 			$path_dst		= '/infraspackplus/substitutionpages/'.$coreVersion.$path;
 			$real_path_dst	= dol_buildpath($path_dst, 0);
 			dol_syslog('infraspackplus.lib.php::infraspackplus_get_substitution_url $path = '.$path.' $real_path_dst = '.$real_path_dst);

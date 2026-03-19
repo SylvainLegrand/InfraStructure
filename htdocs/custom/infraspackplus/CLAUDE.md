@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `23.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.14.10` (2026-03)
+- Dernière version locale : `18.14.11` (2026-03)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -175,6 +175,8 @@ Respecter les règles Dolibarr du dépôt parent :
 - entrées utilisateur via `GETPOST*`,
 - constantes via `getDolGlobalString()`, `getDolGlobalInt()`, `getDolGlobalBool()`,
 - SQL sécurisé : cast `int`, échappement `$db->escape()` / `$db->escapeforlike()`,
+- appels TCPDF avec couleurs : toujours caster en `(int)` les arguments de `SetTextColor()`, `SetDrawColor()`, `SetFillColor()` quand ce sont des variables (requis PHP 8.x),
+- déclarations de propriétés : toutes les classes PDF doivent déclarer explicitement leurs propriétés (pas de propriétés dynamiques, interdit depuis PHP 8.2),
 - gestion multi-entité via `entity` / `getEntity()` selon les objets.
 
 ## Workflow recommandé après changements structurels (Recommended workflow)
@@ -208,6 +210,12 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - `18.14.10` (2026-03) : simplification de `infraspackplus_is_substitution_page()` — `strpos()` au lieu de regex complexe
 - `18.14.10` (2026-03) : ajout du mécanisme z-order (`liftPageContent()` / `dropPageContent()`) dans tous les modèles PDF (~24 fichiers) pour que le filigrane et l'en-tête soient placés en arrière-plan du contenu auto-break
 - `18.14.10` (2026-03) : correction du bug TCPDF `ColorFlag` — nouvelles classes `TCPDF_InfraS` / `TCPDI_InfraS` forçant `ColorFlag = true` après chaque appel de couleur, corrigeant la perte de couleur de texte sur les pages suivantes
+- `18.14.10` (2026-03) : ajout des déclarations de propriétés manquantes sur la classe `pdf_infrasplus` (carte adhérent) — 11 propriétés ajoutées (`$multilangs`, `$use_fpdf`, `$main_umask`, `$font`, `$cat_hq_image`, `$watermark_i_opacity`, `$show_ExtraFieldsLines`, `$larg_util_txt`, `$tab_hl`, `$_Margin_Right`, `$_Margin_Bottom`)
+- `18.14.10` (2026-03) : cast `(int)` sur tous les appels `SetTextColor()` avec arguments variables — 443 occurrences corrigées dans 38 fichiers de modèles PDF (compatibilité PHP 8.x strict typing)
+- `18.14.10` (2026-03) : Simplification de la fonction infraspackplus_is_substitution_page() : utilisation de strpos() au lieu de regex complexe
+- `18.14.10` (2026-03) : Ajout de la fonction infraspackplus_getSubstitutionRedirectUrl() pour gérer les redirections avec filtrage des paramètres GET (exclusion du token CSRF)
+- `18.14.11` (2026-03) : Création du nouveau lien vers le Wiki InfraSPackPlus
+
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -302,7 +310,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="18.14.10" MonthVersion="2026-03">
+  <Version Number="18.14.11" MonthVersion="2026-03">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -321,7 +329,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.14.10",         // Version courante
+    0 => "18.14.11",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)

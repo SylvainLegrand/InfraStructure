@@ -36,6 +36,7 @@
 	************************************************/
 	class pdf_InfraSPlus_ET extends ModelePdfExpedition
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $defaulttemplate;
@@ -209,11 +210,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs, $mysoc;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db									= $db;
 			$this->name									= $langs->trans('PDFInfraSPlusEtiquetteName');
 			$this->description							= $langs->trans('PDFInfraSPlusEtiquetteDescription');
 			$this->emetteur								= $mysoc;
@@ -230,17 +232,17 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Expedition	$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
 		*	@param		int			$hidedesc			Do not show desc
 		*	@param		int			$hideref			Do not show ref
-		*	@return	int							1=OK, 0=KO
+		*	@return	int									1=OK, 0=KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager;
+			global $user, $langs, $conf, $hookmanager;
 
 			if (! is_object($outputlangs)) $outputlangs	= $langs;
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
@@ -270,7 +272,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters			= array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
@@ -307,7 +309,7 @@
 					$this->stdLineColor		= array(128, 128, 128);
 					$this->stdLineStyle		= array('width'=>$this->stdLineW, 'dash'=>$this->stdLineDash, 'cap'=>$this->stdLineCap, 'color'=>$this->stdLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+					$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size);
 					$pdf->SetDrawColor(0, 0, 0);
 					// Define width and position of notes frames
@@ -320,24 +322,24 @@
 					if ($logo) {
 						if (is_file($logo) && is_readable($logo)) {
 							$heightLogo	= pdf_getHeightForLogo($logo);
-							$pdf->Image($logo, $this->marge_gauche, $this->marge_haute, 0, $heightLogo, '', '', '', false, '', 'C');	// width=0 (auto)
+							$pdf->Image($logo, $this->marge_gauche, $this->marge_haute, 0, $heightLogo, '', '', '', false, 0, 'C');	// width=0 (auto)
 						}
 						else {
 							$pdf->SetTextColor(200, 0, 0);
 							$pdf->SetFont('', 'B', $default_font_size - 2);
 							$pdf->MultiCell($this->larg_util_cadre, $this->tab_hl, $outputlangs->transnoentities("ErrorInfraSPlusParamLogoFileNotFound", $logo), '', 'C', 0, 1, $this->marge_gauche, $this->marge_haute, true, 0, 0, false, 0, 'M', false);
 							$pdf->MultiCell($this->larg_util_cadre, $this->tab_hl, $outputlangs->transnoentities("ErrorGoToGlobalSetup"), '', 'C', 0, 1, $this->marge_gauche, $pdf->getY() + 1, true, 0, 0, false, 0, 'M', false);
-							$pdf->SetTextColor($headertxtcolor[0], $headertxtcolor[1], $headertxtcolor[2]);
+							$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 							$heightLogo	= $pdf->getY() + 1;
 						}
 					}
 					else {
-						$text		= $emetteur->name;
+						$text		= $this->emetteur->name;
 						$pdf->MultiCell($w, $this->tab_hl, $outputlangs->convToOutputCharset($text), '', 'C', 0, 1, $this->marge_gauche, $this->marge_haute, true, 0, 0, false, 0, 'M', false);
 						$heightLogo = $this->tab_hl;
 					}
 					$posy		= $this->marge_haute + $heightLogo + $this->tab_hl;
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->Line($this->marge_gauche, $posy, $this->page_largeur - $this->marge_droite, $posy, $this->stdLineStyle);
 					$posy	+= 2;
 					$refcom		= '';
@@ -349,7 +351,7 @@
 						$origin_id	= $object->origin_id;
 						$object->fetch_origin();		// Load property $object->commande, $object->propal, ...
 						if ($typeobject == 'commande' && $object->$typeobject->id && isModEnabled('commande')) {
-							$objectsrc								= new Commande($db);
+							$objectsrc								= new Commande($this->db);
 							$objectsrc->fetch($object->$typeobject->id);
 							$nblignes								= count($objectsrc->lines);
 							for ($i = 0 ; $i < $nblignes ; $i++)	$nbrProdTot	+= $objectsrc->lines[$i]->product_type == 0 ? $objectsrc->lines[$i]->qty : 0;

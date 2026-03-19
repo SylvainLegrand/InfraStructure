@@ -40,6 +40,7 @@
 	************************************************/
 	class pdf_InfraSPlus_BLC extends ModelePDFCommandes
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
@@ -262,11 +263,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusExpeditionCL202203007Name');
 			$this->description					= $langs->trans('PDFInfraSPlusExpeditionCL202203007Description');
 			$this->titlekey						= 'PDFInfraSPlusExpeditionTitle';
@@ -299,7 +301,7 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Commande	$object					Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
@@ -309,7 +311,7 @@
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $nblignes;
+			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -339,7 +341,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager					= new HookManager($db);
+						$hookmanager					= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters					= array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
@@ -407,20 +409,22 @@
 					$this->signLineCap		= 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 					$this->signLineStyle	= array('width'=>$this->signLineW, 'dash'=>$this->signLineDash, 'cap'=>$this->signLineCap, 'color'=>$this->signLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// First loop on each lines to prepare calculs and variables
 					$listlinetoshow			= array();
-					$objproduct				= new Product($db);
+					$objproduct				= new Product($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						$isSubATM				= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal') ? 1 : 0;	// Ligne ATM
 						if (!empty($isSubATM))	continue;
 						$isProd					= !empty($object->lines[$i]->fk_product) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						$isProd					= $isProd > 0 && $object->lines[$i]->product_type == 0 ? $isProd : 0;	// Products only, no services
 						$status_batch			= !empty($isProd) ? $objproduct->status_batch : 0;	// product with unique serial number
-						if ($object->lines[$i]->qty > 1 && $status_batch == 2)	// we want one line per serial number for product with  unique serial number
+						if ($object->lines[$i]->qty > 1 && $status_batch == 2) {	// we want one line per serial number for product with  unique serial number
 							for ($j = 0 ; $j < $object->lines[$i]->qty ; $j++)	$listlinetoshow[]	= array('line' => $i, 'qtytoshow' => 1);
-						else	$listlinetoshow[]	= array('line' => $i, 'qtytoshow' => 'std');
+						} else {
+							$listlinetoshow[]	= array('line' => $i, 'qtytoshow' => 'std');
+						}
 					}
 					$nblignes							= count($listlinetoshow);
 					// Define width and position of notes frames
@@ -476,7 +480,7 @@
 						$qtytoshow							= $listlinetoshow[$k]['qtytoshow'];
 						$curY								= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-						$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						if (empty($this->hide_top_table))	$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
 						else								$pdf->setTopMargin($tab_top_newpage);
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
@@ -539,7 +543,7 @@
 						if (!empty($this->show_efl))	$pdf->MultiCell($this->tableau['efl']['larg'], $this->heightline, '', '', 'C', 0, 1, $this->tableau['efl']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
 						// Unit
 						if (!empty($this->product_use_unit)) {
-							$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
+							$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails);
 							$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
 						}
 						// Qty to ship
@@ -574,7 +578,7 @@
 							$pdf->SetFillColor(255);
 							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
-						if (isset($listlinetoshow[$k + 1]->pagebreak) && $listlinetoshow[$k + 1]->pagebreak) {
+						if (!empty($listlinetoshow[$k + 1]['line']) && isset($object->lines[$listlinetoshow[$k + 1]['line']]->pagebreak) && $object->lines[$listlinetoshow[$k + 1]['line']]->pagebreak) {
 							$heightforfooter				= $this->_pagefoot($pdf, $object, $outputlangs, 0);
 							if ($pagenb == 1)				$this->_tableau($pdf, $object, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
 							else							$this->_tableau($pdf, $object, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
@@ -593,7 +597,7 @@
 					$bottomlasttab								= $this->page_hauteur - $heightforinfotot - $heightforfooter - 1;
 					if ($pagenb == 1)							$this->_tableau($pdf, $object, $tab_top, $bottomlasttab - $tab_top, $outputlangs, $this->hide_top_table, 1, $pagenb);
 					else										$this->_tableau($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 0, $pagenb);
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$posy										= $this->_signature_area($pdf, $object, $bottomlasttab, $outputlangs, 0);
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
 					if (method_exists($pdf, 'AliasNbPages'))	$pdf->AliasNbPages();
@@ -651,8 +655,8 @@
 		/**
 		*	Show top header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Commande	$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		array		$hauteurhead	'totalhead'		= hight of header
@@ -660,8 +664,6 @@
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
-			global $conf, $hookmanager;
-
 			$specialHead	= infraspackplus_fetchAllSpecialHeads(array($object->element), '_BLC');
 			if (!empty($specialHead['rootFileName'])) {
 				$specialhead	= 'pdf_'.$specialHead['rootFileName'].'_pagehead';
@@ -672,7 +674,7 @@
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
 			$dimCadres			= array ('S' => ($this->page_largeur - ($this->marge_gauche + 6 + $this->left_recep_corner + $this->marge_droite)), 'R' => $this->left_recep_corner);	// page width = 210 (A4) 92 + 92  = 184 => keep 210 - 184 for margins => 26 ; 10 right and left and 6 on the middle
 			$w					= $this->header_align_left ? 92 - $this->decal_round : 100;
@@ -694,7 +696,7 @@
 					$txtref .= ' - '.$outputlangs->transnoentities('NotValidated');
 				}
 				$pdf->MultiCell($w, $this->tab_hl, $txtref, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
-				$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+				$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 				$pdf->SetFont('', ($this->datesbold ? 'B' : ''), $default_font_size - 2);
 				if ($object->date_delivery) {
 					$posy	+= $this->tab_hl;
@@ -743,16 +745,14 @@
 		/**
 		*	Show top small header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Commande	$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		void
 		**/
 		protected function _pagesmallhead(&$pdf, $object, $showaddress, $outputlangs)
 		{
-			global $conf, $hookmanager;
-
 			$fromcompany	= $this->emetteur;
 			$title			= $outputlangs->transnoentities($this->titlekey);
 			pdf_InfraSPlus_pagesmallhead($pdf, $object, $showaddress, $outputlangs, $title, $fromcompany, $this->formatpage, $this->decal_round, $this->logo, $this->headertxtcolor);
@@ -761,8 +761,8 @@
 		/**
 		*	Show table for lines
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Commande	$object			Object to show
 		*	@param		float		$tab_top		Top position of table
 		*	@param		float		$tab_height		Height of table (rectangle)
 		*	@param		Translate	$outputlangs	Langs object
@@ -772,13 +772,11 @@
 		**/
 		protected function _tableau(&$pdf, $object, $tab_top, $tab_height, $outputlangs, $hidetop = 0, $hidebottom = 0, $pagenb)
 		{
-			global $conf;
-
 			// Force to disable hidetop and hidebottom
 			$hidebottom				= 0;
 			if (!empty($hidetop))	$hidetop	= -1;
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
 			// Output Rounded Rectangle
 			if (empty($hidetop) || $pagenb == 1) {
@@ -792,7 +790,7 @@
 			if ($object->statut == Commande::STATUS_DRAFT && (!empty($this->draft_watermark))) {
 				if (empty($hidetop))	pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + $this->ht_top_table + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
 				else					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
-				$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+				$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			}
 			// Show Folder mark
 			if (!empty($this->fold_mark)) {
@@ -808,7 +806,7 @@
 			}
 			// En-tête tableau
 			$pdf->SetFont('', 'B', $default_font_size - 1);
-			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			if (empty($hidetop) || $pagenb == 1) {
 				if (!empty($this->refcol))				$pdf->MultiCell($this->tableau['ref']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Ref'), '', 'C', 0, 1, $this->tableau['ref']['posx'], $tab_top, true, 0, false, true, $this->ht_top_table, 'M', false);
 				if (!empty($this->show_efl))			$pdf->MultiCell($this->tableau['efl']['larg'], $this->ht_top_table, $outputlangs->transnoentities('PDFInfraSPlusSerialRef'), '', 'C', 0, 1, $this->tableau['efl']['posx'], $tab_top, true, 0, false, true, $this->ht_top_table, 'M', false);
@@ -821,8 +819,8 @@
 		/**
 		*	Show area for the customer to sign
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Facture		$object		Object invoice
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Commande	$object			Object invoice
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
 		*	@return		int							Position pour suite
@@ -839,7 +837,7 @@
 			$titlesignarea_hl				= $titlesignarea_hl < $this->tab_hl ? $this->tab_hl : $titlesignarea_hl;
 			$signarea_hl					= $this->tab_hl;
 			$pdf->SetFont('', 'B', $default_font_size - 1);
-			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			// Comments
 			if (!empty($this->title_bg))	$pdf->RoundedRect($posxsignarea, $signarea_top, $larg_signarea, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
 			$titlecomments					= $outputlangs->transnoentities('Comments').' :';
@@ -849,7 +847,7 @@
 			if (!empty($this->title_bg))	$pdf->RoundedRect($posxsignarea, $signarea_top, $larg_signarea, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
 			$pdf->MultiCell($larg_signarea, $titlesignarea_hl, $titlesignarea, '', 'L', 0, 1, $posxsignarea + $this->decal_round, $signarea_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 			$pdf->SetFont('', '', $default_font_size - 2);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			// Customer signature
 			$pdf->MultiCell($larg_signarea, $signarea_hl, $outputlangs->transnoentities('PDFInfraSPlusExpeditionSgnatureName'), '', 'L', 0, 1, $posxsignarea + $this->decal_round, $signarea_top + $titlesignarea_hl, true, 0, 0, false, 0, 'M', false);
 			$pdf->MultiCell($larg_signarea, $signarea_hl, $outputlangs->transnoentities('PDFInfraSPlusExpeditionSgnatureQuality'), '', 'L', 0, 1, $posxsignarea + $this->decal_round, $signarea_top + $titlesignarea_hl + $signarea_hl, true, 0, 0, false, 0, 'M', false);
@@ -868,15 +866,9 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		PDF			$pdf			The PDF factory
+		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		Commande	$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@param		Societe		$fromcompany	Object company
-		*	@param		int			$marge_basse	Margin bottom we use for the autobreak
-		*	@param		int			$marge_gauche	Margin left
-		*	@param		int			$page_hauteur	Page height
-		*	@param		Object		$object			Object shown in PDF
-		*	@param		int			$showdetails	Show company details into footer
-		*	@param		int			$hidesupline	Completly hide the line up to footer (for some edition with only table)
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text
 		**/

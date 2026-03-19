@@ -283,7 +283,7 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'infraspackplus@infraspackplus'));
 
@@ -346,13 +346,13 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Facture		$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
 		*	@param		int			$hidedesc			Do not show desc
 		*	@param		int			$hideref			Do not show ref
-		*	@return	int							1=OK, 0=KO
+		*	@return	int									1=OK, 0=KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
@@ -473,6 +473,8 @@
 					$this->hasProduct	= 0;
 					$this->nbrProdTot	= 0;
 					$this->nbrProdDif	= array();
+					$objproduct			= new Product($this->db);
+					$discount			= new DiscountAbsolute($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// deposits
 						$isDiscount	= 0;
@@ -706,7 +708,7 @@
 						$qty	= pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
 						$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $qty, '', 'R', 0, 1, $this->tableau['qty']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
 						// Unit
-						$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
+						$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails);
 						$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
 						// Discounted price
 						$up_disc	= pdf_InfraSPlus_getlineincldiscountexcltax($object, $i, $outputlangs, $hidedetails, null, $pricesObjProd[$i]);
@@ -787,8 +789,8 @@
 		/**
 		*	Show top header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@param		string		$titlekey		Translation key to show as title of document
@@ -797,8 +799,6 @@
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
-			global $conf, $hookmanager;
-
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$pdf->SetTextColor(0, 0, 0);
 			$pdf->SetFont('', 'B', $default_font_size - 2);
@@ -826,7 +826,7 @@
 										'fontsize'		=> 8,
 										'stretchtext'	=> 4
 										);
-			$pdf->write1DBarcode($object->id, 'C128', $this->marge_gauche + ($w / 2), $posy, '', '', 0.4, $styleBC, 'B');
+			$pdf->write1DBarcode($object->id, 'C128', $this->marge_gauche + ($w / 2), $posy, 0, 0, 0.4, $styleBC, 'B');
 			$posyBC				= $pdf->GetY();
 				$txtref			= $this->_refInvoice($pdf, $object, $outputlangs, $w);
 				$refArr			= explode('<br>', $txtref);
@@ -892,8 +892,8 @@
 		/**
 		*	Set invoice reference.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object			Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@param		int			$cellWidth		[=0] Cell width to add break lines or O not to use it
 		*	@return		string						Reference to show
@@ -934,16 +934,14 @@
 		/**
 		*	Show top small header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		void
 		**/
 		protected function _pagesmallhead(&$pdf, $object, $showaddress, $outputlangs)
 		{
-			global $conf, $hookmanager;
-
 			$title							= $this->emetteur->name.' '.$outputlangs->transnoentities($this->titlekey);
 			pdf_InfraSPlus_pagesrefdate($pdf, $object, $outputlangs, $title, $this->marge_haute, $this->marge_gauche, 1);
 		}
@@ -951,8 +949,8 @@
 		/**
 		*	Show table for lines
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
 		*	@param		float		$tab_top		Top position of table
 		*	@param		float		$tab_height		Height of table (rectangle)
 		*	@param		Translate	$outputlangs	Langs object
@@ -1006,8 +1004,8 @@
 		/**
 		*	Show miscellaneous information (payment mode, payment term, ...)
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object			Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
 		*	@param		int			$posy			Y
 		*	@param		Translate	$outputlangs	Langs object
 		*	@return		int			$posy			Position pour suite
@@ -1104,7 +1102,7 @@
 					$pdf->SetFont('', 'B', $default_font_size - 2);
 					$this->error = $outputlangs->transnoentities('ErrorPaymentModeDefinedToWithoutSetup', $object->mode_reglement_code);
 					$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $this->error, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$posy=$pdf->GetY() + 1;
 				}
 				// Show payment mode
@@ -1168,16 +1166,14 @@
 		/**
 		*	Show total to pay
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Facture		$object		Object invoice
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
 		*	@return		int							Position pour suite
 		**/
 		protected function _tableau_tot(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)
 		{
-			global $conf;
-
 			$pdf->startTransaction();
 			$default_font_size				= pdf_getPDFFontSize($outputlangs);
 			$posytabtot						= $posy + 1;
@@ -1384,15 +1380,13 @@
 		/**
 		*	Show payments table
 		*
-		*	@param		PDF			$pdf		 Object PDF
-		*	@param		Object		$object		Object invoice
-		*	@param		int			$posy		 Position y in PDF
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
+		*	@param		int			$posy			Position y in PDF
 		*	@param		Translate	$outputlangs	Object langs for output
-		*	@return		int						Position pour suite
+		*	@return		int							Position pour suite
 		**/
 		protected function _tableau_versements(&$pdf, $object, $posy, $outputlangs, $calculseul = 0) {
-			global $conf;
-
 			$pdf->startTransaction();
 			$default_font_size										= pdf_getPDFFontSize($outputlangs);
 			$posytabver												= $posy + 1;
@@ -1502,13 +1496,14 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		PDF			$pdf			The PDF factory
-		*	@param		Object		$object			Object shown in PDF
+		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		Facture		$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
+		*	@return		int							Return height of bottom margin including footer text
 		**/
 		protected function _pagefoot(&$pdf, $object, $outputlangs, $calculseul)
 		{
-
+			return 0;
 		}
 	}

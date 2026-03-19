@@ -37,6 +37,7 @@
 	************************************************/
 	class pdf_InfraSPlus_PBC extends ModelePDFProduct
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $defaulttemplate;
@@ -205,11 +206,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs, $mysoc;
 
 			$langs->loadLangs(array('main', 'dict', 'products', 'companies', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db									= $db;
 			$this->name									= $langs->trans('PDFInfraSPlusBCProductName');
 			$this->description							= $langs->trans('PDFInfraSPlusBCProductDescription');
 			$this->emetteur								= $mysoc;
@@ -255,11 +257,11 @@
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
 		*	@param		int			$hidedesc			Do not show desc
 		*	@param		int			$hideref			Do not show ref
-		*	@return	int							1=OK, 0=KO
+		*	@return	int									1=OK, 0=KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $nblignes, $filebarcode;
+			global $user, $langs, $conf, $hookmanager, $nblignes, $filebarcode;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -290,7 +292,7 @@
 					if (! is_object($hookmanager))	// Add pdfgeneration hook
 					{
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters			= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
@@ -321,7 +323,7 @@
 					$pagenb					= 1;
 					// Default PDF parameters
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Define width
 					$nbCol		= 3;

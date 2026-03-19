@@ -32,6 +32,19 @@
 	************************************************/
 	class pdf_infrasplus extends CommonStickerGenerator
 	{
+		public $db;
+		public $multilangs;
+		public $use_fpdf;
+		public $main_umask;
+		public $font;
+		public $cat_hq_image;
+		public $watermark_i_opacity;
+		public $show_ExtraFieldsLines;
+		public $larg_util_txt;
+		public $tab_hl = 4;
+		protected $_Margin_Right = 0;
+		protected $_Margin_Bottom = 0;
+
 		/**
 		*	Constructor
 		*
@@ -39,11 +52,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'admin', 'companies', 'members', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db						= $db;
 			$this->name						= $langs->trans('PDFInfraSPlusMemberName');
 			$this->description				= $langs->trans('PDFInfraSPlusMemberDescription');
 			$this->update_main_doc_field	= 1;	// Save the name of generated file as the main doc when generating a doc with this this
@@ -61,7 +75,7 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Adherent	$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		string		$mode				Tell if doc module is called for 'member', ...
@@ -70,7 +84,7 @@
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath, $mode = 'member', $nooutput = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $mysoc, $_Avery_Labels;
+			global $user, $langs, $conf, $hookmanager, $mysoc, $_Avery_Labels;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -82,12 +96,12 @@
 				$title		= $outputlangs->transnoentities('MembersCards');
 				$keywords	= $outputlangs->transnoentities('MembersCards').' '.$outputlangs->transnoentities('Foundation').' '.$outputlangs->convToOutputCharset($mysoc->name);
 			} else {
-				dol_print_error('', 'Bad value for $mode');
+				dol_print_error($this->db, 'Bad value for $mode');
 				return -1;
 			}
 			$this->Tformat					= $_Avery_Labels[$this->code];
 			if (empty($this->Tformat)) {
-				dol_print_error('', 'ErrorBadTypeForCard'.$this->code);
+				dol_print_error($this->db, 'ErrorBadTypeForCard'.$this->code);
 				exit;
 			}
 			$this->_Metric_Doc								= $this->Tformat['metric'];
@@ -123,7 +137,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters			= array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
@@ -217,7 +231,7 @@
 						$posyLeft	= $posy + $logosize['height'] + 2;
 					}
 					// Define member
-					$member	= new Adherent($db);
+					$member	= new Adherent($this->db);
 					$member->fetch($object->id);
 					// Define photo - right
 					if (!empty($object->photo)) {

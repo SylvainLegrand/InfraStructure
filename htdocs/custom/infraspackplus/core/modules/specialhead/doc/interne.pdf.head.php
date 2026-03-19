@@ -70,21 +70,19 @@
 	*	@param	int			$left_recep_corner		x position for left top corner of recepient frame
 	*	@param	int			$top_recep_corner		y position for left top corner of recepient frame
 	*	@param	int			$cf_show_creation_date	0=no, 1=yes
-	*	@return	array		$hauteurhead			'totalhead'		= hight of header
-	*												'hauteurcadre	= hight of frame
+	*	@return	array								Return height of header and height of address frame
 	**/
 	function pdf_interne_pagehead(&$pdf, $object, $showaddress, $outputlangs, $headertxtcolor, $header_align_left, $decal_round, $formatpage, $logo, $emetteur, $tab_hl, $header_after_addr, $title_size, $titlekey,
 									$ref_from_cust, $datesbold, $dates_br, $show_num_cli, $num_cli_frm, $show_code_cli_compt, $code_cli_compt_frm, $add_creator_in_header, $use_iso_location, $adr, $typeadr, $adrlivr, $Rounded_rect,
 									$customerAddrSelect, $Sst = -2, $adrSst = -2, $qrcodestring = '', $deposits = 0, $lines_deposits = array(), $title_if_deposit = '', $adrfact = '', $includealias = 0, $left_recep_corner = 92, $top_recep_corner = 40,
 									$cf_show_creation_date = 0)
 	{
-		global $conf, $hookmanager;
 
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		$doli_addr_livr_recep	= getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP') && !empty($use_doli_addr_livr) ? getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0) : 0;
 		$hide_recep_frame		= getDolGlobalInt('INFRASPLUS_PDF_HIDE_RECEP_FRAME', 0);
 		$default_font_size		= pdf_getPDFFontSize($outputlangs);
-		$pdf->SetTextColor($headertxtcolor[0], $headertxtcolor[1], $headertxtcolor[2]);
+		$pdf->SetTextColor((int) $headertxtcolor[0], (int) $headertxtcolor[1], (int) $headertxtcolor[2]);
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$dimCadres				= array ('S' => ($formatpage['largeur'] - ($formatpage['mgauche'] + 6 + $left_recep_corner + $formatpage['mdroite'])), 'R' => $left_recep_corner);	// page width = 210 (A4) 92 + 92  = 184 => keep 210 - 184 for margins => 26 ; 10 right and left and 6 on the middle
 		$w						= $header_align_left ? 92 - $decal_round : 92;
@@ -481,14 +479,14 @@
 		$posx				= $formatpage['mgauche'];
 		$posy				= $dimCadres['yS'];
 		$align				= 'L';
-		$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
+		$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
 		$pdf->SetFont('', 'B', $default_font_size * $title_size / 2);
 		$refDoc				= !empty($ref_from_cust) ? $object->ref_client : $object->ref;
 		$refCli				= !empty($ref_from_cust) ? '' : ($object->element == 'shipping' ? $object->ref_customer : $object->ref_client);
 		$txtref				= pdf_interne_refInvoice($pdf, $object, $outputlangs);
 		$pdf->MultiCell($w, $tab_hl, $txtref, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 		$posy				= $pdf->getY();
-		$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
+		$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
 		$pdf->SetFont('', ($datesbold ? 'B' : ''), $default_font_size - 1);
 		if ($object->element == 'societe') {
 			$txtdt	= $outputlangs->transnoentities('Date').' : '.dol_print_date(dol_now(), 'day', false, $outputlangs, true);
@@ -541,11 +539,11 @@
 			$posy	+= $tab_hl - 0.5;
 			if (!empty($dates_br) && $object->type != 2) {
 				$txtdt	= '';
-				$pdf->SetTextColor($dateduetxtcolor[0], $dateduetxtcolor[1], $dateduetxtcolor[2]);
+				$pdf->SetTextColor((int) $dateduetxtcolor[0], (int) $dateduetxtcolor[1], (int) $dateduetxtcolor[2]);
 				$txtdt	= $outputlangs->transnoentities('DateDue').' : '.dol_print_date($object->date_lim_reglement, 'day', false, $outputlangs, true);
 				$pdf->MultiCell($w, $tab_hl, $txtdt, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 				$posy	+= $tab_hl - 0.5;
-				$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
+				$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
 				$posy	+= $tab_hl - 0.5;
 			}
 		} elseif ($object->element == 'contrat') {
@@ -616,7 +614,7 @@
 		//Show Recipient
 		$posy			= $dimCadres['yR'];
 		if (empty($ticket)) {
-			$pdf->SetTextColor($frmrTxtColor[0], $frmrTxtColor[1], $frmrTxtColor[2]);
+			$pdf->SetTextColor((int) $frmrTxtColor[0], (int) $frmrTxtColor[1], (int) $frmrTxtColor[2]);
 		}
 		// Show recipient name
 		$pdf->SetFont('', 'B', $default_font_size - ($ticket ? 2 : 0));
@@ -633,12 +631,13 @@
 		/**
 		*	Set invoice reference.
 		*
-		*	@param		TCPDF			$pdf			Object PDF
+		*	@param		TCPDF		$pdf			Object PDF
 		*	@param		object		$object		Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		string						Reference to show
 		**/
 		function pdf_interne_refInvoice(&$pdf, $object, $outputlangs) {
+
 			global $db;
 
 			if ($object->element == 'societe') {

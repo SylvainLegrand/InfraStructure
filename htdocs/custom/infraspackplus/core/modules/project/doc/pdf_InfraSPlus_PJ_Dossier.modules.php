@@ -52,6 +52,7 @@
 	************************************************/
 	class pdf_InfraSPlus_PJ_Dossier extends ModelePDFProjects
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
@@ -218,11 +219,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'projects', 'trips', 'agenda', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db 							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusProjectDossierName');
 			$this->description					= $langs->trans('PDFInfraSPlusProjectDossierDescription');
 			$this->titlekey						= 'Dossier Projet';
@@ -239,13 +241,13 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		object		$object					Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@return	int							1 = OK, <= 0 KO
 		**/
-		public function write_file($object, $outputlangs)
+		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $nblignes;
+			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -275,7 +277,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters				= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);

@@ -35,6 +35,7 @@
 	************************************************/
 	class pdf_InfraSPlus_User_Contrat extends ModelePDFUser
 	{
+		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
@@ -199,11 +200,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'companies', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db							= $db;
 			$this->name							= $langs->trans('InfraSPlus_User_Contrat');
 			$this->description					= $langs->trans('PDFInfraSPlusUserContratDescription');
 			$this->titlekey						= 'Dossier Projet';
@@ -215,16 +217,20 @@
 			$this->option_multilang				= 1;	// Available in several languages
 		}
 
-		/********************************************
+		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		User		$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
-		*	@return	int							1 = OK, <= 0 KO
+		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
+		*	@param		int			$hidedetails		Do not show line details
+		*	@param		int			$hidedesc			Do not show desc
+		*	@param		int			$hideref			Do not show ref
+		*	@return		int								1 = OK, <= 0 KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager;
+			global $user, $langs, $conf, $hookmanager;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
 			if (! is_object($outputlangs))	$outputlangs					= $langs;
@@ -254,7 +260,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters				= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
