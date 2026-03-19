@@ -2415,6 +2415,29 @@ if (preg_match('/^dopayment/', $action)) {			// If we chose/clicked on the payme
 		.StripeElement--webkit-autofill {
 			background-color: #fefde5 !important;
 		}
+		/* Infras add - Split card fields CSS */
+		.form-row {
+			max-width: 500px;
+			margin: 0 auto;
+		}
+		#card-number-element, #card-expiry-element, #card-cvc-element {
+			background-color: white;
+			padding: 8px 12px;
+			border-radius: 4px;
+			border: 1px solid #ccc;
+			box-shadow: 0 1px 3px 0 #e6ebf1;
+			-webkit-transition: box-shadow 150ms ease;
+			transition: box-shadow 150ms ease;
+		}
+		.card-expiry-cvc-row {
+			display: flex;
+			gap: 10px;
+			margin-top: 10px;
+		}
+		.card-expiry-cvc-row > div {
+			flex: 1;
+		}
+		/* End Infras add */
 		</style>';
 
 		//print '<br>';
@@ -2508,11 +2531,17 @@ if (preg_match('/^dopayment/', $action)) {			// If we chose/clicked on the payme
 			print '<br><input id="cardholder-name" class="marginbottomonly" name="cardholder-name" value="" type="text" placeholder="'.$langs->trans("CardOwner").'" autocomplete="off" autofocus required>';
 		}
 
+		// Infras add - Split card into separate number/expiry/cvc elements
 		if (getDolGlobalInt('STRIPE_USE_INTENT_WITH_AUTOMATIC_CONFIRMATION') == 1) {
-			print '<div id="card-element">
-			<!-- a Stripe Element will be inserted here. -->
+			print '<div id="card-number-element">
+			<!-- Stripe CardNumber Element will be inserted here. -->
 			</div>';
+			print '<div class="card-expiry-cvc-row">';
+			print '<div id="card-expiry-element"></div>';
+			print '<div id="card-cvc-element"></div>';
+			print '</div>';
 		}
+		// End Infras add
 		if (getDolGlobalInt('STRIPE_USE_INTENT_WITH_AUTOMATIC_CONFIRMATION') == 2) {
 			print '<div id="payment-element">
 			<!-- a Stripe Element will be inserted here. -->
@@ -2802,13 +2831,19 @@ if (preg_match('/^dopayment/', $action)) {			// If we chose/clicked on the payme
 					<?php
 				} else {
 					?>
-			var cardElement = elements.create('card', {style: style});
+			// Infras add - Create separate card elements instead of single combined element
+			var cardNumberElement = elements.create('cardNumber', {style: style});
+			var cardExpiryElement = elements.create('cardExpiry', {style: style});
+			var cardCvcElement = elements.create('cardCvc', {style: style});
 
-			// Add an instance of the card Element into the `card-element` <div>
-			cardElement.mount('#card-element');
+			// Mount each element into its own container
+			cardNumberElement.mount('#card-number-element');
+			cardExpiryElement.mount('#card-expiry-element');
+			cardCvcElement.mount('#card-cvc-element');
 
-			// Handle real-time validation errors from the card Element.
-			cardElement.addEventListener('change', function(event) {
+			// Handle real-time validation errors from the card Elements.
+			[cardNumberElement, cardExpiryElement, cardCvcElement].forEach(function(element) {
+				element.addEventListener('change', function(event) {
 				var displayError = document.getElementById('card-errors');
 				  if (event.error) {
 					  console.log("Show event error (like 'Incorrect card number', ...)");
@@ -2818,6 +2853,8 @@ if (preg_match('/^dopayment/', $action)) {			// If we chose/clicked on the payme
 					displayError.textContent = '';
 				  }
 			});
+			});
+			// End Infras add
 
 			// Handle form submission
 			var cardholderName = document.getElementById('cardholder-name');
@@ -2841,7 +2878,7 @@ if (preg_match('/^dopayment/', $action)) {			// If we chose/clicked on the payme
 					jQuery('#buttontopay').hide();
 
 					stripe.handleCardPayment(
-					clientSecret, cardElement, {
+					clientSecret, cardNumberElement, { // Infras add - use cardNumberElement instead of cardElement
 						payment_method_data: {
 							billing_details: {
 								name: cardholderName.value
