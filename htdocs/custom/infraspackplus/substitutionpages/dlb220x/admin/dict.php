@@ -92,6 +92,8 @@ const DICT_TRANSPORT_MODE = 41;
 const DICT_PRODUCT_NATURE = 42;
 const DICT_PRODUCTBATCH_QCSTATUS = 43;
 const DICT_ASSET_DISPOSAL_TYPE = 44;
+const DICT_SEPA_CATEGORY_PURPOSE = 45;	// InfraS add
+const DICT_SEPA_COMMUNITY_INSTRUMENT = 46;	// InfraS add
 
 /**
  * @var Conf $conf
@@ -168,7 +170,7 @@ $permissiontoadd = $allowed;
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder = array(DICT_CURRENCIES, DICT_PAPER_FORMAT, DICT_FORMAT_CARDS, 0, DICT_COUNTRY, DICT_REGIONS, DICT_DEPARTEMENTS, 0, DICT_FORME_JURIDIQUE, DICT_TYPENT, DICT_EFFECTIF, DICT_PROSPECTLEVEL, DICT_PROSPECTCONTACTLEVEL, DICT_STCOMM, DICT_STCOMMCONTACT, DICT_SOCIALNETWORKS, 0, DICT_CIVILITY, DICT_TYPE_CONTACT, 0, DICT_ACTIONCOMM, DICT_TYPE_RESOURCE, 0, DICT_LEAD_STATUS, 0, DICT_HRM_DEPARTMENT, DICT_HRM_FUNCTION, DICT_HRM_PUBLIC_HOLIDAY, DICT_HOLIDAY_TYPES, DICT_TYPE_FEES, DICT_EXP_TAX_CAT, DICT_EXP_TAX_RANGE, 0, DICT_TVA, DICT_INVOICE_SUBTYPE, DICT_REVENUESTAMP, DICT_PAYMENT_TERM, DICT_PAIEMENT, DICT_CHARGESOCIALES, 0, DICT_ECOTAXE, 0, DICT_INPUT_REASON, DICT_INPUT_METHOD, DICT_SHIPMENT_MODE, DICT_AVAILABILITY, DICT_TRANSPORT_MODE, 0, DICT_UNITS, DICT_PRODUCT_NATURE, 0, DICT_PRODUCTBATCH_QCSTATUS, 0, DICT_TYPE_CONTAINER, 0, DICT_ASSET_DISPOSAL_TYPE, 0);
+$taborder = array(DICT_CURRENCIES, DICT_PAPER_FORMAT, DICT_FORMAT_CARDS, 0, DICT_COUNTRY, DICT_REGIONS, DICT_DEPARTEMENTS, 0, DICT_FORME_JURIDIQUE, DICT_TYPENT, DICT_EFFECTIF, DICT_PROSPECTLEVEL, DICT_PROSPECTCONTACTLEVEL, DICT_STCOMM, DICT_STCOMMCONTACT, DICT_SOCIALNETWORKS, 0, DICT_CIVILITY, DICT_TYPE_CONTACT, 0, DICT_ACTIONCOMM, DICT_TYPE_RESOURCE, 0, DICT_LEAD_STATUS, 0, DICT_HRM_DEPARTMENT, DICT_HRM_FUNCTION, DICT_HRM_PUBLIC_HOLIDAY, DICT_HOLIDAY_TYPES, DICT_TYPE_FEES, DICT_EXP_TAX_CAT, DICT_EXP_TAX_RANGE, 0, DICT_TVA, DICT_INVOICE_SUBTYPE, DICT_REVENUESTAMP, DICT_PAYMENT_TERM, DICT_PAIEMENT, DICT_CHARGESOCIALES, 0, DICT_ECOTAXE, 0, DICT_INPUT_REASON, DICT_INPUT_METHOD, DICT_SHIPMENT_MODE, DICT_AVAILABILITY, DICT_TRANSPORT_MODE, 0, DICT_UNITS, DICT_PRODUCT_NATURE, 0, DICT_PRODUCTBATCH_QCSTATUS, 0, DICT_TYPE_CONTAINER, 0, DICT_ASSET_DISPOSAL_TYPE, 0, DICT_SEPA_CATEGORY_PURPOSE, DICT_SEPA_COMMUNITY_INSTRUMENT, 0);	// InfraS change
 
 // Name of SQL tables of dictionaries
 $tabname = array();
@@ -216,6 +218,8 @@ $tabname[DICT_TRANSPORT_MODE] = "c_transport_mode";
 $tabname[DICT_PRODUCT_NATURE] = "c_product_nature";
 $tabname[DICT_PRODUCTBATCH_QCSTATUS] = "c_productbatch_qcstatus";
 $tabname[DICT_ASSET_DISPOSAL_TYPE] = "c_asset_disposal_type";
+$tabname[DICT_SEPA_CATEGORY_PURPOSE] = "c_sepa_category_purpose";	// InfraS add
+$tabname[DICT_SEPA_COMMUNITY_INSTRUMENT] = "c_sepa_community_instrument";	// InfraS add
 
 // Dictionary labels
 $tablib = array();
@@ -263,6 +267,8 @@ $tablib[DICT_TRANSPORT_MODE] = "DictionaryTransportMode";
 $tablib[DICT_PRODUCT_NATURE] = "DictionaryProductNature";
 $tablib[DICT_PRODUCTBATCH_QCSTATUS] = "DictionaryBatchStatus";
 $tablib[DICT_ASSET_DISPOSAL_TYPE] = "DictionaryAssetDisposalType";
+$tablib[DICT_SEPA_CATEGORY_PURPOSE] = "DictionarySepaCategoryPurpose";	// InfraS add
+$tablib[DICT_SEPA_COMMUNITY_INSTRUMENT] = "DictionarySepaCommunityInstrument";	// InfraS add
 
 // Requests to extract data
 $tabsql = array();
@@ -310,6 +316,8 @@ $tabsql[DICT_TRANSPORT_MODE] = "SELECT t.rowid as rowid, t.code, t.label, t.acti
 $tabsql[DICT_PRODUCT_NATURE] = "SELECT t.rowid as rowid, t.code, t.label, t.active FROM ".MAIN_DB_PREFIX."c_product_nature as t";
 $tabsql[DICT_PRODUCTBATCH_QCSTATUS] = "SELECT t.rowid, t.code, t.label, t.active FROM ".MAIN_DB_PREFIX."c_productbatch_qcstatus as t";
 $tabsql[DICT_ASSET_DISPOSAL_TYPE] = "SELECT t.rowid, t.code, t.label, t.active FROM ".MAIN_DB_PREFIX."c_asset_disposal_type as t";
+$tabsql[DICT_SEPA_CATEGORY_PURPOSE] = "SELECT rowid, code, label, position, active FROM ".MAIN_DB_PREFIX."c_sepa_category_purpose";	// InfraS add
+$tabsql[DICT_SEPA_COMMUNITY_INSTRUMENT] = "SELECT rowid, code, label, position, active FROM ".MAIN_DB_PREFIX."c_sepa_community_instrument";	// InfraS add
 
 // Criteria to sort dictionaries
 $tabsqlsort = array();
@@ -357,6 +365,8 @@ $tabsqlsort[DICT_TRANSPORT_MODE] = "code ASC";
 $tabsqlsort[DICT_PRODUCT_NATURE] = "code ASC";
 $tabsqlsort[DICT_PRODUCTBATCH_QCSTATUS] = "code ASC";
 $tabsqlsort[DICT_ASSET_DISPOSAL_TYPE] = "code ASC";
+$tabsqlsort[DICT_SEPA_CATEGORY_PURPOSE] = "position ASC";	// InfraS add
+$tabsqlsort[DICT_SEPA_COMMUNITY_INSTRUMENT] = "position ASC";	// InfraS add
 
 // Field names in select result for dictionary display
 $tabfield = array();
@@ -404,6 +414,8 @@ $tabfield[DICT_TRANSPORT_MODE] = "code,label";
 $tabfield[DICT_PRODUCT_NATURE] = "code,label";
 $tabfield[DICT_PRODUCTBATCH_QCSTATUS] = "code,label";
 $tabfield[DICT_ASSET_DISPOSAL_TYPE] = "code,label";
+$tabfield[DICT_SEPA_CATEGORY_PURPOSE] = "code,label,position";	// InfraS add
+$tabfield[DICT_SEPA_COMMUNITY_INSTRUMENT] = "code,label,position";	// InfraS add
 
 // Edit field names for editing a record
 $tabfieldvalue = array();
@@ -451,6 +463,8 @@ $tabfieldvalue[DICT_TRANSPORT_MODE] = "code,label";
 $tabfieldvalue[DICT_PRODUCT_NATURE] = "code,label";
 $tabfieldvalue[DICT_PRODUCTBATCH_QCSTATUS] = "code,label";
 $tabfieldvalue[DICT_ASSET_DISPOSAL_TYPE] = "code,label";
+$tabfieldvalue[DICT_SEPA_CATEGORY_PURPOSE] = "code,label,position";	// InfraS add
+$tabfieldvalue[DICT_SEPA_COMMUNITY_INSTRUMENT] = "code,label,position";	// InfraS add
 
 // Field names in the table for inserting a record (add field "entity" only here when dictionary is ready to personalized by entity)
 $tabfieldinsert = array();
@@ -498,6 +512,8 @@ $tabfieldinsert[DICT_TRANSPORT_MODE] = "code,label";
 $tabfieldinsert[DICT_PRODUCT_NATURE] = "code,label";
 $tabfieldinsert[DICT_PRODUCTBATCH_QCSTATUS] = "code,label";
 $tabfieldinsert[DICT_ASSET_DISPOSAL_TYPE] = "code,label";
+$tabfieldinsert[DICT_SEPA_CATEGORY_PURPOSE] = "code,label,position";	// InfraS add
+$tabfieldinsert[DICT_SEPA_COMMUNITY_INSTRUMENT] = "code,label,position";	// InfraS add
 
 // Rowid name of field depending if field is autoincrement on or off..
 // Use "" if id field is "rowid" and has autoincrement on
@@ -547,6 +563,8 @@ $tabrowid[DICT_TRANSPORT_MODE] = "";
 $tabrowid[DICT_PRODUCT_NATURE] = "rowid";
 $tabrowid[DICT_PRODUCTBATCH_QCSTATUS] = "rowid";
 $tabrowid[DICT_ASSET_DISPOSAL_TYPE] = "rowid";
+$tabrowid[DICT_SEPA_CATEGORY_PURPOSE] = "rowid";	// InfraS add
+$tabrowid[DICT_SEPA_COMMUNITY_INSTRUMENT] = "rowid";	// InfraS add
 
 // Condition to show dictionary in setup page
 $tabcond = array();
@@ -594,6 +612,8 @@ $tabcond[DICT_TRANSPORT_MODE] = isModEnabled('intracommreport');
 $tabcond[DICT_PRODUCT_NATURE] = isModEnabled("product");
 $tabcond[DICT_PRODUCTBATCH_QCSTATUS] = isModEnabled("product") && isModEnabled('productbatch') && getDolGlobalInt('MAIN_FEATURES_LEVEL') >= 2;
 $tabcond[DICT_ASSET_DISPOSAL_TYPE] = isModEnabled('asset');
+$tabcond[DICT_SEPA_CATEGORY_PURPOSE] = isModEnabled('paymentbybanktransfer');	// InfraS add
+$tabcond[DICT_SEPA_COMMUNITY_INSTRUMENT] = isModEnabled('paymentbybanktransfer');	// InfraS add
 
 // List of help for fields (no more used, help is defined into tabcomplete)
 $tabhelp = array();
@@ -652,6 +672,8 @@ $tabcomplete = array(
 	'c_productbatch_qcstatus' => array('picto' => 'lot', 'help' => array('code' => $langs->trans("EnterAnyCode"))),
 	'c_asset_disposal_type' => array('picto' => 'asset', 'help' => array('code' => $langs->trans("EnterAnyCode"))),
 	'c_invoice_subtype' => array('picto' => 'bill', 'help' => array('code' => $langs->trans("EnterAnyCode"))),
+	'c_sepa_category_purpose'=>array('picto'=>'payment', 'help'=>array('code'=>$langs->trans("EnterAnyCode"), 'position' => $langs->trans("PositionIntoComboList"))),	// InfraS add
+	'c_sepa_community_instrument'=>array('picto'=>'payment', 'help'=>array('code'=>$langs->trans("EnterAnyCode"), 'position' => $langs->trans("PositionIntoComboList"))),	// InfraS add
 );
 
 
@@ -2606,6 +2628,11 @@ if ($id > 0) {
 							} elseif ($fieldlist[$field] == 'label' && $tabname[$id] == 'c_productbatch_qcstatus') {
 								$langs->load("productbatch");
 								$valuetoshow = $langs->trans($obj->{$value});
+							// InfraS add begin
+							} elseif ($fieldlist[$field] == 'label' && ($tabname[$id] == 'c_sepa_category_purpose' || $tabname[$id] == 'c_sepa_community_instrument')) {
+								$langs->load("banks");
+								$valuetoshow = $langs->trans($obj->{$value});
+							// InfraS add end
 							} elseif ($value == 'block_if_negative') {
 								$valuetoshow = yn($obj->{$value});
 							} elseif ($value == 'icon') {

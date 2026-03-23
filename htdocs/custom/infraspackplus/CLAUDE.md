@@ -15,9 +15,9 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS
 - Numéro module : `550000`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `18.0.0` à `23.x.x`
+- Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.14.11` (2026-03)
+- Dernière version locale : `18.14.13` (2026-03)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -215,6 +215,8 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - `18.14.10` (2026-03) : Simplification de la fonction infraspackplus_is_substitution_page() : utilisation de strpos() au lieu de regex complexe
 - `18.14.10` (2026-03) : Ajout de la fonction infraspackplus_getSubstitutionRedirectUrl() pour gérer les redirections avec filtrage des paramètres GET (exclusion du token CSRF)
 - `18.14.11` (2026-03) : Création du nouveau lien vers le Wiki InfraSPackPlus
+- `18.14.12` (2026-03) : Corrige le problème du champ revenuestamp(Timbre fiscal) pour prendre en compte les valeurs NULL, vide et different de 0
+- `18.14.13` (2026-03) : Amélioration de la gestion des substitutions de pages et compatibilité avec Dolibarr v22 LTS
 
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
@@ -310,13 +312,13 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="18.14.11" MonthVersion="2026-03">
+  <Version Number="18.14.13" MonthVersion="2026-03">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
   </Version>
   <InfraS Downloaded="20260301"/>
-  <Dolibarr minVersion="18.0.0" maxVersion="23.x.x"/>
+  <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
   <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
 ```
@@ -329,11 +331,11 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.14.11",          // Version courante
+    0 => "18.14.13",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
-    4 => "23.x.x",           // Version max Dolibarr
+    4 => "24.x.x",           // Version max Dolibarr
     5 => "7.4",              // Version min PHP
     6 => "8.4"               // Version max PHP
 ]

@@ -1734,7 +1734,7 @@
 						}
 					}
 					// Revenue stamp
-					if (price2num($object->revenuestamp) != 0) {
+					if (!empty($object->revenuestamp) && price2num($object->revenuestamp) != 0) {
 						$index++;
 						$pdf->SetAlpha($this->alpha);
 						$pdf->RoundedRect($posxtabtotal, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), $larg_tabtotal, $tabtot_hl, $this->Rounded_rect > $tabtot_hl / 2 ? $tabtot_hl / 2 : $this->Rounded_rect, '1111', 'DF', $this->bgLineStyle, $this->bg_color);

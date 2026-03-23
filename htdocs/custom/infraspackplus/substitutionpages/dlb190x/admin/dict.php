@@ -107,7 +107,7 @@ $permissiontoadd = $allowed;
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder = array(9, 15, 30, 0, 4, 3, 2, 0, 1, 8, 19, 16, 39, 27, 40, 38, 0, 5, 11, 0, 6, 24, 0, 29, 0, 33, 34, 32, 28, 17, 35, 36, 0, 10, 31, 23, 12, 13, 7, 0, 14, 0, 22, 20, 18, 21, 41, 0, 37, 42, 0, 43, 0, 25, 0, 44, 0);
+$taborder = array(9, 15, 30, 0, 4, 3, 2, 0, 1, 8, 19, 16, 39, 27, 40, 38, 0, 5, 11, 0, 6, 24, 0, 29, 0, 33, 34, 32, 28, 17, 35, 36, 0, 10, 31, 23, 12, 13, 7, 0, 14, 0, 22, 20, 18, 21, 41, 0, 37, 42, 0, 43, 0, 25, 0, 44, 0, 45, 46, 0);	// InfraS change
 
 // Name of SQL tables of dictionaries
 $tabname = array();
@@ -155,6 +155,8 @@ $tabname[41] = "c_transport_mode";
 $tabname[42] = "c_product_nature";
 $tabname[43] = "c_productbatch_qcstatus";
 $tabname[44] = "c_asset_disposal_type";
+$tabname[45] = "c_sepa_category_purpose";	// InfraS add
+$tabname[46] = "c_sepa_community_instrument";	// InfraS add
 
 // Dictionary labels
 $tablib = array();
@@ -202,6 +204,8 @@ $tablib[41] = "DictionaryTransportMode";
 $tablib[42] = "DictionaryProductNature";
 $tablib[43] = "DictionaryBatchStatus";
 $tablib[44] = "DictionaryAssetDisposalType";
+$tablib[45] = "DictionarySepaCategoryPurpose";	// InfraS add
+$tablib[46] = "DictionarySepaCommunityInstrument";	// InfraS add
 
 // Requests to extract data
 $tabsql = array();
@@ -249,6 +253,8 @@ $tabsql[41] = "SELECT t.rowid as rowid, t.code, t.label, t.active FROM ".MAIN_DB
 $tabsql[42] = "SELECT t.rowid as rowid, t.code, t.label, t.active FROM ".MAIN_DB_PREFIX."c_product_nature as t";
 $tabsql[43] = "SELECT t.rowid, t.code, t.label, t.active FROM ".MAIN_DB_PREFIX."c_productbatch_qcstatus as t";
 $tabsql[44] = "SELECT t.rowid, t.code, t.label, t.active FROM ".MAIN_DB_PREFIX."c_asset_disposal_type as t";
+$tabsql[45] = "SELECT rowid, code, label, position, active FROM ".MAIN_DB_PREFIX."c_sepa_category_purpose";	// InfraS add
+$tabsql[46] = "SELECT rowid, code, label, position, active FROM ".MAIN_DB_PREFIX."c_sepa_community_instrument";	// InfraS add
 
 // Criteria to sort dictionaries
 $tabsqlsort = array();
@@ -296,6 +302,8 @@ $tabsqlsort[41] = "code ASC";
 $tabsqlsort[42] = "code ASC";
 $tabsqlsort[43] = "code ASC";
 $tabsqlsort[44] = "code ASC";
+$tabsqlsort[45] = "position ASC";	// InfraS add
+$tabsqlsort[46] = "position ASC";	// InfraS add
 
 // Field names in select result for dictionary display
 $tabfield = array();
@@ -343,6 +351,8 @@ $tabfield[41] = "code,label";
 $tabfield[42] = "code,label";
 $tabfield[43] = "code,label";
 $tabfield[44] = "code,label";
+$tabfield[45] = "code,label,position";	// InfraS add
+$tabfield[46] = "code,label,position";	// InfraS add
 
 // Edit field names for editing a record
 $tabfieldvalue = array();
@@ -390,6 +400,8 @@ $tabfieldvalue[41] = "code,label";
 $tabfieldvalue[42] = "code,label";
 $tabfieldvalue[43] = "code,label";
 $tabfieldvalue[44] = "code,label";
+$tabfieldvalue[45] = "code,label,position";	// InfraS add
+$tabfieldvalue[46] = "code,label,position";	// InfraS add
 
 // Field names in the table for inserting a record (add field "entity" only here when dictionary is ready to personalized by entity)
 $tabfieldinsert = array();
@@ -437,6 +449,8 @@ $tabfieldinsert[41] = "code,label";
 $tabfieldinsert[42] = "code,label";
 $tabfieldinsert[43] = "code,label";
 $tabfieldinsert[44] = "code,label";
+$tabfieldinsert[45] = "code,label,position";	// InfraS add
+$tabfieldinsert[46] = "code,label,position";	// InfraS add
 
 // Rowid name of field depending if field is autoincrement on or off..
 // Use "" if id field is "rowid" and has autoincrement on
@@ -486,6 +500,8 @@ $tabrowid[41] = "";
 $tabrowid[42] = "rowid";
 $tabrowid[43] = "rowid";
 $tabrowid[44] = "rowid";
+$tabrowid[45] = "rowid";	// InfraS add
+$tabrowid[46] = "rowid";	// InfraS add
 
 // Condition to show dictionary in setup page
 $tabcond = array();
@@ -533,6 +549,8 @@ $tabcond[41] = isModEnabled('intracommreport');
 $tabcond[42] = isModEnabled("product");
 $tabcond[43] = isModEnabled("product") && isModEnabled('productbatch') && getDolGlobalInt('MAIN_FEATURES_LEVEL') >= 2;
 $tabcond[44] = isModEnabled('asset');
+$tabcond[45] = isModEnabled('paymentbybanktransfer');	// InfraS add
+$tabcond[46] = isModEnabled('paymentbybanktransfer');	// InfraS add
 
 // List of help for fields (no more used, help is defined into tabcomplete)
 $tabhelp = array();
@@ -591,6 +609,8 @@ $tabcomplete = array(
 	'c_productbatch_qcstatus'=>array('picto'=>'lot', 'help'=>array('code'=>$langs->trans("EnterAnyCode"))),
 	'c_asset_disposal_type'=>array('picto'=>'asset', 'help'=>array('code'=>$langs->trans("EnterAnyCode"))),
 	'c_invoice_subtype'=>array('picto'=>'bill', 'help'=>array('code'=>$langs->trans("EnterAnyCode"))),
+	'c_sepa_category_purpose'=>array('picto'=>'payment', 'help'=>array('code'=>$langs->trans("EnterAnyCode"), 'position' => $langs->trans("PositionIntoComboList"))),	// InfraS add
+	'c_sepa_community_instrument'=>array('picto'=>'payment', 'help'=>array('code'=>$langs->trans("EnterAnyCode"), 'position' => $langs->trans("PositionIntoComboList"))),	// InfraS add
 );
 
 
@@ -2357,6 +2377,11 @@ if ($id > 0) {
 							} elseif ($fieldlist[$field] == 'label' && $tabname[$id] == 'c_productbatch_qcstatus') {
 								$langs->load("productbatch");
 								$valuetoshow = $langs->trans($obj->{$value});
+							// InfraS add begin
+							} elseif ($fieldlist[$field] == 'label' && ($tabname[$id] == 'c_sepa_category_purpose' || $tabname[$id] == 'c_sepa_community_instrument')) {
+								$langs->load("banks");
+								$valuetoshow = $langs->trans($obj->{$value});
+							// InfraS add end
 							} elseif ($value == 'block_if_negative') {
 								$valuetoshow = yn($obj->{$value});
 							} elseif ($value == 'icon') {

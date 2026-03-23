@@ -1712,7 +1712,7 @@ EOJS;
 					// Output template part (modules that overwrite templates must declare this into descriptor)
 					// Use global variables + $dateSelector + $seller and $buyer
 					$dolibranch		= explode('.', DOL_VERSION);
-					$dolinfras		= getDolGlobalString('EASYA_VERSION', default: '') || getDolGlobalString('DOLINFRAS_VERSION', '');
+					$dolinfras		= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
 					$coreVersion	= 'dlb'.$dolibranch[0].'0x'.($dolinfras ? '-DolInfraS' : '');
 					$tpl			= dol_buildpath('infraspackplus/substitutionpages/'.$coreVersion.'/core/tpl/objectline_view.tpl.php', 0);
 					$res			= empty($conf->file->strict_mode) ? @include $tpl : include $tpl;	// for debug

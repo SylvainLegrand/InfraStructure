@@ -2314,10 +2314,10 @@
 					// Avoid having any valid PDF with setup that is not complete on invoices settings or on this invoice
 					$pdf->SetTextColor(200, 0, 0);
 					$pdf->SetFont('', 'B', $default_font_size - 2);
-					$this->error = $outputlangs->transnoentities('ErrorPaymentModeDefinedToWithoutSetup', $object->mode_reglement_code);
+					$this->error	= $outputlangs->transnoentities('ErrorPaymentModeDefinedToWithoutSetup', $object->mode_reglement_code);
 					$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $this->error, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
 					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
-					$posy=$pdf->GetY() + 1;
+					$posytabinfo	= $pdf->GetY() + 1;
 				}
 				// Show payment mode
 				if (!empty($object->mode_reglement_code) && $object->mode_reglement_code != 'CHQ' && $object->mode_reglement_code != 'VIR') {
@@ -2739,7 +2739,7 @@
 						}
 					}
 					// Tax stamp
-					if (price2num($object->revenuestamp) != 0) {
+					if (!empty($object->revenuestamp) && price2num($object->revenuestamp) != 0) {
 						$index++;
 						$pdf->SetAlpha($this->alpha);
 						$pdf->RoundedRect($posxtabtotal, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), $larg_tabtotal, $tabtot_hl, $this->Rounded_rect > $tabtot_hl / 2 ? $tabtot_hl / 2 : $this->Rounded_rect, '1111', 'DF', $this->bgLineStyle, $this->bg_color);

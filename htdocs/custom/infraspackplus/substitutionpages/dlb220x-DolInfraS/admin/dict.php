@@ -94,6 +94,7 @@ const DICT_PRODUCTBATCH_QCSTATUS = 43;
 const DICT_ASSET_DISPOSAL_TYPE = 44;
 const DICT_SEPA_CATEGORY_PURPOSE = 45;	// InfraS add
 const DICT_SEPA_COMMUNITY_INSTRUMENT = 46;	// InfraS add
+
 /**
  * @var Conf $conf
  * @var DoliDB $db

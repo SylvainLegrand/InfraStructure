@@ -1772,6 +1772,13 @@
 	<Version Number="18.14.11" MonthVersion="2026-03">
 		<change type='fix'>Création du nouveau lien vers le Wiki</change>
 	</Version>
+	<Version Number="18.14.12" MonthVersion="2026-03">
+		<change type='fix'>Corrige le problème du champ revenuestamp(Timbre fiscal) pour prendre en compte les valeurs NULL, vide et different de 0</change>
+	</Version>
+	<Version Number="18.14.13" MonthVersion="2026-03">
+		<change type='chg'>Compatibilité avec Dolibarr v22 LTS</change>
+		<change type='chg'>Amélioration de la gestion des substitutions de pages</change>
+	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
