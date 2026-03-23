@@ -1486,7 +1486,7 @@ class BonPrelevement extends CommonObject
 						$this->emetteur_iban               = $account->iban;
 						$this->emetteur_bic                = $account->bic;
 
-						$this->emetteur_ics = (($type == 'bank-transfer' && getDolGlobalString("SEPA_USE_IDS")) ? $account->ics_transfer : $account->ics);	// Example "FR78ZZZ123456"
+						$this->emetteur_ics = (($type == 'bank-transfer' && !empty($account->ics_transfer)) ? $account->ics_transfer : $account->ics);	// Example "FR78ZZZ123456" or "B23872716000"
 
 						$this->raison_sociale = $account->owner_name;
 					}
@@ -1947,11 +1947,11 @@ class BonPrelevement extends CommonObject
 				fwrite($this->file, '			<InitgPty>' . $CrLf);
 				fwrite($this->file, '				<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($this->raison_sociale), ' '))) . '</Nm>' . $CrLf);
 				fwrite($this->file, '				<Id>' . $CrLf);
-				fwrite($this->file, '				    <PrvtId>' . $CrLf);
+				fwrite($this->file, '					<OrgId>' . $CrLf);
 				fwrite($this->file, '					<Othr>' . $CrLf);
 				fwrite($this->file, '						<Id>' . $this->emetteur_ics . '</Id>' . $CrLf);
 				fwrite($this->file, '					</Othr>' . $CrLf);
-				fwrite($this->file, '				    </PrvtId>' . $CrLf);
+				fwrite($this->file, '					</OrgId>' . $CrLf);
 				fwrite($this->file, '				</Id>' . $CrLf);
 				fwrite($this->file, '			</InitgPty>' . $CrLf);
 				fwrite($this->file, '		</GrpHdr>' . $CrLf);
@@ -2094,11 +2094,11 @@ class BonPrelevement extends CommonObject
 				fwrite($this->file, '			<InitgPty>' . $CrLf);
 				fwrite($this->file, '				<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($this->raison_sociale), ' '))) . '</Nm>' . $CrLf);
 				fwrite($this->file, '				<Id>' . $CrLf);
-				fwrite($this->file, '				    <PrvtId>' . $CrLf);
+				fwrite($this->file, '					<OrgId>' . $CrLf);
 				fwrite($this->file, '					<Othr>' . $CrLf);
 				fwrite($this->file, '						<Id>' . $this->emetteur_ics . '</Id>' . $CrLf);
 				fwrite($this->file, '					</Othr>' . $CrLf);
-				fwrite($this->file, '				    </PrvtId>' . $CrLf);
+				fwrite($this->file, '					</OrgId>' . $CrLf);
 				fwrite($this->file, '				</Id>' . $CrLf);
 				fwrite($this->file, '			</InitgPty>' . $CrLf);
 				fwrite($this->file, '		</GrpHdr>' . $CrLf);
@@ -2599,7 +2599,7 @@ class BonPrelevement extends CommonObject
 			$this->emetteur_iban = $account->iban;
 			$this->emetteur_bic = $account->bic;
 
-			$this->emetteur_ics = (($type == 'bank-transfer' && getDolGlobalString("SEPA_USE_IDS")) ? $account->ics_transfer : $account->ics);  // Ex: PRELEVEMENT_ICS = "FR78ZZZ123456";
+			$this->emetteur_ics = (($type == 'bank-transfer' && !empty($account->ics_transfer)) ? $account->ics_transfer : $account->ics);  // Ex: PRELEVEMENT_ICS = "FR78ZZZ123456" or "B23872716000";
 
 			$this->raison_sociale = $account->owner_name;
 		}
