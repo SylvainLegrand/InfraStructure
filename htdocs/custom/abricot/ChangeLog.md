@@ -5,6 +5,7 @@ ___
 # NOT RELEASED
 
 ## RELEASE 3.9
+- FIX: Negation search in list - *27/02/2026* - 3.9.8
 - FIX: COMPAT V23 - *24/12/2025* - 3.9.7
 - FIX: COMPAT V22 - *08/07/2025* - 3.9.6
 - FIX: Params missing GETPOST - *23/06/2025* - 3.9.5

@@ -65,7 +65,7 @@ class modAbricot extends DolibarrModules
 		// (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Collection of specific ATM functions and classes";
 		// Possible values for version are: 'development', 'experimental' or version
-		$this->version = '3.9.7';
+		$this->version = '3.9.8';
 		$this->editor_name = 'ATM Consulting';
 		$this->editor_url = 'https://www.atm-consulting.fr';
 		// Key used in llx_const table to save module status enabled/disabled

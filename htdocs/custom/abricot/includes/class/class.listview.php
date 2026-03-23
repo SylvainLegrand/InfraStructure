@@ -201,13 +201,24 @@ class Listview
      * @param string    $key        reference of sKey to find value into TParam
      * @return bool
      */
-    private function addSqlFromOther(&$TSQLMore, &$value, &$TParam, $sKey, $key, &$TSqlHaving)
+	private function addSqlFromOther(&$TSQLMore, &$value, &$TParam, $sKey, $key, &$TSqlHaving)
 	{
 		// Do not use empty() function, statut 0 exist
 		if ($value == '') return false;
 		elseif($value==-1) return false;
 		elseif(isset($TParam['search'][$key]['excluded_values']) && is_array($TParam['search'][$key]['excluded_values']) && in_array($value, $TParam['search'][$key]['excluded_values'],true)) return false;
 		elseif(isset($TParam['search'][$key]['excluded_values']) && !is_array($TParam['search'][$key]['excluded_values']) && $value === $TParam['search'][$key]['excluded_values']) return false;
+
+		$isNegation = false;
+		if (!is_array($value) && is_string($value)) {
+			$value = trim($value);
+			if (substr($value, 0, 1) === '!') {
+				$isNegation = true;
+				$value = ltrim(substr($value, 1));
+				// Ignore lone "!" values.
+				if ($value === '') return false;
+			}
+		}
 
 		if (preg_grep('/^MAX\(|MIN\(|AVG\(|COUNT\(/i', array($sKey))) $TSQL = &$TSqlHaving;
 		else $TSQL = &$TSQLMore;
@@ -218,7 +229,9 @@ class Listview
 			{
 				$operator = substr($value,0,1);
                 if(in_array($operator, array('<', '>'))) $value = ltrim($value, $operator);
-                $TSQL[] = $sKey . ' ' . $TParam['operator'][$key] . ' "' . $value . '"';
+				$sqloperator = $TParam['operator'][$key];
+				if ($isNegation && $sqloperator === '=') $sqloperator = '<>';
+                $TSQL[] = $sKey . ' ' . $sqloperator . ' "' . $value . '"';
 			}
 			elseif ($TParam['operator'][$key]=='IN')
 			{
@@ -236,7 +249,8 @@ class Listview
 					$value = $this->db->escape($value);
 				}
 
-                $TSQL[] = $sKey . ' ' . $TParam['operator'][$key] . ' (' . $value . ')';
+				$sqloperator = $isNegation ? 'NOT IN' : $TParam['operator'][$key];
+                $TSQL[] = $sKey . ' ' . $sqloperator . ' (' . $value . ')';
 			}
 			elseif ($TParam['operator'][$key]=='FIND_IN_SET')
 			{
@@ -245,30 +259,30 @@ class Listview
 						$TSQLFIND = array();
 						foreach ($value as $k => $v){
 							if($this->db->type == 'mysqli'){
-								$TSQLFIND[] = ' FIND_IN_SET("'.$this->db->escape($v).'", '.$sKey.') > 0 ';
+								$TSQLFIND[] = ' FIND_IN_SET("'.$this->db->escape($v).'", '.$sKey.') '.($isNegation ? '= 0' : '> 0').' ';
 							}
 							else{
-								$TSQLFIND[] =  ' "' . $this->db->escape($v) . '" = ANY (string_to_array(' . $sKey . ', ",")) ';
+								$TSQLFIND[] =  ' "' . $this->db->escape($v) . '" '.($isNegation ? '<> ALL' : '= ANY').' (string_to_array(' . $sKey . ', ",")) ';
 							}
 						}
-						$TSQL[] = implode(' OR ', $TSQLFIND);
+						$TSQL[] = implode($isNegation ? ' AND ' : ' OR ', $TSQLFIND);
 					}
 				}
 				else
 				{
 					$value = $this->db->escape($value);
 					if($this->db->type == 'mysqli') {
-						$TSQL[] = ' FIND_IN_SET("' . $value . '", ' . $sKey . ') > 0 ';
+						$TSQL[] = ' FIND_IN_SET("' . $value . '", ' . $sKey . ') '.($isNegation ? '= 0' : '> 0').' ';
 					}
 					else{
-						$TSQL[] =  ' "' . $value . '" = ANY (string_to_array(' . $sKey . ',","))';
+						$TSQL[] =  ' "' . $value . '" '.($isNegation ? '<> ALL' : '= ANY').' (string_to_array(' . $sKey . ',","))';
 					}
 				}
 			}
 			else
 			{
 				if(strpos($value,'%')===false) $value = '%'.$value.'%';
-                $TSQL[]=$sKey." LIKE '".addslashes($value)."'" ;
+                $TSQL[]=$sKey.' '.($isNegation ? 'NOT LIKE' : 'LIKE')." '".addslashes($value)."'" ;
 			}
 		}
 		else
@@ -281,13 +295,13 @@ class Listview
 					}
 					$value = implode(', ', $value);
 
-					$TSQL[] = $sKey . ' IN (' . $value . ')';
+					$TSQL[] = $sKey . ' '.($isNegation ? 'NOT IN' : 'IN').' (' . $value . ')';
 				}
 			}
 			else
 			{
 				if(strpos($value,'%')===false) $value = '%'.$value.'%';
-				$TSQL[]=$sKey." LIKE '".addslashes($value)."'" ;
+				$TSQL[]=$sKey.' '.($isNegation ? 'NOT LIKE' : 'LIKE')." '".addslashes($value)."'" ;
 			}
 		}
 
