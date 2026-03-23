@@ -1503,7 +1503,7 @@ function price2numjs(amount) {
 
 <?php
 if (!getDolGlobalString('MAIN_DISABLE_JQUERY_JNOTIFY') && !defined('DISABLE_JQUERY_JNOTIFY')) {
-?>
+	?>
 // Defined properties for JNotify
 $(document).ready(function() {
 	if (typeof $.jnotify == 'function') {
@@ -1525,7 +1525,7 @@ $(document).ready(function() {
 		});
 	}
 });
-<?php
+	<?php
 } ?>
 
 
@@ -1640,7 +1640,7 @@ function setListDependencies() {
 
 <?php
 if (!getDolGlobalString('MAIN_DISABLE_SELECT2_FOCUS_PROTECTION') && !defined('DISABLE_SELECT2_FOCUS_PROTECTION')) {
-?>
+	?>
 /**
  * Hacky fix for a bug in select2 with jQuery 3.6.4's new nested-focus "protection"
  * This fix the need to click a second time when clicking into a combo with ajax (see Test4d and Test5a in test_forms.php
@@ -1661,7 +1661,7 @@ $(document).on('select2:open', (e) => {
 		document.querySelector('input[aria-controls*='+id+']').focus();
 	}
 });
-<?php
+	<?php
 }
 ?>
 

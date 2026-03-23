@@ -9,6 +9,7 @@ nbproject
 default.properties
 .settings/
 .buildpath
+.phpstan/
 .gitmodules
 /.project
 /.pydevproject

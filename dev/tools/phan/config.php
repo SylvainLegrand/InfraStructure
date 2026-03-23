@@ -296,7 +296,8 @@ return [
 	// then Phan assumes the PHP version which is closest to the minor version
 	// of the php executable used to execute Phan.
 	//"target_php_version" => null,
-	"target_php_version" => '8.2',
+	"minimum_target_php_version" => '7.4',
+	"target_php_version" => '8.4',
 	//"target_php_version" => '7.3',
 	//"target_php_version" => '5.6',
 

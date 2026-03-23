@@ -274,12 +274,12 @@ class Tasks extends DolibarrApi
 	 */
 	public function getTimespent($id)
 	{
-		if(! DolibarrApiAccess::$user->hasRight('projet', 'lire')) {
+		if (! DolibarrApiAccess::$user->hasRight('projet', 'lire')) {
 			throw new RestException(403);
 		}
 
 		$result = $this->task->fetch($id);
-		if( ! $result ) {
+		if ( ! $result ) {
 			throw new RestException(404, 'Task not found');
 		}
 
@@ -290,7 +290,7 @@ class Tasks extends DolibarrApi
 		$this->task->fetchTimeSpentOnTask();
 		$result = array();
 		foreach ($this->task->lines as $line) {
-			array_push($result,$this->_cleanObjectDatas($line));
+			array_push($result, $this->_cleanObjectDatas($line));
 		}
 		return $result;
 	}

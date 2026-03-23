@@ -22,12 +22,12 @@
  *					This file contains all frequently used functions.
  */
 
-/**
- * Return the main currency ('EUR', 'USD', ...)
- *
- * @return 	string							Value returned
- */
 if (!function_exists('getDolCurrency')) {
+	/**
+	 * Return the main currency ('EUR', 'USD', ...)
+	 *
+	 * @return 	string							Value returned
+	 */
 	function getDolCurrency()
 	{
 		global $conf;
@@ -35,21 +35,21 @@ if (!function_exists('getDolCurrency')) {
 	}
 }
 
-/**
- * Returns a list of HTML boolean attributes.
- *
- * Boolean attributes are attributes whose presence on an HTML element
- * represents a true value, and absence represents false. They do not
- * require a value like name="value"; simply including the attribute
- * enables its behavior.
- *
- * Examples of usage:
- * <input type="checkbox" checked>
- * <input type="text" readonly>
- *
- * @return string[] An array of HTML boolean attribute names.
- */
 if (!function_exists('getListOfHtmlBooleanAttributes')) {
+	/**
+	 * Returns a list of HTML boolean attributes.
+	 *
+	 * Boolean attributes are attributes whose presence on an HTML element
+	 * represents a true value, and absence represents false. They do not
+	 * require a value like name="value"; simply including the attribute
+	 * enables its behavior.
+	 *
+	 * Examples of usage:
+	 * <input type="checkbox" checked>
+	 * <input type="text" readonly>
+	 *
+	 * @return string[] An array of HTML boolean attribute names.
+	 */
 	function getListOfHtmlBooleanAttributes(): array
 	{
 		return [
@@ -91,42 +91,42 @@ if (!function_exists('getListOfHtmlBooleanAttributes')) {
 	}
 }
 
-/**
- * Builds an array of safe and properly escaped HTML attributes from a key-value pair list.
- *
- * This function ensures that HTML attributes are correctly encoded for safe output,
- * while allowing certain attributes to remain unescaped if explicitly specified.
- * Special handling is applied for attributes such as `href`, which are processed
- * using `dolPrintHTMLForAttributeUrl()`. All other attributes are escaped using
- * `dolPrintHTMLForAttribute()`.
- *
- * Note: Disabling escaping (via `$unescapedAttr`) is **not recommended** unless you
- * fully trust the input data, as it may lead to XSS vulnerabilities.
- *
- * Example:
- * ```php
- * $attr = [
- *     'href' => 'https://example.com?a=1&b=2',
- *     'class' => 'btn btn-primary',
- *     'title' => 'View details'
- * ];
- * $result = commonHtmlAttributeBuilder($attr);
- *
- * // Output:
- * // [
- * //   'href' => 'href="https://example.com?a=1&amp;b=2"',
- * //   'class' => 'class="btn btn-primary"',
- * //   'title' => 'title="View details"'
- * // ]
- * ```
- *
- * @param array<string, string|int|float|null|bool> $attr          Associative array of attribute names and their values.
- * @param string[]                            $unescapedAttr  Optional list of attribute names that should **not** be escaped.
- *
- * @return array<string, string> An array where each key corresponds to the attribute name
- *                               and each value is a full `key="escaped_value"` string ready for HTML output.
- */
 if (!function_exists('commonHtmlAttributeBuilder')) {
+	/**
+	 * Builds an array of safe and properly escaped HTML attributes from a key-value pair list.
+	 *
+	 * This function ensures that HTML attributes are correctly encoded for safe output,
+	 * while allowing certain attributes to remain unescaped if explicitly specified.
+	 * Special handling is applied for attributes such as `href`, which are processed
+	 * using `dolPrintHTMLForAttributeUrl()`. All other attributes are escaped using
+	 * `dolPrintHTMLForAttribute()`.
+	 *
+	 * Note: Disabling escaping (via `$unescapedAttr`) is **not recommended** unless you
+	 * fully trust the input data, as it may lead to XSS vulnerabilities.
+	 *
+	 * Example:
+	 * ```php
+	 * $attr = [
+	 *     'href' => 'https://example.com?a=1&b=2',
+	 *     'class' => 'btn btn-primary',
+	 *     'title' => 'View details'
+	 * ];
+	 * $result = commonHtmlAttributeBuilder($attr);
+	 *
+	 * // Output:
+	 * // [
+	 * //   'href' => 'href="https://example.com?a=1&amp;b=2"',
+	 * //   'class' => 'class="btn btn-primary"',
+	 * //   'title' => 'title="View details"'
+	 * // ]
+	 * ```
+	 *
+	 * @param array<string, string|int|float|null|bool> $attr          Associative array of attribute names and their values.
+	 * @param string[]                            $unescapedAttr  Optional list of attribute names that should **not** be escaped.
+	 *
+	 * @return array<string, string> An array where each key corresponds to the attribute name
+	 *                               and each value is a full `key="escaped_value"` string ready for HTML output.
+	 */
 	function commonHtmlAttributeBuilder($attr, array $unescapedAttr = [])
 	{
 		$TCompiledAttr = array();
@@ -159,35 +159,35 @@ if (!function_exists('commonHtmlAttributeBuilder')) {
 	}
 }
 
-/**
- * Recursively merges two arrays while preserving keys and replacing existing values.
- *
- * Unlike PHP's native array_merge_recursive(), this function does not combine values
- * into an array when duplicate keys are found. Instead, values from the second array
- * will override values from the first array, unless both values are arrays, in which
- * case the function will merge them recursively.
- *
- * Note : function name is not in camelCase because of name of native php function named array_merge_recursive
- * this approach will help developers to find this function
- *
- * Example:
- *  $a = ['color' => 'blue', 'style' => ['font' => 'Arial', 'size' => 10]];
- *  $b = ['color' => 'red', 'style' => ['size' => 12]];
- *  Result:
- *  [
- *      'color' => 'red',
- *      'style' => [
- *          'font' => 'Arial',
- *          'size' => 12
- *      ]
- *  ]
- *
- * @template T of mixed
- * @param array<string, T> $array1  The base array (default parameters).
- * @param array<string, T> $array2  The array with values to override or extend the base array.
- * @return array<string, T>			The merged array with recursive replacement.
- */
 if (!function_exists('array_merge_recursive_distinct')) {
+	/**
+	 * Recursively merges two arrays while preserving keys and replacing existing values.
+	 *
+	 * Unlike PHP's native array_merge_recursive(), this function does not combine values
+	 * into an array when duplicate keys are found. Instead, values from the second array
+	 * will override values from the first array, unless both values are arrays, in which
+	 * case the function will merge them recursively.
+	 *
+	 * Note : function name is not in camelCase because of name of native php function named array_merge_recursive
+	 * this approach will help developers to find this function
+	 *
+	 * Example:
+	 *  $a = ['color' => 'blue', 'style' => ['font' => 'Arial', 'size' => 10]];
+	 *  $b = ['color' => 'red', 'style' => ['size' => 12]];
+	 *  Result:
+	 *  [
+	 *      'color' => 'red',
+	 *      'style' => [
+	 *          'font' => 'Arial',
+	 *          'size' => 12
+	 *      ]
+	 *  ]
+	 *
+	 * @template T of mixed
+	 * @param array<string, T> $array1  The base array (default parameters).
+	 * @param array<string, T> $array2  The array with values to override or extend the base array.
+	 * @return array<string, T>			The merged array with recursive replacement.
+	 */
 	function array_merge_recursive_distinct(array $array1, array $array2): array
 	{
 		$merged = $array1;
