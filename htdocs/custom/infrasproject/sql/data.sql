@@ -39,7 +39,7 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_HIDE_SUPPLIER_PROPOSAL_LIST',	        '__ENTITY__', '0',		'chaine', '0', 'InfraSProject module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_INVCODEPREFIX',						    '__ENTITY__', 'CONSO',	'chaine', '0', 'InfraSProject module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_LINK_TO_USER',						    '__ENTITY__', '0',		'chaine', '0', 'InfraSProject module');
-INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_PS_ACTIVE_PROJET_ELEMENT',			    '__ENTITY__', '1',		'chaine', '0', 'InfraSProject module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_PS_ACTIVE_PROJET_ELEMENT',			    '__ENTITY__', '1',		'chaine', '0', 'InfraSProject module - Page substitution');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_SEARCHMODE',						    '__ENTITY__', '1',		'chaine', '0', 'InfraSProject module - 0 => par label; 1 => par Inventory Code; 2 => Mixte');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_SECOND_MARK_RATE_TO_BE_APPLIED',		'__ENTITY__', '0',		'chaine', '0', 'InfraSProject module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPROJECT_SHOW_INVOICE_SUPPLIER_LIST',	        '__ENTITY__', '0',		'chaine', '0', 'InfraSProject module');

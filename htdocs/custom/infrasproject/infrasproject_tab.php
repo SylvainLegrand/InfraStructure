@@ -64,10 +64,10 @@
 	$object			= new Project($db);
 	$object->fetch($id, $ref);
 	$object->fetch_thirdparty();
-	
+
 	// Security check - check user access to project
 	restrictedArea($user, 'projet', $object->id, 'projet&project');
-	
+
 	$conso			= new InfraSProject($db);
 	$product		= new Product($db);
 	if ($action == 'conso' && empty(GETPOST('cancel'))) {

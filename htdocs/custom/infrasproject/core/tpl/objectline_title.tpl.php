@@ -21,18 +21,19 @@
 	* 	\ingroup	InfraS
 	* 	\brief		change template from Dolibarr
 	************************************************/
-	$isV19p = version_compare(DOL_VERSION, '19.0.0') >= 0;	// InfraS add
-	$isV20p = version_compare(DOL_VERSION, '20.0.0') >= 0;	// InfraS add
-	$isV21p = version_compare(DOL_VERSION, '21.0.0') >= 0;	// InfraS add
-	$isV22p = version_compare(DOL_VERSION, '22.0.0') >= 0;	// InfraS add
-	$isV23p = version_compare(DOL_VERSION, '23.0.0') >= 0;	// InfraS add
-	$isV24p = version_compare(DOL_VERSION, '24.0.0') >= 0;	// InfraS add
+	$isV19p 	= version_compare(DOL_VERSION, '19.0.0') >= 0;
+	$isV20p 	= version_compare(DOL_VERSION, '20.0.0') >= 0;
+	$isV21p 	= version_compare(DOL_VERSION, '21.0.0') >= 0;
+	$isV22p 	= version_compare(DOL_VERSION, '22.0.0') >= 0;
+	$isV23p 	= version_compare(DOL_VERSION, '23.0.0') >= 0;
+	$isV24p 	= version_compare(DOL_VERSION, '24.0.0') >= 0;
+	$dolinfras	= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
 	if ($isV24p) {
 		include dol_buildpath('infrasproject/core/tpl/objectline_title_24.tpl.php', 0);
 	} elseif ($isV23p) {
 		include dol_buildpath('infrasproject/core/tpl/objectline_title_23.tpl.php', 0);
 	} elseif ($isV22p) {
-		include dol_buildpath('infrasproject/core/tpl/objectline_title_22.tpl.php', 0);
+		include dol_buildpath('infrasproject/core/tpl/objectline_title_22'.($dolinfras ? '-DolInfraS' : '').'.tpl.php', 0);
 	} elseif ($isV21p) {
 		include dol_buildpath('infrasproject/core/tpl/objectline_title_21.tpl.php', 0);
 	} elseif ($isV20p) {
@@ -40,5 +41,5 @@
 	} elseif ($isV19p) {
 		include dol_buildpath('infrasproject/core/tpl/objectline_title_19.tpl.php', 0);
 	} else {
-		include dol_buildpath('infrasproject/core/tpl/objectline_title_18.tpl.php', 0);
+		include dol_buildpath('infrasproject/core/tpl/objectline_title_18'.($dolinfras ? '-DolInfraS' : '').'.tpl.php', 0);
 	}
