@@ -495,8 +495,12 @@ print '<script>
 		let form_list = $("#searchFormList");
 		form_create_transfer.submit(() => {
 			let selected_lines = Array.from(document.querySelectorAll("input.checkforselect:checked"))
-			selected_lines.map(line => {
-				form_create_transfer.append(line);
+			selected_lines.forEach(line => {
+				var hidden = document.createElement("input");
+				hidden.type = "hidden";
+				hidden.name = "toselect[]";
+				hidden.value = line.value;
+				form_create_transfer[0].appendChild(hidden);
 			})
 		})
 		// Compute total checked

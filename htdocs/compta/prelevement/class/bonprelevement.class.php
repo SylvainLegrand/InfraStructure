@@ -1114,30 +1114,6 @@ class BonPrelevement extends CommonObject
 
 		$thirdpartyBANId = 0;
 
-		// Check if there is an iban associated to the bank transfer request or if we take the default
-		if ($dids !== [0] && !empty($dids)) {
-			$sql = "SELECT pd.fk_societe_rib";
-			$sql .= " FROM " . $this->db->prefix() . "prelevement_demande as pd";
-			$sql .= " WHERE pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
-
-			$resql = $this->db->query($sql);
-
-			if (!$resql) {
-				$this->error = $this->db->lasterror();
-				dol_syslog(__METHOD__ . " Read fk_societe_rib error " . $this->db->lasterror(), LOG_ERR);
-				return -1;
-			}
-
-			$obj = $this->db->fetch_object($resql);
-			if ($obj) {
-				$thirdpartyBANId = $obj->fk_societe_rib ?: $thirdpartyBANId;	// InfraS change: if fk_societe_rib is null, we keep the default value 0 instead of setting it to null
-
-				dol_syslog(__METHOD__ . " Found an BAN ID to use: ".$thirdpartyBANId);
-			}
-
-			$this->db->free($resql);
-		}
-
 		$datetimeprev = dol_now('gmt');
 		// Choice of the date of the execution direct debit
 		if (!empty($executiondate)) {
@@ -1176,11 +1152,8 @@ class BonPrelevement extends CommonObject
 			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser)." as s ON s.rowid = f.".$this->db->sanitize($socOrUser);
 			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser."_rib")." as sr ON s.rowid = sr.".$this->db->sanitize($socOrUser);
 			if ($sourcetype != 'salary') {
-				if (!empty($thirdpartyBANId)) {
-					$sql .= " AND sr.rowid = " . ((int) $thirdpartyBANId);
-				} else {
-					$sql .= " AND sr.default_rib = 1";
-				}
+				// InfraS fix: use per-row BAN selection from prelevement_demande instead of a single global thirdpartyBANId
+				$sql .= " AND ((pd.fk_societe_rib IS NOT NULL AND pd.fk_societe_rib > 0 AND sr.rowid = pd.fk_societe_rib) OR ((pd.fk_societe_rib IS NULL OR pd.fk_societe_rib = 0) AND sr.default_rib = 1))";
 				// TODO Add 'AND sr.default_rib = 1' in sourcetype salary too Note: the column has been created in v21 in llx_user_rib and default to 0
 				// If we add a test on sr.default_rib = 1, we must also check we have a correct error management to stop if no default BAN is found.
 			}
@@ -1873,20 +1846,19 @@ class BonPrelevement extends CommonObject
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 				$sql .= " " . MAIN_DB_PREFIX . "facture as f,";
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
+				$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe as soc,";
 				$sql .= " " . MAIN_DB_PREFIX . "c_country as c,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 				$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 				$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 				$sql .= " AND p.fk_facture = f.rowid";
+				$sql .= " AND pd.fk_facture = f.rowid AND pd.fk_prelevement_bons = " . ((int) $this->id);
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
 				$sql .= " AND rib.fk_soc = f.fk_soc";
-				if (!empty($thirdpartyBANId)) {
-					$sql .= " AND rib.rowid = " . ((int) $thirdpartyBANId);
-				} else {
-					$sql .= " AND rib.default_rib = 1";
-				}
+				// InfraS fix: use per-row BAN selection from prelevement_demande
+				$sql .= " AND ((pd.fk_societe_rib IS NOT NULL AND pd.fk_societe_rib > 0 AND rib.rowid = pd.fk_societe_rib) OR ((pd.fk_societe_rib IS NULL OR pd.fk_societe_rib = 0) AND rib.default_rib = 1))";
 				$sql .= " AND rib.type = 'ban'";
 
 				// Define $fileDebiteurSection. One section DrctDbtTxInf per invoice.
@@ -1948,9 +1920,9 @@ class BonPrelevement extends CommonObject
 				fwrite($this->file, '				<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($this->raison_sociale), ' '))) . '</Nm>' . $CrLf);
 				fwrite($this->file, '				<Id>' . $CrLf);
 				fwrite($this->file, '					<OrgId>' . $CrLf);
-				fwrite($this->file, '					<Othr>' . $CrLf);
-				fwrite($this->file, '						<Id>' . $this->emetteur_ics . '</Id>' . $CrLf);
-				fwrite($this->file, '					</Othr>' . $CrLf);
+				fwrite($this->file, '						<Othr>' . $CrLf);
+				fwrite($this->file, '							<Id>' . $this->emetteur_ics . '</Id>' . $CrLf);
+				fwrite($this->file, '						</Othr>' . $CrLf);
 				fwrite($this->file, '					</OrgId>' . $CrLf);
 				fwrite($this->file, '				</Id>' . $CrLf);
 				fwrite($this->file, '			</InitgPty>' . $CrLf);
@@ -2018,19 +1990,18 @@ class BonPrelevement extends CommonObject
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 					$sql .= " " . MAIN_DB_PREFIX . "facture_fourn as f,";
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
+					$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe as soc";
 					$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_country as c ON soc.fk_pays = c.rowid,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 					$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 					$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 					$sql .= " AND p.fk_facture_fourn = f.rowid";
+					$sql .= " AND pd.fk_facture_fourn = f.rowid AND pd.fk_prelevement_bons = " . ((int) $this->id);
 					$sql .= " AND f.fk_soc = soc.rowid";
 					$sql .= " AND rib.fk_soc = f.fk_soc";
-					if (!empty($thirdpartyBANId)) {
-						$sql .= " AND rib.rowid = " . ((int) $thirdpartyBANId);
-					} else {
-						$sql .= " AND rib.default_rib = 1";
-					}
+					// InfraS fix: use per-row BAN selection from prelevement_demande
+					$sql .= " AND ((pd.fk_societe_rib IS NOT NULL AND pd.fk_societe_rib > 0 AND rib.rowid = pd.fk_societe_rib) OR ((pd.fk_societe_rib IS NULL OR pd.fk_societe_rib = 0) AND rib.default_rib = 1))";
 					$sql .= " AND rib.type = 'ban'";
 				}
 				// Define $fileCrediteurSection. One section DrctDbtTxInf per invoice.
@@ -2095,9 +2066,9 @@ class BonPrelevement extends CommonObject
 				fwrite($this->file, '				<Nm>' . dolEscapeXML(strtoupper(dol_string_nospecial(dol_string_unaccent($this->raison_sociale), ' '))) . '</Nm>' . $CrLf);
 				fwrite($this->file, '				<Id>' . $CrLf);
 				fwrite($this->file, '					<OrgId>' . $CrLf);
-				fwrite($this->file, '					<Othr>' . $CrLf);
-				fwrite($this->file, '						<Id>' . $this->emetteur_ics . '</Id>' . $CrLf);
-				fwrite($this->file, '					</Othr>' . $CrLf);
+				fwrite($this->file, '						<Othr>' . $CrLf);
+				fwrite($this->file, '							<Id>' . $this->emetteur_ics . '</Id>' . $CrLf);
+				fwrite($this->file, '						</Othr>' . $CrLf);
 				fwrite($this->file, '					</OrgId>' . $CrLf);
 				fwrite($this->file, '				</Id>' . $CrLf);
 				fwrite($this->file, '			</InitgPty>' . $CrLf);
