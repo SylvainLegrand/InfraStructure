@@ -273,6 +273,8 @@ if (empty($reshook)) {
 		$object->bic = trim(GETPOST("bic"));
 		$object->iban = trim(GETPOST("iban"));
 		$object->pti_in_ctti = empty(GETPOST("pti_in_ctti")) ? 0 : 1;
+		$object->ctgypurp = trim(GETPOST("ctgypurp", "alphanohtml")); // InfraS add
+		$object->lclinstrm = trim(GETPOST("lclinstrm", "alphanohtml")); // InfraS add
 
 		$object->owner_name = trim(GETPOST("proprio", 'alphanohtml'));
 		$object->owner_address = trim(GETPOST("owner_address", 'alphanohtml'));
@@ -608,11 +610,11 @@ if ($action == 'create') {
 				// IinfraS add begin
 				print '<tr><td>'.$form->textwithpicto($langs->trans("CtgyPurplabel"), $langs->trans("CtgyPurphelp")).'</td>';
 				print '<td>';
-				$formother->select_dictionary('ctgypurp', 'c_sepa_category_purpose', 'code', 'position', (GETPOST('ctgypurp') ? GETPOST('ctgypurp') : 'CORE'), 0, '');
+				$formother->select_dictionary('ctgypurp', 'c_sepa_category_purpose', 'code', 'label', (GETPOST('ctgypurp') ? GETPOST('ctgypurp') : 'CORE'), 0, '');
 				print '</td></tr>';
 				print '<tr><td>'.$form->textwithpicto($langs->trans("LclInstrmlabel"), $langs->trans("LclInstrmhelp")).'</td>';
 				print '<td>';
-				$formother->select_dictionary('lclinstrm', 'c_sepa_community_instrument', 'code', 'position', (GETPOST('lclinstrm') ? GETPOST('lclinstrm') : 'CORE'), 0, '');
+				$formother->select_dictionary('lclinstrm', 'c_sepa_community_instrument', 'code', 'label', (GETPOST('lclinstrm') ? GETPOST('lclinstrm') : 'CORE'), 0, '');
 				print '</td></tr>';
 				// InfraS add end
 			}
@@ -875,10 +877,10 @@ if ($action == 'create') {
 					print "</td></tr>\n";
 					// InfraS add begin
 					print '<tr><td>'.$form->textwithpicto($langs->trans("CtgyPurplabel"), $langs->trans("CtgyPurphelp")).'</td><td>';
-					print $object->ctgypurp;
+					print dol_escape_htmltag($langs->trans('c_sepa_category_purpose'.$object->ctgypurp) != 'c_sepa_category_purpose'.$object->ctgypurp ? $langs->trans('c_sepa_category_purpose'.$object->ctgypurp) : $object->ctgypurp);
 					print "</td></tr>\n";
 					print '<tr><td>'.$form->textwithpicto($langs->trans("LclInstrmlabel"), $langs->trans("LclInstrmhelp")).'</td><td>';
-					print $object->lclinstrm;
+					print dol_escape_htmltag($langs->trans('c_sepa_community_instrument'.$object->lclinstrm) != 'c_sepa_community_instrument'.$object->lclinstrm ? $langs->trans('c_sepa_community_instrument'.$object->lclinstrm) : $object->lclinstrm);
 					print "</td></tr>\n";
 					// InfraS add end
 				}
@@ -1217,11 +1219,11 @@ if ($action == 'create') {
 					// InfraS add begin
 					print '<tr><td>'.$form->textwithpicto($langs->trans("CtgyPurplabel"), $langs->trans("CtgyPurphelp")).'</td>';
 					print '<td>';
-					$formother->select_dictionary('ctgypurp', 'c_sepa_category_purpose', 'code', 'position', (GETPOST('ctgypurp') ? GETPOST('ctgypurp') : 'CORE'), 0, '');
+					$formother->select_dictionary('ctgypurp', 'c_sepa_category_purpose', 'code', 'label', (GETPOSTISSET('ctgypurp') ? GETPOST('ctgypurp', 'alphanohtml') : $object->ctgypurp), 0, '');
 					print '</td></tr>';
 					print '<tr><td>'.$form->textwithpicto($langs->trans("LclInstrmlabel"), $langs->trans("LclInstrmhelp")).'</td>';
 					print '<td>';
-					$formother->select_dictionary('lclinstrm', 'c_sepa_community_instrument', 'code', 'position', (GETPOST('lclinstrm') ? GETPOST('lclinstrm') : 'CORE'), 0, '');
+					$formother->select_dictionary('lclinstrm', 'c_sepa_community_instrument', 'code', 'label', (GETPOSTISSET('lclinstrm') ? GETPOST('lclinstrm', 'alphanohtml') : $object->lclinstrm), 0, '');
 					print '</td></tr>';
 					// InfraS add end
 				}
