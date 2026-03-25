@@ -56,7 +56,7 @@ class InterfaceMultismtp
 		$this->db = $db;
 
 		$this->name = 'Multi SMTP';
-		$this->family = "core";
+		$this->family = "Opendsi";
 		$this->description = "Triggers of this module allows to manage workflows";
 		$this->version = 'dolibarr';            // 'development', 'experimental', 'dolibarr' or version
 		$this->picto = 'technic';
@@ -117,7 +117,7 @@ class InterfaceMultismtp
 	 *      @param  conf		$conf       Object conf
 	 *      @return int         			<0 if KO, 0 if no triggered ran, >0 if OK
 	 */
-	public function run_trigger($action, $object, User $user, Translate $langs, Conf $conf)
+	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 	{
 		global $user, $db;
 
@@ -128,16 +128,16 @@ class InterfaceMultismtp
 			'ORDER_SENTBYMAIL',
 			'ORDER_SUPPLIER_SENTBYMAIL',
 			'PROPAL_SENTBYMAIL',
-            'PROPOSAL_SUPPLIER_SENTBYMAIL',
+			'PROPOSAL_SUPPLIER_SENTBYMAIL',
 			'SUPPLIER_PROPOSAL_SENTBYMAIL',
 			'SHIPPING_SENTBYMAIL',
 			'RECEPTION_SENTBYMAIL',
 			'FICHINTER_SENTBYMAIL',
 			'USER_SENTBYMAIL',
-            'MEMBER_SENTBYMAIL',
-            'BOM_SENTBYMAIL',
-            'CONTACT_SENTBYMAIL',
-            'CONTRACT_SENTBYMAIL',
+			'MEMBER_SENTBYMAIL',
+			'BOM_SENTBYMAIL',
+			'CONTACT_SENTBYMAIL',
+			'CONTRACT_SENTBYMAIL',
 			'USER_UPDATE_SESSION'
 		);
 
@@ -147,35 +147,34 @@ class InterfaceMultismtp
 
 		global $conf;
 
-		require_once __DIR__.'/../../class/Multismtp.class.php';
-        require_once __DIR__.'/../../lib/multismtp.php';
+		require_once __DIR__ . '/../../class/Multismtp.class.php';
+		require_once __DIR__ . '/../../lib/multismtp.php';
 
-        $multismtp = new Multismtp($db, $conf);
+		$multismtp = new Multismtp($db, $conf);
 
 		try {
 			$multismtp->fetch($user);
 		} catch (Exception $e) {
-			dol_syslog('[multismtp] '.$e->getMessage(), LOG_ERR);
+			dol_syslog('[multismtp] ' . $e->getMessage(), LOG_ERR);
 			return 1;
 		}
 
 		if ($action != 'USER_UPDATE_SESSION') {
-			if (!imapEnabled($conf)) {
+			if (!MultismtpImap::isEnabled()) {
 				return 0;
 			}
 
 			//Object that contains the email sent
 			global $mailfile;
 
-            if (!$mailfile->mail_saved) {
-                if (!$multismtp->saveMail($mailfile)) {
-                    setEventMessage($langs->trans('IMAPSaveError') . '<br>' . imap_last_error(), 'warnings');
-                } else {
-                    $mailfile->mail_saved = 1;
-                }
-            }
+			if (!$mailfile->mail_saved) {
+				if (!$multismtp->saveMail($mailfile)) {
+					setEventMessages($langs->trans('IMAPSaveError'), $multismtp->errors, 'warnings');
+				} else {
+					$mailfile->mail_saved = 1;
+				}
+			}
 		} else {
-
 			if (!$conf->global->MULTISMTP_SMTP_ENABLED) {
 				return 0;
 			}
@@ -185,9 +184,7 @@ class InterfaceMultismtp
 				return 0;
 			}
 
-			require_once __DIR__.'/../../lib/multismtp.php';
-
-			if (!replaceConfiguration($db, $user, $conf)) {
+			if (!Multismtp::replaceConfiguration($db, $user)) {
 				global $langs;
 
 				$langs->load('multismtp@multismtp');
@@ -197,8 +194,7 @@ class InterfaceMultismtp
 
 			return 1;
 		}
-		
+
 		return 0;
 	}
-
 }

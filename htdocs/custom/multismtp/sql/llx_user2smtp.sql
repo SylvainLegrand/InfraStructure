@@ -6,12 +6,28 @@ CREATE TABLE IF NOT EXISTS llx_user2smtp
   smtp_tls INT,
   smtp_starttls INT,
   smtp_id VARCHAR(255),
+  smtp_auth_type VARCHAR(255),
   smtp_pw VARCHAR(255),
+  smtp_oauth_service VARCHAR(255),
+  smtp_oauth_provider VARCHAR(255),
+  smtp_oauth_id VARCHAR(255),
+  smtp_oauth_secret VARCHAR(255),
+  smtp_oauth_url_authorize VARCHAR(255),
+  smtp_oauth_scope TEXT,
+  smtp_oauth_tenant VARCHAR(255),
   imap_server VARCHAR(255),
   imap_port INT,
   imap_tls INT,
   imap_id VARCHAR(255),
+  imap_auth_type VARCHAR(255),
   imap_pw VARCHAR(255),
+  imap_oauth_service VARCHAR(255),
+  imap_oauth_provider VARCHAR(255),
+  imap_oauth_id VARCHAR(255),
+  imap_oauth_secret VARCHAR(255),
+  imap_oauth_url_authorize VARCHAR(255),
+  imap_oauth_scope TEXT,
+  imap_oauth_tenant VARCHAR(255),
   imap_folder VARCHAR(255),
   CONSTRAINT unique_fk_user UNIQUE (fk_user),
   CONSTRAINT fk_fk_user FOREIGN KEY (fk_user) REFERENCES llx_user (rowid)
@@ -36,4 +52,24 @@ ALTER TABLE llx_user2smtp ALTER COLUMN smtp_pw DROP NOT NULL;
 /**
  * Upgrade from 1.2 to 1.3
  */
- ALTER TABLE llx_user2smtp ADD smtp_starttls INT NULL;
+ALTER TABLE llx_user2smtp ADD smtp_starttls INT NULL;
+
+/**
+ * Upgrade to 1.4.13
+ */
+ALTER TABLE llx_user2smtp ADD smtp_auth_type VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD smtp_oauth_service VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD smtp_oauth_provider VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD smtp_oauth_id VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD smtp_oauth_secret VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD smtp_oauth_url_authorize VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD smtp_oauth_scope TEXT NULL;
+ALTER TABLE llx_user2smtp ADD smtp_oauth_tenant VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD imap_auth_type VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD imap_oauth_service VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD imap_oauth_provider VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD imap_oauth_id VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD imap_oauth_secret VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD imap_oauth_url_authorize VARCHAR(255) NULL;
+ALTER TABLE llx_user2smtp ADD imap_oauth_scope TEXT NULL;
+ALTER TABLE llx_user2smtp ADD imap_oauth_tenant VARCHAR(255) NULL;

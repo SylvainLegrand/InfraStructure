@@ -8,12 +8,16 @@ MULTISMTP_IMAP_ENABLED=Enable IMAP function
 ForceIMAPConfiguration=Force IMAP server configuration
 MULTISMTP_IMAP_CONF_SSL=Use SSL encryption
 MULTISMTP_IMAP_NOVALIDATECERT=Do not validate SSL certificates. Mandatory if the server uses self-signed certificates
+MULTISMTP_IMAP_CONF_AUTH_TYPE=Méthode d'authentification
+MULTISMTP_IMAP_CONF_OAUTH_SERVICE=Service d'authentification OAUTH2
 IMAPNotAvailable=Not available. IMAP extension is required.
 PreParameterAdvice=As a protection measure of data leak in the company, users are not allowed to configure email accounts that connect to different mail servers other than specified in the main configuration of Dolibarr.
 NotWorking370=This module is known to not be working properly with 3.7.0 version.
 TriggerNotActive=Constant MAIN_ACTIVATE_UPDATESESSIONTRIGGER must be configured for the module to work correctly.
 WarningMailSendMode=You have to configure "SMTP/SMTPS socket library" in "%s" to start using the SMTP function. %sClick here to change it%s
 WarningMailDisabled=Email sending has been disabled. SMTP function won't work. %sClick here to enable it again%s
+MULTISMTP_SENT_ONLY_FROM_CARD   = Use MultiSMTP only for sending from e-mails forms (not from automated emails)
+MultismtpSetup=Configuration du module Multismtp
 
 #Background errors
 SMTPInjectionError=MultiSMTP module was not able to inject user email settings.
@@ -27,8 +31,22 @@ IMAPConfiguration=IMAP configuration
 IMAP_SERVER=IMAP host
 IMAP_PORT=IMAP port
 IMAP_ID=IMAP user
+IMAP_AUTH_TYPE=Authentification method
 IMAP_PW=IMAP password
+IMAP_OAUTH_SERVICE=OAUTH2 authentication service
 IMAP_FOLDER=Folder which stores sent emails
 ErrorRetrievingIMAPFolders=Unable to retrieve mailboxes list.
 CheckModuleConfiguration=Check module configuration.
 ErrorFolderNotExist=The selected IMAP folder cannot be found.
+MultismtpWarningsActivatePhpImap=Le support de l'OAuth2 n'est supporté que par la librairie PHP-IMAP. Activable dans la configuration du module.
+MultiSmtpSetImapFolder=Set IMAP folder
+
+# Cron / OAuth2
+MultismtpCronOAuth2Title=Cron / OAuth2
+MULTISMTP_CRON_REFRESH_TOKEN_DAYS=Number of days after expiration to refresh OAuth2 tokens
+MultismtpCronRefreshOAuth2TokensLabel=Refresh expired OAuth2 tokens
+MultismtpCronRefreshOAuth2TokensComment=Refreshes all OAuth2 tokens (Dolibarr and Multismtp) that are expired
+MultismtpCronRefreshTokenErrorFetchUser=Error: %s - Could not fetch user ID %s
+MultismtpCronRefreshTokenErrorCreateService=Error: %s - Could not create OAuth service
+MultismtpCronRefreshTokenSuccess=OK: %s - Token refreshed successfully
+MultismtpCronRefreshTokenError=Error: %s - %s

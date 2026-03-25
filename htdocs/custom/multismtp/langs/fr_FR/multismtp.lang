@@ -1,19 +1,24 @@
 #Admin page
 Module402002Desc=Permet la configuration de comptes e-mails par utilisateur
-SMTPDescription=La fonction SMTP permet l'envoi d'e-mails par des serveurs certifiés plutôt que par Dolibarr. cela évite que vos e-mails soient considérés comme SPAM ou des problèmes de serveur e-mails.
+SMTPDescription=La fonction SMTP permet l'envoi d'e-mails par des serveurs certifiés plutôt que par Dolibarr. Cela évite que vos e-mails soient considérés comme SPAM ou des problèmes de serveur e-mails.
 MULTISMTP_SMTP_ENABLED=Activer la fonction SMTP
 MULTISMTP_ALLOW_CHANGESERVER=Autoriser les utilisateurs à configurer un autre serveur e-mail
 IMAPDescription=La fonction IMAP permet la copie des e-mails envoyés depuis Dolibarr vers votre serveur. Vous les retrouverez dans votre dossier "envoyés".
 MULTISMTP_IMAP_ENABLED=Activer la fonction IMAP
 ForceIMAPConfiguration=Forcer la configuration du serveur IMAP
-MULTISMTP_IMAP_CONF_SSL=Utiliser le cryptage SSL
+MULTISMTP_IMAP_CONF_SSL=Utiliser le chiffrement SSL
 MULTISMTP_IMAP_NOVALIDATECERT=Ne pas valider le certificat SSL. Obligatoire si le serveur utilise des certificat auto-signés
+MULTISMTP_IMAP_CONF_AUTH_TYPE=Méthode d'authentification
+MULTISMTP_IMAP_CONF_OAUTH_SERVICE=Service d'authentification OAUTH2
 IMAPNotAvailable=Non disponible. L'extension IMAP est requise.
 PreParameterAdvice=Par mesure de sécurité contre la fuite de données, les utilisateurs ne sont pas autorisés à configurer des comptes e-mails qui se connectent à d'autres serveurs que ceux déclarés dans la configuration principale de Dolibarr
 NotWorking370=This module is known to not be working properly with 3.7.0 version.
 TriggerNotActive=La constante MAIN_ACTIVATE_UPDATESESSIONTRIGGER doit être activée pour le bon fonctionnement du module.
 WarningMailSendMode=Veuillez sélectionner "SMTP/SMTPS socket library" dans "%s" pour le bon fonctionnement du module. %sCliquez ici pour modifier%s
 WarningMailDisabled=L'envoi d'e-mails est désactivé. La fonction SMTP ne pourra pas fonctionner. %sCliquez ici pour réactiver l'envoi d'e-mails%s
+MULTISMTP_SENT_ONLY_FROM_CARD   = Utiliser MultiSMTP seulement pour les envois depuis des formulaires email (pas pour des envois automatisés)
+MultismtpSetup=Configuration du module Multismtp
+MultiSmtpCustom=Personnalisé
 
 #Background errors
 SMTPInjectionError=Le module MultiSMTP n'a pas pu envoyer les paramétrages de l'e-mail de l'utilisateur
@@ -27,8 +32,25 @@ IMAPConfiguration=Configuration IMAP
 IMAP_SERVER=Hôte IMAP
 IMAP_PORT= IMAP
 IMAP_ID=Utilisateur IMAP
+IMAP_AUTH_TYPE=Méthode d'authentification
 IMAP_PW=Mot de passe IMAP
+IMAP_OAUTH_SERVICE=Service d'authentification OAUTH2
 IMAP_FOLDER=Dossier de stockage des e-mails envoyés
 ErrorRetrievingIMAPFolders=Impossible de récupérer la liste des boites mails
 CheckModuleConfiguration=Vérifier la configuration du module
 ErrorFolderNotExist=Le dossier IMAP sélectionné n'a pas pu être trouvé
+MultismtpWarningsActivatePhpImap=Le support de l'OAuth2 n'est supporté que par la librairie PHP-IMAP. Activable dans la configuration du module.
+MultiSmtpSetImapFolder=Modifier le dossier IMAP
+
+# Errors
+MultismtpErrorAuthTypeNotSupported=Méthode d'authentification non supportée : %s
+
+# Cron / OAuth2
+MultismtpCronOAuth2Title=Cron / OAuth2
+MULTISMTP_CRON_REFRESH_TOKEN_DAYS=Nombre de jours après expiration pour rafraîchir les tokens OAuth2
+MultismtpCronRefreshOAuth2TokensLabel=Rafraîchir les tokens OAuth2 expirés
+MultismtpCronRefreshOAuth2TokensComment=Rafraîchit tous les tokens OAuth2 (Dolibarr et Multismtp) expirés
+MultismtpCronRefreshTokenErrorFetchUser=Erreur : %s - Impossible de charger l'utilisateur ID %s
+MultismtpCronRefreshTokenErrorCreateService=Erreur : %s - Impossible de créer le service OAuth
+MultismtpCronRefreshTokenSuccess=OK : %s - Token rafraîchi avec succès
+MultismtpCronRefreshTokenError=Erreur : %s - %s

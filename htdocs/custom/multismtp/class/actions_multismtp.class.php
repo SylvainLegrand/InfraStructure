@@ -29,7 +29,11 @@ class ActionsMultismtp
 	 */
 	public function updateSession()
 	{
-		global $conf;
+		global $conf, $langs;
+
+		if (is_object($langs)) {
+			$langs->load('multismtp@multismtp');
+		}
 
 		if (!$conf->global->MULTISMTP_SMTP_ENABLED) {
 			return 0;
@@ -41,15 +45,12 @@ class ActionsMultismtp
 		}
 
 		global $db, $user;
+		dol_include_once('/multismtp/class/Multismtp.class.php');
 
-		require __DIR__.'/../lib/multismtp.php';
-
-		if (!replaceConfiguration($db, $user, $conf)) {
-			global $langs;
-
-			$langs->load('multismtp@multismtp');
-
-			setEventMessage($langs->trans('SMTPInjectionError'), 'errors');
+		if (!Multismtp::replaceConfiguration($db, $user)) {
+			if (is_object($langs)) {
+				setEventMessage($langs->trans('SMTPInjectionError'), 'errors');
+			}
 		}
 
 		return 1;

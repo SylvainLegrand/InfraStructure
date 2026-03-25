@@ -71,11 +71,16 @@ class modMultismtp extends DolibarrModules
 		$this->module_position	= 100018;
 
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
-		$this->name = 'Multi SMTP';
+        $this->name = preg_replace('/^mod/i', '', get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Permite la configuración de una cuenta de correo a cada usuario";
+		$this->editor_name      = '<b>Opendsi</b>';
+        $this->editor_web       = 'https://opendsi.fr';
+        $this->editor_url       = "https://opendsi.fr";
+        $this->editor_email     = 'support@open-dsi.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.4.6';
+		$this->version = trim(file_get_contents(__DIR__.'/../../VERSION'));
+		$this->url_last_version = 'https://git.open-dsi.fr/dolibarr-extension/'.strtolower($this->name).'/-/raw/2024/VERSION';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_MULTISMTP';
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -83,25 +88,32 @@ class modMultismtp extends DolibarrModules
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='email';
+        if((float) DOL_VERSION <= 11.0) {
+            $this->picto='opendsi@'.strtolower($this->name);
+        } else {
+            $this->picto='opendsi_big@'.strtolower($this->name);
+        }
 
 		$this->module_parts = array(
 			'hooks' => array(
 				'main'
+				,'maildao'
+				,'mail'
 			),
 			'triggers' => 1
 		);
 
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
-		$this->config_page_url = array("index.php@multismtp");
+		$this->config_page_url = array("setup.php@multismtp");
 
 		// Dependencies
 		$this->hidden = false;
 		$this->depends = array();
 		$this->requiredby = array();
 		$this->conflictwith = array();
-		$this->phpmin = array(5,0);
-		$this->need_dolibarr_version = array(3,6,3);
+        $opendsi_info = json_decode(file_get_contents(__DIR__.'/../../.opendsi_info.json'));
+        $this->phpmin = explode('.', $opendsi_info->php_min_version);                    // Minimum version of PHP required by module
+        $this->need_dolibarr_version = explode('.', $opendsi_info->dlb_min_version);    // Minimum version of Dolibarr required by module
 		$this->langfiles = array("multismtp@multismtp");
 
 		$this->tabs = array(
@@ -123,7 +135,33 @@ class modMultismtp extends DolibarrModules
 				3 => '',
 				4 => false,
 				5 => 'current'
+			),
+			array(
+				0 => 'MULTISMTP_CRON_REFRESH_TOKEN_DAYS',
+				1 => 'int',
+				2 => '30',
+				3 => 'Number of days before expiration to refresh OAuth2 tokens',
+				4 => false,
+				5 => 'current'
 			)
+		);
+
+		// Cronjobs
+		$this->cronjobs = array(
+			0 => array(
+				'label' => 'MultismtpCronRefreshOAuth2TokensLabel',
+				'jobtype' => 'method',
+				'class' => '/multismtp/class/Multismtp.class.php',
+				'objectname' => 'Multismtp',
+				'method' => 'cronRefreshOAuth2Tokens',
+				'parameters' => '',
+				'comment' => 'MultismtpCronRefreshOAuth2TokensComment',
+				'frequency' => 1,
+				'unitfrequency' => 86400,
+				'status' => 0,
+				'test' => 'isModEnabled("multismtp")',
+				'priority' => 50,
+			),
 		);
 	}
 

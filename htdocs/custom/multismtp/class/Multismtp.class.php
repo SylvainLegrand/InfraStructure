@@ -1,7 +1,7 @@
 <?php
-
 /**
  * Copyright © 2015-2016 Marcos García de La Fuente <hola@marcosgdf.com>
+ * Copyright © 2026 	 Open-Dsi					<support@open-dsi.fr>
  *
  * This file is part of Multismtp.
  *
@@ -19,13 +19,20 @@
  * along with Multismtp.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+require_once DOL_DOCUMENT_ROOT . '/includes/OAuth/bootstrap.php';
+dol_include_once('/multismtp/class/MultismtpImap.class.php');
+
+use OAuth\Common\Storage\DoliStorage;
+use OAuth\Common\Consumer\Credentials;
+
+
 class Multismtp
 {
 	/**
 	 * User
 	 * @var int
 	 */
-	private $fk_user;
+	public $fk_user;
 
 	/**
 	 * SMTP server
@@ -58,10 +65,58 @@ class Multismtp
 	public $smtp_id;
 
 	/**
+	 * SMTP auth type (LOGIN or XOAUTH2)
+	 * @var string
+	 */
+	public $smtp_auth_type;
+
+	/**
 	 * SMTP password
 	 * @var string
 	 */
 	public $smtp_pw;
+
+	/**
+	 * SMTP oauth service
+	 * @var string
+	 */
+	public $smtp_oauth_service;
+
+	/**
+	 * SMTP oauth provider
+	 * @var string
+	 */
+	public $smtp_oauth_provider;
+
+	/**
+	 * SMTP oauth id
+	 * @var string
+	 */
+	public $smtp_oauth_id;
+
+	/**
+	 * SMTP oauth secret
+	 * @var string
+	 */
+	public $smtp_oauth_secret;
+
+	/**
+	 * SMTP oauth url authorize
+	 * @var string
+	 */
+	public $smtp_oauth_url_authorize;
+
+	/**
+	 * SMTP oauth scope
+	 * @var string
+	 */
+	public $smtp_oauth_scope;
+
+	/**
+	 * SMTP oauth tenant
+	 * @var string
+	 */
+	public $smtp_oauth_tenant;
 
 	/**
 	 * IMAP server
@@ -88,10 +143,58 @@ class Multismtp
 	public $imap_id;
 
 	/**
+	 * IMAP auth type (LOGIN or XOAUTH2)
+	 * @var string
+	 */
+	public $imap_auth_type;
+
+	/**
 	 * IMAP password
 	 * @var string
 	 */
 	public $imap_pw;
+
+	/**
+	 * IMAP oauth service
+	 * @var string
+	 */
+	public $imap_oauth_service;
+
+	/**
+	 * IMAP oauth provider
+	 * @var string
+	 */
+	public $imap_oauth_provider;
+
+	/**
+	 * IMAP oauth id
+	 * @var string
+	 */
+	public $imap_oauth_id;
+
+	/**
+	 * IMAP oauth secret
+	 * @var string
+	 */
+	public $imap_oauth_secret;
+
+	/**
+	 * IMAP oauth url authorize
+	 * @var string
+	 */
+	public $imap_oauth_url_authorize;
+
+	/**
+	 * IMAP oauth scope
+	 * @var string
+	 */
+	public $imap_oauth_scope;
+
+	/**
+	 * IMAP oauth tenant
+	 * @var string
+	 */
+	public $imap_oauth_tenant;
 
 	/**
 	 * IMAP folder
@@ -103,25 +206,47 @@ class Multismtp
 	 * Database handler
 	 * @var DoliDB
 	 */
-	private $db;
-
+	public $db;
 	/**
-	 * Config class
-	 * @var Conf
+	 * @var string 		Error string
+	 * @see             $errors
 	 */
-	private $conf;
+	public $error;
+	/**
+	 * @var string[]	Array of error strings
+	 */
+	public $errors = array();
+	/**
+	 * @var string 		CRON output string
+	 */
+	public $output;
+	/**
+	 * Imap manager handler
+	 * @var MultismtpImap
+	 */
+	public $imap;
+
 
 	/**
 	 * Multismtp constructor.
 	 * Cannot use typehinting because of 3.4 compatibility
 	 *
 	 * @param DoliDB $db Database handler
-	 * @param Conf $conf Config class
 	 */
-	public function __construct($db, Conf $conf)
+	public function __construct($db)
 	{
 		$this->db = $db;
-		$this->conf = $conf;
+		$this->imap = new MultismtpImap($this->db);
+	}
+
+	/**
+	 * Method to output saved errors
+	 *
+	 * @return	string		String with errors
+	 */
+	public function errorsToString()
+	{
+		return $this->error.(is_array($this->errors) ? (($this->error != '' ? ', ' : '').join(', ', $this->errors)) : '');
 	}
 
 	/**
@@ -150,13 +275,29 @@ class Multismtp
 		$resql = $this->db->fetch_object($query);
 
 		$this->smtp_id = $resql->smtp_id;
+		$this->smtp_auth_type = empty($resql->smtp_auth_type) ? 'LOGIN' : $resql->smtp_auth_type;
 		$this->smtp_pw = $resql->smtp_pw;
+		$this->smtp_oauth_service = $resql->smtp_oauth_service;
+		$this->smtp_oauth_provider = $resql->smtp_oauth_provider;
+		$this->smtp_oauth_id = $resql->smtp_oauth_id;
+		$this->smtp_oauth_secret = $resql->smtp_oauth_secret;
+		$this->smtp_oauth_url_authorize = $resql->smtp_oauth_url_authorize;
+		$this->smtp_oauth_scope = $resql->smtp_oauth_scope;
+		$this->smtp_oauth_tenant = $resql->smtp_oauth_tenant;
 		$this->smtp_server = $resql->smtp_server;
 		$this->smtp_port = $resql->smtp_port;
 		$this->smtp_tls = (bool) $resql->smtp_tls;
 		$this->smtp_starttls = (bool) $resql->smtp_starttls;
 		$this->imap_id = $resql->imap_id;
+		$this->imap_auth_type = empty($resql->imap_auth_type) ? 'LOGIN' : $resql->imap_auth_type;
 		$this->imap_pw = $resql->imap_pw;
+		$this->imap_oauth_service = $resql->imap_oauth_service;
+		$this->imap_oauth_provider = $resql->imap_oauth_provider;
+		$this->imap_oauth_id = $resql->imap_oauth_id;
+		$this->imap_oauth_secret = $resql->imap_oauth_secret;
+		$this->imap_oauth_url_authorize = $resql->imap_oauth_url_authorize;
+		$this->imap_oauth_scope = $resql->imap_oauth_scope;
+		$this->imap_oauth_tenant = $resql->imap_oauth_tenant;
 		$this->imap_server = $resql->imap_server;
 		$this->imap_port = $resql->imap_port;
 		$this->imap_tls = (bool) $resql->imap_tls;
@@ -174,6 +315,8 @@ class Multismtp
 	 */
 	public function update()
 	{
+		global $conf;
+
 		if (!$this->fk_user) {
 			throw new BadMethodCallException();
 		}
@@ -186,8 +329,7 @@ class Multismtp
 		$imap_port = null;
 		$imap_tls = null;
 
-		if ($this->conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
-
+		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
 			$smtp_server = $this->smtp_server;
 
 			if ($this->smtp_port !== null) {
@@ -202,7 +344,8 @@ class Multismtp
 			}
 		}
 
-		if (!$this->conf->global->MULTISMTP_IMAP_CONF_SERVER) {
+		// if (!$conf->global->MULTISMTP_IMAP_CONF_SERVER) {
+		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
 			$imap_server = $this->imap_server;
 
 			if ($this->imap_tls !== null) {
@@ -210,46 +353,82 @@ class Multismtp
 			}
 		}
 
-		if (!$this->conf->global->MULTISMTP_IMAP_CONF_PORT && $this->imap_port !== null) {
+		if (!empty($conf->global->MULTISMTP_IMAP_CONF_PORT) && $this->imap_port !== null) {
 			$imap_port = (int) $this->imap_port;
 		}
 
-		$sql = "INSERT INTO ".MAIN_DB_PREFIX."user2smtp (
-		smtp_id, smtp_pw, smtp_server, smtp_port, smtp_tls, smtp_starttls, imap_id, imap_pw, imap_server, imap_port,
-		imap_tls, imap_folder, fk_user)
-			VALUES (
-			".($this->smtp_id ? "'".$this->db->escape($this->smtp_id)."'" : "null").",
-			".($this->smtp_pw ? "'".$this->db->escape($this->smtp_pw)."'" : "null").",
-			".($smtp_server ? "'".$this->db->escape($smtp_server)."'" : "null").",
-			".($smtp_port ?: "null").",
-			".($smtp_tls ?: "null").",
-			".($smtp_starttls ?: "null").",
-			".($this->imap_id ? "'".$this->db->escape($this->imap_id)."'" : "null").",
-			".($this->imap_pw ? "'".$this->db->escape($this->imap_pw)."'" : "null").",
-			".($imap_server ? "'".$this->db->escape($imap_server)."'" : "null").",
-			".($imap_port ?: "null").",
-			".($imap_tls ?: "null").",
-			".($this->imap_folder ? "'".$this->db->escape($this->imap_folder)."'" : "null").",
-			".(int) $this->fk_user.")";
+		$sql = "INSERT INTO " . MAIN_DB_PREFIX . "user2smtp (
+			smtp_id, smtp_auth_type, smtp_pw, smtp_oauth_service, smtp_oauth_provider, smtp_oauth_id, smtp_oauth_secret, smtp_oauth_url_authorize, smtp_oauth_scope, smtp_oauth_tenant, smtp_server, smtp_port, smtp_tls, smtp_starttls,
+			imap_id, imap_auth_type, imap_pw, imap_oauth_service, imap_oauth_provider, imap_oauth_id, imap_oauth_secret, imap_oauth_url_authorize, imap_oauth_scope, imap_oauth_tenant, imap_server, imap_port, imap_tls, imap_folder,
+			fk_user
+			) VALUES (
+			" . ($this->smtp_id ? "'" . $this->db->escape($this->smtp_id) . "'" : "null") . ",
+			" . ($this->smtp_auth_type ? "'" . $this->db->escape($this->smtp_auth_type) . "'" : "null") . ",
+			" . ($this->smtp_pw ? "'" . $this->db->escape($this->smtp_pw) . "'" : "null") . ",
+			" . ($this->smtp_oauth_service ? "'" . $this->db->escape($this->smtp_oauth_service) . "'" : "null") . ",
+			" . ($this->smtp_oauth_provider ? "'" . $this->db->escape($this->smtp_oauth_provider) . "'" : "null") . ",
+			" . ($this->smtp_oauth_id ? "'" . $this->db->escape($this->smtp_oauth_id) . "'" : "null") . ",
+			" . ($this->smtp_oauth_secret ? "'" . $this->db->escape($this->smtp_oauth_secret) . "'" : "null") . ",
+			" . ($this->smtp_oauth_url_authorize ? "'" . $this->db->escape($this->smtp_oauth_url_authorize) . "'" : "null") . ",
+			" . ($this->smtp_oauth_scope ? "'" . $this->db->escape($this->smtp_oauth_scope) . "'" : "null") . ",
+			" . ($this->smtp_oauth_tenant ? "'" . $this->db->escape($this->smtp_oauth_tenant) . "'" : "null") . ",
+			" . ($smtp_server ? "'" . $this->db->escape($smtp_server) . "'" : "null") . ",
+			" . ($smtp_port ?: "null") . ",
+			" . ($smtp_tls ?: "null") . ",
+			" . ($smtp_starttls ?: "null") . ",
+			" . ($this->imap_id ? "'" . $this->db->escape($this->imap_id) . "'" : "null") . ",
+			" . ($this->imap_auth_type ? "'" . $this->db->escape($this->imap_auth_type) . "'" : "null") . ",
+			" . ($this->imap_pw ? "'" . $this->db->escape($this->imap_pw) . "'" : "null") . ",
+			" . ($this->imap_oauth_service ? "'" . $this->db->escape($this->imap_oauth_service) . "'" : "null") . ",
+			" . ($this->imap_oauth_provider ? "'" . $this->db->escape($this->imap_oauth_provider) . "'" : "null") . ",
+			" . ($this->imap_oauth_id ? "'" . $this->db->escape($this->imap_oauth_id) . "'" : "null") . ",
+			" . ($this->imap_oauth_secret ? "'" . $this->db->escape($this->imap_oauth_secret) . "'" : "null") . ",
+			" . ($this->imap_oauth_url_authorize ? "'" . $this->db->escape($this->imap_oauth_url_authorize) . "'" : "null") . ",
+			" . ($this->imap_oauth_scope ? "'" . $this->db->escape($this->imap_oauth_scope) . "'" : "null") . ",
+			" . ($this->imap_oauth_tenant ? "'" . $this->db->escape($this->imap_oauth_tenant) . "'" : "null") . ",
+			" . ($imap_server ? "'" . $this->db->escape($imap_server) . "'" : "null") . ",
+			" . ($imap_port ?: "null") . ",
+			" . ($imap_tls ?: "null") . ",
+			" . ($this->imap_folder ? "'" . $this->db->escape($this->imap_folder) . "'" : "null") . ",
+			" . (int) $this->fk_user . ")";
 
 		if (!$this->db->query($sql)) {
+			if ($this->db->lasterrno() == 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+				$sql = "UPDATE " . MAIN_DB_PREFIX . "user2smtp SET
+		smtp_id = " . ($this->smtp_id ? "'" . $this->db->escape($this->smtp_id) . "'" : "null") . ",
+		smtp_auth_type = " . ($this->smtp_auth_type ? "'" . $this->db->escape($this->smtp_auth_type) . "'" : "null") . ",
+		smtp_pw = " . ($this->smtp_pw ? "'" . $this->db->escape($this->smtp_pw) . "'" : "null") . ",
+		smtp_oauth_service = " . ($this->smtp_oauth_service ? "'" . $this->db->escape($this->smtp_oauth_service) . "'" : "null") . ",
+		smtp_oauth_provider = " . ($this->smtp_oauth_provider ? "'" . $this->db->escape($this->smtp_oauth_provider) . "'" : "null") . ",
+		smtp_oauth_id = " . ($this->smtp_oauth_id ? "'" . $this->db->escape($this->smtp_oauth_id) . "'" : "null") . ",
+		smtp_oauth_secret = " . ($this->smtp_oauth_secret ? "'" . $this->db->escape($this->smtp_oauth_secret) . "'" : "null") . ",
+		smtp_oauth_url_authorize = " . ($this->smtp_oauth_url_authorize ? "'" . $this->db->escape($this->smtp_oauth_url_authorize) . "'" : "null") . ",
+		smtp_oauth_scope = " . ($this->smtp_oauth_scope ? "'" . $this->db->escape($this->smtp_oauth_scope) . "'" : "null") . ",
+		smtp_oauth_tenant = " . ($this->smtp_oauth_tenant ? "'" . $this->db->escape($this->smtp_oauth_tenant) . "'" : "null") . ",
+		smtp_server = " . ($smtp_server ? "'" . $this->db->escape($smtp_server) . "'" : "null") . ",
+		smtp_port = " . ($smtp_port ?: "null") . ",
+		smtp_tls = " . ($smtp_tls ?: "null") . ",
+		smtp_starttls = " . ($smtp_starttls ?: "null") . ",
+		imap_id = " . ($this->imap_id ? "'" . $this->db->escape($this->imap_id) . "'" : "null") . ",
+		imap_auth_type = " . ($this->imap_auth_type ? "'" . $this->db->escape($this->imap_auth_type) . "'" : "null") . ",
+		imap_pw = " . ($this->imap_pw ? "'" . $this->db->escape($this->imap_pw) . "'" : "null") . ",
+		imap_oauth_service = " . ($this->imap_oauth_service ? "'" . $this->db->escape($this->imap_oauth_service) . "'" : "null") . ",
+		imap_oauth_provider = " . ($this->imap_oauth_provider ? "'" . $this->db->escape($this->imap_oauth_provider) . "'" : "null") . ",
+		imap_oauth_id = " . ($this->imap_oauth_id ? "'" . $this->db->escape($this->imap_oauth_id) . "'" : "null") . ",
+		imap_oauth_secret = " . ($this->imap_oauth_secret ? "'" . $this->db->escape($this->imap_oauth_secret) . "'" : "null") . ",
+		imap_oauth_url_authorize = " . ($this->imap_oauth_url_authorize ? "'" . $this->db->escape($this->imap_oauth_url_authorize) . "'" : "null") . ",
+		imap_oauth_scope = " . ($this->imap_oauth_scope ? "'" . $this->db->escape($this->imap_oauth_scope) . "'" : "null") . ",
+		imap_oauth_tenant = " . ($this->imap_oauth_tenant ? "'" . $this->db->escape($this->imap_oauth_tenant) . "'" : "null") . ",
+		imap_server = " . ($imap_server ? "'" . $this->db->escape($imap_server) . "'" : "null") . ",
+		imap_port = " . ($imap_port ?: "null") . ",
+		imap_tls = " . ($imap_tls ?: "null") . ",
+		imap_folder = " . ($this->imap_folder ? "'" . $this->db->escape($this->imap_folder) . "'" : "null") . "
+		WHERE fk_user = " . (int) $this->fk_user;
 
-			$sql = "UPDATE ".MAIN_DB_PREFIX."user2smtp SET
-		smtp_id = ".($this->smtp_id ? "'".$this->db->escape($this->smtp_id)."'" : "null").",
-		smtp_pw = ".($this->smtp_pw ? "'".$this->db->escape($this->smtp_pw)."'" : "null").",
-		smtp_server = ".($smtp_server ? "'".$this->db->escape($smtp_server)."'" : "null").",
-		smtp_port = ".($smtp_port ?: "null").",
-		smtp_tls = ".($smtp_tls ?: "null").",
-		smtp_starttls = ".($smtp_starttls ?: "null").",
-		imap_id = ".($this->imap_id ? "'".$this->db->escape($this->imap_id)."'" : "null").",
-		imap_pw = ".($this->imap_pw ? "'".$this->db->escape($this->imap_pw)."'" : "null").",
-		imap_server = ".($imap_server ? "'".$this->db->escape($imap_server)."'" : "null").",
-		imap_port = ".($imap_port ?: "null").",
-		imap_tls = ".($imap_tls ?: "null").",
-		imap_folder = ".($this->imap_folder ? "'".$this->db->escape($this->imap_folder)."'" : "null")."
-		WHERE fk_user = ".(int) $this->fk_user;
-
-			if (!$this->db->query($sql)) {
+				if (!$this->db->query($sql)) {
+					throw new Exception($this->db->error());
+				}
+			} else {
 				throw new Exception($this->db->error());
 			}
 		}
@@ -265,7 +444,15 @@ class Multismtp
 	{
 		$credentials = $this->getImapCredentials();
 
-		return $credentials['id'] && $credentials['port'] && $credentials['server'] && $credentials['id'];
+		return $credentials['id']
+			&& $credentials['port']
+			&& $credentials['server']
+			&& ($credentials['auth_type'] === "XOAUTH2" ?
+				($credentials['oauth_service']
+					|| ($credentials['oauth_provider'] && $credentials['oauth_id'] && $credentials['oauth_secret'])
+				)
+				: $credentials['pw']
+			);
 	}
 
 	/**
@@ -274,13 +461,13 @@ class Multismtp
 	 */
 	public function checkImap()
 	{
-		$res = $this->openImapHandler();
-
-		if ($res) {
-			imap_close($res);
+		$result = $this->openImapHandler();
+		if ($result < 0) {
+			return false;
 		}
 
-		return (bool) $res;
+		$this->imap->disconnect();
+		return true;
 	}
 
 	/**
@@ -291,7 +478,15 @@ class Multismtp
 	{
 		$credentials = $this->getSmtpCredentials();
 
-		return $credentials['server'] && $credentials['port'] && $credentials['id'] && $credentials['pw'];
+		return $credentials['id']
+			&& $credentials['port']
+			&& $credentials['server']
+			&& ($credentials['auth_type'] === "XOAUTH2" ?
+				($credentials['oauth_service']
+					|| ($credentials['oauth_provider'] && $credentials['oauth_id'] && $credentials['oauth_secret'])
+				)
+				: $credentials['pw']
+			);
 	}
 
 	/**
@@ -302,7 +497,9 @@ class Multismtp
 	 */
 	public function checkSmtp(User $user)
 	{
-		if ($this->conf->global->MULTISMTP_ALLOW_CHANGESERVER != 1) {
+		global $conf;
+
+		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER != 1) {
 			return true;
 		}
 
@@ -320,7 +517,7 @@ class Multismtp
 				$server = 'ssl://'.$server;
 			}
 		} else {
-			if (!replaceConfiguration($this->db, $user, $this->conf)) {
+			if (!self::replaceConfiguration($this->db, $user)) {
 				return false;
 			}
 		}
@@ -340,33 +537,20 @@ class Multismtp
 	 */
 	public function getImapFolders()
 	{
-		$res = $this->openImapHandler();
-
-		if (!$res) {
+		$result = $this->openImapHandler();
+		if ($result < 0) {
 			return false;
 		}
 
-		if ($list = imap_list($res, $this->getImapString(), '*')) {
-
-			$return = array();
-
-			foreach ($list as $mailbox) {
-				$return[$mailbox] = str_replace($this->getImapString(), '', $mailbox);
-			}
-
-			return $return;
+		$result = $this->imap->getImapFolders();
+		if (!isset($result)) {
+			$this->error = $this->imap->error;
+			$this->errors = $this->imap->errors;
+			return false;
 		}
 
-		return array();
-	}
-
-	/**
-	 * Returns the name of the IMAP folder removing IMAP string
-	 * @return string
-	 */
-	public function getFriendlyImapFolder()
-	{
-		return str_replace($this->getImapString(), '', $this->imap_folder);
+		$this->imap->disconnect();
+		return $result;
 	}
 
 	/**
@@ -376,41 +560,39 @@ class Multismtp
 	 */
 	public function saveMail(CMailFile $mailfile)
 	{
-		$imap = $this->openImapHandler();
+		global $conf;
 
-		if (!$imap) {
+		$result = $this->openImapHandler();
+		if ($result < 0) {
 			return false;
 		}
 
-		if ($this->conf->global->MAIN_MAIL_SENDMODE == 'smtps') {
+		if ($conf->global->MAIN_MAIL_SENDMODE == 'smtps') {
 			$header = $mailfile->smtps->getHeader();
 			$body = $mailfile->smtps->getBodyContent();
 
-			$string = $header.$body;
-		} elseif ($this->conf->global->MAIN_MAIL_SENDMODE == 'swiftmailer') {
+			$string = $header . $body;
+		} elseif ($conf->global->MAIN_MAIL_SENDMODE == 'swiftmailer') {
 			$string = $mailfile->message->toString();
-		}  else {
+		} else {
 			$header = $mailfile->headers;
 			$body = $mailfile->message;
 
 			//Adding missing headers
-			$header .= $mailfile->eol.'To: '.$mailfile->getValidAddress($mailfile->addr_to,0,1);
-			$header .= $mailfile->eol.'Subject: '.$mailfile->encodetorfc2822($mailfile->subject);
+			$header .= $mailfile->eol . 'To: ' . $mailfile->getValidAddress($mailfile->addr_to, 0, 1);
+			$header .= $mailfile->eol . 'Subject: ' . $mailfile->encodetorfc2822($mailfile->subject);
 
-			$string = $header.$mailfile->eol.$mailfile->eol.$body;
+			$string = $header . $mailfile->eol . $mailfile->eol . $body;
 		}
 
-		//http://runnable.com/UnZFxM5V3x9TAABX/send-an-email-using-imap-and-save-it-to-the-sent-folder-for-php
-		if (!imap_append(
-			$imap,
-			$this->imap_folder,
-			$string
-		)) {
+		$result = $this->imap->saveMail($this->imap_folder, $string);
+		if ($result < 0) {
+			$this->error = $this->imap->error;
+			$this->errors = $this->imap->errors;
 			return false;
 		}
 
-		imap_close($imap);
-
+		$this->imap->disconnect();
 		return true;
 	}
 
@@ -426,7 +608,15 @@ class Multismtp
 imap_port  = NULL,
 imap_tls  = NULL,
 imap_id = NULL,
+imap_auth_type = NULL,
 imap_pw = NULL,
+imap_oauth_service = NULL,
+imap_oauth_provider = NULL,
+imap_oauth_id = NULL,
+imap_oauth_secret = NULL,
+imap_oauth_url_authorize = NULL,
+imap_oauth_scope = NULL,
+imap_oauth_tenant = NULL,
 imap_folder = NULL";
 
 		if (!$db->query($sql)) {
@@ -468,7 +658,15 @@ smtp_port  = NULL,
 smtp_tls  = NULL,
 smtp_starttls  = NULL,
 smtp_id = NULL,
-smtp_pw = NULL";
+smtp_auth_type = NULL,
+smtp_pw = NULL,
+smtp_oauth_service = NULL,
+smtp_oauth_provider = NULL,
+smtp_oauth_id = NULL,
+smtp_oauth_secret = NULL,
+smtp_oauth_url_authorize = NULL,
+smtp_oauth_scope = NULL,
+smtp_oauth_tenant = NULL";
 
 		if (!$db->query($sql)) {
 			return false;
@@ -483,17 +681,31 @@ smtp_pw = NULL";
 	 */
 	public function getSmtpCredentials()
 	{
+		global $user, $conf;
+
+		$user_id = !empty($this->fk_user) ? $this->fk_user : $user->id;
+
 		$array = array(
-			'server' => $this->conf->global->MAIN_MAIL_SMTP_SERVER,
-			'port' => $this->conf->global->MAIN_MAIL_SMTP_PORT,
-			'tls' => $this->conf->global->MAIN_MAIL_EMAIL_TLS,
-			'starttls' => $this->conf->global->MAIN_MAIL_EMAIL_STARTTLS,
+			'server' => $conf->global->MAIN_MAIL_SMTP_SERVER,
+			'port' => $conf->global->MAIN_MAIL_SMTP_PORT,
+			'tls' => $conf->global->MAIN_MAIL_EMAIL_TLS,
+			'starttls' => $conf->global->MAIN_MAIL_EMAIL_STARTTLS,
 			'id' => $this->smtp_id,
-			'pw' => $this->smtp_pw
+			'auth_type' => $conf->global->MAIN_MAIL_SMTPS_AUTH_TYPE,
+			'pw' => $this->smtp_pw,
+			'oauth_service' => $conf->global->MAIN_MAIL_SMTPS_OAUTH_SERVICE,
+			'oauth_service_user' => '',
+			'oauth_provider' => '',
+			'oauth_id' => '',
+			'oauth_secret' => '',
+			'oauth_url_authorize' => '',
+			'oauth_scope' => '',
+			'oauth_tenant' => ''
 		);
 
-		if ($this->conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
+		if (empty($array['auth_type'])) $array['auth_type'] = 'LOGIN';
 
+		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
 			if ($this->smtp_port !== null) {
 				$array['port'] = $this->smtp_port;
 			}
@@ -509,6 +721,28 @@ smtp_pw = NULL";
 			if ($this->smtp_server) {
 				$array['server'] = $this->smtp_server;
 			}
+
+			if ($this->smtp_auth_type) {
+				$array['auth_type'] = $this->smtp_auth_type;
+			}
+
+			if ($this->smtp_oauth_service) {
+				$array['oauth_service'] = $this->smtp_oauth_service;
+				$array['oauth_provider'] = $this->smtp_oauth_provider;
+				$array['oauth_id'] = $this->smtp_oauth_id;
+				$array['oauth_secret'] = $this->smtp_oauth_secret;
+				$array['oauth_url_authorize'] = $this->smtp_oauth_url_authorize;
+				$array['oauth_scope'] = $this->smtp_oauth_scope;
+				$array['oauth_tenant'] = $this->smtp_oauth_tenant;
+			}
+		}
+		if ($array['auth_type'] == 'XOAUTH2') {
+			if (empty($array['oauth_service'])) {
+				$provider = str_replace('OAUTH_', '', strtoupper($array['oauth_provider']));
+			} else {
+				$provider = preg_replace('/-.*$/', '', $array['oauth_service']);
+			}
+			$array['oauth_service_user'] = $provider . '-MultiSmtpUser' . $user_id . 'Smtp';
 		}
 
 		return $array;
@@ -520,55 +754,416 @@ smtp_pw = NULL";
 	 */
 	public function getImapCredentials()
 	{
+		global $user, $conf;
+
+		$user_id = !empty($this->fk_user) ? $this->fk_user : $user->id;
+
 		$array = array(
 			'server' => $this->imap_server,
 			'port' => $this->imap_port,
 			'tls' => $this->imap_tls,
 			'id' => $this->imap_id,
+			'auth_type' => $this->imap_auth_type,
 			'pw' => $this->imap_pw,
+			'oauth_service' => $this->imap_oauth_service,
+			'oauth_service_user' => '',
+			'oauth_provider' => $this->imap_oauth_provider,
+			'oauth_id' => $this->imap_oauth_id,
+			'oauth_secret' => $this->imap_oauth_secret,
+			'oauth_url_authorize' => $this->imap_oauth_url_authorize,
+			'oauth_scope' => $this->imap_oauth_scope,
+			'oauth_tenant' => $this->imap_oauth_tenant,
 			'folder' => $this->imap_folder
 		);
 
-		if ($this->conf->global->MULTISMTP_IMAP_CONF_SERVER) {
-			$array['server'] = $this->conf->global->MULTISMTP_IMAP_CONF_SERVER;
-			$array['tls'] = $this->conf->global->MULTISMTP_IMAP_CONF_TLS;
+		if (empty($array['auth_type'])) $array['auth_type'] = 'LOGIN';
+
+		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
+			$array['server'] = $conf->global->MULTISMTP_IMAP_CONF_SERVER;
+			$array['tls'] = $conf->global->MULTISMTP_IMAP_CONF_TLS;
 		}
 
-		if ($this->conf->global->MULTISMTP_IMAP_CONF_PORT) {
-			$array['port'] = $this->conf->global->MULTISMTP_IMAP_CONF_PORT;
+		if (!empty($conf->global->MULTISMTP_IMAP_CONF_PORT)) {
+			$array['port'] = $conf->global->MULTISMTP_IMAP_CONF_PORT;
+		}
+
+		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
+			$array['auth_type'] = $conf->global->MULTISMTP_IMAP_CONF_AUTH_TYPE;
+		}
+
+		if (!empty($conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE)) {
+			$array['oauth_service'] = $conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE;
+			$array['oauth_provider'] = '';
+			$array['oauth_id'] = '';
+			$array['oauth_secret'] = '';
+			$array['oauth_url_authorize'] = '';
+			$array['oauth_scope'] = '';
+			$array['oauth_tenant'] = '';
+		}
+		if ($array['auth_type'] == 'XOAUTH2') {
+			if (empty($array['oauth_service'])) {
+				$provider = str_replace('OAUTH_', '', strtoupper($array['oauth_provider']));
+			} else {
+				$provider = preg_replace('/-.*$/', '', $array['oauth_service']);
+			}
+			$array['oauth_service_user'] = $provider . '-MultiSmtpUser' . $user_id . 'Imap';
 		}
 
 		return $array;
 	}
 
 	/**
-	 * Returns IMAP string used by imap_open()
-	 * @return string
-	 */
-	private function getImapString()
-	{
-		$credentials = $this->getImapCredentials();
-
-		$string = $credentials['server'].':'.$credentials['port'];
-
-		if ($credentials['tls']) {
-			$string .= '/ssl';
-		}
-
-		if ($this->conf->global->MULTISMTP_IMAP_NOVALIDATECERT) {
-			$string .= '/novalidate-cert';
-		}
-
-		return '{'.$string.'}';
-	}
-
-	/**
 	 * Opens an IMAP connection
-	 * @return resource
+	 * @return int			Result <0 if KO, >0 if OK
 	 */
 	private function openImapHandler()
 	{
-		return @imap_open($this->getImapString(), $this->imap_id, $this->imap_pw, 0, 1);
+		global $langs;
+
+		$credentials = $this->getImapCredentials();
+
+		// Get password
+		if ($credentials['auth_type'] == 'XOAUTH2' && getDolGlobalString('MAIN_IMAP_USE_PHPIMAP')) {
+			// Mode OAUth2 with PHP-IMAP
+			$password = $this->getTokenOAuth2($credentials['oauth_service_user']);
+			if (!isset($password)) {
+				return -1;
+			}
+		} elseif ($credentials['auth_type'] == 'LOGIN' || empty($credentials['auth_type'])) {
+			// Mode login/pass with PHP-IMAP
+			$password = $credentials['pw'];
+		} else {
+			$this->error = $langs->trans("MultismtpErrorAuthTypeNotSupported", $credentials['auth_type']);
+			$this->errors[] = $this->error;
+			dol_syslog(__METHOD__ . " Error : " . $this->error, LOG_ERR);
+			return -1;
+		}
+
+		$result = $this->imap->connect($credentials['server'], $credentials['port'], $credentials['id'], $credentials['auth_type'], $password, $credentials['tls'] ? 'ssl' : '');
+		if ($result < 0) {
+			$this->error = $this->imap->error;
+			$this->errors = $this->imap->errors;
+			return -1;
+		}
+
+		return 1;
 	}
 
+	/**
+	 * Get access token for OAuth2
+	 *
+	 * @param	string			$oauth_service		Imap oauth service
+	 * @return	string|null							null if KO otherwise the access token
+	 */
+	public function getTokenOAuth2($oauth_service)
+	{
+		global $conf;
+
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/oauth.lib.php';
+		dol_include_once('/multismtp/lib/oauth.lib.php');
+		$supportedoauth2array = getSupportedOauth2Array();
+		$keyforsupportedoauth2array = $oauth_service;
+		if (preg_match('/^.*-/', $keyforsupportedoauth2array)) {
+			$keyforprovider = preg_replace('/^.*-/', '', $keyforsupportedoauth2array);
+		} else {
+			$keyforprovider = '';
+		}
+		$keyforsupportedoauth2array = preg_replace('/-.*$/', '', $keyforsupportedoauth2array);
+		$keyforsupportedoauth2array = 'OAUTH_' . $keyforsupportedoauth2array . '_NAME';
+
+		$OAUTH_SERVICENAME = (empty($supportedoauth2array[$keyforsupportedoauth2array]['name']) ? 'Unknown' : $supportedoauth2array[$keyforsupportedoauth2array]['name'] . ($keyforprovider ? '-' . $keyforprovider : ''));
+
+		$storage = new DoliStorage($this->db, $conf, $keyforprovider);
+		try {
+			$tokenobj = $storage->retrieveAccessToken($OAUTH_SERVICENAME);
+
+			$expire = true;
+			// Is token expired or will token expire in the next 30 seconds
+			if (is_object($tokenobj)) {
+				$expire = ($tokenobj->getEndOfLife() !== -9002 && $tokenobj->getEndOfLife() !== -9001 && time() > ($tokenobj->getEndOfLife() - 30));
+			}
+			// Token expired so we refresh it
+			if (is_object($tokenobj) && $expire) {
+				$credentials = new Credentials(
+					getDolGlobalString('OAUTH_' . $oauth_service . '_ID'),
+					getDolGlobalString('OAUTH_' . $oauth_service . '_SECRET'),
+					getDolGlobalString('OAUTH_' . $oauth_service . '_URLAUTHORIZE')
+				);
+				$serviceFactory = new \OAuth\ServiceFactory();
+				$oauthname = explode('-', $OAUTH_SERVICENAME);
+				// ex service is Google-Emails we need only the first part Google
+				$apiService = $serviceFactory->createService($oauthname[0], $credentials, $storage, array());
+				// We have to save the token because Google give it only once
+				$refreshtoken = $tokenobj->getRefreshToken();
+				$tokenobj = $apiService->refreshAccessToken($tokenobj);
+				$tokenobj->setRefreshToken($refreshtoken);
+				$storage->storeAccessToken($OAUTH_SERVICENAME, $tokenobj);
+			}
+			$tokenobj = $storage->retrieveAccessToken($OAUTH_SERVICENAME);
+			if (is_object($tokenobj)) {
+				$token = $tokenobj->getAccessToken();
+			} else {
+				$this->error = "Token not found";
+				$this->errors[] = $this->error;
+				dol_syslog(__METHOD__ . " Retrieve access token - Error : " . $this->error, LOG_ERR);
+				return null;
+			}
+		} catch (Exception $e) {
+			// Return an error if token not found
+			$this->error = $e->getMessage();
+			$this->errors[] = $this->error;
+			dol_syslog(__METHOD__ . " Retrieve access token - Error : " . $this->error, LOG_ERR);
+			return null;
+		}
+
+		return $token;
+	}
+
+	/**
+	 * Replaces Dolibarr email configuration with the provided one
+	 * Error exception will be logged to Syslog
+	 *
+	 * @param	DoliDB		 $db		Database handler
+	 * @param	User		 $user		Logged user
+	 * @return	bool
+	 */
+	public static function replaceConfiguration(DoliDB $db, User $user)
+	{
+		global $conf;
+
+		$multismtp = new Multismtp($db);
+
+		try {
+			/*
+				Explication : plusieurs clients ont souhaité des comportements différents.
+				L'un souhaitait autoriser les envois uniquement depuis les cartes. L'autre souhaitait une utilisation également pour les notifications.
+				Pour cette raison nous avons introduit MULTISMTP_SENT_ONLY_FROM_CARD.
+
+				Ce fix est vite fait. Si d'autres comportements fautifs se présentent, voici une autre option envisagée :
+				Solution envisagée : déplacer dans la hook avant l'envoi des emails, puis tester si l'email de l'émetteur est identique à l'email de l'utilisateur courant.
+			*/
+			$act = GETPOST('action', 'alphanohtml');
+			$send_from_card_by_user = $act == 'send' && GETPOST('fromtype', 'alphanohtml') == 'user';
+			$not_sent_from_card = empty($conf->global->MULTISMTP_SENT_ONLY_FROM_CARD) && $act != 'send';
+			$result = $multismtp->fetch($user);
+			if ($result > 0) {
+				$smtpConfigCheck = $multismtp->checkSmtpConfig();
+				$smtpCredentials = $multismtp->getSmtpCredentials();
+				$imapConfigCheck = $multismtp->checkImapConfig();
+				$imapCredentials = $multismtp->getImapCredentials();
+
+				if ($smtpConfigCheck && ($send_from_card_by_user || $not_sent_from_card) && !self::currentPageInList([
+						'/admin/mails.php',
+						'/multismtp/admin/setup.php',
+						'/multismtp/user.php',
+					])) {
+					$conf->global->MAIN_MAIL_SMTP_SERVER = $smtpCredentials['server'];
+					$conf->global->MAIN_MAIL_SMTP_PORT = $smtpCredentials['port'];
+					$conf->global->MAIN_MAIL_EMAIL_TLS = $smtpCredentials['tls'];
+					$conf->global->MAIN_MAIL_EMAIL_STARTTLS = $smtpCredentials['starttls'];
+					$conf->global->MAIN_MAIL_SMTPS_ID = $smtpCredentials['id'];
+					$conf->global->MAIN_MAIL_SMTPS_AUTH_TYPE = $smtpCredentials['auth_type'];
+					$conf->global->MAIN_MAIL_SMTPS_PW = $smtpCredentials['pw'];
+					$conf->global->MAIN_MAIL_SMTPS_OAUTH_SERVICE = $smtpCredentials['oauth_service_user'];
+
+					if (!empty($conf->global->MULTISMTP_REPLACE_MAIL_EMAIL_FROM)) $conf->global->MAIN_MAIL_EMAIL_FROM = $smtpCredentials['id'];
+				}
+
+				// Manage Oauth2 globals for user
+				if (!self::currentPageInList([
+					'/admin/oauth.php',
+					'/admin/oauthlogintokens.php',
+					'/admin/mails.php',
+					'/multismtp/admin/setup.php',
+				])) {
+					foreach (['smtp', 'imap'] as $type) {
+						$credentials = ${$type . 'Credentials'};
+						if ($credentials['auth_type'] == 'XOAUTH2' && ${$type . 'ConfigCheck'}) {
+							if (!empty($credentials['oauth_service'])) {
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_ID'} = getDolGlobalString('OAUTH_' . $credentials['oauth_service'] . '_ID');
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_SECRET'} = getDolGlobalString('OAUTH_' . $credentials['oauth_service'] . '_SECRET');
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_URLAUTHORIZE'} = getDolGlobalString('OAUTH_' . $credentials['oauth_service'] . '_URLAUTHORIZE');
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_TENANT'} = getDolGlobalString('OAUTH_' . $credentials['oauth_service'] . '_TENANT');
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_SCOPE'} = getDolGlobalString('OAUTH_' . $credentials['oauth_service'] . '_SCOPE');
+							} else {
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_ID'} = $credentials['oauth_id'];
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_SECRET'} = $credentials['oauth_secret'];
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_URLAUTHORIZE'} = $credentials['oauth_url_authorize'];
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_TENANT'} = $credentials['oauth_tenant'];
+								$conf->global->{'OAUTH_' . $credentials['oauth_service_user'] . '_SCOPE'} = $credentials['oauth_scope'];
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception $e) {
+			dol_syslog('[multismtp] ' . $e->getMessage(), LOG_ERR);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Test if current page is in the provided list
+	 *
+	 * @param	array		$pages		List of relative url page
+	 * @return	bool
+	 */
+	public static function currentPageInList($pages)
+	{
+		foreach ($pages as $page) {
+			if (preg_match('/' . preg_quote(dol_buildpath($page, 1), '/'). '$/i', $_SERVER['PHP_SELF'])) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 *  Refresh all expired or soon-to-expire OAuth2 tokens (cron)
+	 *  Handles both official Dolibarr tokens and Multismtp per-user tokens.
+	 *
+	 *  @return	int				0 if OK, < 0 if KO (this function is used also by cron so only 0 is OK)
+	 */
+	public function cronRefreshOAuth2Tokens()
+	{
+		global $conf, $langs;
+
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/oauth.lib.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/security.lib.php';
+		dol_include_once('/multismtp/lib/oauth.lib.php');
+
+		$langs->load('multismtp@multismtp');
+
+		$days = getDolGlobalInt('MULTISMTP_CRON_REFRESH_TOKEN_DAYS', 30);
+		$now = dol_now();
+		$threshold = $days * 86400;
+
+		$sql = "SELECT rowid, service, token FROM " . MAIN_DB_PREFIX . "oauth_token";
+		$sql .= " WHERE entity IN (" . getEntity('oauth_token') . ")";
+		$sql .= " AND token IS NOT NULL AND token != ''";
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = 'Error ' . $this->db->lasterror();
+			dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+			return -1;
+		}
+
+		$atleastoneerror = 0;
+		$output = '';
+
+		while ($obj = $this->db->fetch_object($resql)) {
+			$service = $obj->service;
+
+			// Decrypt and unserialize token
+			$tokendata = dolDecrypt($obj->token);
+			if (empty($tokendata)) {
+				continue;
+			}
+			$tokenobj = unserialize($tokendata);
+			if (!($tokenobj instanceof \OAuth\Common\Token\TokenInterface)) {
+				continue;
+			}
+
+			// Skip if no refresh token
+			$refreshtoken = $tokenobj->getRefreshToken();
+			if (empty($refreshtoken)) {
+				continue;
+			}
+
+			// Skip if never expires or unknown
+			$endOfLife = $tokenobj->getEndOfLife();
+			if ($endOfLife == \OAuth\Common\Token\TokenInterface::EOL_NEVER_EXPIRES || $endOfLife == \OAuth\Common\Token\TokenInterface::EOL_UNKNOWN) {
+				continue;
+			}
+
+			// Skip if not yet close to expiration
+			if ($endOfLife + $threshold > $now) {
+				continue;
+			}
+
+			// Parse service field: "Google-MultiSmtpUser42Smtp" → provider="Google", keyforprovider="MultiSmtpUser42Smtp"
+			if (preg_match('/^(.*?)-(.+)$/', $service, $matches)) {
+				$provider = $matches[1];
+				$keyforprovider = $matches[2];
+			} else {
+				$provider = $service;
+				$keyforprovider = '';
+			}
+
+			dol_syslog(__METHOD__ . " Refreshing token for service=" . $service . " (endOfLife=" . $endOfLife . ")", LOG_INFO);
+
+			// For Multismtp tokens, load OAuth credentials into $conf->global via replaceConfiguration
+			if (preg_match('/^MultiSmtpUser(\d+)(Smtp|Imap)$/', $keyforprovider, $usermatches)) {
+				$userId = (int) $usermatches[1];
+				$fuser = new User($this->db);
+				$result = $fuser->fetch($userId);
+				if ($result <= 0) {
+					$output .= '<span style="color: red;">' . $langs->trans('MultismtpCronRefreshTokenErrorFetchUser', $service, $userId) . '</span><br>';
+					dol_syslog(__METHOD__ . " Error: Could not fetch user ID " . $userId . " for service " . $service, LOG_ERR);
+					$atleastoneerror++;
+					continue;
+				}
+				Multismtp::replaceConfiguration($this->db, $fuser);
+			}
+			// For official Dolibarr tokens, credentials are already in $conf->global
+
+			// Build credential key: uppercase provider + keyforprovider (matches const naming convention)
+			$oauthServiceKey = strtoupper($provider) . ($keyforprovider ? '-' . $keyforprovider : '');
+
+			// Skip tokens from other modules (not Multismtp, not official Dolibarr) that have no credentials configured
+			if (!getDolGlobalString('OAUTH_' . $oauthServiceKey . '_ID')) {
+				continue;
+			}
+
+			try {
+				$storage = new DoliStorage($this->db, $conf, $keyforprovider);
+
+				$credentials = new Credentials(
+					getDolGlobalString('OAUTH_' . $oauthServiceKey . '_ID'),
+					getDolGlobalString('OAUTH_' . $oauthServiceKey . '_SECRET'),
+					getDolGlobalString('OAUTH_' . $oauthServiceKey . '_URLAUTHORIZE')
+				);
+
+				$serviceFactory = new \OAuth\ServiceFactory();
+				$oauthname = explode('-', $service);
+				// ex: service is "Google-MultiSmtpUser42Smtp", we need only the first part "Google"
+				$apiService = $serviceFactory->createService($oauthname[0], $credentials, $storage, array());
+				if (!$apiService) {
+					$output .= '<span style="color: red;">' . $langs->trans('MultismtpCronRefreshTokenErrorCreateService', $service) . '</span><br>';
+					dol_syslog(__METHOD__ . " Error: Could not create OAuth service for " . $service, LOG_ERR);
+					$atleastoneerror++;
+					continue;
+				}
+
+				// We have to save the refresh token because some providers (Google) give it only once
+				$tokenobj = $storage->retrieveAccessToken($service);
+				$refreshtoken = $tokenobj->getRefreshToken();
+				$tokenobj = $apiService->refreshAccessToken($tokenobj);
+				$tokenobj->setRefreshToken($refreshtoken);
+				$storage->storeAccessToken($service, $tokenobj);
+
+				$output .= '<span style="color: green;">' . $langs->trans('MultismtpCronRefreshTokenSuccess', $service) . '</span><br>';
+				dol_syslog(__METHOD__ . " Token refreshed successfully for service=" . $service, LOG_INFO);
+			} catch (Exception $e) {
+				$output .= '<span style="color: red;">' . $langs->trans('MultismtpCronRefreshTokenError', $service, $e->getMessage()) . '</span><br>';
+				dol_syslog(__METHOD__ . " Error refreshing token for service=" . $service . ": " . $e->getMessage(), LOG_ERR);
+				$atleastoneerror++;
+			}
+		}
+		$this->db->free($resql);
+
+		if ($atleastoneerror) {
+			$this->error = $output;
+			return -1;
+		}
+
+		$this->error = "";
+		$this->output = $output;
+
+		return 0;
+	}
 }

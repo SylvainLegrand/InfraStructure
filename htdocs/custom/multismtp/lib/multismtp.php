@@ -20,50 +20,32 @@
  */
 
 /**
- * Replaces Dolibarr email configuration with the provided one
+ * Prepare array with list of tabs
  *
- * @param DoliDB $db Database handler
- * @param User $user Logged user
- * @param Conf $conf Dolibarr configuration
- * @return bool
- * @throws Exception It will be logged to Syslog
+ * @return  array				Array of tabs to show
  */
-function replaceConfiguration(DoliDB $db, User $user, Conf $conf)
+function multismtp_admin_prepare_head()
 {
-	require_once __DIR__.'/../class/Multismtp.class.php';
+    global $langs, $conf, $user;
+    $h = 0;
+    $head = array();
 
-	$multismtp = new Multismtp($db, $conf);
+    $head[$h][0] = dol_buildpath("/multismtp/admin/setup.php", 1);
+    $head[$h][1] = $langs->trans("Parameters");
+    $head[$h][2] = 'settings';
+    $h++;
 
-	try {
-		if (GETPOST('action', 'alphanohtml') == 'send' &&
-			GETPOST('fromtype', 'alphanohtml') == 'user' &&
-			$multismtp->fetch($user) && $multismtp->checkSmtpConfig()
-		) {
-			$credentials = $multismtp->getSmtpCredentials();
+    $head[$h][0] = dol_buildpath("/multismtp/admin/about.php", 1);
+    $head[$h][1] = $langs->trans("About") . " / " . $langs->trans("Support");
+    $head[$h][2] = 'about';
+    $h++;
 
-			$conf->global->MAIN_MAIL_SMTP_SERVER = $credentials['server'];
-			$conf->global->MAIN_MAIL_SMTP_PORT = $credentials['port'];
-			$conf->global->MAIN_MAIL_EMAIL_TLS = $credentials['tls'];
-			$conf->global->MAIN_MAIL_EMAIL_STARTTLS = $credentials['starttls'];
-			$conf->global->MAIN_MAIL_SMTPS_ID = $credentials['id'];
-			$conf->global->MAIN_MAIL_SMTPS_PW = $credentials['pw'];
-			if (!empty($conf->global->MULTISMTP_REPLACE_MAIL_EMAIL_FROM)) $conf->global->MAIN_MAIL_EMAIL_FROM  = $credentials['id'];
-		}
-	} catch (Exception $e) {
-		dol_syslog('[multismtp] '.$e->getMessage(), LOG_ERR);
-		return false;
-	}
+    $head[$h][0] = dol_buildpath("/multismtp/admin/changelog.php", 1);
+    $head[$h][1] = $langs->trans("OpenDsiChangeLog");
+    $head[$h][2] = 'changelog';
+    $h++;
 
-	return true;
-}
+    complete_head_from_modules($conf,$langs,null,$head,$h,'multismtp_admin');
 
-/**
- * Checks if the IMAP function is enabled
- *
- * @param Conf $conf Dolibarr configuration
- * @return bool
- */
-function imapEnabled(Conf $conf)
-{
-	return function_exists('imap_open') && $conf->global->MULTISMTP_IMAP_ENABLED;
+    return $head;
 }

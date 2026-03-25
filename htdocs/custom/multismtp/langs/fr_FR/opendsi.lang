@@ -1,0 +1,9 @@
+# Dolibarr language file - fr_FR - opendsi
+CHARSET=UTF-8
+osdenFamily=Opendsi
+opendsiFamily=Opendsi
+Module402002Name=Multismtp
+OpenDsiChangeLog=Fichier de log
+OpenDsiAboutDesc1=Ce module a été développé par <a href="https://opendsi.fr" target="_blank">Opendsi</a><br><br>Pour toute question technique ou retour, déposez une demande de support sur
+OpenDsiAboutDesc2=notre support
+OpenDsiAboutDesc3=<br><br>Pour toute question commerciale, contactez-nous sur <a href="mailto:info@open-dsi.fr">info@open-dsi.fr</a> ou au +33 4 82 53 94 76<br><br>Retrouvez nos autres modules sur <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=opendsi&submit_search=Rechercher" target="_blank">Dolistore</a>
