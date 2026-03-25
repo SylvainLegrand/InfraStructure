@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.3.11] - 17-02-2026
+- Correction appel des patchs SQL avant l'appel de creation des dictionnaires
+
 ## [10.3.10] - 16-02-2026
 - Restructuration des fichiers SQL
 - Patch table llx_c_sirene_staff lors de la migration vers une version avec la colonne rowid présente
@@ -383,7 +386,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.10...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.11...HEAD
+[10.3.11]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.11
 [10.3.10]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.10
 [10.3.9]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.9
 [10.3.8]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.8
