@@ -391,12 +391,14 @@ class doc_account_statut_csv
 					$sql .= ' LEFT JOIN (';
 					$sql .= '   SELECT sre.fk_invoice_supplier_source AS fk_facture_source, SUM(sre.amount_ttc) AS amount_creditnote';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_remise_except AS sre';
+					$sql .= '   WHERE sre.fk_invoice_supplier_source IS NOT NULL';
 					$sql .= '   GROUP BY sre.fk_invoice_supplier_source';
 					$sql .= ') AS rc ON rc.fk_facture_source = f.rowid';
 
 					$sql .= ' LEFT JOIN (';
 					$sql .= '   SELECT sre.fk_invoice_supplier AS fk_facture, SUM(sre.amount_ttc) AS amount_creditused';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_remise_except AS sre';
+					$sql .= '   WHERE sre.fk_invoice_supplier IS NOT NULL';
 					$sql .= '   GROUP BY sre.fk_invoice_supplier';
 					$sql .= ') AS rc2 ON rc2.fk_facture = f.rowid';
 

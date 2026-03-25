@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.0.22] - 17-03-2026
+- Correction des requêtes SQL pour compatibilité avec ONLY_FULL_GROUP_BY (MySQL 5.7.5+)
+
 ## [14.0.21] - 12-02-2025
 - Nouvelle page about
 
@@ -214,7 +217,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initial.
 
 
-[Non Distribué]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/compare/14.0.21...HEAD
+[Non Distribué]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/compare/14.0.22...HEAD
+[14.0.22]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.22
 [14.0.21]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.21
 [14.0.20]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.20
 [14.0.19]: https://git.open-dsi.fr/dolibarr-extension/extraitcompteclient/commits/14.0.19

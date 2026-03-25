@@ -339,8 +339,8 @@ class pdf_account_statut extends CommonDocGenerator
 						$sql .= ' ON (f.rowid = ef.fk_object)';
 					}
 					$sql .= ' LEFT JOIN (';
-					$sql .= '   SELECT sre.fk_facture AS fk_facture_source, SUM(sre.amount) as amount_payed, sre.multicurrency_code,';
-					$sql .= '   sre.multicurrency_tx AS paiement_multicurrency_tx, count(sre.amount) AS count_amount_payed,';
+					$sql .= '   SELECT sre.fk_facture AS fk_facture_source, SUM(sre.amount) as amount_payed, MAX(sre.multicurrency_code) AS multicurrency_code,';
+					$sql .= '   MAX(sre.multicurrency_tx) AS paiement_multicurrency_tx, count(sre.amount) AS count_amount_payed,';
 					$sql .= '   SUM(sre.multicurrency_amount) AS multicurrency_amount_payed';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'paiement_facture AS sre';
 					$sql .= '   GROUP BY sre.fk_facture';
@@ -349,12 +349,14 @@ class pdf_account_statut extends CommonDocGenerator
 					$sql .= ' LEFT JOIN (';
 					$sql .= '   SELECT sre.fk_facture_source AS fk_facture_source, SUM(sre.amount_ttc) AS amount_creditnote, SUM(sre.multicurrency_amount_ttc) AS multicurrency_amount_creditnote';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_remise_except AS sre';
+					$sql .= '   WHERE sre.fk_facture_source IS NOT NULL';
 					$sql .= '   GROUP BY sre.fk_facture_source';
 					$sql .= ') AS rc ON rc.fk_facture_source = f.rowid';
 
 					$sql .= ' LEFT JOIN (';
 					$sql .= '   SELECT sre.fk_facture AS fk_facture, SUM(sre.amount_ttc) AS amount_creditused, SUM(sre.multicurrency_amount_ttc) AS multicurrency_amount_creditused';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_remise_except AS sre';
+					$sql .= '   WHERE sre.fk_facture IS NOT NULL';
 					$sql .= '   GROUP BY sre.fk_facture';
 					$sql .= ') AS rc2 ON rc2.fk_facture = f.rowid';
 
@@ -410,8 +412,13 @@ class pdf_account_statut extends CommonDocGenerator
 					$sql .= ', f.multicurrency_tx';
 					$sql .= ', f.multicurrency_total_ttc';
 					$sql .= ', f.type';
+					$sql .= ', f.fk_statut';
+					$sql .= ', f.close_code';
+					$sql .= ', pf.amount_payed';
 					$sql .= ', pf.multicurrency_code';
 					$sql .= ', pf.paiement_multicurrency_tx';
+					$sql .= ', pf.count_amount_payed';
+					$sql .= ', pf.multicurrency_amount_payed';
 					$sql .= ', rc.amount_creditnote';
 					$sql .= ', rc.multicurrency_amount_creditnote';
 					$sql .= ', rc2.amount_creditused';
@@ -455,8 +462,8 @@ class pdf_account_statut extends CommonDocGenerator
 					$sql .= ' FROM ' . MAIN_DB_PREFIX . 'facture_fourn AS f';
 
 					$sql .= ' LEFT JOIN (';
-					$sql .= '   SELECT sre.fk_facturefourn AS fk_facture_source, SUM(sre.amount) as amount_payed, sre.multicurrency_code,';
-					$sql .= '   sre.multicurrency_tx AS paiement_multicurrency_tx, count(sre.amount) AS count_amount_payed,';
+					$sql .= '   SELECT sre.fk_facturefourn AS fk_facture_source, SUM(sre.amount) as amount_payed, MAX(sre.multicurrency_code) AS multicurrency_code,';
+					$sql .= '   MAX(sre.multicurrency_tx) AS paiement_multicurrency_tx, count(sre.amount) AS count_amount_payed,';
 					$sql .= '   SUM(sre.multicurrency_amount) AS multicurrency_amount_payed';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'paiementfourn_facturefourn AS sre';
 					$sql .= '   GROUP BY sre.fk_facturefourn';
@@ -465,12 +472,14 @@ class pdf_account_statut extends CommonDocGenerator
 					$sql .= ' LEFT JOIN (';
 					$sql .= '   SELECT sre.fk_invoice_supplier_source AS fk_facture_source, SUM(sre.amount_ttc) AS amount_creditnote, SUM(sre.multicurrency_amount_ttc) AS multicurrency_amount_creditnote';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_remise_except AS sre';
+					$sql .= '   WHERE sre.fk_invoice_supplier_source IS NOT NULL';
 					$sql .= '   GROUP BY sre.fk_invoice_supplier_source';
 					$sql .= ') AS rc ON rc.fk_facture_source = f.rowid';
 
 					$sql .= ' LEFT JOIN (';
 					$sql .= '   SELECT sre.fk_invoice_supplier AS fk_facture, SUM(sre.amount_ttc) AS amount_creditused, SUM(sre.multicurrency_amount_ttc) AS multicurrency_amount_creditused';
 					$sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_remise_except AS sre';
+					$sql .= '   WHERE sre.fk_invoice_supplier IS NOT NULL';
 					$sql .= '   GROUP BY sre.fk_invoice_supplier';
 					$sql .= ') AS rc2 ON rc2.fk_facture = f.rowid';
 
@@ -517,8 +526,15 @@ class pdf_account_statut extends CommonDocGenerator
 					$sql .= ', f.multicurrency_tx';
 					$sql .= ', f.multicurrency_total_ttc';
 					$sql .= ', f.type';
+					$sql .= ', pf.amount_payed';
 					$sql .= ', pf.multicurrency_code';
 					$sql .= ', pf.paiement_multicurrency_tx';
+					$sql .= ', pf.count_amount_payed';
+					$sql .= ', pf.multicurrency_amount_payed';
+					$sql .= ', rc.amount_creditnote';
+					$sql .= ', rc.multicurrency_amount_creditnote';
+					$sql .= ', rc2.amount_creditused';
+					$sql .= ', rc2.multicurrency_amount_creditused';
 					if ($add_product_tags) {
 						$sql .= ', pt.tags';
 					}
