@@ -215,7 +215,9 @@
 			$this->name									= $langs->trans('PDFInfraSPlusBCProductName');
 			$this->description							= $langs->trans('PDFInfraSPlusBCProductDescription');
 			$this->emetteur								= $mysoc;
-			if (empty($this->emetteur->country_code))	$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			if (empty($this->emetteur->country_code)) {
+				$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			}
 			$this->type									= 'pdf';
 
 			$this->defaulttemplate						= getDolGlobalString('PRODUCT_ADDON_PDF', '');
@@ -264,9 +266,13 @@
 			global $user, $langs, $conf, $hookmanager, $nblignes, $filebarcode;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))	$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
 			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_PBC') ? '' : '_PBC';
 			$baseDir						= !empty($conf->product->multidir_output[$conf->entity]) ? $conf->product->multidir_output[$conf->entity] : $conf->product->dir_output;
@@ -276,8 +282,7 @@
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
 					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
@@ -356,16 +361,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error=$outputlangs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error=$outputlangs->trans("ErrorConstantNotDefined","PRODUCT_OUTPUTDIR");
 				return 0;
 			}

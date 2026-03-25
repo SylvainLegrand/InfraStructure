@@ -462,7 +462,7 @@
 	*	@param	int			$code_cli_compt_frm		0=no, 1=yes
 	*	@param	int			$add_creator_in_header	0=no, 1=yes
 	*	@param	int			$cf_show_creation_date	0=no, 1=yes
-	*	@param	float		return frame height
+	*	@return	float		Return frame height
 	**/
 	function pdf_interne_writeFrame(&$pdf, $object, $outputlangs, $default_font_size, $tab_hl, $dimCadres, $emetteur, $addresses, $ticket = 0, $hide_recep_frame, $formatpage, $title_size, $ref_from_cust, $datesbold, $dates_br,
 									$show_num_cli, $num_cli_frm, $show_code_cli_compt, $code_cli_compt_frm, $add_creator_in_header, $cf_show_creation_date)

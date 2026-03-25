@@ -619,6 +619,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages		= array($pdf->getPage() => true);	// Track pages with watermark to avoid double rendering in while loops
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineW			= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -653,7 +654,9 @@
 					$this->larg_util_cadre	= $this->page_largeur - ($this->marge_gauche + $this->marge_droite);
 					$this->posx_G_txt		= $this->marge_gauche + $this->Rounded_rect + 1;
 					// Define width and position of main table columns
-					if (empty($this->show_payment_deadline))	$this->larg_datelim	= 0;
+					if (empty($this->show_payment_deadline)) {
+						$this->larg_datelim	= 0;
+					}
 					// Largeur variable suivant la place restante
 					$this->larg_desc		= $this->larg_util_cadre - ($this->larg_date + $this->larg_datelim + $this->larg_totalttc + $this->larg_totalpaid + $this->larg_remaining);
 					$this->tableau			= array('date'		=> array('col' => $this->num_date,		'larg' => $this->larg_date,			'posx' => 0),
@@ -977,7 +980,10 @@
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 							// Save auto-break content so watermark goes behind it (z-order fix)
 							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()] = true;
+							}
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
@@ -1001,6 +1007,7 @@
 							// New page
 							$pdf->AddPage();
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()] = true;
 							$pagenb++;
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
@@ -1059,8 +1066,8 @@
 		*	@param		Societe		$object			Object shown in PDF
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= hight of header
-		*											'hauteurcadre	= hight of frame
+		*	@return		array		$hauteurhead	'totalhead'		= height of header
+		*											'hauteurcadre'	= height of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
@@ -1243,6 +1250,7 @@
 		*	@param		Societe		$object			Object shown in PDF
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
+		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Position pour suite
 		**/
 		protected function _tableau_tot(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)

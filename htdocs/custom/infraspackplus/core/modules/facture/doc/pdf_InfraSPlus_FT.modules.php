@@ -359,19 +359,33 @@
 			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))							$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))							$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
 			$this->sign												= 1;
-			if ($object->type == 2 && !empty($this->credit_note))	$this->sign						= -1;
+			if ($object->type == 2 && !empty($this->credit_note)) {
+				$this->sign	= -1;
+			}
 			$filesufixe												= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FT') ? '' : '_FT';
 			$baseDir												= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
 			$this->titlekey											= 'Bill';
-			if ($object->type == 1)									$this->titlekey	= 'InvoiceReplacement';
-			if ($object->type == 2)									$this->titlekey	= 'InvoiceAvoir';
-			if ($object->type == 3)									$this->titlekey	= 'InvoiceDeposit';
-			if ($object->type == 4)									$this->titlekey	= 'InvoiceProForma';
+			if ($object->type == 1) {
+				$this->titlekey	= 'InvoiceReplacement';
+			}
+			if ($object->type == 2) {
+				$this->titlekey	= 'InvoiceAvoir';
+			}
+			if ($object->type == 3) {
+				$this->titlekey	= 'InvoiceDeposit';
+			}
+			if ($object->type == 4) {
+				$this->titlekey	= 'InvoiceProForma';
+			}
 			if (!empty($baseDir)) {
 				$object->fetch_thirdparty();
 				// Use of multicurrency for this document
@@ -388,8 +402,7 @@
 					$this->show_ExtraFieldsLines	= '';
 					$dir							= $baseDir;
 					$file							= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
 					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
@@ -453,6 +466,8 @@
 					$pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);	// Left, Top, Right
 					// New page
 					$pdf->AddPage();
+					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages = array($pdf->getPage() => true);
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineW			= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -482,7 +497,9 @@
 							$discount->fetch($object->lines[$i]->fk_remise_except);
 							if ($discount->fk_facture_source > 0) {
 								$this->lines_deposits[$object->lines[$i]->id]	= $object->lines[$i];
-								if (!empty($object->situation_cycle_ref))				$isDiscount	= 1;
+								if (!empty($object->situation_cycle_ref)) {
+									$isDiscount	= 1;
+								}
 							}
 						}
 						$isOuvrage			= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
@@ -494,15 +511,27 @@
 						// Positionne $this->atleastonediscount si on a au moins une remise
 						if (!empty($object->lines[$i]->remise_percent)) {	// remise de ligne
 							$this->atleastonediscount++;
-							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc))	$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht);
-							if (!empty($this->show_disc_tot))									$this->TotRem['HT']		+= pdf_InfraSPlus_getTotRem($object, $i, 1);
-							if (!empty($this->show_disc_ttc))									$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0);
+							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc)) {
+								$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht);
+							}
+							if (!empty($this->show_disc_tot)) {
+								$this->TotRem['HT']		+= pdf_InfraSPlus_getTotRem($object, $i, 1);
+							}
+							if (!empty($this->show_disc_ttc)) {
+								$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0);
+							}
 						}
 						// remise calculé globale (type InfraSDiscount)
 						if ($object->lines[$i]->info_bits == 2) {
-							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc))	$this->TotRem['TTC']	+= abs(empty($this->only_ht) ? $object->lines[$i]->total_ttc : $object->lines[$i]->total_ht);
-							if (!empty($this->show_disc_tot))									$this->TotRem['HT']		+= abs($object->lines[$i]->total_ht);
-							if (!empty($this->show_disc_ttc))									$this->TotRem['TTC']	+= abs($object->lines[$i]->total_ttc);
+							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc)) {
+								$this->TotRem['TTC']	+= abs(empty($this->only_ht) ? $object->lines[$i]->total_ttc : $object->lines[$i]->total_ht);
+							}
+							if (!empty($this->show_disc_tot)) {
+								$this->TotRem['HT']		+= abs($object->lines[$i]->total_ht);
+							}
+							if (!empty($this->show_disc_ttc)) {
+								$this->TotRem['TTC']	+= abs($object->lines[$i]->total_ttc);
+							}
 						}
 
 						// Remise automatique ou affichage des prix bruts
@@ -514,11 +543,18 @@
 							$pricesObjProd[$i]['multicurrency_pu_ttc']							= $this->use_multicurrency ? $objproduct->price_ttc * $object->multicurrency_tx : $objproduct->price_ttc;
 							$pricesObjProd[$i]['pu_ttc']										= $objproduct->price_ttc;
 							$pricesObjProd[$i]['remise']										= (($objproduct->price - $object->lines[$i]->subprice) * 100) / $objproduct->price;
-							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc))	$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, $pricesObjProd[$i]);
-							if (!empty($this->show_disc_tot))									$this->TotRem['HT']		+= pdf_InfraSPlus_getTotRem($object, $i, 1, $pricesObjProd[$i]);
-							if (!empty($this->show_disc_ttc))									$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, $pricesObjProd[$i]);
+							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc)) {
+								$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, $pricesObjProd[$i]);
+							}
+							if (!empty($this->show_disc_tot)) {
+								$this->TotRem['HT']		+= pdf_InfraSPlus_getTotRem($object, $i, 1, $pricesObjProd[$i]);
+							}
+							if (!empty($this->show_disc_ttc)) {
+								$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, $pricesObjProd[$i]);
+							}
+						} else {
+							$pricesObjProd[$i]	= array();
 						}
-						else	$pricesObjProd[$i]	= array();
 						// Collecte des totaux par valeur de tva
 						if (empty($isDiscount) && empty($isOuvrage) && empty($isSubTotalLine)) {
 							$tvaligne		= $this->use_multicurrency ? doubleval($object->lines[$i]->multicurrency_total_tva) : doubleval($object->lines[$i]->total_tva);
@@ -544,16 +580,28 @@
 								$localtax2_type		= isset($localtaxtmp_array[2]) ? $localtaxtmp_array[2] : '';
 							}
 							// retrieve global local tax
-							if (!empty($localtax1_type) && $localtax1ligne != 0)			$this->localtax1[$localtax1_type][$localtax1_rate]	+= $localtax1ligne;
-							if (!empty($localtax2_type) && $localtax2ligne != 0)			$this->localtax2[$localtax2_type][$localtax2_rate]	+= $localtax2ligne;
-							if (($object->lines[$i]->info_bits & 0x01) == 0x01)				$vatrate											.= '*';
+							if (!empty($localtax1_type) && $localtax1ligne != 0) {
+								$this->localtax1[$localtax1_type][$localtax1_rate]	+= $localtax1ligne;
+							}
+							if (!empty($localtax2_type) && $localtax2ligne != 0) {
+								$this->localtax2[$localtax2_type][$localtax2_rate]	+= $localtax2ligne;
+							}
+							if (($object->lines[$i]->info_bits & 0x01) == 0x01) {
+								$vatrate	.= '*';
+							}
 							// Fill $this->tva and $this->tva_array
-							if (!isset($this->tva[$vatrate]))								$this->tva[$vatrate]								= 0;
+							if (!isset($this->tva[$vatrate])) {
+								$this->tva[$vatrate]	= 0;
+							}
 							$vatcode														= $object->lines[$i]->vat_src_code;
 							$vatrate_code													= $vatcode ? ' ('.$vatcode.')' : '';
 							$vatlabel														= infraspackplus_showVatLabel($vatcode, $this->emetteur->country_code);
-							if (empty($this->tva_array[$vatrate.$vatrate_code]['amount']))	$this->tva_array[$vatrate.$vatrate_code]['amount']	= 0;
-							if (empty($this->tva_array[$vatrate.$vatrate_code]['base']))	$this->tva_array[$vatrate.$vatrate_code]['base']	= 0;
+							if (empty($this->tva_array[$vatrate.$vatrate_code]['amount'])) {
+								$this->tva_array[$vatrate.$vatrate_code]['amount']	= 0;
+							}
+							if (empty($this->tva_array[$vatrate.$vatrate_code]['base'])) {
+								$this->tva_array[$vatrate.$vatrate_code]['base']	= 0;
+							}
 							$this->tva[$vatrate]											+= $tvaligne;	// ->tva is abandonned, we use now ->tva_array that is more complete
 							$this->tva_array[$vatrate.$vatrate_code]						= array('vatrate'	=> $vatrate,
 																									'vatcode'	=> $vatcode,
@@ -576,7 +624,9 @@
 						// Calcul du nombre de produit du document si option
 						if (!empty($this->show_qty_prod_tot) && $object->lines[$i]->product_type == 0) {
 							$this->nbrProdTot													+= $object->lines[$i]->qty;
-							if (!in_array($object->lines[$i]->product_ref, $this->nbrProdDif))	$this->nbrProdDif[]	= $object->lines[$i]->product_ref;
+							if (!in_array($object->lines[$i]->product_ref, $this->nbrProdDif)) {
+								$this->nbrProdDif[]	= $object->lines[$i]->product_ref;
+							}
 						}
 					}
 					// determine category of operation
@@ -596,12 +646,19 @@
 																							'totalht'	=> array('col' => $this->num_totalht,	'larg' => $this->larg_totalht,	'posx' => 0),
 																							);
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)	$this->largcol1			= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 2)	$this->largcol2		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 3)	$this->largcol3		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 4)	$this->largcol4		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 5)	$this->largcol5		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 6)	$this->largcol6		= $ncol_array['larg'];
+						if ($ncol_array['col'] == 1) {
+							$this->largcol1	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 2) {
+							$this->largcol2	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 3) {
+							$this->largcol3	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 4) {
+							$this->largcol4	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 5) {
+							$this->largcol5	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 6) {
+							$this->largcol6	= $ncol_array['larg'];
+						}
 					}
 					$this->posxcol1		= $this->marge_gauche;
 					$this->posxcol2		= $this->posxcol1 + $this->largcol1;
@@ -610,12 +667,19 @@
 					$this->posxcol5		= $this->posxcol4 + $this->largcol4;
 					$this->posxcol6		= $this->posxcol5 + $this->largcol5;
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)		$this->tableau[$ncol]['posx']	= $this->posxcol1;
-						elseif ($ncol_array['col'] == 2)	$this->tableau[$ncol]['posx']	= $this->posxcol2;
-						elseif ($ncol_array['col'] == 3)	$this->tableau[$ncol]['posx']	= $this->posxcol3;
-						elseif ($ncol_array['col'] == 4)	$this->tableau[$ncol]['posx']	= $this->posxcol4;
-						elseif ($ncol_array['col'] == 5)	$this->tableau[$ncol]['posx']	= $this->posxcol5;
-						elseif ($ncol_array['col'] == 6)	$this->tableau[$ncol]['posx']	= $this->posxcol6;
+						if ($ncol_array['col'] == 1) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol1;
+						} elseif ($ncol_array['col'] == 2) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol2;
+						} elseif ($ncol_array['col'] == 3) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol3;
+						} elseif ($ncol_array['col'] == 4) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol4;
+						} elseif ($ncol_array['col'] == 5) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol5;
+						} elseif ($ncol_array['col'] == 6) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol6;
+						}
 					}
 					// Define width and position of secondary tables columns
 					$this->larg_tabtotal										= $this->larg_updisc + $this->larg_qty + $this->larg_unit + $this->larg_totalht;
@@ -631,7 +695,9 @@
 					$this->ht_top_table											= $this->height_top_table + $this->tab_hl * 0.5;
 					$ht_colinfo													= $this->_tableau_info($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					$ht_coltotal												= $this->_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1);
-					if ($this->paid || $this->credit_notes || $this->deposits)	$ht_colpay	+= $this->_tableau_versements($pdf, $object, $this->marge_haute, $outputlangs, 1);
+					if ($this->paid || $this->credit_notes || $this->deposits) {
+						$ht_colpay	+= $this->_tableau_versements($pdf, $object, $this->marge_haute, $outputlangs, 1);
+					}
 					$heightforinfotot											= $ht_colinfo + $ht_coltotal + $ht_colpay;
 					$heightforinfotot											+= pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, 1, 1, $this->horLineStyle);
 					$heightforfooter											= $this->_pagefoot($pdf, $object, $outputlangs, 1);
@@ -641,12 +707,17 @@
 					$nexY														= $tab_top + $this->ht_top_table + ($this->tab_hl * 0.5);
 					// Loop on each lines
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						if (!empty(pdf_InfraSPlus_escapeEns($object, $i, 1)))	continue;	// COmposants d'ouvrage Inovea masqués
+						if (!empty(pdf_InfraSPlus_escapeEns($object, $i, 1))) {
+							continue;	// COmposants d'ouvrage Inovea masqués
+						}
 						$curY													= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 4);	// Into loop to work with multipage
 						$pdf->SetTextColor(0, 0, 0);
-						if (empty($this->hide_top_table))						$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table);
-						else													$pdf->setTopMargin($tab_top_newpage);
+						if (empty($this->hide_top_table)) {
+							$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table);
+						} else {
+							$pdf->setTopMargin($tab_top_newpage);
+						}
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
 						$pageposbefore											= $pdf->getPage();
 						$showpricebeforepagebreak								= 1;
@@ -670,12 +741,14 @@
 							if ($posyafter > ($this->page_hauteur - ($heightforfooter + $heightforinfotot))) {	// There is no space left for total+free text
 								if ($i == ($nblignes - 1)) {	// No more lines, and no space left to show total, so we create a new page
 									$pdf->AddPage('', '', true);
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pdf->getPage()] = true;
 									$pdf->setPage($pageposafter + 1);
 								}
+							} else {
+								$showpricebeforepagebreak	= 0;
 							}
-							else	$showpricebeforepagebreak	= 0;
-						}
-						elseif ($posyafter > ($this->page_hauteur - ($heightforfooter + $heightforinfotot))) {
+						} elseif ($posyafter > ($this->page_hauteur - ($heightforfooter + $heightforinfotot))) {
 							$pdf->rollbackTransaction(true);
 							$pageposafter	= $pageposbefore;
 							$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
@@ -685,10 +758,13 @@
 							$posyafter		= $pdf->GetY();
 							if ($i == ($nblignes - 1)) {	// No more lines, and no space left to show total, so we create a new page
 								$pdf->AddPage('', '', true);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()] = true;
 								$pdf->setPage($pageposafter + 1);
 							}
+						} else {
+							$pdf->commitTransaction();	// No pagebreak
 						}
-						else			$pdf->commitTransaction();	// No pagebreak
 						$nexY			= $pdf->GetY();
 						$pageposafter	= $pdf->getPage();
 						$pdf->setPage($pageposbefore);
@@ -698,8 +774,9 @@
 							if ($curY > ($this->page_hauteur - $heightforfooter - $this->tab_hl)) {
 								$pdf->setPage($pageposafter);
 								$curY	= $tab_top_newpage + ($this->hide_top_table ? 0 : $this->ht_top_table);
+							} else {
+								$pdf->setPage($pageposdesc);
 							}
-							else	$pdf->setPage($pageposdesc);
 						}
 						$pdf->SetFont('', '', $default_font_size - 4);	// On repositionne la police par defaut
 						// N°
@@ -726,26 +803,50 @@
 						while ($pagenb < $pageposafter) {
 							$pdf->setPage($pagenb);
 							$heightforfooter				= $this->_pagefoot($pdf, $object, $outputlangs, 0);
-							if ($pagenb == 1)				$this->_tableau($pdf, $object, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
-							else							$this->_tableau($pdf, $object, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
+							if ($pagenb == 1) {
+								$this->_tableau($pdf, $object, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
+							} else {
+								$this->_tableau($pdf, $object, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
+							}
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-							if (empty($this->small_head2))	$this->_pagehead($pdf, $object, 0, $outputlangs);
-							else							$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
+							// Save auto-break content so watermark goes behind it (z-order fix)
+							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							}
+							$watermarkedPages[$pagenb] = true;
+							if (empty($this->small_head2)) {
+								$this->_pagehead($pdf, $object, 0, $outputlangs);
+							} else {
+								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
+							}
+							// Restore auto-break content after watermark/header
+							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+								$pdf->dropPageContent($savedContent);
+							}
 							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
 							$pdf->SetFillColor(255);
 							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
 						if (isset($object->lines[$i + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
 							$heightforfooter				= $this->_pagefoot($pdf, $object, $outputlangs, 0);
-							if ($pagenb == 1)				$this->_tableau($pdf, $object, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
-							else							$this->_tableau($pdf, $object, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
+							if ($pagenb == 1) {
+								$this->_tableau($pdf, $object, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
+							} else {
+								$this->_tableau($pdf, $object, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);
+							}
 							// New page
 							$pdf->AddPage();
+							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()] = true;
 							$pagenb++;
-							if (empty($this->small_head2))	$this->_pagehead($pdf, $object, 0, $outputlangs);
-							else							$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
+							if (empty($this->small_head2)) {
+								$this->_pagehead($pdf, $object, 0, $outputlangs);
+							} else {
+								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
+							}
 							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
 							$pdf->SetFillColor(255);
 							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
@@ -753,8 +854,11 @@
 						}
 					}
 					$bottomlasttab		= $this->page_hauteur - $heightforinfotot - $heightforfooter - 1;
-					if ($pagenb == 1)	$this->_tableau($pdf, $object, $tab_top, $bottomlasttab - $tab_top, $outputlangs, $this->hide_top_table, 1, $pagenb);
-					else				$this->_tableau($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 1, $pagenb);
+					if ($pagenb == 1) {
+						$this->_tableau($pdf, $object, $tab_top, $bottomlasttab - $tab_top, $outputlangs, $this->hide_top_table, 1, $pagenb);
+					} else {
+						$this->_tableau($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 1, $pagenb);
+					}
 					$posyinfo			= $this->_tableau_info($pdf, $object, $bottomlasttab + $ht_coltotal, $outputlangs, 0);
 					$posytot			= $this->_tableau_tot($pdf, $object, $bottomlasttab, $outputlangs, 0);
 					$posypay			= ($this->paid || $this->credit_notes || $this->deposits) ?	$this->_tableau_versements($pdf, $object, $posyinfo, $outputlangs, 0) : $posyinfo;
@@ -771,16 +875,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error=$outputlangs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error=$outputlangs->trans("ErrorConstantNotDefined","FAC_OUTPUTDIR");
 				return 0;
 			}
@@ -794,8 +898,8 @@
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@param		string		$titlekey		Translation key to show as title of document
-		*	@return		array		$hauteurhead	'totalhead'		= hight of header
-		*											'hauteurcadre	= hight of frame
+		*	@return		array		$hauteurhead	'totalhead'		= height of header
+		*											'hauteurcadre	= height of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
@@ -838,8 +942,12 @@
 			$pdf->SetFont('', ($this->datesbold ? 'B' : ''), $default_font_size - 4);
 			$txtdt	= $outputlangs->transnoentities("DateInvoice")." : ".dol_print_date($object->date, "day", false, $outputlangs, true);
 			if (empty($this->dates_br)) {
-				if (!empty($this->show_pointoftax_date))	$txtdt	.= ' / '.$outputlangs->transnoentities("DatePointOfTax")." : ".dol_print_date($object->date_pointoftax, "day", false, $outputlangs, true);
-				if ($object->type != 2)						$txtdt	.= ' / '.$outputlangs->transnoentities("DateDue")." : ".dol_print_date($object->date_lim_reglement, "day", false, $outputlangs, true);
+				if (!empty($this->show_pointoftax_date)) {
+					$txtdt	.= ' / '.$outputlangs->transnoentities("DatePointOfTax")." : ".dol_print_date($object->date_pointoftax, "day", false, $outputlangs, true);
+				}
+				if ($object->type != 2) {
+					$txtdt	.= ' / '.$outputlangs->transnoentities("DateDue")." : ".dol_print_date($object->date_lim_reglement, "day", false, $outputlangs, true);
+				}
 			}
 			$pdf->MultiCell($w, $this->tab_hl, $txtdt, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			if (!empty($this->dates_br)) {
@@ -925,9 +1033,13 @@
 				$txtref2	= $outputlangs->transnoentities('CorrectionInvoice').' : '.$outputlangs->convToOutputCharset($orep->ref);
 			}
 			$txtref					= $txtref1;
-			if (!empty($txtref2))	$txtref	.= $txtsep.$txtref2;
+			if (!empty($txtref2)) {
+				$txtref	.= $txtsep.$txtref2;
+			}
 			if ($cellWidth > 0)	// compare text and a little more (security) with cell width
-				if ($pdf->GetStringWidth($txtref) + 2 >= $cellWidth)	$txtref	= $txtref1.'<br>'.$txtref2; // add break line
+				if ($pdf->GetStringWidth($txtref) + 2 >= $cellWidth) {
+					$txtref	= $txtref1.'<br>'.$txtref2; // add break line
+				}
 			return $txtref;
 		}
 
@@ -964,7 +1076,9 @@
 
 			// Force to disable hidetop and hidebottom
 			$hidebottom				= 0;
-			if (!empty($hidetop))	$hidetop	= -1;
+			if (!empty($hidetop)) {
+				$hidetop	= -1;
+			}
 			$currency				= !empty($object->multicurrency_code) ? $object->multicurrency_code : $conf->currency;
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
 			$pdf->SetTextColor(0, 0, 0);
@@ -983,8 +1097,11 @@
 				}
 			}
 			if ($object->statut == Facture::STATUS_DRAFT && (!empty($this->draft_watermark))) {
-				if (empty($hidetop))	pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + $this->ht_top_table + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
-				else					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
+				if (empty($hidetop)) {
+					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + $this->ht_top_table + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
+				} else {
+					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
+				}
 				$pdf->SetTextColor(0, 0, 0);
 			}
 			// En-tête tableau
@@ -1035,10 +1152,18 @@
 			if (!empty($this->text_TVA_auto)) {
 				$statements	= pdf_InfraSPlus_VAT_auto($object, $this->emetteur, $object->thirdparty, $this->hasService, $this->hasProduct, $this->show_tva_btp);
 				if (is_array($statements)) {
-					if (!empty($statements['F']))	$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['F'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
-					if (!empty($statements['S']))	$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['S'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
-					if (!empty($statements['P']))	$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['P'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
-					if (!empty($statements['B']))	$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['B'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
+					if (!empty($statements['F'])) {
+						$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['F'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
+					}
+					if (!empty($statements['S'])) {
+						$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['S'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
+					}
+					if (!empty($statements['P'])) {
+						$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['P'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
+					}
+					if (!empty($statements['B'])) {
+						$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['B'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);
+					}
 				}
 			}
 			// Show if Option VAT debit option is on also if transmitter is french	// Decret n°2099-1299 2022-10-07
@@ -1082,11 +1207,12 @@
 				$pdf->MultiCell($larg_col1info, $tabinfo_hl, $titre, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
 				$lib_condition_paiement				= $outputlangs->transnoentities('PaymentCondition'.$object->cond_reglement_code) != ('PaymentCondition'.$object->cond_reglement_code) ? $outputlangs->transnoentities('PaymentCondition'.$object->cond_reglement_code) : $outputlangs->convToOutputCharset($object->cond_reglement_doc ? $object->cond_reglement_doc : $object->cond_reglement_label);
 				$lib_condition_paiement				= str_replace('\n', "\n", $lib_condition_paiement);
-				if ($object->deposit_percent > 0)	$lib_condition_paiement = str_replace('__DEPOSIT_PERCENT__', $object->deposit_percent, $lib_condition_paiement);
+				if ($object->deposit_percent > 0) {
+					$lib_condition_paiement = str_replace('__DEPOSIT_PERCENT__', $object->deposit_percent, $lib_condition_paiement);
+				}
 				if (empty($this->show_paymenttermcond_2l)) {
 					$pdf->writeHTMLCell($larg_col2info, $tabinfo_hl, $posxcol2info, $posytabinfo, pdf_InfraSPlus_formatNotes($object, $outputlangs, $lib_condition_paiement), 0, 1, false, true, 'L', true);
-				}
-				else {
+				} else {
 					$posytabinfo	= $pdf->GetY();
 					$pdf->writeHTMLCell($larg_col1info + $larg_col2info, $tabinfo_hl, $posxtabinfo, $posytabinfo, pdf_InfraSPlus_formatNotes($object, $outputlangs, $lib_condition_paiement), 0, 1, false, true, 'L', true);
 				}
@@ -1094,7 +1220,9 @@
 			}
 			if ($object->type != 2) {
 				// Check if a payment mode is defined
-				if (empty($object->mode_reglement_code) && !getDolGlobalInt('FACTURE_CHQ_NUMBER') && !getDolGlobalInt('FACTURE_RIB_NUMBER'))	$this->error = $outputlangs->transnoentities('ErrorNoPaiementModeConfigured');
+				if (empty($object->mode_reglement_code) && !getDolGlobalInt('FACTURE_CHQ_NUMBER') && !getDolGlobalInt('FACTURE_RIB_NUMBER')) {
+					$this->error = $outputlangs->transnoentities('ErrorNoPaiementModeConfigured');
+				}
 				// Avoid having any valid PDF with setup that is not complete on invoices settings or on this invoice
 				elseif (($object->mode_reglement_code == 'CHQ' && !getDolGlobalInt('FACTURE_CHQ_NUMBER') && empty($object->fk_account) && empty($object->fk_bank))
 				|| ($object->mode_reglement_code == 'VIR' && !getDolGlobalInt('FACTURE_RIB_NUMBER') && empty($object->fk_account) && empty($object->fk_bank))) {
@@ -1129,8 +1257,11 @@
 							$owner			= $this->emetteur->name;
 							$owner_address	= $this->emetteur->getFullAddress();
 						}
-						if (empty($this->hidechq_address))	$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $outputlangs->transnoentities('PaymentByChequeOrderedTo', $owner), '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
-						else								$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $outputlangs->transnoentities('PaymentByChequeOrderedToShort').' '.$owner, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
+						if (empty($this->hidechq_address)) {
+							$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $outputlangs->transnoentities('PaymentByChequeOrderedTo', $owner), '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
+						} else {
+							$pdf->MultiCell($larg_tabinfo, $tabinfo_hl, $outputlangs->transnoentities('PaymentByChequeOrderedToShort').' '.$owner, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
+						}
 						if (empty($this->hidechq_address)) {
 							$posytabinfo	= $pdf->GetY() - 1;
 							$pdf->SetFont('', '', $default_font_size - $diffsizetitle);
@@ -1143,7 +1274,9 @@
 				if (!empty($this->show_vir) && (empty($object->mode_reglement_code) || $object->mode_reglement_code == 'VIR' || ($object->mode_reglement_code == 'CB' && $this->IBAN_with_CB) || $this->IBAN_All)) {
 					if ($object->fk_account > 0 || $object->fk_bank > 0 || !empty($this->rib_num)) {
 						$bankid						= (empty($object->fk_account) ? $this->rib_num : $object->fk_account);
-						if ($object->fk_bank > 0)	$bankid	= $object->fk_bank;	// For backward compatibility when object->fk_account is forced with object->fk_bank
+						if ($object->fk_bank > 0) {
+							$bankid	= $object->fk_bank;	// For backward compatibility when object->fk_account is forced with object->fk_bank
+						}
 						$account					= new Account($this->db);
 						$account->fetch($bankid);
 						$pdf->SetLineStyle($this->stdLineStyle);
@@ -1156,8 +1289,7 @@
 				$heightforinfo	= $posytabinfo - $posy;
 				$pdf->rollbackTransaction(true);
 				return $heightforinfo;
-			}
-			else {
+			} else {
 				$pdf->commitTransaction();
 				return $posytabinfo;
 			}
@@ -1210,7 +1342,9 @@
 			}
 			//Local tax 1 before VAT
 			foreach ($this->localtax1 as $localtax_type => $localtax_rate) {
-				if (in_array((string) $localtax_type, array('1', '3', '5'))) continue;
+				if (in_array((string) $localtax_type, array('1', '3', '5'))) {
+					continue;
+				}
 				foreach ($localtax_rate as $tvakey => $tvaval) {
 					if ($tvakey != 0) {	// On affiche pas taux 0
 						$index++;
@@ -1229,7 +1363,9 @@
 			}
 			//Local tax 2 before VAT
 			foreach ($this->localtax2 as $localtax_type => $localtax_rate) {
-				if (in_array((string) $localtax_type, array('1', '3', '5'))) continue;
+				if (in_array((string) $localtax_type, array('1', '3', '5'))) {
+					continue;
+				}
 				foreach ($localtax_rate as $tvakey => $tvaval) {
 					if ($tvakey != 0) {	// On affiche pas taux 0
 						$index++;
@@ -1258,21 +1394,33 @@
 						$tvacompl	= ' ('.$outputlangs->transnoentities('NonPercuRecuperable').')';
 					}
 					$totalvat												= $outputlangs->transcountrynoentities('TotalVAT', $this->emetteur->country_code).' ';
-					if ($this->vat_label_code_or_rate == 'rateonly')		$totalvat	.= vatrate($tvaval['vatrate'], 1).$tvacompl;
-					elseif ($this->vat_label_code_or_rate == 'codeonly')	$totalvat	.= $tvaval['vatcode'].$tvacompl;
-					elseif ($this->vat_label_code_or_rate == 'labelonly')	$totalvat	.= $tvaval['label'].$tvacompl;
-					elseif ($this->vat_label_code_or_rate == 'ratecode')	$totalvat	.= vatrate($tvaval['vatrate'], 1).(!empty($tvaval['vatcode']) ? ' ('.$tvaval['vatcode'].')' : '').$tvacompl;
-					elseif ($this->vat_label_code_or_rate == 'ratelabel')	$totalvat	.= vatrate($tvaval['vatrate'], 1).(!empty($tvaval['label']) ? ' ('.dol_trunc($tvaval['label'], 15, 'right', 'UTF-8', 1).')' : '').$tvacompl;
-					elseif ($this->vat_label_code_or_rate == 'codelabel')	$totalvat	.= $tvaval['vatcode'].(!empty($tvaval['label']) ? ' ('.dol_trunc($tvaval['label'], 15, 'right', 'UTF-8', 1).')' : '').$tvacompl;
-					else													$totalvat	.= vatrate($tvaval['vatrate'], 1).(!empty($tvaval['vatcode']) ? ' ('.$tvaval['vatcode'].')' : '').(!empty($tvaval['label']) ? ' ('.dol_trunc($tvaval['label'], 15, 'right', 'UTF-8', 1).')' : '').$tvacompl;
-					if (count($this->tva_array) > 1)						$totalvat	.= ' ('.pdf_InfraSPlus_price($object, $tvaval['base'], $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T').')';
+					if ($this->vat_label_code_or_rate == 'rateonly') {
+						$totalvat	.= vatrate($tvaval['vatrate'], 1).$tvacompl;
+					} elseif ($this->vat_label_code_or_rate == 'codeonly') {
+						$totalvat	.= $tvaval['vatcode'].$tvacompl;
+					} elseif ($this->vat_label_code_or_rate == 'labelonly') {
+						$totalvat	.= $tvaval['label'].$tvacompl;
+					} elseif ($this->vat_label_code_or_rate == 'ratecode') {
+						$totalvat	.= vatrate($tvaval['vatrate'], 1).(!empty($tvaval['vatcode']) ? ' ('.$tvaval['vatcode'].')' : '').$tvacompl;
+					} elseif ($this->vat_label_code_or_rate == 'ratelabel') {
+						$totalvat	.= vatrate($tvaval['vatrate'], 1).(!empty($tvaval['label']) ? ' ('.dol_trunc($tvaval['label'], 15, 'right', 'UTF-8', 1).')' : '').$tvacompl;
+					} elseif ($this->vat_label_code_or_rate == 'codelabel') {
+						$totalvat	.= $tvaval['vatcode'].(!empty($tvaval['label']) ? ' ('.dol_trunc($tvaval['label'], 15, 'right', 'UTF-8', 1).')' : '').$tvacompl;
+					} else {
+						$totalvat	.= vatrate($tvaval['vatrate'], 1).(!empty($tvaval['vatcode']) ? ' ('.$tvaval['vatcode'].')' : '').(!empty($tvaval['label']) ? ' ('.dol_trunc($tvaval['label'], 15, 'right', 'UTF-8', 1).')' : '').$tvacompl;
+					}
+					if (count($this->tva_array) > 1) {
+						$totalvat	.= ' ('.pdf_InfraSPlus_price($object, $tvaval['base'], $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T').')';
+					}
 					$pdf->MultiCell($larg_col1total, $tabtot_hl, $totalvat, '', 'L', 0, 1, $posxtabtotal, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
 					$pdf->MultiCell($larg_col2total, $tabtot_hl, pdf_InfraSPlus_price($object, $tvaval['amount'], $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T'), '', 'R', 0, 1, $posxcol2total, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
 				}
 			}
 			//Local tax 1 after VAT
 			foreach ($this->localtax1 as $localtax_type => $localtax_rate) {
-				if (in_array((string) $localtax_type, array('2', '4', '6'))) continue;
+				if (in_array((string) $localtax_type, array('2', '4', '6'))) {
+					continue;
+				}
 				foreach ($localtax_rate as $tvakey => $tvaval) {
 					if ($tvakey != 0) {	// On affiche pas taux 0
 						$index++;
@@ -1291,7 +1439,9 @@
 			}
 			//Local tax 2 after VAT
 			foreach ($this->localtax2 as $localtax_type => $localtax_rate) {
-				if (in_array((string) $localtax_type, array('2', '4', '6'))) continue;
+				if (in_array((string) $localtax_type, array('2', '4', '6'))) {
+					continue;
+				}
 				foreach ($localtax_rate as $tvakey => $tvaval) {
 					$index++;
 					$pdf->line($posxtabtotal, $posytabtot + ($tabtot_hl * $index), $posxtabtotal + $larg_tabtotal, $posytabtot + ($tabtot_hl * $index), $this->horLineStyle);
@@ -1322,7 +1472,9 @@
 			$pdf->MultiCell($larg_col2total, $tabtot_hl, pdf_InfraSPlus_price($object, $total_ttc, $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T'), '', 'R', 0, 1, $posxcol2total, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
 			$pdf->SetFont('', '', $default_font_size - 4);
 			$this->resteapayer	= price2num((! $this->only_ht ? $total_ttc : $total_ht) - $this->paid - $this->credit_notes - $this->deposits, 'MT');
-			if ($object->paye)	$this->resteapayer	= 0;
+			if ($object->paye) {
+				$this->resteapayer	= 0;
+			}
 			// Inclusion du total TTC des remises dans la table
 			if (!empty($this->show_disc_ttc)){
 				$index++;
@@ -1370,8 +1522,7 @@
 				$heightfortot	= $posytabtot - $posy;
 				$pdf->rollbackTransaction(true);
 				return $heightfortot;
-			}
-			else {
+			} else {
 				$pdf->commitTransaction();
 				return $posytabtot;
 			}
@@ -1405,7 +1556,9 @@
 			$posxcol4ver											= $posxcol3ver + $larg_col3ver;
 			$index													= 0;
 			$title													= $outputlangs->transnoentities("PaymentsAlreadyDone");
-			if ($object->type == 2)									$title		= $outputlangs->transnoentities("PaymentsBackAlreadyDone");
+			if ($object->type == 2) {
+				$title		= $outputlangs->transnoentities("PaymentsBackAlreadyDone");
+			}
 			$pdf->MultiCell($larg_tabver, $tabver_hl, $title, '', 'L', 0, 1, $posxtabver, $posytabver + ($tabver_hl * $index), true, 0, 0, false, 0, 'M', false);
 			$index++;
 			$pdf->line($posxtabver, $posytabver + ($tabver_hl * $index), $posxtabver + $larg_tabver, $posytabver + ($tabver_hl * $index), $this->stdLineStyle);
@@ -1428,12 +1581,20 @@
 				while ($i < $num) {
 					$obj						= $this->db->fetch_object($resql);
 					$invoice->fetch($obj->fk_facture_source);
-					if (! $this->only_ht)		$MntLine	= $this->use_multicurrency ? $obj->multicurrency_amount_ttc : $obj->amount_ttc;
-					else						$MntLine	= $this->use_multicurrency ? $obj->multicurrency_amount_ht : $obj->amount_ht;
-					if ($obj->type == 0)		$text		= $outputlangs->transnoentities("ExcessReceived");
-					elseif ($obj->type == 2)	$text		= $outputlangs->transnoentities("CreditNote");
-					elseif ($obj->type == 3)	$text		= $outputlangs->transnoentities("Deposit");
-					else						$text		= $outputlangs->transnoentities("UnknownType");
+					if (! $this->only_ht) {
+						$MntLine	= $this->use_multicurrency ? $obj->multicurrency_amount_ttc : $obj->amount_ttc;
+					} else {
+						$MntLine	= $this->use_multicurrency ? $obj->multicurrency_amount_ht : $obj->amount_ht;
+					}
+					if ($obj->type == 0) {
+						$text		= $outputlangs->transnoentities("ExcessReceived");
+					} elseif ($obj->type == 2) {
+						$text		= $outputlangs->transnoentities("CreditNote");
+					} elseif ($obj->type == 3) {
+						$text		= $outputlangs->transnoentities("Deposit");
+					} else {
+						$text		= $outputlangs->transnoentities("UnknownType");
+					}
 					$pdf->MultiCell($larg_col1ver, $tabver_hl, dol_print_date($this->db->jdate($obj->datef), 'day', false, $outputlangs, true), '', 'C', 0, 1, $posxtabver, $posytabver + ($tabver_hl * $index), true, 0, 0, false, 0, 'M', false);
 					$pdf->MultiCell($larg_col2ver, $tabver_hl, pdf_InfraSPlus_price($object, $MntLine, $outputlangs, 0, 0, 'T'), '', 'R', 0, 1, $posxcol2ver, $posytabver + ($tabver_hl * $index), true, 0, 0, false, 0, 'M', false);
 					$pdf->MultiCell($larg_col3ver, $tabver_hl, $text, '', 'C', 0, 1, $posxcol3ver, $posytabver + ($tabver_hl * $index), true, 0, 0, false, 0, 'M', false);
@@ -1442,16 +1603,14 @@
 					$pdf->line($posxtabver, $posytabver + ($tabver_hl * $index), $posxtabver + $larg_tabver, $posytabver + ($tabver_hl * $index), $this->stdLineStyle);
 					$i++;
 				}
-			}
-			else {
+			} else {
 				$this->error	= $this->db->lasterror();
 				$posytabver		= $pdf->GetY() + 1;
 				if (!empty($calculseul)) {
 					$heightforver	= $posytabver - $posy;
 					$pdf->rollbackTransaction(true);
 					return $heightforver;
-				}
-				else {
+				} else {
 					$pdf->commitTransaction();
 					return $posytabver;
 				}
@@ -1479,15 +1638,15 @@
 					$pdf->line($posxtabver, $posytabver + ($tabver_hl * $index), $posxtabver + $larg_tabver, $posytabver + ($tabver_hl * $index), $this->stdLineStyle);
 					$i++;
 				}
+			} else {
+				$this->error	= $this->db->lasterror();
 			}
-			else		$this->error	= $this->db->lasterror();
 			$posytabver	= $pdf->GetY() + 1;
 			if (!empty($calculseul)) {
 				$heightforver	= $posytabver - $posy;
 				$pdf->rollbackTransaction(true);
 				return $heightforver;
-			}
-			else {
+			} else {
 				$pdf->commitTransaction();
 				return $posytabver;
 			}

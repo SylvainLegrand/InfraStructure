@@ -233,9 +233,13 @@
 			global $user, $langs, $conf, $hookmanager;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))	$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'companies', 'infraspackplus@infraspackplus'));
 			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_User_Contrat') ? '' : '_UCT';
 			$baseDir						= !empty($conf->user->multidir_output[getEntity('user')]) ? $conf->user->multidir_output[getEntity('user')] : $conf->user->dir_output;
@@ -246,8 +250,7 @@
 				if (preg_match('/specimen/i', $objectref)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$dir	= $baseDir.'/'.$objectref;
 					$file	= $dir.'/'.dol_sanitizeFileName($object->firstname.'_'.$object->lastname).$filesufixe.'.pdf';
 				}
@@ -293,7 +296,9 @@
 					}
 					$nbPage		= $pdf->getNumPages();
 					$pdf->Close();
-					if(!empty($nbPage))	$pdf->Output($file, 'F');
+					if(!empty($nbPage)) {
+						$pdf->Output($file, 'F');
+					}
 					// Add pdfgeneration hook
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters	= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
@@ -304,17 +309,17 @@
 						$this->errors	= $hookmanager->errors;
 					}
 					if(!empty($nbPage)) {
-						if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+						if (!empty($this->main_umask)) {
+							@chmod($file, octdec($this->main_umask));
+						}
 						$this->result					= array('fullpath' => $file);
 					}
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error=$outputlangs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error=$outputlangs->trans('ErrorConstantNotDefined', 'USER_OUTPUTDIR');
 				return 0;
 			}

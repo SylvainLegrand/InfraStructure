@@ -302,7 +302,9 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 						continue;
 					}
 					$pdfname		= pathinfo($pdfFile['name'], PATHINFO_FILENAME); // ex: Contrat_GAZ
-					if (!in_array($pdfname, $paramspecialfiles)) continue;
+					if (!in_array($pdfname, $paramspecialfiles)) {
+						continue;
+					}
 					// Clé d'activation harmonisée avec le module Projet
 					// INFRASPLUS_PDF_SPECIAL_FILE_CONTRAT_CONTRAT_GAZ_AUTO (object->element = 'contrat')
 					$key			= 'INFRASPLUS_PDF_SPECIAL_FILE_'.strtoupper($object->element).'_'.strtoupper($pdfname).'_AUTO';
@@ -321,7 +323,9 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 
 					$arrayFilesID	= array();
 					foreach ($filesArray as $row) {
-						if (!empty($row['rowid'])) $arrayFilesID[] = $row['rowid'];
+						if (!empty($row['rowid'])) {
+							$arrayFilesID[] = $row['rowid'];
+						}
 					}
 					if (!empty($arrayFilesID)) {
 						pdf_InfraSPlus_files($pdf, $arrayFilesID, 1, $object, $outputlangs, $this->formatpage);

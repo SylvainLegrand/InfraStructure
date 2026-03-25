@@ -345,8 +345,12 @@
 				$moved	= dol_copy($fileactions, $fileactions.'.old'.$i);
 				dol_syslog('infraspackplus.lib::infraspackplus_test_module fileactions = '.$fileactions.' moved = '.$moved);
 				if ($moved > 0) {
-					if ($tReg == 'R')	$result	= file_put_contents ($fileactions, preg_replace ($reg, file_get_contents ($filereplace), $actions));
-					if ($tReg == 'F')	$result	= file_put_contents ($fileactions, str_replace ($reg, file_get_contents ($filereplace), $actions));
+					if ($tReg == 'R') {
+						$result	= file_put_contents ($fileactions, preg_replace ($reg, file_get_contents ($filereplace), $actions));
+					}
+					if ($tReg == 'F') {
+						$result	= file_put_contents ($fileactions, str_replace ($reg, file_get_contents ($filereplace), $actions));
+					}
 				} else {
 					$result	= false;
 				}

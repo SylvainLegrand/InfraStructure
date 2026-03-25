@@ -115,7 +115,9 @@
 						return -3;
 					}
 				} else {
-					if ($this->db->errno() == 'DB_ERROR_RECORD_ALREADY_EXISTS')	$this->error	= $langs->trans('InfraSPlusParamLabelAlredyExists', $this->label);
+					if ($this->db->errno() == 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+						$this->error	= $langs->trans('InfraSPlusParamLabelAlredyExists', $this->label);
+					}
 					$this->db->rollback();
 					return -2;
 				}

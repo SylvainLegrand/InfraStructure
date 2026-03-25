@@ -438,31 +438,74 @@
 	{
 		global $conf;
 
+		// --- Configuration des filigranes ---
 		$image_watermark		= !empty($useLogo) ? $useLogo : getDolGlobalString('INFRASPLUS_PDF_IMAGE_WATERMARK', '');
 		$test_watermark			= getDolGlobalString('INFRASPLUS_PDF_ENABLE_TEST_WATERMARK', '');
 		$watermark_i_opacity	= getDolGlobalInt('INFRASPLUS_PDF_I_WATERMARK_OPACITY', 1);
+		// --- Résolution du chemin du fichier filigrane ---
 		$logodir				= !empty($conf->mycompany->multidir_output[$objEntity]) ? $conf->mycompany->multidir_output[$objEntity] : $conf->mycompany->dir_output;
 		$filigrane				= $logodir.'/logos/'.$image_watermark;
-		if (!empty($image_watermark) && is_readable($filigrane)) {
-			$imgsize	= array();
-			$imgsize	= pdf_InfraSPlus_getSizeForImage($filigrane, $formatpage['largeur'], $formatpage['hauteur']);
-			if (isset($imgsize['width']) && isset($imgsize['height'])) {
-				$pdf->SetAlpha($watermark_i_opacity / 100);
-				$bMargin			= $pdf->getBreakMargin();	// get the current page break margin
-				$auto_page_break	= $pdf->getAutoPageBreak();	// get current auto-page-break mode
-				$pdf->SetAutoPageBreak(false, 0);	// disable auto-page-break
-				$posxpicture		= ($formatpage['largeur'] - $imgsize['width']) / 2;	// centre l'image dans la page
-				$posypicture		= ($formatpage['hauteur'] - $imgsize['height']) / 2;	// centre l'image dans la page
-				$pdf->Image($filigrane, $posxpicture, $posypicture, $imgsize['width'], $imgsize['height'], '', '', '', false, 300, '', false, false, 0);	// set bacground image
-				$pdf->SetAutoPageBreak($auto_page_break, $bMargin);	// restore auto-page-break status
-				$pdf->SetAlpha(1);	// restore full opacity before page mark so subsequent content inserted at intmrk is not affected by watermark alpha
-				$pdf->setPageMark();	// set the starting point for the page content
+		// --- Détermination des filigranes à appliquer ---
+		// Filigrane image : le fichier doit exister, être lisible, et le PDF doit supporter TCPDI (setSourceFile)
+		$hasImageWatermark		= !empty($image_watermark) && is_readable($filigrane) && method_exists($pdf, 'setSourceFile');
+		$hasTextWatermark		= !empty($test_watermark) && !empty($outputlangs);
+		// --- Bloc unifié de rendu des filigranes ---
+		if ($hasImageWatermark || $hasTextWatermark) {
+			$bMargin			= $pdf->getBreakMargin();	// Sauvegarde des paramètres de saut de page pour restauration ultérieure
+			$auto_page_break	= $pdf->getAutoPageBreak();
+			$pdf->SetAutoPageBreak(false, 0);	// désactivation temporaire du saut de page automatique pour éviter qu'un saut ne se déclenche pendant le dessin de l'arrière-plan
+			// --- Filigrane image/PDF (arrière-plan) ---
+			// Stratégie : tout fichier est importé via TCPDI (setSourceFile/importPage/useTemplate) pour un rendu correct en arrière-plan. Les images (JPG, PNG...) sont d'abord converties en PDF temporaire avant import.
+			if ($hasImageWatermark) {
+				$ext		= strtolower(pathinfo($filigrane, PATHINFO_EXTENSION));
+				$pdfSource	= $filigrane;
+				// Conversion image → PDF temporaire si le fichier n'est pas déjà un PDF Le PDF temporaire est mis en cache dans DOL_DATA_ROOT/admin/temp/ avec un hash MD5 du chemin source. Il est régénéré si le fichier source est plus récent.
+				if ($ext != 'pdf') {
+					$tmpdir		= DOL_DATA_ROOT.'/admin/temp/';
+					$pdfSource	= $tmpdir.'watermark_'.md5($filigrane).'.pdf';
+					// Régénération uniquement si le cache n'existe pas ou est obsolète
+					if (!is_readable($pdfSource) || filemtime($filigrane) > filemtime($pdfSource)) {
+						require_once TCPDF_PATH.'tcpdf.php';
+						// Création d'un PDF temporaire aux dimensions exactes de la page
+						$tmppdf	= new TCPDF('P', 'mm', array($formatpage['largeur'], $formatpage['hauteur']), true, 'UTF-8', false);
+						$tmppdf->setPrintHeader(false);
+						$tmppdf->setPrintFooter(false);
+						$tmppdf->SetMargins(0, 0, 0);
+						$tmppdf->SetAutoPageBreak(false, 0);
+						$tmppdf->AddPage();
+						// Calcul des dimensions proportionnelles de l'image pour tenir dans la page
+						$imgsize	= pdf_InfraSPlus_getSizeForImage($filigrane, $formatpage['largeur'], $formatpage['hauteur']);
+						if (isset($imgsize['width']) && isset($imgsize['height'])) {
+							// Centrage de l'image sur la page
+							$posxpicture	= ($formatpage['largeur'] - $imgsize['width']) / 2;
+							$posypicture	= ($formatpage['hauteur'] - $imgsize['height']) / 2;
+							$tmppdf->Image($filigrane, $posxpicture, $posypicture, $imgsize['width'], $imgsize['height'], '', '', '', false, 300, '', false, false, 0);
+						}
+						// Sauvegarde du PDF temporaire sur disque
+						$tmppdf->Output($pdfSource, 'F');
+						unset($tmppdf);
+					}
+				}
+				// Import du PDF (source ou converti) via TCPDI comme template d'arrière-plan
+				if (is_readable($pdfSource)) {
+					$pdf->SetAlpha($watermark_i_opacity / 100);	// Application de l'opacité configurée (valeur 1-100 → 0.01-1.00)
+					$pdf->setSourceFile($pdfSource);	// Import de la première page du PDF source comme template
+					$tplidx	= $pdf->importPage(1);
+					$pdf->useTemplate($tplidx, 0, 0, $formatpage['largeur'], $formatpage['hauteur']);	// Placement du template sur toute la surface de la page
+					$pdf->SetAlpha(1);	// Restauration de l'opacité à 100%
+				}
 			}
-		}
-		if (!empty($test_watermark) && !empty($outputlangs)) {
-			$larg_util_cadre	= $formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']);
-			$ht_util_cadre		= $formatpage['hauteur'] - ($formatpage['mhaute'] + $formatpage['mbasse']);
-			pdf_InfraSPlus_watermark($pdf, $outputlangs, $test_watermark, $ht_util_cadre / 2, $larg_util_cadre, $ht_util_cadre, 'mm');
+			// --- Filigrane texte (superposé au filigrane image si présent) ---
+			// Affiche un texte en diagonale (ex: "TEST") en rouge semi-transparent via la fonction pdf_InfraSPlus_watermark() qui utilise une matrice de transformation
+			if ($hasTextWatermark) {
+				// Calcul de la zone utile (page moins marges) pour centrer le texte
+				$larg_util_cadre	= $formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']);
+				$ht_util_cadre		= $formatpage['hauteur'] - ($formatpage['mhaute'] + $formatpage['mbasse']);
+				// Positionnement vertical au milieu de la zone utile
+				pdf_InfraSPlus_watermark($pdf, $outputlangs, $test_watermark, $ht_util_cadre / 2, $larg_util_cadre, $ht_util_cadre, 'mm');
+			}
+			$pdf->SetAutoPageBreak($auto_page_break, $bMargin);	// Restauration des paramètres de saut de page automatique
+			$pdf->setPageMark();	// Marque tout le contenu précédent comme arrière-plan pour que le contenu suivant (texte, tableaux, etc.) soit rendu par-dessus les filigranes
 		}
 	}
 
@@ -671,8 +714,7 @@
 					$linkedobjects[$objecttype]['date_title']	= $outputlangs->transnoentities('OrderDate');
 					$linkedobjects[$objecttype]['date_value']	= dol_print_date($elementobject->date, 'day', '', $outputlangs);
 				}
-			}
-			elseif ($object->element != 'contrat' && $objecttype == 'contrat' && $contractlinked) {
+			} elseif ($object->element != 'contrat' && $objecttype == 'contrat' && $contractlinked) {
 				$outputlangs->load('contracts');
 				foreach($objects as $elementobject) {
 					$linkedobjects[$objecttype]['ref_title']	= $outputlangs->transnoentities('RefContract');
@@ -680,8 +722,7 @@
 					$linkedobjects[$objecttype]['date_title']	= $outputlangs->transnoentities('DateContract');
 					$linkedobjects[$objecttype]['date_value']	= dol_print_date($elementobject->date_contrat, 'day', '', $outputlangs);
 				}
-			}
-			elseif ($object->element != 'fichinter' && $objecttype == 'fichinter' && $fichinterlinked) {
+			} elseif ($object->element != 'fichinter' && $objecttype == 'fichinter' && $fichinterlinked) {
 				$outputlangs->load('interventions');
 				foreach($objects as $elementobject) {
 					$linkedobjects[$objecttype]['ref_title']	= $outputlangs->transnoentities('PDFInfraSPlusRefInter');
@@ -689,8 +730,7 @@
 					$linkedobjects[$objecttype]['date_title']	= $outputlangs->transnoentities('Date');
 					$linkedobjects[$objecttype]['date_value']	= dol_print_date($elementobject->datec, 'day', '', $outputlangs);
 				}
-			}
-			elseif ($object->element != 'shipping' && $objecttype == 'shipping' && $shippinglinked) {
+			} elseif ($object->element != 'shipping' && $objecttype == 'shipping' && $shippinglinked) {
 				foreach($objects as $x => $elementobject) {
 					$order	= null;
 					if (empty($object->linkedObjects['commande']) && $object->element != 'commande') {	// There is not already a link to order and object is not the order, so we show also info with order
@@ -1182,10 +1222,18 @@
 						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode)) {
 							// Phone
 							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone))) {
-								if (!empty($targetcompany->phone) || !empty($targetcompany->phone_mobile))	$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
-								if (!empty($targetcompany->phone))											$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone)));
-								if (!empty($targetcompany->phone) && !empty($targetcompany->phone_mobile))	$stringaddress	.= ' / ';
-								if (!empty($targetcompany->phone_mobile))									$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone_mobile)));
+								if (!empty($targetcompany->phone) || !empty($targetcompany->phone_mobile)) {
+									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
+								}
+								if (!empty($targetcompany->phone)) {
+									$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone)));
+								}
+								if (!empty($targetcompany->phone) && !empty($targetcompany->phone_mobile)) {
+									$stringaddress	.= ' / ';
+								}
+								if (!empty($targetcompany->phone_mobile)) {
+									$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone_mobile)));
+								}
 							}
 							// Fax
 							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax))) {
@@ -3655,26 +3703,39 @@
 		$result			= '';
 		$special_code	= $object->lines[$i]->special_code;
 		if (is_object($hookmanager)) {
-			if (!empty($object->lines[$i]->fk_parent_line))	$special_code	= $object->getSpecialCode($object->lines[$i]->fk_parent_line);
+			if (!empty($object->lines[$i]->fk_parent_line)) {
+				$special_code	= $object->getSpecialCode($object->lines[$i]->fk_parent_line);
+			}
 			$parameters										= array('i' => $i, 'outputlangs' => $outputlangs, 'hidedetails' => $hidedetails, 'special_code' => $special_code, 'sign' => $sign);
 			$action											= '';
 			$reshook										= $hookmanager->executeHooks('pdf_getlineupwithtax', $parameters, $object, $action);	// Note that $action and $object may have been modified by some hooks
-			if(!empty($hookmanager->resPrint))				$result			.= $hookmanager->resPrint;
+			if(!empty($hookmanager->resPrint)) {
+				$result			.= $hookmanager->resPrint;
+			}
 		}
 		if (empty($reshook)) {
 			if (empty($hidedetails) || $hidedetails > 1) {
 				switch ($object->element) {
 					case 'contrat':
-						if ($special_code == 3)	$subprice	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_subprice != 0 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
-						else					$total_ttc	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_total_ttc != 0 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
+						if ($special_code == 3) {
+							$subprice	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_subprice != 0 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
+						} else {
+							$total_ttc	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_total_ttc != 0 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
+						}
 					break;
 					case 'fichinter':
-						if ($special_code == 3)	$subprice	= $subprice	= $prodfichinter ? $prodfichinter['subprice'] : 0;
-						else					$total_ttc	= $prodfichinter ? $prodfichinter['total_ttc'] : 0;
+						if ($special_code == 3) {
+							$subprice	= $subprice	= $prodfichinter ? $prodfichinter['subprice'] : 0;
+						} else {
+							$total_ttc	= $prodfichinter ? $prodfichinter['total_ttc'] : 0;
+						}
 					break;
 					default:
-						if ($special_code == 3)	$subprice	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
-						else					$total_ttc	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
+						if ($special_code == 3) {
+							$subprice	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
+						} else {
+							$total_ttc	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
+						}
 					break;
 				}
 				if ($special_code == 3) {
@@ -3705,7 +3766,9 @@
 	**/
 	function pdf_InfraSPlus_getlineprogress($object, $i, $outputlangs, $hidedetails = 0, $hookmanager = null)
 	{
-		if (empty($hookmanager)) global $hookmanager;
+		if (empty($hookmanager)) {
+			global $hookmanager;
+		}
 
 		if (!empty(pdf_InfraSPlus_escapeEns($object, $i))) {
 			return '';
@@ -4151,7 +4214,9 @@
 						if (is_array($paramspecialfiles) && in_array(substr($filename, 0, -4), $paramspecialfiles)) {
 							dol_include_once('/infraspackplus/core/modules/specialfiles/'.substr($filename, 0, -4).'.php');
 							$function						= 'pdf_InfraSPlus_Merge_'.substr($filename, 0, -4);
-							if (function_exists($function))	$function($pdf, $file, $hidepagenum, $object, $outputlangs, $formatpage);
+							if (function_exists($function)) {
+								$function($pdf, $file, $hidepagenum, $object, $outputlangs, $formatpage);
+							}
 						} else {
 							$pagecount	+= pdf_InfraSPlus_Merge($pdf, $file, $hidepagenum, $object, $outputlangs, $formatpage, $noteBills);
 						}
@@ -4261,13 +4326,13 @@
 	/**
 	*	Add a draft watermark on PDF files
 	*
-	*	@param	TCPDF|TCPDI|TCPDI	$pdf			The PDF factory
-	*	@param	Translate			$outputlangs	Object lang
-	*	@param	string				$text			Text to show
-	*	@param	int					$center_y		Y center of rotation
-	*	@param	int					$w				Width of table
-	*	@param	int					$hp				Height of page
-	*	@param	string				$unit			Unit of height (mm, pt, ...)
+	*	@param	TCPDF_InfraS|TCPDI_InfraS	$pdf			The PDF factory
+	*	@param	Translate					$outputlangs	Object lang
+	*	@param	string						$text			Text to show
+	*	@param	int							$center_y		Y center of rotation
+	*	@param	int							$w				Width of table
+	*	@param	int							$hp				Height of page
+	*	@param	string						$unit			Unit of height (mm, pt, ...)
 	*	@return	void
 	**/
 	function pdf_InfraSPlus_watermark(&$pdf, $outputlangs, $text, $center_y, $w, $hp, $unit)
@@ -4283,11 +4348,9 @@
 		} elseif ($unit=='in') {
 			$k = 72;
 		}
-		$savx				= $pdf->getX();
-		$savy				= $pdf->getY();
-		$savFont			= $pdf->getFontFamily();
-		$savFontStyle		= $pdf->getFontStyle();
-		$savFontSizePt		= $pdf->getFontSizePt();
+		// Sauvegarde complète de l'état graphique (position, police, couleurs)
+		// Les opérateurs bruts q/Q désynchronisent l'état interne de TCPDF par rapport au flux PDF : il faut donc restaurer explicitement chaque propriété.
+		$gvars				= $pdf->saveGraphicVars();
 		$watermark_angle	= 20 / 180 * pi();	// angle de rotation 20° en radian
 		$center_x			= $w / 2;			// x centre
 		$pdf->SetFont('', 'B', 40);
@@ -4301,9 +4364,16 @@
 		$pdf->Cell($w, 20, $outputlangs->convToOutputCharset($text), '', 2, 'C', 0);
 		//antirotate
 		$pdf->_out('Q');
-		$pdf->SetXY($savx, $savy);
+		// Restauration complète de l'état graphique interne de TCPDF
+		// restoreGraphicVars() restaure position, police, couleurs et émet les opérateurs PDF nécessaires pour resynchroniser le flux.
 		$pdf->SetAlpha(1);
-		$pdf->SetFont($savFont, $savFontStyle, $savFontSizePt);
+		if (method_exists($pdf, 'restoreGraphicVars')) {
+			$pdf->restoreGraphicVars($gvars);
+		} else {
+			// Fallback pour TCPDF/TCPDI sans la sous-classe InfraS
+			$pdf->SetXY($gvars['x'], $gvars['y']);
+			$pdf->SetFont($gvars['FontFamily'], $gvars['FontStyle'], $gvars['FontSizePt']);
+		}
 	}
 
 	/**
@@ -4701,11 +4771,15 @@
 					switch ($mode) {
 						case '-4':
 							// Titre / sous titre à afficher condensé
-							if (!empty($hasTitle->array_options['options_print_condensed']) && $hasTitle->array_options['options_print_condensed'] > 0)	return $hasTitle->id;
+							if (!empty($hasTitle->array_options['options_print_condensed']) && $hasTitle->array_options['options_print_condensed'] > 0) {
+								return $hasTitle->id;
+							}
 						break;
 						case '-3':
 							// Titre / sous titre à afficher sous forme de liste
-							if (!empty($hasTitle->array_options['options_print_as_list']) && $hasTitle->array_options['options_print_as_list'] > 0)	return $hasTitle->id;
+							if (!empty($hasTitle->array_options['options_print_as_list']) && $hasTitle->array_options['options_print_as_list'] > 0) {
+								return $hasTitle->id;
+							}
 						break;
 					}
 				}

@@ -439,6 +439,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages		= array($pdf->getPage() => true);	// Track pages with watermark to avoid double rendering in while loops
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineW			= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -913,6 +914,7 @@
 								if ($i == ($nblignes - 1)) {	// No more lines, and no space left to show total, so we create a new page
 									$pdf->AddPage('', '', true);
 									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pdf->getPage()]	= true;
 									$pdf->setPage($pageposafter + 1);
 								}
 							}
@@ -939,16 +941,22 @@
 								$pagenb++;
 								$pdf->setPage($pagenb);
 								$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-								// Save auto-break content so watermark goes behind it (z-order fix)
-								$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								// Extraire le contenu texte pour corriger le z-order (filigrane/en-tete avant texte)
+								$savedContent	= '';
+								if (method_exists($pdf, 'liftPageContent')) {
+									$savedContent	= $pdf->liftPageContent();
+								}
+								if (empty($watermarkedPages[$pagenb])) {
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pagenb]	= true;
+								}
 								if (empty($this->small_head2)) {
 									$this->_pagehead($pdf, $object, 0, $outputlangs);
 								} else {
 									$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 								}
-								// Restore auto-break content after watermark/header
-								if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+								// Reinjecter le contenu texte apres filigrane et en-tete
+								if (method_exists($pdf, 'dropPageContent')) {
 									$pdf->dropPageContent($savedContent);
 								}
 								// Restore grayscale FillColor after _pagehead to keep ColorFlag true
@@ -960,6 +968,7 @@
 								$pdf->AddPage();
 								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 								$pagenb++;
+								$watermarkedPages[$pagenb]	= true;
 								if (empty($this->small_head2)) {
 									$this->_pagehead($pdf, $object, 0, $outputlangs);
 								} else {
@@ -1225,16 +1234,22 @@
 								$pagenb++;
 								$pdf->setPage($pagenb);
 								$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-								// Save auto-break content so watermark goes behind it (z-order fix)
-								$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								// Extraire le contenu texte pour corriger le z-order (filigrane/en-tete avant texte)
+								$savedContent	= '';
+								if (method_exists($pdf, 'liftPageContent')) {
+									$savedContent	= $pdf->liftPageContent();
+								}
+								if (empty($watermarkedPages[$pagenb])) {
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pagenb]	= true;
+								}
 								if (empty($this->small_head2)) {
 									$this->_pagehead($pdf, $object, 0, $outputlangs);
 								} else {
 									$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 								}
-								// Restore auto-break content after watermark/header
-								if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+								// Reinjecter le contenu texte apres filigrane et en-tete
+								if (method_exists($pdf, 'dropPageContent')) {
 									$pdf->dropPageContent($savedContent);
 								}
 								// Restore grayscale FillColor after _pagehead to keep ColorFlag true
@@ -1246,6 +1261,7 @@
 								$pdf->AddPage();
 								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 								$pagenb++;
+								$watermarkedPages[$pagenb]	= true;
 								if (empty($this->small_head2)) {
 									$this->_pagehead($pdf, $object, 0, $outputlangs);
 								} else {
@@ -1296,6 +1312,7 @@
 							if ($posyafter > ($this->page_hauteur - ($this->heightforfooter + $heightforinfotot))) {	// There is no space left for total+free text
 								$pdf->AddPage('','',true);
 								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
 								$pdf->setPage($pageposafter + 1);
 							} else {
 								$showpricebeforepagebreak	= 0; // we found a pagebreak
@@ -1310,6 +1327,7 @@
 							$posyafter		= $pdf->GetY();
 							$pdf->AddPage('','',true);
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()]	= true;
 							$pdf->setPage($pageposafter + 1);
 						} else {
 							$pdf->commitTransaction();	// No pagebreak
@@ -1328,16 +1346,22 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-							// Save auto-break content so watermark goes behind it (z-order fix)
-							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							// Extraire le contenu texte pour corriger le z-order (filigrane/en-tete avant texte)
+							$savedContent	= '';
+							if (method_exists($pdf, 'liftPageContent')) {
+								$savedContent	= $pdf->liftPageContent();
+							}
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pagenb]	= true;
+							}
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
-							// Restore auto-break content after watermark/header
-							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+							// Reinjecter le contenu texte apres filigrane et en-tete
+							if (method_exists($pdf, 'dropPageContent')) {
 								$pdf->dropPageContent($savedContent);
 							}
 							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
@@ -1492,13 +1516,13 @@
 							if ($this->startProd <= $bottomlasttab) {
 								$this->_tableau($pdf, $object, $this->endReport + $entreTable, $bottomlasttab - ($this->endReport + $entreTable), $outputlangs, $this->hide_top_table, 1, $i);
 							}
+						} else {
+							$this->_tableau($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 0, $i);
 						}
-						else	$this->_tableau($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 0, $i);
 					} elseif (!empty($object->note_public) && $this->lastNoteAsTable) {
 						if ($i == 1 && $i < $this->pageEndProd) {
 							$this->_tableau1($pdf, $object, $tab_top, $bottomlasttab - $tab_top, $outputlangs, $this->hide_top_table, 1, $i);
-						}
-						elseif ($i < $this->pageEndProd) {
+						} elseif ($i < $this->pageEndProd) {
 							$this->_tableau1($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 1, $i);
 						} elseif ($i == 1 && $i == $this->pageEndProd) {
 							$this->_tableau1($pdf, $object, $tab_top, $this->endProd - $tab_top, $outputlangs, $this->hide_top_table, 1, $i);
@@ -1684,7 +1708,9 @@
 		{
 			// Force to disable hidetop and hidebottom
 			$hidebottom				= 0;
-			if (!empty($hidetop))	$hidetop	= -1;
+			if (!empty($hidetop)) {
+				$hidetop	= -1;
+			}
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
@@ -1744,7 +1770,9 @@
 
 			// Force to disable hidetop and hidebottom
 			$hidebottom				= 0;
-			if (!empty($hidetop))	$hidetop	= -1;
+			if (!empty($hidetop)) {
+				$hidetop	= -1;
+			}
 			$currency				= !empty($object->multicurrency_code) ? $object->multicurrency_code : $conf->currency;
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
@@ -1872,6 +1900,7 @@
 		*	@param		Fichinter	$object			Object to show
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
+		*	@param		int			$calculseul		no print => just to know the height
 		*	@return		int							Position pour suite
 		**/
 		protected function _tableau_tot(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)
@@ -2078,6 +2107,8 @@
 		*	@param		Fichinter	$object			Object to show
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
+		*	@param		int			$calculseul		no print => just to know the height
+		*	@param		int			$freetext		1 if signature follows free text
 		*	@return		int							Position pour suite
 		**/
 		protected function _signature_area(&$pdf, $object, $posy, $outputlangs, $calculseul = 0, $freetext = 0)

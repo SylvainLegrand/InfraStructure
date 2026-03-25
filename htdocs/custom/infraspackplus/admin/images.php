@@ -341,8 +341,9 @@
 		$num	= infraspackplus_print_input('MAIN_DOCUMENTS_LOGO_HEIGHT', 'input', $langs->trans('InfraSPlusParamLogoHeight', $maxhlogo), '', $metas, 1, 1, '&nbsp;mm', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_SMALL_HEAD_2', '')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LOGO_SECONDARY_SMALL_HEAD', 'on_off', $langs->trans('InfraSPlusParamLogoSecondarySmallHead'), '', array(), 1, 1, '', $num);
+		} else {
+			$num++;
 		}
-		else	$num++;
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '6', 'max' => '20');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_LOGO_SMALL_HEAD_HEIGHT', 'input', $langs->trans('InfraSPlusParamLogoSmallHeadHeight'), '', $metas, 1, 1, '&nbsp;mm', $num);
 		// $num = 3

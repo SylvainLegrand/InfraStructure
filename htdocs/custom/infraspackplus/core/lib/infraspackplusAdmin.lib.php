@@ -536,7 +536,9 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			if (empty($err)) {
 				dol_syslog('infraspackplusAdmin.lib.php::infraspackplus_Change_Template', LOG_DEBUG);
 				$result				= $db->query($array_sql[$i]);
-				if (empty($result))	$err++;
+				if (empty($result)) {
+					$err++;
+				}
 			}
 		}
 		return empty($err) ? 1 : -1;

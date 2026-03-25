@@ -409,6 +409,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages		= array($pdf->getPage() => true);	// Track pages with watermark to avoid double rendering in while loops
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineW			= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -474,10 +475,14 @@
 									$dir	= ($objproduct->entity != $conf->entity ? $conf->product->multidir_output[$objproduct->entity] : $conf->product->dir_output).'/'.$midir;
 									foreach ($objproduct->liste_photos($dir, 1) as $key => $obj) {
 										if (empty($this->cat_hq_image)) {	// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
-											if (!empty($obj['photo_vignette']))	$filename	= $obj['photo_vignette'];
-											else								$filename	= $obj['photo'];
+											if (!empty($obj['photo_vignette'])) {
+												$filename	= $obj['photo_vignette'];
+											} else {
+												$filename	= $obj['photo'];
+											}
+										} else {
+											$filename	= $obj['photo'];
 										}
-										else			$filename	= $obj['photo'];
 										$realpath		= $dir.$filename;
 										$listObjBib[]	= $objproduct->id;
 										$arephoto		= true;
@@ -551,17 +556,29 @@
 											'totalttc'	=> array('col' => $this->num_totalttc,	'larg' => $this->larg_totalttc,	'posx' => 0)
 											);
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)		$this->largcol1		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 2)	$this->largcol2		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 3)	$this->largcol3		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 4)	$this->largcol4		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 5)	$this->largcol5		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 6)	$this->largcol6		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 7)	$this->largcol7		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 8)	$this->largcol8		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 9)	$this->largcol9		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 10)	$this->largcol10	= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 11)	$this->largcol11	= $ncol_array['larg'];
+						if ($ncol_array['col'] == 1) {
+							$this->largcol1	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 2) {
+							$this->largcol2	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 3) {
+							$this->largcol3	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 4) {
+							$this->largcol4	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 5) {
+							$this->largcol5	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 6) {
+							$this->largcol6	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 7) {
+							$this->largcol7	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 8) {
+							$this->largcol8	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 9) {
+							$this->largcol9	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 10) {
+							$this->largcol10	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 11) {
+							$this->largcol11	= $ncol_array['larg'];
+						}
 					}
 					$this->posxcol1		= $this->marge_gauche;
 					$this->posxcol2		= $this->posxcol1	+ $this->largcol1;
@@ -575,17 +592,29 @@
 					$this->posxcol10	= $this->posxcol9	+ $this->largcol9;
 					$this->posxcol11	= $this->posxcol10	+ $this->largcol10;
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)		$this->tableau[$ncol]['posx']	= $this->posxcol1;
-						elseif ($ncol_array['col'] == 2)	$this->tableau[$ncol]['posx']	= $this->posxcol2;
-						elseif ($ncol_array['col'] == 3)	$this->tableau[$ncol]['posx']	= $this->posxcol3;
-						elseif ($ncol_array['col'] == 4)	$this->tableau[$ncol]['posx']	= $this->posxcol4;
-						elseif ($ncol_array['col'] == 5)	$this->tableau[$ncol]['posx']	= $this->posxcol5;
-						elseif ($ncol_array['col'] == 6)	$this->tableau[$ncol]['posx']	= $this->posxcol6;
-						elseif ($ncol_array['col'] == 7)	$this->tableau[$ncol]['posx']	= $this->posxcol7;
-						elseif ($ncol_array['col'] == 8)	$this->tableau[$ncol]['posx']	= $this->posxcol8;
-						elseif ($ncol_array['col'] == 9)	$this->tableau[$ncol]['posx']	= $this->posxcol9;
-						elseif ($ncol_array['col'] == 10)	$this->tableau[$ncol]['posx']	= $this->posxcol10;
-						elseif ($ncol_array['col'] == 11)	$this->tableau[$ncol]['posx']	= $this->posxcol11;
+						if ($ncol_array['col'] == 1) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol1;
+						} elseif ($ncol_array['col'] == 2) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol2;
+						} elseif ($ncol_array['col'] == 3) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol3;
+						} elseif ($ncol_array['col'] == 4) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol4;
+						} elseif ($ncol_array['col'] == 5) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol5;
+						} elseif ($ncol_array['col'] == 6) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol6;
+						} elseif ($ncol_array['col'] == 7) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol7;
+						} elseif ($ncol_array['col'] == 8) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol8;
+						} elseif ($ncol_array['col'] == 9) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol9;
+						} elseif ($ncol_array['col'] == 10) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol10;
+						} elseif ($ncol_array['col'] == 11) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol11;
+						}
 					}
 					// Define width and position of secondary tables columns
 					$i			= 0;
@@ -633,6 +662,7 @@
 						} else {
 							$pdf->AddPage('', '', true);
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()]	= true;
 							$pdf->setPage(2);
 							$tab_top	= $tab_top_newpage;
 						}
@@ -708,6 +738,8 @@
 							if (($curY + (!empty($imglinesize['width']) && !empty($imglinesize['height']) ? $imglinesize['height'] : $this->tab_hl)) > ($this->page_hauteur - ($this->heightforfooter))) {	// If photo too high, we moved completely on new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
 								$curY						= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
 								$showpricebeforepagebreak	= 0;
 							}
@@ -753,6 +785,8 @@
 									if ($i == ($nblignes - 1)) {	// No more lines, and no space left to show total, so we create a new page
 										$pdf->AddPage('','',true);
 										$pdf->setPage($pageposafter + 1);
+										pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+										$watermarkedPages[$pdf->getPage()]	= true;
 									}
 								} else {
 									$showpricebeforepagebreak	= 0; // we found a pagebreak
@@ -761,6 +795,8 @@
 								if ($i == ($nblignes - 1)) {	// No more lines, and no space left to show total, so we create a new page
 									$pdf->AddPage('', '', true);
 									$pdf->setPage($pageposafter + 1);
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pdf->getPage()]	= true;
 								}
 							}
 							$nexY	= $pdf->GetY();
@@ -777,6 +813,8 @@
 								if (($nexY + (!empty($imglinesize['width']) && !empty($imglinesize['height']) ? $imglinesize['height'] : $this->tab_hl) + $ht_url) > ($this->page_hauteur - ($this->heightforfooter + ($i == ($nblignes - 1) ? $heightforinfotot : 0)))) {	// If photo too high, we moved completely on new page
 									$pdf->AddPage('', '', true);
 									$pdf->setPage($pageposimg + 1);
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pdf->getPage()]	= true;
 									$nexY						= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
 									$showpricebeforepagebreak	= 0;
 								}
@@ -883,7 +921,10 @@
 								$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 								// Save auto-break content so watermark goes behind it (z-order fix)
 								$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								if (empty($watermarkedPages[$pagenb])) {
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pagenb]	= true;
+								}
 								if (empty($this->small_head2)) {
 									$this->_pagehead($pdf, $object, 0, $outputlangs);
 								} else {
@@ -910,6 +951,7 @@
 								$pdf->AddPage();
 								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 								$pagenb++;
+								$watermarkedPages[$pagenb]	= true;
 								if (empty($this->small_head2)) {
 									$this->_pagehead($pdf, $object, 0, $outputlangs);
 								} else {
@@ -981,8 +1023,8 @@
 		*	@param		Contrat		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= hight of header
-		*											'hauteurcadre	= hight of frame
+		*	@return		array		$hauteurhead	'totalhead'		= height of header
+		*											'hauteurcadre	= height of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
@@ -1227,6 +1269,7 @@
 		*	@param		Contrat		$object			Object shown in PDF
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
+		*	@param		int			$calculseul		no print => just to know the height
 		*	@return		int							Position pour suite
 		**/
 		protected function _signature_area(&$pdf, $object, $posy, $outputlangs, $calculseul = 0, $freetext = 0)

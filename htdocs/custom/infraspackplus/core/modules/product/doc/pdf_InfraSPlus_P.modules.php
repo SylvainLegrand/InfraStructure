@@ -287,9 +287,13 @@
 			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))	$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
 			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_P') ? '' : '-P';
 			$baseDir						= !empty($conf->product->multidir_output[$conf->entity]) ? $conf->product->multidir_output[$conf->entity] : $conf->product->dir_output;
@@ -299,8 +303,7 @@
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
 					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
@@ -352,6 +355,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages		= array($pdf->getPage() => true);
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineW			= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -433,7 +437,9 @@
 						}
 						if (count($filearray)) {
 
-							if ($sortfield && $sortorder)	$filearray	= dol_sort_array($filearray, $sortfield, $sortorder);
+							if ($sortfield && $sortorder) {
+								$filearray	= dol_sort_array($filearray, $sortfield, $sortorder);
+							}
 							$this->wpicture					= ($this->larg_util_txt - ((count($filearray) - 1) * 5)) / count($filearray);	// corrige la largeur maximal des images pour être au plus égale à la largeur disponible / nombre de vignette à afficher
 							$imglinesize					= array();
 							foreach ($filearray as $key => $val) {
@@ -442,11 +448,17 @@
 									if (empty($this->cat_hq_image))		// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
 									{
 										$vignette					= $dir.'thumbs/'.basename(getImageFileNameForSize($dir.$photo, '_small'));
-										if (dol_is_file($vignette)) $realpath		= $vignette;
-										else						$realpath		= $dir.$photo;
+										if (dol_is_file($vignette)) {
+											$realpath	= $vignette;
+										} else {
+											$realpath	= $dir.$photo;
+										}
+									} else {
+										$realpath	= $dir.$photo;
 									}
-									else			$realpath		= $dir.$photo;
-									if ($realpath)	$imglinesize	= pdf_InfraSPlus_getSizeForImage($realpath, $this->wpicture, $this->hpicture);
+									if ($realpath) {
+										$imglinesize	= pdf_InfraSPlus_getSizeForImage($realpath, $this->wpicture, $this->hpicture);
+									}
 									if (!empty($imglinesize['width']) && !empty($imglinesize['height'])) {
 										$pdf->Image($realpath, $posxpicture, $posypicture, $imglinesize['width'], $imglinesize['height']);	// Use 300 dpi
 										$posxpicture	+= $imglinesize['width'] + 5;	// $pdf->Image does not increase value return by getX, so we save it manually
@@ -487,7 +499,9 @@
 					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $bottomlasttab, $outputlangs, $this->emetteur, $this->listfreet, 0, 0);
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
-					if (method_exists($pdf, 'AliasNbPages'))	$pdf->AliasNbPages();
+					if (method_exists($pdf, 'AliasNbPages')) {
+						$pdf->AliasNbPages();
+					}
 					$pdf->Close();
 					$pdf->Output($file, 'F');
 					// Add pdfgeneration hook
@@ -499,16 +513,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error=$outputlangs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error=$outputlangs->trans("ErrorConstantNotDefined","PRODUCT_OUTPUTDIR");
 				return 0;
 			}
@@ -517,17 +531,20 @@
 		/**
 		*	Show top header of page.
 		*
-		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		Product		$object			Object to show
-		*	@param		int			$showaddress	0=no, 1=yes
-		*	@param		Translate	$outputlangs	Object lang for output
-		*	@param		string		$titlekey		Translation key to show as title of document
-		*	@return		array		$this->hauteurhead	'totalhead'		= hight of header
-		*											'hauteurcadre	= hight of frame
+		*	@param		TCPDF		$pdf				Object PDF
+		*	@param		Product		$object				Object to show
+		*	@param		int			$showaddress		0=no, 1=yes
+		*	@param		Translate	$outputlangs		Object lang for output
+		*	@param		string		$titlekey			Translation key to show as title of document
+		*	@return		array		$this->hauteurhead	'totalhead'		= height of header
+		*												'hauteurcadre	= height of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs, $titlekey = "") {
-			if ($object->type == 1)	$titlekey	= 'ServiceSheet';
-			else					$titlekey	= 'ProductSheet';
+			if ($object->type == 1) {
+				$titlekey	= 'ServiceSheet';
+			} else {
+				$titlekey	= 'ProductSheet';
+			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
@@ -605,18 +622,27 @@
 		protected function _tableau(&$pdf, $object, $tab_top, $height_note, $tab_height, $outputlangs, $hidetop = 0, $hidebottom = 0, $pagenb) {
 			// Force to disable hidetop and hidebottom
 			$hidebottom				= 0;
-			if (!empty($hidetop))	$hidetop	= -1;
+			if (!empty($hidetop)) {
+				$hidetop	= -1;
+			}
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
 			// Output Rounded Rectangle
 			if (empty($hidetop) || $pagenb == 1) {
-				if (!empty($this->title_bg))	$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
-				else if ($this->showtblline)	$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-				if ($this->showtblline)			$pdf->RoundedRect($this->marge_gauche, $tab_top + $this->ht_top_table + $height_note + ($height_note > 0 ? ($this->bgLineW * 2) + 2 : $this->bgLineW), $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $height_note + ($height_note > 0 ? ($this->bgLineW * 2) + 2 : $this->bgLineW)), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+				if (!empty($this->title_bg)) {
+					$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
+				} else if ($this->showtblline) {
+					$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+				}
+				if ($this->showtblline) {
+					$pdf->RoundedRect($this->marge_gauche, $tab_top + $this->ht_top_table + $height_note + ($height_note > 0 ? ($this->bgLineW * 2) + 2 : $this->bgLineW), $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $height_note + ($height_note > 0 ? ($this->bgLineW * 2) + 2 : $this->bgLineW)), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+				}
 			}
 			else
-				if ($this->showtblline)	$pdf->RoundedRect($this->marge_gauche, $tab_top + $height_note, $this->larg_util_cadre, $tab_height, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+				if ($this->showtblline) {
+					$pdf->RoundedRect($this->marge_gauche, $tab_top + $height_note, $this->larg_util_cadre, $tab_height, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+				}
 			// Show Folder mark
 			if (!empty($this->fold_mark)) {
 				$pdf->Line(0, ($this->page_hauteur)/3, $this->fold_mark, ($this->page_hauteur)/3, $this->stdLineStyle);
@@ -625,12 +651,14 @@
 			// Colonnes
 			$pdf->SetFont('', 'B', $default_font_size - 1);
 			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
-			if (empty($hidetop) || $pagenb == 1)	$pdf->writeHTMLCell($this->larg_util_cadre, 4, $this->marge_gauche, $tab_top + (($this->ht_top_table - 4) / 2), dol_htmlentitiesbr($object->label), 0, 1, 0, 1, 'C');
+			if (empty($hidetop) || $pagenb == 1) {
+				$pdf->writeHTMLCell($this->larg_util_cadre, 4, $this->marge_gauche, $tab_top + (($this->ht_top_table - 4) / 2), dol_htmlentitiesbr($object->label), 0, 1, 0, 1, 'C');
+			}
 		}
 
 		/**
 		*	Show footer of page. Need this->emetteur object
-		*,
+		*
 		*	@param		TCPDF		$pdf			The PDF factory
 		*	@param		Product		$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output

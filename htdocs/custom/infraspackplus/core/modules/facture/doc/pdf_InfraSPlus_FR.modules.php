@@ -299,9 +299,13 @@
 			global $user, $langs, $conf, $hookmanager;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))	$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
 			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FR') ? '' : '_FR';
 			$baseDir						= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
@@ -312,8 +316,7 @@
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
 					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
@@ -367,6 +370,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages			= array($pdf->getPage() => true);
 					$pagenb						= 1;
 					// Default PDF parameters
 					$this->stdLineW				= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -407,11 +411,17 @@
 														'remaintopay'	=> array('col' => $this->num_remaintopay,	'larg' => $this->larg_remaintopay,	'posx' => 0)
 														);
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)		$this->largcol1		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 2)	$this->largcol2		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 3)	$this->largcol3		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 4)	$this->largcol4		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 5)	$this->largcol5		= $ncol_array['larg'];
+						if ($ncol_array['col'] == 1) {
+							$this->largcol1	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 2) {
+							$this->largcol2	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 3) {
+							$this->largcol3	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 4) {
+							$this->largcol4	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 5) {
+							$this->largcol5	= $ncol_array['larg'];
+						}
 					}
 					$this->posxcol1		= $this->marge_gauche;
 					$this->posxcol2		= $this->posxcol1	+ $this->largcol1;
@@ -419,11 +429,17 @@
 					$this->posxcol4		= $this->posxcol3	+ $this->largcol3;
 					$this->posxcol5		= $this->posxcol4	+ $this->largcol4;
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)		$this->tableau[$ncol]['posx']	= $this->posxcol1;
-						elseif ($ncol_array['col'] == 2)	$this->tableau[$ncol]['posx']	= $this->posxcol2;
-						elseif ($ncol_array['col'] == 3)	$this->tableau[$ncol]['posx']	= $this->posxcol3;
-						elseif ($ncol_array['col'] == 4)	$this->tableau[$ncol]['posx']	= $this->posxcol4;
-						elseif ($ncol_array['col'] == 5)	$this->tableau[$ncol]['posx']	= $this->posxcol5;
+						if ($ncol_array['col'] == 1) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol1;
+						} elseif ($ncol_array['col'] == 2) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol2;
+						} elseif ($ncol_array['col'] == 3) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol3;
+						} elseif ($ncol_array['col'] == 4) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol4;
+						} elseif ($ncol_array['col'] == 5) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol5;
+						}
 					}
 					// Calculs de positions
 					$this->tab_hl				= 4;
@@ -442,8 +458,11 @@
 					$nexY						= $tab_top + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
 					// Table head
 					// Output Rounded Rectangle
-					if (!empty($this->title_bg))			$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
-					else if (!empty($this->showtblline))	$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					if (!empty($this->title_bg)) {
+						$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
+					} else if (!empty($this->showtblline)) {
+						$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					}
 					// Show Folder mark
 					if (!empty($this->fold_mark)) {
 						$pdf->Line(0, ($this->page_hauteur)/3, $this->fold_mark, ($this->page_hauteur)/3, $this->stdLineStyle);
@@ -466,11 +485,15 @@
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
 						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
-						if (empty($object->lines[$i]->fk_remise_except))	continue;	// no deposit line
+						if (empty($object->lines[$i]->fk_remise_except)) {
+							continue;	// no deposit line
+						}
 						$discount->fetch($object->lines[$i]->fk_remise_except);
 						// deposit line with link to deposit invoice
 						if (!empty($discount->ref_facture_source)) {
-							if (in_array($discount->fk_facture_source, $listFacturesSources))	continue;	// Attention à ne pas inclure plusieurs fois la même facture d'acompte (quand plusieurs taux de TVA sont utilisés)
+							if (in_array($discount->fk_facture_source, $listFacturesSources)) {
+								continue;	// Attention à ne pas inclure plusieurs fois la même facture d'acompte (quand plusieurs taux de TVA sont utilisés)
+							}
 							$listFacturesSources[]												= $discount->fk_facture_source;
 							$res																= $tmpInvoice->fetch($discount->fk_facture_source);
 							$paid																= $tmpInvoice->getSommePaiement(0);
@@ -493,9 +516,13 @@
 							$system_upload_relative_dir											= preg_replace('/^[\\/]/', '', $system_upload_relative_dir);
 							completeFileArrayWithDatabaseInfo($listDiscountFiles, $system_upload_relative_dir);
 							foreach ($listDiscountFiles as $discountFile) {
-								if (empty($discountFile['name']))	continue;
+								if (empty($discountFile['name'])) {
+									continue;
+								}
 								$discountName						= pathinfo($discountFile['name'], PATHINFO_FILENAME);
-								if ($discountName == $discountRef)	$this->files[]	= $discountFile['rowid'];
+								if ($discountName == $discountRef) {
+									$this->files[]	= $discountFile['rowid'];
+								}
 							}
 						}
 					}
@@ -506,7 +533,9 @@
 					if ($this->efPaySpec) {	// we show special payments before they are paid
 						$listEfPaySpec	= pdf_InfraSPlus_SpecPayExtraField($object);
 						foreach ($listEfPaySpec as $key => $efPaySpec) {
-							if ($efPaySpec['value'] != 0)	$totalEfPaySpec	+= price2num($efPaySpec['value'], 'MT');
+							if ($efPaySpec['value'] != 0) {
+								$totalEfPaySpec	+= price2num($efPaySpec['value'], 'MT');
+							}
 						}
 					}
 					$totaux['ttc']	+= $sign * ($object->total_ttc - $totalEfPaySpec);
@@ -520,8 +549,9 @@
 					if ($resql) {
 						$obj			= $this->db->fetch_object($resql);
 						$stdpaidamount	= $obj->stdpaidamount;
+					} else {
+						$this->error	= $this->db->lasterror();
 					}
-					else						$this->error	= $this->db->lasterror();
 					$this->db->free($resql);
 					$totaux['remaintopay']		+= $sign * ($object->total_ttc - $totalEfPaySpec - $stdpaidamount);
 					$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->tab_hl, $this->tableau['ref']['posx'], $nexY, $object->ref, 0, 1, false, true, 'L', true);
@@ -537,9 +567,13 @@
 					$system_upload_relative_dir	= preg_replace('/^[\\/]/', '', $system_upload_relative_dir);
 					completeFileArrayWithDatabaseInfo($listInvoiceFiles, $system_upload_relative_dir);
 					foreach ($listInvoiceFiles as $invoiceFile) {
-						if (empty($invoiceFile['name']))	continue;
-						$invoiceName						= pathinfo($invoiceFile['name'], PATHINFO_FILENAME);
-						if ($invoiceName == $objectref)		$this->files[]	= $invoiceFile['rowid'];
+						if (empty($invoiceFile['name'])) {
+							continue;
+						}
+						$invoiceName	= pathinfo($invoiceFile['name'], PATHINFO_FILENAME);
+						if ($invoiceName == $objectref) {
+							$this->files[]	= $invoiceFile['rowid'];
+						}
 					}
 					// Avoir ou excédent
 					$this->credit_notes	= $object->getSumCreditNotesUsed($this->use_multicurrency ? 1 : 0);	// Warning, this also include excess received
@@ -570,13 +604,18 @@
 							$system_upload_relative_dir	= preg_replace('/^[\\/]/', '', $system_upload_relative_dir);
 							completeFileArrayWithDatabaseInfo($listCrerditNoteFiles, $system_upload_relative_dir);
 							foreach ($listCrerditNoteFiles as $creditNoteFile) {
-								if (empty($creditNoteFile['name']))		continue;
-								$creditNoteName							= pathinfo($creditNoteFile['name'], PATHINFO_FILENAME);
-								if ($creditNoteName == $creditNoteRef)	$this->files[]	= $creditNoteFile['rowid'];
+								if (empty($creditNoteFile['name'])) {
+									continue;
+								}
+								$creditNoteName	= pathinfo($creditNoteFile['name'], PATHINFO_FILENAME);
+								if ($creditNoteName == $creditNoteRef) {
+									$this->files[]	= $creditNoteFile['rowid'];
+								}
 							}
 						}
+					} else {
+						dol_print_error($this->db);
 					}
-					else	dol_print_error($this->db);
 					$this->db->free($resql);
 					// Total
 					$nexY										+= $this->tab_hl * 2;
@@ -591,9 +630,13 @@
 					$heightforfooter							= $this->_pagefoot($pdf, $object, $outputlangs, 0);
 					$posy										= $this->page_hauteur - $heightforfooter - 1;
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
-					if (method_exists($pdf, 'AliasNbPages'))	$pdf->AliasNbPages();
+					if (method_exists($pdf, 'AliasNbPages')) {
+						$pdf->AliasNbPages();
+					}
 					// if merge files is active
-					if (!empty($this->files))					pdf_InfraSPlus_files($pdf, $this->files, 1, $object, $outputlangs, $this->formatpage, 1);
+					if (!empty($this->files)) {
+						pdf_InfraSPlus_files($pdf, $this->files, 1, $object, $outputlangs, $this->formatpage, 1);
+					}
 					$pdf->Close();
 					$pdf->Output($file, 'F');
 					// Add pdfgeneration hook
@@ -605,16 +648,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error	= $outputlangs->transnoentities('ErrorCanNotCreateDir', $dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error	= $outputlangs->transnoentities('ErrorConstantNotDefined', 'FAC_OUTPUTDIR');
 				return 0;
 			}
@@ -627,8 +670,8 @@
 		*	@param		Facture		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= hight of header
-		*											'hauteurcadre	= hight of frame
+		*	@return		array		$hauteurhead	'totalhead'		= height of header
+		*											'hauteurcadre	= height of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{

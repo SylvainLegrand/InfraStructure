@@ -68,8 +68,12 @@ if ($id == 17 && $user->hasRight('accounting', 'chartofaccount')) {
 if (!$allowed) {
 	accessforbidden();
 }
-$testDictSepa = infraspackplus_test_tables('c_sepa_category_purpose');	// InfraS add
-if ($testDictSepa > 0)	$testDictSepa = infraspackplus_test_tables('c_sepa_community_instrument');	// InfraS add
+// InfraS add begin
+$testDictSepa = infraspackplus_test_tables('c_sepa_category_purpose');
+if ($testDictSepa > 0) {
+	$testDictSepa = infraspackplus_test_tables('c_sepa_community_instrument');
+}
+// InfraS add end
 $acts = array(); $actl = array();
 $acts[0] = "activate";
 $acts[1] = "disable";

@@ -583,6 +583,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages		= array($pdf->getPage() => true);
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineColor		= array(128, 128, 128);
@@ -1258,6 +1259,7 @@
 						} else {
 							$pdf->AddPage('', '', true);
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()] = true;
 							$pdf->setPage(2);
 							$tab_top	= $tab_top_newpage;
 						}
@@ -1701,7 +1703,10 @@
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 							// Save auto-break content so watermark goes behind it (z-order fix)
 							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							}
+							$watermarkedPages[$pagenb] = true;
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
@@ -1727,6 +1732,7 @@
 							// New page
 							$pdf->AddPage();
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()] = true;
 							$pagenb++;
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
@@ -1763,6 +1769,8 @@
 					if ($object->mode_reglement_code == 'LCR' && $this->showLCR) {
 						// New page for LCR
 						$pdf->AddPage();
+						pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+						$watermarkedPages[$pdf->getPage()] = true;
 						$pagenb++;
 						if (empty($this->small_head2)) {
 							$this->_pagehead($pdf, $object, 0, $outputlangs);
@@ -1778,6 +1786,7 @@
 						$subtotalRecap	= pdf_InfraSPlus_compare($subtotalRecap, 'rang');
 						$pdf->AddPage();	// New page for review
 						pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+						$watermarkedPages[$pdf->getPage()] = true;
 						$pagenb++;
 						if (empty($this->small_head2)) {
 							$this->_pagehead($pdf, $object, 0, $outputlangs);
@@ -1797,7 +1806,10 @@
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 							// Save auto-break content so watermark goes behind it (z-order fix)
 							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							}
+							$watermarkedPages[$pagenb] = true;
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
@@ -1858,8 +1870,8 @@
 		*	@param		Facture		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= hight of header
-		*											'hauteurcadre	= hight of frame
+		*	@return		array		$hauteurhead	'totalhead'		= height of header
+		*											'hauteurcadre	= height of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
@@ -2450,7 +2462,7 @@
 		*	Show total to pay
 		*
 		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		Facture		$object			Object invoice
+		*	@param		Facture		$object			Object to show
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
 		*	@return		int							Position pour suite
@@ -3081,7 +3093,9 @@
 						$pdf->MultiCell($larg_col2total, $tabtot_hl, pdf_InfraSPlus_price($object, $MntLine, $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T'), '', 'R', 0, 1, $posxcol2total, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), true, 0, 0, false, 0, 'M', false);
 					}
 				}
-				if (!empty($object->paye))	$this->resteapayer = 0;
+				if (!empty($object->paye)) {
+					$this->resteapayer = 0;
+				}
 				if (!$this->no_payment_table) {	// there are some standard payment
 					$index++;
 					$pdf->MultiCell($larg_col1total, $tabtot_hl, $outputlangs->transnoentities('Paid'), '', 'L', 0, 1, $posxtabtotal, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), true, 0, 0, false, 0, 'M', false);
@@ -3159,7 +3173,7 @@
 		*	Show payments table
 		*
 		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		Facture		$object			Object invoice
+		*	@param		Facture		$object			Object to show
 		*	@param		int			$posy		 	Position y in PDF
 		*	@param		Translate	$outputlangs	Object langs for output
 		*	@return		int							Position pour suite

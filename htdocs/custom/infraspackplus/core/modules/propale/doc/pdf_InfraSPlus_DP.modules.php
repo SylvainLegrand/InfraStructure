@@ -18,7 +18,7 @@
 	************************************************/
 
 	/************************************************
-	* 	\file		./infraspackplus/core/modules/propale/doc/pdf_InfraSPlus_D.modules.php
+	* 	\file		./infraspackplus/core/modules/propale/doc/pdf_InfraSPlus_DP.modules.php
 	* 	\ingroup	InfraS
 	* 	\brief		Class file for InfraS PDF commercial proposal
 	************************************************/
@@ -36,6 +36,9 @@
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
+	if (isModEnabled('infras2bridge')) {
+		dol_include_once('/infras2bridge/class/infras2bridge_paymentlinks.class.php');
+	}
 	// For retrocompatibility Dolibarr < 21.0
 	if (floatval(DOL_VERSION) < 21.0 && (!function_exists('getDolGlobalFloat') || !function_exists('getDolGlobalBool'))) {
 		dol_include_once('/infraspackplus/backport/v21/core/lib/functions.lib.php');
@@ -52,6 +55,7 @@
 		public $titlekey;
 		public $defaulttemplate;
 		public $draft_watermark;
+		public $exf_PropalProv;
 		public $show_sign_area;
 		public $show_ExtraFieldsLines;
 		public $option_logo;
@@ -311,7 +315,9 @@
 		public $pagewithoutheader = array();
 		public $tableHeaderBefore = array();
 		public $signvalueEmet;
+		public $sizeBC = 25;
 		public $show_sign_emet_width;
+		public $propalprov_watermark;
 		public $cgv_at_very_end;
 		public $largcol11;
 		public $mergeproduct;
@@ -323,6 +329,7 @@
 		public $show_pay_spec;
 		public $show_sign_area_emet;
 		public $show_sign_area_name_function;
+		public $styleBC;
 		public $typeadr;
 
 		/**
@@ -343,6 +350,7 @@
 			$this->titlekey						= 'InvoiceProForma';
 			$this->defaulttemplate				= getDolGlobalString('PROPALE_ADDON_PDF', '');
 			$this->draft_watermark				= getDolGlobalString('PROPALE_DRAFT_WATERMARK', '');
+			$this->exf_PropalProv				= getDolGlobalString('INFRASPLUS_PDF_EXF_PROPALPROV', '');
 			$this->produit_pdf_merge			= getDolGlobalInt('PRODUIT_PDF_MERGE_PROPAL', 0);
 			$this->use_tva_forfait				= getDolGlobalInt('INFRASPLUS_PDF_USE_TVA_FORFAIT', 0);
 			$this->tva_forfait					= getDolGlobalFloat('INFRASPLUS_PDF_TVA_FORFAIT', 0);
@@ -354,6 +362,7 @@
 			$this->show_sign_emet_width			= getDolGlobalInt('INFRASPLUS_PDF_SIGNATURE_EMET_WIDTH', 40);
 			$this->show_ExtraFieldsLines		= getDolGlobalInt('INFRASPLUS_PDF_EXFL_D', 0);
 			$this->cgv_at_very_end				= getDolGlobalInt('INFRASPLUS_PDF_CGV_AT_VERY_END', 0);
+			$this->propalprov_watermark			= getDolGlobalString('INFRASPLUS_PDF_PROPAL_PROV_WATERMARK', '');
 			$this->option_logo					= 1;	// Display logo
 			$this->option_tva					= 1;	// Manage the vat option FACTURE_TVAOPTION
 			$this->option_modereg				= 1;	// Display payment mode
@@ -489,6 +498,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages			= array($pdf->getPage() => true);	// Track pages with watermark to avoid double rendering in while loops
 					$pagenb						= 1;
 					// Default PDF parameters
 					$this->stdLineColor			= array(128, 128, 128);
@@ -1042,8 +1052,9 @@
 						} else {
 							$pdf->AddPage('', '', true);
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()]	= true;
 							$pdf->setPage(2);
-							$tab_top	= $tab_top_newpage;
+							$tab_top							= $tab_top_newpage;
 						}
 					}
 					// Incoterm
@@ -1200,16 +1211,20 @@
 							if (($curY + $this->tab_hl + $nextlinehight) > ($this->page_hauteur - $this->heightforfooter)) {	// There is no space left for next line + total + free text
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY						= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
-								$showpricebeforepagebreak	= 0;
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								$showpricebeforepagebreak			= 0;
 							}
 						}
 						if (!empty($isSubTotal)) {
 							if (($curY + $this->tab_hl) > ($this->page_hauteur - $this->heightforfooter)) {	// There is no space left for next line + total + free text
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY						= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
-								$showpricebeforepagebreak	= 0;
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								$showpricebeforepagebreak			= 0;
 							}
 						}
 						$colPicture		= $this->tableau['ref']['larg'] > 0 && $this->picture_in_ref ? 'ref' : 'desc';
@@ -1242,7 +1257,9 @@
 							if (($curY + ($this->picture_in_ref ? $this->heightline : $imglinesize['height']) + ($this->picture_padding * 2) + $ht_url) > ($this->page_hauteur - ($this->heightforfooter))) {	// If photo too high, we moved completely on new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY	= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
 							}
 							$PictureY	= $curY + ($this->picture_in_ref ? $heightRef + ($this->tab_hl / 2) : $this->picture_padding);
 							$PictureY	= pdf_InfraSPlus_writelineimg($pdf, $object, $i, $outputlangs, $this->tableau[$colPicture]['posx'], $PictureY, $this->tableau[$colPicture]['larg'], $realpatharray, $imglinesize, $this->linkpictureurl, $this->tab_hl, $ht_url);
@@ -1254,8 +1271,10 @@
 							if (($curY + $this->tab_hl + $imglinesize['height'] + $this->picture_padding) > ($this->page_hauteur - ($this->heightforfooter))) {	// If photo too high, we moved completely on new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY	= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
-								$showpricebeforepagebreak	= 0;
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								$showpricebeforepagebreak			= 0;
 							}
 						}
 						// extra fields and others informations after the long description
@@ -1303,6 +1322,8 @@
 								if ($i == ($nblignes - (empty($nbChildren) && !empty($nbSubTotal) ? $nbSubTotal : $nbChildren) - 1)) {	// No more lines, and no space left to show total, so we create a new page
 									$pdf->AddPage('', '', true);
 									$pdf->setPage($pageposafter + 1);
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pdf->getPage()]	= true;
 								}
 							} else {
 								$showpricebeforepagebreak	= 0;
@@ -1311,6 +1332,8 @@
 							if ($i == ($nblignes - (empty($nbChildren) && !empty($nbSubTotal) ? $nbSubTotal : $nbChildren) - 1)) {	// No more lines, and no space left to show total, so we create a new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposafter + 1);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
 							}
 						}
 						$nexY	= $pdf->GetY();
@@ -1321,6 +1344,8 @@
 							if (($nexY + $imglinesize['height'] + $ht_url) > ($this->page_hauteur - ($this->heightforfooter + ($i == ($nblignes - 1) ? $heightforinfotot : 0)))) {	// If photo too high, we moved completely on new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposimg + 1);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
 								$nexY						= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
 								$showpricebeforepagebreak	= 0;
 							}
@@ -1341,6 +1366,7 @@
 							}
 						}
 						$pdf->SetFont('', '', $default_font_size - 1);	// On repositionne la police par defaut
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						if (empty($this->hide_cols)) {
 							// Reference
 							if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || (!empty($this->picture_in_ref) && empty($this->picture_replace_ref)))) {
@@ -1451,19 +1477,24 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-							// Save auto-break content so watermark goes behind it (z-order fix)
-							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							// Extraire le contenu texte pour corriger le z-order (filigrane/en-tête avant texte)
+							$savedContent	= '';
+							if (method_exists($pdf, 'liftPageContent')) {
+								$savedContent	= $pdf->liftPageContent();
+							}
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pagenb]	= true;
+							}
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
-							// Restore auto-break content after watermark/header
-							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+							// Réinjecter le contenu texte après filigrane et en-tête
+							if (method_exists($pdf, 'dropPageContent')) {
 								$pdf->dropPageContent($savedContent);
 							}
-							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
 							$pdf->SetFillColor(255);
 							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
@@ -1480,6 +1511,7 @@
 							$pdf->AddPage();
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 							$pagenb++;
+							$watermarkedPages[$pagenb]	= true;
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
@@ -1523,6 +1555,7 @@
 						$pdf->AddPage();	// New page for review
 						pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 						$pagenb++;
+						$watermarkedPages[$pagenb]	= true;
 						if (empty($this->small_head2)) {
 							$this->_pagehead($pdf, $object, 0, $outputlangs);
 						} else {
@@ -1539,16 +1572,22 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-							// Save auto-break content so watermark goes behind it (z-order fix)
-							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							// Extraire le contenu texte pour corriger le z-order (filigrane/en-tête avant texte)
+							$savedContent	= '';
+							if (method_exists($pdf, 'liftPageContent')) {
+								$savedContent	= $pdf->liftPageContent();
+							}
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pagenb]	= true;
+							}
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
-							// Restore auto-break content after watermark/header
-							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
+							// Réinjecter le contenu texte après filigrane et en-tête
+							if (method_exists($pdf, 'dropPageContent')) {
 								$pdf->dropPageContent($savedContent);
 							}
 							$pdf->SetFillColor(255);
@@ -1825,11 +1864,20 @@
 			} else if (!empty($this->showtblline) && empty($this->desc_full_line)) {
 				$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $tab_height, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
 			}
+			// Watermarks
 			if ($object->statut == Propal::STATUS_DRAFT && (!empty($this->draft_watermark))) {
 				if (empty($hidetop)) {
 					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + $this->ht_top_table + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
 				} else {
 					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
+				}
+				$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			}
+			if ($object->statut > Propal::STATUS_DRAFT && (!empty($this->exf_PropalProv)) && empty($object->array_options['options_'.$this->exf_PropalProv])) {
+				if (empty($hidetop)) {
+					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->propalprov_watermark, $tab_top + $this->ht_top_table + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
+				} else {
+					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->propalprov_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
 				}
 				$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			}
@@ -2081,6 +2129,32 @@
 						$posytabinfo	+= 1;
 					}
 				}
+				// If payment mode forced to VIR, show payment with QR code and/or Link
+				if (isModEnabled('infras2bridge') && getDolGlobalInt('INFRAS2BRIDGE_ENABLE_PROPAL_PAYMENT_LINK', 0)) {
+					$objectRef		= isModEnabled('propalehistory') && !empty($object->ref_old) ? $object->ref_old : $object->ref;
+					$paymentLink	= new infras2bridge_paymentlinks($this->db);
+					$links			= $paymentLink->get_status_from_ref(dol_sanitizeFileName($objectRef));
+					if (is_array($links)) {
+						foreach ($links as $link) {
+							if (in_array($link['status'], array('valid','completed'))) {
+								// Link to payment
+								if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK')) {
+									$pdf->SetFont('', 'B', $default_font_size - 2);
+									$titre	= $outputlangs->transnoentities('PDFInfraSPlusTransferCreationLink').' : ';
+									$pdf->MultiCell($larg_col1info, $tabinfo_hl, $titre, '', 'L', 0, 1, $posxtabinfo, $posytabinfo - 2, true, 0, 0, false, 0, 'N', false);
+									$pdf->SetFont('', '', $default_font_size - 2);
+									$linktopay	= '<a href="'.$link['link'].'" title="'.$outputlangs->transnoentities('ClickHere').'" style="text-decoration:none">'.$outputlangs->transnoentities('PDFInfraSPlusBridgeLink').'</a>';
+									$pdf->writeHTMLCell($larg_col2info, $tabinfo_hl, $posxcol2info, $posytabinfo - 2, dol_htmlentitiesbr($linktopay), 0, 1, false, true, 'N', true);
+								}
+								// QR Code
+								if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_QR_CODE')) {
+									$pdf->write2DBarcode($link['link'], 'QRCODE,M', $posxtabinfo, $posytabinfo + 5, $this->sizeBC, $this->sizeBC, $this->styleBC, 'N');
+									$posytabinfo	= $pdf->GetY() + 1;
+								}
+							}
+						}
+					}
+				}
 			}
 			if (!empty($this->e_signing) && isModEnabled('uptosign')) {
 				$this->posystamp	= $posytabinfo;
@@ -2103,6 +2177,7 @@
 		*	@param		Propal		$object			Object invoice
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
+		*	@param		int			$calculseul		no print => just to know the height
 		*	@return		int							Position pour suite
 		**/
 		protected function _tableau_tot(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)

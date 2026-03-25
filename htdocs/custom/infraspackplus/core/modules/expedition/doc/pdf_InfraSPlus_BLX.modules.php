@@ -228,7 +228,9 @@
 			$this->name									= $langs->trans('PDFInfraSPlusExpeditionXName');
 			$this->description							= $langs->trans('PDFInfraSPlusExpeditionXDescription');
 			$this->emetteur								= $mysoc;
-			if (empty($this->emetteur->country_code))	$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			if (empty($this->emetteur->country_code)) {
+				$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			}
 			$this->type									= 'pdf';
 			$this->defaulttemplate						= getDolGlobalString('EXPEDITION_ADDON_PDF', '');
 			$this->includealias							= getDolGlobalInt('PDF_INCLUDE_ALIAS_IN_THIRDPARTY_NAME', 0);
@@ -256,9 +258,13 @@
 			global $user, $langs, $conf, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))	$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
 			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BLX') ? '' : '_BLX';
 			$baseDir						= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
@@ -268,8 +274,7 @@
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir.'/sending';
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/sending/'.$objectref;
 					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
@@ -389,7 +394,9 @@
 							}
 							$this->nameCli							= $outputlangs->convToOutputCharset($object->thirdparty->name);
 							$this->profIDcli						= $outputlangs->convToOutputCharset($object->thirdparty->idprof1);
-							if (dol_strlen($this->profIDcli) == 9)	$this->profIDcli	= substr($this->profIDcli, 0, 3).' '.substr($this->profIDcli, 3, 3).' '.substr($this->profIDcli, 6, 3);
+							if (dol_strlen($this->profIDcli) == 9) {
+								$this->profIDcli	= substr($this->profIDcli, 0, 3).' '.substr($this->profIDcli, 3, 3).' '.substr($this->profIDcli, 6, 3);
+							}
 							$this->adrCli1							= str_replace('...', '', dolGetFirstLineOfText($object->thirdparty->address));
 							$this->adrCli2							= trim(str_replace($this->adrCli1, '', dol_string_nohtmltag($object->thirdparty->address)));
 							$this->phoneCli							= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($object->thirdparty->phone)));
@@ -442,8 +449,9 @@
 										}
 										$pdf->MultiCell(0, $this->heightline, $this->nameCli, 0, 'L', 0, 1, 8, 286.5, true, 0, 0, false, 0, 'M', false);	// Custommer Social name
 										$this->_pagefoot($pdf, $object, $outputlangs, 0);
+									} else {
+										setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template)), 'warnings');
 									}
-									else	setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template)), 'warnings');
 								}
 								// Now we add the other pages just once
 								$ref			= pdf_getlineref($object, $j, $outputlangs, $hidedetails);
@@ -475,8 +483,7 @@
 											$pdf->MultiCell(0, $this->heightline, $this->emailCli,				0, 'L', 0, 1, 22, 122.7,	true, 0, 0, false, 0, 'M', false);	// Custommer email
 											$pdf->MultiCell(0, $this->heightline, 'X',							0, 'L', 0, 1, 10, 133.2,	true, 0, 0, false, 0, 'M', false);	// first check box
 											$pdf->MultiCell(0, $this->heightline, $object->thirdparty->town,	0, 'L', 0, 1, 18, 209,		true, 0, 0, false, 0, 'M', false);	// Custommer town on "fait à"
-										}
-										elseif ($pdf->getPage() == ($pageposbefore + 2)) {	// fourth page of the template (just +2 because we start at the third page) {
+										} elseif ($pdf->getPage() == ($pageposbefore + 2)) {	// fourth page of the template (just +2 because we start at the third page) {
 											$pdf->MultiCell(0, $this->heightline, $iContactLN,					0, 'L', 0, 1, 33, 21.2,		true, 0, 0, false, 0, 'M', false);	// My contact last name
 											$pdf->MultiCell(0, $this->heightline, $iContactFN,					0, 'L', 0, 1, 110, 21.2,	true, 0, 0, false, 0, 'M', false);	// My contact first name
 											$pdf->MultiCell(0, $this->heightline, $iContactJob,					0, 'L', 0, 1, 37, 29.2,		true, 0, 0, false, 0, 'M', false);	// My contact job
@@ -492,8 +499,9 @@
 										}
 										$pdf->MultiCell(0, $this->heightline, $this->nameCli, 0, 'L', 0, 1, 8, 286.5, true, 0, 0, false, 0, 'M', false);	// Custommer Social name
 										$this->_pagefoot($pdf, $object, $outputlangs, 0);
+									} else {
+										setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template)), 'warnings');
 									}
-									else	setEventMessages(null, array($outputlangs->trans("PDFInfraSPlusPdfFileError1", $template)), 'warnings');
 								}
 							}
 						}
@@ -505,16 +513,16 @@
 					$parameters						= array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
 					global $action;
 					$reshook=$hookmanager->executeHooks('afterPDFCreation',$parameters,$this,$action);	// Note that $action and $object may have been modified by some hooks
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error=$langs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error=$langs->trans("ErrorConstantNotDefined","EXP_OUTPUTDIR");
 				return 0;
 			}
@@ -533,8 +541,11 @@
 			global $conf;
 
 			$showdetails				= $this->type_foot;
-			if (!empty($this->pied))	$showdetails	.= 1;
-			else						$showdetails	.= 0;
+			if (!empty($this->pied)) {
+				$showdetails	.= 1;
+			} else {
+				$showdetails	.= 0;
+			}
 			return pdf_InfraSPlus_pagefoot($pdf, $object, $outputlangs, $this->emetteur, $this->formatpage, $showdetails, 0, $calculseul, $object->entity, $this->pied, $this->maxsizeimgfoot, $this->hidepagenum, $this->bodytxtcolor, $this->stdLineStyle);
 		}
 

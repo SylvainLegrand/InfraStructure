@@ -219,7 +219,9 @@
 			$this->name									= $langs->trans('PDFInfraSPlusEtiquetteName');
 			$this->description							= $langs->trans('PDFInfraSPlusEtiquetteDescription');
 			$this->emetteur								= $mysoc;
-			if (empty($this->emetteur->country_code))	$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			if (empty($this->emetteur->country_code)) {
+				$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			}
 			$this->type									= 'pdf';
 			$this->defaulttemplate						= getDolGlobalString('EXPEDITION_ADDON_PDF', '');
 			$this->includealias							= getDolGlobalInt('PDF_INCLUDE_ALIAS_IN_THIRDPARTY_NAME', 0);
@@ -244,9 +246,13 @@
 		{
 			global $user, $langs, $conf, $hookmanager;
 
-			if (! is_object($outputlangs)) $outputlangs	= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf)) $outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_ET') ? '' : '_ET';
 			$baseDir						= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
 
@@ -257,8 +263,7 @@
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir.'/sending';
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/sending/'.$objectref;
 					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
@@ -317,14 +322,16 @@
 					// Calculs de positions
 					$this->tab_hl			= 6;
 					$this->hBC				= 20;
-					if ($this->logo)	$logo	= $conf->mycompany->dir_output.'/logos/'.$this->logo;
-					else				$logo	= $conf->mycompany->dir_output.'/logos/'.$this->emetteur->logo;
+					if ($this->logo) {
+						$logo	= $conf->mycompany->dir_output.'/logos/'.$this->logo;
+					} else {
+						$logo	= $conf->mycompany->dir_output.'/logos/'.$this->emetteur->logo;
+					}
 					if ($logo) {
 						if (is_file($logo) && is_readable($logo)) {
 							$heightLogo	= pdf_getHeightForLogo($logo);
 							$pdf->Image($logo, $this->marge_gauche, $this->marge_haute, 0, $heightLogo, '', '', '', false, 0, 'C');	// width=0 (auto)
-						}
-						else {
+						} else {
 							$pdf->SetTextColor(200, 0, 0);
 							$pdf->SetFont('', 'B', $default_font_size - 2);
 							$pdf->MultiCell($this->larg_util_cadre, $this->tab_hl, $outputlangs->transnoentities("ErrorInfraSPlusParamLogoFileNotFound", $logo), '', 'C', 0, 1, $this->marge_gauche, $this->marge_haute, true, 0, 0, false, 0, 'M', false);
@@ -332,8 +339,7 @@
 							$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 							$heightLogo	= $pdf->getY() + 1;
 						}
-					}
-					else {
+					} else {
 						$text		= $this->emetteur->name;
 						$pdf->MultiCell($w, $this->tab_hl, $outputlangs->convToOutputCharset($text), '', 'C', 0, 1, $this->marge_gauche, $this->marge_haute, true, 0, 0, false, 0, 'M', false);
 						$heightLogo = $this->tab_hl;
@@ -363,9 +369,14 @@
 					$carac_emetteur	= dol_string_nohtmltag(dol_format_address($this->emetteur, 0, ' ', $outputlangs));
 					$carac_client	= '';
 					if ($this->showadrlivr && $this->adrlivr) {
-						if ($this->adrlivr == 'Default')	$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $object->thirdparty, '', 0, 'targetwithnodetails', $object, 0);
-						else								$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $this->adrlivr, '', 0, 'targetwithnodetails', $object, 0);
-						if ($carac_client)					$carac_client_name	= dol_htmlentitiesbr($this->adrlivr->name);
+						if ($this->adrlivr == 'Default') {
+							$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $object->thirdparty, '', 0, 'targetwithnodetails', $object, 0);
+						} else {
+							$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $this->adrlivr, '', 0, 'targetwithnodetails', $object, 0);
+						}
+						if ($carac_client) {
+							$carac_client_name	= dol_htmlentitiesbr($this->adrlivr->name);
+						}
 					}
 					if (!$this->showadrlivr || !$this->adrlivr) {
 						// Recipient properties
@@ -416,16 +427,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error=$langs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error=$langs->trans("ErrorConstantNotDefined","EXP_OUTPUTDIR");
 				return 0;
 			}
