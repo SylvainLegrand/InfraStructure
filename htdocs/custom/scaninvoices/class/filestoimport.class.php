@@ -1293,7 +1293,7 @@ class Filestoimport extends CommonObject
 
 				$storageExt = ".pdf";
 				foreach ($res as $filename => $value) {
-					if ($value) {
+					if (is_array($value) && isset($value['{DAV:}getcontenttype'])) {
 						$basefilename = dol_sanitizeFileName(scaninvoicesSlugify(basename($filename, $storageExt))).$storageExt;
 						$filesize = $value['{DAV:}getcontentlength'];
 						$contenttype = $value['{DAV:}getcontenttype'];
