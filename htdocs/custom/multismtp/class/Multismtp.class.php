@@ -274,34 +274,34 @@ class Multismtp
 
 		$resql = $this->db->fetch_object($query);
 
-		$this->smtp_id = $resql->smtp_id;
-		$this->smtp_auth_type = empty($resql->smtp_auth_type) ? 'LOGIN' : $resql->smtp_auth_type;
-		$this->smtp_pw = $resql->smtp_pw;
-		$this->smtp_oauth_service = $resql->smtp_oauth_service;
-		$this->smtp_oauth_provider = $resql->smtp_oauth_provider;
-		$this->smtp_oauth_id = $resql->smtp_oauth_id;
-		$this->smtp_oauth_secret = $resql->smtp_oauth_secret;
-		$this->smtp_oauth_url_authorize = $resql->smtp_oauth_url_authorize;
-		$this->smtp_oauth_scope = $resql->smtp_oauth_scope;
-		$this->smtp_oauth_tenant = $resql->smtp_oauth_tenant;
-		$this->smtp_server = $resql->smtp_server;
-		$this->smtp_port = $resql->smtp_port;
-		$this->smtp_tls = (bool) $resql->smtp_tls;
-		$this->smtp_starttls = (bool) $resql->smtp_starttls;
-		$this->imap_id = $resql->imap_id;
-		$this->imap_auth_type = empty($resql->imap_auth_type) ? 'LOGIN' : $resql->imap_auth_type;
-		$this->imap_pw = $resql->imap_pw;
-		$this->imap_oauth_service = $resql->imap_oauth_service;
-		$this->imap_oauth_provider = $resql->imap_oauth_provider;
-		$this->imap_oauth_id = $resql->imap_oauth_id;
-		$this->imap_oauth_secret = $resql->imap_oauth_secret;
-		$this->imap_oauth_url_authorize = $resql->imap_oauth_url_authorize;
-		$this->imap_oauth_scope = $resql->imap_oauth_scope;
-		$this->imap_oauth_tenant = $resql->imap_oauth_tenant;
-		$this->imap_server = $resql->imap_server;
-		$this->imap_port = $resql->imap_port;
-		$this->imap_tls = (bool) $resql->imap_tls;
-		$this->imap_folder = $resql->imap_folder;
+		$this->smtp_id = $resql->smtp_id ?? null;
+		$this->smtp_auth_type = empty($resql->smtp_auth_type ?? null) ? 'LOGIN' : $resql->smtp_auth_type;
+		$this->smtp_pw = $resql->smtp_pw ?? null;
+		$this->smtp_oauth_service = $resql->smtp_oauth_service ?? null;
+		$this->smtp_oauth_provider = $resql->smtp_oauth_provider ?? null;
+		$this->smtp_oauth_id = $resql->smtp_oauth_id ?? null;
+		$this->smtp_oauth_secret = $resql->smtp_oauth_secret ?? null;
+		$this->smtp_oauth_url_authorize = $resql->smtp_oauth_url_authorize ?? null;
+		$this->smtp_oauth_scope = $resql->smtp_oauth_scope ?? null;
+		$this->smtp_oauth_tenant = $resql->smtp_oauth_tenant ?? null;
+		$this->smtp_server = $resql->smtp_server ?? null;
+		$this->smtp_port = $resql->smtp_port ?? null;
+		$this->smtp_tls = (bool) ($resql->smtp_tls ?? false);
+		$this->smtp_starttls = (bool) ($resql->smtp_starttls ?? false);
+		$this->imap_id = $resql->imap_id ?? null;
+		$this->imap_auth_type = empty($resql->imap_auth_type ?? null) ? 'LOGIN' : $resql->imap_auth_type;
+		$this->imap_pw = $resql->imap_pw ?? null;
+		$this->imap_oauth_service = $resql->imap_oauth_service ?? null;
+		$this->imap_oauth_provider = $resql->imap_oauth_provider ?? null;
+		$this->imap_oauth_id = $resql->imap_oauth_id ?? null;
+		$this->imap_oauth_secret = $resql->imap_oauth_secret ?? null;
+		$this->imap_oauth_url_authorize = $resql->imap_oauth_url_authorize ?? null;
+		$this->imap_oauth_scope = $resql->imap_oauth_scope ?? null;
+		$this->imap_oauth_tenant = $resql->imap_oauth_tenant ?? null;
+		$this->imap_server = $resql->imap_server ?? null;
+		$this->imap_port = $resql->imap_port ?? null;
+		$this->imap_tls = (bool) ($resql->imap_tls ?? false);
+		$this->imap_folder = $resql->imap_folder ?? null;
 
 		return true;
 	}
@@ -788,7 +788,7 @@ smtp_oauth_tenant = NULL";
 		}
 
 		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
-			$array['auth_type'] = $conf->global->MULTISMTP_IMAP_CONF_AUTH_TYPE;
+			$array['auth_type'] = getDolGlobalString('MULTISMTP_IMAP_CONF_AUTH_TYPE');
 		}
 
 		if (!empty($conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE)) {
