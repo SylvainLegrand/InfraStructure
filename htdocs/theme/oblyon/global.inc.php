@@ -79,6 +79,14 @@
     --bgnavleft_txt: <?php print $bgnavleft_txt; ?>;
     --bgnavleft_txt_active: <?php print $bgnavleft_txt_active; ?>;
     --bgnavleft_txt_hover: <?php print $bgnavleft_txt_hover; ?>;
+	--prospectback: <?php print $prospectback; ?>;
+	--customerback: <?php print $customerback; ?>;
+	--vendorback: <?php print $vendorback; ?>;
+	--userback: <?php print $userback; ?>;
+	--colornature: <?php print $colornature; ?>;
+	--member_companyback: <?php print $member_companyback; ?>;
+	--member_individualback: <?php print $member_individualback; ?>;
+	--colormember: <?php print $colormember; ?>;
 }
 
 /*------------------------------------*\

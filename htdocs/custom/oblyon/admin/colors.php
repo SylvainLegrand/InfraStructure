@@ -113,7 +113,15 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 										'THEME_ELDY_TEXTTITLENOTAB',
 										'THEME_ELDY_TEXTTITLE',
 										'THEME_ELDY_TEXT',
-										'THEME_ELDY_TEXTLINK'
+										'THEME_ELDY_TEXTLINK',
+										'THEME_ELDY_PROSPECTBACK',
+										'THEME_ELDY_CUSTOMERBACK',
+										'THEME_ELDY_VENDORBACK',
+										'THEME_ELDY_USERBACK',
+										'THEME_ELDY_COLORNATURE',
+										'THEME_ELDY_MEMBER_COMPANYBACK',
+										'THEME_ELDY_MEMBER_INDIVIDUALBACK',
+										'THEME_ELDY_COLORMENBER',
 										)
 					);
 $listtheme	= array('green'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
@@ -176,7 +184,15 @@ $listtheme	= array('green'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF'
 										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
 										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
 										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C'
+										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
+										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
+										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
+										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
+										'THEME_ELDY_USERBACK'					=> '#79633F',
+										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
+										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
+										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
+										'THEME_ELDY_COLORMENBER'				=> '#666666'
 										),
 					'dark'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
 										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#333333',
@@ -238,7 +254,15 @@ $listtheme	= array('green'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF'
 										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
 										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
 										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C'
+										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
+										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
+										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
+										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
+										'THEME_ELDY_USERBACK'					=> '#79633F',
+										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
+										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
+										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
+										'THEME_ELDY_COLORMENBER'				=> '#666666'
 										),
 					'blue'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
 										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#092D5C',
@@ -300,7 +324,15 @@ $listtheme	= array('green'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF'
 										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
 										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
 										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C'
+										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
+										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
+										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
+										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
+										'THEME_ELDY_USERBACK'					=> '#79633F',
+										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
+										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
+										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
+										'THEME_ELDY_COLORMENBER'				=> '#666666'
 										),
 					'night'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#444444',
 										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#222222',
@@ -362,7 +394,15 @@ $listtheme	= array('green'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF'
 										'THEME_ELDY_TEXTTITLENOTAB'				=> '#FFFFFF',
 										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
 										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C'
+										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
+										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
+										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
+										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
+										'THEME_ELDY_USERBACK'					=> '#79633F',
+										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
+										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
+										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
+										'THEME_ELDY_COLORMENBER'				=> '#666666'
 										),
 					'light'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
 										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#FFFFFF',
@@ -424,7 +464,15 @@ $listtheme	= array('green'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF'
 										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
 										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
 										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C'
+										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
+										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
+										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
+										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
+										'THEME_ELDY_USERBACK'					=> '#79633F',
+										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
+										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
+										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
+										'THEME_ELDY_COLORMENBER'				=> '#666666'
 									)
 					);
 
