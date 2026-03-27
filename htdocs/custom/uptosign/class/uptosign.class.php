@@ -3238,7 +3238,10 @@ class UptoSign extends CommonObject
 				}
 
 				if (!empty($config->page_sign)) {	// test si la signature n'est pas désactivée pour ce type de document
-					$contactCode = $typeContacts[$config->fk_c_type_contact];
+					$contactCode = isset($typeContacts[$config->fk_c_type_contact]) ? $typeContacts[$config->fk_c_type_contact] : null;
+					if (empty($contactCode)) {
+						continue;
+					}
 					$contactIds = $object->getIdContact('external', $contactCode['code']);
 					$userIds = $object->getIdContact('internal', $contactCode['code']);
 
