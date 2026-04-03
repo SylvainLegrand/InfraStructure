@@ -175,9 +175,12 @@ if (getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
 // If OpenID Connect is set as an authentication
 if (getDolGlobalInt('MAIN_MODULE_OPENIDCONNECT', 0) > 0 && isset($conf->file->main_authentication) && preg_match('/openid_connect/', $conf->file->main_authentication)) {
 	// Set a cookie to transfer rollback page information
+	// Only set once: sub-requests (JS, AJAX, libs needing auth) would overwrite with their own URL.
 	$prefix = dol_getprefix('');
 	if (empty($_COOKIE["DOL_rollback_url_$prefix"])) {
-		dolSetCookie('DOL_rollback_url_'.$prefix, $_SERVER['REQUEST_URI'], time() + 3600);	// $_SERVER["REQUEST_URI"] is for example /mydolibarr/mypage.php
+		// Strip token query params: they can't be replayed after re-auth, and a stale token triggers the CSRF check in main.inc.php which does unset($_POST) — wiping openid_mode and causing a redirect loop.
+		$rollbackUrl = preg_replace('/(&token=[^&]*|token=[^&]*&)/', '', $_SERVER['REQUEST_URI']);
+		dolSetCookie('DOL_rollback_url_'.$prefix, $rollbackUrl, time() + 3600);	// $_SERVER["REQUEST_URI"] is for example /mydolibarr/mypage.php
 	}
 
 	// Auto redirect if OpenID Connect is the only authentication

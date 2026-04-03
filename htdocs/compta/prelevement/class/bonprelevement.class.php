@@ -1112,7 +1112,31 @@ class BonPrelevement extends CommonObject
 			$societeOrUser = 'user';
 		}
 
-		$thirdpartyBANId = 0;
+		$thirdpartyBANIds = [];
+
+		// Check if there is an iban associated to the bank transfer request or if we take the default
+		if ($dids !== [0] && !empty($dids)) {
+			$sql = "SELECT pd.fk_societe_rib";
+			$sql .= " FROM " . $this->db->prefix() . "prelevement_demande as pd";
+			$sql .= " WHERE pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
+
+			$resql = $this->db->query($sql);
+
+			if (!$resql) {
+				$this->error = $this->db->lasterror();
+				dol_syslog(__METHOD__ . " Read fk_societe_rib error " . $this->db->lasterror(), LOG_ERR);
+				return -1;
+			}
+
+			while($obj = $this->db->fetch_object($resql)) {
+				$thirdpartyBANIds[] = (int) $obj->fk_societe_rib;
+
+				dol_syslog(__METHOD__ . " Found BAN ID to use: ".$obj->fk_societe_rib);
+			}
+			$thirdpartyBANIds = array_unique($thirdpartyBANIds);
+
+			$this->db->free($resql);
+		}
 
 		$datetimeprev = dol_now('gmt');
 		// Choice of the date of the execution direct debit
@@ -1152,8 +1176,11 @@ class BonPrelevement extends CommonObject
 			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser)." as s ON s.rowid = f.".$this->db->sanitize($socOrUser);
 			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser."_rib")." as sr ON s.rowid = sr.".$this->db->sanitize($socOrUser);
 			if ($sourcetype != 'salary') {
-				// InfraS fix: use per-row BAN selection from prelevement_demande instead of a single global thirdpartyBANId
-				$sql .= " AND ((pd.fk_societe_rib IS NOT NULL AND pd.fk_societe_rib > 0 AND sr.rowid = pd.fk_societe_rib) OR ((pd.fk_societe_rib IS NULL OR pd.fk_societe_rib = 0) AND sr.default_rib = 1))";
+				if (!empty($thirdpartyBANIds)) {
+					$sql .= " AND sr.rowid IN (" .implode(', ', $thirdpartyBANIds).")";
+				} else {
+					$sql .= " AND sr.default_rib = 1";
+				}
 				// TODO Add 'AND sr.default_rib = 1' in sourcetype salary too Note: the column has been created in v21 in llx_user_rib and default to 0
 				// If we add a test on sr.default_rib = 1, we must also check we have a correct error management to stop if no default BAN is found.
 			}
@@ -1459,7 +1486,7 @@ class BonPrelevement extends CommonObject
 						$this->emetteur_iban               = $account->iban;
 						$this->emetteur_bic                = $account->bic;
 
-						$this->emetteur_ics = (($type == 'bank-transfer' && !empty($account->ics_transfer)) ? $account->ics_transfer : $account->ics);	// Example "FR78ZZZ123456" or "B23872716000"
+						$this->emetteur_ics = (($type == 'bank-transfer' && getDolGlobalString("SEPA_USE_IDS")) ? $account->ics_transfer : $account->ics);	// Example "FR78ZZZ123456"
 
 						$this->raison_sociale = $account->owner_name;
 					}
@@ -1471,7 +1498,7 @@ class BonPrelevement extends CommonObject
 					if ($sourcetype == 'salary') {
 						$userid = $this->context['factures_prev'][0][2];
 					}
-					$result = $this->generate($format, $executiondate, $type, $fk_bank_account, $userid, $thirdpartyBANId);
+					$result = $this->generate($format, $executiondate, $type, $fk_bank_account, $userid, $thirdpartyBANIds);
 					if ($result < 0) {
 						//var_dump($this->error);
 						//var_dump($this->invoice_in_error);
@@ -1781,10 +1808,10 @@ class BonPrelevement extends CommonObject
 	 * @param	string	$type				'direct-debit' or 'bank-transfer'
 	 * @param   int     $fk_bank_account	Bank account ID the receipt is generated for. Will use the ID into the setup of module Direct Debit or Credit Transfer if 0.
 	 * @param   int  	$forsalary          If the SEPA is to pay salaries
-	 * @param   int  	$thirdpartyBANId	If defined, will use this ID to get the RIB. Otherwise, the first default BAN will be taken.
+	 * @param   int[]  	$thirdpartyBANIds	If defined, will use this IDs to get the RIB. Otherwise, the first default BAN will be taken.
 	 * @return	int							>=0 if OK, <0 if KO
 	 */
-	public function generate(string $format = 'ALL', int $executiondate = 0, string $type = 'direct-debit', int $fk_bank_account = 0, int $forsalary = 0, int $thirdpartyBANId = 0)
+	public function generate(string $format = 'ALL', int $executiondate = 0, string $type = 'direct-debit', int $fk_bank_account = 0, int $forsalary = 0, Array $thirdpartyBANIds = [])
 	{
 		global $conf, $langs, $mysoc;
 
@@ -1846,19 +1873,20 @@ class BonPrelevement extends CommonObject
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 				$sql .= " " . MAIN_DB_PREFIX . "facture as f,";
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
-				$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe as soc,";
 				$sql .= " " . MAIN_DB_PREFIX . "c_country as c,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 				$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 				$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 				$sql .= " AND p.fk_facture = f.rowid";
-				$sql .= " AND pd.fk_facture = f.rowid AND pd.fk_prelevement_bons = " . ((int) $this->id);
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
 				$sql .= " AND rib.fk_soc = f.fk_soc";
-				// InfraS fix: use per-row BAN selection from prelevement_demande
-				$sql .= " AND ((pd.fk_societe_rib IS NOT NULL AND pd.fk_societe_rib > 0 AND rib.rowid = pd.fk_societe_rib) OR ((pd.fk_societe_rib IS NULL OR pd.fk_societe_rib = 0) AND rib.default_rib = 1))";
+				if (!empty($thirdpartyBANIds)) {
+					$sql .= " AND rib.rowid IN (" . implode(',', $thirdpartyBANIds) . ")";
+				} else {
+					$sql .= " AND rib.default_rib = 1";
+				}
 				$sql .= " AND rib.type = 'ban'";
 
 				// Define $fileDebiteurSection. One section DrctDbtTxInf per invoice.
@@ -1872,7 +1900,9 @@ class BonPrelevement extends CommonObject
 						$obj = $this->db->fetch_object($resql);
 
 						if (!empty($cachearraytotestduplicate[$obj->idfac])) {
-							$this->error = $langs->trans('ErrorCompanyHasDuplicateDefaultBAN', $obj->socid);
+							$soc = new Societe($this->db);
+							$soc->fetch($obj->socid);
+							$this->error = $langs->trans('ErrorCompanyHasDuplicateDefaultBAN', $soc->getNomUrl());
 							$this->invoice_in_error[$obj->idfac] = $this->error;
 							$result = -2;
 							break;
@@ -1990,18 +2020,19 @@ class BonPrelevement extends CommonObject
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 					$sql .= " " . MAIN_DB_PREFIX . "facture_fourn as f,";
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
-					$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe as soc";
 					$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_country as c ON soc.fk_pays = c.rowid,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 					$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 					$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 					$sql .= " AND p.fk_facture_fourn = f.rowid";
-					$sql .= " AND pd.fk_facture_fourn = f.rowid AND pd.fk_prelevement_bons = " . ((int) $this->id);
 					$sql .= " AND f.fk_soc = soc.rowid";
 					$sql .= " AND rib.fk_soc = f.fk_soc";
-					// InfraS fix: use per-row BAN selection from prelevement_demande
-					$sql .= " AND ((pd.fk_societe_rib IS NOT NULL AND pd.fk_societe_rib > 0 AND rib.rowid = pd.fk_societe_rib) OR ((pd.fk_societe_rib IS NULL OR pd.fk_societe_rib = 0) AND rib.default_rib = 1))";
+					if (!empty($thirdpartyBANIds)) {
+						$sql .= " AND rib.rowid IN (" . implode(',', $thirdpartyBANIds) . ")";
+					} else {
+						$sql .= " AND rib.default_rib = 1";
+					}
 					$sql .= " AND rib.type = 'ban'";
 				}
 				// Define $fileCrediteurSection. One section DrctDbtTxInf per invoice.
@@ -2570,7 +2601,7 @@ class BonPrelevement extends CommonObject
 			$this->emetteur_iban = $account->iban;
 			$this->emetteur_bic = $account->bic;
 
-			$this->emetteur_ics = (($type == 'bank-transfer' && !empty($account->ics_transfer)) ? $account->ics_transfer : $account->ics);  // Ex: PRELEVEMENT_ICS = "FR78ZZZ123456" or "B23872716000";
+			$this->emetteur_ics = (($type == 'bank-transfer' && getDolGlobalString("SEPA_USE_IDS")) ? $account->ics_transfer : $account->ics);  // Ex: PRELEVEMENT_ICS = "FR78ZZZ123456";
 
 			$this->raison_sociale = $account->owner_name;
 		}
