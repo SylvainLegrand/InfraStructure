@@ -1485,23 +1485,20 @@ class ExtraFields
 					$parentField = '';
 					$keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2].' as rowid');
 
-					if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
-						list($parentName, $parentField) = explode('|', $InfoFieldList[3]);
-						$keyList .= ', '.$parentField;
-					}
 					if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
 						if (strpos($InfoFieldList[4], 'extra.') !== false) {
 							$keyList = 'main.'.$InfoFieldList[2].' as rowid';
 						} else {
 							$keyList = $InfoFieldList[2].' as rowid';
 						}
-						// infras add begin
-						// Re-add parent field that was removed by keyList reset above
-						if (!empty($parentField)) {
+					}
+					if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
+						list($parentName, $parentField) = explode('|', $InfoFieldList[3]);
+						if (strpos($InfoFieldList[4], 'extra.') !== false) {
+							$keyList .= ', main.'.$parentField;
+						} else {
 							$keyList .= ', '.$parentField;
 						}
-
-						// infras add end
 					}
 
 					$filter_categorie = false;
@@ -1773,12 +1770,6 @@ class ExtraFields
 					} else {
 						$keyList = $InfoFieldList[2].' as rowid';
 					}
-					// infras add begin
-					// Re-add parent field that was removed by keyList reset above
-					if (!empty($parentField)) {
-						$keyList .= ', '.$parentField;
-					}
-					// infras add end
 				}
 
 				$filter_categorie = false;

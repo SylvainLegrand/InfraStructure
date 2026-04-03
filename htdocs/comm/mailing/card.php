@@ -1285,6 +1285,7 @@ if ($action == 'create') {	// aaa
 				$formmail->param["mailid"] = $object->id;
 				$formmail->param["returnurl"] = $_SERVER['PHP_SELF']."?id=".$object->id;
 
+				$formmail->findToDefaultDestination($object);
 				print $formmail->get_form();
 
 				print '<br>';
