@@ -1,0 +1,346 @@
+<changelog>
+    <Version Number="3.5.0" MonthVersion="2021-02">
+        <change type="add">Ajouter les lignes 'Titre' , 'Total' , 'Libre' aux generations d'expeditions de commandes expédiables (il faudra
+  supprimer les lignes de sous-total à la main si le besoin s'en fait sentir)</change>
+    </Version>
+    <Version Number="3.5.1" MonthVersion="2021-04">
+        <change type="fix">Exclusion des lignes de sous-total du calcul du total</change>
+    </Version>
+    <Version Number="3.5.2" MonthVersion="2021-04">
+        <change type="fix">Correction de saut de ligne des titres ou textes dans le PDF</change>
+    </Version>
+    <Version Number="3.5.3" MonthVersion="2021-04">
+        <change type="fix">Création de facture : les lignes titre / sous-total / texte libre provenant des expéditions ou livraisons n’étaient pas importées avec le code spécial (MDLL)</change>
+    </Version>
+    <Version Number="3.6.0" MonthVersion="2021-04">
+        <change type="fix">Compatibilité Dolibarr v13.0 (exclusion du renouvellement de token)</change>
+    </Version>
+    <Version Number="3.6.1" MonthVersion="2021-04">
+        <change type="fix">Correction du colspan des lignes de document si le module Marges n’est pas activé mais que certaines conf du module sont encore actives</change>
+    </Version>
+    <Version Number="3.6.2" MonthVersion="2021-05">
+        <change type="fix">Ajout de l’include de la classe dans actions_subtotal pour éviter des erreurs</change>
+    </Version>
+    <Version Number="3.6.3" MonthVersion="2021-06">
+        <change type="fix">Uniformisation des champs editor, editor_url et family dans le descripteur du module</change>
+    </Version>
+    <Version Number="3.6.4" MonthVersion="2021-06">
+        <change type="fix">Compatibilité icône « Cloner »</change>
+    </Version>
+    <Version Number="3.6.5" MonthVersion="2021-07">
+        <change type="fix">Ajout d’une configuration permettant d’ajouter ou non la ligne de sous-total lors de la création d’une expédition depuis une commande</change>
+    </Version>
+    <Version Number="3.6.7" MonthVersion="2022-06">
+        <change type="fix">Colonnes manquantes dans la page de création de facture (depuis commande)</change>
+    </Version>
+    <Version Number="3.6.8" MonthVersion="2022-11">
+        <change type="fix">Case à cocher pour ajouter un bloc titre de sous-total par commande sur les factures utilisant la fonction "Facturer les commandes" cassée par des modifications du core Dolibarr</change>
+    </Version>
+    <Version Number="3.6.9" MonthVersion="2022-11">
+        <change type="fix">Lignes de titre cassées dans les PDF pour les documents dont les lignes utilisent le champ desc au lieu de label (ex. commandes fournisseurs et factures)</change>
+    </Version>
+    <Version Number="3.6.10" MonthVersion="2022-12">
+        <change type="fix">Les substitutions ODT ne se faisaient pas pour toutes les actions sur les factures</change>
+    </Version>
+    <Version Number="3.7.0" MonthVersion="2021-11">
+        <change type="add">Ajout API sous-total</change>
+    </Version>
+    <Version Number="3.8.0" MonthVersion="2021-12">
+        <change type="add">Sélection des sous-totaux dans commandes fournisseurs</change>
+    </Version>
+    <Version Number="3.9.0" MonthVersion="2021-12">
+        <change type="add">Somme des quantités par sous-total</change>
+    </Version>
+    <Version Number="3.10.0" MonthVersion="2022-03">
+        <change type="add">Option couleur de fond des titres et sous-totaux</change>
+    </Version>
+    <Version Number="3.11.0" MonthVersion="2022-03">
+        <change type="add">Ajout d’une nouvelle configuration pour désactiver le comportement étrange des lignes de sous-total dans les PDF. Par défaut, le label du sous-total contient toujours le label du titre, mais cette option permet de le désactiver</change>
+        <change type="fix">Option avancée de configuration utilisée incorrectement</change>
+        <change type="fix">Logo du module et classes de configuration des tableaux</change>
+        <change type="fix">Suppression du fichier de rétrocompatibilité inutile et modification de la version minimale de compatibilité du module (Dolibarr 7.0 / PHP 5.4)</change>
+        <change type="fix">Colspan de 4 à 5 pour corriger l’affichage des propales et factures</change>
+        <change type="fix">$pdf->rollbackTransaction utilisé sans démarrage</change>
+    </Version>
+    <Version Number="3.11.1" MonthVersion="2023-05">
+        <change type="fix">Correction double parenthèses</change>
+    </Version>
+    <Version Number="3.12.0" MonthVersion="2022-05">
+        <change type="add">Ajout de total_ht dans le template originproductline si disponible + ajout de la classe td et identification data-id de la ligne</change>
+    </Version>
+    <Version Number="3.13.0" MonthVersion="2022-05">
+        <change type="add">Ajout de la classe TechATM pour l’affichage de la page "À propos"</change>
+    </Version>
+    <Version Number="3.14.0" MonthVersion="2022-05">
+        <change type="add">Refonte de la page de configuration avec la classe setup de Dolibarr V15</change>
+    </Version>
+    <Version Number="3.14.1" MonthVersion="2022-06">
+        <change type="fix">Compatibilité dictionnaires Dolibarr V16</change>
+    </Version>
+    <Version Number="3.14.2" MonthVersion="2022-07">
+        <change type="fix">Correction duplication lignes lors création depuis proposition commerciale</change>
+    </Version>
+    <Version Number="3.14.3" MonthVersion="2022-07">
+        <change type="fix">Correction balise HTML manquante</change>
+    </Version>
+    <Version Number="3.14.4" MonthVersion="2022-07">
+        <change type="fix">Déplacement option récapitulatif dans la zone expérimentale (admin)</change>
+    </Version>
+    <Version Number="3.14.5" MonthVersion="2022-07">
+        <change type="fix">Compatibilité PHP 8</change>
+    </Version>
+    <Version Number="3.14.6" MonthVersion="2022-11">
+        <change type="fix">Suppression de la transaction dans pdf_writelinedesc</change>
+    </Version>
+    <Version Number="3.14.7" MonthVersion="2022-10">
+        <change type="fix">Compatibilité PHP 8</change>
+    </Version>
+    <Version Number="3.14.8" MonthVersion="2022-11">
+        <change type="fix">Correction mise à jour info bits et anomalies de lignes</change>
+    </Version>
+    <Version Number="3.15.0" MonthVersion="2022-11">
+        <change type="add">Ajout de massaction de suppression de ligne sur les card</change>
+    </Version>
+    <Version Number="3.15.1" MonthVersion="2023-01">
+        <change type="fix">Erreur fatale</change>
+    </Version>
+    <Version Number="3.15.2" MonthVersion="2023-01">
+        <change type="fix">Correction gestion non-compris</change>
+    </Version>
+    <Version Number="3.15.3" MonthVersion="2023-01">
+        <change type="fix">Correction erreurs colspan : Multiples erreurs de colspan qui créaient des décalages sur les tableaux de lignes</change>
+    </Version>
+    <Version Number="3.15.4" MonthVersion="2023-03">
+        <change type="fix">Correction constantonoff en mode édition</change>
+    </Version>
+    <Version Number="3.15.5" MonthVersion="2023-04">
+        <change type="fix">Lorsque l'option "Cacher le prix des lignes des ensembles" était cochée, la réduction n'apparaissait plus sur les lignes qui ne font pas partie d'un ensemble</change>
+    </Version>
+    <Version Number="3.16.0" MonthVersion="2023-01">
+        <change type="add">Ajout configuration SUBTOTAL_TITLE_SIZE permettant d'éditer la taille des titres</change>
+    </Version>
+    <Version Number="3.16.1" MonthVersion="2023-02">
+        <change type="fix">Création de factures depuis la liste des commandes provoquant un décalage des titres de sous-total</change>
+    </Version>
+    <Version Number="3.16.2" MonthVersion="2023-02">
+        <change type="fix">Correction arrondis sous-totaux PDF</change>
+    </Version>
+    <Version Number="3.16.3" MonthVersion="2023-03">
+        <change type="fix">Affichage du bouton de suppression des lignes libres</change>
+    </Version>
+    <Version Number="3.16.4" MonthVersion="2023-03">
+        <change type="fix">Warning PHP 8</change>
+    </Version>
+    <Version Number="3.16.5" MonthVersion="2023-03">
+        <change type="add">Ajout langue espagnole</change>
+    </Version>
+    <Version Number="3.17.0" MonthVersion="2023-03">
+        <change type="add">Possibilité pour le module de régénérer un document de facture après sa création par le cron createRecurringInvoices pour corriger les problèmes de formatage</change>
+    </Version>
+    <Version Number="3.18.0" MonthVersion="2023-02">
+        <change type="add">Ajout options configuration : "Cacher les options de titre" + "Cacher l’option du saut de page avant" + "Cacher les options de génération du document"</change>
+    </Version>
+    <Version Number="3.18.1" MonthVersion="2023-04">
+        <change type="fix">Traductions manquantes</change>
+    </Version>
+    <Version Number="3.18.2" MonthVersion="2023-05">
+        <change type="fix">Correction include path</change>
+    </Version>
+    <Version Number="3.18.3" MonthVersion="2023-06">
+        <change type="fix">Correction arrondis sous-totaux et compatibilité PHP 8</change>
+    </Version>
+    <Version Number="3.18.4" MonthVersion="2023-10">
+        <change type="fix">Correction références commandes lors création facture fournisseur</change>
+    </Version>
+    <Version Number="3.19.0" MonthVersion="2023-06">
+        <change type="add">Ajout résumé document menu gauche</change>
+    </Version>
+    <Version Number="3.19.1" MonthVersion="2023-06">
+        <change type="fix">Correction colspan titres (Dolibarr V16+)</change>
+    </Version>
+    <Version Number="3.20.0" MonthVersion="2023-06">
+        <change type="add">Ajout gestion des dossiers</change>
+    </Version>
+    <Version Number="3.21.0" MonthVersion="2023-06">
+        <change type="add">Ajout marges par blocs</change>
+    </Version>
+    <Version Number="3.21.1" MonthVersion="2023-07">
+        <change type="fix">Correction AJAX gestion dossiers</change>
+    </Version>
+    <Version Number="3.22.0" MonthVersion="2023-07">
+        <change type="add">Nouvelle option pour choisir le comportement de gestion des dossiers</change>
+        <change type="add">Ajout également d’un nouveau bouton pour ouvrir/fermer un bloc complet avec ses sous-éléments.</change>
+    </Version>
+    <Version Number="3.22.1" MonthVersion="2023-07">
+        <change type="fix">Ajout des sous-totaux manquants, Dolibarr réorganisait les sous-totaux après l’ajout du titre</change>
+    </Version>
+    <Version Number="3.22.2" MonthVersion="2023-08">
+        <change type="fix">Erreur factures récurrentes</change>
+    </Version>
+    <Version Number="3.22.3" MonthVersion="2023-09">
+        <change type="fix">Warnings PHP 8</change>
+    </Version>
+    <Version Number="3.22.4" MonthVersion="2023-11">
+        <change type="fix">Anomalie PDF lors de l’activation de la configuration "Remplacer par le détail des TVA si l’option 'Cacher le détail des ensembles' est utilisée (expérimental)"</change>
+    </Version>
+    <Version Number="3.22.5" MonthVersion="2023-11">
+        <change type="fix">Erreur fatale valeur supérieure à 0</change>
+    </Version>
+    <Version Number="3.22.6" MonthVersion="2023-12">
+        <change type="fix">Suppression des lignes de sous-total hors bloc expédié dans le bon d’expédition</change>
+    </Version>
+    <Version Number="3.22.7" MonthVersion="2024-01">
+        <change type="fix">Fatal error lié au deuxième paramètre de str_repeat</change>
+    </Version>
+    <Version Number="3.23.0" MonthVersion="2023-10">
+        <change type="fix">Correction problèmes de saut de page</change>
+        <change type="add">Compatibilité Dolibarr v19 et PHP 8.2</change>
+    </Version>
+    <Version Number="3.23.1" MonthVersion="2023-10">
+        <change type="fix">Correction CSS configuration incompatible</change>
+    </Version>
+    <Version Number="3.23.2" MonthVersion="2023-10">
+        <change type="fix">Erreur JavaScript lorsque le menu récapitulatif est désactivé</change>
+    </Version>
+    <Version Number="3.23.4" MonthVersion="2024-01">
+        <change type="fix">Correction PHP 8.2</change>
+    </Version>
+    <Version Number="3.23.5" MonthVersion="2024-01">
+        <change type="fix">Affichage des sous-totaux avec taxe lorsque la configuration globale PDF_PROPAL_SHOW_PRICE_INCL_TAX est activée</change>
+    </Version>
+    <Version Number="3.23.6" MonthVersion="2024-02">
+        <change type="fix">Création de lignes de facture d’acompte pour la même commande avec pourcentage : ajout des lignes sous-total et texte libre</change>
+    </Version>
+    <Version Number="3.23.7" MonthVersion="2024-03">
+        <change type="fix">Exclusion sous-totaux du calcul d’avancement : sur le modèle PDF Sponge, suppression des lignes de sous-totaux lors du calcul de l’avancement global</change>
+    </Version>
+    <Version Number="3.23.8" MonthVersion="2024-03">
+        <change type="fix">La création de facture d’acompte avec montant variable modifiait les quantités des lignes générées par le module ; ajout d’un trigger pour rétablir les bonnes quantités (issue #379)</change>
+    </Version>
+    <Version Number="3.23.9" MonthVersion="2024-03">
+        <change type="fix">Les totaux remisés sur le PDF Sponge étaient erronés</change>
+    </Version>
+    <Version Number="3.23.10" MonthVersion="2024-05">
+        <change type="fix">Ajout d’une méthode statique hasBreakPage pour vérifier si une ligne comporte un saut de page</change>
+    </Version>
+    <Version Number="3.23.11" MonthVersion="2024-09">
+        <change type="fix">Dans le dictionnaire "Ligne de texte prédéfini" du module Sous-total, l’édition d’un texte s’affichait en code HTML au lieu d’un champ WYSIWYG</change>
+    </Version>
+    <Version Number="3.24.0" MonthVersion="2024-07">
+        <change type='add'>Ajout des quantités par sous-totaux sur l’interface</change>
+    </Version>
+    <Version Number="3.24.1" MonthVersion="2024-07">
+        <change type='fix'>Doublon d’affichage du label/description lors de la création de facture depuis un objet (propale/commande…)</change>
+    </Version>
+    <Version Number="3.24.2" MonthVersion="2024-08">
+        <change type='fix'>Les extrafields sur les titres ne fonctionnaient pas</change>
+    </Version>
+    <Version Number="3.24.3" MonthVersion="2024-08">
+        <change type='fix'>Affichage du total HT pour les lignes « non compris »</change>
+    </Version>
+    <Version Number="3.24.4" MonthVersion="2024-12">
+        <change type='fix'>module_number manquant dans la classe SubTotal (fonction addSubTotalLine) lors des tests sur les commandes fournisseurs</change>
+    </Version>
+    <Version Number="3.24.5" MonthVersion="2024-12">
+        <change type='fix'>Le module Sous-total provoquait des erreurs de saut de page lorsqu’on arrivait en bas de page</change>
+    </Version>
+    <Version Number="3.24.6" MonthVersion="2025-03">
+        <change type='fix'>Retour arrière suite à une montée de version</change>
+    </Version>
+    <Version Number="3.24.7" MonthVersion="2025-03">
+        <change type='fix'>La variable globale $object était réassignée, provoquant des crashs des tâches CRON (et potentiellement d’autres problèmes)</change>
+    </Version>
+    <Version Number="3.24.8" MonthVersion="2024-09">
+        <change type='add'>Compatibilité rétroactive avec Dolibarr 15 et 16 pour les commandes fournisseurs : certains paramètres étaient passés à CommandeFournisseur::addline() alors qu’ils ont été introduits respectivement en v16 et v17</change>
+    </Version>
+    <Version Number="3.25.0" MonthVersion="2024-07">
+        <change type='fix'>Compatibilité Dolibarr 16 → 20 : Changed Dolibarr compatibility range to 16 min - 20 max</change>
+        <change type='add'>Ajout hook pdfgeneration</change>
+    </Version>
+    <Version Number="3.25.1" MonthVersion="2024-07">
+        <change type='fix'>Résumé titre</change>
+    </Version>
+    <Version Number="3.25.2" MonthVersion="2024-08">
+        <change type='fix'>CKEditor sans vérification de version pour éviter le message d’erreur</change>
+    </Version>
+    <Version Number="3.25.3" MonthVersion="2024-08">
+        <change type='fix'>GETPOST type integer incorrect</change>
+    </Version>
+    <Version Number="3.25.4" MonthVersion="2024-12">
+        <change type='fix'>Ajout d’une option dans la configuration du style des titres pour ne pas appliquer de style du tout</change>
+    </Version>
+    <Version Number="3.25.5" MonthVersion="2024-12">
+        <change type='fix'>La configuration NO_TITLE_SHOW_ON_EXPED_GENERATION devrait supprimer toutes les lignes titre / libre / sous-total du bon d’expédition, mais ne le fait pas</change>
+    </Version>
+    <Version Number="3.25.6" MonthVersion="2025-03">
+        <change type='fix'>Refactorisation du trigger SHIPPING_CREATE</change>
+    </Version>
+    <Version Number="3.25.7" MonthVersion="2025-03">
+        <change type='fix'>Opérateur de coalescence nulle (risque d’erreur fatale dans le trigger) + restauration d’un commentaire utile</change>
+    </Version>
+    <Version Number="3.26.0" MonthVersion="2024-09">
+        <change type='add'>Ajout de plus d’options de massaction pour passer des commandes en factures -> Permet d’ajouter une liste de références d’expédition dans le bloc de titre</change>
+    </Version>
+    <Version Number="3.26.1" MonthVersion="2024-09">
+        <change type='fix'>Compatibilité V20 : colonne « document » manquante pour les titres dans les avoirs (NC)</change>
+    </Version>
+    <Version Number="3.27.0" MonthVersion="2024-10">
+        <change type='add'>Utilisation du menu déroulant v20 pour les boutons d’action + correction des boutons des commandes(activer l'option cachée SUBTOTAL_FORCE_EXPLODE_ACTION_BTN pour désactiver ce comportement)</change>
+    </Version>
+    <Version Number="3.28.0" MonthVersion="2025-01">
+        <change type='add'>Création de la configuration SUBTOTAL_HIDE_FOLDERS_BY_DEFAULT pour masquer les dossiers par défaut</change>
+    </Version>
+    <Version Number="3.28.1" MonthVersion="2025-02">
+        <change type='fix'>Affichage des détails si hors d’un bloc de sous-total</change>
+    </Version>
+    <Version Number="3.28.2" MonthVersion="2025-03">
+        <change type='fix'>Problème affichage prix PDF : L’option pour masquer le prix des éléments d’un ensemble n’était pas correctement appliquée lors de la génération PDF</change>
+    </Version>
+    <Version Number="3.28.3" MonthVersion="2025-04">
+        <change type='fix'>Correction boutons sur les objets fournisseur</change>
+    </Version>
+    <Version Number="3.28.4" MonthVersion="2025-05">
+        <change type='fix'>Suppression d’un avertissement</change>
+        <change type='add'>Création de la configuration SUBTOTAL_LIMIT_TVA_ON_CONDENSED_BLOCS pour limiter l’affichage du taux de TVA aux blocs affichés en mode condensé ou liste</change>
+    </Version>
+    <Version Number="3.28.5" MonthVersion="2025-05">
+        <change type='fix'>Correction hook printfieldlistWhere : Le handler du hook printfieldlistWhere supprimait les lignes de sous-total dans le module de marge (checkmargin)</change>
+    </Version>
+    <Version Number="3.28.6" MonthVersion="2025-05">
+        <change type='fix'>Lors de la création d’un document à partir d’un autre (ex : facture depuis commande), le template personnalisé pour afficher les lignes produit d’origine ne gérait pas les lignes de texte libre + problèmes de colspan</change>
+    </Version>
+    <Version Number="3.28.7" MonthVersion="2025-11">
+        <change type='fix'>Lors de la création d’une facture à partir d’expéditions, le special_code n’était pas défini sur les lignes de sous-total (car les lignes d’expédition n’ont pas cet attribut, il faut donc le récupérer depuis la ligne de commande d’origine)</change>
+    </Version>
+    <Version Number="3.29.0" MonthVersion="2025-07">
+        <change type='add'>Compatibilité Dolibarr 22</change>
+    </Version>
+    <Version Number="3.29.1" MonthVersion="2025-10">
+        <change type='fix'>Correction de l'ordre SQL lors de la création de facture depuis commande</change>
+        <change type='fix'>Empêche la création de facture de situation lorsque toutes les lignes sont à 100 % d’avancement</change>
+    </Version>
+    <Version Number="3.29.2" MonthVersion="2025-12">
+        <change type='fix'>Ancienne méthode de calcul utilisée pour les factures de situation</change>
+    </Version>
+    <Version Number="3.29.3" MonthVersion="2026-01">
+        <change type='fix'>Correction de l'affichage de la TVA dans les PDF lorsque l'option hideInnerLines est activée</change>
+        <change type='chg'>Correction de l'accumulation de TVA dans les modèles PDF subtotal</change>
+        <change type='chg'>Injection de lignes TVA invisibles pour permettre le calcul correct dans Dolibarr</change>
+    </Version>
+    <Version Number="3.29.4" MonthVersion="2025-12">
+        <change type='fix'>Compatibilité Dolibarr 23</change>
+    </Version>
+    <Version Number="3.29.5" MonthVersion="2026-02">
+        <change type='fix'>DA027702</change>
+    </Version>
+    <Version Number="3.30.0" MonthVersion="2026-03">
+        <change type='add'>Ajout d'une nouvelle onglet "Changelog"</change>
+        <change type='add'>Ajouts des nouveaux fichiers sql et librairie</change>
+        <change type='add'>Ajout d'un fichier CLAUDE.md pour la documentation technique complète du module pour l'assistant IA</change>
+        <change type='chg'>Amélioration du CSS</change>
+		<change type='chg'>Synchronisation complète des traductions : ajout des clés manquantes dans les fichiers de langue en_US, es_ES et it_IT</change>
+    </Version>
+    <InfraS Downloaded="20260301"/>
+    <Dolibarr minVersion="16.0.0" maxVersion="23.x.x"/>
+    <PHP minVersion="7.0" maxVersion="8.2"/>
+</changelog>

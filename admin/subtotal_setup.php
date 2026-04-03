@@ -1,452 +1,294 @@
 <?php
-/* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2022 SuperAdmin <maxime@gmail.com>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+	/************************************************* 
+	* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
+	* Copyright (C) 2022 SuperAdmin <maxime@gmail.com>
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	*
+	* This program is free software: you can redistribute it and/or modify
+	* it under the terms of the GNU General Public License as published by
+	* the Free Software Foundation, either version 3 of the License, or
+	* (at your option) any later version.
+	*
+	* This program is distributed in the hope that it will be useful,
+	* but WITHOUT ANY WARRANTY; without even the implied warranty of
+	* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	* GNU General Public License for more details.
+	*
+	* You should have received a copy of the GNU General Public License
+	* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	*************************************************/
 
-/**
- * \file    subtotal/admin/setup.php
- * \ingroup subtotal
- * \brief   subtotal setup page.
- */
+	/**************************************************
+	* \file		subtotal/admin/subtotal_setup.php
+	* \ingroup		subtotal
+	* \brief		subtotal setup page.
+	*************************************************/
 
-// Load Dolibarr environment
-$res = 0;
-// Try main.inc.php into web root known defined into CONTEXT_DOCUMENT_ROOT (not always defined)
-if (!$res && !empty($_SERVER["CONTEXT_DOCUMENT_ROOT"])) {
-	$res = @include $_SERVER["CONTEXT_DOCUMENT_ROOT"]."/main.inc.php";
-}
-// Try main.inc.php into web root detected using web root calculated from SCRIPT_FILENAME
-$tmp = empty($_SERVER['SCRIPT_FILENAME']) ? '' : $_SERVER['SCRIPT_FILENAME']; $tmp2 = realpath(__FILE__); $i = strlen($tmp) - 1; $j = strlen($tmp2) - 1;
-while ($i > 0 && $j > 0 && isset($tmp[$i]) && isset($tmp2[$j]) && $tmp[$i] == $tmp2[$j]) {
-	$i--; $j--;
-}
-if (!$res && $i > 0 && file_exists(substr($tmp, 0, ($i + 1))."/main.inc.php")) {
-	$res = @include substr($tmp, 0, ($i + 1))."/main.inc.php";
-}
-if (!$res && $i > 0 && file_exists(dirname(substr($tmp, 0, ($i + 1)))."/main.inc.php")) {
-	$res = @include dirname(substr($tmp, 0, ($i + 1)))."/main.inc.php";
-}
-// Try main.inc.php using relative path
-if (!$res && file_exists("../../main.inc.php")) {
-	$res = @include "../../main.inc.php";
-}
-if (!$res && file_exists("../../../main.inc.php")) {
-	$res = @include "../../../main.inc.php";
-}
-if (!$res) {
-	die("Include of main fails");
-}
+	// Dolibarr environment *************************
+	require '../config.php'; // InfraS change
 
-global $langs, $user;
+	// Libraries ************************************
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	dol_include_once('/subtotal/core/lib/subtotalAdmin.lib.php');
 
-// Libraries
-require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
-require_once '../lib/subtotal.lib.php';
+	// Translations *********************************
+	$langs->loadLangs(array('admin', 'propal', 'orders', 'bills', 'supplier', 'supplier_proposal', 'subtotal@subtotal'));
 
-// Translations
-$langs->loadLangs(array("admin", "subtotal@subtotal"));
+	// Access control *******************************
+	$accessright	= !empty($user->admin) || !empty($user->hasRight('subtotal', 'paramBkpRest')) ? 2 : (!empty($user->hasRight('subtotal', 'SubTotalParamSpecif')) ? 1 : 0);
+	if (empty($accessright)) {
+		accessforbidden();
+	}
 
-// Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
-$hookmanager->initHooks(array('subtotalsetup', 'globalsetup'));
+	// Actions **************************************
+	$form			= new Form($db);
+	$formfile		= new FormFile($db);
+	$formother		= new FormOther(db: $db);
+	$extrafields	= new ExtraFields($db);
+	$action			= GETPOST('action','alpha');
+	$confirm		= GETPOST('confirm', 'alpha');
+	$backtopage		= GETPOST('backtopage', 'alpha');
+	$modulepart		= GETPOST('modulepart', 'aZ09');	// Used by actions_setmoduleoptions.inc.php
+	$value			= GETPOST('value', 'alpha');
+	$label			= GETPOST('label', 'alpha');
+	$confirm_mesg	= '';
+	$result			= '';
+	//Sauvegarde / Restauration
+	if ($action == 'bkupParams') {
+		$result	= subtotal_bkup_module ('subtotal');
+	}
+	if ($action == 'restoreParams') {
+		$result	= subtotal_restore_module ('subtotal');
+	}
+	// On / Off management
+	if (preg_match('/set_(.*)/', $action, $reg)) {
+		$confkey	= $reg[1];
+		$result		= dolibarr_set_const($db, $confkey, GETPOSTINT('value'), 'chaine', 0, 'SubTotal module', $conf->entity);
+	}
+	// Update buttons management
+	if (preg_match('/update_(.*)/', $action, $reg)) {
+		$list		= array('Gen'	=> array('SUBTOTAL_LIST_OF_EXTRAFIELDS_PROPALDET', 'SUBTOTAL_LIST_OF_EXTRAFIELDS_COMMANDEDET', 'SUBTOTAL_LIST_OF_EXTRAFIELDS_FACTUREDET', 'SUBTOTAL_DEFAULT_DISPLAY_QTY_FOR_SUBTOTAL_ON_ELEMENTS',
+											'SUBTOTAL_BLOC_FOLD_MODE', 'SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS', 'SUBTOTAL_TFIELD_TO_KEEP_WITH_NC',  'SUBTOTAL_TEXT_LINE_STYLE', 'SUBTOTAL_TITLE_SIZE', 'SUBTOTAL_SUBTOTAL_STYLE', 
+											'SUBTOTAL_TITLE_BACKGROUND_COLOR', 'SUBTOTAL_SUBTOTAL_BACKGROUND_COLOR', 'SUBTOTAL_TITLE_AND_SUBTOTAL_BRIGHTNESS_PERCENTAGE', 'SUBTOTAL_TITLE_STYLE'
+												)
+							);
+		$confkey	= $reg[1];
+		$error		= 0;
+		foreach ($list[$confkey] as $constname) {
+			if (in_array($constname, array('SUBTOTAL_LIST_OF_EXTRAFIELDS_PROPALDET', 'SUBTOTAL_LIST_OF_EXTRAFIELDS_COMMANDEDET', 'SUBTOTAL_LIST_OF_EXTRAFIELDS_FACTUREDET', 'SUBTOTAL_DEFAULT_DISPLAY_QTY_FOR_SUBTOTAL_ON_ELEMENTS'))) {
+				$constvalue = implode(',', GETPOST($constname, 'array'));
+			} else {
+				$constvalue	= GETPOST($constname, 'alpha');
+			}
+			$result	= dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, 'SubTotal module', $conf->entity);
+		}
+	}
+	//Retour => message Ok ou Ko
+	if ($result == 1) {
+		setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
+	}
+	if ($result == -1) {
+		setEventMessages($langs->trans('Error'), null, 'errors');
+	}
 
-// Access control
-if (!$user->admin) {
-	accessforbidden();
-}
-
-// Parameters
-$action = GETPOST('action', 'aZ09');
-$backtopage = GETPOST('backtopage', 'alpha');
-$modulepart = GETPOST('modulepart', 'aZ09');	// Used by actions_setmoduleoptions.inc.php
-
-$value = GETPOST('value', 'alpha');
-$label = GETPOST('label', 'alpha');
-
-if(!class_exists('FormSetup')){
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formsetup.class.php';
-}
-
-$formSetup = new FormSetup($db);
-
-
-
-/*
-// Hôte
-$item = $formSetup->newItem('NO_PARAM_JUST_TEXT');
-$item->fieldOverride = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'];
-$item->cssClass = 'minwidth500';
-
-// Setup conf SUBTOTAL_MYPARAM1 as a simple string input
-$item = $formSetup->newItem('SUBTOTAL_MYPARAM1');
-
-// Setup conf SUBTOTAL_MYPARAM1 as a simple textarea input but we replace the text of field title
-$item = $formSetup->newItem('SUBTOTAL_MYPARAM2');
-$item->nameText = $item->getNameText().' more html text ';
-
-// Setup conf SUBTOTAL_MYPARAM3
-$item = $formSetup->newItem('SUBTOTAL_MYPARAM3');
-$item->setAsThirdpartyType();
-
-// Setup conf SUBTOTAL_MYPARAM4 : exemple of quick define write style
-$formSetup->newItem('SUBTOTAL_MYPARAM4')->setAsYesNo();
-
-// Setup conf SUBTOTAL_MYPARAM5
-$formSetup->newItem('SUBTOTAL_MYPARAM5')->setAsEmailTemplate('thirdparty');
-
-// Setup conf SUBTOTAL_MYPARAM6
-$formSetup->newItem('SUBTOTAL_MYPARAM6')->setAsSecureKey()->enabled = 0; // disabled
-
-// Setup conf SUBTOTAL_MYPARAM7
-$formSetup->newItem('SUBTOTAL_MYPARAM7')->setAsProduct();
-*/
-
-// Activer l'utilisation avancée
-if(!in_array($action, array('edit', 'update'))) {
-	$item = $formSetup->newItem('SUBTOTAL_USE_NEW_FORMAT');
-	$item->setAsYesNo();
-	$item->helpText = $langs->transnoentities('SUBTOTAL_USE_NEW_FORMAT_HELP');
-
-
-	// Sur les lignes de sous total des PDF, ajouter le libellé du titre auquel cette dernière est rattaché.
-	$formSetup->newItem('CONCAT_TITLE_LABEL_IN_SUBTOTAL_LABEL')->setAsYesNo();
-
-	// Activer la numérotation automatique sur le PDF à partir de Dolibarr 3.8
-	$formSetup->newItem('SUBTOTAL_USE_NUMEROTATION')->setAsYesNo();
-
-	// Autoriser l'ajout d'un titre et sous-total
-	$formSetup->newItem('SUBTOTAL_ALLOW_ADD_BLOCK')->setAsYesNo();
-
-	// Autoriser la suppression d'un titre ou sous-total
-	$formSetup->newItem('SUBTOTAL_ALLOW_EDIT_BLOCK')->setAsYesNo();
-
-	// Autoriser la duplication d'un bloc
-	$formSetup->newItem('SUBTOTAL_ALLOW_REMOVE_BLOCK')->setAsYesNo();
-
-	// Autoriser la duplication d'un bloc
-	$formSetup->newItem('SUBTOTAL_ALLOW_DUPLICATE_BLOCK')->setAsYesNo();
-
-	// Autoriser la duplication d'une ligne
-	$formSetup->newItem('SUBTOTAL_ALLOW_DUPLICATE_LINE')->setAsYesNo();
-
-	// Permettre l'ajout d'une ligne libre et/ou produit directement sous un titre
-	$formSetup->newItem('SUBTOTAL_ALLOW_ADD_LINE_UNDER_TITLE')->setAsYesNo();
-
-	// L'ajout sous un titre se fera en fin de section
-	$formSetup->newItem('SUBTOTAL_ADD_LINE_UNDER_TITLE_AT_END_BLOCK')->setAsYesNo();
-
-	$formSetup->newItem('SUBTOTAL_HIDE_FOLDERS_BY_DEFAULT')->setAsYesNo();
-}
-
-// Cacher les options du titre
-$formSetup->newItem('SUBTOTAL_HIDE_OPTIONS_TITLE')->setAsYesNo();
-
-// Cacher l'option ajouter un saut de page avant
-$formSetup->newItem('SUBTOTAL_HIDE_OPTIONS_BREAK_PAGE_BEFORE')->setAsYesNo();
-
-// Cacher les options génération de document
-$formSetup->newItem('SUBTOTAL_HIDE_OPTIONS_BUILD_DOC')->setAsYesNo();
-
-// Texte des titres lors de la facturation via onglet client -> bouton "Facturer commandes"
-$item = $formSetup->newItem('SUBTOTAL_TEXT_FOR_TITLE_ORDETSTOINVOICE')->helpText = $langs->transnoentities('SUBTOTAL_TEXT_FOR_TITLE_ORDETSTOINVOICE_info');
-
-// Style des titres (B = gras, U = souligné, I = italique)
-$item = $formSetup->newItem('SUBTOTAL_TITLE_STYLE');
-$item->fieldAttr['placeholder'] = 'BU';
-
-$item = $formSetup->newItem('SUBTOTAL_TEXT_LINE_STYLE');
-$item->fieldAttr['placeholder'] = '';
-
-// Style des titres (B = gras, U = souligné, I = italique)
-$item = $formSetup->newItem('SUBTOTAL_TITLE_SIZE');
-$item->helpText = $langs->transnoentities('SUBTOTAL_TITLE_SIZE_info');
-
-// Style des sous-totaux (B = gras, U = souligné, I = italique)
-$item = $formSetup->newItem('SUBTOTAL_SUBTOTAL_STYLE');
-$item->fieldAttr['placeholder'] = 'BU';
-
-//Affichage des marges sur les sous-totaux
-$formSetup->newItem('DISPLAY_MARGIN_ON_SUBTOTALS')->setAsYesNo();
-
-// Couleur de fond utilisée sur les PDF pour les titres
-$item = $formSetup->newItem('SUBTOTAL_TITLE_BACKGROUNDCOLOR');
-$item->fieldValue = getDolGlobalString('SUBTOTAL_TITLE_BACKGROUNDCOLOR','#ffffff');
-$item->fieldAttr['type'] = 'color';
-$item->fieldOutputOverride ='<input type="color" value="'.$item->fieldValue .'" disabled />';
-
-// Couleur de fond utilisée sur les PDF pour les sous-totaux
-$item = $formSetup->newItem('SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR');
-$item->fieldValue = getDolGlobalString('SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR','#ebebeb');
-$item->fieldAttr['type'] = 'color';
-$item->fieldOutputOverride ='<input type="color" value="'.$item->fieldValue .'" disabled />';
-
-// InfraS add begin
-// Pourcentage de réduction de la luminosité entre chaque niveau de titres / sous-titres / sous-totaux (les couleurs choisies ci-dessus seront celles du niveau 1 et les niveaux inférieurs seront plus clairs en fonction de ce pourcentage)
-$item = $formSetup->newItem('SUBTOTAL_TITLE_AND_SUBTOTAL_BRIGHTNESS_PERCENTAGE');
-$item->helpText = $langs->transnoentities('SUBTOTAL_TITLE_AND_SUBTOTAL_BRIGHTNESS_PERCENTAGE_info');
-$item->fieldAttr['placeholder'] = '10';
-// InfraS add end
-
-$item = $formSetup->newItem('SUBTOTAL_DISABLE_SUMMARY')->setAsYesNo();
-
-
-
-$item = $formSetup->newItem('SUBTOTAL_BLOC_FOLD_MODE')->setAsSelect(array(
-		'default' => $langs->trans('HideSubtitleOnFold'),
-		'keepTitle' => $langs->trans('KeepSubtitleDisplayOnFold'),
-	));
-if(!getDolGlobalInt('SUBTOTAL_BLOC_FOLD_MODE')){
-	$result = dolibarr_set_const($item->db, $item->confKey, 'default', 'chaine', 0, '', $item->entity);
-	$item->reloadValueFromConf();	// InfraS change
-}
-
-
-if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {	// InfraS add
-
-// Activer la gestion des blocs "Non Compris" pour exclusion du total
-$formSetup->newItem('ManageNonCompris')->setAsTitle();
-
-$itemNC = $formSetup->newItem('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS')->setAsSelect(array(0 => $langs->transnoentities('No'), 1 => $langs->transnoentities('Yes')));
-$itemNC->setSaveCallBack(function ($itemNC){
-	$result = dolibarr_set_const($itemNC->db, $itemNC->confKey, $itemNC->fieldValue, 'chaine', 0, '', $itemNC->entity);
-	if((int) $itemNC->fieldValue > 0) {
+	// init variables *******************************
+	$propalSelected		= explode(',', getDolGlobalString('SUBTOTAL_LIST_OF_EXTRAFIELDS_PROPALDET'));
+	$orderSelected		= explode(',', getDolGlobalString('SUBTOTAL_LIST_OF_EXTRAFIELDS_COMMANDEDET'));
+	$invoiceSelected	= explode(',', getDolGlobalString('SUBTOTAL_LIST_OF_EXTRAFIELDS_FACTUREDET'));
+	$selected			= explode(',', getDolGlobalString('SUBTOTAL_DEFAULT_DISPLAY_QTY_FOR_SUBTOTAL_ON_ELEMENTS'));
+	if (getDolGlobalInt('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS') > 0) {
 		_createExtraComprisNonCompris();
 	}
-});
 
+	// View *****************************************
+	$page_name			= $langs->trans('SubTotal').' - '.$langs->trans('SubTotalSetup');
+	llxHeader('', $page_name);	// browser tab
+	echo $confirm_mesg;
+	$linkback			= !empty($user->admin) ? '<a href = "'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans('BackToModuleList').'</a>' : '';
+	print load_fiche_titre($page_name, $linkback, 'title_setup');
+	$titleoption		= '';
 
-// Colonnes à afficher sur lignes marquées "Non Compris"
-$item = $formSetup->newItem('SUBTOTAL_TFIELD_TO_KEEP_WITH_NC');
-$TField = array(
-	'pdf_getlineqty' => $langs->trans('Qty'),
-	'pdf_getlinevatrate' => $langs->trans('VAT'),
-	'pdf_getlineupexcltax' => $langs->trans('PriceUHT'),
-	'pdf_getlinetotalexcltax' => $langs->trans('TotalHT'),
-	'pdf_getlinetotalincltax' => $langs->trans('TotalTTC'),
-	'pdf_getlineunit' => $langs->trans('Unit'),
-	'pdf_getlineremisepercent' => $langs->trans('Discount')
-);
-$item->setAsMultiSelect($TField);
+	// Configuration header *************************
+	$head				= subtotal_admin_prepare_head();
+	$picto				= 'subtotal@subtotal';
+	print dol_get_fiche_head($head, 'subtotalsetup', $langs->trans('SubTotal'), 0, $picto);
 
-
-if(!in_array($action, array('edit', 'update'))) {
-	// La gestion des non-compris vide aussi le prix de revient
-	$item = $formSetup->newItem('SUBTOTAL_NONCOMPRIS_UPDATE_PA_HT');
-	$item->setAsYesNo();
-	$item->helpText = $langs->transnoentities('SUBTOTAL_NONCOMPRIS_UPDATE_PA_HT_info');
-}	// InfraS add
-}	// InfraS add
-if(!in_array($action, array('edit', 'update'))) {	// InfraS add
-	// Ajouter un titre, ajoutera au-dessus les sous-totaux manquants
-	$formSetup->newItem('SUBTOTAL_AUTO_ADD_SUBTOTAL_ON_ADDING_NEW_TITLE')->setAsYesNo();
-}
-
-
-$formSetup->newItem('SetupForExtrafields')->setAsTitle();
-
-if(!in_array($action, array('edit', 'update'))) {
-	// Autoriser l'affichage des extrafields sur les titres (les données enregistrées seront alors peuplées sur les lignes du bloc)
-	$formSetup->newItem('SUBTOTAL_ALLOW_EXTRAFIELDS_ON_TITLE')->setAsYesNo();
-}
-
-// Champs complémentaires disponible sur les titres dans les propositions commerciales clients
-$item = $formSetup->newItem('SUBTOTAL_LIST_OF_EXTRAFIELDS_PROPALDET');
-$extrafields = new ExtraFields($db);
-$extralabels = $extrafields->fetch_name_optionals_label('propaldet');
-$item->setAsMultiSelect($extralabels);
-
-
-// Champs complémentaires disponible sur les titres dans les commandes clients
-$item = $formSetup->newItem('SUBTOTAL_LIST_OF_EXTRAFIELDS_COMMANDEDET');
-$extrafields = new ExtraFields($db);
-$extralabels = $extrafields->fetch_name_optionals_label('commandedet');
-$item->setAsMultiSelect($extralabels);
-
-// Champs complémentaires disponible sur les titres dans les factures clients
-$item = $formSetup->newItem('SUBTOTAL_LIST_OF_EXTRAFIELDS_FACTUREDET');
-$extrafields = new ExtraFields($db);
-$extralabels = $extrafields->fetch_name_optionals_label('facturedet');
-$item->setAsMultiSelect($extralabels);
-
-
-$formSetup->newItem('Setup')->setAsTitle();
-
-// Activer l'affichage de la somme des quantités sur les lignes de sous-totaux pour les modèles de documents :
-$item = $formSetup->newItem('SUBTOTAL_DEFAULT_DISPLAY_QTY_FOR_SUBTOTAL_ON_ELEMENTS');
-$langs->loadLangs(array('propal', 'orders', 'bills', 'supplier', 'supplier_proposal'));
-$TField = array(
-	'propal' => $langs->trans('Proposal'),
-	'commande' => $langs->trans('Order'),
-	'facture' => $langs->trans('Invoice'),
-	'supplier_proposal' => $langs->trans('SupplierProposal'),
-	'order_supplier' => $langs->trans('SupplierOrder'),
-	'invoice_supplier' => $langs->trans('SupplierInvoice'),
-);
-$item->setAsMultiSelect($TField);
-$item->helpText = $langs->transnoentities('SUBTOTAL_DEFAULT_DISPLAY_QTY_FOR_SUBTOTAL_ON_ELEMENTS_info');
-
-// Ne pas reporter les lignes de titre lors de la génération d’expédition
-if(!in_array($action, array('edit', 'update'))) {
-	$formSetup->newItem('NO_TITLE_SHOW_ON_EXPED_GENERATION')->setAsYesNo();
-}
-// InfraS add begin
-// Afficher le taux de TVA sur les lignes de sous-totaux
-$formSetup->newItem('SUBTOTAL_SHOW_TVA_ON_SUBTOTAL_LINES_ON_ELEMENTS')->setAsYesNo();
-// Limiter l'affichage du taux de TVA aux lignes de sous-totaux
-if (!empty(getDolGlobalInt('SUBTOTAL_SHOW_TVA_ON_SUBTOTAL_LINES_ON_ELEMENTS')) && isModEnabled('infraspackplus')) {
-	$formSetup->newItem('SUBTOTAL_LIMIT_TVA_ON_CONDENSED_BLOCS')->setAsYesNo();
-}
-// InfraS add end
-
-/*
- * Génération d'un récapitulatif par titre
- */
-
-if(!in_array($action, array('edit', 'update'))) {
-	$formSetup->newItem('RecapGeneration')->setAsTitle();
-
-	// Conserver le PDF de récapitulation après la fusion
-	$formSetup->newItem('SUBTOTAL_KEEP_RECAP_FILE')->setAsYesNo();
-
-	// Activer la génération du récapitulatif sur les propositions commerciales	// InfraS change (moved from line 373)
-	$formSetup->newItem('SUBTOTAL_PROPAL_ADD_RECAP')->setAsYesNo();	// InfraS change (moved from line 374)
-
-	// Activer la génération du récapitulatif sur les commandes
-	$formSetup->newItem('SUBTOTAL_COMMANDE_ADD_RECAP')->setAsYesNo();
-
-	// Activer la génération du récapitulatif sur les factures
-	$formSetup->newItem('SUBTOTAL_INVOICE_ADD_RECAP')->setAsYesNo();
-}
-
-/*
- * Paramètrage de l'option "Cacher le prix des lignes des ensembles"
- */
-if(!in_array($action, array('edit', 'update'))) {
-	$formSetup->newItem('SetupForSubBlocs')->setAsTitle();
-
-	// Par defaut, cocher la case "Cacher le prix des lignes des ensembles" lors de la génération des PDF
-	$formSetup->newItem('SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED')->setAsYesNo();
-
-	// Afficher la quantité sur les lignes de produit
-	$formSetup->newItem('SUBTOTAL_IF_HIDE_PRICES_SHOW_QTY')->setAsYesNo();
-	if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {	// InfraS add
-	// Masquer les totaux
-	$formSetup->newItem('SUBTOTAL_HIDE_DOCUMENT_TOTAL')->setAsYesNo();
-	}	// InfraS add
-
-	if (isModEnabled('shippableorder')) {
-		$formSetup->newItem('SUBTOTAL_SHIPPABLE_ORDER')->setAsYesNo();
+	// setup page goes here *************************
+	if (!empty($conf->use_javascript_ajax)) {
+		print '	<script src = "'.dol_buildpath('/includes/jquery/plugins/jquerytreeview/lib/jquery.cookie.js', 1).'"></script>
+				<script type = "text/javascript">
+					var cookieName = "subtotal_tblPSexp";
+					jQuery(document).ready(function() {
+						var tblPSexp = "";
+						$.isSet = function(testVar) {
+							return typeof(testVar) !== "undefined" && testVar !== null && testVar !== "";
+						};
+						if ($.cookie && $.isSet($.cookie(cookieName))) {
+							tblPSexp = $.cookie(cookieName);
+						}
+						$(".toggle_bloc").hide();
+						if (tblPSexp) {
+							$("[name=" + tblPSexp + "]").toggle();
+						}
+					});
+					$(function () {
+						$(".foldable .toggle_bloc_title").click(function() {
+							if ($(this).siblings().is(":visible")) {
+								$(".toggle_bloc").hide();
+							} else {
+								$(".toggle_bloc").hide();
+								$(this).siblings().show();
+							}
+							$.cookie(cookieName, "", { expires: 1, path: "/" });
+							$(".toggle_bloc").each(function() {
+								if ($(this).is(":visible")) {
+									$.cookie(cookieName, $(this).attr("name"), { expires: 1, path: "/" });
+								}
+							});
+						});
+						$(window).scroll(function() {
+							if ($(this).scrollTop() > 200 )	{
+								$(".subtotalScrollUp").css("right", "30px");
+							} else {
+								$(".subtotalScrollUp").removeAttr("style");
+							}
+						});
+					});
+				</script>';
 	}
-
-	if (isModEnabled('clilacevenements')) {
-		// Afficher la quantité sur les lignes de sous-total (uniquement dans le cas d'un produit virtuel ajouté)
-		$formSetup->newItem('SUBTOTAL_SHOW_QTY_ON_TITLES')->setAsYesNo();
-
-		// Masquer uniquement les prix pour les produits se trouvant dans un ensemble
-		$formSetup->newItem('SUBTOTAL_ONLY_HIDE_SUBPRODUCTS_PRICES')->setAsYesNo();
+	print '	<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
+				<input type = "hidden" name = "token" value = "'.newToken().'">';
+	//Sauvegarde / Restauration
+	if ($accessright == 2)	subtotal_print_backup_restore();
+	print '		<div class = "foldable">';
+	print subtotal_load_title('<span class = "subtotaltitleparam">'.$langs->trans('SubTotalSetupPage').'</span>', $titleoption, dol_buildpath('/subtotal/img/option_tool.png', 1), 1, '', '');
+	print '			<table name = "tblGen" class = "noborder centpercent">';
+	$metas	= array('30px', '*', '90px', '156px', '120px');
+	subtotal_print_colgroup($metas);
+	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
+	subtotal_print_liste_titre($metas);
+	if (!empty($accessright)) {
+		$num	= 1;
+		subtotal_print_btn_action('Gen', $langs->trans('SubTotalParamCautionSave'), 4);
+		$num	= subtotal_print_input('SUBTOTAL_USE_NEW_FORMAT', 'on_off', $langs->trans('SubTotalUseNewFormat'), 'SubTotalUseNewFormatHelp', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_CONCAT_TITLE_LABEL_IN_SUBTOTAL_LABEL', 'on_off', $langs->trans('SubTotalConcatTitleLabelInSubtotalLabel'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_USE_NUMEROTATION', 'on_off', $langs->trans('SubTotalUseNumerotation'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_ALLOW_ADD_BLOCK', 'on_off', $langs->trans('SubTotalAllowAddBlock'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_ALLOW_EDIT_BLOCK', 'on_off', $langs->trans('SubTotalAllowEditBlock'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_ALLOW_REMOVE_BLOCK', 'on_off', $langs->trans('SubTotalAllowRemoveBlock'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_ALLOW_DUPLICATE_BLOCK', 'on_off', $langs->trans('SubTotalAllowDuplicateBlock'), '', array(), 2, 1, '', $num);
+		// num = 8
+		$num	= subtotal_print_input('SUBTOTAL_ALLOW_DUPLICATE_LINE', 'on_off', $langs->trans('SubTotalAllowDuplicateLine'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_ALLOW_ADD_LINE_UNDER_TITLE', 'on_off', $langs->trans('SubTotalAllowAddLineUnderTitle'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_ADD_LINE_UNDER_TITLE_AT_END_BLOCK', 'on_off', $langs->trans('SubTotalAddLineUnderTitleAtEndBlock'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_HIDE_FOLDERS_BY_DEFAULT', 'on_off', $langs->trans('SubTotalHideFoldersByDefault'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_HIDE_OPTIONS_TITLE', 'on_off', $langs->trans('SubTotalHideOptionsTitle'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_HIDE_OPTIONS_BREAK_PAGE_BEFORE', 'on_off', $langs->trans('SubTotalHideOptionsBreakPageBefore'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_HIDE_OPTIONS_BUILD_DOC', 'on_off', $langs->trans('SubTotalHideOptionsBuildDoc'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_TEXT_FOR_TITLE_ORDERS_TO_INVOICE', '', $langs->trans('SubTotalTextForTitleOrdetstoinvoice'), $langs->transnoentities('SubTotalTextForTitleOrdetstoinvoiceInfo'), array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_TITLE_STYLE', 'input', $langs->trans('SubTotalTitleStyle'), '', array(), 2, 1, '', $num);
+		// num = 17
+		$num	= subtotal_print_input('SUBTOTAL_TEXT_LINE_STYLE', 'input', $langs->trans('SubTotalTextLineStyle'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_TITLE_SIZE', 'input', $langs->trans('SubTotalTitleSize'), $langs->transnoentities('SubTotalTitleSizeInfo'), array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_SUBTOTAL_STYLE', 'input', $langs->trans('SubTotalSubtotalStyle'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_DISPLAY_MARGIN_ON_SUBTOTALS', 'on_off', $langs->trans('SubTotalDisplayMarginOnSubtotals'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_TITLE_BACKGROUND_COLOR', 'color', $langs->trans('SubTotalTitleBackgroundcolor'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_SUBTOTAL_BACKGROUND_COLOR', 'color', $langs->trans('SubTotalSubtotalBackgroundcolor'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_TITLE_AND_SUBTOTAL_BRIGHTNESS_PERCENTAGE', 'input', $langs->trans('SubTotalTitleAndSubtotalBrightnessPercentage'), 'SubTotalTitleAndSubtotalBrightnessPercentageInfo', array(), 2, 1, '%', $num);
+		// num = 24
+		$num	= subtotal_print_input('SUBTOTAL_DISABLE_SUMMARY', 'on_off', $langs->trans('SubTotalDisableSummary'), '', array(), 2, 1, '', $num);
+		$metas	= $form->selectarray('SUBTOTAL_BLOC_FOLD_MODE', array('default' => $langs->trans('SubTotalHideSubtitleOnFold'), 'keepTitle' => $langs->trans('SubTotalKeepSubtitleDisplayOnFold')), getDolGlobalString('SUBTOTAL_BLOC_FOLD_MODE'), 0, 0, 0, '', 1, 0, 0, '', 'subtotalwidth270 centpercent');
+		$num	= subtotal_print_input('', 'select', $langs->trans('SubTotalBlocFoldMode'), '', $metas, 2, 1, '', $num);
+		if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {
+			subtotal_print_subTitle(4, 'SubTotalManageNonCompris');
+			$metas	= $form->selectarray('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS', array(0 => $langs->transnoentities('No'), 1 => $langs->transnoentities('Yes')), getDolGlobalInt('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS', 1), 0, 0, 0, '', 1, 0, 0, '', 'subtotalwidth270 centpercent');
+			$num	= subtotal_print_input('', 'select', $langs->trans('SubTotalManageComprisNoncompris'), '', $metas, 2, 1, '', $num);
+			$metas	= $form->selectarray('SUBTOTAL_TFIELD_TO_KEEP_WITH_NC',array('pdf_getlineqty'			=> $langs->trans('Qty'),
+																								'pdf_getlinevatrate'		=> $langs->trans('VAT'),
+																								'pdf_getlineupexcltax'		=> $langs->trans('PriceUHT'),
+																								'pdf_getlinetotalexcltax'	=> $langs->trans('TotalHT'),
+																								'pdf_getlinetotalincltax'	=> $langs->trans('TotalTTC'),
+																								'pdf_getlineunit'			=> $langs->trans('Unit'),
+																								'pdf_getlineremisepercent'	=> $langs->trans('Discount')
+																								),
+										getDolGlobalInt('SUBTOTAL_TFIELD_TO_KEEP_WITH_NC', 1), 0, 0, 0, '', 1, 0, 0, '', 'subtotalwidth270 centpercent');
+			$num	= subtotal_print_input('', 'select', $langs->trans('SUBTOTAL_TFIELD_TO_KEEP_WITH_NC'), '', $metas, 2, 1, '', $num);
+			$num	= subtotal_print_input('SUBTOTAL_NONCOMPRIS_UPDATE_PA_HT', 'on_off', $langs->trans('SubTotalNoncomprisUpdatePaHt'), 'SubTotalNoncomprisUpdatePaHtInfo', array(), 2, 1, '', $num);
+			$num	= subtotal_print_input('SUBTOTAL_AUTO_ADD_SUBTOTAL_ON_ADDING_NEW_TITLE', 'on_off', $langs->trans('SubTotalAutoAddSubtotalOnAddingNewTitle'), '', array(), 2, 1, '', $num);
+		} else {
+			$num += 4;
+		}
+		// num = 30
+		subtotal_print_subTitle(4, 'SubTotalSetupForExtrafields');
+		$num	= subtotal_print_input('SUBTOTAL_ALLOW_EXTRAFIELDS_ON_TITLE', 'on_off', $langs->trans('SubTotalAllowExtrafieldsOnTitle'), '', array(), 2, 1, '', $num);
+		$metas	= $form->multiselectarray('SUBTOTAL_LIST_OF_EXTRAFIELDS_PROPALDET', $extrafields->fetch_name_optionals_label('propaldet'), $propalSelected, 0, 0, 'centpercent', 0, 0, '', '', '');
+		$num	= subtotal_print_input('', 'select', $langs->trans('SubTotalListOfExtrafieldsPropaldet'), '', $metas, 2, 1, '', $num);
+		$metas	= $form->multiselectarray('SUBTOTAL_LIST_OF_EXTRAFIELDS_COMMANDEDET', $extrafields->fetch_name_optionals_label('commandedet'), $orderSelected, 0, 0, 'centpercent', 0, 0, '', '', '');
+		$num	= subtotal_print_input('', 'select', $langs->trans('SubTotalListOfExtrafieldsCommandedet'), '', $metas, 2, 1, '', $num);
+		$metas	= $form->multiselectarray('SUBTOTAL_LIST_OF_EXTRAFIELDS_FACTUREDET', $extrafields->fetch_name_optionals_label('facturedet'), $invoiceSelected, 0, 0, 'centpercent', 0, 0, '', '', '');
+		$num	= subtotal_print_input('', 'select', $langs->trans('SubTotalListOfExtrafieldsFacturedet'), '', $metas, 2, 1, '', $num);
+		// num = 34
+		subtotal_print_subTitle(4, 'SubTotalSetup');
+		$TField	= array('propal'			=> $langs->trans('Proposal'),
+						'commande'			=> $langs->trans('Order'),
+						'facture'			=> $langs->trans('Invoice'),
+						'supplier_proposal'	=> $langs->trans('SupplierProposal'),
+						'order_supplier'	=> $langs->trans('SupplierOrder'),
+						'invoice_supplier'	=> $langs->trans('SupplierInvoice'),
+					);
+		$metas	= $form->multiselectarray('SUBTOTAL_DEFAULT_DISPLAY_QTY_FOR_SUBTOTAL_ON_ELEMENTS', $TField, $selected, 0, 0, 'centpercent', 0, 0, '', '', '');
+		$num	= subtotal_print_input('', 'select', $langs->trans('SubTotalDefaultDisplayQtyForSubtotalOnElements'), 'SubTotalDefaultDisplayQtyForSubtotalOnElementsInfo', $metas, 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_NO_TITLE_SHOW_ON_EXPED_GENERATION', 'on_off', $langs->trans('SubTotalNoTitleShowOnExpedGeneration'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_SHOW_TVA_ON_SUBTOTAL_LINES_ON_ELEMENTS', 'on_off', $langs->trans('SubTotalShowTvaOnSubtotalLinesOnElements'), '', array(), 2, 1, '', $num);
+		if (getDolGlobalInt('SUBTOTAL_SHOW_TVA_ON_SUBTOTAL_LINES_ON_ELEMENTS') && isModEnabled('infraspackplus')) {
+			$num	= subtotal_print_input('SUBTOTAL_LIMIT_TVA_ON_CONDENSED_BLOCS', 'on_off', $langs->trans('SubTotalLimitTvaOnCondensedBlocs'), '', array(), 2, 1, '', $num);
+		} else {
+			$num++;
+		}
+		// num = 38
+		subtotal_print_subTitle(4, 'SubTotalRecapGeneration');
+		$num	= subtotal_print_input('SUBTOTAL_KEEP_RECAP_FILE', 'on_off', $langs->trans('SubTotalKeepRecapFile'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_PROPAL_ADD_RECAP', 'on_off', $langs->trans('SubTotalPropalAddRecap'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_COMMANDE_ADD_RECAP', 'on_off', $langs->trans('SubTotalCommandeAddRecap'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_INVOICE_ADD_RECAP', 'on_off', $langs->trans('SubTotalInvoiceAddRecap'), '', array(), 2, 1, '', $num);
+		subtotal_print_subTitle(4, 'SubTotalSetupForSubBlocs');
+		$num	= subtotal_print_input('SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED', 'on_off', $langs->trans('SubTotalHidePriceDefaultChecked'), '', array(), 2, 1, '', $num);
+		$num	= subtotal_print_input('SUBTOTAL_IF_HIDE_PRICES_SHOW_QTY', 'on_off', $langs->trans('SubTotalIfHidePricesShowQty'), '', array(), 2, 1, '', $num);
+		if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {
+			$num	= subtotal_print_input('SUBTOTAL_HIDE_DOCUMENT_TOTAL', 'on_off', $langs->trans('SubTotalHideDocumentTotal'), '', array(), 2, 1, '', $num);
+		} else {
+			$num++;
+		}
+		if (isModEnabled('shippableorder')) {
+			$num	= subtotal_print_input('SUBTOTAL_SHIPPABLE_ORDER', 'on_off', $langs->trans('SubTotalShippableOrder'), '', array(), 2, 1, '', $num);
+		} else {
+			$num++;
+		}
+		if (isModEnabled('clilacevenements')) {
+			$num	= subtotal_print_input('SUBTOTAL_SHOW_QTY_ON_TITLES', 'on_off', $langs->trans('SubTotalShowQtyOnTitles'), '', array(), 2, 1, '', $num);
+			$num	= subtotal_print_input('SUBTOTAL_ONLY_HIDE_SUBPRODUCTS_PRICES', 'on_off', $langs->trans('SubTotalOnlyHideSubproductsPrices'), '', array(), 2, 1, '', $num);
+		} else {
+			$num += 2;
+		}
+		if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {
+			subtotal_print_subTitle(4, 'SubTotalExperimentalZone');
+			$num	= subtotal_print_input('SUBTOTAL_ONE_LINE_IF_HIDE_INNERLINES', 'on_off', $langs->trans('SubTotalOneLineIfHideInnerlines', $langs->trans('SubTotalHideInnerLines')), '', array(), 2, 1, '', $num);
+			$num	= subtotal_print_input('SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES', 'on_off', $langs->trans('SubTotalReplaceWithVatIfHideInnerlines', $langs->trans('SubTotalHideInnerLines')), '', array(), 2, 1, '', $num);
+		} else {
+			$num += 2;
+		}
+		// num = 50
+		print '		</table>';
+		print '	</div>';
 	}
-}
-
-
-/*
- * ZONE EXPERIMENTAL
- */
-
-
-if(!in_array($action, array('edit', 'update'))) {
-	if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {    // InfraS add
-		$formSetup->newItem('SubtotalExperimentalZone')->setAsTitle();
-
-
-	// Avoir une seule ligne de titre + total si l'option "Cacher le détail des ensembles" est utilisée (expérimental)
-	$item = $formSetup->newItem('SUBTOTAL_ONE_LINE_IF_HIDE_INNERLINES');
-	$item->setAsYesNo();
-	$item->nameText = $langs->trans("SUBTOTAL_ONE_LINE_IF_HIDE_INNERLINES", $langs->transnoentitiesnoconv('HideInnerLines'));
-
-	// Remplacer par le détail des TVA si l'option "Cacher le détail des ensembles" est utilisée (expérimental)
-	$item = $formSetup->newItem('SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES');
-	$item->setAsYesNo();
-	$item->nameText = $langs->trans("SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES", $langs->transnoentitiesnoconv('HideInnerLines'));
-
-	// Activer la génération du récapitulatif sur les propositions commerciales	// InfraS change (moved from line 313)
-	//$formSetup->newItem('SUBTOTAL_PROPAL_ADD_RECAP')->setAsYesNo();	// InfraS change (moved from line 314)
-	}	// InfraS add
-}
-
-// InfraS add begin
-if (isModEnabled('oblyon') && !empty(getDolGlobalString('MAIN_MENU_INVERT')) && !empty(getDolGlobalString('OBLYON_HIDE_LEFTMENU')) ) {
-	// Désactiver le sommaire rapide
-	dolibarr_set_const($db, 'SUBTOTAL_DISABLE_SUMMARY', 1, 'chaine', 0, '', $conf->entity);
-}
-// InfraS add end
-
-/*
- * Actions
- */
-
-if ($action == 'update' && !empty($formSetup) && is_object($formSetup) && !empty($user->admin)) {
-	$formSetup->saveConfFromPost();
-	header('Location:'.$_SERVER['PHP_SELF']);
-	exit;
-}
-
-
-/*
- * View
- */
-
-$form = new Form($db);
-
-$help_url = '';
-$page_name = "SubtotalSetup";
-
-llxHeader('', $langs->trans($page_name), $help_url);
-
-// Subheader
-$linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
-
-print load_fiche_titre($langs->trans($page_name), $linkback, 'title_setup');
-
-// Configuration header
-$head = subtotalAdminPrepareHead();
-print dol_get_fiche_head($head, 'settings', $langs->trans($page_name), -1, "subtotal@subtotal");
-
-// Setup page goes here
-echo '<span class="opacitymedium">'.$langs->trans("SubTotalSetupPage").'</span><br><br>';
-
-
-if ($action == 'edit') {
-
-	print $formSetup->generateOutput(true);
-	print '<br>';
-} else {
-	if (!empty($formSetup->items)) {
-		print $formSetup->generateOutput();
-
-		print '<div class="tabsAction">';
-		print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=edit&token='.newToken().'">'.$langs->trans("Modify").'</a>';
-		print '</div>';
-	}
-	else {
-		print '<br>'.$langs->trans("NothingToSetup");
-	}
-}
-
-// Page end
-print dol_get_fiche_end();
-
-
-llxFooter();
-$db->close();
+	print '	</form>
+			<a class = "subtotalScrollUp" href = "#top">'.img_picto($langs->trans('Top'), 'angle-double-up').'</a>';
+	print dol_get_fiche_end();
+	llxFooter();
+	$db->close();

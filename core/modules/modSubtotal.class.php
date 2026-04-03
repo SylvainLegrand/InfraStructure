@@ -1,356 +1,227 @@
-<?php
-/* <Add title and subtotal in propal, order, invoice.>
- * Copyright (C) 2013 ATM Consulting <support@atm-consulting.fr>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+	<?php
+	/*************************************************
+	* Copyright (C) 2013 		ATM Consulting <support@atm-consulting.fr>
+	* Copyright (C) 2025-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	*
+	* This program is free software: you can redistribute it and/or modify
+	* it under the terms of the GNU General Public License as published by
+	* the Free Software Foundation, either version 3 of the License, or
+	* (at your option) any later version.
+	*
+	* This program is distributed in the hope that it will be useful,
+	* but WITHOUT ANY WARRANTY; without even the implied warranty of
+	* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	* GNU General Public License for more details.
+	*
+	* You should have received a copy of the GNU General Public License
+	* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	*************************************************/
 
-/**
- * 	\defgroup	titre	titre module
- * 	\brief		titre module descriptor.
- * 	\file		core/modules/modtitre.class.php
- * 	\ingroup	titre
- * 	\brief		Description and activation file for module titre
- */
-include_once DOL_DOCUMENT_ROOT . "/core/modules/DolibarrModules.class.php";
+	/**************************************************
+	* 	\defgroup	subtotal	subtotal module
+	* 	\brief		subtotal module descriptor.
+	* 	\file		core/modules/modsubtotal.class.php
+	* 	\ingroup	subtotal
+	* 	\brief		Description and activation file for module subtotal
+	*************************************************/
 
-/**
- * Description and activation class for module titre
- */
-class modSubtotal extends DolibarrModules
-{
+	// Libraries ****************************
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
+	dol_include_once('/subtotal/core/lib/subtotalAdmin.lib.php');
+	dol_include_once('/subtotal/class/techatm.class.php');
 
 	/**
-	 * 	Constructor. Define names, constants, directories, boxes, permissions
-	 *
-	 * 	@param	DoliDB		$db	Database handler
-	 */
-
-	public function __construct($db)
+	* Description and activation class for module subtotal
+	*/
+	class modSubtotal extends DolibarrModules
 	{
-		global $langs, $conf;
+		public $editor_email;	// @var string Editor email
+		public $special;		// @var int Module type (0=common, 1=interface, 2=others, 3=very specific)
 
-		$this->db = $db;
+		/**
+		* 	Constructor. Define names, constants, directories, boxes, permissions
+		*
+		* 	@param	DoliDB		$db	Database handler
+		*/
+		public function __construct($db)
+		{
+			global $langs, $conf;
 
-        $this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
-		$this->editor_email		= 'support@infras.fr';
-		$this->editor_web		= 'https://www.infras.fr/';
-		$this->editor_url		= $this->editor_web;
-		// Id for module (must be unique).
-		// Use a free id here
-		// (See in Home -> System information -> Dolibarr for list of used modules id).
-		$this->numero = 104777; // 104000 to 104999 for ATM CONSULTING
-		// Key text used to identify module (for permissions, menus, etc...)
-		$this->rights_class = 'subtotal';
-
-		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
-		// It is used to group modules in module setup page
-        $family					= !empty($conf->global->EASYA_VERSION) ? 'easya' : 'Modules InfraS';
-        $this->family			= $family;											// used to group modules in module setup page
-        $this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		// Module label (no space allowed)
-		// used if translation string 'ModuleXXXName' not found
-		// (where XXX is value of numeric property 'numero' of module)
-		$this->name = preg_replace('/^mod/i', '', get_class($this));
-		// Module description
-		// used if translation string 'ModuleXXXDesc' not found
-		// (where XXX is value of numeric property 'numero' of module)
-		$this->description = "Module permettant d'ajouter des titres, sous-totaux et des sous-totaux intermédiaires dans un tableau ou une liste, tout en facilitant le déplacement fluide d'une ligne d'éléments d'un sous-total à un autre.";
-		// Possible values for version are: 'development', 'experimental' or version
-		$this->version = '3.29.4.1';	// InfraS change
-
-
-		// Url to the file with your last numberversion of this module
-		require_once __DIR__ . '/../../class/techatm.class.php';
-		$this->url_last_version	= $this->editor_web.'jdownloads/Technique/Modules%20Dolibarr/Changelogs/'.$this->name.'/'.$this->name.'.txt';
-
-		// Key used in llx_const table to save module status enabled/disabled
-		// (where MYMODULE is value of property name of module in uppercase)
-		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
-		// Where to store the module in setup page
-		// (0=common,1=interface,2=others,3=very specific)
-		$this->special = 2;
-		// Name of image file used for this module.
-		// If file is in theme/yourtheme/img directory under name object_pictovalue.png
-		// use this->picto='pictovalue'
-		// If file is in module/img directory under name object_pictovalue.png
-		// use this->picto='pictovalue@module'
-		$this->picto = 'modsubtotal@subtotal'; // mypicto@titre
-		// Defined all module parts (triggers, login, substitutions, menus, css, etc...)
-		// for default path (eg: /titre/core/xxxxx) (0=disable, 1=enable)
-		// for specific path of parts (eg: /titre/core/modules/barcode)
-		// for specific css file (eg: /titre/css/titre.css.php)
-		$this->module_parts = array(
-			// Set this to 1 if module has its own trigger directory
-			'triggers' => 1,
-			// Set this to 1 if module has its own login method directory
-			//'login' => 0,
-			// Set this to 1 if module has its own substitution function file
-			//'substitutions' => 0,
-			// Set this to 1 if module has its own menus handler directory
-			//'menus' => 0,
-			// Set this to 1 if module has its own barcode directory
-			//'barcode' => 0,
-			// Set this to 1 if module has its own models directory
-            //'models' => 1,
-			// Set this to relative path of css if module has its own css file
-			//'css' => '/titre/css/mycss.css.php',
-			// Set here all hooks context managed by module
-			'hooks' => array(
-				'invoicecard'
-			,'invoicesuppliercard'
-			,'propalcard'
-			,'supplier_proposalcard'
-			,'ordercard'
-			,'ordersuppliercard'
-			,'odtgeneration'
-			,'orderstoinvoice'
-			,'orderstoinvoicesupplier'
-			,'admin'
-			,'invoicereccard'
-			,'consumptionthirdparty'
-			,'ordershipmentcard'
-			,'expeditioncard'
-			,'deliverycard'
-			,'paiementcard'
-			,'referencelettersinstacecard'
-			,'shippableorderlist'
-			,'propallist'
-			,'orderlist'
-			,'invoicelist'
-			,'supplierorderlist'
-			,'supplierinvoicelist'
-			,'cron'
-			,'pdfgeneration'
-			,'checkmarginlist'
-			),
-			// Set here all workflow context managed by module
-			//'workflow' => array('order' => array('WORKFLOW_ORDER_AUTOCREATE_INVOICE')),
-			'tpl' => 1
-		);
-
-		// Data directories to create when module is enabled.
-		// Example: this->dirs = array("/titre/temp");
-		$this->dirs = array();
-
-		// Config pages. Put here list of php pages
-		// stored into titre/admin directory, used to setup module.
-		$this->config_page_url = array("subtotal_setup.php@subtotal");
-
-		// Dependencies
-		// List of modules id that must be enabled if this module is enabled
-		$this->depends = array();
-
-		$this->conflictwith=array('modMilestone');
-		// List of modules id to disable if this one is disabled
-		$this->requiredby = array();
-		// Minimum version of PHP required by module
-		$this->phpmin = array(7,0);
-		// Minimum version of Dolibarr required by module
-		$this->need_dolibarr_version = array(16,0);
-		$this->langfiles = array("subtotal@subtotal"); // langfiles@titre
-		// Constants
-		// List of particular constants to add when module is enabled
-		// (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
-		// Example:
-		$this->const = array(
-			0=>array(
-				'SUBTOTAL_STYLE_TITRES_SI_LIGNES_CACHEES',
-				'chaine',
-				'I',
-				'Définit le style (B : gras, I : Italique, U : Souligné) des sous titres lorsque le détail des lignes et des ensembles est caché',
-				1
-			)
-		,1=>array('SUBTOTAL_ALLOW_ADD_BLOCK', 'chaine', '1', 'Permet l\'ajout de titres et sous-totaux')
-		,2=>array('SUBTOTAL_ALLOW_EDIT_BLOCK', 'chaine', '1', 'Permet de modifier titres et sous-totaux')
-		,3=>array('SUBTOTAL_ALLOW_REMOVE_BLOCK', 'chaine', '1', 'Permet de supprimer les titres et sous-totaux')
-		,4=>array('SUBTOTAL_TITLE_STYLE', 'chaine', 'BU')
-		,5=>array('SUBTOTAL_SUBTOTAL_STYLE', 'chaine', 'B')
-			//	1=>array(
-			//		'MYMODULE_MYNEWCONST2',
-			//		'chaine',
-			//		'myvalue',
-			//		'This is another constant to add',
-			//		0
-			//	)
-		);
-
-
-
-
-		// Array to add new pages in new tabs
-		// Example:
-		$this->tabs = array(
-			//	// To add a new tab identified by code tabname1
-			//	'objecttype:+tabname1:Title1:langfile@titre:$user->rights->titre->read:/titre/mynewtab1.php?id=__ID__',
-			//	// To add another new tab identified by code tabname2
-			//	'objecttype:+tabname2:Title2:langfile@titre:$user->rights->othermodule->read:/titre/mynewtab2.php?id=__ID__',
-			//	// To remove an existing tab identified by code tabname
-			//	'objecttype:-tabname'
-		);
-		// where objecttype can be
-		// 'thirdparty'			to add a tab in third party view
-		// 'intervention'		to add a tab in intervention view
-		// 'order_supplier'		to add a tab in supplier order view
-		// 'invoice_supplier'	to add a tab in supplier invoice view
-		// 'invoice'			to add a tab in customer invoice view
-		// 'order'				to add a tab in customer order view
-		// 'product'			to add a tab in product view
-		// 'stock'				to add a tab in stock view
-		// 'propal'				to add a tab in propal view
-		// 'member'				to add a tab in fundation member view
-		// 'contract'			to add a tab in contract view
-		// 'user'				to add a tab in user view
-		// 'group'				to add a tab in group view
-		// 'contact'			to add a tab in contact view
-		// 'categories_x'		to add a tab in category view
-		// (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
-
-		//Compatibility V16
-		$dictionnariesTablePrefix = '';
-		if (intval(DOL_VERSION)< 16) $dictionnariesTablePrefix =  MAIN_DB_PREFIX;
-
-		// Dictionnaries
-		if (!isModEnabled('subtotal')) {
-			$conf->subtotal=new stdClass();
-			$conf->subtotal->enabled = 0;
+			$langs->load('subtotal@subtotal');
+			subtotal_test_php_ext();
+			$this->db 				= $db;
+			$this->numero			= 104777;																					// Unique Id for module
+			$this->name				= preg_replace('/^mod/i', '', get_class($this));		// Module label (no space allowed)
+			$this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
+			$this->editor_email		= 'support@infras.fr';
+			$editor_web				= 'https://www.infras.fr/';
+			$this->editor_url		= $editor_web;
+			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
+			$this->rights_class		= $this->name;																				// Key text used to identify module (for permissions, menus, etc...)
+			$family					= getDolGlobalString('EASYA_VERSION') ? 'easya' : 'Modules InfraS';					// It is used to group modules in module setup page
+			$this->family			= $family;																					// used to group modules in module setup page
+			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+			$this->description		= $langs->trans('Module104777Desc');													// Module description
+			$this->version			= $this->getLocalVersion();																	// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
+			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);											// llx_const table to save module status enabled/disabled
+			$this->special			= 2;																						// (0=common,1=interface,2=others,3=very specific)
+			$this->picto			= 'modsubtotal@subtotal';																	// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
+			$this->module_parts		= array('triggers'	=> 1,
+											'hooks'		=> array('invoicecard','invoicesuppliercard','propalcard','supplier_proposalcard','ordercard','ordersuppliercard',
+																'odtgeneration','orderstoinvoice','orderstoinvoicesupplier','admin','invoicereccard',
+																'consumptionthirdparty','ordershipmentcard','expeditioncard','deliverycard','paiementcard',
+																'referencelettersinstacecard','shippableorderlist','propallist','orderlist','invoicelist',
+																'supplierorderlist','supplierinvoicelist','cron','pdfgeneration','checkmarginlist'
+																),
+											'tpl'		=> 1,
+											'css'		=> array('css' => '/subtotal/css/subtotal.css.php'),
+			);
+			$this->dirs				= array('/subtotal/sql');																	// Data directories to create when module is enabled.
+			$this->config_page_url	= array('subtotal_setup.php@subtotal');														// stored into titre/admin directory, used to setup module.
+			// Dependencies
+			$this->depends			= array();																					// List of modules id that must be enabled if this module is enabled
+			$this->requiredby		= array();																					// List of modules id to disable if this one is disabled
+			$this->conflictwith		= array('modMilestone');																	// List of modules id that cannot be enabled if this module is enabled
+			$this->langfiles		= array('subtotal@subtotal');
+			$this->const			= array(0	=> array('SUBTOTAL_STYLE_TITRES_SI_LIGNES_CACHEES', 'chaine', 'I', 'Définit le style (B : gras, I : Italique, U : Souligné) des sous titres lorsque le détail des lignes et des ensembles est caché', 1),
+											1	=> array('SUBTOTAL_ALLOW_ADD_BLOCK', 'chaine', '1', 'Permet l\'ajout de titres et sous-totaux'),
+											2	=> array('SUBTOTAL_ALLOW_EDIT_BLOCK', 'chaine', '1', 'Permet de modifier titres et sous-totaux'),
+											3	=> array('SUBTOTAL_ALLOW_REMOVE_BLOCK', 'chaine', '1', 'Permet de supprimer les titres et sous-totaux'),
+											4	=> array('SUBTOTAL_TITLE_STYLE', 'chaine', 'BU'),
+											5	=> array('SUBTOTAL_SUBTOTAL_STYLE', 'chaine', 'B')
+										);
+			$this->tabs				= array();
+			if (!isModEnabled('subtotal')) {
+				$conf->subtotal				= new stdClass();
+				$conf->subtotal->enabled	= 0;
+			}
+			// Dictionnaries
+			$this->dictionaries		= array('langs'				=>'subtotal@subtotal',
+											'tabname'			=> array(MAIN_DB_PREFIX.'c_subtotal_free_text'),				// List of tables we want to see into dictonnary editor
+											'tablib'			=> array($langs->trans('SubTotalFreeLineDictionary')),		// Label of tables
+											'tabsql'			=> array('SELECT f.rowid as rowid, f.label, f.content, f.entity, f.active FROM '. $db->prefix() .'c_subtotal_free_text as f WHERE f.entity='.$conf->entity),	// Request to select fields
+											'tabsqlsort'		=> array('label ASC'),											// Sort order
+											'tabfield'			=> array('label,content'),										// List of fields (result of select to show dictionary)
+											'tabfieldvalue'		=> array('label,content'),										// List of fields (list of fields to edit a record)
+											'tabfieldinsert'	=> array('label,content,entity'),								// List of fields (list of fields for insert)
+											'tabrowid'			=> array('rowid'),												// Name of columns with primary key (try to always name it 'rowid')
+											'tabcond'			=> array(isModEnabled('subtotal'))
+										);
+			// Boxes
+			$this->boxes			= array(); 																					// Boxes list
+			// List of cron jobs entries to add
+			$this->cronjobs			= array();
+			// Permission array used by this module
+			$this->rights			= array(); 																					// Permission array used by this module
+			$this->menu				= array(); 																					// List of menus to add
 		}
-		$this->dictionaries = array(
-			'langs'=>'subtotal@subtotal',
-			'tabname'=>array($dictionnariesTablePrefix.'c_subtotal_free_text'),		// List of tables we want to see into dictonnary editor
-			'tablib'=>array($langs->trans('subtotalFreeLineDictionary')),													// Label of tables
-			'tabsql'=>array('SELECT f.rowid as rowid, f.label, f.content, f.entity, f.active FROM '. $db->prefix() .'c_subtotal_free_text as f WHERE f.entity='.$conf->entity),	// Request to select fields
-			'tabsqlsort'=>array('label ASC'),																					// Sort order
-			'tabfield'=>array('label,content'),							// List of fields (result of select to show dictionary)
-			'tabfieldvalue'=>array('label,content'),						// List of fields (list of fields to edit a record)
-			'tabfieldinsert'=>array('label,content,entity'),					// List of fields (list of fields for insert)
-			'tabrowid'=>array('rowid'),											// Name of columns with primary key (try to always name it 'rowid')
-			'tabcond'=>array(isModEnabled('subtotal'))
-		);
+		
+		/**
+		* Function called when module is enabled.
+		* The init function add constants, boxes, permissions and menus
+		* (defined in constructor) into Dolibarr database.
+		* It also creates data directories
+		*
+		* 	@param		string	$options	Options when enabling module ('', 'noboxes')
+		* 	@return		int					1 if OK, 0 if KO
+		*/
+		public function init($options = '')
+		{
+			global $conf, $db, $langs;
 
-		// Boxes
-		// Add here list of php file(s) stored in core/boxes that contains class to show a box.
-		$this->boxes = array(); // Boxes list
+			$sql	= array();
+			$this->loadTables();
+			dol_include_once('/core/class/extrafields.class.php');
 
-		/*
-		  $this->boxes[$r][1] = "myboxb.php";
-		  $r++;
-		 */
-
-		// Permissions
-		$this->rights = array(); // Permission array used by this module
-		$r = 0;
-
-		// Add here list of permission defined by
-		// an id, a label, a boolean and two constant strings.
-		// Example:
-		//// Permission id (must not be already used)
-		//$this->rights[$r][0] = 2000;
-		//// Permission label
-		//$this->rights[$r][1] = 'Permision label';
-		//// Permission by default for new user (0/1)
-		//$this->rights[$r][3] = 1;
-		//// In php code, permission will be checked by test
-		//// if ($user->hasRight("permkey", "level1", "level2"))
-		//$this->rights[$r][4] = 'level1';
-		//// In php code, permission will be checked by test
-		//// if ($user->hasRight("permkey", "level1", "level2"))
-		//$this->rights[$r][5] = 'level2';
-		//$r++;
-		// Main menu entries
-		$this->menus = array(); // List of menus to add
-	}
-
-	/**
-	 * Function called when module is enabled.
-	 * The init function add constants, boxes, permissions and menus
-	 * (defined in constructor) into Dolibarr database.
-	 * It also creates data directories
-	 *
-	 * 	@param		string	$options	Options when enabling module ('', 'noboxes')
-	 * 	@return		int					1 if OK, 0 if KO
-	 */
-	public function init($options = '')
-	{
-		global $conf, $db;
-
-
-		/*		if(isModEnabled('milestone')) {
-					exit("Attention, ce module rentre ne conflit avec le module Jalon/Milestones. Merci de le désactiver auparavant.");
-				}
-			  */
-		$sql = array();
-
-		$result = $this->loadTables();
-		dol_include_once('/core/class/extrafields.class.php');
-
-		$extra = new ExtraFields($db); // propaldet, commandedet, facturedet
-		$TElementType = array('propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det');
-		foreach ($TElementType as $element_type) {
-			$extra->addExtraField('show_total_ht', 'Afficher le Total HT sur le sous-total', 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			$extra->addExtraField('show_reduc', 'Afficher la réduction sur le sous-total', 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			$extra->addExtraField('subtotal_show_qty', 'Afficher la Quantité du Sous-Total', 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra			= new ExtraFields($db); // propaldet, commandedet, facturedet
+			$TElementType	= array('propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det');
+			foreach ($TElementType as $element_type) {
+				$extra->addExtraField('show_total_ht', $langs->trans('SubTotalShowTotalHTOnSubtotalBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+				$extra->addExtraField('show_reduc', $langs->trans('SubTotalShowReductionOnSubtotalBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+				$extra->addExtraField('subtotal_show_qty', $langs->trans('SubTotalLineShowQty'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			}
+			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			// InfraS add begin
+			$extra->addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('print_as_list', $langs->trans('SubTotalPrintAsList'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('print_as_list', $langs->trans('SubTotalPrintAsList'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('print_as_list', $langs->trans('SubTotalPrintAsList'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('print_condensed', $langs->trans('SubTotalPrintCondensed'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('print_condensed', $langs->trans('SubTotalPrintCondensed'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			$extra->addExtraField('print_condensed', $langs->trans('SubTotalPrintCondensed'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			if (isModEnabled('oblyon') && getDolGlobalString('MAIN_MENU_INVERT') && getDolGlobalString('OBLYON_HIDE_LEFTMENU')) {
+				// Désactive le sommaire rapide
+				dolibarr_set_const($db, 'SUBTOTAL_DISABLE_SUMMARY', 1, 'chaine', 0, '', $conf->entity);
+			}
+			// InfraS add end
+			return $this->_init($sql, $options);
 		}
 
-		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('hideblock', 'Cacher les lignes contenues dans ce titre', 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		// InfraS add begin
-		$extra->addExtraField('show_table_header_before', 'Afficher l\'en-tête du tableau juste avant ce titre', 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('show_table_header_before', 'Afficher l\'en-tête du tableau juste avant ce titre', 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('show_table_header_before', 'Afficher l\'en-tête du tableau juste avant ce titre', 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('print_as_list', 'Imprimer le contenu sous forme de liste', 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('print_as_list', 'Imprimer le contenu sous forme de liste', 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('print_as_list', 'Imprimer le contenu sous forme de liste', 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('print_condensed', 'Imprimer le contenu de manière condensé', 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('print_condensed', 'Imprimer le contenu de manière condensé', 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('print_condensed', 'Imprimer le contenu de manière condensé', 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		if (isModEnabled('oblyon') && !empty(getDolGlobalString('MAIN_MENU_INVERT')) && !empty(getDolGlobalString('OBLYON_HIDE_LEFTMENU')) ) {
-			// Désactive le sommaire rapide
-			dolibarr_set_const($db, 'SUBTOTAL_DISABLE_SUMMARY', 1, 'chaine', 0, '', $conf->entity);
+		/**
+		* Function called when module is disabled.
+		* Remove from database constants, boxes and permissions from Dolibarr database.
+		* Data directories are not deleted
+		*
+		* 	@param		string	$options	Options when enabling module ('', 'noboxes')
+		* 	@return		int					1 if OK, 0 if KO
+		*/
+		public function remove($options = '')
+		{
+			$sql = array();
+			return $this->_remove($sql, $options);
 		}
-		// InfraS add end
-		return $this->_init($sql, $options);
-	}
 
-	/**
-	 * Function called when module is disabled.
-	 * Remove from database constants, boxes and permissions from Dolibarr database.
-	 * Data directories are not deleted
-	 *
-	 * 	@param		string	$options	Options when enabling module ('', 'noboxes')
-	 * 	@return		int					1 if OK, 0 if KO
-	 */
-	public function remove($options = '')
-	{
-		$sql = array();
+		/**
+		* Create tables, keys and data required by module
+		* Files llx_table1.sql, llx_table1.key.sql llx_data.sql with create table, create keys
+		* and create data commands must be stored in directory /titre/sql/
+		* This function is called by this->init
+		*
+		* 	@return		int		<=0 if KO, >0 if OK
+		*/
+		private function loadTables()
+		{
+			return $this->_load_tables('/subtotal/sql/');
+		}
 
-		return $this->_remove($sql, $options);
-	}
+		/**
+		* Function called to check module name from local changelog
+		* Control of the min version of Dolibarr needed
+		* If dolibarr version does'nt match the min version the module is disabled
+		* @return		string		current version or error message
+		**/
+		function getLocalVersion()
+		{
+			global $langs;
 
-	/**
-	 * Create tables, keys and data required by module
-	 * Files llx_table1.sql, llx_table1.key.sql llx_data.sql with create table, create keys
-	 * and create data commands must be stored in directory /titre/sql/
-	 * This function is called by this->init
-	 *
-	 * 	@return		int		<=0 if KO, >0 if OK
-	 */
-	private function loadTables()
-	{
-		return $this->_load_tables('/subtotal/sql/');
+			if (getDolGlobalString('INFRAS_PHP_EXT_XML', '') == -1)	{
+				return $langs->trans('SubTotalChangelogXMLError');
+			}
+			$currentversion					= array();
+			$currentversion					= subtotal_getLocalVersionMinDoli($this->name);
+			$this->need_dolibarr_version	= explode('.', $currentversion[1]);	// Minimum version of Dolibarr required by module
+			$this->phpmin					= explode('.', $currentversion[5]);	// Minimum version of PHP required by module
+			$this->phpmax					= explode('.', $currentversion[6]);	// Maximum version of PHP required by module
+			if (!getDolGlobalString('SUBTOTAL_DISABLE_CHECK_VERSION_MIN', '') && version_compare($currentversion[1], DOL_VERSION, '>')) {
+				$this->disabled	= true;
+			}
+			return $currentversion[0];
+		}
+
+		/**
+		* Function called to view changelog on help tab
+		* @return		string		html view
+		**/
+		function getChangeLog()
+		{
+			$currentversion	= subtotal_getLocalVersionMinDoli($this->name);
+			$ChangeLog		= subtotal_getChangeLog($this->name, $currentversion[0], $currentversion[2], $currentversion[3], 0);
+			return $ChangeLog;
+		}
 	}
-}
