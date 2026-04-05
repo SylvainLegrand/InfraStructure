@@ -105,7 +105,7 @@
 				$hasRemiseLine	= false;
 				if (!empty($object->lines) && is_array($object->lines)) {
 					foreach ($object->lines as $line) {
-						if (in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
+						if (isset($line->array_options['options_specialtype']) && in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) { // isset() pour éviter PHP warning
 							$hasRemiseLine	= true;
 							break;
 						}
@@ -283,7 +283,7 @@
 			$pairTotal			= 0;
 			//loop to find and combine prorata line
 			foreach ($object->lines as $idx => $line) {
-				if (in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
+				if (isset($line->array_options['options_specialtype']) && in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) { // isset() pour éviter PHP warning
 					if ($line->array_options['options_specialtype'] == 3) {
 						// Ajouter la ligne au groupe courant
 						$currentPair[]	= array('line' => $line,
@@ -304,7 +304,7 @@
 			}
 			// 2. Construction de la liste des remises
 			foreach ($object->lines as $idx => $line) {
-				if (in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
+				if (isset($line->array_options['options_specialtype']) && in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) { // isset() pour éviter PHP warning
 					if ($line->array_options['options_specialtype'] == 3) {
 						// Chercher le groupe qui contient cette ligne
 						foreach ($prorataGroups as $groupIdx => $group) {

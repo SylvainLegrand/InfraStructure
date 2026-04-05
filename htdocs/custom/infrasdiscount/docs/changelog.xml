@@ -148,7 +148,11 @@
 		<change type='add'>Informations techniques : ajout de l'affichage de la version Dolinfras dans infrasdiscount_getSupportInformation()</change>
 		<change type='add'>Traductions : ajout de la clé InfraSDiscountParamDolinfrasVersion dans tous les fichiers de langue (fr_FR, en_US, es_ES, it_IT)</change>
 	</Version>
-	<InfraS Downloaded="20260301"/>
+	<Version Number="15.3.5" MonthVersion="2026-04">
+		<change type='fix'>Calcul des remises : correction de l'exclusion des lignes libres (sans produit lié) dans infrasdiscount_calculateCascadeBase() => comparaison lâche PHP (null == '') remplacée par empty() + comparaison stricte (!==), compatible toutes versions Dolibarr (V15 à V23)</change>
+		<change type='fix'>Hooks : ajout de isset() avant chaque accès à options_specialtype dans actions_infrasdiscount.class.php pour éviter les warnings PHP "Undefined array key" sur les lignes sans extrafield</change>
+	</Version>
+	<InfraS Downloaded="20260401"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="23.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

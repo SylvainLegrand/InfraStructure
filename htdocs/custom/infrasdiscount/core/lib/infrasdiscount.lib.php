@@ -528,12 +528,14 @@
 
 			if ($isProductDiscount) {
 				// Pour la remise produit : inclure toutes les lignes produit (type 0) sauf les références de remise service
-				if ($line->product_type == 0 && $line->product_ref != $remServiceRef) {
+				// empty() + !== : compatible toutes versions Dolibarr (product_ref peut être null ou '' pour les lignes libres)
+				if ($line->product_type == 0 && (empty($remServiceRef) || $line->product_ref !== $remServiceRef)) {
 					$base += $line->total_ht;
 				}
 			} else {
 				// Pour la remise service : inclure toutes les lignes service (type 1) sauf les références de remise produit
-				if ($line->product_type == 1 && $line->product_ref != $remProductRef) {
+				// empty() + !== : compatible toutes versions Dolibarr (product_ref peut être null ou '' pour les lignes libres)
+				if ($line->product_type == 1 && (empty($remProductRef) || $line->product_ref !== $remProductRef)) {
 					$base += $line->total_ht;
 				}
 			}

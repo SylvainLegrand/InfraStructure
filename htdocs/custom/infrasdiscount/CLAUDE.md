@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `23.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.3.4` (2026-03)
+- Dernière version locale : `15.3.5` (2026-04)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrasdiscount/`
 
@@ -238,6 +238,8 @@ Si modification SQL / descripteur / permissions / hooks / triggers :
 - `15.3.4` (2026-03) : famille du module affiche « Dolibarr by InfraS » quand `DOLINFRAS_VERSION` est définie (branding dynamique)
 - `15.3.4` (2026-03) : ajout de la clé de traduction `InfraSDiscountParamDolinfrasVersion` (fr_FR, en_US, es_ES, it_IT)
 - `15.3.4` (2026-03) : ajout du support dark mode pour les éléments de branding (`.infras-dark-bg .infrasdiscountneuropolinfras` dans le CSS)
+- `15.3.5` (2026-04) : correction de l'exclusion des lignes libres (sans produit lié) dans `infrasdiscount_calculateCascadeBase()` — comparaison lâche PHP (`null == ''`) remplacée par `empty()` + comparaison stricte (`!==`), compatible toutes versions Dolibarr
+- `15.3.5` (2026-04) : ajout de `isset()` avant chaque accès à `options_specialtype` dans `actions_infrasdiscount.class.php` pour éviter les warnings PHP sur les lignes sans extrafield
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -415,7 +417,7 @@ Le module détecte et exclut les lignes des modules externes des calculs de remi
 
 ```xml
 <changelog>
-  <Version Number="15.3.4" MonthVersion="2026-03">
+  <Version Number="15.3.5" MonthVersion="2026-04">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -434,7 +436,7 @@ Le module détecte et exclut les lignes des modules externes des calculs de remi
 La fonction `infrasdiscount_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "15.3.4",           // Version courante
+    0 => "15.3.5",           // Version courante
     1 => "15.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag d'erreur (0 = OK, -1 = erreur XML)
     3 => SimpleXMLElement,   // Objet contenant toutes les versions
