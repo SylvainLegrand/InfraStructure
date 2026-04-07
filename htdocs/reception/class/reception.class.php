@@ -1281,24 +1281,31 @@ class Reception extends CommonObject
 				$resql_commfourndet = $this->db->query($sql_commfourndet);
 				if (!empty($resql_commfourndet)) {
 					$obj = $this->db->fetch_object($resql_commfourndet);
-					$line->qty_asked = $obj->qty;
-					$line->description = $obj->description;
-					$line->desc = $obj->description;
-					$line->tva_tx = $obj->tva_tx;
-					$line->vat_src_code = $obj->vat_src_code;
-					$line->subprice = $obj->subprice;
-					$line->multicurrency_subprice = $obj->multicurrency_subprice;
-					$line->remise_percent = $obj->remise_percent;
-					$line->label = !empty($obj->label) ? $obj->label : (is_object($line->product) ? $line->product->label : '');
-					$line->ref_supplier = $obj->ref;
-					$line->total_ht = $obj->total_ht;
-					$line->total_ttc = $obj->total_ttc;
-					$line->total_tva = $obj->total_tva;
+					if ($obj !== null) {	// InfraS add
+						$line->qty_asked = $obj->qty;
+						$line->description = $obj->description;
+						$line->desc = $obj->description;
+						$line->tva_tx = $obj->tva_tx;
+						$line->vat_src_code = $obj->vat_src_code;
+						$line->subprice = $obj->subprice;
+						$line->multicurrency_subprice = $obj->multicurrency_subprice;
+						$line->remise_percent = $obj->remise_percent;
+						$line->label = !empty($obj->label) ? $obj->label : (is_object($line->product) ? $line->product->label : '');
+						$line->ref_supplier = $obj->ref;
+						$line->total_ht = $obj->total_ht;
+						$line->total_ttc = $obj->total_ttc;
+						$line->total_tva = $obj->total_tva;
+					} else {	// InfraS add begin
+						$line->qty_asked = 0;
+						$line->description = '';
+						$line->desc = '';
+						$line->label = '';
+					}	// InfraS add end
 				} else {
 					$line->qty_asked = 0;
 					$line->description = '';
 					$line->desc = '';
-					$line->label = $obj->label;
+					$line->label = '';	// InfraS change
 				}
 
 				$pu_ht = ($line->subprice * $line->qty) * (100 - $line->remise_percent) / 100;

@@ -701,7 +701,7 @@ if ($id > 0 || !empty($ref)) {
 		}
 
 		//$sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, l.ref AS sref, SUM(l.qty) as qty,";
-		$sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, l.ref AS sref, l.qty as qty,";
+		$sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, l.label AS line_label, l.description AS line_desc, l.ref AS sref, l.qty as qty,";	// InfraS add
 		$sql .= " p.ref, p.label, p.tobatch, p.fk_default_warehouse";
 
 		// Enable hooks to alter the SQL query (SELECT)
@@ -816,31 +816,30 @@ if ($id > 0 || !empty($ref)) {
 			while ($i < $num) {
 				$objp = $db->fetch_object($resql);
 
-				// On n'affiche pas les produits libres
+				// On affiche tous les produits, y compris les produits libres
 				if (!$objp->fk_product > 0) {
 					$nbfreeproduct++;
-				} else {
-					$alreadydispatched = isset($products_dispatched[$objp->rowid]) ? $products_dispatched[$objp->rowid] : 0;
-					$remaintodispatch = price2num($objp->qty - ((float) $alreadydispatched), 5); // Calculation of dispatched
-					if ($remaintodispatch < 0 && !getDolGlobalString('SUPPLIER_ORDER_ALLOW_NEGATIVE_QTY_FOR_SUPPLIER_ORDER_RETURN')) {
-						$remaintodispatch = 0;
-					}
+				}
+				// InfraS change
+				// Bloc commun pour tous les produits
+				$alreadydispatched	= isset($products_dispatched[$objp->rowid]) ? $products_dispatched[$objp->rowid] : 0;
+				$remaintodispatch	= price2num($objp->qty - ((float) $alreadydispatched), 5);
+				if ($remaintodispatch < 0 && !getDolGlobalString('SUPPLIER_ORDER_ALLOW_NEGATIVE_QTY_FOR_SUPPLIER_ORDER_RETURN')) {
+					$remaintodispatch = 0;
+				}
 
-					if ($remaintodispatch || !getDolGlobalString('SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED')) {
-						$nbproduct++;
+				if ($remaintodispatch || !getDolGlobalString('SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED')) {
+					$nbproduct++;
 
-						// To show detail cref and description value, we must make calculation by cref
-						// print ($objp->cref?' ('.$objp->cref.')':'');
-						// if ($objp->description) print '<br>'.nl2br($objp->description);
-						$suffix = '_0_'.$i;
+					$suffix = '_0_'.$i;
 
-						print "\n";
-						print '<!-- Line to dispatch '.$suffix.' -->'."\n";
-						// hidden fields for js function
-						print '<input id="qty_ordered'.$suffix.'" type="hidden" value="'.$objp->qty.'">';
-						print '<input id="qty_dispatched'.$suffix.'" type="hidden" value="'.(float) $alreadydispatched.'">';
-						print '<tr class="oddeven">';
-
+					print "\n";
+					print '<!-- Line to dispatch '.$suffix.' -->'."\n";
+					print '<input id="qty_ordered'.$suffix.'" type="hidden" value="'.$objp->qty.'">';
+					print '<input id="qty_dispatched'.$suffix.'" type="hidden" value="'.(float) $alreadydispatched.'">';
+					print '<tr class="oddeven">';
+					// Produit avec fk_product
+					if ($objp->fk_product > 0) {	// InfraS add
 						if (empty($conf->cache['product'][$objp->fk_product])) {
 							$tmpproduct = new Product($db);
 							$tmpproduct->fetch($objp->fk_product);
@@ -848,86 +847,95 @@ if ($id > 0 || !empty($ref)) {
 						} else {
 							$tmpproduct = $conf->cache['product'][$objp->fk_product];
 						}
-
 						$linktoprod = $tmpproduct->getNomUrl(1);
 						$linktoprod .= ' - '.$objp->label."\n";
-
-						if (isModEnabled('productbatch')) {
-							if ($objp->tobatch) {
-								// Product
-								print '<td>';
-								print $linktoprod;
-								print "</td>";
-								print '<td class="dispatch_batch_number"></td>';
-								if (!getDolGlobalString('PRODUCT_DISABLE_SELLBY')) {
-									print '<td class="dispatch_dlc"></td>';
-								}
-								if (!getDolGlobalString('PRODUCT_DISABLE_EATBY')) {
-									print '<td class="dispatch_dluo"></td>';
-								}
-							} else {
-								// Product
-								print '<td>';
-								print $linktoprod;
-								print "</td>";
-								print '<td class="dispatch_batch_number">';
-								print '<span class="opacitymedium small">'.$langs->trans("ProductDoesNotUseBatchSerial").'</small>';
-								print '</td>';
-								if (!getDolGlobalString('PRODUCT_DISABLE_SELLBY')) {
-									print '<td class="dispatch_dlc"></td>';
-								}
-								if (!getDolGlobalString('PRODUCT_DISABLE_EATBY')) {
-									print '<td class="dispatch_dluo"></td>';
-								}
-							}
+					} else {	// InfraS add begin
+						// Produit libre : on affiche le label ou la description de la ligne de commande
+						if ($type == 1) {
+							$text = img_object($langs->trans('Service'), 'service');
 						} else {
-							print '<td colspan="4">';
+							$text = img_object($langs->trans('Product'), 'product');
+						}
+						$freelabel	= !empty($objp->line_label) ? $objp->line_label : (!empty($objp->line_desc) ? dol_string_nohtmltag($objp->line_desc) : '');
+						$linktoprod	= $text.' '.dol_escape_htmltag($freelabel)."\n";
+					}
+					// InfraS add end
+					if (isModEnabled('productbatch')) {
+						if ($objp->fk_product > 0 && $objp->tobatch) {	// InfraS change
+							// Product
+							print '<td>';
 							print $linktoprod;
 							print "</td>";
-						}
-
-						// Define unit price for PMP calculation
-						$up_ht_disc = $objp->subprice;
-						if (!empty($objp->remise_percent) && !getDolGlobalString('STOCK_EXCLUDE_DISCOUNT_FOR_PMP')) {
-							$up_ht_disc = price2num($up_ht_disc * (100 - $objp->remise_percent) / 100, 'MU');
-						}
-
-						// Supplier ref
-						print '<td class="right">'.$objp->sref.'</td>';
-
-						// Qty ordered
-						print '<td class="right">'.$objp->qty.'</td>';
-
-						// Already dispatched
-						print '<td class="right">'.$alreadydispatched.'</td>';
-
-						if (isModEnabled('productbatch') && $objp->tobatch > 0) {
-							$type = 'batch';
-							print '<td class="right">';
-							print '</td>'; // Qty to dispatch
-							print '<td>';
-							//print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-							print '</td>'; // Dispatch column
-							print '<td></td>'; // Warehouse column
-
-							// Enable hooks to append additional columns
-							$parameters = array(
-								// allows hook to distinguish between the rows with information and the rows with dispatch form input
-								'is_information_row' => true,
-								'i' => $i,
-								'suffix' => $suffix,
-								'objp' => $objp,
-							);
-							$reshook = $hookmanager->executeHooks(
-								'printFieldListValue',
-								$parameters,
-								$object,
-								$action
-							);
-							if ($reshook < 0) {
-								setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+							print '<td class="dispatch_batch_number"></td>';
+							if (!getDolGlobalString('PRODUCT_DISABLE_SELLBY')) {
+								print '<td class="dispatch_dlc"></td>';
 							}
-							print $hookmanager->resPrint;
+							if (!getDolGlobalString('PRODUCT_DISABLE_EATBY')) {
+								print '<td class="dispatch_dluo"></td>';
+							}
+						} else {
+							// Product
+							print '<td>';
+							print $linktoprod;
+							print "</td>";
+							print '<td class="dispatch_batch_number">';
+							if ($objp->fk_product > 0) {	// InfraS change
+								print '<span class="opacitymedium small">'.$langs->trans("ProductDoesNotUseBatchSerial").'</small>';
+							}	// InfraS change
+							print '</td>';
+							if (!getDolGlobalString('PRODUCT_DISABLE_SELLBY')) {
+								print '<td class="dispatch_dlc"></td>';
+							}
+							if (!getDolGlobalString('PRODUCT_DISABLE_EATBY')) {
+								print '<td class="dispatch_dluo"></td>';
+							}
+						}
+					} else {
+						print '<td colspan="4">';
+						print $linktoprod;
+						print "</td>";
+					}
+
+					// Define unit price for PMP calculation
+					$up_ht_disc = $objp->subprice;
+					if (!empty($objp->remise_percent) && !getDolGlobalString('STOCK_EXCLUDE_DISCOUNT_FOR_PMP')) {
+						$up_ht_disc = price2num($up_ht_disc * (100 - $objp->remise_percent) / 100, 'MU');
+					}
+
+					// Supplier ref
+					print '<td class="right">'.$objp->sref.'</td>';
+
+					// Qty ordered
+					print '<td class="right">'.$objp->qty.'</td>';
+
+					// Already dispatched
+					print '<td class="right">'.$alreadydispatched.'</td>';
+
+					if (isModEnabled('productbatch') && $objp->fk_product > 0 && $objp->tobatch > 0) {	// InfraS change
+						$type = 'batch';
+						print '<td class="right">';
+						print '</td>'; // Qty to dispatch
+						print '<td>';
+						//print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+						print '</td>'; // Dispatch column
+						print '<td></td>'; // Warehouse column
+						// Enable hooks to append additional columns
+						$parameters = array(
+							'is_information_row' => true,
+							'i' => $i,
+							'suffix' => $suffix,
+							'objp' => $objp,
+						);
+						$reshook = $hookmanager->executeHooks(
+							'printFieldListValue',
+							$parameters,
+							$object,
+							$action
+						);
+						if ($reshook < 0) {
+							setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+						}
+						print $hookmanager->resPrint;
 
 							print '</tr>';
 
@@ -963,7 +971,7 @@ if ($id > 0 || !empty($ref)) {
 							print '<td colspan="3">&nbsp;</td>'; // Supplier ref + Qty ordered + qty already dispatched
 						} else {
 							$type = 'dispatch';
-							$colspan = 7;
+							$colspan = 9;	// InfraS change
 							$colspan = (getDolGlobalString('PRODUCT_DISABLE_SELLBY')) ? --$colspan : $colspan;
 							$colspan = (getDolGlobalString('PRODUCT_DISABLE_EATBY')) ? --$colspan : $colspan;
 							print '<td class="right">';
@@ -1009,47 +1017,49 @@ if ($id > 0 || !empty($ref)) {
 							print '</td>';
 						}
 
-						// Qty to dispatch
-						print '<td class="right nowrap">';
-						if ($remaintodispatch > 0) {
-							$btnLabel = $langs->trans("Fill").' : '.$remaintodispatch;
-							print '<button class="auto-fill-qty btn-low-emphasis --btn-icon" data-rowname="qty'.$suffix.'" data-value="'.$remaintodispatch.'" title="'.dol_escape_htmltag($btnLabel).'" aria-label="'.dol_escape_htmltag($btnLabel).'" >'.img_picto($btnLabel, 'fa-arrow-right', 'aria-hidden="true"', 0, 0, 1).'</button>';
+					// Qty to dispatch
+					print '<td class="right nowrap">';
+					if ($remaintodispatch > 0) {
+						$btnLabel = $langs->trans("Fill").' : '.$remaintodispatch;
+						print '<button class="auto-fill-qty btn-low-emphasis --btn-icon" data-rowname="qty'.$suffix.'" data-value="'.$remaintodispatch.'" title="'.dol_escape_htmltag($btnLabel).'" aria-label="'.dol_escape_htmltag($btnLabel).'" >'.img_picto($btnLabel, 'fa-arrow-right', 'aria-hidden="true"', 0, 0, 1).'</button>';
+					}
+					print '<input id="qty'.$suffix.'" name="qty'.$suffix.'" type="number" step="any" class="width50 right qtydispatchinput" value="'.(GETPOSTISSET('qty'.$suffix) ? GETPOSTINT('qty'.$suffix) : (!getDolGlobalString('SUPPLIER_ORDER_DISPATCH_FORCE_QTY_INPUT_TO_ZERO') ? $remaintodispatch : 0)).'">';
+					print '<button class="resetline btn-low-emphasis --btn-icon" id="reset'.$suffix.'" title="'.dol_escape_htmltag($langs->trans("Reset")).'" >'.img_picto($langs->trans("Reset"), 'eraser', 'aria-hidden="true"', 0, 0, 1).'</button>';
+					print '</td>';
+
+					print '<td>';
+					if (isModEnabled('productbatch') && $objp->fk_product > 0 && $objp->tobatch > 0) {	// InfraS change
+						$type = 'batch';
+						print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine('.$i.', \''.$type.'\')"');
+					} elseif ($objp->fk_product > 0) {	// InfraS change
+						$type = 'dispatch';
+						print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine('.$i.', \''.$type.'\')"');
+					}
+					print '</td>';
+
+					if (getDolGlobalString('SUPPLIER_ORDER_CAN_UPDATE_BUYINGPRICE_DURING_RECEIPT')) {
+						if (!isModEnabled("multicurrency") && empty($conf->dynamicprices->enabled)) {
+							// Price
+							print '<td class="right">';
+							print '<input id="pu'.$suffix.'" name="pu'.$suffix.'" type="text" size="8" value="'.price((GETPOST('pu'.$suffix) != '' ? price2num(GETPOST('pu'.$suffix)) : $up_ht_disc)).'">';
+							print '</td>';
+
+							// Discount
+							print '<td class="right">';
+							print '<input id="dto'.$suffix.'" name="dto'.$suffix.'" type="text" size="8" value="'.(GETPOST('dto'.$suffix) != '' ? GETPOST('dto'.$suffix) : '').'">';
+							print '</td>';
+
+							// Save price
+							print '<td class="center">';
+							print '<input class="flat checkformerge" type="checkbox" name="saveprice'.$suffix.'" value="'.(GETPOST('saveprice'.$suffix) != '' ? GETPOST('saveprice'.$suffix) : '').'">';
+							print '</td>';
 						}
-						print '<input id="qty'.$suffix.'" name="qty'.$suffix.'" type="number" step="any" class="width50 right qtydispatchinput" value="'.(GETPOSTISSET('qty'.$suffix) ? GETPOSTINT('qty'.$suffix) : (!getDolGlobalString('SUPPLIER_ORDER_DISPATCH_FORCE_QTY_INPUT_TO_ZERO') ? $remaintodispatch : 0)).'">';
-						print '<button class="resetline btn-low-emphasis --btn-icon" id="reset'.$suffix.'" title="'.dol_escape_htmltag($langs->trans("Reset")).'" >'.img_picto($langs->trans("Reset"), 'eraser', 'aria-hidden="true"', 0, 0, 1).'</button>';
-						print '</td>';
+					}
 
-						print '<td>';
-						if (isModEnabled('productbatch') && $objp->tobatch > 0) {
-							$type = 'batch';
-							print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine('.$i.', \''.$type.'\')"');
-						} else {
-							$type = 'dispatch';
-							print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine('.$i.', \''.$type.'\')"');
-						}
-						print '</td>';
-
-						if (getDolGlobalString('SUPPLIER_ORDER_CAN_UPDATE_BUYINGPRICE_DURING_RECEIPT')) {
-							if (!isModEnabled("multicurrency") && empty($conf->dynamicprices->enabled)) {
-								// Price
-								print '<td class="right">';
-								print '<input id="pu'.$suffix.'" name="pu'.$suffix.'" type="text" size="8" value="'.price((GETPOST('pu'.$suffix) != '' ? price2num(GETPOST('pu'.$suffix)) : $up_ht_disc)).'">';
-								print '</td>';
-
-								// Discount
-								print '<td class="right">';
-								print '<input id="dto'.$suffix.'" name="dto'.$suffix.'" type="text" size="8" value="'.(GETPOST('dto'.$suffix) != '' ? GETPOST('dto'.$suffix) : '').'">';
-								print '</td>';
-
-								// Save price
-								print '<td class="center">';
-								print '<input class="flat checkformerge" type="checkbox" name="saveprice'.$suffix.'" value="'.(GETPOST('saveprice'.$suffix) != '' ? GETPOST('saveprice'.$suffix) : '').'">';
-								print '</td>';
-							}
-						}
-
-						// Warehouse
-						print '<td class="right">';
+					// Warehouse
+					print '<td class="right">';
+					if ($objp->fk_product > 0) {	// InfraS add
+						// Produit normal : sélecteur d'entrepôt
 						if (count($listwarehouses) > 1) {
 							print $formproduct->selectWarehouses(GETPOST("entrepot".$suffix) ? GETPOST("entrepot".$suffix) : ($objp->fk_default_warehouse ? $objp->fk_default_warehouse : ''), "entrepot".$suffix, '', 1, 0, $objp->fk_product, '', 1, 0, array(), 'csswarehouse'.$suffix);
 						} elseif (count($listwarehouses) == 1) {
@@ -1058,28 +1068,31 @@ if ($id > 0 || !empty($ref)) {
 							$langs->load("errors");
 							print $langs->trans("ErrorNoWarehouseDefined");
 						}
-						print "</td>\n";
+					} else {	// InfraS add begin
+						// Produit libre : entrepôt non applicable
+						print '<span class="opacitymedium">'.$langs->trans("NonApplicable").'</span>';
+					}	// InfraS add end
+					print "</td>\n";
 
-						// Enable hooks to append additional columns
-						$parameters = array(
-							'is_information_row' => false, // this is a dispatch form row
-							'i' => $i,
-							'suffix' => $suffix,
-							'objp' => $objp,
-						);
-						$reshook = $hookmanager->executeHooks(
-							'printFieldListValue',
-							$parameters,
-							$object,
-							$action
-						);
-						if ($reshook < 0) {
-							setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
-						}
-						print $hookmanager->resPrint;
-
-						print "</tr>\n";
+					// Enable hooks to append additional columns
+					$parameters = array(
+						'is_information_row' => false, // this is a dispatch form row
+						'i' => $i,
+						'suffix' => $suffix,
+						'objp' => $objp,
+					);
+					$reshook = $hookmanager->executeHooks(
+						'printFieldListValue',
+						$parameters,
+						$object,
+						$action
+					);
+					if ($reshook < 0) {
+						setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 					}
+					print $hookmanager->resPrint;
+
+					print "</tr>\n";
 				}
 				$i++;
 			}
