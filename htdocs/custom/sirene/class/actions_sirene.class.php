@@ -122,7 +122,7 @@ class ActionsSirene
 						dol_include_once('/prospectingmap/class/prospectingmap.class.php');
 						$prospectingmap = new ProspectingMap($this->db);
 
-						$converted_coordinate = $prospectingmap->convertCoordinates('EPSG:2154', getSireneDolGlobalString('PROSPECTINGMAP_COORDINATES_METRICS'), $company_infos['latitude'], $company_infos['longitude']);
+						$converted_coordinate = $prospectingmap->convertCoordinates('EPSG:2154', 'EPSG:3857', $company_infos['latitude'], $company_infos['longitude']);
 						if (!isset($converted_coordinate)) {
 							setEventMessage($prospectingmap->errorsToString(), 'errors');
 						} else {

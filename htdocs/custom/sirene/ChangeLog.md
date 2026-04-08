@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.3.12] - 08-04-2026
+- Correction support de la version 14.0.21+
+
 ## [10.3.11] - 17-02-2026
 - Correction appel des patchs SQL avant l'appel de creation des dictionnaires
 
@@ -386,7 +389,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.11...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.12...HEAD
+[10.3.12]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.12
 [10.3.11]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.11
 [10.3.10]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.10
 [10.3.9]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.9
