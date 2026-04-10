@@ -80,6 +80,9 @@ llxHeader('', $title, '', '', 0, 0, '', '');
 // Get list of category type
 $arrayofcateg = array();
 foreach ($categstatic->MAP_ID as $key => $idtype) {
+	if (isset($arrayofcateg[$idtype])) {
+		continue; // Skip duplicate idtype (e.g. 'service' shares idtype 0 with 'product') // infras add
+	}
 	$arrayofcateg[$idtype] = array();
 	$arrayofcateg[$idtype]['key'] = $key;
 	$arrayofcateg[$idtype]['nb'] = 0;
