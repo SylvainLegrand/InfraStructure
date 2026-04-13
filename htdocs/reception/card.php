@@ -1210,14 +1210,11 @@ if ($action == 'create') {
 						} else {
 							$text = img_object($langs->trans('Product'), 'product');
 						}
-
-						if (!empty($line->label)) {
-							$text .= ' <strong>'.$line->label.'</strong>';
-							print $form->textwithtooltip($text, $line->desc, 3, 0, '', (string) $i);
-						} else {
-							print $text.' '.nl2br($line->desc);
-						}
-
+						// InfraS change begin
+						// Produit libre : on affiche le label ou la description de la ligne de commande
+						$freelabel	= !empty($line->label) ? $line->label : (!empty($line->desc) ? dol_string_nohtmltag($line->desc) : '');
+						print $text.' '.dol_escape_htmltag($freelabel);
+						// InfraS change end
 						// Show range
 						print_date_range($db->jdate($line->date_start), $db->jdate($line->date_end));
 					}
@@ -1300,7 +1297,9 @@ if ($action == 'create') {
 							if ($line->fk_product > 0) {
 								print '<!-- Show warehouse selection -->';
 								print $formproduct->selectWarehouses($tmpentrepot_id, 'entl'.$indiceAsked, '', 0, 0, $line->fk_product, '', 1);
-							}
+							} else {	// InfraS add begin
+								print '<span class="opacitymedium">'.$langs->trans("NonApplicable").'</span>';
+							}	// InfraS add end
 						} else {
 							print $langs->trans("Service");
 						}
@@ -1935,14 +1934,11 @@ if ($action == 'create') {
 				} else {
 					$text = img_object($langs->trans('Product'), 'product');
 				}
-
-				if (!empty($lines[$i]->label)) {
-					$text .= ' <strong>'.$lines[$i]->label.'</strong>';
-					print $form->textwithtooltip($text, $lines[$i]->description, 3, 0, '', (string) $i);
-				} else {
-					print $text.' '.nl2br($lines[$i]->description);
-				}
-
+				// InfraS change begin
+				// Produit libre : on affiche le label ou la description
+				$freelabel = !empty($lines[$i]->label) ? $lines[$i]->label : (!empty($lines[$i]->desc) ? dol_string_nohtmltag($lines[$i]->desc) : '');
+				print $text.' '.dol_escape_htmltag($freelabel);
+				// InfraS change end
 				print_date_range($lines[$i]->date_start, $lines[$i]->date_end);
 			}
 			print "</td>\n";
@@ -2034,7 +2030,7 @@ if ($action == 'create') {
 					// Qty to receive or received
 					print '<td><input name="qtyl'.$line_id.'" id="qtyl'.$line_id.'" type="text" size="4" value="'.$lines[$i]->qty.'"></td>';
 					// Warehouse source
-					print '<td></td>';
+					print '<td><span class="opacitymedium">'.$langs->trans("NonApplicable").'</span></td>';	// InfraS add
 					// Batch number management
 					print '<td></td>';
 					print '</tr>';
@@ -2055,7 +2051,14 @@ if ($action == 'create') {
 					print $entrepot->getNomUrl(1);
 					print '</td>';
 				} else {
-					print '<td></td>';
+					// InfraS add begin
+					if ($lines[$i]->fk_product <= 0) {
+						// Produit libre : entrepôt non applicable
+						print '<td><span class="opacitymedium">'.$langs->trans("NonApplicable").'</span></td>';
+					// InfraS add end
+					} else {
+						print '<td></td>';
+					}
 				}
 			}
 

@@ -233,7 +233,7 @@ class ReceptionLineBatch extends CommonObjectLine
 		}
 
 		// Check parameters
-		if (empty($this->fk_product)) {
+		if (empty($this->fk_product) && empty($this->fk_elementdet)) {	// InfraS change
 			$this->error = 'Error, property ->fk_product must not be empty to create a line of reception';
 			return -1;
 		}
