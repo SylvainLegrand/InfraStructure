@@ -1499,6 +1499,12 @@ class ExtraFields
 						} else {
 							$keyList .= ', '.$parentField;
 						}
+						// infras add begin
+						// Re-add parent field that was removed by keyList reset above
+						if (!empty($parentField)) {
+							$keyList .= ', '.$parentField;
+						}
+						// infras add end
 					}
 
 					$filter_categorie = false;
@@ -1770,6 +1776,12 @@ class ExtraFields
 					} else {
 						$keyList = $InfoFieldList[2].' as rowid';
 					}
+					// infras add begin
+					// Re-add parent field that was removed by keyList reset above
+					if (!empty($parentField)) {
+						$keyList .= ', '.$parentField;
+					}
+					// infras add end
 				}
 
 				$filter_categorie = false;

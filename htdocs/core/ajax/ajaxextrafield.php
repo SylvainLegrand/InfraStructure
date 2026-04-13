@@ -69,22 +69,26 @@ if (is_numeric($objectid)) {
 // Load object according to $element
 $object = fetchObjectByElement($objectid, $objecttype, $element_ref);
 if (empty($object->element)) {
-	httponly_accessforbidden('Failed to get object with fetchObjectByElement(id=' . $objectid . ', objecttype=' . $objecttype . ')');
+	// infras change begin: fallback for non-standard element types (e.g. customtabs cust_* tables)
+	if (!$user->id) {
+		httponly_accessforbidden('Not authenticated');
+	}
+	$element = $objecttype;
+} else {
+	$module = $object->module;
+	$element = $object->element;
+
+	$usesublevelpermission = ($module != $element ? $element : '');
+	if ($usesublevelpermission && !$user->hasRight($module, $element)) {	// There is no permission on object defined, we will check permission on module directly
+		$usesublevelpermission = '';
+	}
+
+	// print $object->id.' - '.$object->module.' - '.$object->element.' - '.$object->table_element.' - '.$usesublevelpermission."\n";
+
+	// Security check
+	restrictedArea($user, $object->module, $object, $object->table_element, $usesublevelpermission);
 }
-
-$module = $object->module;
-$element = $object->element;
-
-$usesublevelpermission = ($module != $element ? $element : '');
-if ($usesublevelpermission && !$user->hasRight($module, $element)) {	// There is no permission on object defined, we will check permission on module directly
-	$usesublevelpermission = '';
-}
-
-// print $object->id.' - '.$object->module.' - '.$object->element.' - '.$object->table_element.' - '.$usesublevelpermission."\n";
-
-// Security check
-restrictedArea($user, $object->module, $object, $object->table_element, $usesublevelpermission);
-
+// InfraS change end
 
 /*
  * View
@@ -105,7 +109,7 @@ if ($page == 1) {
 	];
 }
 $i = 0;
-if ($object instanceof CommonObject) {
+if ($object instanceof CommonObject || !empty($element)) {	// InfraS change
 	$extrafields = new ExtraFields($db);
 	$extrafields->fetch_name_optionals_label($element);
 	$options = $extrafields->attributes[$element]['param'][$objectkey]['options'];
