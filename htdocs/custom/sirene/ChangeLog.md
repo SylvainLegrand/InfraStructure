@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.3.13] - 09-04-2026
+- Ajout : possibilité de vérifier que l'utilisateur a utilisé la recherche SIRENE pour la création d'un client/prospect/fournisseur (option activalble)
+
 ## [10.3.12] - 08-04-2026
 - Correction support de la version 14.0.21+
 
@@ -389,7 +392,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.12...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.13...HEAD
+[10.3.13]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.13
 [10.3.12]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.12
 [10.3.11]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.11
 [10.3.10]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.10

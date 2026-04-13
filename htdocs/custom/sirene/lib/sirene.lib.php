@@ -88,6 +88,22 @@ function getSireneDolGlobalString($key, $default = '')
 }
 
 /**
+ * Return the list of third-party type IDs excluded from mandatory SIRENE search.
+ * Falls back to the rowid of TE_PRIVATE if the constant is not set.
+ *
+ * @param DoliDB $db Database handler
+ * @return int[]
+ */
+function getSireneThirdpartyTypeIdsExcludedFromSearch($db)
+{
+	$excludeTypesStr = getSireneDolGlobalString('SIRENE_SEARCH_MANDATORY_EXCLUDE_TYPES');
+	if (!empty($excludeTypesStr)) {
+		return array_map('intval', array_filter(explode(',', $excludeTypesStr)));
+	}
+	return array((int) dol_getIdFromCode($db, 'TE_PRIVATE', 'c_typent'));
+}
+
+/**
  * Return dolibarr global constant int value
  *
  * @param string 	$key 		key to return value, return 0 if not set

@@ -98,6 +98,28 @@ if ($action == 'set_sirene_api_options') {
 		$errors[] = $db->lasterror();
 		$error++;
 	}
+	$value = GETPOST('SIRENE_SEARCH_MANDATORY_FOR', 'array');
+	if (is_array($value)) {
+		$value = implode(',', $value);
+	} else {
+		$value = '';
+	}
+	$res = dolibarr_set_const($db, 'SIRENE_SEARCH_MANDATORY_FOR', $value, 'chaine', 0, '', $conf->entity);
+	if (!($res > 0)) {
+		$errors[] = $db->lasterror();
+		$error++;
+	}
+	$value = GETPOST('SIRENE_SEARCH_MANDATORY_EXCLUDE_TYPES', 'array');
+	if (is_array($value)) {
+		$value = implode(',', array_map('intval', $value));
+	} else {
+		$value = '';
+	}
+	$res = dolibarr_set_const($db, 'SIRENE_SEARCH_MANDATORY_EXCLUDE_TYPES', $value, 'chaine', 0, '', $conf->entity);
+	if (!($res > 0)) {
+		$errors[] = $db->lasterror();
+		$error++;
+	}
 } elseif ($action == 'set_sirene_cron_options') {
 	$value = GETPOST('SIRENE_MAIL_TO_SEND', "alpha");
 	$res = dolibarr_set_const($db, 'SIRENE_MAIL_TO_SEND', $value, 'chaine', 0, '', $conf->entity);
@@ -328,6 +350,38 @@ if (!empty($conf->use_javascript_ajax)) {
 		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SIRENE_ADD_NIC_TOWN_IN_NAME_IF_DUPLICATE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
 	}
 }
+print '</td></tr>' . "\n";
+
+// SIRENE_SEARCH_MANDATORY_FOR
+$selected = array_filter(explode(',', getSireneDolGlobalString('SIRENE_SEARCH_MANDATORY_FOR')));
+$mandatory_options = array(
+	'prospect' => $langs->trans("Prospect"),
+	'customer' => $langs->trans("Customer"),
+	'supplier' => $langs->trans("Supplier"),
+);
+print '<tr class="oddeven">' . "\n";
+print '<td>' . $langs->trans("SireneSearchMandatoryForName") . '</td>' . "\n";
+print '<td>' . $langs->trans("SireneSearchMandatoryForDesc") . '</td>' . "\n";
+print '<td class="nowrap">' . "\n";
+print $form->multiselectarray('SIRENE_SEARCH_MANDATORY_FOR', $mandatory_options, $selected, 0, 0, 'minwidth500 centpercent', 0, '80');
+print '</td></tr>' . "\n";
+
+// SIRENE_SEARCH_MANDATORY_EXCLUDE_TYPES
+$sql_typent = "SELECT id, libelle FROM ".MAIN_DB_PREFIX."c_typent WHERE active = 1 ORDER BY libelle";
+$resql_typent = $db->query($sql_typent);
+$typent_options = array();
+if ($resql_typent) {
+	while ($obj = $db->fetch_object($resql_typent)) {
+		$typent_options[(int) $obj->id] = $obj->libelle;
+	}
+	$db->free($resql_typent);
+}
+$selected_exclude_ids = getSireneThirdpartyTypeIdsExcludedFromSearch($db);
+print '<tr class="oddeven">' . "\n";
+print '<td>' . $langs->trans("SireneSearchMandatoryExcludeTypesName") . '</td>' . "\n";
+print '<td>' . $langs->trans("SireneSearchMandatoryExcludeTypesDesc") . '</td>' . "\n";
+print '<td class="nowrap">' . "\n";
+print $form->multiselectarray('SIRENE_SEARCH_MANDATORY_EXCLUDE_TYPES', $typent_options, $selected_exclude_ids, 0, 0, 'minwidth500 centpercent', 0, '80');
 print '</td></tr>' . "\n";
 
 print '</table>';

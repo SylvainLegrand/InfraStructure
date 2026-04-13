@@ -78,7 +78,65 @@ class ActionsSirene
 
 		$context = explode(':', $parameters['context']);
 		$confirm = GETPOST('confirm', 'alpha');
+
+		$langs->load('sirene@sirene');
+
 		if (in_array('thirdpartycard', $context)) {
+			// Check if SIRENE search is mandatory for this third-party type
+			if ($action == 'add') {
+				$mandatoryFor = getSireneDolGlobalString('SIRENE_SEARCH_MANDATORY_FOR');
+				$country_id_france = dol_getIdFromCode($this->db, 'FR', 'c_country', 'code', 'rowid');
+				if ( GETPOSTINT('country_id') == $country_id_france && !empty($mandatoryFor)) {
+
+					if (GETPOSTINT('typent_id') <= 0) {
+						setEventMessages($langs->trans('SireneErrorThidrpartyTypeMandatory', $langs->trans('ThirdPartyType')), null, 'errors');
+						$action = 'create';
+						return 0;
+					}
+
+					if (!in_array(GETPOSTINT('typent_id'), getSireneThirdpartyTypeIdsExcludedFromSearch($this->db))) {
+						$mandatoryTypes = array_filter(explode(',', $mandatoryFor));
+						$client_val = GETPOSTINT('client') + GETPOSTINT('prospect');
+						$fournisseur_val = GETPOSTINT('fournisseur');
+
+						$needSearch = false;
+						if (in_array('prospect', $mandatoryTypes) && ($client_val == 2 || $client_val == 3)) {
+							$needSearch = true;
+						}
+						if (in_array('customer', $mandatoryTypes) && ($client_val == 1 || $client_val == 3)) {
+							$needSearch = true;
+						}
+						if (in_array('supplier', $mandatoryTypes) && $fournisseur_val == 1) {
+							$needSearch = true;
+						}
+
+						if ($needSearch && !GETPOSTINT('has_done_sirene_search')) {
+							setEventMessages($langs->trans('SireneErrorSearchMandatory'), null, 'errors');
+							$action = 'create';
+							return -1;
+						}
+
+						$siren = GETPOST('idprof1', 'alphanohtml');
+						$siret = GETPOST('idprof2', 'alphanohtml');
+						if (empty($siren)) {
+							setEventMessages($langs->trans('SireneErrorSirenMandatory'), null, 'errors');
+							$action = 'create';
+							return -1;
+						}
+						if (empty($siret)) {
+							setEventMessages($langs->trans('SireneErrorSiretMandatory'), null, 'errors');
+							$action = 'create';
+							return -1;
+						}
+						if (strpos($siret, $siren) !== 0) {
+							setEventMessages($langs->trans('SireneErrorSirenSiretMismatch'), null, 'errors');
+							$action = 'create';
+							return -1;
+						}
+					}
+				}
+			}
+
 			$langs->load('sirene@sirene');
 			dol_include_once('/sirene/class/sirene.class.php');
 			$sirene = new Sirene($this->db);
@@ -134,6 +192,7 @@ class ActionsSirene
 					}
 				}
 
+				$this->setGetPost('has_done_sirene_search', '1');
 				$action = 'create';
 			}
 
@@ -251,10 +310,16 @@ SCRIPT;
 
 			// Management of Sirene (Create card)
 			if ($action == 'create' || $action == '' && empty($object->id)) {
+
+				if (!empty(getSireneDolGlobalString('SIRENE_SEARCH_MANDATORY_FOR'))) {
+					print'<script>$().ready(() => {$("#typent_id").closest("tr").find("td:first").addClass("fieldrequired")})</script>';
+				}
+
 				print '<tr id="sirene_infos"><td colspan="4">' . "\n";
 				print '<div id="sirene_form_bloc">' . "\n";
 
 				print '<input type="hidden" id="sirene_selected_company" name="sirene_selected_company">' . "\n";
+				print '<input type="hidden" id="has_done_sirene_search" name="has_done_sirene_search" value="' . GETPOSTINT('has_done_sirene_search') . '">' . "\n";
 
 				// Insert Sirene form
 				include dol_buildpath('/sirene/core/tpl/sirene_search.tpl.php', 0);

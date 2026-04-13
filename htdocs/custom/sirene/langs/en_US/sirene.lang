@@ -35,6 +35,8 @@ SireneMessageClosed                         = Lien
 SireneMailLinkClosedCompany                 = Lien vers le tiers fermé
 SireneAddNicTownInNameIfDuplicateName       = Nom tiers étendu
 SireneAddNicTownInNameIfDuplicateDesc       = Rajout de la ville et du NIC dans le nom du tiers récupéré depuis sirene si celui-ci est trouvé dans dolibarr
+SireneSearchMandatoryForName                = Rendre la recherche par SIRENE obligatoire pour
+SireneSearchMandatoryForDesc                = Oblige la recherche SIRENE avant la création des tiers de ce type (hors particuliers)
 
 SireneCronOptions                           = Paramètres de la tâche planifiée
 SireneCronOptionsDesc                       = L'activation de la tache planifiée peut mettre à jour automatiquement les données des tiers français
@@ -174,6 +176,7 @@ SireneOtherCompanyNameFound = Liste des tiers trouvés :
 #######################################################################
 # Warnings
 #######################################################################
+SireneErrorSearchMandatory              = Veuillez faire une recherche SIRENE avant de créer ce tiers.
 SireneWarningProvideAtLeastOneCriteria  = Renseigner au moins un critère de recherche
 SireneWarningNoCompanyFound             = Aucun tiers trouvé
 SireneWarningSelectACompany             = Sélectionne d'abord un tiers

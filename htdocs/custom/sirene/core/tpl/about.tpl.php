@@ -42,6 +42,8 @@ if (!function_exists('dolPrintHTML')) {
     }
 }
 
+require_once getcwd().'../../lib/sirene.lib.php';
+
 $editorCommercialEmail = 'info@opendsi.fr';
 $editorCommercialTel = '+33 4 82 53 94 76';
 $editorName = $modClass->editor_name;
@@ -52,8 +54,8 @@ $supportMessage = "/*****"."<br>";
 $supportMessage .= " * Module : ".$langs->trans('Module'.$modClass->numero.'Name')."<br>";
 $supportMessage .= " * Module version : ".(!empty($modClass->getVersion()) ? $modClass->getVersion() : 'NC')."<br>";
 $supportMessage .= " * Dolibarr version : ".DOL_VERSION."<br>";
-$supportMessage .= " * Dolibarr version installation initiale : ".getDolGlobalString('MAIN_VERSION_LAST_INSTALL')."<br>";
-$supportMessage .= " * Option colonne sélection à gauche : ".getDolGlobalInt('MAIN_CHECKBOX_LEFT_COLUMN', 0)."<br>";
+$supportMessage .= " * Dolibarr version installation initiale : ".getSireneDolGlobalString('MAIN_VERSION_LAST_INSTALL')."<br>";
+$supportMessage .= " * Option colonne sélection à gauche : ".getSireneDolGlobalInt('MAIN_CHECKBOX_LEFT_COLUMN', 0)."<br>";
 $supportMessage .= " * Version PHP : ".PHP_VERSION."<br>";
 $supportMessage .= " *****/"."<br>";
 $supportMessage .= "Description de votre problème :"."<br>";
