@@ -340,7 +340,7 @@ class PartnershipType extends CommonObject
 		}
 
 		if ($withpicto != 2) {
-			$result .= $this->ref;
+			$result .= $this->label; // InfraS change - display label instead of ref (ref is auto-set to id for tables without ref field)
 		}
 
 		$result .= $linkend;
