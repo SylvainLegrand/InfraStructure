@@ -1784,7 +1784,12 @@
 		<change type='fix'>Correction d'une erreur d'affichage des reliquats pour les bon de livraison (InfraSPlus_BL)</change>
 		<change type='chg'>Nettoyage du code</change>
 	</Version>
-	<InfraS Downloaded="20260301"/>
+	<Version Number="18.14.15" MonthVersion="2026-04">
+		<change type='chg'>Amélioration de la fonction de création d'objet PDF (évite les avertissements dans les IDE)</change>
+		<change type='add'>Ajout d'une option pour afficher/masquer les lignes de séparation entre la description longue des articles et les informations complémentaires (attibuts supplémentaires, informations douanières, etc.)</change>
+		<change type='add'>Ajout d'une option pour utiliser la gestion des adresses de facturation native</change>
+	</Version>
+	<InfraS Downloaded="20260401"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -212,6 +212,7 @@
 		public $refcol;
 		public $hide_cols;
 		public $showwvccchk;
+		public $wvcc_no_hr;
 		public $signvalue;
 		public $hideInnerLines;
 		public $add_recap;
@@ -769,13 +770,13 @@
 							if (!empty($this->show_ExtraFieldsLines)) {
 								$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 							}
-							$extraDet									.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+							$extraDet									.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							// Custom values (weight, volume and code
 							$WVCC										= '';
 							if (!empty($this->showwvccchk)) {
 								$WVCC	= pdf_InfraSPlus_getlinewvdcc($object, $i, $outputlangs, $this->emetteur);
 							}
-							$extraDet									.= empty($WVCC) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$WVCC.'<hr style = "width: 80%;">';
+							$extraDet									.= empty($WVCC) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$WVCC.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						}
 						else {	// Ouvrage or sub-total line
 							$idOuvrage														= !empty($object->lines[$i]->array_options['options_fk_ouvrage']) ? $object->lines[$i]->array_options['options_fk_ouvrage'] : '';
@@ -844,7 +845,7 @@
 						$pdf->SetFont('', '', $default_font_size - 1);	// On repositionne la police par defaut
 						if (empty($this->hide_cols)) {
 							// Reference
-							if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || (!empty($this->picture_in_ref) && empty($this->picture_replace_ref)))) {
+							if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || !empty($this->picture_in_ref) && empty($this->picture_replace_ref))) {
 								$pagepos	= $pdf->getPage();
 								$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 								$pdf->setPage($pagepos);

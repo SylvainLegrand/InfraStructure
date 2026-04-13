@@ -4,7 +4,7 @@
 
 ## ***InfraSPackPlus***
 #### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
-* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 703 options (32 options sont modifiables directement sur la fiche du document) dont
+* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 705 options (32 options sont modifiables directement sur la fiche du document) dont
 	 * Les cadres arrondis, l’organisation des colonnes (ordre, affichage, largeur, …)
 	 * Le choix des couleurs de texte, de fond, des images, des filigranes, des types épaisseur et couleurs des lignes, …
 	 * L’affichage 'full' TTC
@@ -268,34 +268,34 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***66*** Masquer toutes les colonnes sauf la description produit / service (Devis ou commande client)
 		* ***67*** Masquer les colonnes tarifaires (prix unitaires, TVA, remises, totaux, etc...) dans les devis sans totaux en pied de document (InfraSPlus-DST)
 		* ***68*** Masquer la colonne des totaux dans les devis sans totaux en pied de document (InfraSPlus-DST)
-		* ***69-71*** Afficher les informations de poids, dimensions, volume, surface, la nomenclature douanière (Code SH) et / ou le pays d'origine sur les documents de vente (Devis, commande, Bons de livraison / expéditions ou facture client)
-		* ***72*** Quand une facture client est liée à un bon de livraison, afficher les numéros de série des produits présents dans le bon de livraison
-		* ***73*** Gérer le positionnement et la largeur de chaque colonne du document (sauf bons de livraison)
-		* ***74*** Afficher une colonne 'Code Barre' dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR) en lieu et place de la référence produit
-		* ***75*** Afficher une colonne contenant un attribut supplémentaire issue des Produits (exemple : position dans le stock) dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
-		* ***76*** Choisir le code de l'attribut supplémentaire issue des Produits à afficher
-		* ***77*** Cacher la quantité commandée dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
-		* ***78*** Afficher une colonne 'Reliquat' dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
-		* ***79*** Afficher une colonne 'Total HT' dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
-		* ***80*** Gérer le positionnement et la largeur de chaque colonne des bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
-		* ***81*** Afficher une colonne 'Code Barre' dans les bons de réception (InfraSPlus_RE) en lieu et place de la référence produit
-		* ***82*** Afficher une colonne 'Commentaire' dans les bons de réception (InfraSPlus_RE)
-		* ***83*** Cacher la quantité commandée dans les bons de réception (InfraSPlus_RE)
-		* ***84*** Afficher une colonne 'Reliquat' dans les bons de réception (InfraSPlus_RE)
-		* ***85*** Gérer le positionnement et la largeur de chaque colonne des bons de réception (InfraSPlus_RE)
-		* ***86*** Afficher les colonnes de valorisation monétaire dans les fiches de stock (InfraSPlus_ST)
-		* ***87*** Gérer le positionnement et la largeur de chaque colonne des fiches de stock (InfraSPlus_ST)
-		* ***88*** Afficher les numéros de série des produits utilisés dans l'ordre de fabrication (InfraSPlus_MRP)
-		* ***89*** Choisir la hauteur du tableau de contrôle (InfraSPlus_MRP)
-		* ***90*** Afficher la colonne des dimensions sur les ordres de fabrication (InfraSPlus_MRP)
-		* ***91*** Gérer le positionnement et la largeur de chaque colonne des ordres de fabrication (InfraSPlus_MRP)
-		* ***92*** Choisir le format à utiliser pour les cartes utilisateur (InfraSPlus_MRP)
-		* ***93*** Définir le titre a afficher (InfraSPlus_MRP)
-		* ***94*** Afficher la photo de l'utilisateur (InfraSPlus_MRP)
-		* ***95*** Afficher le poste / la fonction de l'utilisateur (InfraSPlus_MRP)
-		* ***96*** Afficher le n° de téléphone de la société (InfraSPlus_MRP)
-		* ***97*** Afficher l'email' de la société (InfraSPlus_MRP)
-		* ***98*** Afficher le logo de la société (InfraSPlus_MRP)
+		* ***69-72*** Afficher les informations de poids, dimensions, volume, surface, la nomenclature douanière (Code SH) et / ou le pays d'origine sur les documents de vente (Devis, commande, Bons de livraison / expéditions ou facture client)
+		* ***73*** Quand une facture client est liée à un bon de livraison, afficher les numéros de série des produits présents dans le bon de livraison
+		* ***74*** Gérer le positionnement et la largeur de chaque colonne du document (sauf bons de livraison)
+		* ***75*** Afficher une colonne 'Code Barre' dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR) en lieu et place de la référence produit
+		* ***76*** Afficher une colonne contenant un attribut supplémentaire issue des Produits (exemple : position dans le stock) dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
+		* ***77*** Choisir le code de l'attribut supplémentaire issue des Produits à afficher
+		* ***78*** Cacher la quantité commandée dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
+		* ***79*** Afficher une colonne 'Reliquat' dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
+		* ***80*** Afficher une colonne 'Total HT' dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
+		* ***81*** Gérer le positionnement et la largeur de chaque colonne des bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
+		* ***82*** Afficher une colonne 'Code Barre' dans les bons de réception (InfraSPlus_RE) en lieu et place de la référence produit
+		* ***83*** Afficher une colonne 'Commentaire' dans les bons de réception (InfraSPlus_RE)
+		* ***84*** Cacher la quantité commandée dans les bons de réception (InfraSPlus_RE)
+		* ***85*** Afficher une colonne 'Reliquat' dans les bons de réception (InfraSPlus_RE)
+		* ***86*** Gérer le positionnement et la largeur de chaque colonne des bons de réception (InfraSPlus_RE)
+		* ***87*** Afficher les colonnes de valorisation monétaire dans les fiches de stock (InfraSPlus_ST)
+		* ***88*** Gérer le positionnement et la largeur de chaque colonne des fiches de stock (InfraSPlus_ST)
+		* ***89*** Afficher les numéros de série des produits utilisés dans l'ordre de fabrication (InfraSPlus_MRP)
+		* ***90*** Choisir la hauteur du tableau de contrôle (InfraSPlus_MRP)
+		* ***91*** Afficher la colonne des dimensions sur les ordres de fabrication (InfraSPlus_MRP)
+		* ***92*** Gérer le positionnement et la largeur de chaque colonne des ordres de fabrication (InfraSPlus_MRP)
+		* ***93*** Choisir le format à utiliser pour les cartes utilisateur (InfraSPlus_MRP)
+		* ***94*** Définir le titre a afficher (InfraSPlus_MRP)
+		* ***95*** Afficher la photo de l'utilisateur (InfraSPlus_MRP)
+		* ***96*** Afficher le poste / la fonction de l'utilisateur (InfraSPlus_MRP)
+		* ***97*** Afficher le n° de téléphone de la société (InfraSPlus_MRP)
+		* ***98*** Afficher l'email' de la société (InfraSPlus_MRP)
+		* ***99*** Afficher le logo de la société (InfraSPlus_MRP)
 	* OPTIONS DU PIED DE DOCUMENT
 		* ***1*** Choisir la hauteur de l'espace entre le corps du document (tableau) et les informations de pied de document 
 		* ***2*** Choisir la hauteur de l'espace entre le corps du document (tableau) et le total général
@@ -438,9 +438,10 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***22*** Afficher tous les détails disponibles des coordonnées de livraison (par défaut Adresse seule, option activée = + tél. + Fax + Email + Web)
 		* ***23*** Saisir manuellement l'adresse de livraison => utilisation d'un attribut supplémentaire dédié
 		* ***24*** Demander la livraison directement à une adresse client (principale ou secondaire) si l'adresse de livraison sur les documents fournisseurs (devis, commandes) est activée, => Liste de choix avec auto-complétions au 2ème caractère entrée
-		* ***25*** Dans le cadre de l'utilisation de la gestion native des adresses de livraison, remplacer les informations du destinataire par celles du contact de livraison sélectionné pour les les commandes (clients ou fournisseurs)
-		* ***26-27*** Afficher des détails supplémentaires disponibles pour le destinataire (minimum => adresse, avec cette option vous choisissez d'ajouter le téléphones, le fax, l'email, ou le site web, indépendamment les uns des autres)
-		* ***28-29*** Afficher l'adresse d'un contact externe d'un client comme adresse de sous-traitant dans les Ordres de Fabrication (OF créés à partir des commandes) => demande le module CustomLink des Patas-Monkey
+		* ***25*** Utiliser le contact de facturation Dolibarr (type externe 'BILLING') comme adresse destinataire
+		* ***26*** Dans le cadre de l'utilisation de la gestion native des adresses de livraison, remplacer les informations du destinataire par celles du contact de livraison sélectionné pour les les commandes (clients ou fournisseurs)
+		* ***27-28*** Afficher des détails supplémentaires disponibles pour le destinataire (minimum => adresse, avec cette option vous choisissez d'ajouter le téléphones, le fax, l'email, ou le site web, indépendamment les uns des autres)
+		* ***29-30*** Afficher l'adresse d'un contact externe d'un client comme adresse de sous-traitant dans les Ordres de Fabrication (OF créés à partir des commandes) => demande le module CustomLink des Patas-Monkey
 * Onglet Attributs supplémentaires
 	* OPTIONS CONCERNANT L'UTILISATION DES ATTRIBUTS SUPPLÉMENTAIRES DANS LES ÉDITIONS DU PACK
 		* ***1*** Choisir la couleur du texte appliquée aux valeurs des attributs supplémentaires des documents (choix graphique ou par code RVB, hexa, ou HSV)

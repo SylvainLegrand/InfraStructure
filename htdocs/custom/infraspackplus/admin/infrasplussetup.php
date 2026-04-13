@@ -38,6 +38,7 @@
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
+	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
 	// Translations *********************************
@@ -112,10 +113,10 @@
 				}
 				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_'.$reg2[1].'_LINE_DASH_'.$key,	0, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			}
-			$inputFrmLineDashCleanValue		= ($reg2[1] == 'FRM_E' && $reg2[2] > 0) ? 1 : '';
-			$inputFrmRLineDashCleanValue	= ($reg2[1] == 'FRM_R' && $reg2[2] > 0) ? 1 : '';
-			$inputTblLineDashCleanValue		= ($reg2[1] == 'TBL' && $reg2[2] > 0) ? 1 : '';
-			$inputSignLineDashCleanValue	= ($reg2[1] == 'SIGN' && $reg2[2] > 0) ? 1 : '';
+			$inputFrmLineDashCleanValue		= $reg2[1] == 'FRM_E' && $reg2[2] > 0 ? 1 : '';
+			$inputFrmRLineDashCleanValue	= $reg2[1] == 'FRM_R' && $reg2[2] > 0 ? 1 : '';
+			$inputTblLineDashCleanValue		= $reg2[1] == 'TBL' && $reg2[2] > 0 ? 1 : '';
+			$inputSignLineDashCleanValue	= $reg2[1] == 'SIGN' && $reg2[2] > 0 ? 1 : '';
 		}
 		// PDF generation
 		if ($confkey == 'INFRASPLUS_PDF_SEMIAUTOUPDATE' && GETPOST('value') == 1) {
@@ -236,7 +237,7 @@
 					continue;
 				}
 				$name	= getDolGlobalString('INFRASPLUS_PDF_EXF_PROD_POS', '');
-				if (empty($constvalue) || (!empty($name) && $name != $constvalue)) {
+				if (empty($constvalue) || !empty($name) && $name != $constvalue) {
 					$result	= infraspackplus_search_extf (-2, '', 'INFRASPLUS_PDF_EXF_PROD_POS', 'InfraSPlusParamLabelExfProdPos', array('expedition'), $listParamsExfProdPos);
 				}
 			}
@@ -475,7 +476,7 @@
 		dolibarr_set_const($db, 'MAIN_GENERATE_DOCUMENTS_HIDE_DESC', 0, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
 	if (getDolGlobalInt('INFRASPLUS_PDF_DIM_C2D', 0) && getDolGlobalInt('INFRASPLUS_PDF_LARG_BC', 0)) {
-		dolibarr_set_const($db, 'INFRASPLUS_PDF_DIM_C2D', (getDolGlobalInt('INFRASPLUS_PDF_DIM_C2D', 0) > getDolGlobalInt('INFRASPLUS_PDF_LARG_BC', 0) ? getDolGlobalInt('INFRASPLUS_PDF_LARG_BC', 0) : getDolGlobalInt('INFRASPLUS_PDF_DIM_C2D', 0)), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+		dolibarr_set_const($db, 'INFRASPLUS_PDF_DIM_C2D', getDolGlobalInt('INFRASPLUS_PDF_DIM_C2D', 0) > getDolGlobalInt('INFRASPLUS_PDF_LARG_BC', 0) ? getDolGlobalInt('INFRASPLUS_PDF_LARG_BC', 0) : getDolGlobalInt('INFRASPLUS_PDF_DIM_C2D', 0), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
 	if (isModEnabled('management')) {
 		dolibarr_set_const($db, 'INFRASPLUS_PDF_SHOW_DATES_HOURS_FI', 0, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
@@ -858,7 +859,7 @@
 	// Comportement général -> génération automatique, 1 fichier par modèle
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamTitleComp').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblCG" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblCG" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -920,7 +921,7 @@
 	// Apparence générale -> police, couleur de texte, style des en-têtes et des cadres, fond
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamTitleGen').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblAG" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblAG" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -965,7 +966,7 @@
 	// Haut de page -> cadres, contenu des en-têtes, adresses, note, pliage, filigrame, dommées additionnelles (douanes)
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamTitleHeader').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblHP" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblHP" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -1150,7 +1151,7 @@
 	// Contenu, colonnage -> Colonnes additionnelles et masquées (référence, tva, remises), taille et position
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamTitleCorps').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblCC" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblCC" class = "noborder toggle_bloc centpercent">';
 	$metas		= array('30px', '*', '90px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas		= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -1362,6 +1363,7 @@
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_WVCC', 'on_off', $langs->trans('InfraSPlusParamShowWVCC1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamShowWVCC2'), '', array(), 2, 1, '', $num);
 			if (getDolGlobalString('INFRASPLUS_PDF_SHOW_WVCC', '')) {
 				$num		= infraspackplus_print_input('INFRASPLUS_PDF_NO_SHOW_WVCC_SAME_COUNTRY', 'on_off', $langs->trans('InfraSPlusParamNoShowWVCCsameCountry'), '', array(), 2, 1, '', $num);
+				$num		= infraspackplus_print_input('INFRASPLUS_PDF_WVCC_NO_HR', 'on_off', $langs->trans('InfraSPlusParamWVCCnoHR'), '', array(), 2, 1, '', $num);
 				$metas		= array();
 				$metas[0]	= array('MAIN_MODULE_PROPALE'		=> $langs->trans('Proposals'),
 									'MAIN_MODULE_COMMANDE'		=> $langs->trans('Orders'),
@@ -1373,49 +1375,49 @@
 									'INFRASPLUS_PDF_WVCC_BY_DEF_FOR_INVOICES'	=> 'MAIN_MODULE_FACTURE');
 				$num	= infraspackplus_print_line_inputs('tests', $langs->trans('InfraSPlusParamTypeDoc').'&nbsp;'.$langs->trans('InfraSPlusParamShowWVCCbyDef'), $metas, 3, 120, '', $num);
 			} else {
-				$num	+= 2;
+				$num	+= 3;
 			}
 		} else {
-			$num	+= 3;
+			$num	+= 4;
 		}
 		if (isModEnabled('productbatch')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SERIAL_ON_INVOICE', 'on_off', $langs->trans('InfraSPlusParamShowSerialOnInvoice'), '', array(), 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		// $num = 73
+		// $num = 74
 		infraspackplus_print_hr(4);
 		print '			<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
 								<table class = "noborderbottom centpercent">
 									<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
 										</td>';
 		foreach ($listselect as $selectvalues) {
 			$numcol	= num_col($selectvalues, $listselect);
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
-											<select name = "'.$selectvalues['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding infrasplusnoborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">
+											<select name = "'.$selectvalues['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding noborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
 			print								$numcol['options'].'
 											</select>
 										</td>';
 		}
 		print '						</tr>';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColName').'
 										</td>';
 		foreach ($listcol as $col) {
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">'.$col.'</td>';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">'.$col.'</td>';
 		}
 		print '						</tr>';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColLarg').'
 										</td>';
 		foreach ($listlarg as $largs) {
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">';
 			if ($largs['key'] == 'INFRASPLUS_PDF_LARGCOL_PROGRESS') {
 				print '(';
 			}
@@ -1456,7 +1458,7 @@
 							</td>
 						</tr>';
 		$num++;
-		// $num = 74
+		// $num = 75
 		infraspackplus_print_subTitle(4, 'InfraSPlusParamShipping');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_BC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLBCCol'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_POS_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLposCol'), '', array(), 2, 1, '', $num);
@@ -1469,39 +1471,39 @@
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_ORDERED', 'on_off', $langs->trans('InfraSPlusParamHideOrdered'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_REL_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLrelCol'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_PRICE', 'on_off', $langs->trans('InfraSPlusParamShowBLwithPrice').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 2, 1, '', $num);
-		// $num = 80
+		// $num = 81
 		infraspackplus_print_hr(4);
 		print '			<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
 								<table class = "noborderbottom centpercent">';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
 										</td>';
 		foreach ($listselectBL as $selectvaluesBL) {
 			$numcol	= num_col($selectvaluesBL, $listselectBL);
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
-											<select name = "'.$selectvaluesBL['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding infrasplusnoborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">
+											<select name = "'.$selectvaluesBL['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding noborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
 			print								$numcol['options'].'
 											</select>
 										</td>';
 		}
 		print '						</tr>';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColName').'
 										</td>';
 		foreach ($listcolBL as $colBL) {
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">'.$colBL.'</td>';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">'.$colBL.'</td>';
 		}
 		print '						</tr>';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColLarg').'
 										</td>';
 		foreach ($listlargBL as $largsBL) {
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">';
 			if ($largsBL['key'] == 'DESC') {
 				print $largsBL['value'];
 			} else {
@@ -1531,7 +1533,7 @@
 							</td>
 						</tr>';
 		$num++;
-		// $num = 81
+		// $num = 82
 		infraspackplus_print_subTitle(4, 'InfraSPlusParamReceipt');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_BC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRBCCol'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_COMM_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRcommCol'), '', array(), 2, 1, '', $num);
@@ -1544,32 +1546,32 @@
 							<td colspan = "3">
 								<table class = "noborderbottom centpercent">';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
 										</td>';
 		foreach ($listselectBR as $selectvaluesBR) {
 			$numcol	= num_col($selectvaluesBR, $listselectBR);
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
-											<select name = "'.$selectvaluesBR['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding infrasplusnoborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">
+											<select name = "'.$selectvaluesBR['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding noborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
 			print								$numcol['options'].'
 											</select>
 										</td>';
 		}
 		print '						</tr>';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColName').'
 										</td>';
 		foreach ($listcolBR as $colBR) {
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">'.$colBR.'</td>';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">'.$colBR.'</td>';
 		}
 		print '						</tr>';
 		print '						<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColLarg').'
 										</td>';
 		foreach ($listlargBR as $largsBR) {
-			print '						<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">';
+			print '						<td class = "center infrasplusnomargin infrasplusnopadding noborder">';
 			if ($largsBR['key'] == 'DESC') {
 				print $largsBR['value'];
 			} else {
@@ -1595,7 +1597,7 @@
 							</td>
 						</tr>';
 		$num++;
-		// $num = 86
+		// $num = 87
 		if (isModEnabled('stock')) {
 			infraspackplus_print_subTitle(4, 'InfraSPlusParamStock');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_STOCK_VAL_COLUMNS', 'on_off', $langs->trans('InfraSPlusParamWithStockValColumns'), '', array(), 2, 1, '', $num);
@@ -1606,32 +1608,32 @@
 							<td colspan = "3">
 								<table class = "noborderbottom centpercent">';
 			print '					<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
 										</td>';
 			foreach ($listselectST as $selectvaluesST) {
 				$numcol	= num_col($selectvaluesST, $listselectST);
-				print '					<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
-											<select name = "'.$selectvaluesST['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding infrasplusnoborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
+				print '					<td class = "center infrasplusnomargin infrasplusnopadding noborder">
+											<select name = "'.$selectvaluesST['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding noborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
 				print							$numcol['options'].'
 											</select>
 										</td>';
 			}
 			print '					</tr>';
 			print '					<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColName').'
 										</td>';
 			foreach ($listcolST as $colST) {
-				print '					<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">'.$colST.'</td>';
+				print '					<td class = "center infrasplusnomargin infrasplusnopadding noborder">'.$colST.'</td>';
 			}
 			print '					</tr>';
 			print '					<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColLarg').'
 										</td>';
 			foreach ($listlargST as $largsST) {
-				print '					<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">';
+				print '					<td class = "center infrasplusnomargin infrasplusnopadding noborder">';
 				if ($largsST['key'] == 'DESC') {
 					print $largsST['value'];
 				} else {
@@ -1640,7 +1642,7 @@
 						print '					min = "0" max = "0" value = "0" readonly>';
 					} elseif ($largsST['key'] == 'INFRASPLUS_PDF_LARGCOLST_PMPT' && !getDolGlobalString('INFRASPLUS_PDF_WITH_STOCK_VAL_COLUMNS', '')) {
 						print '					min = "0" max = "0" value = "0" readonly>';
-					} elseif ($largsST['key'] == 'INFRASPLUS_PDF_LARGCOLST_TOT' && (!getDolGlobalString('INFRASPLUS_PDF_WITH_STOCK_VAL_COLUMNS', ''))) {
+					} elseif ($largsST['key'] == 'INFRASPLUS_PDF_LARGCOLST_TOT' && !getDolGlobalString('INFRASPLUS_PDF_WITH_STOCK_VAL_COLUMNS', '')) {
 						print '					min = "0" max = "0" value = "0" readonly>';
 					} else {
 						print '					min = "10" max = "100" value = "'.($largsST['value'] > 0 ? $largsST['value'] : 10).'">';
@@ -1656,7 +1658,7 @@
 		} else {
 			$num	+= 2;
 		}
-		// $num = 88
+		// $num = 89
 		if (isModEnabled('mrp')) {
 			infraspackplus_print_hr(4);
 			print '		<tr>
@@ -1669,39 +1671,39 @@
 			}
 			$metas = array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '20', 'max' => '90', 'step' => '1');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HEIGHT_MRP_CONTROL_TABLE','input', $langs->trans('InfraSPlusParamHeightMrpControlTable'),'', $metas, 2, 1, '&nbsp;pt', $num);
-			// $num = 90
+			// $num = 91
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_MRP_WITH_DIM_COLUMNS', 'on_off', $langs->trans('InfraSPlusParamMrpWithDimColumns'), '', array(), 2, 1, '', $num);
 			print '		<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
 								<table class = "noborderbottom centpercent">';
 			print '					<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColNum').'
 										</td>';
 			foreach ($listselectMRP as $selectvaluesMRP) {
 				$numcol	= num_col($selectvaluesMRP, $listselectMRP);
-				print '					<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">
-											<select name = "'.$selectvaluesMRP['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding infrasplusnoborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
+				print '					<td class = "center infrasplusnomargin infrasplusnopadding noborder">
+											<select name = "'.$selectvaluesMRP['select'].'" class = "flat infrasplusfontsizeinherit infrasplusnopadding noborder cursorpointer'.($numcol['err'] > 0 ? ' infrasplusbgred' : '').'">';
 				print							$numcol['options'].'
 											</select>
 										</td>';
 			}
 			print '					</tr>';
 			print '					<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColName').'
 										</td>';
 			foreach ($listcolMRP as $colMRP) {
-				print '					<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">'.$colMRP.'</td>';
+				print '					<td class = "center infrasplusnomargin infrasplusnopadding noborder">'.$colMRP.'</td>';
 			}
 			print '					</tr>';
 			print '					<tr>
-										<td class = "infrasplusnomargin infrasplusnopadding infrasplusnoborder">
+										<td class = "infrasplusnomargin infrasplusnopadding noborder">
 											'.$langs->trans('InfraSPlusParamColLarg').'
 										</td>';
 			foreach ($listlargMRP as $largsMRP) {
-				print '					<td class = "center infrasplusnomargin infrasplusnopadding infrasplusnoborder">';
+				print '					<td class = "center infrasplusnomargin infrasplusnopadding noborder">';
 				if ($largsMRP['key'] == 'DESC') {
 					print $largsMRP['value'];
 				} else {
@@ -1724,7 +1726,7 @@
 		} else {
 			$num	+= 4;
 		}
-		// $num = 92
+		// $num = 93
 		infraspackplus_print_subTitle(4, 'InfraSPlusParamUserSticker');
 		$metas	= $formadmin->select_paper_format($selectedUserStickerFormat, 'INFRASPLUS_PDF_USER_STICKER_FORMAT');
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamUserStickerFormat'), '', $metas, 1, 2, '', $num);
@@ -1734,14 +1736,14 @@
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_SOC_TEL', 'on_off', $langs->trans('InfraSPlusParamUserStickerSocTel'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_SOC_MAIL', 'on_off', $langs->trans('InfraSPlusParamUserStickerSocMail'), '', array(), 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_LOGO', 'on_off', $langs->trans('InfraSPlusParamUserStickerLogo'), '', array(), 2, 1, '', $num);
-		// $num = 99
+		// $num = 100
 	}
 	print '			</table>
 				</div>';
 	// Pied de document -> encours, total des remises, multi-devises, number-words, zones de signature, mentions complémentaires
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamTitleFooter').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblPD" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblPD" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -1920,7 +1922,7 @@
 	// Pied de page -> Lignes d'informations supplémentaires, n° de page, LCR
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamTitleFooterPage').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblPP" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblPP" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -1965,7 +1967,7 @@
 	// Conditions générales -> vente, interventions, achats
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamCGVs').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/Tools.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblCGx" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblCGx" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	if (!empty($accessright)) {
@@ -1974,15 +1976,15 @@
 							<td colspan = "4">
 								<table class = "centpercent">
 								<tr>
-										<td class = "infrasplusnoborder">
+										<td class = "noborder">
 											<label for = "CGVFile">'.$langs->trans('InfraSPlusParamCGVFile').'</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 											<input type = "file" class = "flat infrasplusfontsizeinherit infrasplusnopadding cursorpointer" id = "CGVFile" name = "CGVFile" accept=".pdf">
 										</td>
-										<td class = "infrasplusnoborder">
+										<td class = "noborder">
 											<label for = "typeCG">'.$langs->trans('InfraSPlusParamTypeCG').'</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 											'.$form->selectarray('typeCG', $selectCG, '', 0, 0, 0, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"').'
 										</td>
-										<td class = "right infrasplusnoborder">
+										<td class = "right noborder">
 											<label for = "CGVName">'.$langs->trans('InfraSPlusParamCGVName').'</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 											<input type = "text" class = "flat infrasplusfontsizeinherit infrasplusnopadding" size = "30" id = "CGVName" name = "CGVName">
 										</td>
@@ -2063,7 +2065,7 @@
 	// Fichiers spéciaux
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamSpf').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/Tools.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblSpf" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '			<table name = "tblSpf" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '90px', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	if (!empty($accessright)) {

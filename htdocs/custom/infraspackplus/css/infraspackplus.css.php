@@ -290,7 +290,7 @@ img.infraspluswidthpictotitle {
 	padding: 0px !important;
 }
 
-.infrasplusnoborder {
+.noborder {
 	border: none;
 }
 

@@ -393,6 +393,7 @@ InfraSPlusParamHideQty                         = Nascondere la quantità per rig
 InfraSPlusParamShowWVCC1                       = Visualizzare informazioni di peso, volume e/o nomenclatura doganale (codice HS) sui documenti di vendita (preventivi, ordini, bolle di consegna, fatture)
 InfraSPlusParamShowWVCC2                       = <b>Disabilita la funzione nativa di copiare le informazioni doganali nella descrizione della riga del documento interessato!</b>
 InfraSPlusParamNoShowWVCCsameCountry           = Non visualizzare informazioni su peso, volume e/o nomenclatura doganale (codice HS) sui documenti di vendita quando i paesi del cliente e del venditore sono gli stessi
+InfraSPlusParamWVCCnoHR                        = Nascondere le linee di separazione tra la descrizione lunga e le informazioni doganali / peso / volume
 InfraSPlusParamShowWVCCbyDef                   = (Visualizzazione delle informazioni doganali selezionata per impostazione predefinita)
 InfraSPlusParamShowSerialOnInvoice             = Quando una fattura cliente è collegata a una bolla di consegna, visualizzare i numeri di serie dei prodotti presenti nella bolla di consegna
 InfraSPlusParamShowSerialOnMRP                 = Mostra i numeri di serie dei prodotti utilizzati nell'ordine di produzione
@@ -567,6 +568,7 @@ InfraSPlusParamAddrLivrSyst          = Visualizza sempre un indirizzo di consegn
 InfraSPlusParamAddrLivrSiFact        = Visualizza automaticamente (impostazione predefinita) un indirizzo di consegna quando l'indirizzo di fatturazione automatico è attivo
 InfraSPlusParamUseDoliAdrLivr        = Utilizza la gestione nativa degli indirizzi di consegna (tramite contatti di tracciamento della consegna)
 InfraSPlusParamDoliAdrLivrRecep      = Negli ordini (clienti o fornitori) sostituire le informazioni sul destinatario con quelle del contatto di consegna selezionato
+InfraSPlusParamUseDoliAdrFact        = Usa il contatto di fatturazione Dolibarr (tipo esterno 'BILLING') come indirizzo destinatario
 InfraSPlusParamShowAdrLivr           = Visualizzare l'indirizzo di consegna sui documenti dei fornitori (preventivi, ordini) => Questo indirizzo può essere selezionato prima che il documento sia generato
 InfraSPlusParamshowLivrFDetails      = Mostra tutti i dettagli di consegna disponibili (solo indirizzo di default, abilitato = + telefono + fax + email + web)
 InfraSPlusParamFreeLivrExf           = Codice dell'attributo aggiuntivo dedicato all'inserimento manuale di un indirizzo di consegna
@@ -1062,3 +1064,4 @@ PDFInfraSPlusUserStickerDescription = PDF tessera identificativa modello InfraS.
 PDFInfraSPlusGenerateAccountStatutModelsPDF = Modello PDF InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = Estratto conto di terzi. Modello PDF completo di estratto conto di terzi (logo, ecc.)
+WarningNoSpecialFilePDFGenerated            = Nessun documento PDF è stato generato per il contratto %s: nessun specialfile corrisponde alle condizioni del contratto.

@@ -213,6 +213,7 @@
 		public $hide_discount;
 		public $hide_cols;
 		public $showwvccchk;
+		public $wvcc_no_hr;
 		public $show_tot_disc;
 		public $signvalue;
 		public $stdLineW = 0.2; // Default line width in TCPDF = 0.2
@@ -771,7 +772,7 @@
 								if (!empty($this->show_ExtraFieldsLines)) {
 									$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 								}
-								$extraDet	.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+								$extraDet	.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							}
 							// Description of product line
 							$pageposdesc	= $pdf->getPage();

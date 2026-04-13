@@ -393,6 +393,7 @@ InfraSPlusParamHideQty                         = Esconder la cantidad de la lín
 InfraSPlusParamShowWVCC1                       = Visualiza información sobre peso, volumen y / o nomenclatura aduanera (Código HS) en documentos de ventas (propales, pedidos, notas de entrega, facturas)
 InfraSPlusParamShowWVCC2                       = <b>¡Desactiva la función nativa de copiar información aduanera en la descripción de la línea del documento en cuestión!</b>
 InfraSPlusParamNoShowWVCCsameCountry           = No mostrar información de peso, volumen y/o nomenclatura aduanera (Código HS) en los documentos de ventas cuando los países del cliente y del vendedor sean los mismos.
+InfraSPlusParamWVCCnoHR                        = Ocultar las líneas separadoras entre la descripción larga y la información aduanera / peso / volumen
 InfraSPlusParamShowWVCCbyDef                   = (Visualización de información aduanera seleccionada por defecto)
 InfraSPlusParamShowSerialOnInvoice             = Cuando una factura de cliente está vinculada a una nota de entrega, mostrar los números de serie de los productos presentes en la nota de entrega
 InfraSPlusParamShowSerialOnMRP                 = Mostrar números de serie de productos utilizados en la orden de producción
@@ -567,6 +568,7 @@ InfraSPlusParamAddrLivrSyst          = Visualiza siempre una dirección de entre
 InfraSPlusParamAddrLivrSiFact        = Visualiza automáticamente (predeterminado) una dirección de entrega cuando la dirección de facturación automática está activa
 InfraSPlusParamUseDoliAdrLivr        = Utilice la gestión nativa de direcciones de entrega (mediante contactos de seguimiento de entrega)
 InfraSPlusParamDoliAdrLivrRecep      = En los pedidos (clientes o proveedores) sustituya la información del destinatario por la del contacto de entrega seleccionado
+InfraSPlusParamUseDoliAdrFact        = Utilizar el contacto de facturación de Dolibarr (tipo externo 'BILLING') como dirección de destinatario
 InfraSPlusParamShowAdrLivr           = Visualiza dirección de entrega en los documentos del proveedor (propales, pedidos) => Esta dirección se puede seleccionar antes de la generación del documento
 InfraSPlusParamshowLivrFDetails      = Visualiza todos los detalles disponibles de la dirección de entrega (por defecto solo la dirección, opción habilitada = + teléfono + Fax + Correo electrónico + Web)
 InfraSPlusParamFreeLivrExf           = Código del atributo adicional dedicado a la entrada manual de una dirección de entrega
@@ -1062,3 +1064,4 @@ PDFInfraSPlusUserStickerDescription = Tarjeta de identificación en PDF modelo I
 PDFInfraSPlusGenerateAccountStatutModelsPDF = Modelo PDF InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = Estado de cuenta de terceros. Plantilla completa de estado de cuenta de terceros en PDF (logotipo, etc.)
+WarningNoSpecialFilePDFGenerated            = No se ha generado ningún documento PDF para el contrato %s: ningún specialfile coincide con las condiciones del contrato.

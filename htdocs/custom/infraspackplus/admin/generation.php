@@ -197,7 +197,7 @@
 	}
 	print '			<div class = "NOfoldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGenerationSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title');
-	print '				<table name = "tblGen" class = "infrasplusnoborder NOtoggle_bloc centpercent">';
+	print '				<table name = "tblGen" class = "noborder NOtoggle_bloc centpercent">';
 	$metas	= array('30px', '*', '150px', '150px', '150px', '150px', '150px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1, 1, 1, 1 ,1), 'NumberingShort', 'Description', 'InfraSPlusParamBkpPerUser', 'InfraSPlusParamBkpPerDocument', 'InfraSPlusParamBkpPerType', 'InfraSPlusParamBkpPerCustomer', 'InfraSPlusParamBkpNone', '&nbsp;');

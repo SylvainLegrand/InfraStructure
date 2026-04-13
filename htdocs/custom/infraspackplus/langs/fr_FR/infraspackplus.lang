@@ -393,6 +393,7 @@ InfraSPlusParamHideQty                         = Cacher la quantité par ligne d
 InfraSPlusParamShowWVCC1                       = Afficher les informations de poids, volume et / ou la nomenclature douanière (Code SH) sur les documents de vente (devis, commandes, bons de livraison, factures)
 InfraSPlusParamShowWVCC2                       = <b>Désactive la fonction native de copie des informations douanières dans le descriptif de la ligne du document concerné !</b>
 InfraSPlusParamNoShowWVCCsameCountry           = Ne pas afficher les informations de poids, volume et / ou la nomenclature douanière (Code SH) sur les documents de vente quand les pays du client et du vendeur sont indentiques
+InfraSPlusParamWVCCnoHR                        = Masquer les lignes de séparation entre la description longue et les informations douanières / poids / volume
 InfraSPlusParamShowWVCCbyDef                   = (Affichage des informations douanières cochée par défaut)
 InfraSPlusParamShowSerialOnInvoice             = Quand une facture client est liée à un bon de livraison, afficher les numéros de série des produits présents dans le bon de livraison
 InfraSPlusParamShowSerialOnMRP                 = Afficher les numéros de série des produits utilisés dans l'ordre de fabrication
@@ -567,6 +568,7 @@ InfraSPlusParamAddrLivrSyst          = Toujours afficher une adresse de livraiso
 InfraSPlusParamAddrLivrSiFact        = Afficher automatiquement (par défaut) une adresse de livraison quand l'adresse de facturation automatique est active
 InfraSPlusParamUseDoliAdrLivr        = Utiliser la gestion native des adresses de livraison (par les contacts de suivi livraison)
 InfraSPlusParamDoliAdrLivrRecep      = Dans les commandes (clients ou fournisseurs) remplacer les informations du destinataire par celles du contact de livraison sélectionné
+InfraSPlusParamUseDoliAdrFact        = Utiliser le contact de facturation Dolibarr (type externe 'BILLING') comme adresse destinataire
 InfraSPlusParamShowAdrLivr           = Afficher l'adresse de livraison sur les documents fournisseurs (devis, commandes) => Cette adresse est sélectionnable avant la génération du document
 InfraSPlusParamshowLivrFDetails      = Afficher tous les détails disponibles des coordonnées de livraison (par défaut Adresse seule, option activée =  + tél. + Fax + Email + Web)
 InfraSPlusParamFreeLivrExf           = Code de l'attribut supplémentaire dédié à la saisie manuelle d'une adresse de livraison
@@ -1062,3 +1064,4 @@ PDFInfraSPlusUserStickerDescription = Carte d'identification PDF modèle InfraS.
 PDFInfraSPlusGenerateAccountStatutModelsPDF = PDF modèle InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = État de compte tiers. Modèle d'état de compte tiers PDF complet (logo, …)
+WarningNoSpecialFilePDFGenerated            = Aucun document PDF n'a été généré pour le contrat %s : aucun specialfile ne correspond aux conditions du contrat.

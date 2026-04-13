@@ -330,6 +330,12 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 					if (!empty($arrayFilesID)) {
 						pdf_InfraSPlus_files($pdf, $arrayFilesID, 1, $object, $outputlangs, $this->formatpage);
 					}
+					$pdf_files_after	= glob($dir.'/*.pdf');
+					$pdf_files_after	= is_array($pdf_files_after) ? $pdf_files_after : array();
+					if (empty(array_diff($pdf_files_after, $pdf_files_before))) {
+						dol_syslog('InfraSPlus_CTS: Aucun specialfile n\'a généré de PDF pour '.$objectref, LOG_WARNING);
+						setEventMessages($outputlangs->transnoentities('WarningNoSpecialFilePDFGenerated', $objectref), null, 'warnings');
+					}
 				}
 			}
 		}

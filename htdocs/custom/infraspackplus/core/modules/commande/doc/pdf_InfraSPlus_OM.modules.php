@@ -215,6 +215,7 @@
 		public $hide_discount;
 		public $hide_cols;
 		public $showwvccchk;
+		public $wvcc_no_hr;
 		public $signvalue;
 		public $hideInnerLines;
 		public $add_recap;
@@ -456,7 +457,7 @@
 							$idParentTitle	= pdf_InfraSPlus_escapeEns($object, $i, -3);	// Ligne sous un titre / sous titre à afficher sous forme de liste
 							if (!empty($idParentTitle) && $idParentTitle == $isTitleToList) {
 								$lineToHide[]	= $object->lines[$i]->id;
-								$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+								$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 								$label			= $isProd > 0 ? $objproduct->label : $desc;
 								if (empty($descWorksHidden[$idParentTitle]['nb'])) {
 									$descWorksHidden[$idParentTitle]['nb']	= 0;
@@ -470,7 +471,7 @@
 							$idParentTitle	= pdf_InfraSPlus_escapeEns($object, $i, -4);	// Ligne sous un titre / sous titre à afficher condensé
 							if (!empty($idParentTitle) && $idParentTitle == $isTitleToCondense) {
 								$lineToHide[]	= $object->lines[$i]->id;
-								$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+								$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 								$label			= $isProd > 0 ? $objproduct->label : $desc;
 								if (empty($descWorksHidden[$idParentTitle]['nb'])) {
 									$descWorksHidden[$idParentTitle]['nb']	= 0;
@@ -501,7 +502,7 @@
 								$idParentLine	= $object->lines[$i]->fk_parent_line;
 								if (!empty($idParentLine)) {
 									$lineToHide[]	= $object->lines[$i]->id;
-									$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+									$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 									$label			= $isProd > 0 ? $objproduct->label : $desc;
 									if (empty($descWorksHidden[$idParentLine]['nb'])) {
 										$descWorksHidden[$idParentLine]['nb']	= 0;
@@ -516,7 +517,7 @@
 								$idParentLine	= $object->lines[$i]->fk_parent_line;
 								if (!empty($idParentLine)) {
 									$lineToHide[]	= $object->lines[$i]->id;
-									$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+									$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 									$label			= $isProd > 0 ? $objproduct->label : $desc;
 									if (empty($descWorksHidden[$idParentLine]['nb'])) {
 										$descWorksHidden[$idParentLine]['nb']	= 0;
@@ -918,17 +919,17 @@
 							if (!empty($this->show_ExtraFieldsLines)) {
 								$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 							}
-							$extraDet			.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+							$extraDet			.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							// Extrafield product / service
 							$isProd				= $objproduct->fetch($object->lines[$i]->fk_product);
 							$extrafieldsprod	= pdf_InfraSPlus_ExtraFieldsProd($objproduct, $this->exfltxtcolor, $outputlangs);
-							$extraDet			.= empty($extrafieldsprod) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldsprod.'<hr style = "width: 80%;">';
+							$extraDet			.= empty($extrafieldsprod) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldsprod.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							// Custom values (weight, volume and code
 							$WVCC				= '';
 							if (!empty($this->showwvccchk)) {
 								$WVCC	= pdf_InfraSPlus_getlinewvdcc($object, $i, $outputlangs, $this->emetteur);
 							}
-							$extraDet	.= empty($WVCC) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$WVCC.'<hr style = "width: 80%;">';
+							$extraDet	.= empty($WVCC) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$WVCC.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						} else {	// Ouvrage or sub-total line
 							$idOuvrage	= !empty($object->lines[$i]->array_options['options_fk_ouvrage']) ? $object->lines[$i]->array_options['options_fk_ouvrage'] : '';
 							if (!empty($descWorksHidden[$object->lines[$i]->id]['desc'])) {
@@ -1003,7 +1004,7 @@
 						$pdf->SetFont('', '', $default_font_size - 1);	// On repositionne la police par defaut
 						if (empty($this->hide_cols)) {
 							// Reference
-							if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || (!empty($this->picture_in_ref) && empty($this->picture_replace_ref)))) {
+							if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || !empty($this->picture_in_ref) && empty($this->picture_replace_ref))) {
 								$pagepos	= $pdf->getPage();
 								$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 								$pdf->setPage($pagepos);

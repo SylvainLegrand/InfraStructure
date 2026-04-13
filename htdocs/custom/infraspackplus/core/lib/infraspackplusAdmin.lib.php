@@ -473,7 +473,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			$filesql	= $pathsql.'/'.'update.'.$conf->entity;
 			$moved		= dol_copy($filesql, $filesql.'.sql');
 			if (is_file($filesql.'.sql')) {
-				$result	= run_sql($filesql.'.sql', (!getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG', '') ? 1 : 0), $conf->entity, 1);
+				$result	= run_sql($filesql.'.sql', !getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG', '') ? 1 : 0, $conf->entity, 1);
 			}
 			$delete	= dol_delete_file($filesql.'.sql');
 			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_restore_module appliname = '.$appliname.' filesql = '.$filesql.' moved = '.$moved.' result = '.$result.' delete = '.$delete);
@@ -649,14 +649,14 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$out	.= '<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
 					<tr class = "liste_titre">';
 		if (!empty($picto)) {
-			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infraspluswidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
+			$out .= '	<td class = "noborder infrasplusnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infraspluswidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
 		}
-		$out	.= '	<td class = "infrasplusnoborder infrasplusnopadding valignmiddle col-title"><div class = "infrasplusDivTitre uppercase inline-block">'.$titre.'</div></td>';
+		$out	.= '	<td class = "noborder infrasplusnopadding valignmiddle col-title"><div class = "infrasplusDivTitre uppercase inline-block">'.$titre.'</div></td>';
 		if (dol_strlen($morehtmlcenter)) {
-			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
+			$out .= '	<td class = "noborder infrasplusnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
 		}
 		if (dol_strlen($morehtmlright)) {
-			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
+			$out .= '	<td class = "noborder infrasplusnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
 		}
 		$out .= '	</tr>
 				</table>';
@@ -904,15 +904,15 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		print '		<td colspan = "'.$cs1.'">
 						<table class = "centpercent">
 							<tr>
-								<td rowspan = "2" class = "infrasplusnoborder">'.$desc.'</td>';
+								<td rowspan = "2" class = "noborder">'.$desc.'</td>';
 		foreach ($metas[0] as $confkey => $value) {
 			$confkey	= str_replace('_AUTO', '', $confkey);
-			print '				<td class = "center infrasplusnoborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
+			print '				<td class = "center noborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
 		}
 		print '				</tr>
 							<tr>';
 		foreach ($metas[1] as $confkey => $value) {
-			print '				<td class = "center infrasplusnoborder">';
+			print '				<td class = "center noborder">';
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
@@ -979,7 +979,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 											</tr>
 											<tr class = "infrasplusheight50">
 												<td rowspan = "3" class = "left bold valignbottom infraspluswidthtrentepercent infrasplusslogan" style = "color: white; font-size: 16px;">
-													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "infrasplusnoborder infraspluswidth220" src = "'.$logoPath.'"></a>
+													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder infraspluswidth220" src = "'.$logoPath.'"></a>
 													<br/>&nbsp;&nbsp;'.$langs->trans('InfraSPlusParamSlogan').'
 												</td>
 												<td class = "center valignmiddle infraspluswidthtrentepercent">
@@ -987,13 +987,13 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 													<button class = "butAction infraspluswidth180 infrasplusheight32" type = "submit" >'.$langs->trans('InfraSWorkflowParamSupport').'</button>
 												</td>
 												<td rowspan = "3" class = "right bold valignbottom infraspluswidthtrentepercent infrasplusslogan">
-													<a href = "'.$urlDoli.'" target = "_blank"><img class = "infrasplusnoborder infraspluswidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
+													<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder infraspluswidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
 													<br/>'.$langs->trans('InfraSPlusParamMoreModulesLink').'&nbsp;&nbsp;
 												</td>
 											</tr>
 											<tr>
 												<td class = "center valignbottom infrasplusminwidth700imp">
-													<img class = "infrasplusnoborder infraspluswidth220 infrasplusmargintop10imp" src="'.$preferedPartnerPath.'"/>
+													<img class = "noborder infraspluswidth220 infrasplusmargintop10imp" src="'.$preferedPartnerPath.'"/>
 												</td>
 											</tr>
 											<tr>
@@ -1021,7 +1021,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		}
 		$ret	.= '			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<table class = "infrasplusnoborder centpercent" >
+									<table class = "noborder centpercent" >
 										<tr class = "liste_titre">
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamNumberVersion').'</th>
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamMonthVersion').'</th>
@@ -1131,7 +1131,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$formatarray	= pdf_InfraSPlus_getFormat();
 		$format			= array($formatarray['width'], $formatarray['height']);
 		$pdf			= pdf_InfraSPlus_getInstance($format, 'mm', 'P');
-		$ret			= '	<table class = "infrasplusnoborder" >
+		$ret			= '	<table class = "noborder" >
 								<tr class = "liste_titre">
 									<th class = "center width400">'.$langs->trans('InfraSPlusSupportInformation').'</th>
 									<th class = "center">'.$langs->trans('Value').'</th>

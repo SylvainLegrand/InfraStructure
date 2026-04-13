@@ -241,6 +241,7 @@
 		public $extraDetPos2;
 		public $hidelblvariant;
 		public $labelbold;
+		public $wvcc_no_hr;
 
 		/**
 		*	Constructor
@@ -511,7 +512,7 @@
 						if (!empty($this->show_ExtraFieldsLines)) {
 							$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 						}
-						$extraDet				.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+						$extraDet				.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						// Description of product line => printing
 						$pageposdesc			= $pdf->getPage();
 						$libelleproduitservice	= $this->labelbold && !empty($prodser->label) ? '<b>'.$prodser->label.'</b>' : $prodser->label;

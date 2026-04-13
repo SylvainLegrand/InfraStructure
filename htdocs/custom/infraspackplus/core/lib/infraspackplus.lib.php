@@ -997,7 +997,7 @@
 								</a>';
 		}
 		print load_fiche_titre($langs->trans('AddressesForCompany'), $newcardbutton, '');
-		print '		<table class = "infrasplusnoborder" width = "100%">
+		print '		<table class = "noborder" width = "100%">
 						<tr class = "liste_titre">
 							<th>'.$langs->trans('InfraSPlusParamAdressAlias').'</th>
 							<th>'.$langs->trans('CompanyName').'</th>

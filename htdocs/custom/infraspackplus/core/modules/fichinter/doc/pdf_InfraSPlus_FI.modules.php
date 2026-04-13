@@ -212,6 +212,7 @@
 		public $hide_discount;
 		public $hide_cols;
 		public $showwvccchk;
+		public $wvcc_no_hr;
 		public $show_tot_disc;
 		public $signvalue;
 		public $stdLineW = 0.2; // Default line width in TCPDF = 0.2
@@ -884,7 +885,7 @@
 							if (!empty($this->showwvccchk)) {
 								$WVCC	= pdf_InfraSPlus_getlinewvdcc($object, $i, $outputlangs, $this->emetteur);
 							}
-							$extraDet	.= empty($WVCC) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">'.$WVCC.'<hr style = "width: 80%;">' : $WVCC.'<hr style = "width: 80%;">');
+							$extraDet	.= empty($WVCC) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$WVCC.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							// Description of product line
 							$txt		= $outputlangs->transnoentities('Date').' : '.dol_print_date($object->lines[$i]->date, 'dayhour', false, $outputlangs, true);
 							if ($object->lines[$i]->duration > 0 && empty($this->hide_duration)) {
@@ -1086,19 +1087,19 @@
 								$pdf->SetLineStyle($this->horLineStyle);
 								// Ajout du numéro de série, s'il existe...
 								$serialEquip		= isModEnabled('equipement') ? pdf_InfraSPlus_getEquipementSerialDesc($object, $outputlangs, $i, 'intervention') : '';
-								$extraDet			.= empty($serialEquip) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$serialEquip.'<hr style = "width: 80%;">';
+								$extraDet			.= empty($serialEquip) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$serialEquip.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 								// extrafieldsline
 								$extrafieldslines	= '';
 								if (!empty($this->show_ExtraFieldsLines)) {
 									$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 								}
-								$extraDet	.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+								$extraDet	.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 								// Custom values (weight, volume and code
 								$WVCC		= '';
 								if (!empty($this->showwvccchk)) {
 									$WVCC	= pdf_InfraSPlus_getlinewvdcc($object, $i, $outputlangs, $this->emetteur);
 								}
-								$extraDet	.= empty($WVCC) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$WVCC.'<hr style = "width: 80%;">';
+								$extraDet	.= empty($WVCC) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$WVCC.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							}
 							// Description of product line
 							$txt	= $outputlangs->transnoentities('Date').' : '.dol_print_date($object->lines[$i]->datei, 'dayhour', false, $outputlangs, true);
@@ -1167,7 +1168,7 @@
 							}
 							if (empty($this->hide_cols)) {
 								// Reference
-								if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || (!empty($this->picture_in_ref) && empty($this->picture_replace_ref)))) {
+								if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || !empty($this->picture_in_ref) && empty($this->picture_replace_ref))) {
 									$pagepos	= $pdf->getPage();
 									$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 									$pdf->setPage($pagepos);
@@ -1657,7 +1658,7 @@
 				$posy	= pdf_InfraSPlus_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, $w, $this->tab_hl, $align);
 				$posy	+= 0.5;
 			}
-			$dimCadres['Y']	= (!empty($this->use_iso_location) && $posy <= $this->top_recep_corner ? $this->top_recep_corner : ($heightLogo > $posy + $this->tab_hl ? $heightLogo : $posy + $this->tab_hl));
+			$dimCadres['Y']	= !empty($this->use_iso_location) && $posy <= $this->top_recep_corner ? $this->top_recep_corner : ($heightLogo > $posy + $this->tab_hl ? $heightLogo : $posy + $this->tab_hl);
 			if (!empty($showaddress)) {
 				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'INTERREPFOLL'),
 										'E' => $object->getIdContact('external', 'CUSTOMER')
@@ -1938,7 +1939,7 @@
 			}
 			if ((empty($this->only_ht) && empty($this->only_ttc)) || $this->show_ttc_vat_tot) {
 				// Show VAT by rates and total
-				$tvaisnull	= ((!empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000'])) ? true : false);
+				$tvaisnull	= !empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000']) ? true : false;
 				if (!empty($this->hide_vat_ifnull) && $tvaisnull) {
 					// Nothing to do
 				} else {
@@ -2072,7 +2073,7 @@
 			// ecoTaxes
 			if (is_array($this->ecoTaxes) && count($this->ecoTaxes) > 0) {
 				foreach ($this->ecoTaxes as $key => $ecoTaxe) {
-					if ((!empty($this->only_ht) && !empty($ecoTaxe['ht'])) || !empty($ecoTaxe['ttc'])) {
+					if (!empty($this->only_ht) && !empty($ecoTaxe['ht']) || !empty($ecoTaxe['ttc'])) {
 						$valEcoTaxe	= price2num(!empty($this->only_ht) ? $ecoTaxe['ht'] : $ecoTaxe['ttc'], 'MT');
 						$index++;
 						$pdf->MultiCell($larg_col1total, $tabtot_hl, $outputlangs->transnoentities('PDFInfraSPlusTotalEcoTaxe', (!empty($this->only_ht) ? $outputlangs->transnoentities('HT') : $outputlangs->transnoentities('TTC'))).' '.$key, '', 'L', 0, 1, $posxtabtotal, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), true, 0, 0, false, 0, 'M', false);

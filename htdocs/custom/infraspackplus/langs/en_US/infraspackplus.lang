@@ -393,6 +393,7 @@ InfraSPlusParamHideQty                         = Hides line's quantity on commer
 InfraSPlusParamShowWVCC1                       = Show informations about weight, volume and / or customs nomenclature (HS Code) on sales documents (commercial proposals, orders, delivery notes, invoices)
 InfraSPlusParamShowWVCC2                       = <b>Disables the native function of copying customs information into the description of the line of the document concerned!</b>
 InfraSPlusParamNoShowWVCCsameCountry           = Do not display weight, volume and/or customs nomenclature (HS Code) information on sales documents when the customer and seller countries are identical
+InfraSPlusParamWVCCnoHR                        = Hide separator lines between the long description and customs / weight / volume information
 InfraSPlusParamShowWVCCbyDef                   = (Customs information display checked by default)
 InfraSPlusParamShowSerialOnInvoice             = When a customer invoice is linked to a delivery note, display the serial numbers of the products present in the delivery note
 InfraSPlusParamShowSerialOnMRP                 = Show serial numbers of products used in the production order
@@ -567,6 +568,7 @@ InfraSPlusParamAddrLivrSyst          = Always display a delivery address (even i
 InfraSPlusParamAddrLivrSiFact        = Automatically display (default) a delivery address when the automatic billing address is active
 InfraSPlusParamUseDoliAdrLivr        = Use the native management of delivery addresses (by delivery tracking contacts)
 InfraSPlusParamDoliAdrLivrRecep      = In the orders (customers or suppliers) replace the recipient's information with those of the selected delivery contact
+InfraSPlusParamUseDoliAdrFact        = Use the Dolibarr billing contact (external type 'BILLING') as recipient address
 InfraSPlusParamShowAdrLivr           = Show delivery address on supplier documents (commercial proposals, orders) => This address is selectable before document generation
 InfraSPlusParamshowLivrFDetails      = Displays all available delivery details (default Address only, option enabled =  + phone + Fax + Email + Web)
 InfraSPlusParamFreeLivrExf           = Code of the additional attribute dedicated to the manual entry of a delivery address
@@ -1062,3 +1064,4 @@ PDFInfraSPlusUserStickerDescription = PDF ID card template InfraS. Complete PDF 
 PDFInfraSPlusGenerateAccountStatutModelsPDF = PDF model InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = Third party account statement. Complete PDF third party account statement template (logo, etc.)
+WarningNoSpecialFilePDFGenerated            = No PDF document was generated for contract %s: no specialfile matches the contract conditions.

@@ -262,6 +262,7 @@
 		public $show_creation_date;
 		public $show_ref_col;
 		public $supplier_ref_name;
+		public $wvcc_no_hr;
 
 		/**
 		*	Constructor
@@ -718,7 +719,7 @@
 						if (!empty($this->show_ExtraFieldsLines)) {
 							$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 						}
-						$extraDet									.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+						$extraDet									.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						// Description of product line
 						$pageposdesc								= $pdf->getPage();
 						pdf_InfraSPlus_writelinedesc($pdf, $object, $i, $outputlangs, $this->formatpage, $this->horLineStyle, $this->tableau['desc']['larg'], $this->heightline, $this->tableau['desc']['posx'], $curY, $hideref, $hidedesc, 1, $extraDet);
@@ -1255,7 +1256,7 @@
 			}
 			if ((empty($this->only_ht) && empty($this->only_ttc)) || !empty($this->show_ttc_vat_tot)) {
 				// Show VAT by rates and total
-				$tvaisnull	= ((!empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000'])) ? true : false);
+				$tvaisnull	= !empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000']) ? true : false;
 				if (!empty($this->hide_vat_ifnull) && !empty($tvaisnull)) {
 					// Nothing to do
 				} else {

@@ -172,7 +172,7 @@
 		infraspackplus_print_backup_restore();
 	}
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionNotes').'</span>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "infrasplusnoborder centpercent">';
+	print '			<table class = "noborder centpercent">';
 	$metas	= array('*', '130px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(3), 'InfraSPlusParamNewNote');
@@ -202,7 +202,7 @@
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	if (!empty($accessright)) {
 		print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamNotesSetup').'</span>', '', dol_buildpath('/infraspackplus/img/list.png', 1), 1);
-		print '			<table class = "infrasplusnoborder centpercent">';
+		print '			<table class = "noborder centpercent">';
 		$metas		= array('30px', '*', '156px', '120px');
 		infraspackplus_print_colgroup($metas);
 		$metas		= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');

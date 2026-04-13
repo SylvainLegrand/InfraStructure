@@ -167,6 +167,7 @@
 		$template->show_desc				= getDolGlobalInt('INFRASPLUS_PDF_SHOW_DESC_DEV', 0);
 		$template->hidden_ouv				= getDolGlobalInt('INFRASPLUS_PDF_HIDDEN_OUV', 0);
 		$template->only_one_desc			= getDolGlobalInt('INFRASPLUS_PDF_ONLY_ONE_DESC', 0);
+		$template->wvcc_no_hr				= getDolGlobalInt('INFRASPLUS_PDF_WVCC_NO_HR', 0);
 		$template->hide_qty					= getDolGlobalInt('INFRASPLUS_PDF_HIDE_QTY', 0);
 		$template->hide_up					= getDolGlobalInt('INFRASPLUS_PDF_HIDE_UP', 0);
 		$template->show_up_discounted		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_UP_DISCOUNTED', 0);
@@ -257,11 +258,11 @@
 	/**
 	*	Return a PDF instance object. We create a FPDI instance that instantiate TCPDF.
 	*
-	*	@param	array		$format			Array(width,height). Keep empty to use default setup.
-	*	@param	string		$metric			Unit of format ('mm')
-	*	@param	string		$pagetype		'P' or 'l'
-	*	@param	boolean		$onlyConf		true, only for defining constants || false, to also create the PDF object
-	*	@return	TCPDF|int					PDF object or 1 if we just need to define constants
+	*	@param	array{float|int,float|int}|array{}|''	$format		Array(width,height). Keep empty to use default setup.
+	*	@param	string									$metric		Unit of format ('mm')
+	*	@param	string									$pagetype	'P' or 'l'
+	*	@param	boolean									$onlyConf	true, only for defining constants || false, to also create the PDF object
+	*	@return	TCPDF|TCPDI|int										PDF object or 1 if we just need to define constants
 	**/
 	function pdf_InfraSPlus_getInstance($format = array(), $metric = 'mm', $pagetype = 'P', $onlyConf = false)
 	{
@@ -530,7 +531,7 @@
 			$tvalignebrut		= $TotBrutLine * $object->lines[$i]->tva_tx / 100;
 			$localtax1lignebrut	= $TotBrutLine * $object->lines[$i]->localtax1_tx / 100;
 			$localtax2lignebrut	= $TotBrutLine * $object->lines[$i]->localtax2_tx / 100;
-			return ($TotBrutLine + $tvalignebrut + $localtax1lignebrut + $localtax2lignebrut) - (!empty($multicurrency) ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc);
+			return $TotBrutLine + $tvalignebrut + $localtax1lignebrut + $localtax2lignebrut - (!empty($multicurrency) ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc);
 		} else {
 			return $TotBrutLine - (!empty($multicurrency) ? $object->lines[$i]->multicurrency_total_ht : $object->lines[$i]->total_ht);
 		}
@@ -577,12 +578,12 @@
 				$heightLogo	= pdf_getHeightForLogo($logo);
 				if (!empty($forceWidth) || !empty($center)) {
 					$logosize	= pdf_InfraSPlus_getSizeForImage($logo, $w, $heightLogo, 1);
-					$posxlogo	= !empty($center) ? $posx + (($w - $logosize['width']) / 2) : (!empty($left)  ? $posx + ($w - $logosize['width']) : $posx);	// positionne l'image dans la colonne => centre | gauche | $posx
+					$posxlogo	= !empty($center) ? $posx + ($w - $logosize['width']) / 2 : (!empty($left)  ? $posx + $w - $logosize['width'] : $posx);	// positionne l'image dans la colonne => centre | gauche | $posx
 					$pdf->Image($logo, $posxlogo, $posy, $logosize['width'], 0);	// height = 0 (auto)
 					$heightLogo	= $logosize['height'];
 				} else {
 					$logosize	= pdf_InfraSPlus_getSizeForImage($logo, $w, $heightLogo, 0);
-					$pdf->Image($logo, (!empty($left)  ? $posx + ($w - $logosize['width']) : $posx), $posy, 0, $heightLogo);	// width = 0 (auto)
+					$pdf->Image($logo, !empty($left)  ? $posx + $w - $logosize['width'] : $posx, $posy, 0, $heightLogo);	// width = 0 (auto)
 				}
 			} else {
 				$pdf->SetTextColor(200, 0, 0);
@@ -669,7 +670,7 @@
 				}
 			}
 		}
-		return (empty($header_after_addr) ? $pdf->getY() : $refstoshow);
+		return empty($header_after_addr) ? $pdf->getY() : $refstoshow;
 	}
 
 	/**
@@ -876,10 +877,11 @@
 			$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
 			$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
 			$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr], '', $object->table_element));
-			$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
+			$free_addr_livr	= $printable == 1 || !empty($value) && $printable == 2 ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
 		}
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		$doli_addr_livr_recep	= empty($use_doli_addr_livr) ? 0 : getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0);
+		$use_doli_addr_fact		= empty($use_doli_addr_livr) ? 0 : getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 0);
 		$showadrSsT				= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 		if (!empty($showadrSsT)) {
 			if (!empty($adrSst) && $adrSst > 0) {
@@ -905,16 +907,16 @@
 			$carac_emetteur	.= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";
 		}
 		if (!empty($addresslivrstatic) && $typeadr == 'supplierInvoice') {
-			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $object->client, '', 0, ($show_emet_details ? 'source' : 'sourcewithnodetails'), $object, 1, $ticket);
+			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $object->client, '', 0, $show_emet_details ? 'source' : 'sourcewithnodetails', $object, 1, $ticket);
 		} elseif (!empty($adr)) {
 			$addressstatic	= new Address($db);
 			$addressfound	= $addressstatic->fetch($adr);
 			if ($addressfound == 1) {
 				$sender_Alias	= $show_sender_alias ? $addressstatic->name : '';
-				$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $addressstatic, $thirdparty, '', 0, ($show_emet_details ? 'source' : 'sourcewithnodetails'), $object, 1, $ticket);
+				$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $addressstatic, $thirdparty, '', 0, $show_emet_details ? 'source' : 'sourcewithnodetails', $object, 1, $ticket);
 			}
 		} else {
-			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, ($show_emet_details ? 'source' : 'sourcewithnodetails'), $object, 1, $ticket);
+			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_emet_details ? 'source' : 'sourcewithnodetails', $object, 1, $ticket);
 		}
 		// Recipient properties
 		if (!empty($arrayidcontact['U']) && is_object ($arrayidcontact['U'])) {	// Expense report
@@ -956,13 +958,16 @@
 				$adrfactfound	= $adrfactstatic->fetch(0, $client->id, $adrfact);
 			}
 			if ($adrfactfound == 1) {
-				$carac_client	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $adrfactstatic, '', false, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 2, $ticket);
+				$carac_client	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $adrfactstatic, '', false, $show_recep_details ? 'targetwithdetails' : 'target', $object, 2, $ticket);
 				if (!empty($carac_client)) {
 					$carac_client_name	= $outputlangs->convToOutputCharset($adrfactstatic->name);
 				}
 			} else {
 				$usecontact		= false;
-				if (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0 && $object->element == 'commande') {
+				if (!empty($use_doli_addr_fact) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
+					$usecontact	= true;
+					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
+				} elseif (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0 && $object->element == 'commande') {
 					$usecontact	= true;
 					$result		= $object->fetch_contact($arrayidcontact['L'][0]);
 				} elseif (in_array($customerAddr, array('C', 'A')) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
@@ -973,7 +978,7 @@
 				}
 				$thirdpartystatic	= $typeadr == 'supplierInvoice' ? $addresslivrstatic : ($typeadr == 'accountStatus' ? $thirdparty : infraspackplus_check_parent_addr_fact ($object));
 				$carac_client_name	= pdf_InfraSPlus_Build_Third_party_Name($thirdpartystatic, $outputlangs, $includealias, $object->contact, $customerAddr);
-				$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdpartystatic, ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 1, $ticket);
+				$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdpartystatic, $usecontact ? $object->contact : '', $usecontact, $show_recep_details ? 'targetwithdetails' : 'target', $object, 1, $ticket);
 			}
 			// Shipping address
 			if (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
@@ -991,17 +996,17 @@
 					}
 				}
 				$livrshow_name	= pdf_InfraSPlus_Build_Third_party_Name(($companyDiff ? $object->contact->thirdparty : $thirdparty), $outputlangs, $includealias, $object->contact, $customerAddr);
-				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, ($companyDiff ? $object->contact->thirdparty : $thirdparty), ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, -1, $ticket);
+				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $companyDiff ? $object->contact->thirdparty : $thirdparty, $usecontact ? $object->contact : '', $usecontact, $show_recep_details ? 'targetwithdetails' : 'target', $object, -1, $ticket);
 			} elseif (!empty($showadrlivr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
 				if ($addresslivrstatic == 'Default') {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
 				} else {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
 				}
 			}
 			// Subcontractor address
 			if (!empty($showadrSsT) && $addresssststatic) {
-				$SsTshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresssststatic, '', 0, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
+				$SsTshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresssststatic, '', 0, $show_recep_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
 			}
 		}
 		return	array(	'sender_Alias'		=> $sender_Alias,
@@ -1085,7 +1090,7 @@
 			$stringaddress	.= $hookmanager->resPrint;
 		}
 		if (empty($reshook)) {
-			$withCountry	= ((!empty($sourceaddress->country_code) && !empty($targetcompany->country_code) && ($targetcompany->country_code != $sourceaddress->country_code)) || $forceWithCountry) ? 1 : 0;	// Country
+			$withCountry	= !empty($sourceaddress->country_code) && !empty($targetcompany->country_code) && $targetcompany->country_code != $sourceaddress->country_code || $forceWithCountry ? 1 : 0;	// Country
 			if ($mode == 'source' || $mode == 'sourcewithnodetails') {
 				$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->convToOutputCharset(dol_format_address($sourceaddress, $withCountry, "\n", $outputlangs)).($ticket ? '' : "\n");
 				if ($mode != 'sourcewithnodetails') {
@@ -1531,7 +1536,7 @@
 		$pdf->SetFont('', '', $default_font_size - ($ticket ? 3 : 1));
 		$pdf->MultiCell($dimCadres['R'] - 4, $tab_hl, $addresses['carac_client'], '', 'L', 0, 1, $dimCadres['xR'] + 2, $posy, true, 0, 0, false, 0, 'M', false);
 		$posyendrecipient	= $pdf->getY();
-		return $posyendsender > $posyendrecipient ? ($posyendsender - $dimCadres['Y']) + 1 : ($posyendrecipient - $dimCadres['Y']) + 1;
+		return $posyendsender > $posyendrecipient ? $posyendsender - $dimCadres['Y'] + 1 : $posyendrecipient - $dimCadres['Y'] + 1;
 	}
 
 	/**
@@ -1621,7 +1626,7 @@
 		if (!empty($show_tva_btp)) {
 			$result['B']	= pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_6');
 		}
-		return (is_array($result) && count($result) > 0 ? $result : 0);
+		return is_array($result) && count($result) > 0 ? $result : 0;
 	}
 
 	/**
@@ -1719,7 +1724,7 @@
 			$posy	= $pdf->GetY() + 1;
 		}
 		if (!empty($calculseul)) {
-			$heightforfreetext	= ($posy - $posy0);
+			$heightforfreetext	= $posy - $posy0;
 			$pdf->rollbackTransaction(true);
 			return $heightforfreetext;
 		} else {
@@ -1837,7 +1842,7 @@
 				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $txtDateoPrj, $horLineStyle, ($salesrep || !empty($notesptoshow) || $notetoshow || $extraDet || $serialEquip ? 1 : 0));
 			}
 			if (!empty($salesrep)) {
-				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $salesrep, $horLineStyle, (!empty($notesptoshow) || $notetoshow || $extraDet || $serialEquip ? 1 : 0));
+				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $salesrep, $horLineStyle, !empty($notesptoshow) || $notetoshow || $extraDet || $serialEquip ? 1 : 0);
 			}
 			if (!empty($notesptoshow)) {
 				foreach ($notesptoshow as $noteptoshow) {
@@ -1848,7 +1853,7 @@
 				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $notetoshow, $horLineStyle, ($extraDet || $serialEquip ? 1 : 0));
 			}
 			if (!empty($extraDet)) {
-				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $extraDet, $horLineStyle, ($serialEquip ? 1 : 0));
+				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $extraDet, $horLineStyle, $serialEquip ? 1 : 0);
 			}
 			if (!empty($serialEquip)) {
 				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $serialEquip, $horLineStyle, 0);
@@ -1978,7 +1983,7 @@
 		foreach ($extralabels as $key => $label) {
 			$printable	= intval($extrafields->attributes[$object->table_element]['printable'][$key]);
 			// check extrafield atribute printable (0 = no ; 1 = always ; 2 = if not empty) || key to avoid printing extra field for special payment || key to avoid printing extra field for delivery address
-			if (empty($printable) || in_array($key, $ef) || (!empty($free_addr_livr) && $key == $free_addr_livr)) {
+			if (empty($printable) || in_array($key, $ef) || !empty($free_addr_livr) && $key == $free_addr_livr) {
 				continue;
 			}
 			$options_key	= $object->array_options['options_'.$key];
@@ -1993,7 +1998,7 @@
 			}
 		}
 		if (!empty($listEF)) {
-			uasort($listEF, function ($a, $b) { return	($a->rank > $b->rank) ? 1 : -1; });
+			uasort($listEF, function ($a, $b) { return	$a->rank > $b->rank ? 1 : -1; });
 			foreach ($listEF as $EF) {
 				$value		= '<span style = "color: rgb('.$exftxtcolor[0].', '.$exftxtcolor[1].', '.$exftxtcolor[2].')">'.$EF->value.'</span>';
 				$extraDet	.= !empty($bulleted) ? (empty($extraDet) ? '<ul><li>' : '<li>') : (!empty($extraDet) ? '<br/>' : '');
@@ -2018,7 +2023,7 @@
 	{
 		global $db;
 
-		$idprod	= (!empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false);
+		$idprod	= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
 		$space	= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 		$retStr	= '';
 		if (!empty($idprod) || $typedoc == 'intervention') {
@@ -2175,7 +2180,7 @@
 	{
 		global $db;
 
-		$idprod		= (!empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false);
+		$idprod		= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
 		$prodser	= new Product($db);
 		$prodser->fetch($idprod);
 
@@ -2231,7 +2236,7 @@
 			$bold_num_col	= getDolGlobalInt('INFRASPLUS_PDF_BOLD_REF', 0);
 			$with_gencode	= getDolGlobalInt('INFRASPLUS_PDF_REF_WITH_GENCODE', 0);
 		} else	$bold_num_col	= getDolGlobalInt('INFRASLOC_PDF_RET_BOLD_REF', 0);	// pour module de location InfraS
-		if ((!empty($with_gencode) && $i > -1) || ($object->element == 'reception' && empty($ref_prodserv))) {
+		if (!empty($with_gencode) && $i > -1 || $object->element == 'reception' && empty($ref_prodserv)) {
 			if (empty($ref_prodserv)) {
 				$ref_prodserv	= $prodser->ref;
 			}
@@ -2277,7 +2282,7 @@
 		$prodRefSupp	= getDolGlobalInt('PDF_HIDE_PRODUCT_REF_IN_SUPPLIER_LINES', 0);
 		$bold_num_col	= getDolGlobalInt('INFRASPLUS_PDF_BOLD_REF', 0);
 		$idprod			= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
-		$ref_supplier	= (!empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : ''));
+		$ref_supplier	= !empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : '');
 		if (empty($ref_supplier)) {
 			$ref	= $object->lines[$i]->ref;
 			$sql	= 'SELECT pfp.ref_fourn ';
@@ -2475,7 +2480,7 @@
 			if (preg_match('#<img.*src=.*\/>#', $value)) {
 				$value	= preg_replace('#src=\"\/viewimage.*modulepart=#', 'src="'.DOL_DATA_ROOT.'/', preg_replace('#&amp;entity=[0-9]*&amp;file=#', '/', $value));
 			}
-			if (in_array($printable, array(1, 3)) || (!empty($value) && $printable == 4)) {	// check if something is writting for this extrafield according to the extrafield management
+			if (in_array($printable, array(1, 3)) || !empty($value) && $printable == 4) {	// check if something is writting for this extrafield according to the extrafield management
 				$value		= '<span style = "color: rgb('.$exfltxtcolor[0].', '.$exfltxtcolor[1].', '.$exfltxtcolor[2].')">'.$value.'</span>';
 				$extraDet	.= (empty($extraDet) ? '' : '<br/>').$outputlangs->trans($label).' : <b>'.$value.'</b>';
 			}
@@ -2513,7 +2518,7 @@
 			if (preg_match('#<img.*src=.*\/>#', $value)) {
 				$value	= preg_replace('#src=\"\/viewimage.*modulepart=#', 'src="'.DOL_DATA_ROOT.'/', preg_replace('#&amp;entity=[0-9]*&amp;file=#', '/', $value));
 			}
-			if ($printable == 1 || (!empty($value) && $printable == 2)) {	// check if something is writting for this extrafield according to the extrafield management
+			if ($printable == 1 || !empty($value) && $printable == 2) {	// check if something is writting for this extrafield according to the extrafield management
 				$value		= '<span style = "color: rgb('.$exfltxtcolor[0].', '.$exfltxtcolor[1].', '.$exfltxtcolor[2].')">'.$value.'</span>';
 				$extraProd	.= (empty($extraProd) ? '' : '<br/>').$outputlangs->trans($label).' : <b>'.$value.'</b>';
 			}
@@ -2539,7 +2544,7 @@
 		$notForCustomerSameCountry	= getDolGlobalInt('INFRASPLUS_PDF_NO_SHOW_WVCC_SAME_COUNTRY', 0);
 		if (!empty($notForCustomerSameCountry)) {
 			$thirdparty		= !empty($object->thirdparty) ? $object->thirdparty : '';
-			$sameCountry	= (!empty($emetteur->country_code) && !empty($thirdparty->country_code) && ($thirdparty->country_code == $emetteur->country_code)) ? 1 : 0;
+			$sameCountry	= !empty($emetteur->country_code) && !empty($thirdparty->country_code) && $thirdparty->country_code == $emetteur->country_code ? 1 : 0;
 			if (!empty($sameCountry)) {
 				return '';
 			}
@@ -2548,7 +2553,7 @@
 			$idprod	= $object->id;
 			$type	= $object->fk_product_type;
 		} else {
-			$idprod	= (!empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false);
+			$idprod	= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
 			$type	= $object->lines[$i]->product_type;
 		}
 		$prodser	= new Product($db);
@@ -2744,11 +2749,11 @@
 			}
 			// Description
 			// Open-DSI -- NEW full line description -- Begin
-			if ((!empty($desc_full_line) || (!empty($with_picture) && !empty($picture_under))) && empty($isSubTotal) && empty($isSubTitle) && $isOuvrage < 2 && empty($isMilestoneLine) && $object->lines[$i]->info_bits == 0) {
+			if ((!empty($desc_full_line) || !empty($with_picture) && !empty($picture_under)) && empty($isSubTotal) && empty($isSubTitle) && $isOuvrage < 2 && empty($isMilestoneLine) && $object->lines[$i]->info_bits == 0) {
 				$pageposbefore			= $pdf->getPage();
 				$xPos					= $picture_in_ref ? $posx : $formatpage['mgauche'];
 				$wd						= $formatpage['largeur'] - $xPos - $formatpage['mdroite'];
-				$decal					= $wd * ((1 - ($descFullLineWitdh / 100)) / 2);
+				$decal					= $wd * ((1 - $descFullLineWitdh / 100) / 2);
 				$labelproductservice	= (!empty($isSubTotalLine) && $object->lines[$i]->qty == 50 ? '<br />' : '').$labelproductservice;	// Free text of SubTotal
 				$splitResult			= infraspackplus_splitLabelDescription($labelproductservice);
 				$pos					= $splitResult !== false ? $splitResult['pos'] : false;
@@ -2796,7 +2801,7 @@
 				$h					= $pdf->getStringHeight($w, $labelproductservice);
 				$frmstyle			= array('width'=>'0.2', 'dash'=>'0', 'cap'=>'butt', 'color'=>'255, 255, 255');
 				if (!empty($isSubTitle)) {	// Sous-titre ATM
-					$style			= getDolGlobalString('SUBTOTAL_TITLE_STYLE', ($object->lines[$i]->qty == 1 ? 'BU' : 'BUI'));
+					$style			= getDolGlobalString('SUBTOTAL_TITLE_STYLE', $object->lines[$i]->qty == 1 ? 'BU' : 'BUI');
 					$bodybgsubcolor	= colorStringToArray($bodysubticolor);
 					$frm			= implode(',', $bodybgsubcolor) == '255, 255, 255' ? '' : 'F';
 					$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);
@@ -2832,7 +2837,7 @@
 						if (!empty($bgSubToColor) && $bgSubToColor != '255,255,255') {	// Personalized background color for subtotals
 							$bodybgsubcolor	= explode(',', $bgSubToColor);
 						} else {	// Coordinate the background color (highlighting) of subtotals with that of subtitles
-							$bodybgsubcolor	= colorStringToArray((!empty($bgSubToColorSubTi) ? $bodysubticolor : ($object->lines[$i]->qty == 99 ? '220, 220, 220' : ($object->lines[$i]->qty == 98 ? '230, 230, 230' : '240, 240, 240'))));
+							$bodybgsubcolor	= colorStringToArray(!empty($bgSubToColorSubTi) ? $bodysubticolor : ($object->lines[$i]->qty == 99 ? '220, 220, 220' : ($object->lines[$i]->qty == 98 ? '230, 230, 230' : '240, 240, 240')));
 						}
 						$frm		= implode(',', $bodybgsubcolor) == '255,255,255' ? '' : 'F';
 						$tmpAlpha	= (100 - $object->lines[$i]->qty - 1) * 0.25;
@@ -2842,7 +2847,7 @@
 						}
 						$pdf->SetAlpha(1);
 					}
-					$pdf->writeHTMLCell($w, $h, $posx, $posy, $txt, 0, 1, false, true, ($isRecap ? 'L' : 'R'), true);
+					$pdf->writeHTMLCell($w, $h, $posx, $posy, $txt, 0, 1, false, true, $isRecap ? 'L' : 'R', true);
 					$pdf->SetFont('', '', pdf_getPDFFontSize($outputlangs) - 1);	// On repositionne la police par defaut
 					$pdf->SetFillColor(255);
 					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);	// Restore default text color after subtotal
@@ -2936,14 +2941,14 @@
 		$idprod			= $prodfichinter ? $prodfichinter['fk_product'] : (!empty($object->lines[$i]->fk_product)	? $object->lines[$i]->fk_product	: false);
 		$label			= $prodfichinter ? $prodfichinter['label']		: (!empty($object->lines[$i]->label)		? $object->lines[$i]->label			: (!empty($object->lines[$i]->product_label) ? $object->lines[$i]->product_label : ''));
 		dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_getlinedesc $object->lines[$i]->label = '.$object->lines[$i]->label.' $object->lines[$i]->product_label = '.$object->lines[$i]->product_label);
-		$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+		$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 		// For discount lines (info_bits & 2), when line's own label is empty, use line description as label instead of product label
 		if (!empty($object->lines[$i]->info_bits) && ($object->lines[$i]->info_bits & 2) && empty($object->lines[$i]->label)) {
 			$label		= $desc;
 			$desc		= '';
 		}
-		$note			= (!empty($object->lines[$i]->note) ? $object->lines[$i]->note : '');
-		$dbatch			= (!empty($object->lines[$i]->detail_batch) ? $object->lines[$i]->detail_batch : false);
+		$note			= !empty($object->lines[$i]->note) ? $object->lines[$i]->note : '';
+		$dbatch			= !empty($object->lines[$i]->detail_batch) ? $object->lines[$i]->detail_batch : false;
 		$subTotalNewF	= getDolGlobalInt('SUBTOTAL_USE_NEW_FORMAT', 0);
 		$titleInSubT	= getDolGlobalInt('CONCAT_TITLE_LABEL_IN_SUBTOTAL_LABEL', 0);
 		$isMultilangs	= getDolGlobalInt('MAIN_MULTILANGS', 0);
@@ -2985,11 +2990,11 @@
 				$libelleproduitservice	= $label;
 			}
 			$decal	= empty($object->lines[$i]->fk_parent_line) ? 0 : 3;
-			return array('main' => $libelleproduitservice, 'subdesc' => ((!empty($isSubTitle) || $isOuvrage > 1) ? $desc.pdf_InfraSPlus_formatNotes($object, $outputlangs, $extraDet) : ''), 'decal' => $decal);
+			return array('main' => $libelleproduitservice, 'subdesc' => !empty($isSubTitle) || $isOuvrage > 1 ? $desc.pdf_InfraSPlus_formatNotes($object, $outputlangs, $extraDet) : '', 'decal' => $decal);
 		}
 		// Ligne produit fournisseur
 		if (!empty($issupplierline)) {
-			$ref_supplier	= (!empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : ''));
+			$ref_supplier	= !empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : '');
 			if (empty($ref_supplier)) {
 				$ref	= $object->lines[$i]->ref;
 				$sql	= 'SELECT pfp.ref_fourn ';
@@ -3014,7 +3019,7 @@
 			// If a predefined product and multilang and on other lang, we renamed label with label translated
 			dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_getlinedesc $isMultilangs = '.$isMultilangs.' $outputlangs->defaultlang = '.$outputlangs->defaultlang.' $langs->defaultlang = '.$langs->defaultlang);
 			if (!empty($isMultilangs) && ($outputlangs->defaultlang != $langs->defaultlang)) {
-				$translatealsoifmodified	= (!empty($forceTranslate));	// By default if value was modified manually, we keep it (no translation because we don't have it)
+				$translatealsoifmodified	= !empty($forceTranslate);	// By default if value was modified manually, we keep it (no translation because we don't have it)
 				// TODO Instead of making a compare to see if param was modified, check that content contains reference translation. If yes, add the added part to the new translation
 				// ($textwasnotmodified is replaced with $textwasmodifiedorcompleted and we add completion).
 				// Set label
@@ -3304,7 +3309,7 @@
 		$lineurl	= pdf_InfraSPlus_getlineurl($object, $i);
 		$linkurl	= !empty($lineurl) && !empty($linkpictureurl) ? '<a href = "'.$lineurl.'" target = "_blank">'.pdf_InfraSPlus_formatNotes($object, $outputlangs, $linkpictureurl).'</a>' : '&nbsp;';
 		if (!empty($imglinesize['width']) && !empty($imglinesize['height'])) {
-			$posxpicture	= $posx + (($w - $imglinesize['width']) / 2);	// centre l'image dans la colonne
+			$posxpicture	= $posx + ($w - $imglinesize['width']) / 2;	// centre l'image dans la colonne
 			$pdf->Image($realpatharray[$i], $posxpicture, $posy, $imglinesize['width'], $imglinesize['height']);	// Use 300 dpi
 			$pdf->writeHTMLCell($w, $tab_hl, $posxpicture, $posy + $imglinesize['height'] - ($linkurl == '&nbsp;' ? $tab_hl : 0), dol_htmlentitiesbr($linkurl), 0, 1);
 			return $posy + $imglinesize['height'] - ($linkurl == '&nbsp;' ? $tab_hl : $ht_url * -1);
@@ -3494,7 +3499,7 @@
 		$rounding		= empty($priceType) || ($priceType == 'U' && empty($roundingUP)) || ($priceType == 'T' && empty($roundingTot)) ? $roundingDol : ($priceType == 'U' ? $roundingUP : ($priceType == 'T' ? $roundingTot : ''));
 		$currency		= !empty($object->multicurrency_code) && empty($local) ? $object->multicurrency_code : $conf->currency;
 		$showCurSymb	= !empty($forceSymb) ? 1 : getDolGlobalInt('INFRASPLUS_PDF_SHOW_CUR_SYMB', 0);
-		return price($price, 0, $outputlangs, 1, $rounding, $rounding, (!empty($showCurSymb) ? $currency : ''));
+		return price($price, 0, $outputlangs, 1, $rounding, $rounding, !empty($showCurSymb) ? $currency : '');
 	}
 	/**
 	*	Return line unit price excluding tax
@@ -3596,7 +3601,7 @@
 					break;
 				}
 				$tva_tx		= $prodfichinter ? $prodfichinter['tva_tx'] : $object->lines[$i]->tva_tx;
-				$ttcPrice	= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : ($subprice + ($subprice * $tva_tx / 100));
+				$ttcPrice	= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : $subprice + $subprice * $tva_tx / 100;
 				$result		.= pdf_InfraSPlus_price($object, $sign * $ttcPrice, $outputlangs, 0, 0, 'U');
 			}
 		}
@@ -3669,7 +3674,7 @@
 				if ($special_code == 3) {
 					$remise_percent	= $prodfichinter ? $prodfichinter['remise_percent'] : $object->lines[$i]->remise_percent;
 					$remise_percent	= empty($remise_percent) && !empty($pricesObjProd['remise']) ? $pricesObjProd['remise'] : $remise_percent;
-					$total_ht		= !empty($remise_percent) ? $total_ht * (1 - ($remise_percent / 100)) : $total_ht;
+					$total_ht		= !empty($remise_percent) ? $total_ht * (1 - $remise_percent / 100) : $total_ht;
 				}
 				$isSitFac	= !empty($object->lines[$i]->situation_percent) && $object->lines[$i]->situation_percent > 0 ? $object->lines[$i]->situation_percent / 100 : 1;	// use this to find the real unit price on situation invoice
 				$qty		= $prodfichinter ? $prodfichinter['qty'] : $object->lines[$i]->qty;
@@ -3740,10 +3745,10 @@
 				}
 				if ($special_code == 3) {
 					$tva_tx			= $prodfichinter ? $prodfichinter['tva_tx'] : $object->lines[$i]->tva_tx;
-					$ttcPrice		= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : ($subprice + ($subprice * $tva_tx / 100));
+					$ttcPrice		= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : $subprice + $subprice * $tva_tx / 100;
 					$remise_percent	= $prodfichinter												? $prodfichinter['remise_percent']	: $object->lines[$i]->remise_percent;
 					$remise_percent	= empty($remise_percent) && !empty($pricesObjProd['remise'])	? $pricesObjProd['remise']			: $remise_percent;
-					$total_ttc		= !empty($remise_percent) ? $ttcPrice * (1 - ($remise_percent / 100)) : $ttcPrice;
+					$total_ttc		= !empty($remise_percent) ? $ttcPrice * (1 - $remise_percent / 100) : $ttcPrice;
 				}
 				$isSitFac	= !empty($object->lines[$i]->situation_percent) && $object->lines[$i]->situation_percent > 0 ? $object->lines[$i]->situation_percent / 100 : 1;	// use this to find the real unit price on situation invoice
 				$qty		= $prodfichinter ? $prodfichinter['qty'] : $object->lines[$i]->qty;
@@ -3884,7 +3889,7 @@
 						$prev_progress	= $object->lines[$i]->get_prev_progress($object->id);
 						$progress		= ($object->lines[$i]->situation_percent - $prev_progress) / 100;
 					}
-					$result	.= pdf_InfraSPlus_price($object, $sign * ($total_ht / ($object->lines[$i]->situation_percent / 100)) * $progress, $outputlangs, 0, 0, 'T');
+					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ht / ($object->lines[$i]->situation_percent / 100) * $progress, $outputlangs, 0, 0, 'T');
 				} else {
 					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ht, $outputlangs, 0, 0, 'T');
 				}
@@ -3961,7 +3966,7 @@
 						$prev_progress	= $object->lines[$i]->get_prev_progress($object->id);
 						$progress		= ($object->lines[$i]->situation_percent - $prev_progress) / 100;
 					}
-					$result	.= pdf_InfraSPlus_price($object, $sign * ($total_ttc / ($object->lines[$i]->situation_percent / 100)) * $progress, $outputlangs, 0, 0, 'T');
+					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ttc / ($object->lines[$i]->situation_percent / 100) * $progress, $outputlangs, 0, 0, 'T');
 				} else {
 					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ttc, $outputlangs, 0, 0, 'T');
 				}
@@ -4141,7 +4146,7 @@
 		$list			= array();
 		$efPaySpec		= getDolGlobalString('INFRASPLUS_PDF_EXF_PAY_SPEC', '');
 		$efDeposit		= getDolGlobalString('INFRASPLUS_PDF_EXF_DEPOSIT', '');
-		$ef				= explode(',', preg_replace('/\s+/', '', ($deposit ? $efDeposit : $efPaySpec)));	// string without any space to array
+		$ef				= explode(',', preg_replace('/\s+/', '', $deposit ? $efDeposit : $efPaySpec));	// string without any space to array
 		$extrafields	= new ExtraFields($db);
 		$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
 		$object->fetch_optionals();
@@ -4264,7 +4269,7 @@
 								$pdf->SetFont($prevFont);
 							}
 							if (getDolGlobalString('INFRASPLUS_PDF_REFDATE_MERGE', '')) {
-								pdf_InfraSPlus_pagesrefdate($pdf, $object, $outputlangs, (!empty($noteBills) ? 'noteBills' : ''), $formatpage['mhaute'], (!empty($noteBills) ? $formatpage['largeur'] / 2 - 50 : $formatpage['largeur'] - $formatpage['mdroite'] - 100));
+								pdf_InfraSPlus_pagesrefdate($pdf, $object, $outputlangs, !empty($noteBills) ? 'noteBills' : '', $formatpage['mhaute'], !empty($noteBills) ? $formatpage['largeur'] / 2 - 50 : $formatpage['largeur'] - $formatpage['mdroite'] - 100);
 							}
 						} else {
 							setEventMessages(null, array($outputlangs->trans('PDFInfraSPlusPdfFileError1', $infile)), 'warnings');
@@ -4571,7 +4576,7 @@
 		// The start of the bottom of this page footer is positioned according to # of lines
 		$nopage				= $pdf->PageNo();
 		$nbpage				= $pdf->getNumPages();
-		$marginwithfooter	= (($nopage == $nbpage) && empty($hidesupline) ? 1 : 0) + (!empty($line1) ? $htLine1 : 0) + (!empty($line2) ? 3 : 0) + (!empty($line3) ? 3 : 0) + (!empty($line4) ? 3 : 0) + $line5 + $formatpage['mbasse'];
+		$marginwithfooter	= ($nopage == $nbpage && empty($hidesupline) ? 1 : 0) + (!empty($line1) ? $htLine1 : 0) + (!empty($line2) ? 3 : 0) + (!empty($line3) ? 3 : 0) + (!empty($line4) ? 3 : 0) + $line5 + $formatpage['mbasse'];
 		if ($calculseul == 1) {
 			return $marginwithfooter;
 		}
@@ -4626,17 +4631,17 @@
 	function pdf_InfraSPlus_rgba_to_rgb(&$color, $bgcolor = '255, 255, 255', $alpha = 1)
 	{
 		$tmpcol		= explode(',', $color);
-		$tmpcol[0]	= (!empty($tmpcol[0]) ? $tmpcol[0] : 0);
-		$tmpcol[1]	= (!empty($tmpcol[1]) ? $tmpcol[1] : 0);
-		$tmpcol[2]	= (!empty($tmpcol[2]) ? $tmpcol[2] : 0);
+		$tmpcol[0]	= !empty($tmpcol[0]) ? $tmpcol[0] : 0;
+		$tmpcol[1]	= !empty($tmpcol[1]) ? $tmpcol[1] : 0;
+		$tmpcol[2]	= !empty($tmpcol[2]) ? $tmpcol[2] : 0;
 		$tmpbg		= explode(',', $bgcolor);
-		$tmpbg[0]	= (!empty($tmpbg[0]) ? $tmpbg[0] : 0);
-		$tmpbg[1]	= (!empty($tmpbg[1]) ? $tmpbg[1] : 0);
-		$tmpbg[2]	= (!empty($tmpbg[2]) ? $tmpbg[2] : 0);
-		$alpha		= (!empty($alpha) && 0 < $alpha && $alpha < 1 ? $alpha : 1);
-		$tmpvalr	= ((1 - $alpha) * $tmpbg[0]) + ($alpha * $tmpcol[0]);
-		$tmpvalg	= ((1 - $alpha) * $tmpbg[1]) + ($alpha * $tmpcol[1]);
-		$tmpvalb	= ((1 - $alpha) * $tmpbg[2]) + ($alpha * $tmpcol[2]);
+		$tmpbg[0]	= !empty($tmpbg[0]) ? $tmpbg[0] : 0;
+		$tmpbg[1]	= !empty($tmpbg[1]) ? $tmpbg[1] : 0;
+		$tmpbg[2]	= !empty($tmpbg[2]) ? $tmpbg[2] : 0;
+		$alpha		= !empty($alpha) && 0 < $alpha && $alpha < 1 ? $alpha : 1;
+		$tmpvalr	= (1 - $alpha) * $tmpbg[0] + $alpha * $tmpcol[0];
+		$tmpvalg	= (1 - $alpha) * $tmpbg[1] + $alpha * $tmpcol[1];
+		$tmpvalb	= (1 - $alpha) * $tmpbg[2] + $alpha * $tmpcol[2];
 		$tmpval		= $tmpvalr.', '.$tmpvalg.', '.$tmpvalb;
 		return $tmpval;
 	}
@@ -4728,12 +4733,12 @@
 			$pageposafter	= $pdf->getPage();
 			$posyafter		= $pdf->GetY();
 			if ($pageposafter > $pageposbefore) {	// There is a pagebreak
-				if ($posyafter > ($template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal))) {	// There is no space left for total+free text
+				if ($posyafter > $template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal)) {	// There is no space left for total+free text
 					$pdf->AddPage('', '', true);
 					$pdf->setPage($pageposafter + 1);
 					$posy	= $tab_top + ($template->hide_top_table ? $template->decal_round : $template->ht_top_table + $template->decal_round);
 				}
-			} elseif ($posyafter > ($template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal))) {	// There is no space left for total+free text
+			} elseif ($posyafter > $template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal)) {	// There is no space left for total+free text
 				$pdf->AddPage('', '', true);
 				$pdf->setPage($pageposafter + 1);
 				$posy	= $tab_top + ($template->hide_top_table ? $template->decal_round : $template->ht_top_table + $template->decal_round);
@@ -5141,9 +5146,9 @@
 		$ht_signarea	-= $template->Rounded_rect;
 		$pdf->SetAlpha(0);
 		if ($object->element != 'facture' || $type != 'stamp') {
-			$pdf->MultiCell($larg_signarea, $ht_signarea, ($type == 'customer' ? 'UPTOSIGN_SIGN_TO_HERE' : 'UPTOSIGN_SIGN_FROM_HERE'), '', 'L', 0, 1, $posxsignarea, $posysignarea, true, 0, 0, false, 0, 'M', false);
-			if ($object->element == 'contrat' || ($object->element == 'fichinter' && !empty($template->show_sign_area_emet)) || ($object->element == 'commande' && !empty($template->show_2sign_area))) {
-				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, ($template->page_largeur / 2) - 32.5, $template->posystamp, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell($larg_signarea, $ht_signarea, $type == 'customer' ? 'UPTOSIGN_SIGN_TO_HERE' : 'UPTOSIGN_SIGN_FROM_HERE', '', 'L', 0, 1, $posxsignarea, $posysignarea, true, 0, 0, false, 0, 'M', false);
+			if ($object->element == 'contrat' || $object->element == 'fichinter' && !empty($template->show_sign_area_emet) || $object->element == 'commande' && !empty($template->show_2sign_area)) {
+				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, $template->page_largeur / 2 - 32.5, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 			} else {
 				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 			}

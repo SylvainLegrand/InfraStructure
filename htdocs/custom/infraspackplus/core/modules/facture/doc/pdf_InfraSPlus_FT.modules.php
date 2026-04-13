@@ -1336,7 +1336,7 @@
 			$pdf->MultiCell($larg_col1total, $tabtot_hl, $outputlangs->transnoentities('TotalHT'), '', 'L', 0, 1, $posxtabtotal, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
 			$pdf->MultiCell($larg_col2total, $tabtot_hl, pdf_InfraSPlus_price($object, $total_ht + (!empty($object->remise) ? $object->remise : 0), $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T'), '', 'R', 0, 1, $posxcol2total, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
 			// Show VAT by rates and total
-			$tvaisnull	= ((!empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000'])) ? true : false);
+			$tvaisnull	= !empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000']) ? true : false;
 			if (!empty($this->hide_vat_ifnull) && !empty($tvaisnull)) {
 				// Nothing to do
 			}

@@ -328,7 +328,7 @@
 	}
 	print '		<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionAdresses').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/corp.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblGA-3" class = "infrasplusnoborder toggle_bloc" width = "100%">';
+	print '			<table name = "tblGA-3" class = "noborder toggle_bloc" width = "100%">';
 	$metas	= array('125', '400px', '125px', '*', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(5), 'InfraSPlusParamNewAdresse');
@@ -410,7 +410,7 @@
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamAddressesForMyCompany').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/list.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblLA-3" class = "infrasplusnoborder toggle_bloc" width = "100%">
+	print '			<table name = "tblLA-3" class = "noborder toggle_bloc" width = "100%">
 						<tr class = "liste_titre">
 							<td>'.$langs->trans('InfraSPlusParamAdressAlias').'</td>
 							<td>'.$langs->trans('InfraSPlusParamAdressName').'</td>
@@ -444,7 +444,7 @@
 				<input type = "hidden" name = "token" value = "'.newToken().'">
 				<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamAddressesSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '			<table name = "tblOPT-3" class = "infrasplusnoborder toggle_bloc" width = "100%">';
+	print '			<table name = "tblOPT-3" class = "noborder toggle_bloc" width = "100%">';
 	$metas	= array('30px', '*', '170px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -535,8 +535,10 @@
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADRESSE_LIVRAISON_MIXTE', 'on_off', $langs->trans('InfraSPlusParamAdrLivrMixte'), '', array(), 1, 1, '', $num);
 			$num++;
 		} else {
-			$num	+= 5;
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 'on_off', $langs->trans('InfraSPlusParamUseDoliAdrFact'), '', array(), 1, 1, '', $num);
+			$num	+= 3;
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 'on_off', $langs->trans('InfraSPlusParamDoliAdrLivrRecep'), '', array(), 1, 1, '', $num);
+			$num++;
 		}
 		// $num = 25
 		if (getDolGlobalString('MAIN_PDF_ADDALSOTARGETDETAILS', '')) {

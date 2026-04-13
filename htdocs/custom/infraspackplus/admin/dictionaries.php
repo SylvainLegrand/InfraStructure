@@ -115,7 +115,7 @@
 		infraspackplus_print_backup_restore();
 	}
 	print load_fiche_titre('<span class = "infrastitleparam">'.$langs->trans('InfraSPlusParamGestionNotes').'</span>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "infrasplusnoborder centpercent">';
+	print '			<table class = "noborder centpercent">';
 	$metas	= array('*', '130px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(3), 'InfraSPlusParamNewNote');
@@ -144,7 +144,7 @@
 				<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype="multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	print load_fiche_titre('<span class = "infrastitleparam">'.$langs->trans('InfraSPlusParamNotesSetup').'</span>', '', dol_buildpath('/infraspackplus/img/list.png', 1), 1);
-	print '			<table class = "infrasplusnoborder centpercent">';
+	print '			<table class = "noborder centpercent">';
 	$metas	= array('*', '130px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1), 'Description');

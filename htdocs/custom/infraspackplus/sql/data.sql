@@ -297,6 +297,7 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_MULTI_FILES',								'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_NO_IBAN',									'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_NO_SHOW_WVCC_SAME_COUNTRY',				'__ENTITY__', '1',								'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_WVCC_NO_HR',								'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_NT_USED_AS_COVER',							'__ENTITY__', '-1',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_NO_LINE_FOOTER',							'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_NUM_CLI_FRM',								'__ENTITY__', '2',								'chaine', '0', 'InfraSPackPlus module');
@@ -521,6 +522,7 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_UPDATE_ON_EXF_CHANGE',						'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_UPDATE_ON_NOTES_CHANGE',					'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_USE_CUSTOM_COUNTRY_ADDR',					'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION',				'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON',				'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_USE_MAGICKSTAMPWORD_ON_INVOICE',			'__ENTITY__', '1',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_USE_PAY_SPEC',								'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');

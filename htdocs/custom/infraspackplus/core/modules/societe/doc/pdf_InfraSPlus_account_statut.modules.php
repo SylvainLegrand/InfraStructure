@@ -415,7 +415,7 @@
 					if ($this->export_type == 'Customer') {	// Get lines of the customer account statut
 						$sql	= 'SELECT f.datef AS date';
 						$sql	.= ', f.ref AS label';
-						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '');
+						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '';
 						$sql	.= ', f.ref_client AS label_externe';
 						$sql	.= ', f.total_ttc AS total_amount';
 						$sql	.= ', COALESCE(f.multicurrency_code, "'.$conf->currency.'") AS facture_multicurrency_code';
@@ -432,8 +432,8 @@
 						$sql	.= ', rc.multicurrency_amount_creditnote';
 						$sql	.= ', rc2.amount_creditused';
 						$sql	.= ', rc2.multicurrency_amount_creditused';
-						$sql	.= (!empty($add_product_tags) ? ', pt.tags AS product_tags' : '');
-						$sql	.= (!empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf.' AS extrafield_invoice' : '');
+						$sql	.= !empty($add_product_tags) ? ', pt.tags AS product_tags' : '';
+						$sql	.= !empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf.' AS extrafield_invoice' : '';
 						$sql	.= ' FROM '.$this->db->prefix().'facture AS f';
 						$sql	.= !empty($this->factCodeExf) ? ' LEFT JOIN '.$this->db->prefix().'facture_extrafields AS ef ON f.rowid = ef.fk_object' : '';
 						$sql	.= ' LEFT JOIN (';
@@ -495,7 +495,7 @@
 						$sql	.= ' GROUP BY f.rowid';
 						$sql	.= ', f.datef';
 						$sql	.= ', f.ref';
-						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '');
+						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '';
 						$sql	.= ', f.ref_client';
 						$sql	.= ', f.total_ttc';
 						$sql	.= ', f.multicurrency_code';
@@ -508,14 +508,14 @@
 						$sql	.= ', rc.multicurrency_amount_creditnote';
 						$sql	.= ', rc2.amount_creditused';
 						$sql	.= ', rc2.multicurrency_amount_creditused';
-						$sql	.= (!empty($add_product_tags) ? ', pt.tags' : '');
-						$sql	.= (!empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf : '');
+						$sql	.= !empty($add_product_tags) ? ', pt.tags' : '';
+						$sql	.= !empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf : '';
 						$sql	.= ' ORDER BY f.datef '.$this->orderby.', f.ref '.$this->orderby;
 					} else if ($this->export_type == 'Supplier') {	// Get lines of the supplier account statut
 						$sql	= 'SELECT f.datef AS date';
 						$sql	.= ', f.ref AS label';
 						$sql	.= ', f.ref_supplier AS label_externe';
-						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '');
+						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '';
 						$sql	.= ', f.total_ttc AS total_amount';
 						$sql	.= ', COALESCE(f.multicurrency_code, "'.$conf->currency.'") AS facture_multicurrency_code';
 						$sql	.= ', f.multicurrency_tx AS facture_multicurrency_tx';
@@ -529,7 +529,7 @@
 						$sql	.= ', rc.multicurrency_amount_creditnote';
 						$sql	.= ', rc2.amount_creditused';
 						$sql	.= ', rc2.multicurrency_amount_creditused';
-						$sql	.= (!empty($add_product_tags) ? ', pt.tags AS product_tags' : '');
+						$sql	.= !empty($add_product_tags) ? ', pt.tags AS product_tags' : '';
 						$sql	.= ' FROM '.$this->db->prefix().'facture_fourn AS f';
 						$sql	.= ' LEFT JOIN (';
 						$sql	.= '	SELECT sre.fk_facturefourn AS fk_facture_source, SUM(sre.amount) as amount_payed, sre.multicurrency_code,';
@@ -579,7 +579,7 @@
 						$sql	.= ' , f.datef';
 						$sql	.= ' , f.ref';
 						$sql	.= ' , f.ref_supplier';
-						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '');
+						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '';
 						$sql	.= ', f.total_ttc';
 						$sql	.= ', f.multicurrency_code';
 						$sql	.= ', f.multicurrency_tx';

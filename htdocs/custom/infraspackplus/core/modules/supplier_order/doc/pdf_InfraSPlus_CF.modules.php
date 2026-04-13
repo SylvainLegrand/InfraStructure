@@ -271,6 +271,7 @@
 		public $sup_order_hour;
 		public $supplier_ref_name;
 		public $typeadr;
+		public $wvcc_no_hr;
 
 		/**
 		*	Constructor
@@ -836,7 +837,7 @@
 						if (!empty($this->show_ExtraFieldsLines)) {
 							$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 						}
-						$extraDet									.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+						$extraDet									.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						// Description of product line
 						$pageposdesc								= $pdf->getPage();
 						pdf_InfraSPlus_writelinedesc($pdf, $object, $i, $outputlangs, $this->formatpage, $this->horLineStyle, $this->tableau['desc']['larg'], $this->heightline, $this->tableau['desc']['posx'], $curY, $hideref, $hidedesc, 1, $extraDet, null, $this->desc_full_line, 0, $this->with_picture, $realpatharray, $imglinesize, '', $this->tab_hl, 0, $this->picture_padding, $this->exfEcoTax);
@@ -1412,7 +1413,7 @@
 			}
 			if ((empty($this->only_ht) && empty($this->only_ttc)) || !empty($this->show_ttc_vat_tot)) {
 				// Show VAT by rates and total
-				$tvaisnull	= ((!empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000'])) ? true : false);
+				$tvaisnull	= !empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000']) ? true : false;
 				if (!empty($this->hide_vat_ifnull) && !empty($tvaisnull)) {
 					// Nothing to do
 				} else {
@@ -1545,7 +1546,7 @@
 			// ecoTaxes
 			if (is_array($this->ecoTaxes) && count($this->ecoTaxes) > 0) {
 				foreach ($this->ecoTaxes as $key => $ecoTaxe) {
-					if ((!empty($this->only_ht) && !empty($ecoTaxe['ht'])) || !empty($ecoTaxe['ttc'])) {
+					if (!empty($this->only_ht) && !empty($ecoTaxe['ht']) || !empty($ecoTaxe['ttc'])) {
 						$valEcoTaxe	= price2num(!empty($this->only_ht) ? $ecoTaxe['ht'] : $ecoTaxe['ttc'], 'MT');
 						$index++;
 						$pdf->MultiCell($larg_col1total, $tabtot_hl, $outputlangs->transnoentities('PDFInfraSPlusTotalEcoTaxe', (!empty($this->only_ht) ? $outputlangs->transnoentities('HT') : $outputlangs->transnoentities('TTC'))).' '.$key, '', 'L', 0, 1, $posxtabtotal, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), true, 0, 0, false, 0, 'M', false);

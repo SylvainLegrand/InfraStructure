@@ -1481,7 +1481,7 @@ EOJS;
 					$locationTarget	= $_SERVER['PHP_SELF'].'?id='.$object->id;
 				}
 				if ($object instanceof Propal) {
-					$usercanvalidate	= ((!getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'creer')) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'propal_advance', 'validate')));
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'propal_advance', 'validate');
 					if ($usercanvalidate && (($action == 'confirm_validate' && $confirm == 'yes') || ($object->status == Propal::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange)))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
@@ -1496,7 +1496,7 @@ EOJS;
 					}
 				}
 				if ($object instanceof Commande) {
-					$usercanvalidate	= ((!getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('commande', 'creer')) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('commande', 'order_advance', 'validate')));
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('commande', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('commande', 'order_advance', 'validate');
 					if ($usercanvalidate && (($action == 'confirm_validate' && $confirm == 'yes') || ($object->status == Commande::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange)))) {
 						$result			= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
@@ -1511,7 +1511,7 @@ EOJS;
 					}
 				}
 				if ($object instanceof Facture) {
-					$usercanvalidate	= ((!getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('facture', 'creer')) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('facture', 'invoice_advance', 'validate')));
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('facture', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('facture', 'invoice_advance', 'validate');
 					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->status == Facture::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange)))) {
 						$result			= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
@@ -1553,7 +1553,7 @@ EOJS;
 					}
 				}
 				if ($object instanceof Expedition) {
-					$usercanvalidate	= ((!getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'creer')) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'shipping_advance', 'validate')));
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'shipping_advance', 'validate');
 					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->status == Expedition::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
@@ -1568,7 +1568,7 @@ EOJS;
 					}
 				}
 				if ($object instanceof Reception) {
-					$usercanvalidate	= ((!getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('reception', 'creer')) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('reception', 'reception_advance', 'validate')));
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('reception', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('reception', 'reception_advance', 'validate');
 					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->statut == Reception::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
@@ -1583,7 +1583,7 @@ EOJS;
 					}
 				}
 				if ( $object instanceof Delivery ) {
-					$usercanvalidate	= ((!getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'delivery', 'creer')) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'delivery_advance', 'validate')));
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'delivery', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'delivery_advance', 'validate');
 					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->statut == 1 && ($onNotesChange || $onExfChange)))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
@@ -1598,7 +1598,7 @@ EOJS;
 					}
 				}
 				if ($object instanceof SupplierProposal) {
-					$usercanvalidate	= ((!getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('supplier_proposal', 'creer')) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('supplier_proposal', 'validate_advance')));
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('supplier_proposal', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('supplier_proposal', 'validate_advance');
 					$id					= GETPOSTINT('id');
 					$ref				= GETPOST('ref', 'alpha');
 					if ($id > 0 || !empty($ref)) {
@@ -1701,7 +1701,7 @@ EOJS;
 								$outputlangs	= new Translate('', $conf);
 								$outputlangs->setDefaultLang($newlang);
 							}
-							$label	= (!empty($prod->multilangs[$outputlangs->defaultlang]['label'])) ? $prod->multilangs[$outputlangs->defaultlang]['label'] : $line->product_label;
+							$label	= !empty($prod->multilangs[$outputlangs->defaultlang]['label']) ? $prod->multilangs[$outputlangs->defaultlang]['label'] : $line->product_label;
 						} else {
 							$label	= $line->product_label;
 						}
@@ -1721,7 +1721,7 @@ EOJS;
 					}
 				}
 				if ($object->statut == 0 && $action == 'editline' && $selected == $line->id) {	// Line in update mode
-					$label			= (!empty($line->label) ? $line->label : (($line->fk_product > 0) ? $line->product_label : ''));
+					$label			= !empty($line->label) ? $line->label : ($line->fk_product > 0 ? $line->product_label : '');
 					$line->pu_ttc	= price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + ((!empty($line->tva_tx) ? $line->tva_tx : 0) / 100)), 'MU');
 					// Output template part (modules that overwrite templates must declare this into descriptor)
 					// Use global variables + $dateSelector + $seller and $buyer

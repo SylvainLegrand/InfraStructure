@@ -391,7 +391,7 @@
 
 					$posy		= $pdf->getY() + $this->tab_hl;
 
-					$protocol	= ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+					$protocol	= !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' || $_SERVER['SERVER_PORT'] == 443 ? "https://" : "http://";
 					$link		= $protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 					$txtlink	= str_replace($_SERVER['QUERY_STRING'], 'id='.$object->origin_id, str_replace('expedition', 'commande', $link));
 					$styleBC	= array('position'		=> $posy,

@@ -241,6 +241,7 @@
 		public $hide_discount;
 		public $hide_cols;
 		public $showwvccchk;
+		public $wvcc_no_hr;
 		public $shippings;
 		public $show_tot_disc;
 		public $show_tva_btp;
@@ -1079,19 +1080,19 @@
 									}
 								}
 							}
-							$extraDet									.= empty($serialEquip) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$serialEquip.'<hr style = "width: 80%;">';
+							$extraDet									.= empty($serialEquip) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$serialEquip.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							// extrafieldsline
 							$extrafieldslines							= '';
 							if (!empty($this->show_ExtraFieldsLines)) {
 								$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 							}
-							$extraDet									.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+							$extraDet									.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							// Custom values (weight, volume and code
 							$WVCC										= '';
 							if (!empty($this->showwvccchk)) {
 								$WVCC	= pdf_InfraSPlus_getlinewvdcc($object, $i, $outputlangs, $this->emetteur);
 							}
-							$extraDet									.= empty($WVCC) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$WVCC.'<hr style = "width: 80%;">';
+							$extraDet									.= empty($WVCC) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$WVCC.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						}
 						// Description of product line => printing
 						$pageposdesc	= $pdf->getPage();
@@ -1145,7 +1146,7 @@
 						}
 						$pdf->SetFont('', '', $default_font_size - 1);	// On repositionne la police par defaut
 						// Reference
-						if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || (!empty($this->picture_in_ref) && empty($this->picture_replace_ref)))) {
+						if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || !empty($this->picture_in_ref) && empty($this->picture_replace_ref))) {
 							$pagepos	= $pdf->getPage();
 							$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 							$pdf->setPage($pagepos);
@@ -1775,7 +1776,7 @@
 					}
 					$pdf->SetFont('', 'B', $default_font_size - 1);
 					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
-					$txtBeforeDepositHT	= $outputlangs->transnoentitiesnoconv((!empty($this->show_ttc_col) ? 'PDFInfraSPlusBeforeDeposit' : 'PDFInfraSPlusBeforeDepositHT'));
+					$txtBeforeDepositHT	= $outputlangs->transnoentitiesnoconv(!empty($this->show_ttc_col) ? 'PDFInfraSPlusBeforeDeposit' : 'PDFInfraSPlusBeforeDepositHT');
 					$pdf->MultiCell(!empty($this->show_ttc_col) ? $larg_col1total - $this->larg_totalttc : $larg_col1total, $tabtot_hl, $txtBeforeDepositHT, '', 'L', 0, 1, $posxtabtotal, $posytabtot, true, 0, 0, false, 0, 'M', false);
 					$pdf->MultiCell(!empty($this->show_ttc_col) ? $this->larg_totalht : $larg_col2total, $tabtot_hl, pdf_InfraSPlus_price($object, $this->sign * $beforeDepositsHT, $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T'), '', 'R', 0, 1, !empty($this->show_ttc_col) ? $this->tableau['totalht']['posx'] : $posxcol2total, $posytabtot, true, 0, 0, false, 0, 'M', false);
 					if (empty($this->show_ttc_col)) {
@@ -1849,7 +1850,7 @@
 			// VAT and local taxes
 			if (((empty($this->only_ht) && empty($this->only_ttc)) || !empty($this->show_ttc_vat_tot)) && empty($this->use_tva_forfait)) {
 				// Show VAT by rates and total
-				$tvaisnull	= ((!empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000'])) ? true : false);
+				$tvaisnull	= !empty($this->tva) && count($this->tva) == 1 && isset($this->tva['0.000']) && is_float($this->tva['0.000']) ? true : false;
 				if (!empty($this->hide_vat_ifnull) && !empty($tvaisnull)) {
 					// Nothing to do
 				} else {

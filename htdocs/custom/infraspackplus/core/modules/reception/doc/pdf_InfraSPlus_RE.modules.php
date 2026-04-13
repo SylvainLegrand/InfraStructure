@@ -212,6 +212,7 @@
 		public $with_picture;
 		public $refcol;
 		public $showwvccchk;
+		public $wvcc_no_hr;
 		public $signvalue;
 		public $stdLineW = 0.2; // Default line width in TCPDF = 0.2
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
@@ -827,7 +828,7 @@
 						$extraDet		= '';
 						// Ajout du numéro de série, s'il existe...
 						$serialEquip	= isModEnabled('equipement') ? pdf_InfraSPlus_getEquipementSerialDesc($object, $outputlangs, $i, 'expedition') : '';
-						$extraDet		.= empty($serialEquip) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$serialEquip.'<hr style = "width: 80%;">';
+						$extraDet		.= empty($serialEquip) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$serialEquip.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						if (!empty($serialreceived)) {
 							$space	= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 							foreach ($serialreceived as $commandefourndet => $serialvalues) {
@@ -842,22 +843,22 @@
 								}
 							}
 						}
-						$extraDet				.= empty($serialStd) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$serialStd.'<hr style = "width: 80%;">';
+						$extraDet				.= empty($serialStd) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$serialStd.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						// extrafieldsline
 						$extrafieldslines		= '';
 						if (!empty($this->show_ExtraFieldsLines)) {
 							$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 						}
-						$extraDet				.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+						$extraDet				.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						// Custom values (weight, volume and code
 						$WVCC					= '';
 						if ($this->showwvccchk) {
 							$WVCC	= pdf_InfraSPlus_getlinewvdcc($object, $i, $outputlangs, $this->emetteur);
 						}
-						$extraDet				.= empty($WVCC) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$WVCC.'<hr style = "width: 80%;">';
+						$extraDet				.= empty($WVCC) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$WVCC.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						// Line comment
 						$comment				= pdf_InfraSPlus_getlinecomment($object, $i, $outputlangs);
-						$extraDet				.= empty($comment) || !empty($this->show_comm_col) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$comment.'<hr style = "width: 80%;">';
+						$extraDet				.= empty($comment) || !empty($this->show_comm_col) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$comment.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						// Description of product line
 						$pageposdesc			= $pdf->getPage();
 						pdf_InfraSPlus_writelinedesc($pdf, $object, $i, $outputlangs, $this->formatpage, $this->horLineStyle, $this->tableau['desc']['larg'], $this->heightline, $this->tableau['desc']['posx'], $curY, $hideref, $hidedesc, 0, $extraDet, null, $this->desc_full_line, 0, $this->with_picture, $realpatharray, $imglinesize, $this->linkpictureurl, $this->tab_hl, $ht_url, $this->picture_padding);

@@ -268,7 +268,7 @@
 	}
 	print '			<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionLogos').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/Tools.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblGF" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '				<table name = "tblGF" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '350px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 3), 'NumberingShort', 'InfraSPlusParamNewLogo');
@@ -329,7 +329,7 @@
 					<input type = "hidden" name = "token" value = "'.newToken().'">
 					<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamImagesSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblOPT" class = "infrasplusnoborder toggle_bloc centpercent">';
+	print '				<table name = "tblOPT" class = "noborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
