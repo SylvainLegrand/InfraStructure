@@ -3047,9 +3047,15 @@ function dol_check_secure_access_document($modulepart, $original_file, $entity, 
 		$accessallowed = ($user->admin && basename($original_file) == $original_file && preg_match('/^dolibarr.*\.(log|json)$/', basename($original_file)));
 		$original_file = $dolibarr_main_data_root.'/'.$original_file;
 	} elseif ($modulepart == 'doctemplates' && !empty($dolibarr_main_data_root)) {
-		// Wrapping for doctemplates
 		$accessallowed = $user->admin;
-		$original_file = $dolibarr_main_data_root.'/doctemplates/'.$original_file;
+		$relative_file = $original_file;
+		$ent = ($entity > 0 ? $entity : $conf->entity);
+		$path_with_entity = $dolibarr_main_data_root . '/' . $ent . '/doctemplates/' . $relative_file;
+		if ($ent > 1 && file_exists(dol_osencode($path_with_entity))) {
+			$original_file = $path_with_entity;
+		} else {
+			$original_file = $dolibarr_main_data_root . '/doctemplates/' . $relative_file;
+		}
 	} elseif ($modulepart == 'doctemplateswebsite' && !empty($dolibarr_main_data_root)) {
 		// Wrapping for doctemplates of websites
 		$accessallowed = ($fuser->hasRight('website', 'write') && preg_match('/\.jpg$/i', basename($original_file)));
@@ -3635,6 +3641,7 @@ function dol_check_secure_access_document($modulepart, $original_file, $entity, 
 			$accessallowed = 1;
 		}
 		$original_file = $conf->member->dir_output.'/'.$original_file;
+		// Osden add begin
 	} elseif ($modulepart == 'ticket' && !empty($conf->ticket->multidir_output[$entity])) {
 		// Wrapping for events
 		if ($fuser->hasRight('ticket', $read)) {
@@ -3659,6 +3666,7 @@ function dol_check_secure_access_document($modulepart, $original_file, $entity, 
 			$sqlprotectagainstexternals.= ' )';
 		}
 		$original_file = $conf->ticket->multidir_output[$entity].'/'.$original_file;
+		// Osden add end
 		// If modulepart=module_user_temp	Allows any module to open a file if file is in directory called DOL_DATA_ROOT/modulepart/temp/iduser
 		// If modulepart=module_temp		Allows any module to open a file if file is in directory called DOL_DATA_ROOT/modulepart/temp
 		// If modulepart=module_user		Allows any module to open a file if file is in directory called DOL_DATA_ROOT/modulepart/iduser

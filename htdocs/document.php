@@ -74,6 +74,7 @@ if ((isset($_GET["modulepart"]) && $_GET["modulepart"] == 'medias')) {
 	if (!defined("NOIPCHECK")) {
 		define("NOIPCHECK", 1); // Do not check IP defined into conf $dolibarr_main_restrict_ip
 	}
+	// Osden add begin
 } elseif (isset($_GET["modulepart"]) && $_GET["modulepart"] == 'ticket' && strpos($_SERVER['HTTP_REFERER'], 'public/ticket') !== false) {
 	if (!defined("NOLOGIN")) {
 		define("NOLOGIN", 1);
@@ -84,6 +85,7 @@ if ((isset($_GET["modulepart"]) && $_GET["modulepart"] == 'medias')) {
 	if (!defined("NOIPCHECK")) {
 		define("NOIPCHECK", 1); // Do not check IP defined into conf $dolibarr_main_restrict_ip
 	}
+	// Osden add end
 }
 
 /**
@@ -306,6 +308,7 @@ if (!empty($hashp)) {
 				}
 			}
 		}
+		// Osden add begin
 	} elseif ($modulepart == 'ticket' && !getDolGlobalString('TICKET_EMAIL_MUST_EXISTS')) {
 		if ($sqlprotectagainstexternals) {
 			$resql = $db->query($sqlprotectagainstexternals);
@@ -316,6 +319,7 @@ if (!empty($hashp)) {
 				}
 			}
 		}
+		// Osden add end
 	}
 }
 

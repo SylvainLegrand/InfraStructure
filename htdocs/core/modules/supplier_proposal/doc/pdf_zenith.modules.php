@@ -884,9 +884,11 @@ class pdf_zenith extends ModelePDFSupplierProposal
 			$pdf->SetXY($posxval, $posy);
 			$lib_condition_paiement = ($outputlangs->transnoentities("PaymentCondition".$object->cond_reglement_code) != 'PaymentCondition'.$object->cond_reglement_code) ? $outputlangs->transnoentities("PaymentCondition".$object->cond_reglement_code) : $outputlangs->convToOutputCharset($object->cond_reglement_doc ? $object->cond_reglement_doc : $object->cond_reglement_label);
 			$lib_condition_paiement = str_replace('\n', "\n", $lib_condition_paiement);
+			// Osden add begin
 			if ($object->deposit_percent > 0) {
 				$lib_condition_paiement = str_replace('__DEPOSIT_PERCENT__', $object->deposit_percent, $lib_condition_paiement);
 			}
+			// Osden add end
 			$pdf->MultiCell(80, 4, $lib_condition_paiement, 0, 'L');
 
 			$posy = $pdf->GetY() + 3;
@@ -1385,12 +1387,12 @@ class pdf_zenith extends ModelePDFSupplierProposal
 
 
 
-			// If CUSTOMER contact defined on proposal, we use it. Note: Even if this is a supplier object, the code for external contact that follow order is 'CUSTOMER'
+			// If SUPPLIER/SERVICE contact defined on proposal, we use it. Note: Even if this is a supplier object, the code for external contact that follow order is 'SERVICE'
 			$usecontact = false;
 			if (!getDolGlobalInt('SUPPLIER_PROPOSAL_ADD_BILLING_CONTACT')) {
-				$arrayidcontact = $object->getIdContact('external', 'CUSTOMER');
+				$arrayidcontact = $object->getIdContact('external', 'SERVICE');
 			} else {
-				$arrayidcontact = array_merge($object->getIdContact('external', 'CUSTOMER'), $object->getIdContact('external', 'BILLING'));
+				$arrayidcontact = array_merge($object->getIdContact('external', 'SERVICE'), $object->getIdContact('external', 'BILLING'));
 			}
 			if (is_array($arrayidcontact) && count($arrayidcontact) > 0) {
 				$usecontact = true;
