@@ -227,7 +227,7 @@ class modPartnership extends DolibarrModules
 			// List of fields (list of fields to edit a record)
 			'tabfieldvalue' => array("code,label,keyword"),
 			// List of fields (list of fields for insert)
-			'tabfieldinsert' => array("code,label,keyword"),
+			'tabfieldinsert' => array("code,label,keyword,entity"), // infras add - entity field for multicompany support
 			// Name of columns with primary key (try to always name it 'rowid')
 			'tabrowid' => array("rowid"),
 			// Condition to show each dictionary
