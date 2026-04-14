@@ -222,7 +222,13 @@
 		<change type='chg'>Compatibilité Dolibarr v22 LTS</change>
 		<change type='chg'>Amélioration de la gestion des substitutions de pages</change>
 	</Version>
-	<InfraS Downloaded="20260301"/>
+	<Version Number="18.8.6" MonthVersion="2026-04">
+		<change type='chg'>Compatibilité Dolibarr v22 à v24</change>
+	</Version>
+	<Version Number="18.8.7" MonthVersion="2026-04">
+		<change type='chg'>Compatibilité Dolibarr v22 à v24</change>
+	</Version>
+	<InfraS Downloaded="20260401"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

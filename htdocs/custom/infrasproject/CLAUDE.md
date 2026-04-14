@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.8.5` (2026-03)
+- Dernière version locale : `18.8.7` (2026-03)
 - Dépendances obligatoires : `modProjet`, `modStock`
 - Emplacement : `htdocs/custom/infrasproject/`
 
@@ -241,6 +241,8 @@ Si modification SQL / descripteur / permissions / hooks / templates / trigger :
 - `18.8.3` (2026-03) : ajout de `infrasproject_getSubstitutionRedirectUrl()` — gestion centralisée des redirections avec filtrage des paramètres GET (exclusion du token CSRF)
 - `18.8.4` (2026-03) : ajout d'une nouvelle famille dédiée aux modules d'hébergement (branding dynamique)
 - `18.8.5` (2026-03) : Amélioration de la gestion des substitutions de pages et compatibilité avec Dolibarr v22 LTS
+- `18.8.6` (2026-04) : Amélioration de la compatibilité avec Dolibarr v22 à v24
+- `18.8.7` (2026-04) : Amélioration de la compatibilité avec Dolibarr v22 à v24
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -418,7 +420,7 @@ La génération de la référence projet utilise le modèle de numérotation con
 
 ```xml
 <changelog>
-  <Version Number="18.8.5" MonthVersion="2026-03">
+  <Version Number="18.8.7" MonthVersion="2026-03">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -437,7 +439,7 @@ La génération de la référence projet utilise le modèle de numérotation con
 La fonction `infrasproject_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.8.5",          // Version courante
+    0 => "18.8.7",          // Version courante
     1 => "18.0.0",          // Version min Dolibarr
     2 => 0,                 // Flag erreur (-1 = KO, 0 = OK)
     3 => "24.x.x",          // Version max Dolibarr

@@ -152,7 +152,7 @@ if ($nolinesbefore) {
 		<td class="linecolvat right"><span id="title_vat"><?php echo $langs->trans('VAT'); ?></span></td>
 		<td class="linecoluht right"><span id="title_up_ht"><?php echo $langs->trans('PriceUHT'); ?></span></td>
 		<?php if (isModEnabled("multicurrency") && $this->multicurrency_code != $conf->currency) { ?>
-			<td class="linecoluht_currency right"><span id="title_up_ht_currency"><?php echo $langs->trans('PriceUHTCurrency'); ?></span></td>
+			<td class="linecoluht_currency right"><span id="title_up_ht_currency"><?php echo $langs->trans('PriceUHT').'&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span>'; ?></span></td>
 		<?php } ?>
 		<?php if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
 			<td class="linecoluttc right"><span id="title_up_ttc"><?php echo $langs->trans('PriceUTTC'); ?></span></td>
@@ -891,6 +891,11 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 							$('#date_start').attr('type', data.type);
 							$('#date_end').attr('type', data.type);
 
+							if(<?php echo getDolGlobalInt('PRODUCT_USE_UNITS'); ?>) {
+								console.log("objectline_create.tpl set content of units");
+								jQuery("#units").val(data.default_unit).change();
+							}
+
 							$('#date_start').removeAttr('mandatoryperiod');
 							$('#date_end').removeAttr('mandatoryperiod');
 							$('#date_start').attr('mandatoryperiod', data.mandatory_period);
@@ -959,22 +964,22 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 									<?php
 								} ?>
 							}
-							// Set vat rate if field is an input box
-							$('#tva_tx').val(tva_tx);
-							// Set vat rate by selecting the combo
-							//$('#tva_tx option').val(tva_tx);	// This is bugged, it replaces the vat key of all options
-							$('#tva_tx option').removeAttr('selected');
-							console.log("stringforvatrateselection="+stringforvatrateselection+" -> value of option label for this key="+$('#tva_tx option[value="'+stringforvatrateselection+'"]').val());
-							$('#tva_tx option[value="'+stringforvatrateselection+'"]').prop('selected', true);
+							// Set vat rate: handle both input box and combo cases
+							if ($('#tva_tx option').length) {
+								// It is a combo: try exact match first (rate + code), fallback to numeric match
+								if ($('#tva_tx option[value="' + stringforvatrateselection + '"]').length) {
+									$('#tva_tx').val(stringforvatrateselection);
+								} else {
+									$('#tva_tx option').filter(function () {
+										return parseFloat($(this).val()) === parseFloat(tva_tx);
+									}).first().prop('selected', true);
+								}
+							} else {
+								// It is an input box
+								$('#tva_tx').val(tva_tx);
+							}
 
 								<?php
-								// Price by customer
-								if ((getDolGlobalString('PRODUIT_CUSTOMER_PRICES') || getDolGlobalString('PRODUIT_CUSTOMER_PRICES_AND_MULTIPRICES')) && !empty($object->socid)) {
-									?>
-							$("#remise_percent").val(data.discount);
-									<?php
-								}
-
 								if (getDolGlobalInt('PRODUIT_AUTOFILL_DESC') == 1) {
 									if (getDolGlobalInt('MAIN_MULTILANGS') && getDolGlobalString('PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE')) { ?>
 							var proddesc = data.desc_trans;
