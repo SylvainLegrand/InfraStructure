@@ -238,7 +238,7 @@ if ($salaryBonPl) {
 	}
 } else {
 	$sql = "SELECT pf.rowid, p.type,";
-	$sql .= " f.rowid as facid, f.ref as ref, f.total_ttc,";
+	$sql .= " f.rowid as facid, f.ref as ref, f.datef, f.total_ttc,"; // InfraS change
 	if ($object->type == 'bank-transfer') {
 		$sql .= " f.ref_supplier,";
 	}
@@ -322,6 +322,11 @@ if ($resql) {
 	if ($object->type == 'bank-transfer' && !$salaryBonPl) {
 		print_liste_field_titre("RefSupplierShort", $_SERVER["PHP_SELF"], "f.ref_supplier", '', $param, '', $sortfield, $sortorder);
 	}
+	// InfraS add begin
+	if (!$salaryBonPl) {
+		print_liste_field_titre("Date", $_SERVER["PHP_SELF"], "f.datef", '', $param, '', $sortfield, $sortorder);
+	}
+	// InfraS add end
 	print_liste_field_titre(($salaryBonPl ? "Employee" : "ThirdParty"), $_SERVER["PHP_SELF"], "s.nom", '', $param, '', $sortfield, $sortorder);
 	print_liste_field_titre(($salaryBonPl ? "AmountSalary" : "AmountInvoice"), $_SERVER["PHP_SELF"], "f.total_ttc", "", $param, '', $sortfield, $sortorder, 'right ');
 	print_liste_field_titre("AmountRequested", $_SERVER["PHP_SELF"], "pl.amount", "", $param, '', $sortfield, $sortorder, 'right ');
@@ -375,15 +380,22 @@ if ($resql) {
 
 		if ($object->type == 'bank-transfer' && !$salaryBonPl) {
 			$labeltoshow = '';
-			if ($invoicetmp instanceof Facture) {
+			if ($invoicetmp instanceof FactureFournisseur) { // InfraS change
 				$labeltoshow = $invoicetmp->ref_supplier;
 			}
 			print '<td class="tdoverflowmax150" title="'.dolPrintHTMLForAttribute($labeltoshow).'">';
-			if ($invoicetmp instanceof Facture) {
+			if ($invoicetmp instanceof FactureFournisseur) { // InfraS change
 				print dol_escape_htmltag($invoicetmp->ref_supplier);
 			}
 			print "</td>\n";
 		}
+		// InfraS add begin
+		if (!$salaryBonPl) {
+			print '<td class="center">';
+			print dol_print_date($db->jdate($obj->datef), 'day');
+			print "</td>\n";
+		}
+		// InfraS add end
 
 		print '<td class="tdoverflowmax125">';
 		print $partyurl;
@@ -424,6 +436,7 @@ if ($resql) {
 		if ($object->type == 'bank-transfer' && !$salaryBonPl) {
 			print '<td>&nbsp;</td>';
 		}
+		if (!$salaryBonPl) { print '<td>&nbsp;</td>'; } // InfraS add - date column
 		print '<td>&nbsp;</td>';
 		print '<td class="right">';
 		print "</td>\n";

@@ -1231,7 +1231,7 @@ abstract class CommonInvoice extends CommonObject
 			$bac = new CompanyBankAccount($this->db);
 			$bac->fetch($ribId, '', $this->socid);
 
-			$sql = "SELECT count(rowid) as nb";
+			$sql = "SELECT count(rowid) as nb, SUM(amount) as pending_amount"; // InfraS change
 			$sql .= " FROM ".$this->db->prefix()."prelevement_demande";
 			if ($type == 'bank-transfer') {
 				$sql .= " WHERE fk_facture_fourn = ".((int) $this->id);
@@ -1248,12 +1248,17 @@ abstract class CommonInvoice extends CommonObject
 			$resql = $this->db->query($sql);
 			if ($resql) {
 				$obj = $this->db->fetch_object($resql);
-				if ($obj && $obj->nb == 0) {	// If no request found yet
-					$now = dol_now();
 
-					$totalpaid = $this->getSommePaiement();
-					$totalcreditnotes = $this->getSumCreditNotesUsed();
-					$totaldeposits = $this->getSumDepositsUsed();
+				// InfraS change begin
+				$totalpaid = $this->getSommePaiement();
+				$totalcreditnotes = $this->getSumCreditNotesUsed();
+				$totaldeposits = $this->getSumDepositsUsed();
+				$resteapayer = (float) price2num($this->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+				$pendingAmount = (float) ($obj->pending_amount ?? 0);
+
+				if ($obj && ($obj->nb == 0 || $pendingAmount < $resteapayer)) {	// If no request found yet, or pending amount is less than remaining to pay
+					$now = dol_now();
+				// InfraS change end
 					//print "totalpaid=".$totalpaid." totalcreditnotes=".$totalcreditnotes." totaldeposts=".$totaldeposits;
 
 					// We can also use bcadd to avoid pb with floating points
@@ -1261,7 +1266,7 @@ abstract class CommonInvoice extends CommonObject
 					//$resteapayer=bcadd($this->total_ttc,$totalpaid,$conf->global->MAIN_MAX_DECIMALS_TOT);
 					//$resteapayer=bcadd($resteapayer,$totalavoir,$conf->global->MAIN_MAX_DECIMALS_TOT);
 					if (empty($amount)) {
-						$amount = price2num($this->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+						$amount = price2num($resteapayer - $pendingAmount, 'MT'); // InfraS change
 					}
 
 					if (is_numeric($amount) && $amount != 0) {

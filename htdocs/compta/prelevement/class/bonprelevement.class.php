@@ -327,14 +327,14 @@ class BonPrelevement extends CommonObject
 	 * @param   string  $sourcetype     'salary' for salary, '' for invoices
 	 * @return	int						>0 if OK, <0 if KO
 	 */
-	public function AddFacture($invoice_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $type = 'debit-order', $sourcetype = '')
+	public function AddFacture($invoice_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $type = 'debit-order', $sourcetype = '', $ribId = 0) // InfraS change
 	{
 		// phpcs:enable
 		$result = 0;
 		$line_id = 0;
 
 		// Add lines into prelevement_lignes
-		$result = $this->addline($line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $sourcetype);
+		$result = $this->addline($line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $sourcetype, $ribId); // InfraS change
 
 
 		if ($result == 0) {
@@ -389,7 +389,7 @@ class BonPrelevement extends CommonObject
 	 *  @param  string  $sourcetype     'salary' for salary, '' for invoices
 	 *	@return	int						>0 if OK, <0 if KO
 	 */
-	public function addline(&$line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $sourcetype = '')
+	public function addline(&$line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $sourcetype = '', $ribId = 0) // InfraS change
 	{
 		$result = -1;
 		$concat = 0;	// ??? what is this for. Seems not used.
@@ -429,6 +429,7 @@ class BonPrelevement extends CommonObject
 			$sql .= ", code_guichet";
 			$sql .= ", number";
 			$sql .= ", cle_rib";
+			$sql .= ", fk_soc_rib"; // InfraS add
 			$sql .= ($sourcetype == 'salary' ? ", fk_user" : "");
 			$sql .= ") VALUES (";
 			$sql .= $this->id;
@@ -439,6 +440,7 @@ class BonPrelevement extends CommonObject
 			$sql .= ", '" . $this->db->escape($code_guichet) . "'";
 			$sql .= ", '" . $this->db->escape($number) . "'";
 			$sql .= ", '" . $this->db->escape($number_key) . "'";
+			$sql .= ", " . ($ribId > 0 ? ((int) $ribId) : "NULL"); // InfraS add
 			$sql .= (($sourcetype == 'salary') ? ", " . ((int) $client_id) : '');
 			$sql .= ")";
 			if ($this->db->query($sql)) {
@@ -1167,23 +1169,22 @@ class BonPrelevement extends CommonObject
 			if ($sourcetype != 'salary') {
 				$sql .= ", s.nom as name";
 				$sql .= ", f.ref, sr.bic, sr.iban_prefix, sr.frstrecur";
+				$sql .= ", pd.fk_societe_rib"; // InfraS add
 			} else {
 				$sql .= ", CONCAT(s.firstname,' ',s.lastname) as name";
 				$sql .= ", f.ref, sr.bic, sr.iban_prefix, 'FRST' as frstrecur";
+				$sql .= ", 0 as fk_societe_rib"; // InfraS add
 			}
 			$sql .= " FROM " . $this->db->prefix() . $sqlTable . " as f";	// f is salary, facture or facture_fourn
 			$sql .= " LEFT JOIN " . $this->db->prefix() . "prelevement_demande as pd ON f.rowid = pd.fk_".$this->db->sanitize($sqlTable);
 			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser)." as s ON s.rowid = f.".$this->db->sanitize($socOrUser);
-			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser."_rib")." as sr ON s.rowid = sr.".$this->db->sanitize($socOrUser);
+			// InfraS change begin
+			$sql .= " LEFT JOIN " . $this->db->prefix() . $this->db->sanitize($societeOrUser."_rib")." as sr ON sr.type = 'ban'";
 			if ($sourcetype != 'salary') {
-				if (!empty($thirdpartyBANIds)) {
-					$sql .= " AND sr.rowid IN (" .implode(', ', $thirdpartyBANIds).")";
-				} else {
-					$sql .= " AND sr.default_rib = 1";
-				}
-				// TODO Add 'AND sr.default_rib = 1' in sourcetype salary too Note: the column has been created in v21 in llx_user_rib and default to 0
-				// If we add a test on sr.default_rib = 1, we must also check we have a correct error management to stop if no default BAN is found.
+				$sql .= " AND ((pd.fk_societe_rib IS NOT NULL AND sr.rowid = pd.fk_societe_rib)";
+				$sql .= " OR (pd.fk_societe_rib IS NULL AND sr.".$this->db->sanitize($socOrUser)." = s.rowid AND sr.default_rib = 1))";
 			}
+			// InfraS change end
 			$sql .= " WHERE f.entity IN (".$this->db->escape($entities).')';
 			if ($sourcetype != 'salary') {
 				$sql .= " AND f.fk_statut = 1"; // Invoice validated
@@ -1196,9 +1197,6 @@ class BonPrelevement extends CommonObject
 			}
 			$sql .= " AND pd.traite = 0";
 			$sql .= " AND pd.ext_payment_id IS NULL";
-			if ($sourcetype != 'salary') {
-				$sql .= " AND sr.type = 'ban'";		// TODO Add AND sr.type = 'ban' for users too
-			}
 			if ($dids !== [0] && !empty($dids)) {
 				$sql .= " AND pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
 			}
@@ -1441,8 +1439,9 @@ class BonPrelevement extends CommonObject
 						 * $fac[10] : BIC
 						 * $fac[11] : IBAN
 						 * $fac[12] : frstrcur
+						 * $fac[13] : fk_societe_rib (RIB selected at request time)
 						 */
-						$ri = $this->AddFacture($fac[0], $fac[2], $fac[8], $fac[7], $fac[3], $fac[4], $fac[5], $fac[6], $type, $sourcetype);
+						$ri = $this->AddFacture($fac[0], $fac[2], $fac[8], $fac[7], $fac[3], $fac[4], $fac[5], $fac[6], $type, $sourcetype, (int) $fac[13]); // InfraS change
 
 						if ($ri != 0) {
 							$error++;
@@ -1868,6 +1867,7 @@ class BonPrelevement extends CommonObject
 				$sql = "SELECT soc.rowid as socid, soc.code_client as code, soc.address, soc.zip, soc.town, c.code as country_code,";
 				$sql .= " pl.client_nom as nom, pl.code_banque as cb, pl.code_guichet as cg, pl.number as cc, pl.amount as somme,";
 				$sql .= " f.ref as reffac, p.fk_facture as idfac,";
+				$sql .= " pl.rowid as pl_rowid,"; // InfraS add
 				$sql .= " rib.rowid, rib.datec, rib.iban_prefix as iban, rib.bic as bic, rib.rowid as drum, rib.rum, rib.date_rum";
 				$sql .= " FROM";
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
@@ -1881,14 +1881,11 @@ class BonPrelevement extends CommonObject
 				$sql .= " AND p.fk_facture = f.rowid";
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
-				$sql .= " AND rib.fk_soc = f.fk_soc";
-				if (!empty($thirdpartyBANIds)) {
-					$sql .= " AND rib.rowid IN (" . implode(',', $thirdpartyBANIds) . ")";
-				} else {
-					$sql .= " AND rib.default_rib = 1";
-				}
+				// InfraS change begin
 				$sql .= " AND rib.type = 'ban'";
-
+				$sql .= " AND ((pl.fk_soc_rib IS NOT NULL AND rib.rowid = pl.fk_soc_rib)";
+				$sql .= " OR (pl.fk_soc_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1))";
+				// InfraS chage end
 				// Define $fileDebiteurSection. One section DrctDbtTxInf per invoice.
 				$resql = $this->db->query($sql);
 				$nbtotalDrctDbtTxInf = -1;
@@ -1899,7 +1896,7 @@ class BonPrelevement extends CommonObject
 					while ($i < $num) {
 						$obj = $this->db->fetch_object($resql);
 
-						if (!empty($cachearraytotestduplicate[$obj->idfac])) {
+						if (!empty($cachearraytotestduplicate[$obj->pl_rowid])) { // InfraS change
 							$soc = new Societe($this->db);
 							$soc->fetch($obj->socid);
 							$this->error = $langs->trans('ErrorCompanyHasDuplicateDefaultBAN', $soc->getNomUrl());
@@ -1907,7 +1904,7 @@ class BonPrelevement extends CommonObject
 							$result = -2;
 							break;
 						}
-						$cachearraytotestduplicate[$obj->idfac] = $obj->rowid;
+						$cachearraytotestduplicate[$obj->pl_rowid] = true; // InfraS change
 
 						$daterum = (!empty($obj->date_rum)) ? $this->db->jdate($obj->date_rum) : $this->db->jdate($obj->datec);
 						$iban = dolDecrypt($obj->iban);
@@ -2015,6 +2012,7 @@ class BonPrelevement extends CommonObject
 					$sql = "SELECT soc.rowid as socid, soc.code_client as code, soc.address, soc.zip, soc.town, c.code as country_code,";
 					$sql .= " pl.client_nom as nom, pl.code_banque as cb, pl.code_guichet as cg, pl.number as cc, pl.amount as somme,";
 					$sql .= " f.ref as reffac, f.ref_supplier as fac_ref_supplier, p.fk_facture_fourn as idfac,";
+					$sql .= " pl.rowid as pl_rowid,"; // InfraS add
 					$sql .= " rib.rowid, rib.datec, rib.iban_prefix as iban, rib.bic as bic, rib.rowid as drum, rib.rum, rib.date_rum";
 					$sql .= " FROM";
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
@@ -2027,13 +2025,11 @@ class BonPrelevement extends CommonObject
 					$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 					$sql .= " AND p.fk_facture_fourn = f.rowid";
 					$sql .= " AND f.fk_soc = soc.rowid";
-					$sql .= " AND rib.fk_soc = f.fk_soc";
-					if (!empty($thirdpartyBANIds)) {
-						$sql .= " AND rib.rowid IN (" . implode(',', $thirdpartyBANIds) . ")";
-					} else {
-						$sql .= " AND rib.default_rib = 1";
-					}
+					// InfraS change begin
 					$sql .= " AND rib.type = 'ban'";
+					$sql .= " AND ((pl.fk_soc_rib IS NOT NULL AND rib.rowid = pl.fk_soc_rib)";
+					$sql .= " OR (pl.fk_soc_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1))";
+					// InfraS change end
 				}
 				// Define $fileCrediteurSection. One section DrctDbtTxInf per invoice.
 				$nbtotalDrctDbtTxInf = -1;
@@ -2045,13 +2041,13 @@ class BonPrelevement extends CommonObject
 					$num = $this->db->num_rows($resql);
 					while ($i < $num) {
 						$obj = $this->db->fetch_object($resql);
-						if (!empty($cachearraytotestduplicate[$obj->idfac])) {
+						if (!empty($cachearraytotestduplicate[$obj->pl_rowid])) { // InfraS change
 							$this->error = $langs->trans('ErrorCompanyHasDuplicateDefaultBAN', $obj->socid);
 							$this->invoice_in_error[$obj->idfac] = $this->error;
 							$result = -2;
 							break;
 						}
-						$cachearraytotestduplicate[$obj->idfac] = $obj->rowid;
+						$cachearraytotestduplicate[$obj->pl_rowid] = true; // InfraS change
 
 						$daterum = (!empty($obj->date_rum)) ? $this->db->jdate($obj->date_rum) : $this->db->jdate($obj->datec);
 						$iban = dolDecrypt($obj->iban);
