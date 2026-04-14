@@ -168,6 +168,11 @@ if (empty($reshook)) {
 
 			// Creation user
 			$nuser = new User($db);
+			// InfraS add begin - En mode transverse multicompany, forcer entity=1 pour que le user soit visible dans toutes les entités
+			if (isModEnabled('multicompany') && getDolGlobalInt('MULTICOMPANY_TRANSVERSE_MODE')) {
+				$nuser->entity = 1;
+			}
+			// InfraS add end
 			$result = $nuser->create_from_contact($object, GETPOST("login")); // Do not use GETPOST(alpha)
 
 			if ($result > 0) {
@@ -177,6 +182,32 @@ if (empty($reshook)) {
 					$errors = $nuser->errors;
 					$db->rollback();
 				} else {
+					// InfraS add begin - En mode transverse multicompany, ajouter le user aux groupes sur toutes les entités actives
+					if (isModEnabled('multicompany') && getDolGlobalInt('MULTICOMPANY_TRANSVERSE_MODE')) {
+						// Récupère tous les groupes transversaux (entity=0)
+						$sql_groups			= "SELECT rowid FROM ".$db->prefix()."usergroup WHERE entity = 0";
+						$resql_groups		= $db->query($sql_groups);
+						if ($resql_groups) {
+							// Récupère toutes les entités actives
+							$sql_entities	= "SELECT rowid FROM ".$db->prefix()."entity WHERE active = 1";
+							$resql_entities	= $db->query($sql_entities);
+							$entities		= array();
+							if ($resql_entities) {
+								while ($obj_entity	= $db->fetch_object($resql_entities)) {
+									$entities[]		= $obj_entity->rowid;
+								}
+								$db->free($resql_entities);
+							}
+							// Ajoute le user à chaque groupe sur chaque entity
+							while ($obj_group		= $db->fetch_object($resql_groups)) {
+								foreach ($entities as $entity_id) {
+									$nuser->SetInGroup($obj_group->rowid, $entity_id, 1);
+								}
+							}
+							$db->free($resql_groups);
+						}
+					}
+					// InfraS add end
 					$db->commit();
 				}
 			} else {
