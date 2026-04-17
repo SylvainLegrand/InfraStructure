@@ -10336,12 +10336,12 @@ class Form
 		}
 
 		$reshook = 0; // Ensure $reshook is defined for static analysis
-		if (!empty($listofidcompanytoscan)) {  // If empty, we don't have criteria to scan the object we can link to
+		// InfraS change begin - Appel du hook même sans thirdparty pour permettre les liaisons sur objets sans tiers (Skill, Job, etc.)
 			// Can complete the possiblelink array
 			$hookmanager->initHooks(array('commonobject'));
 			$parameters = array('listofidcompanytoscan' => $listofidcompanytoscan, 'possiblelinks' => $possiblelinks);
 			$reshook = $hookmanager->executeHooks('showLinkToObjectBlock', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
-		}
+		// InfraS change end
 
 		if (empty($reshook)) {
 			if (is_array($hookmanager->resArray) && count($hookmanager->resArray)) {
