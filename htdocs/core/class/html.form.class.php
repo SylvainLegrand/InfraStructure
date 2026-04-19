@@ -10337,17 +10337,10 @@ class Form
 
 		$reshook = 0; // Ensure $reshook is defined for static analysis
 		// InfraS change begin - Appel du hook même sans thirdparty pour permettre les liaisons sur objets sans tiers (Skill, Job, etc.)
-<<<<<<< Updated upstream
-			// Can complete the possiblelink array
-			$hookmanager->initHooks(array('commonobject'));
-			$parameters = array('listofidcompanytoscan' => $listofidcompanytoscan, 'possiblelinks' => $possiblelinks);
-			$reshook = $hookmanager->executeHooks('showLinkToObjectBlock', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
-=======
 		// Can complete the possiblelink array
 		$hookmanager->initHooks(array('commonobject'));
 		$parameters = array('listofidcompanytoscan' => $listofidcompanytoscan, 'possiblelinks' => $possiblelinks);
 		$reshook = $hookmanager->executeHooks('showLinkToObjectBlock', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
->>>>>>> Stashed changes
 		// InfraS change end
 
 		if (empty($reshook)) {
@@ -10404,11 +10397,11 @@ class Form
 				}
 
 				$sql = $possiblelink['sql'];
-
-				if (!empty($sql) && preg_match('/\bIN\s*\(\s*\)/', $sql)) { // InfraS add - Skip queries with empty IN() clause (no company to scan)
-					continue; // InfraS add
-				} // InfraS add
-
+				// InfraS add begin
+				if (!empty($sql) && preg_match('/\bIN\s*\(\s*\)/', $sql)) { // Skip queries with empty IN() clause (no company to scan)
+					continue;
+				}
+				// InfraS add end
 				$resqllist = $this->db->query($sql);
 				if ($resqllist) {
 					$num = $this->db->num_rows($resqllist);
