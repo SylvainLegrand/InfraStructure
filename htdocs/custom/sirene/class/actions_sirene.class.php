@@ -356,11 +356,17 @@ SCRIPT;
             sirene_block.detach().insertBefore(sirene_anchor);
             sirene_tr.remove();
 
+			// Holds the latest search results (outside AJAX closure to avoid stale data on rebind)
+			let sirene_companies_results = null;
+
 			// Send search
 			sirene_search_button.on('click', function (event) {
 				// Disabled search button
 				sirene_search_button_waiting.show();
 				sirene_search_button.hide();
+
+				// Reset previous results so the yes button cannot fire with stale data
+				sirene_companies_results = null;
 
 				// Get params to send
 				let data_send = {};
@@ -387,32 +393,39 @@ SCRIPT;
 						/* jnotify(message, preset of message type, keepmessage) */
 						$.jnotify(response.warning, 'warning', false);
 					} else if (typeof response.content === 'string') {
-						// Insert result
+						// Insert result and store in outer variable (not closure)
 						$('#sirene_result').empty().html(response.content);
+						sirene_companies_results = JSON.parse(response.companies_results);
 
-						// Set company infos with the selected result
+						// Find the confirm buttons — use stable class after first search, text-selector on first call
 						let confirm_box = $('#dialog-confirm-sirene-search');
-						let confirm_button_yes = confirm_box.closest('.ui-dialog').find('.ui-dialog-buttonset button:contains("{$yes_label}")');
-						let confirm_button_no = confirm_box.closest('.ui-dialog').find('.ui-dialog-buttonset button:contains("{$no_label}")');
+						let confirm_button_yes = confirm_box.closest('.ui-dialog').find('.ui-dialog-buttonset button.sirene-confirm-yes');
+						if (confirm_button_yes.length === 0) {
+							// First search: find by original text, add stable class, bind handler once
+							confirm_button_yes = confirm_box.closest('.ui-dialog').find('.ui-dialog-buttonset button:contains("{$yes_label}")');
+							confirm_button_yes.addClass('sirene-confirm-yes');
+							confirm_button_yes.on('click', function () {
+								let selected_value = $('table#sirene_table tr td input.sirene_choice:checked').val();
+								if (sirene_companies_results && sirene_companies_results.hasOwnProperty(selected_value)) {
+									let company_infos = sirene_companies_results[selected_value];
+									$('input[name="action"]').val('sirene_set_company_infos');
+									$('#sirene_selected_company').val(JSON.stringify(company_infos));
+									$('form').submit();
+								} else {
+									/* jnotify(message, preset of message type, keepmessage) */
+									$.jnotify('{$warning_select_a_company}', 'warning', false);
+								}
+							});
+						}
+						let confirm_button_no = confirm_box.closest('.ui-dialog').find('.ui-dialog-buttonset button.sirene-confirm-no');
+						if (confirm_button_no.length === 0) {
+							confirm_button_no = confirm_box.closest('.ui-dialog').find('.ui-dialog-buttonset button:contains("{$no_label}")');
+							confirm_button_no.addClass('sirene-confirm-no');
+						}
+
+						// Update button labels and show dialog
 						confirm_button_yes.text('{$select_label}');
 						confirm_button_no.text('{$cancel_label}');
-						confirm_button_yes.unbind('click');
-						confirm_button_yes.click(function () {
-							let companies_infos = JSON.parse(response.companies_results);
-							let selected_value = $('table#sirene_table tr td input.sirene_choice:checked').val();
-
-							if (companies_infos.hasOwnProperty(selected_value)) {
-								let company_infos = companies_infos[selected_value];
-								$('input[name="action"]').val('sirene_set_company_infos');
-								$('#sirene_selected_company').val(JSON.stringify(company_infos));
-								$('form').submit();
-							} else {
-								/* jnotify(message, preset of message type, keepmessage) */
-								$.jnotify('{$warning_select_a_company}', 'warning', false);
-							}
-						});
-
-						// Show result
 						confirm_box.dialog("open");
 					}
 				}).fail(function (jqxhr, textStatus, error) {

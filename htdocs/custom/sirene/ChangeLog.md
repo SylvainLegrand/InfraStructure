@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.3.14] - 16-04-2026
+- FIX : Cancel sirene search (by ATM-Lucas)
+
 ## [10.3.13] - 09-04-2026
 - Ajout : possibilité de vérifier que l'utilisateur a utilisé la recherche SIRENE pour la création d'un client/prospect/fournisseur (option activalble)
 
@@ -77,7 +80,6 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Lors d'une vérification d'un tiers, si le tiers est fermé, relancer la recherche sur le SIREN pour vérifier qu'il ne s'agit pas simplement d'un déménagement.
 - Correctif : lors d'une modification du tiers, si le code client ne correspond pas au masque mais qu'il ne change pas, la mise à jour se fait correctement.
 - Modification de la version min de PHP
-
 
 ## [10.2.1] - 08-01-2025
 - Correction du forçage de la visibilité des champs complémentaires sur la fiche des tiers
@@ -391,8 +393,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initiale.
 
 
-
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.13...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.14...HEAD
+[10.3.14]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.14
 [10.3.13]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.13
 [10.3.12]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.12
 [10.3.11]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.11
