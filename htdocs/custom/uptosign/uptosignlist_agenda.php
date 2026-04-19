@@ -136,8 +136,8 @@ if ($id > 0 || !empty($ref)) {
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
 $enablepermissioncheck = 1;
 if ($enablepermissioncheck) {
-	$permissiontoread = $user->rights->uptosign->uptosignlist->read;
-	$permissiontoadd = $user->rights->uptosign->uptosignlist->write;
+	$permissiontoread = $user->hasRight('uptosign', 'uptosignlist', 'read');
+	$permissiontoadd = $user->hasRight('uptosign', 'uptosignlist', 'write');
 } else {
 	$permissiontoread = 1;
 	$permissiontoadd = 1;

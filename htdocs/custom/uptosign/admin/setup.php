@@ -58,8 +58,8 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
-require_once '../lib/uptosign.lib.php';
-require_once "../class/uptosign.class.php";
+dol_include_once('/uptosign/lib/uptosign.lib.php');
+dol_include_once('/uptosign/class/uptosign.class.php');
 
 // Translations
 $langs->loadLangs(array("admin", "uptosign@uptosign"));
@@ -263,7 +263,7 @@ if (utsbackports_getDolGlobalString('MAIN_SECURITY_HASH_ALGO', '') == '') {
 
 // Setup page goes here
 echo '<span class="opacitymedium">' . $langs->trans("UPTOSIGNSetupPage") . '</span><br><br>';
-print '	<form action="' . $_SERVER['PHP_SELF'] . '" method="post" enctype="multipart/form-data">
+print '	<form action="' . $_SERVER['PHP_SELF'] . '" method="post" enctype="multipart/form-data" data-submit-once>
 			<input type="hidden" name="token" value="' . newToken() . '">
 			<table width="100%" style="border-spacing: 0px;">
 				<tr>
@@ -301,7 +301,7 @@ if ($resetPasswordLink != "") {
 	print "<p><b>" . $resetPasswordLink . "</b> <b>" . $createAccountLink . "</b></p>";
 	print "</div>";
 } else {
-	print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '">';
+	print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '" data-submit-once>';
 	print '<input type="hidden" name="token" value="' . newToken() . '">';
 	print '<input type="hidden" name="action" value="set">';
 
@@ -631,6 +631,20 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 print '<div>Il est nécessaire de faire l’acquisition de signatures auprès de UpToSign ici : <a href="https://uptosign.com/" target="_blank">https://uptosign.com/</a></p><p>Si vous voulez tester le système vous pouvez ouvrir un compte de test sur le serveur de démo ici : <a href="https://demo.uptosign.org/register" target="_blank">https://demo.uptosign.org/register</a></p></div>';
 
 //print '<div>Vérifiez que votre configuration sécurité est complète</div>';
+
+// Anti-double-click protection
+print '<script>
+document.querySelectorAll("form[data-submit-once]").forEach(function(form) {
+	form.addEventListener("submit", function() {
+		var btn = form.querySelector("[type=submit]");
+		if (btn) {
+			btn.disabled = true;
+			btn.dataset.originalText = btn.innerHTML;
+			btn.innerHTML = \'<span class="loading loading-spinner loading-xs"></span> \' + (btn.dataset.loadingText || btn.textContent);
+		}
+	});
+});
+</script>';
 
 // Page end
 print dol_get_fiche_end();

@@ -384,7 +384,7 @@ class FormSetup
 
 			if (!empty($item->errors)) {
 				// TODO : move set event message in a methode to be called by cards not by this class
-				setEventMessages('', $item->errors, 'errors');
+				setEventMessages('', (array) $item->errors, 'errors');
 			}
 
 			$out.= '</td>';

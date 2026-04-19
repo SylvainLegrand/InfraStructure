@@ -100,7 +100,7 @@ print '<div class="fichecenter"><div class="fichethirdleft">';
 
 /* BEGIN MODULEBUILDER DRAFT UPTOSIGNLIST
 // Draft MyObject
-if (! empty($conf->uptosign->enabled) && $user->rights->uptosign->read)
+if (! empty($conf->uptosign->enabled) && $user->hasRight('uptosign', 'read'))
 {
 	$langs->load("orders");
 
@@ -108,11 +108,11 @@ if (! empty($conf->uptosign->enabled) && $user->rights->uptosign->read)
 	$sql.= ", s.code_client";
 	$sql.= " FROM ".MAIN_DB_PREFIX."commande as c";
 	$sql.= ", ".MAIN_DB_PREFIX."societe as s";
-	if (! $user->rights->societe->client->voir && ! $socid) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
+	if (! $user->hasRight('societe', 'client', 'voir') && ! $socid) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 	$sql.= " WHERE c.fk_soc = s.rowid";
 	$sql.= " AND c.fk_statut = 0";
 	$sql.= " AND c.entity IN (".getEntity('commande').")";
-	if (! $user->rights->societe->client->voir && ! $socid) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = ".((int) $user->id);
+	if (! $user->hasRight('societe', 'client', 'voir') && ! $socid) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = ".((int) $user->id);
 	if ($socid)	$sql.= " AND c.fk_soc = ".((int) $socid);
 
 	$resql = $db->query($sql);
@@ -182,7 +182,7 @@ $max = utsbackports_getDolGlobalString('MAIN_SIZE_SHORTLIST_LIMIT', '');
 
 /* BEGIN MODULEBUILDER LASTMODIFIED UPTOSIGNLIST
 // Last modified myobject
-if (! empty($conf->uptosign->enabled) && $user->rights->uptosign->read)
+if (! empty($conf->uptosign->enabled) && $user->hasRight('uptosign', 'read'))
 {
 	$sql = "SELECT s.rowid, s.ref, s.label, s.date_creation, s.tms";
 	$sql.= " FROM ".MAIN_DB_PREFIX."uptosign_myobject as s";

@@ -95,7 +95,7 @@ UPTOSIGN_ADD_CONTACT_POSTE_FUNCTIONTooltip = Permet d'ajouter le poste/fonction 
 # About page
 #
 About=A propos
-UptoSignAbout=A propos de UptoSign
+UptoSignAbout=À propos de UptoSign
 UptoSignAboutPage=Page à propos de UptoSign
 UptoSignTemplatesTab=Modèles de documents
 uptosignThenClickHere=Configurez ce modèle et ensuite cliquez sur la flèche suivante pour passer au suivant
@@ -465,3 +465,22 @@ uptosignListProcessInProgress = La procédure est en cours vous ne pouvez plus a
 UptoSignWorkflow = Automatisations
 uptosignInvoiceExists = Une facture liée existe déjà
 UptoSignXInputUserPlaceholder=Collez ici depuis un tableur ou saisissez une ligne par destinataire : email;nom;prenom;autre
+
+# About page
+AboutModuleInfo=Informations sur le module
+AboutUsefulLinks=Liens utiles
+AboutSAV=Support
+AboutForum=Forum
+AboutContact=Contact
+UptosignDoYouLikeModule=Vous aimez ce module ?
+UptosignFeedbackIntro=Vos retours aident à améliorer nos modules. Partagez votre expérience et aidez d'autres utilisateurs à découvrir ce module !
+UptosignYourRating=Votre note
+UptosignYourFeedback=Votre avis
+UptosignYourEmail=Votre e-mail
+UptosignFeedbackPlaceholder=Dites-nous ce que vous aimez, ce qui pourrait être amélioré...
+UptosignSendFeedback=Envoyer mon avis
+UptosignFeedbackSent=Merci pour votre retour !
+UptosignFeedbackSendError=Erreur lors de l'envoi du retour
+UptosignBuyMeACoffee=Offrez-nous un café
+UptosignDonationText=Ce module nous a demandé du temps de développement et de conception. Si vous le trouvez utile et souhaitez soutenir son développement, pensez à nous offrir un café (ou un peu plus). Chaque contribution aide à maintenir le projet en vie et nous motive à ajouter de nouvelles fonctionnalités !
+UptosignOfferCoffee=Offrir un café ... ou un peu plus

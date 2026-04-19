@@ -104,10 +104,10 @@ function uptosignconfigPrepareHead($object)
 function uptoSignGetSpecimen($objectType, $modele, $defaultIfNotFound = false)
 {
 	// print "<p>Demande du specimen de $modele, objectType = $objectType</p>";
-	dol_syslog("uptoSignGetSpecimen ask for objectType=$objectType, modele=$modele", LOG_DEBUG);
+	dol_syslog("uptosign: uptoSignGetSpecimen ask for objectType=$objectType, modele=$modele", LOG_DEBUG);
 	global $conf, $db, $langs;
 	$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
-	dol_syslog("uptoSignGetSpecimen dirmodels=" . json_encode($dirmodels), LOG_DEBUG);
+	dol_syslog("uptosign: uptoSignGetSpecimen dirmodels=" . json_encode($dirmodels), LOG_DEBUG);
 
 	$b64 = null;
 
@@ -118,7 +118,7 @@ function uptoSignGetSpecimen($objectType, $modele, $defaultIfNotFound = false)
 
 	//too easy with dolibarr
 	if ($modulepart == "propal") {
-		dol_syslog("uptoSignGetSpecimen race condition for propal ...", LOG_DEBUG);
+		dol_syslog("uptosign: uptoSignGetSpecimen race condition for propal ...", LOG_DEBUG);
 		$modulepart = "propale";
 	}
 
@@ -127,7 +127,7 @@ function uptoSignGetSpecimen($objectType, $modele, $defaultIfNotFound = false)
 	$filefound = 0;
 	foreach ($dirmodels as $reldir) {
 		$file = dol_buildpath($reldir . "core/modules/" . $modulepart . "/doc/pdf_" . $modele . ".modules.php");
-		dol_syslog("uptoSignGetSpecimen search in $file for document builder ...");
+		dol_syslog("uptosign: uptoSignGetSpecimen search in $file for document builder ...");
 		if (is_file($file)) {
 			$filefound = 1;
 			require_once $file;
@@ -143,15 +143,15 @@ function uptoSignGetSpecimen($objectType, $modele, $defaultIfNotFound = false)
 					$filepdf = $pdfpath . '/SPECIMEN.pdf';
 					// print "<p>Demande du specimen fichier $filepdf</p>";
 					$b64 = base64_encode(file_get_contents($filepdf));
-					// dol_syslog("uptoSignGetSpecimen $file found as specimen builder :-) ...");
+					// dol_syslog("uptosign: uptoSignGetSpecimen $file found as specimen builder :-) ...");
 					break;
 				}
 			} catch (Error $e) {
-				dol_syslog("uptoSignGetSpecimen can't call initAsSpecimen for $file");
+				dol_syslog("uptosign: uptoSignGetSpecimen can't call initAsSpecimen for $file");
 			}
 		} else {
 			// print "<p>Can't find $file as specimen builder ...</p>";
-			dol_syslog("uptoSignGetSpecimen can't find $file as specimen builder...");
+			dol_syslog("uptosign: uptoSignGetSpecimen can't find $file as specimen builder...");
 		}
 	}
 
@@ -160,7 +160,7 @@ function uptoSignGetSpecimen($objectType, $modele, $defaultIfNotFound = false)
 	}
 
 	if (empty($b64) && $defaultIfNotFound) {
-		dol_syslog("uptoSignGetSpecimen b64 is empty, use no_template.pdf ...");
+		dol_syslog("uptosign: uptoSignGetSpecimen b64 is empty, use no_template.pdf ...");
 		$filepdf = DOL_DOCUMENT_ROOT . '/custom/uptosign/admin/no_template.pdf';
 		$b64 = base64_encode(file_get_contents($filepdf));
 	}

@@ -55,8 +55,8 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
-require_once '../lib/uptosign.lib.php';
-require_once "../class/uptosign.class.php";
+dol_include_once('/uptosign/lib/uptosign.lib.php');
+dol_include_once('/uptosign/class/uptosign.class.php');
 
 // Translations
 $langs->loadLangs(array("admin", "uptosign@uptosign"));

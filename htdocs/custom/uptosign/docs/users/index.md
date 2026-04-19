@@ -2,6 +2,8 @@
 title: "UptoSign"
 weight: 1
 description: "Module Dolibarr de signature électronique et de scellement de documents en ligne, conforme eIDAS, via un cloud 100 % français."
+category: "Documents"
+type: "module-dolibarr"
 ---
 
 # UptoSign

@@ -113,7 +113,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_test = "SELECT * FROM ".MAIN_DB_PREFIX."uptosign_uptosignconfig WHERE ".$db->regexpsql('model_pdf', '^[0-9]+$');
 			$resql_test = $db->query($sql_test);
 			$nbtotalofrecords = $db->num_rows($resql_test);
-			dol_syslog("uptosign module backup ". $sql_test . " : nb = $nbtotalofrecords", LOG_DEBUG);
+			dol_syslog("uptosign: module backup ". $sql_test . " : nb = $nbtotalofrecords", LOG_DEBUG);
 			if ($nbtotalofrecords == 0) {
 				$cols_conf_uptosign	= array('label', 'sign_or_seal', 'entity', 'sign_coordinate', 'page_sign', 'seal_coordinate', 'page_seal', 'model_pdf',
 										'date_creation', 'tms', 'fk_user_creat', 'fk_user_modif', 'import_key', 'status');
@@ -121,10 +121,10 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 				$sql_conf_uptosign	.= ' FROM '.MAIN_DB_PREFIX.'uptosign_uptosignconfig';
 				$sql_conf_uptosign	.= ' WHERE entity = "'.$conf->entity.'" AND (import_key != "initial-setup" OR import_key IS NULL)';
 				$sql_conf_uptosign	.= ' ORDER BY date_creation';
-				dol_syslog("uptosign module backup ". $sql_conf_uptosign, LOG_DEBUG);
+				dol_syslog("uptosign: module backup ". $sql_conf_uptosign, LOG_DEBUG);
 				fwrite($handle, uptosign_bkup_table('uptosign_uptosignconfig', $sql_conf_uptosign, $cols_conf_uptosign, array(), 0, ''));
 			} else {
-				dol_syslog("uptosign module backup cas ou $nbtotalofrecords != 0 ...", LOG_DEBUG);
+				dol_syslog("uptosign: uptosign module backup cas ou $nbtotalofrecords != 0 ...", LOG_DEBUG);
 			}
 		}
 		// Enabling back the keys/index checking
@@ -162,7 +162,7 @@ function uptosign_bkup_table($table, $sql, $listeCols, $duplicate = array(), $tr
 
 	$sqlnewtable	= '';
 	$result_sql		= $sql ? $db->query($sql) : '';
-	dol_syslog('uptosign.lib::uptosign_bkup_table sql = '.$sql);
+	dol_syslog('uptosign: uptosign.lib::uptosign_bkup_table sql = '.$sql);
 	if ($result_sql) {
 		$truncate		= $truncate ? 'TRUNCATE TABLE '.MAIN_DB_PREFIX.$table.';
 ' : '';
@@ -230,7 +230,7 @@ function uptosign_restore_module($appliname, $tablename = "")
 
 		//if a table name is specified, make a sort of grep
 		if ($tablename != "") {
-			dol_syslog("uptosign_restore_module table name $tablename", LOG_DEBUG);
+			dol_syslog("uptosign: uptosign_restore_module table name $tablename", LOG_DEBUG);
 			$sql = "";
 
 			$content = file_get_contents($filesql);
@@ -240,7 +240,7 @@ function uptosign_restore_module($appliname, $tablename = "")
 				}
 				file_put_contents($filesql.'.sql', $sql);
 			}
-			dol_syslog("uptosign_restore_module save $sql to $filesql .sql", LOG_DEBUG);
+			dol_syslog("uptosign: uptosign_restore_module save $sql to $filesql .sql", LOG_DEBUG);
 		} else {
 			$moved = dol_copy($filesql, $filesql.'.sql');
 		}
@@ -248,7 +248,7 @@ function uptosign_restore_module($appliname, $tablename = "")
 			$result	= run_sql($filesql.'.sql', (empty($conf->global->MAIN_DISPLAY_SQL_INSTALL_LOG) ? 1 : 0), $conf->entity, 1);
 		}
 		$delete	= dol_delete_file($filesql.'.sql');
-		dol_syslog('uptosign.Lib::uptosign_restore_module appliname = '.$appliname.' filesql = '.$filesql.' moved = '.$moved.' result = '.$result.' delete = '.$delete);
+		dol_syslog('uptosign: uptosign.Lib::uptosign_restore_module appliname = '.$appliname.' filesql = '.$filesql.' moved = '.$moved.' result = '.$result.' delete = '.$delete);
 
 		//post restore : disable all impossible templates
 		uptosignDisableAllImpossibleTemplates();
@@ -271,7 +271,7 @@ function uptosign_restore_module($appliname, $tablename = "")
 function uptosign_bkup_get_version($appliname)
 {
 	global $conf;
-	dol_syslog(__METHOD__ . ":: get version for " . $appliname, LOG_DEBUG);
+	dol_syslog("uptosign: " . __METHOD__ . " get version for " . $appliname, LOG_DEBUG);
 
 	$version	= "0.0.0"; //default version
 	$pathsql	= DOL_DATA_ROOT.'/'.(empty($conf->global->MAIN_MODULE_MULTICOMPANY) || $conf->entity == 1 ? '' : $conf->entity.'/').$appliname.'/sql';
@@ -279,13 +279,13 @@ function uptosign_bkup_get_version($appliname)
 	$pathCCsql	= DOL_DATA_ROOT.'/'.(empty($conf->global->MAIN_MODULE_MULTICOMPANY) || $conf->entity == 1 ? '' : $conf->entity.'/').'UptoSign/sql'; //some bad version 1.x
 	$fileCCsql	= $pathCCsql.'/'.'update.'.$conf->entity;
 	if (file_exists($fileCCsql)) {
-		dol_syslog(__METHOD__ . ":: migrate from CamelCase to " . $appliname, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__ . " migrate from CamelCase to " . $appliname, LOG_DEBUG);
 		if (!is_dir($pathsql)) {
-			dol_syslog(__METHOD__ . ":: create target dir " . $pathsql, LOG_DEBUG);
+			dol_syslog("uptosign: " . __METHOD__ . " create target dir " . $pathsql, LOG_DEBUG);
 			@mkdir($pathsql, 0700, true);
 		}
 		if (is_dir($pathsql)) {
-			dol_syslog(__METHOD__ . ":: rename old sql backup $fileCCsql to " . $filesql, LOG_DEBUG);
+			dol_syslog("uptosign: " . __METHOD__ . " rename old sql backup $fileCCsql to " . $filesql, LOG_DEBUG);
 			@copy($fileCCsql, $filesql);
 			//TODO @rename
 		}
@@ -316,7 +316,7 @@ function uptosign_bkup_get_version($appliname)
 		}
 		fclose($fp);
 	}
-	dol_syslog(__METHOD__ . ":: version is " . $version, LOG_DEBUG);
+	dol_syslog("uptosign: " . __METHOD__ . " version is " . $version, LOG_DEBUG);
 	return $version;
 }
 
@@ -344,7 +344,7 @@ function uptosign_migrate_conf_v1_to_v2()
 			}
 			$result = dolibarr_set_const($db, $new, $value, 'chaine', 0, '', $conf->entity);
 			dolibarr_del_const($db, $old, $conf->entity);
-			dol_syslog(__METHOD__ . ":: migrate config data done from " . $old . " to " . $new, LOG_DEBUG);
+			dol_syslog("uptosign: " . __METHOD__ . " migrate config data done from " . $old . " to " . $new, LOG_DEBUG);
 		}
 	}
 
@@ -391,7 +391,7 @@ function uptosign_cleanupModulePath($dir, $basedir, $md5files)
 				} else {
 					//vieux fichier -> supprime ?
 					unlink($dir.'/'.$entry);
-					dol_syslog("uptosign module init, unlink $dir/$entry ...", LOG_DEBUG);
+					dol_syslog("uptosign: module init, unlink $dir/$entry ...", LOG_DEBUG);
 				}
 			}
 		}
@@ -410,7 +410,7 @@ function uptosign_migrate_data_before_2_0_38()
 	global $db, $user;
 	$uptosign = new UptoSign($db);
 	$sql = "SELECT rowid,path_file FROM ".MAIN_DB_PREFIX."uptosign WHERE path_file IS NOT NULL";
-	dol_syslog("uptosign uptosign_migrate_data_before_2_0_38: " . json_encode($sql), LOG_DEBUG);
+	dol_syslog("uptosign: uptosign_migrate_data_before_2_0_38: " . json_encode($sql), LOG_DEBUG);
 	$resql = $db->query($sql);
 	if ($resql) {
 		$num = $db->num_rows($resql);
@@ -425,9 +425,9 @@ function uptosign_migrate_data_before_2_0_38()
 					$uptosign->path_file_signed = $newpath;
 					$uptosign->path_file = null; //old file name ? impossible to invent
 					$uptosign->update($user);
-					dol_syslog("uptosign_migrate_data_before_2_0_38 #$rowid from " . $obj->path_file . " -> " . $newpath . " [ok]");
+					dol_syslog("uptosign: uptosign_migrate_data_before_2_0_38 #$rowid from " . $obj->path_file . " -> " . $newpath . " [ok]");
 				} else {
-					dol_syslog("uptosign_migrate_data_before_2_0_38 error for rowid=$rowid");
+					dol_syslog("uptosign: uptosign_migrate_data_before_2_0_38 error for rowid=$rowid");
 				}
 			}
 			$i++;

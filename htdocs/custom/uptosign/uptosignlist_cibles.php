@@ -143,7 +143,7 @@ if ($action == 'add' && $user->hasRight('uptosign', 'create')) {		// Add recipie
 		}
 		// Load modules attributes in arrays (name, numero, orders) from dir directory
 		// print $dir."\n<br>";
-		dol_syslog("Scan directory ".$dir." for modules");
+		dol_syslog("uptosign: Scan directory ".$dir." for modules");
 
 		// Loading Class
 		$file = $dir."/".$module.".modules.php";
@@ -157,7 +157,7 @@ if ($action == 'add' && $user->hasRight('uptosign', 'create')) {		// Add recipie
 			}
 		}
 		// Add targets into database
-		dol_syslog("Call add_to_target() on class ".$classname);
+		dol_syslog("uptosign: Call add_to_target() on class ".$classname);
 
 		if (class_exists($classname)) {
 			$obj = new $classname($db);
@@ -166,7 +166,7 @@ if ($action == 'add' && $user->hasRight('uptosign', 'create')) {		// Add recipie
 
 			$sqlmessage = $obj->sql;
 		} else {
-			dol_syslog("Call add_to_target() impossible, class does not exists ".$classname, LOG_ERR);
+			dol_syslog("uptosign: Call add_to_target() impossible, class does not exists ".$classname, LOG_ERR);
 			$result = -1;
 			break;
 		}
@@ -176,11 +176,11 @@ if ($action == 'add' && $user->hasRight('uptosign', 'create')) {		// Add recipie
 		$action = '';
 	}
 	if ($result == 0) {
-		dol_syslog($langs->trans("WarningNoEMailsAdded"), LOG_ERR);
+		dol_syslog("uptosign: " . $langs->trans("WarningNoEMailsAdded"), LOG_ERR);
 		setEventMessages($langs->trans("WarningNoEMailsAdded"), [], 'warnings');
 	}
 	if ($result < 0) {
-		dol_syslog($langs->trans("Error") . json_encode($obj->error), LOG_ERR);
+		dol_syslog("uptosign: " . $langs->trans("Error") . json_encode($obj->error), LOG_ERR);
 		setEventMessages($langs->trans("Error").($obj->error ? ' '.$obj->error : ''), [], 'errors');
 	}
 }
@@ -424,7 +424,7 @@ if ($id > 0 && $object->fetch($id)) {
 
 			// Load modules attributes in arrays (name, numero, orders) from dir directory
 			//print $dir."\n<br>";
-			dol_syslog("Scan directory ".$dir." for modules");
+			dol_syslog("uptosign: Scan directory ".$dir." for modules");
 			$handle = @opendir($dir);
 			if (is_resource($handle)) {
 				while (($file = readdir($handle)) !== false) {
@@ -498,7 +498,7 @@ if ($id > 0 && $object->fetch($id)) {
 					try {
 						$nbofrecipient = $obj->getNbOfRecipients('');
 					} catch (Exception $e) {
-						dol_syslog($e->getMessage(), LOG_ERR);
+						dol_syslog("uptosign: " . $e->getMessage(), LOG_ERR);
 					}
 
 					print '<div class="tagtd center valignmiddle">';
@@ -515,7 +515,7 @@ if ($id > 0 && $object->fetch($id)) {
 						try {
 							$filter = $obj->formFilter();
 						} catch (Exception $e) {
-							dol_syslog($e->getMessage(), LOG_ERR);
+							dol_syslog("uptosign: " . $e->getMessage(), LOG_ERR);
 						}
 						if ($filter) {
 							print $filter;

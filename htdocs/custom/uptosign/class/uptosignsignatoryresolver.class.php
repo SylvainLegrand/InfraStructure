@@ -68,7 +68,7 @@ class UptoSignSignatoryResolver
 	public function resolveSigners($object, $internalExternal, $configLabel, ArrayObject &$storeArray)
 	{
 		global $conf;
-		dol_syslog("UptoSignSignatoryResolver::resolveSigners object=" . $object->element . ", internalExternal=$internalExternal, configLabel=$configLabel, storeArray size=" . count($storeArray));
+		dol_syslog("uptosign: UptoSignSignatoryResolver::resolveSigners object=" . $object->element . ", internalExternal=$internalExternal, configLabel=$configLabel, storeArray size=" . count($storeArray));
 
 		$socid = null;
 		$dedup = [];
@@ -86,7 +86,7 @@ class UptoSignSignatoryResolver
 
 		if (empty($socid) && $object->element != 'user') {
 			array_push($this->errors, "UptoSignThereIsNoSocidForThatObject");
-			dol_syslog("  resolveSigners: there is no socid for that object", LOG_ERR);
+			dol_syslog("uptosign: resolveSigners: there is no socid for that object", LOG_ERR);
 			return -1;
 		}
 
@@ -103,16 +103,16 @@ class UptoSignSignatoryResolver
 			$pm = $object->personal_mobile;
 			if (empty($pm)) {
 				$pm = $object->user_mobile;
-				dol_syslog("  resolveSigners: user personal_mobile is empty, try user_mobile: $pm");
+				dol_syslog("uptosign: resolveSigners: user personal_mobile is empty, try user_mobile: $pm");
 			}
 			$phone_mobile = uptoSignSearchMobile($pm, $object->office_phone, $object->country_code);
 			if (empty($phone_mobile)) {
 				array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-				dol_syslog("  resolveSigners: user element type, without mobile phone or error format");
+				dol_syslog("uptosign: resolveSigners: user element type, without mobile phone or error format");
 			}
 
 			if (!in_array($phone_mobile, $dedup)) {
-				dol_syslog("  resolveSigners: (u1) put in dedup " . $object->personal_email);
+				dol_syslog("uptosign: resolveSigners: (u1) put in dedup " . $object->personal_email);
 				array_push($dedup, $phone_mobile);
 				$storeArray->append($object);
 			}
@@ -128,7 +128,7 @@ class UptoSignSignatoryResolver
 				}
 
 				if (!in_array($phone_mobile, $dedup)) {
-					dol_syslog("  resolveSigners: (1) put in dedup " . $c->email);
+					dol_syslog("uptosign: resolveSigners: (1) put in dedup " . $c->email);
 					array_push($dedup, $phone_mobile);
 					$storeArray->append($c);
 				}
@@ -138,7 +138,7 @@ class UptoSignSignatoryResolver
 		// Fetch contacts linked to the object
 		$contactIds = $object->getIdContact($internalExternal, $configLabel);
 		if (count($contactIds) == 0) {
-			dol_syslog("  resolveSigners: no sign contact linked to object with label=$configLabel, try with societe (socid=$socid)...");
+			dol_syslog("uptosign: resolveSigners: no sign contact linked to object with label=$configLabel, try with societe (socid=$socid)...");
 			if ($internalExternal == 'external') {
 				$societe = new Societe($this->db);
 				$resSoc = $societe->fetch($socid);
@@ -159,7 +159,7 @@ class UptoSignSignatoryResolver
 							$found = true;
 						}
 						if (!$found) {
-							dol_syslog("  resolveSigners: contact " . $c->email . " has not $configLabel role");
+							dol_syslog("uptosign: resolveSigners: contact " . $c->email . " has not $configLabel role");
 							continue;
 						}
 						$phone_mobile = uptoSignSearchMobile($c->phone_mobile, $c->phone_pro, $c->country_code);
@@ -169,21 +169,21 @@ class UptoSignSignatoryResolver
 						}
 
 						if (!in_array($phone_mobile, $dedup)) {
-							dol_syslog("  resolveSigners: (2) put " . $phone_mobile . " (" . $c->email . ") in dedup list");
+							dol_syslog("uptosign: resolveSigners: (2) put " . $phone_mobile . " (" . $c->email . ") in dedup list");
 							array_push($dedup, $phone_mobile);
 							$storeArray->append($c);
 						}
 					}
 
 					if (count($cts) == 0) {
-						dol_syslog("  resolveSigners: no sign contact linked to societe [$socid] either");
+						dol_syslog("uptosign: resolveSigners: no sign contact linked to societe [$socid] either");
 					}
 				} else {
-					dol_syslog("  resolveSigners: can't fetch societe id $socid");
+					dol_syslog("uptosign: resolveSigners: can't fetch societe id $socid");
 				}
 			}
 		} else {
-			dol_syslog("  resolveSigners: sign contact linked to object found");
+			dol_syslog("uptosign: resolveSigners: sign contact linked to object found");
 		}
 
 		// Add internal users from config
@@ -191,7 +191,7 @@ class UptoSignSignatoryResolver
 			$listeUsers = explode(',', $conf->global->UPTOSIGN_DOLIBARR_USERS_SIGN);
 			foreach ($listeUsers as $userid) {
 				$contactIds[] = $userid;
-				dol_syslog("  resolveSigners: add internal user $userid");
+				dol_syslog("uptosign: resolveSigners: add internal user $userid");
 			}
 		}
 
@@ -215,7 +215,7 @@ class UptoSignSignatoryResolver
 							continue;
 						}
 						if (!in_array($phone_mobile, $dedup)) {
-							dol_syslog("  resolveSigners: (3) put in dedup $phone_mobile for email=$contact->email");
+							dol_syslog("uptosign: resolveSigners: (3) put in dedup $phone_mobile for email=$contact->email");
 							array_push($dedup, $phone_mobile);
 							$storeArray->append($contact);
 						}
@@ -236,7 +236,7 @@ class UptoSignSignatoryResolver
 							continue;
 						}
 						if (!in_array($phone_mobile, $dedup)) {
-							dol_syslog("  resolveSigners: (4) put in dedup " . $oneuser->email);
+							dol_syslog("uptosign: resolveSigners: (4) put in dedup " . $oneuser->email);
 							array_push($dedup, $phone_mobile);
 							$storeArray->append($oneuser);
 						}
@@ -246,9 +246,9 @@ class UptoSignSignatoryResolver
 		}
 
 		if (is_countable($storeArray)) {
-			dol_syslog("  resolveSigners: return size array = " . count($storeArray));
+			dol_syslog("uptosign: resolveSigners: return size array = " . count($storeArray));
 		} else {
-			dol_syslog("  resolveSigners: return size array = " . $storeArray->count());
+			dol_syslog("uptosign: resolveSigners: return size array = " . $storeArray->count());
 		}
 	}
 
@@ -262,7 +262,7 @@ class UptoSignSignatoryResolver
 	{
 		global $conf;
 		$object->fetchRoles();
-		dol_syslog("UptoSignSignatoryResolver::giveAllRolesToContact initial roles " . json_encode($object->roles));
+		dol_syslog("uptosign: UptoSignSignatoryResolver::giveAllRolesToContact initial roles " . json_encode($object->roles));
 
 		$duplicateID = [];
 		foreach ($object->roles as $key => $val) {
@@ -283,7 +283,7 @@ class UptoSignSignatoryResolver
 			$code .= "'VendorSign'";
 		}
 		if ($code == "") {
-			dol_syslog("giveAllRolesToContact not customer, not supplier, return");
+			dol_syslog("uptosign: giveAllRolesToContact not customer, not supplier, return");
 			return -1;
 		}
 
@@ -293,7 +293,7 @@ class UptoSignSignatoryResolver
 		if ($resql) {
 			while ($obj = $this->db->fetch_object($resql)) {
 				if (!in_array($obj->rowid, $duplicateID)) {
-					dol_syslog("giveAllRolesToContact add row " . json_encode($obj));
+					dol_syslog("uptosign: giveAllRolesToContact add row " . json_encode($obj));
 					$modulename = $obj->element;
 					if (strpos($obj->element, 'project') !== false) {
 						$modulename = 'projet';
@@ -314,14 +314,14 @@ class UptoSignSignatoryResolver
 							'label' => $obj->libelle,
 						];
 					} else {
-						dol_syslog("giveAllRolesToContact module $modulename seems to be disabled !");
+						dol_syslog("uptosign: giveAllRolesToContact module $modulename seems to be disabled !");
 					}
 				}
 			}
 		} else {
-			dol_syslog("giveAllRolesToContact sql result empty/error " . json_encode($sql));
+			dol_syslog("uptosign: giveAllRolesToContact sql result empty/error " . json_encode($sql));
 		}
-		dol_syslog("giveAllRolesToContact apply " . json_encode($object->roles));
+		dol_syslog("uptosign: giveAllRolesToContact apply " . json_encode($object->roles));
 		return $object->updateRoles();
 	}
 
@@ -378,7 +378,7 @@ class UptoSignSignatoryResolver
 			return $tab;
 		} else {
 			array_push($this->errors, "Error " . $this->db->lasterror());
-			dol_syslog("UptoSignSignatoryResolver::getTypeContactCode " . join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: UptoSignSignatoryResolver::getTypeContactCode " . join(',', $this->errors), LOG_ERR);
 			return null;
 		}
 	}
@@ -391,10 +391,10 @@ class UptoSignSignatoryResolver
 	 */
 	public function getSourceContactCode($element)
 	{
-		dol_syslog('UptoSignSignatoryResolver::getSourceContactCode for ' . $element, LOG_DEBUG);
+		dol_syslog('uptosign: UptoSignSignatoryResolver::getSourceContactCode for ' . $element, LOG_DEBUG);
 
 		if (empty($element)) {
-			dol_syslog('UptoSignSignatoryResolver::getSourceContactCode element is empty, short return', LOG_DEBUG);
+			dol_syslog('uptosign: UptoSignSignatoryResolver::getSourceContactCode element is empty, short return', LOG_DEBUG);
 			return null;
 		}
 
@@ -421,7 +421,7 @@ class UptoSignSignatoryResolver
 			return $tab;
 		} else {
 			array_push($this->errors, "Error " . $this->db->lasterror());
-			dol_syslog("UptoSignSignatoryResolver::getSourceContactCode " . join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: UptoSignSignatoryResolver::getSourceContactCode " . join(',', $this->errors), LOG_ERR);
 			return null;
 		}
 	}

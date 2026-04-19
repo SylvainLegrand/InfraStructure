@@ -170,9 +170,9 @@ if (empty($pdfFileChoosed)) {
 
 $hookmanager->initHooks(array('uptosigntab', 'globalcard')); // Note that conf->hooks_modules contains array
 
-$permissiontoaccess = $user->rights->uptosign->read;
-$permissiontoadd = $user->rights->uptosign->create;
-$permissiontodelete = $user->rights->uptosign->delete;
+$permissiontoaccess = $user->hasRight('uptosign', 'read');
+$permissiontoadd = $user->hasRight('uptosign', 'create');
+$permissiontodelete = $user->hasRight('uptosign', 'delete');
 
 /*
 Note: vérification des droits associés et nécessaires:
@@ -181,8 +181,8 @@ Note: vérification des droits associés et nécessaires:
 	.../...?
 */
 $otherModulesRights = [
-	$user->rights->societe->lire,
-	$user->rights->societe->client->voir,
+	$user->hasRight('societe', 'lire'),
+	$user->hasRight('societe', 'client', 'voir'),
 ];
 // Security check - Protection if external user
 if ($user->socid > 0) {
@@ -327,7 +327,7 @@ if ($action == 'uptosign') {
 				);
 				$signerName = $contact->firstname . " " . $contact->lastname;
 			} else {
-				dol_syslog("do not start sign for that document, x or y is null");
+				dol_syslog("uptosign: do not start sign for that document, x or y is null");
 			}
 		}
 
@@ -480,7 +480,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '	<div class="fichecenter">' . "\n";
 	print ' 	<div class="fichethirdleft" style="padding:10px; max-width: 200px">' . "\n";
 	uptosign_render_page_nav();
-	dol_syslog("uptosign, pdfFileChoosed is " . $pdfFileChoosed);
+	dol_syslog("uptosign: pdfFileChoosed is " . $pdfFileChoosed);
 	$fileInfo = uptosign_render_pdf_selector($upload_dir, $pdfFileChoosed, $pdfFileChoosedFullPath);
 	print '	  <input type="hidden" id="objectType" name="objectType" value="' . $objectType . '">' . "\n";
 	print '	  <input type="hidden" id="id" name="id" value="' . $id . '">' . "\n";

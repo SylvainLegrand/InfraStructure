@@ -54,8 +54,8 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
-require_once '../lib/uptosign.lib.php';
-require_once "../class/uptosign.class.php";
+dol_include_once('/uptosign/lib/uptosign.lib.php');
+dol_include_once('/uptosign/class/uptosign.class.php');
 
 
 // Translations
@@ -90,7 +90,7 @@ $useFormSetup = 1;
 if (!class_exists('FormSetup')) {
 	// For retrocompatibility Dolibarr < 16.0
 	if (floatval(DOL_VERSION) < 16.0 && !class_exists('FormSetup')) {
-		require_once __DIR__.'/../backport/v16/core/class/html.formsetup.class.php';
+		dol_include_once('/uptosign/backport/v16/core/class/html.formsetup.class.php');
 	} else {
 		require_once DOL_DOCUMENT_ROOT.'/core/class/html.formsetup.class.php';
 	}

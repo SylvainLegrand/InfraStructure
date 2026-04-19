@@ -91,7 +91,7 @@ class modUptoSign extends DolibarrModules
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
 		// To use a supported fa-xxx css style of font awesome, use this->picto='xxx'
-		$this->picto = 'uptosign@uptosign';
+		$this->picto = 'uptosign.png@uptosign';
 
 		// Define some features supported by module (triggers, login, substitutions, menus, css, etc...)
 		$this->module_parts = array(
@@ -807,6 +807,18 @@ class modUptoSign extends DolibarrModules
 		dolibarr_set_const($db, 'UPTOSIGN_MODULE_VERSION', $this->version, 'chaine', 0, 'Active module version', $conf->entity);
 		dolibarr_del_const($db, 'UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL', $conf->entity);
 		dol_syslog("uptosign module end init", LOG_DEBUG);
+
+		// Flush Memcached cache on module activation/upgrade
+		if (isModEnabled('memcached') && class_exists('Memcached')) {
+			$m = new Memcached();
+			$tmparray = explode(':', $conf->global->MEMCACHED_SERVER);
+			$result = $m->addServer($tmparray[0], $tmparray[1] ? $tmparray[1] : 11211);
+			if ($result) {
+				/* Invalidate all items in 1 second */
+				$m->flush(1);
+			}
+		}
+
 		return $this->_init($sql, $options);
 	}
 

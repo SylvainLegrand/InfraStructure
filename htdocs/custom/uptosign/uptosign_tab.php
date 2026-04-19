@@ -182,9 +182,9 @@ if (empty($pdfFileChoosed)) {
 
 $hookmanager->initHooks(array('uptosigntab', 'globalcard')); // Note that conf->hooks_modules contains array
 
-$permissiontoaccess = $user->rights->uptosign->read;
-$permissiontoadd = $user->rights->uptosign->create;
-$permissiontodelete = $user->rights->uptosign->delete;
+$permissiontoaccess = $user->hasRight('uptosign', 'read');
+$permissiontoadd = $user->hasRight('uptosign', 'create');
+$permissiontodelete = $user->hasRight('uptosign', 'delete');
 
 /*
 Note: vérification des droits associés et nécessaires:
@@ -193,8 +193,8 @@ Note: vérification des droits associés et nécessaires:
 	.../...?
 */
 $otherModulesRights = [
-	$user->rights->societe->lire,
-	$user->rights->societe->client->voir,
+	$user->hasRight('societe', 'lire'),
+	$user->hasRight('societe', 'client', 'voir'),
 ];
 // Security check - Protection if external user
 if ($user->socid > 0) {
@@ -594,7 +594,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '	<div class="fichecenter">' . "\n";
 	print ' 	<div class="fichethirdleft" style="padding:10px; max-width: 200px">' . "\n";
 	uptosign_render_page_nav();
-	dol_syslog("uptosign, pdfFileChoosed is " . $pdfFileChoosed);
+	dol_syslog("uptosign: pdfFileChoosed is " . $pdfFileChoosed);
 	$fileInfo = uptosign_render_pdf_selector($upload_dir, $pdfFileChoosed, $pdfFileChoosedFullPath);
 	print '	  <input type="hidden" id="objectType" name="objectType" value="' . $objectType . '">' . "\n";
 	print '	  <input type="hidden" id="id" name="id" value="' . $id . '">' . "\n";
@@ -718,7 +718,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			$isUser = $isSoc = $isContact = false;
 			//contact (socpeople) or dolibarr user ?
 			if ($c->element == "user") {
-				dol_syslog("uptosign : user " . json_encode($c));
+				dol_syslog("uptosign: user " . json_encode($c));
 				$uniqID = 'user-' . $userCount;
 				$numero = uptoSignSearchMobile($c->user_mobile, $c->office_phone, $c->country_code);
 
@@ -726,10 +726,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 				$isUser = true;
 				$userCount++;
 			} elseif ($c->element == "societe") {
-				dol_syslog("uptosign : societe " . json_encode($c));
+				dol_syslog("uptosign: societe " . json_encode($c));
 				//si aucun contact n'est lié à ce tiers, utilisation du tiers
 				if (!$hasContact) {
-					dol_syslog("uptosign : tiers sans contact, utilisation du tiers " . json_encode($c));
+					dol_syslog("uptosign: tiers sans contact, utilisation du tiers " . json_encode($c));
 					$uniqID = 'socsign';
 					$numero = uptoSignFixMobile($c->phone_mobile ?? $c->phone, $c->state_code ?? $c->country_code);
 					$name = "TIERS:" . $c->name;
@@ -738,7 +738,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					continue;
 				}
 			} elseif ($c->element == 'contact' || $c->source == "external") {
-				dol_syslog("uptosign : contact ou externe " . json_encode($c));
+				dol_syslog("uptosign: contact ou externe " . json_encode($c));
 
 				if ($contact->fetch($c->id)) {
 					$uniqID = 'contact-' . $contactCount;
@@ -754,7 +754,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					continue;
 				}
 			} else {
-				dol_syslog("uptosign : garbage collector " . json_encode($c));
+				dol_syslog("uptosign: garbage collector " . json_encode($c));
 				$uniqID = 'garbage collector';
 				$name = "NONAME";
 				// print '<p>' .$c->source . "::". json_encode($c). '</p>';
@@ -782,7 +782,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			if ($numero == -1 && $email == -1) {
-				dol_syslog("uptosign : continue due to numero=$numero or email=$email " . json_encode($c));
+				dol_syslog("uptosign: continue due to numero=$numero or email=$email " . json_encode($c));
 				continue;
 			}
 
@@ -799,11 +799,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// print "<p>debug: Ajoute dans la liste $email ($uniqID) " . $c->uptoTag . "</p>";
 			// print "<p>debug: Position to sign: " . json_encode($positionsSign[$c->uptoTag]) . "</p>";
 			$i = 0;
-			dol_syslog("uptosign lancement de la boucle sur " . json_encode($positionsSign));
+			dol_syslog("uptosign: lancement de la boucle sur " . json_encode($positionsSign));
 			//genere les champs hidden html pour les differents objets
 			foreach ($positionsSign as $page => $posSign) {
 				$x = $y = $p = 0;
-				dol_syslog("[$i/$page] uptosign boucle foreach sur $email toutes positions = " . json_encode($posSign));
+				dol_syslog("uptosign: [$i/$page] boucle foreach sur $email toutes positions = " . json_encode($posSign));
 				$tabKey = "";
 				if (strpos($uniqID, 'user-') === false) {
 					$defaultKeyword = "Contact";
@@ -835,7 +835,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 				$y = $posSign[$tabKey]['defaultSign' . $defaultKeyword . 'Y'] ?? 0;
 				$p = $posSign[$tabKey]['defaultSign' . $defaultKeyword . 'Page'] ?? 0;
 				if ($x == 0 && $p == 0 && in_array($email, $eviteDoublonJson)) {
-					dol_syslog("[$i/$page] $x / $p ($defaultKeyword | $$tabKey) uptosign evite doublon ... " . json_encode($posSign));
+					dol_syslog("uptosign: [$i/$page] $x / $p ($defaultKeyword | $$tabKey) evite doublon ... " . json_encode($posSign));
 					continue;
 				}
 
@@ -853,17 +853,17 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					'error' => $error
 				);
 
-				dol_syslog("[$i/$page] uptosign avant le 2° foreach, x=$x, y=$y, p=$p");
+				dol_syslog("uptosign: [$i/$page] avant le 2° foreach, x=$x, y=$y, p=$p");
 				$listOfFields = ['signX', 'signY', 'page'];
 				$fieldName = '';
 				foreach ($listOfFields as $f) {
 					$fieldName = $uniqID . '-' . $i . '-' . $f;
 					print '<input id="' . $fieldName . '" name="' . $fieldName . '" type="hidden" value="">' . "\n";
 				}
-				dol_syslog("[$i/$page] uptosign apres le 2° foreach... $fieldName");
+				dol_syslog("uptosign: [$i/$page] apres le 2° foreach... $fieldName");
 				$i++;
 			}
-			dol_syslog("[$i] uptosign apres la boucle...");
+			dol_syslog("uptosign: [$i] apres la boucle...");
 			print '<input id="' . $uniqID . '" name="' . $uniqID . '" type="hidden" value="' . $c->id . '">' . "\n";
 		}
 		print '	  <input type="hidden" id="countOfContacts" name="countOfContacts" value="' . $contactCount . '">' . "\n";

@@ -128,10 +128,10 @@ include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be includ
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
 $enablepermissioncheck = 1;
 if ($enablepermissioncheck) {
-	$permissiontoread = $user->rights->uptosign->employee->read;
-	$permissiontodelete = $user->rights->uptosign->employee->create;
-	$permissionnote = $user->rights->uptosign->employee->create;
-	$permissiondellink = $user->rights->uptosign->employee->read;
+	$permissiontoread = $user->hasRight('uptosign', 'employee', 'read');
+	$permissiontodelete = $user->hasRight('uptosign', 'employee', 'create');
+	$permissionnote = $user->hasRight('uptosign', 'employee', 'create');
+	$permissiondellink = $user->hasRight('uptosign', 'employee', 'read');
 } else {
 	$permissiontoread = 1;
 	$permissiontodelete = 1;

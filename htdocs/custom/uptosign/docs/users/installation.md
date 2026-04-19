@@ -55,7 +55,7 @@ Le module crée automatiquement les tables nécessaires en base de données.
 
 ## Premier paramétrage
 
-Après activation, rendez-vous dans **Accueil > Configuration > Modules > UptoSign** pour effectuer le paramétrage initial. Le module présente plusieurs onglets de configuration détaillés dans la page [Configuration](/view.php?path=uptosign/configuration.md).
+Après activation, rendez-vous dans **Accueil > Configuration > Modules > UptoSign** pour effectuer le paramétrage initial. Le module présente plusieurs onglets de configuration détaillés dans la page [Configuration](/uptosign/configuration).
 
 Les étapes minimales pour démarrer sont :
 

@@ -534,7 +534,7 @@ if ($action == "uptosign_started") {
 
 print '<span id="dolpaymentspan"></span>' . "\n";
 print '<div class="center">' . "\n";
-print '<form id="dolpaymentform" class="center" name="paymentform" action="' . $_SERVER["PHP_SELF"] . '" method="POST">' . "\n";
+print '<form id="dolpaymentform" class="center" name="paymentform" action="' . $_SERVER["PHP_SELF"] . '" method="POST" data-submit-once>' . "\n";
 print '<input type="hidden" name="token" value="' . newToken() . '">' . "\n";
 print '<input type="hidden" name="action" value="dosign">' . "\n";
 print '<input type="hidden" name="tag" value="' . (string) GETPOST("tag", 'alpha') . '">' . "\n";
@@ -1139,6 +1139,19 @@ if (((int) DOL_VERSION) < 18) {
 	/** @phpstan-ignore-next-line */
 	htmlPrintOnlineFooter($mysoc, $langs);
 }
+
+print '<script>
+document.querySelectorAll("form[data-submit-once]").forEach(function(form) {
+	form.addEventListener("submit", function() {
+		var btn = form.querySelector("[type=submit]");
+		if (btn) {
+			btn.disabled = true;
+			btn.dataset.originalText = btn.innerHTML;
+			btn.innerHTML = \'<span class="loading loading-spinner loading-xs"></span> \' + (btn.dataset.loadingText || btn.textContent);
+		}
+	});
+});
+</script>';
 
 llxFooter('', 'public');
 

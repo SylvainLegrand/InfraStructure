@@ -451,7 +451,11 @@ class ActionsUptoSign
 				dol_syslog("uptosign doAction object is commande, fetch result is > 0, status is $signStatus");
 				//if ($signStatus == UptoSign::STATUS_CANCELED || $signStatus == UptoSign::STATUS_ERROR) {
 				if ($signStatus == UptoSign::STATUS_CANCELED) {
-					$object->cancel();
+					if (((int) DOL_VERSION) >= 23) {
+						$object->cancel($user);
+					} else {
+						$object->cancel();
+					}
 				} elseif ($signStatus >= UptoSign::STATUS_SIGNED) {
 					//TODO pourquoi ?
 					if(getDolGlobalString('UPTOSIGN_WORKFLOW_AUTO_CLOSE_ORDER')) {
@@ -712,14 +716,14 @@ class ActionsUptoSign
 				} else {
 					// print "<p>UptoSign : debug pour signStatus == $signStatus</p>";
 					if ($signStatus == UptoSign::STATUS_WAITING || $signStatus == UptoSign::STATUS_DRAFT) {
-						if ($user->rights->uptosign->read) {
+						if ($user->hasRight('uptosign', 'read')) {
 							print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=' . $signOrSeal . 'sync"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignSync') . '</a></div>';
 						} else {
 							print '<div class="inline-block divButAction"><a class="butActionRefused classfortooltip" title="' . $langs->trans('UptoSignYouDoNotHaveRightsToDo') . '" href="#"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignSync') . '</a></div>';
 						}
 					} elseif ($signStatus == UptoSign::STATUS_SIGNED || $signStatus == UptoSign::STATUS_SEALED) {
 						//|| $signStatus == UptoSign::STATUS_FILE_FETCHED -> si déjà téléchargé on n'affiche pas le bouton
-						if ($user->rights->uptosign->read) {
+						if ($user->hasRight('uptosign', 'read')) {
 							if ($currentcontext == 'contractcard') {
 								print '<div class="inline-block divButAction"><a class="butAction" href="' . $phpself . '?id=' . $object->id . '&action=confirm_' . $signOrSeal . 'fetch"><i class=\"fas fa-signature\"></i>' . $langs->trans($signOrSeal . 'Fetch') . '</a></div>';
 							} else {
@@ -743,7 +747,7 @@ class ActionsUptoSign
 			} else {
 				if ($status <= $maxStatus) {
 					//Creation
-					if ($user->rights->uptosign->create) {
+					if ($user->hasRight('uptosign', 'create')) {
 						print $this->_availableButtonSignSeal($object, $objectExtraFieldUptoSignEnabled);
 					} else {
 						if ($objectExtraFieldUptoSignEnabled) {
@@ -1121,7 +1125,7 @@ class ActionsUptoSign
 		global $user;
 
 		if ($parameters['features'] == 'myobject') {
-			if ($user->rights->uptosign->myobject->read) {
+			if ($user->hasRight('uptosign', 'myobject', 'read')) {
 				$this->results['result'] = 1;
 				return 1;
 			} else {
@@ -1151,7 +1155,7 @@ class ActionsUptoSign
 
 		/* print_r($parameters); print_r($object); echo "action: " . $action; */
 		if (in_array($parameters['currentcontext'], array('emailtemplates'))) {
-			if ($user->rights->uptosign->create) {
+			if ($user->hasRight('uptosign', 'create')) {
 				// $this->results['uptosign_init_propal'] = $langs->trans('UptoSignInitPropalTemplate');
 				// $this->results['uptosign_end_propal'] = $langs->trans('UptoSignEndPropalTemplate');
 				// $this->results['uptosign_init_expedition'] = $langs->trans('UptoSignInitExpeditionTemplate');

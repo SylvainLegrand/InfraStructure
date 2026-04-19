@@ -33,6 +33,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
  */
 class UptoSignList extends CommonObject
 {
+	public const TRIGGER_PREFIX = 'UPTOSIGNLIST';
+
 	public $socid;
 	public $oldref;
 	public $labelStatusShort;
@@ -610,7 +612,7 @@ class UptoSignList extends CommonObject
 					dol_syslog(get_class($this)."::validate() rename dir ".$dirsource." into ".$dirdest);
 
 					if (@rename($dirsource, $dirdest)) {
-						dol_syslog("Rename ok");
+						dol_syslog("uptosign: Rename ok");
 						// Rename docs starting with $oldref with $newref
 						$listoffiles = dol_dir_list($conf->uptosign->dir_output.'/uptosignlist/'.$newref, 'files', 1, '^'.preg_quote($oldref, '/'));
 						foreach ($listoffiles as $fileentry) {

@@ -149,9 +149,9 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 		// For example : COMPANY_CREATE => public function companyCreate($action, $object, User $user, Translate $langs, Conf $conf)
 		$methodName = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($action)))));
 		$callback = array($this, $methodName);
-		dol_syslog("Trigger uptosign ".$this->name." will cal $methodName function");
+		dol_syslog("uptosign: Trigger ".$this->name." will call $methodName function");
 		if (is_callable($callback)) {
-			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+			dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 			return call_user_func($callback, $action, $object, $user, $langs, $conf);
 		};
 
@@ -185,9 +185,9 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 					$uptoSign = new UptoSign($db);
 					$res = $uptoSign->giveAllRolesToContact($object);
 					if ($res > 0) {
-						dol_syslog("UptoSignAssignAllSignRoleToContact trigger ok");
+						dol_syslog("uptosign: UptoSignAssignAllSignRoleToContact trigger ok");
 					} else {
-						dol_syslog("UptoSignAssignAllSignRoleToContact trigger error");
+						dol_syslog("uptosign: UptoSignAssignAllSignRoleToContact trigger error");
 					}
 				}
 				break;
@@ -216,33 +216,33 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			//case 'ORDER_MODIFY':
 			case 'ORDER_MODIFY':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'ORDER_VALIDATE':
 			//case 'ORDER_DELETE':
 			case 'ORDER_DELETE':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'ORDER_CANCEL':
 			case 'ORDER_CANCEL':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'ORDER_SENTBYMAIL':
 			//case 'ORDER_CLASSIFY_BILLED':
 			//case 'ORDER_SETDRAFT':
 			case 'ORDER_SETDRAFT':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			case 'ORDER_UNVALIDATE':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 
 			CASE 'INVOICE_SEALED':
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				if (getDolGlobalString('UPTOSIGN_WORKFLOW_AUTO_SEND_INVOICE_IF_FROM_PROPAL_SIGN')) {
 					//Auto send
 					$object->fetchObjectLinked('', 'propal', $object->id, 'facture');
@@ -287,12 +287,12 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			// PROPAL_REOPEN : dolibarr 15+
 			case 'PROPAL_REOPEN':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'PROPAL_VALIDATE':
 			//case 'PROPAL_SENTBYMAIL':
 			case 'PROPAL_CLOSE_SIGNED':
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				if (getDolGlobalString('UPTOSIGN_WORKFLOW_PROPAL_AUTOCREATE_INVOICE_ON_PROPAL_SIGN')) {
 					//call auto create invoice
 					$object->fetchObjectLinked();
@@ -317,12 +317,12 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			//case 'PROPAL_CLOSE_REFUSED':
 			case 'PROPAL_CLOSE_REFUSED':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'PROPAL_DELETE':
 			case 'PROPAL_DELETE':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'LINEPROPAL_INSERT':
 			//case 'LINEPROPAL_UPDATE':
@@ -347,7 +347,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			//case 'CONTRACT_CANCEL':
 			//case 'CONTRACT_CLOSE':
 			case 'CONTRACT_CLOSED_SIGNED':
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				// Activate all service lines when contract is signed
 				// load contract lines
 				if ($object instanceof Contrat && getDolGlobalInt('UPTOSIGN_ACTIVATE_SERVICES_ON_CONTRACT_SIGNED')) {
@@ -373,9 +373,9 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 								if (!empty($line->errors)) {
 									$this->errors	= array_merge($this->errors, $line->errors);
 								}
-								dol_syslog("Error activating contract line id=".$line->id.": ".$line->error, LOG_ERR);							return -1;
+								dol_syslog("uptosign: Error activating contract line id=".$line->id.": ".$line->error, LOG_ERR);							return -1;
 							} else {
-								dol_syslog("Contract line id=".$line->id." activated successfully");
+								dol_syslog("uptosign: Contract line id=".$line->id." activated successfully");
 							}
 						}
 					}
@@ -504,13 +504,13 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			//case 'FICHINTER_MODIFY':
 			case 'FICHINTER_MODIFY':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'FICHINTER_VALIDATE':
 			//case 'FICHINTER_DELETE':
 			case 'FICHINTER_DELETE':
 				$result = $this->cancelUptoSign($object->id, $object->element, $user, $langs);
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 			//case 'LINEFICHINTER_CREATE':
 			//case 'LINEFICHINTER_UPDATE':
@@ -562,7 +562,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			// and more...
 
 			default:
-				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
 		}
 

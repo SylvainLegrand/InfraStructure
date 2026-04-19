@@ -55,7 +55,7 @@ if (!$res) {
 }
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-require_once '../lib/uptosign.lib.php';
+dol_include_once('/uptosign/lib/uptosign.lib.php');
 
 // Load translation files required by the page
 $langs->loadLangs(array('uptosign@uptosign', 'admin'));

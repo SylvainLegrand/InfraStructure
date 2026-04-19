@@ -157,11 +157,11 @@ include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be includ
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
 $enablepermissioncheck = 1;
 if ($enablepermissioncheck) {
-	$permissiontoread = $user->rights->uptosign->uptosignconfig->read;
-	$permissiontoadd = $user->rights->uptosign->uptosignconfig->write; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
-	$permissiontodelete = $user->rights->uptosign->uptosignconfig->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
-	$permissionnote = $user->rights->uptosign->uptosignconfig->write; // Used by the include of actions_setnotes.inc.php
-	$permissiondellink = $user->rights->uptosign->uptosignconfig->write; // Used by the include of actions_dellink.inc.php
+	$permissiontoread = $user->hasRight('uptosign', 'uptosignconfig', 'read');
+	$permissiontoadd = $user->hasRight('uptosign', 'uptosignconfig', 'write'); // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+	$permissiontodelete = $user->hasRight('uptosign', 'uptosignconfig', 'delete') || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
+	$permissionnote = $user->hasRight('uptosign', 'uptosignconfig', 'write'); // Used by the include of actions_setnotes.inc.php
+	$permissiondellink = $user->hasRight('uptosign', 'uptosignconfig', 'write'); // Used by the include of actions_dellink.inc.php
 } else {
 	$permissiontoread = 1;
 	$permissiontoadd = 1; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php

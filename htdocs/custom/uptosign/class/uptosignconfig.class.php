@@ -37,6 +37,8 @@ dol_include_once('/uptosign/lib/backports.lib.php');
  */
 class UptoSignConfig extends CommonObject
 {
+	public const TRIGGER_PREFIX = 'UPTOSIGNCONFIG';
+
 	public $labelStatusShort;
 	public $labelStatus;
 	public $output;
@@ -909,6 +911,7 @@ class UptoSignConfig extends CommonObject
 				if (!empty($obj->fk_user_valid)) {
 					$vuser = new User($this->db);
 					$vuser->fetch($obj->fk_user_valid);
+					$this->user_validation_id = $vuser->id;
 					$this->user_validation = $vuser;
 				}
 

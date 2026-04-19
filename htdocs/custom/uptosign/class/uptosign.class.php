@@ -41,6 +41,8 @@ dol_include_once('/uptosign/lib/backports.lib.php');
  */
 class UptoSign extends CommonObject
 {
+	public const TRIGGER_PREFIX = 'UPTOSIGN';
+
 	private const BASE_URL_DEMO = 'https://demo.uptosign.org';
 	private const BASE_URL_PROD = 'https://app.uptosign.com';
 	private const BASE_URL_DEV  = 'https://dev.uptosign.com';
@@ -329,7 +331,7 @@ class UptoSign extends CommonObject
 		global $langs, $extrafields;
 		$error = 0;
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$object = new self($this->db);
 
@@ -431,9 +433,9 @@ class UptoSign extends CommonObject
 
 		$message = $title = "";
 
-		dol_syslog("createEvent lang default = " . $langs->getDefaultLang());
+		dol_syslog("uptosign: createEvent lang default = " . $langs->getDefaultLang());
 		if ($langs->getDefaultLang() == 'auto' || $langs->getDefaultLang() == 'en_US') {
-			dol_syslog("createEvent lang = " . $langs->getDefaultLang());
+			dol_syslog("uptosign: createEvent lang = " . $langs->getDefaultLang());
 		}
 		$langs->loadLangs(array("uptosign@uptosign", "main", "other", "companies", "errors"));
 
@@ -451,7 +453,7 @@ class UptoSign extends CommonObject
 				$title = $langs->trans("UptoSealProcessTitle");
 			} else {
 				$signOrSeal = $object->signOrSeal;
-				dol_syslog("createEvent strange situation signorseal is not sign not seal but " . $signOrSeal);
+				dol_syslog("uptosign: createEvent strange situation signorseal is not sign not seal but " . $signOrSeal);
 			}
 		}
 
@@ -796,7 +798,7 @@ class UptoSign extends CommonObject
 			return $arrayResult;
 		} else {
 			$this->error = "Error " . $this->db->lasterror();
-			dol_syslog(get_class($this) . "::fetchListId " . $this->error, LOG_ERR);
+			dol_syslog("uptosign: " . get_class($this) . "::fetchListId " . $this->error, LOG_ERR);
 			return -1;
 		}
 	}
@@ -830,7 +832,7 @@ class UptoSign extends CommonObject
 	{
 		global $conf;
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$records = array();
 
@@ -895,7 +897,7 @@ class UptoSign extends CommonObject
 			return $records;
 		} else {
 			array_push($this->errors, $this->db->lasterror());
-			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: " . __METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
 
 			return -1;
 		}
@@ -959,7 +961,7 @@ class UptoSign extends CommonObject
 			return $records;
 		} else {
 			array_push($this->errors, $this->db->lasterror());
-			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: " . __METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
 			return -1;
 		}
 	}
@@ -1347,6 +1349,7 @@ class UptoSign extends CommonObject
 				if (!empty($obj->fk_user_valid)) {
 					$vuser = new User($this->db);
 					$vuser->fetch($obj->fk_user_valid);
+					$this->user_validation_id = $vuser->id;
 					$this->user_validation = $vuser;
 				}
 
@@ -1632,7 +1635,7 @@ class UptoSign extends CommonObject
 		$this->output = '';
 		$this->error = '';
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$now = dol_now();
 
@@ -1790,16 +1793,19 @@ class UptoSign extends CommonObject
 			$object = $hallobj['object'];
 			$displayname = $hallobj['displayname'] ?? '';
 
-			//TODO please double check that
 			if($displayname) {
 				return $displayname;
+			}
+			if (!is_object($object)) {
+				dol_syslog("uptosign: " . __METHOD__ . ' object not found for type=' . $objectType . ' id=' . $id, LOG_WARNING);
+				return '';
 			}
 			if (method_exists($object, 'getNomUrl')) {
 				return $object->getNomUrl();
 			}
 		} elseif ($key == 'object_type') {
 			//due to bug #10789
-			$value = uptosign_translate_object_type($object);
+			$value = uptosign_translate_object_type($this->object_type);
 		}
 
 		if ($value != "") {
@@ -1995,13 +2001,13 @@ class UptoSign extends CommonObject
 		dol_syslog("uptosign : signInit 2, redirect_sign=" . json_encode($this->redirect_sign)); // . json_encode($object));
 
 		if (isset($object->contactToSignID)) {
-			dol_syslog("signInit, object->contactToSignID is defined = " . $object->contactToSignID);
+			dol_syslog("uptosign: signInit, object->contactToSignID is defined = " . $object->contactToSignID);
 			$contact = new Contact($this->db);
 			if ($result = $contact->fetch($object->contactToSignID) > 0) {
 				$contactToSign->append($contact);
-				dol_syslog("signInit, object->contactToSignID found, email is " . $contact->email);
+				dol_syslog("uptosign: signInit, object->contactToSignID found, email is " . $contact->email);
 			} else {
-				dol_syslog("signInit, object->contactToSignID NOT found");
+				dol_syslog("uptosign: signInit, object->contactToSignID NOT found");
 			}
 		}
 
@@ -2298,7 +2304,7 @@ class UptoSign extends CommonObject
 		global $mysoc, $conf, $langs;
 		$error = 0;
 
-		dol_syslog("sealOrSignInitLight started with user=" . ($user->login ?? "(login empty)"));
+		dol_syslog("uptosign: sealOrSignInitLight started with user=" . ($user->login ?? "(login empty)"));
 
 		$resultContent = $this->initProcedureLight($fileToSign, $listMembers, $procedure);
 		// dol_syslog("sealOrSignInitLight retour de initProcedureLight = " . json_encode($resultContent));
@@ -2972,7 +2978,7 @@ class UptoSign extends CommonObject
 
 			$resultContent = $result['content'];
 			if (strlen($resultContent) < 1024) {
-				dol_syslog("download resultContent is less than 1Ko octets ... error");
+				dol_syslog("uptosign: download resultContent is less than 1Ko octets ... error");
 				$child->status = UptoSign::STATUS_EXPIRED;
 				$child->fk_user_modif = $user->id;
 				$res = $child->update($user);
@@ -3115,9 +3121,9 @@ class UptoSign extends CommonObject
 			}
 
 			$resultContent = $response['data'];
-			dol_syslog("signFetchProof 6b");
+			dol_syslog("uptosign: signFetchProof 6b");
 			if ($response['http_code'] != 200) {
-				dol_syslog("signFetchProof 6c");
+				dol_syslog("uptosign: signFetchProof 6c");
 				array_push($this->errors, 'UptoSignApiError 6b : ' . $response['http_code']);
 				array_push($this->errors, $resultContent['message'] ?? '');
 				return -1;
@@ -3145,7 +3151,7 @@ class UptoSign extends CommonObject
 
 			$hashProof = hash_file('sha256', $fullSignFile);
 
-			dol_syslog("signFetchProof 7");
+			dol_syslog("uptosign: signFetchProof 7");
 			$object->uptosignMessage = $langs->trans('UptoSignProofFileDownloaded');
 			$this->createEvent($object);
 
@@ -3157,18 +3163,18 @@ class UptoSign extends CommonObject
 				return -1;
 			}
 
-			dol_syslog("signFetchProof 8");
+			dol_syslog("uptosign: signFetchProof 8");
 			//Creation d'un objet supplémentaire UptoSign pour avoir l'historique et la possibilité
 			//de savoir que le fichier proof est scellé - uniquement si l'objet en cours n'est pas
 			//déjà un "proof" : un proof file n'a pas de hash_file car il n'a pas été créé dans dolibarr
 			if (null === $this->hash_file) {
-				dol_syslog("signFetchProof hash_file is null");
+				dol_syslog("uptosign: signFetchProof hash_file is null");
 				return -1;
 			}
 			//Evite le F5 sur le download du fichie de preuves
 			$resDup = $this->fetchByObject((int) $this->fk_object, uptosign_unify_object_type($this->object_type), array('hash_file_null' => true));
 			if (count($resDup) != 0) {
-				dol_syslog("signFetchProof uProof object already downloaded");
+				dol_syslog("uptosign: signFetchProof uProof object already downloaded");
 				return -1;
 			}
 
@@ -3192,9 +3198,9 @@ class UptoSign extends CommonObject
 
 			$res = $uProof->create($user);
 			if ($res < 0) {
-				dol_syslog("signFetchProof error saving uProof object : " . json_encode($uProof));
+				dol_syslog("uptosign: signFetchProof error saving uProof object : " . json_encode($uProof));
 			} else {
-				dol_syslog("signFetchProof uProof object saved");
+				dol_syslog("uptosign: signFetchProof uProof object saved");
 			}
 		}
 		if (!$error) {

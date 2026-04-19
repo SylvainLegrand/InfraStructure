@@ -78,11 +78,11 @@ function detectModule()
 		echo "extract data from $file\n";
 		if (!file_exists($file) || $mod == "") {
 			echo "Erreur de détection du fichier et/ou du code du module ...";
-			exit -1;
+			exit(1);
 		}
 	} else {
 		echo "Erreur il semblerait qu'il y ait plusieurs fichiers mod* dans le répertoire ...";
-		exit -1;
+		exit(1);
 	}
 
 	$contents = file_get_contents($file);
@@ -219,5 +219,5 @@ if (file_exists($outzip)) {
 	echo "module archive is ready : $outzip ...\n";
 } else {
 	echo "build zip error\n";
-	exit -3;
+	exit(3);
 }

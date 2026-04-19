@@ -11,7 +11,7 @@ DOC_PATH     ?= /home/webs/doc.cap-rel.fr/marginaliamd/data/documents/$(MODULE)
 MARGINALIAMD ?= $(HOME)/dev/marginaliamd
 
 .DEFAULT_GOAL := help
-.PHONY: help zip deploy-doc screenshots
+.PHONY: help zip deploy-doc screenshots phpstan prod dev
 
 help:
 	@echo 'Available commands:'
@@ -20,6 +20,7 @@ help:
 	@echo -e 'zip \t\t — \t build zip file'
 	@echo -e '  deploy-doc   \t — \t publish user documentation to doc.cap-rel.fr'
 	@echo -e '  screenshots  \t — \t collect missing screenshots interactively'
+	@echo -e '  phpstan      \t — \t run PHPStan static analysis'
 
 
 prod:
@@ -32,6 +33,9 @@ deploy-doc:
 
 screenshots:
 	php $(MARGINALIAMD)/cli/collect-screenshots.php docs/users/
+
+phpstan:
+	TMPDIR=$(HOME)/.cache/phpstan-tmp DOLIBARR_VERSION=18 php /usr/local/bin/phpstan.phar analyse -c .phpstan.local.neon --memory-limit=512M
 
 dev:
 	rsync -avP . root@192.168.16.183:/var/www/dolibarr-18/htdocs/custom/${MODULE}

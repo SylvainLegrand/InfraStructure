@@ -59,8 +59,8 @@ global $langs, $user;
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-require_once '../lib/uptosign.lib.php';
-require_once "../class/uptosign.class.php";
+dol_include_once('/uptosign/lib/uptosign.lib.php');
+dol_include_once('/uptosign/class/uptosign.class.php');
 
 // Translations
 $langs->loadLangs(array("admin", "hrm", "uptosign@uptosign"));
@@ -142,7 +142,7 @@ print $langs->trans("UptoSignSignsLongTxt1");
 //Liste des uid des utilisateurs
 $listOfCheckUsers = explode(',', utsbackports_getDolGlobalString('UPTOSIGN_DOLIBARR_USERS_SIGN', ''));
 
-print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '">';
+print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '" data-submit-once>';
 print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
 print '<input type="hidden" name="action" value="update">';
 
@@ -217,6 +217,20 @@ print '</div>';
 
 print "</form>";
 
+
+// Anti-double-click protection
+print '<script>
+document.querySelectorAll("form[data-submit-once]").forEach(function(form) {
+	form.addEventListener("submit", function() {
+		var btn = form.querySelector("[type=submit]");
+		if (btn) {
+			btn.disabled = true;
+			btn.dataset.originalText = btn.innerHTML;
+			btn.innerHTML = \'<span class="loading loading-spinner loading-xs"></span> \' + (btn.dataset.loadingText || btn.textContent);
+		}
+	});
+});
+</script>';
 
 // Page end
 print dol_get_fiche_end();

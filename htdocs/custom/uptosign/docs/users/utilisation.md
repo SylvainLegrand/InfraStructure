@@ -66,7 +66,7 @@ Depuis l'onglet **Signature électronique**, positionnez le sceau puis cliquez s
 
 Si vous êtes en présence de votre client, vous pouvez utiliser la **signature locale**. Cette fonctionnalité lance le processus de signature directement, sans envoyer d'e-mail au signataire. Le client signe sur votre écran ou sur son appareil.
 
-Pour activer cette fonctionnalité, cochez l'option **Signature locale** dans les [paramètres du module](/view.php?path=uptosign/configuration.md).
+Pour activer cette fonctionnalité, cochez l'option **Signature locale** dans les [paramètres du module](/uptosign/configuration).
 
 ## Signature en masse
 

@@ -175,7 +175,7 @@ function uptoSignSearchMobileContact($c)
 		if (isset($c->$f) && !empty($c->$f)) {
 			$phone_mobile = uptoSignSearchMobile($c->$f, '', $c->country_code);
 			if ($phone_mobile != '') {
-				dol_syslog(" uptosign uptoSignSearchMobileContact field is $f");
+				dol_syslog("uptosign: uptoSignSearchMobileContact field is $f");
 				return $phone_mobile;
 			}
 		}
@@ -260,7 +260,7 @@ function uptosignuserAgent()
 	if ($uuid == "") {
 		$uuid = uniqid();
 		$result = dolibarr_set_const($db, "UPTOSIGN_UUID", $uuid, 'chaine', 0, '', 0);
-		dol_syslog("uptosign Set server UUID $uuid", LOG_DEBUG);
+		dol_syslog("uptosign: Set server UUID $uuid", LOG_DEBUG);
 	}
 
 	return 'dolibarr/' . utsbackports_getDolGlobalString('MAIN_INFO_SOCIETE_NOM', '')  . " (uptosign@" . $modUptosign->version . ") [" . $uuid . "]";
@@ -275,7 +275,7 @@ function uptosignApiTryLoginWithAPIKey()
 {
 	global $conf, $langs, $db;
 
-	dol_syslog('Uptosign:uptosignApiTryLoginWithAPIKey Try to log in with api key ...');
+	dol_syslog('uptosign: uptosignApiTryLoginWithAPIKey Try to log in with api key ...');
 	$apiClient = new UptoSignAPIClient($db);
 	$response = $apiClient->getProfile();
 
@@ -284,7 +284,7 @@ function uptosignApiTryLoginWithAPIKey()
 		return true;
 	}
 	if (!empty($response['curl_error'])) {
-		dol_syslog("CURL error message is " . $response['curl_error']);
+		dol_syslog("uptosign: CURL error message is " . $response['curl_error']);
 	}
 	return false;
 }
@@ -312,7 +312,7 @@ function uptosignApiCreateAccount()
 	$mesg = "";
 	$mesgType = "errors";
 
-	dol_syslog('Uptosign:uptosignApiCreateAccount Try to create account ...');
+	dol_syslog('uptosign: uptosignApiCreateAccount Try to create account ...');
 	$firstname = ($user->firstname != '') ? $user->firstname : 'anonymous';
 	$lastname = ($user->lastname != '') ? $user->lastname : 'anonyname';
 	$email = utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '');
@@ -353,7 +353,7 @@ function uptosignApiTryLoginWithUserPass()
 	$mesg = "";
 	$mesgType = "errors";
 
-	dol_syslog('Uptosign:uptosignApiTryLoginWithUserPass Try to log with user / pass ...');
+	dol_syslog('uptosign: uptosignApiTryLoginWithUserPass Try to log with user / pass ...');
 	$email = utsbackports_getDolGlobalString('UPTOSIGN_LOGIN', '');
 	$password = dol_decode(utsbackports_getDolGlobalString('UPTOSIGN_PASS_API', ''));
 
@@ -374,14 +374,14 @@ function uptosignApiTryLoginWithUserPass()
 		$mesg .= uptosignMergeMessage($response['curl_error']);
 	}
 	if (!empty($response['content']) && $response['http_code'] != 200) {
-		dol_syslog('Uptosign:uptosignApiTryLoginWithUserPass return message ' . json_encode($response['content']));
+		dol_syslog('uptosign: uptosignApiTryLoginWithUserPass return message ' . json_encode($response['content']));
 		$mesg = "";
 	}
 
 	if ($mesg != "") {
 		setEventMessages($mesg, [], $mesgType);
 	}
-	dol_syslog('Uptosign:uptosignApiTryLoginWithUserPass return value ' . $retour);
+	dol_syslog('uptosign: uptosignApiTryLoginWithUserPass return value ' . $retour);
 	return $retour;
 }
 
@@ -527,7 +527,7 @@ function uptosign_unify_object_name($modeltype)
 function uptosign_unify_object_type($modeltype)
 {
 	// print "<p>uptosign_unify_object_type pour $modeltype</p>";
-	dol_syslog("uptosign_unify_object_type : " . $modeltype);
+	dol_syslog("uptosign: uptosign_unify_object_type : " . $modeltype);
 	if (strpos($modeltype, ':')) {
 		$t = explode(':', $modeltype);
 		return uptosign_unify_object_type_from_code($t[0]);
@@ -698,7 +698,7 @@ function uptosign_relative_path($path)
 function uptosign_rename_file_dolibarr_guidelines($filename, $suffix = '', $ts = null)
 {
 	global $db;
-	dol_syslog("uptosign_rename_file_dolibarr_guidelines : filename=$filename, suffix=$suffix, ts=$ts");
+	dol_syslog("uptosign: uptosign_rename_file_dolibarr_guidelines filename=$filename, suffix=$suffix, ts=$ts");
 
 	$s = '';
 	if ($suffix != '') {
@@ -812,7 +812,7 @@ function uptosign_make_document_title($ref, $customer_ref, $typeOfObject)
  */
 function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 {
-	dol_syslog("uptosign_autoFindWordPositionInPage keyword=$keyword");
+	dol_syslog("uptosign: uptosign_autoFindWordPositionInPage keyword=$keyword");
 	$return = false;
 	$metaData = $pdf->getDetails();
 	//TODO : maybe a bug with smalot / other pdf pdf parser
@@ -844,7 +844,7 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 			}
 		}
 	}
-	dol_syslog("uptosign_autoFindWordPositionInPage result is " . $return . " then resut is " .  json_encode($result));
+	dol_syslog("uptosign: uptosign_autoFindWordPositionInPage result is " . $return . " then resut is " .  json_encode($result));
 	return $return;
 }
 
@@ -862,22 +862,22 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 function uptosign_auto_position_magic_keywords($pdf, &$arr, $action)
 {
 	global $conf;
-	dol_syslog("uptosign call uptosign_auto_position_magic_keywords action=$action for $pdf");
+	dol_syslog("uptosign: call uptosign_auto_position_magic_keywords action=$action for $pdf");
 	//first try with smalot pdf native
 	if (uptosign_auto_position_magic_keywords_smalot($pdf, $arr, $action)) {
-		dol_syslog("uptosign_auto_position_magic_keywords call smalot success, returns " . json_encode($arr));
+		dol_syslog("uptosign: uptosign_auto_position_magic_keywords call smalot success, returns " . json_encode($arr));
 		return true;
 	}
 
 	//then with pdftotext
 	if (utsbackports_getDolGlobalString('UPTOSIGN_USE_PDFTOTEXT', '')  != '') {
 		if (uptosign_auto_position_magic_keywords_pdftotext($pdf, $arr, $action)) {
-			dol_syslog("uptosign_auto_position_magic_keywords call pdftotext success, returns " . json_encode($arr));
+			dol_syslog("uptosign: uptosign_auto_position_magic_keywords call pdftotext success, returns " . json_encode($arr));
 			return true;
 		}
 	}
 
-	dol_syslog("uptosign_auto_position_magic_keywords error, there is no magic keyword" . json_encode($arr));
+	dol_syslog("uptosign: uptosign_auto_position_magic_keywords error, there is no magic keyword" . json_encode($arr));
 	return false;
 }
 
@@ -895,7 +895,7 @@ function uptosign_auto_position_magic_keywords_smalot($pdffilename, &$arr, $acti
 	global $langs;
 	$langs->loadLangs(array("propal"));
 
-	dol_syslog("uptosign::auto_position_smalot action=$action, for $pdffilename");
+	dol_syslog("uptosign: auto_position_smalot action=$action, for $pdffilename");
 	$return = false;
 	//recherche des mots clés UPTOSIGN_SIGN_TO_HERE / UPTOSIGN_SIGN_FROM_HERE / UPTOSIGN_STAMP_SIGN_HERE | UPTOSIGN_STAMP_SEAL_HERE
 	$nbSeal = 0;
@@ -957,11 +957,11 @@ function uptosign_auto_position_magic_keywords_smalot($pdffilename, &$arr, $acti
 			}
 		}
 	} catch (Exception $e) {
-		dol_syslog("uptosign::auto_position_smalot ERREUR pour extraire les positions des signatures " . json_encode($e), LOG_WARNING);
+		dol_syslog("uptosign: auto_position_smalot ERREUR pour extraire les positions des signatures " . json_encode($e), LOG_WARNING);
 	} catch (Error $e) {
-		dol_syslog("uptosign::auto_position_smalot ERREUR PHP pour extraire les positions des signatures " . json_encode($e), LOG_WARNING);
+		dol_syslog("uptosign: auto_position_smalot ERREUR PHP pour extraire les positions des signatures " . json_encode($e), LOG_WARNING);
 	}
-	dol_syslog("uptosign::auto_position_smalot returns " . json_encode($arr));
+	dol_syslog("uptosign: auto_position_smalot returns " . json_encode($arr));
 	return $return;
 }
 
@@ -977,7 +977,7 @@ function uptosign_auto_position_magic_keywords_smalot($pdffilename, &$arr, $acti
 function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $action)
 {
 	global $langs;
-	dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for $pdffilename");
+	dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for $pdffilename");
 	$return = false;
 	//recherche des mots clés UPTOSIGN_SIGN_TO_HERE / UPTOSIGN_SIGN_FROM_HERE / UPTOSIGN_STAMP_SIGN_HERE | UPTOSIGN_STAMP_SEAL_HERE
 	$nbSeal = 0;
@@ -985,7 +985,7 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 	$nbsignUser = 0;
 	try {
 		$cmd = "pdftotext -bbox " . escapeshellarg($pdffilename) . " -";
-		dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext cmd is $cmd");
+		dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext cmd is $cmd");
 		$output = array();
 		if (exec($cmd, $output) !== false) {
 			$resA = array();
@@ -1003,7 +1003,7 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 					$return = true;
 				}
 			}
-			dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
+			dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
 
 			$resB = array();
 			/** @phpstan-ignore-next-line */
@@ -1023,7 +1023,7 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 					//break;
 				}
 			}
-			dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
+			dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
 
 			//recherche de la ligne cachet, bon pour accord... signez ici
 			// TODO ameliorer: nombre de mots + ponderation + stats > 80% de match sur une page bingo
@@ -1037,7 +1037,7 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 			//     if (!empty(uptosign_autoFindWordPositionInPagepdftotext($output, $keyword, $resB))) {
 			// 		foreach ($resB as $reskeyword) {
 			//             list($x, $y, $p) = $reskeyword;
-			// 			dol_syslog("uptosign call uptosign_auto_position_magic_keywords_pdftotext search for $keyword, $x, $y,$p");
+			// 			dol_syslog("uptosign: call uptosign_auto_position_magic_keywords_pdftotext search for $keyword, $x, $y,$p");
 			// 			//1er coup initialisation
 			//             if (empty($resLine['y'])) {
 			//                 $resLine['x'] = $x;
@@ -1075,15 +1075,15 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 					//break;
 				}
 			}
-			dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
+			dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
 		} else {
-			dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext Err. de la commande pdftotext ... est-elle disponible sur ce serveur ?", LOG_WARNING);
+			dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext Err. de la commande pdftotext ... est-elle disponible sur ce serveur ?", LOG_WARNING);
 			setEventMessages($langs->trans("Error") . $langs->trans("uptosignErrorPdfToText"), [], 'warnings');
 		}
 	} catch (Exception $e) {
-		dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext ERREUR pour extraire les positions des signatures " . json_encode($e), LOG_ERR);
+		dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext ERREUR pour extraire les positions des signatures " . json_encode($e), LOG_ERR);
 	}
-	dol_syslog("uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext returns " . json_encode($arr));
+	dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext returns " . json_encode($arr));
 	return $return;
 }
 
@@ -1098,7 +1098,7 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
  */
 function uptosign_autoFindWordPositionInPagepdftotext($text, $keyword, &$result)
 {
-	dol_syslog("  uptosign_autoFindWordPositionInPagepdftotext text is " . count($text) . " of lines");
+	dol_syslog("uptosign: uptosign_autoFindWordPositionInPagepdftotext text is " . count($text) . " of lines");
 	$return = false;
 	$pageNb = 0;
 
@@ -1137,7 +1137,7 @@ function uptosign_send_mail($to, $subject, $message)
 
 	$from = utsbackports_getDolGlobalString('MAIN_MAIL_EMAIL_FROM', '');
 	if (empty(trim($from)) || empty(trim($to))) {
-		dol_syslog("uptosign_send_mail early return, from=$from or to=$to is empty", LOG_INFO);
+		dol_syslog("uptosign: uptosign_send_mail early return, from=$from or to=$to is empty", LOG_INFO);
 		return;
 	}
 
@@ -1153,18 +1153,22 @@ function uptosign_send_mail($to, $subject, $message)
 	$realmessage .= "<br />\n<br />\n--<br />\n";
 	$realmessage .= "<p>" . $langs->trans('UpToSignMailSignature', $mysoc->name) . "</p>";
 
+	$trackid = 'uts' . dol_now();
+	$moreinheader = 'X-Dolibarr-Info: uptosign_send_mail' . "\r\n";
+	$addr_bcc = getDolGlobalString('MAIN_MAIL_AUTOCOPY_TO');
+
 	$result = null;
 	try {
-		$mailfile = new CMailFile($realsubject, $to, $from, $realmessage, array(), array(), array(), '', '', 0, $ishtml);
+		$mailfile = new CMailFile($realsubject, $to, $from, $realmessage, array(), array(), array(), '', $addr_bcc, 0, $ishtml, '', '', $trackid, $moreinheader);
 		$result = $mailfile->sendfile();
 	} catch (Exception $e) {
-		dol_syslog("uptosign, error sending mail, exception is " . json_encode($e), LOG_ERR);
+		dol_syslog("uptosign: error sending mail, exception is " . json_encode($e), LOG_ERR);
 	}
 
 	if ($result) {
-		dol_syslog("uptosign_send_mail sent to " . $to, LOG_DEBUG);
+		dol_syslog("uptosign: uptosign_send_mail sent to " . $to, LOG_DEBUG);
 	} else {
-		dol_syslog("uptosign_send_mail Failed to send EMail to " . $to, LOG_ERR);
+		dol_syslog("uptosign: uptosign_send_mail Failed to send EMail to " . $to, LOG_ERR);
 	}
 
 	return $result;
@@ -1175,7 +1179,7 @@ function uptosignApiCheckResellerMode()
 {
 	global $db;
 
-	dol_syslog('Uptosign:uptosignApiCheckResellerMode Try to log in with api key ...');
+	dol_syslog('uptosign: uptosignApiCheckResellerMode Try to log in with api key ...');
 	$apiClient = new UptoSignAPIClient($db);
 	$response = $apiClient->getProfile();
 
@@ -1183,7 +1187,7 @@ function uptosignApiCheckResellerMode()
 		return $response['data'];
 	}
 	if (!empty($response['curl_error'])) {
-		dol_syslog("CURL error message is " . $response['curl_error']);
+		dol_syslog("uptosign: CURL error message is " . $response['curl_error']);
 	}
 	return null;
 }
@@ -1259,10 +1263,10 @@ function uptosignSearchUptoSignFactureRec($contract)
 
 	$res = $contract->fetchObjectLinked($contract->id, 'contrat', null, 'facturerec', 'AND', 1, 'sourcetype', 0);
 	if ($res <= 0) {
-		dol_syslog("uptosignSearchUptoSignFactureRec there is no facturerec linked to that contract, sorry");
+		dol_syslog("uptosign: uptosignSearchUptoSignFactureRec there is no facturerec linked to that contract, sorry");
 		return null;
 	}
-	// dol_syslog("uptosignSearchUptoSignFactureRec facturerec is " . json_encode($contract->linkedObjectsIds));
+	// dol_syslog("uptosign: uptosignSearchUptoSignFactureRec facturerec is " . json_encode($contract->linkedObjectsIds));
 	$factureredid = array_values($contract->linkedObjectsIds['facturerec'])[0];
 	if ($factureredid) {
 		$object = new FactureRec($db);
@@ -1286,10 +1290,10 @@ function uptosignSearchUptoSignFactureRec($contract)
 function uptosignCreateContract($customerid, $uptosignid)
 {
 	global $db, $langs, $conf, $user, $mysoc;
-	dol_syslog("uptosignCreateContract, customerid=$customerid uptosignid=$uptosignid", LOG_ERR);
+	dol_syslog("uptosign: uptosignCreateContract, customerid=$customerid uptosignid=$uptosignid", LOG_ERR);
 
 	if (empty($customerid) || empty($uptosignid)) {
-		dol_syslog("Erreur, customerid or uptosignid empty on autoCreateContract call", LOG_ERR);
+		dol_syslog("uptosign: Erreur, customerid or uptosignid empty on autoCreateContract call", LOG_ERR);
 		return -1;
 	} else {
 		$object = new Societe($db);
@@ -1404,7 +1408,7 @@ function uptosignCreateContract($customerid, $uptosignid)
 			return (-45);
 		}
 
-		dol_syslog("Reload all lines after creation to have contract->lines ok");
+		dol_syslog("uptosign: Reload all lines after creation to have contract->lines ok");
 		$contract->fetch_lines();
 
 		$contract->validate($user);
@@ -1621,7 +1625,7 @@ function uptosignCreateFirstFacture($customerid)
 			// Get data from product (frequency, discount type and val)
 			$tmpproduct->fetch($lines[$i]->fk_product);
 
-			dol_syslog("--- Read frequency for product id=" . $tmpproduct->id, LOG_DEBUG, 0);
+			dol_syslog("uptosign: Read frequency for product id=" . $tmpproduct->id, LOG_DEBUG, 0);
 
 
 			// special case for abo -> make prorata temporis price on first invoice
@@ -1780,7 +1784,7 @@ function uptosignCreateFacture($customerid, $prorataTemporis = false, $validateI
 			// Get data from product (frequency, discount type and val)
 			$tmpproduct->fetch($lines[$i]->fk_product);
 
-			dol_syslog("--- Read frequency for product id=" . $tmpproduct->id, LOG_DEBUG, 0);
+			dol_syslog("uptosign: Read frequency for product id=" . $tmpproduct->id, LOG_DEBUG, 0);
 
 
 			// special case for abo -> make prorata temporis price on first invoice
@@ -1931,7 +1935,7 @@ function uptosign_get_config_positions($modelPdf, $modulepart, $signOrSeal, $upt
 			dol_syslog('uptosign: position via profil de doc sign: ' . json_encode($positionsSign));
 			dol_syslog('uptosign: position via profil de doc seal: ' . json_encode($positionsSeal));
 		} else {
-			dol_syslog("Modèle de position des signatures introuvable", LOG_ERR);
+			dol_syslog("uptosign: Modèle de position des signatures introuvable", LOG_ERR);
 		}
 	}
 
@@ -2065,8 +2069,8 @@ function uptosignFindFileToUse(CommonObject $obj, $last_main_doc)
 {
 	global $conf;
 	$dir = $filename = '';
-	dol_syslog("uptosignFindFileToUse last_main_doc=" . $last_main_doc);
-	dol_syslog("uptosignFindFileToUse obj=" . json_encode($obj));
+	dol_syslog("uptosign: uptosignFindFileToUse last_main_doc=" . $last_main_doc);
+	dol_syslog("uptosign: uptosignFindFileToUse obj=" . json_encode($obj));
 
 	//$last_main_doc = 'commande/'.$objectref.'/'.$pdfFileChoosed;
 
@@ -2075,10 +2079,10 @@ function uptosignFindFileToUse(CommonObject $obj, $last_main_doc)
 		$filename = $obj->element . '/' . $obj->ref . '/' . $last_main_doc;
 	} elseif (GETPOSTISSET('selectFilename')) {
 		$filename = dol_sanitizeFileName(GETPOST('selectFilename', "aZ09"));
-		dol_syslog("uptosignFindFileToUse GETPOSTISSET filename=" . $filename);
+		dol_syslog("uptosign: uptosignFindFileToUse GETPOSTISSET filename=" . $filename);
 	} elseif ($obj->element == 'project' && !empty($last_main_doc)) {
 		$filename = $last_main_doc;
-		dol_syslog("uptosignFindFileToUse element is project filename = " . $last_main_doc);
+		dol_syslog("uptosign: uptosignFindFileToUse element is project filename = " . $last_main_doc);
 	} elseif (dol_is_file(DOL_DATA_ROOT . '/' . $obj->last_main_doc)) {
 		$filename = $obj->last_main_doc;
 	} else {
@@ -2087,12 +2091,12 @@ function uptosignFindFileToUse(CommonObject $obj, $last_main_doc)
 
 	$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 	if ($ext != "pdf") {
-		dol_syslog("uptosignFindFileToUse fix race condition, ext was=" . $ext);
+		dol_syslog("uptosign: uptosignFindFileToUse fix race condition, ext was=" . $ext);
 		$filename .= '.pdf';
 	}
 
 	if (dol_is_file(DOL_DATA_ROOT . '/' . $filename)) {
-		dol_syslog("uptosignFindFileToUse dir=DOL_DATA_ROOT, filename=$filename, file found; return fullpath");
+		dol_syslog("uptosign: uptosignFindFileToUse dir=DOL_DATA_ROOT, filename=$filename, file found; return fullpath");
 		return (DOL_DATA_ROOT . '/' . $filename);
 	}
 
@@ -2115,20 +2119,20 @@ function uptosignFindFileToUse(CommonObject $obj, $last_main_doc)
 		$dir = $conf->projet->dir_output;
 	}
 
-	dol_syslog("uptosignFindFileToUse dir=$dir, filename=$filename");
+	dol_syslog("uptosign: uptosignFindFileToUse dir=$dir, filename=$filename");
 	if (dol_is_file($dir . '/' . $filename)) {
-		dol_syslog("uptosignFindFileToUse dir=$dir, filename=$filename, file found; return fullpath");
+		dol_syslog("uptosign: uptosignFindFileToUse dir=$dir, filename=$filename, file found; return fullpath");
 		return ($dir . '/' . $filename);
 	}
 	if (dol_is_file($dir . '/' . $obj->ref . '/' . $filename)) {
-		dol_syslog("uptosignFindFileToUse dir=$dir, filename=$filename, file found into obj->ref subdir, return fullpath");
+		dol_syslog("uptosign: uptosignFindFileToUse dir=$dir, filename=$filename, file found into obj->ref subdir, return fullpath");
 		return ($dir . '/' . $obj->ref . '/' . $filename);
 	}
 	if (dol_is_file(DOL_DATA_ROOT . '/' . $obj->ref . '/' . $filename)) {
-		dol_syslog("uptosignFindFileToUse dir=$dir, filename=$filename, file found in other path=" . DOL_DATA_ROOT . '/' . $obj->ref, LOG_ERR);
+		dol_syslog("uptosign: uptosignFindFileToUse dir=$dir, filename=$filename, file found in other path=" . DOL_DATA_ROOT . '/' . $obj->ref, LOG_ERR);
 		return (DOL_DATA_ROOT . '/' . $obj->ref . '/' . $filename);
 	}
-	dol_syslog("uptosignFindFileToUse dir=$dir, filename=$filename, file not found return=''", LOG_ERR);
+	dol_syslog("uptosign: uptosignFindFileToUse dir=$dir, filename=$filename, file not found return=''", LOG_ERR);
 	return '';
 }
 
@@ -2161,7 +2165,7 @@ function uptosignListOfFilesLinkedTo(CommonObject $obj)
 			}
 		}
 	}
-	dol_syslog("uptosignListOfFilesLinkedTo list is = " . json_encode($filearray));
+	dol_syslog("uptosign: uptosignListOfFilesLinkedTo list is = " . json_encode($filearray));
 	return $filearray;
 }
 
@@ -2318,7 +2322,7 @@ function uptosign_create_invoice_from_proposal($object)
 function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forceMail = 0)
 {
 	global $db, $conf, $langs, $user, $mysoc;
-	dol_syslog("uptosignSendInvoiceMailModele modele=$modele, actionCode=$actionCode, forceMail=$forceMail", LOG_DEBUG);
+	dol_syslog("uptosign: uptosignSendInvoiceMailModele modele=$modele, actionCode=$actionCode, forceMail=$forceMail", LOG_DEBUG);
 	$result = 0;
 	$subject = $msg = "";
 
@@ -2333,7 +2337,7 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 			$resAC = $actioncomm->getActions($object->socid, $object->id, "invoice", " AND code='AC_" . $actionCode . "'");
 		}
 		if (!empty($resAC)) {
-			dol_syslog("uptosignSendInvoiceMailModele modele=$modele already sent", LOG_DEBUG);
+			dol_syslog("uptosign: uptosignSendInvoiceMailModele modele=$modele already sent", LOG_DEBUG);
 			return $result;
 		}
 	}
@@ -2349,7 +2353,7 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 	$facturationID = $object->getIdBillingContact();
 	$to = '';
 	if (!empty($facturationID)) {
-		dol_syslog("uptosignSendInvoiceMailModele résultat de  getIdBillingContact : " . json_encode($facturationID), LOG_DEBUG);
+		dol_syslog("uptosign: uptosignSendInvoiceMailModele résultat de  getIdBillingContact : " . json_encode($facturationID), LOG_DEBUG);
 		foreach ($facturationID as $cfid) {
 			$contactFacturation = new Contact($db);
 			$contactresult = $contactFacturation->fetch($cfid);
@@ -2360,7 +2364,7 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 					}
 					$to .= $contactFacturation->email;
 				}
-				dol_syslog("uptosignSendInvoiceMailModele utilisation du contact facturation, destinataire (id = $cfid) email = $to", LOG_DEBUG);
+				dol_syslog("uptosign: uptosignSendInvoiceMailModele utilisation du contact facturation, destinataire (id = $cfid) email = $to", LOG_DEBUG);
 			}
 		}
 	}
@@ -2373,12 +2377,12 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 	}
 	if (empty($to)) {
 		$to = $object->thirdparty->email;
-		dol_syslog("uptosignSendInvoiceMailModele utilisation de l'adresse mail societe, destinataire = $to", LOG_DEBUG);
+		dol_syslog("uptosign: uptosignSendInvoiceMailModele utilisation de l'adresse mail societe, destinataire = $to", LOG_DEBUG);
 	}
 
 	if (empty(trim($from)) || empty(trim($to))) {
 		// print json_encode($object);
-		dol_syslog("uptosignSendInvoiceMailModele early return, from=$from or to=$to is empty", LOG_DEBUG);
+		dol_syslog("uptosign: uptosignSendInvoiceMailModele early return, from=$from or to=$to is empty", LOG_DEBUG);
 		return;
 	}
 
@@ -2400,7 +2404,7 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 		$subject = $arraydefaultmessage->topic;
 		$msg     = $arraydefaultmessage->content;
 	} else {
-		dol_syslog("uptosignSendInvoiceMailModele empty modele or arraydefaultmessagee error", LOG_DEBUG);
+		dol_syslog("uptosign: uptosignSendInvoiceMailModele empty modele or arraydefaultmessagee error", LOG_DEBUG);
 	}
 
 	$substitutionarray = getCommonSubstitutionArray($outputlangs, 0, null, $object);
@@ -2412,9 +2416,9 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 	$subjecttosend = make_substitutions($subject, $substitutionarray, $outputlangs);
 	$texttosend = make_substitutions($msg, $substitutionarray, $outputlangs);
 
-	dol_syslog('uptosignSendInvoiceMailModele DIRECTDOWNLOAD_URL_INVOICE=' . $substitutionarray['__DIRECTDOWNLOAD_URL_INVOICE__']);
-	dol_syslog('uptosignSendInvoiceMailModele SUBJECT=' . $subjecttosend);
-	// dol_syslog('uptosignSendInvoiceMailModele MESSAGE='.$texttosend);
+	dol_syslog('uptosign: uptosignSendInvoiceMailModele DIRECTDOWNLOAD_URL_INVOICE=' . $substitutionarray['__DIRECTDOWNLOAD_URL_INVOICE__']);
+	dol_syslog('uptosign: uptosignSendInvoiceMailModele SUBJECT=' . $subjecttosend);
+	// dol_syslog('uptosign: uptosignSendInvoiceMailModele MESSAGE='.$texttosend);
 
 	// Fichier joint
 	$file = '';
@@ -2433,7 +2437,7 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 			$listofmimes = array(dol_mimetype($file));
 		}
 	}
-	dol_syslog('uptosignSendInvoiceMailModele fichier(s) joint(s) : ' . json_encode($listofpaths));
+	dol_syslog('uptosign: uptosignSendInvoiceMailModele fichier(s) joint(s) : ' . json_encode($listofpaths));
 
 	$trackid = 'inv' . $object->id;
 	$moreinheader = 'X-Dolibarr-Info: uptosignSendInvoiceMailModele' . "\r\n";
@@ -2441,14 +2445,15 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 	if (!empty($object->thirdparty->array_options['options_emailccinvoice'])) {
 		$addr_cc = $object->thirdparty->array_options['options_emailccinvoice'];
 	}
+	$addr_bcc = getDolGlobalString('MAIN_MAIL_AUTOCOPY_TO');
 
 	// Send email (substitutionarray must be done just before this)
-	$mailfile = new CMailFile($subjecttosend, $to, $from, $texttosend, $listofpaths, $listofmimes, $listofnames, $addr_cc, '', 0, -1, '', '', $trackid, $moreinheader);
+	$mailfile = new CMailFile($subjecttosend, $to, $from, $texttosend, $listofpaths, $listofmimes, $listofnames, $addr_cc, $addr_bcc, 0, -1, '', '', $trackid, $moreinheader);
 	if ($mailfile->sendfile()) {
 		$result = 1;
 	} else {
 		$error = $langs->trans("ErrorFailedToSendMail", $from, $to) . '. ' . $mailfile->error;
-		dol_syslog('uptosignSendInvoiceMailModele Error : ' . $mailfile->error, LOG_ERR);
+		dol_syslog('uptosign: uptosignSendInvoiceMailModele Error : ' . $mailfile->error, LOG_ERR);
 		$result = -1;
 	}
 
@@ -2467,7 +2472,7 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 	}
 
 
-	dol_syslog("uptosignSendInvoiceMailModele ends, return $result", LOG_DEBUG);
+	dol_syslog("uptosign: uptosignSendInvoiceMailModele ends, return $result", LOG_DEBUG);
 	return $result;
 }
 
@@ -2476,7 +2481,7 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 function uptosignAddActionComm($object, $actioncode, $label, $description, $postactionmessages, $extraparams, $date = null)
 {
 	global $db, $user;
-	dol_syslog("* uptosignAddActionComm Record event for payment result - " . $description);
+	dol_syslog("uptosign: uptosignAddActionComm Record event for payment result - " . $description);
 	$now = (!empty($date)) ? $date : dol_now();
 	// Insert record of payment (success or error)
 	$actioncomm = new ActionComm($db);
@@ -2571,7 +2576,7 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 			$modulepart = "delivery";
 			$pdfpath = $conf->expedition->dir_output . "/receipt";
 		} else {
-			dol_syslog("uptoSignGetSpecimen delivery object is for Dolibarr 13.0", LOG_WARNING);
+			dol_syslog("uptosign: uptoSignGetSpecimen delivery object is for Dolibarr 13.0", LOG_WARNING);
 		}
 	} elseif ($objectType == 'ficheinter'|| $objectType == 'intervention') {
 		require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';

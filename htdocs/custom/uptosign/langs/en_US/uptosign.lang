@@ -212,3 +212,372 @@ UptoSignArchiveCron = UptoSign - Automatic archive of signed documents
 UptoSignArchiveCronComments = Daily check that signed/sealed documents are backed up locally with a dedicated archive name
 UPTOSIGN_ARCHIVE_AUTO_CRON = Enable the scheduled archive task for signed documents
 UPTOSIGN_ARCHIVE_AUTO_CRONTooltip = This scheduled task checks daily that signed/sealed documents have a local backup copy and re-downloads missing files from the API
+
+# About page
+AboutModuleInfo=Module information
+AboutUsefulLinks=Useful links
+AboutSAV=Support
+AboutForum=Forum
+AboutContact=Contact
+UptosignDoYouLikeModule=Do you like this module?
+UptosignFeedbackIntro=Your feedback helps improve our modules. Share your experience and help other users discover this module!
+UptosignYourRating=Your rating
+UptosignYourFeedback=Your feedback
+UptosignYourEmail=Your email
+UptosignFeedbackPlaceholder=Tell us what you like, what could be improved...
+UptosignSendFeedback=Send my feedback
+UptosignFeedbackSent=Thank you for your feedback!
+UptosignFeedbackSendError=Error sending feedback
+UptosignBuyMeACoffee=Buy us a coffee
+UptosignDonationText=This module required development and design time. If you find it useful and would like to support its development, consider buying us a coffee (or a little more). Every contribution helps keep the project alive and motivates us to add new features!
+UptosignOfferCoffee=Buy a coffee ... or a little more
+OnlineDocumentation=Online documentation
+DolibarrMinVersion=Minimum Dolibarr version
+PHPMinVersion=Minimum PHP version
+
+#
+# Generic / Status
+#
+UpToSign=UpToSign
+UptoSeal=UPTOSIGN - Sealing
+UptoSignBtnSeal=UPTOSIGN / Seal
+UptoSignBtnOnlySeal=Seal
+UptoSignBtnSign=UPTOSIGN / Sign
+UptoSignBtnLocalSign=Local signature
+UptoSignBtnOnlySign=Sign
+uptosignAction=Action type
+UptoSignArea=UptoSign area
+UptoSignDraft=Draft
+UptoSignExpired=Expired
+WaitingUptoSign=Waiting, the document is not ready
+UptoSignSealed=Sealed
+UptoSignSealedIsAvailable=The sealed document is available on the server
+UptoSignStatusDraft=The document is queued on the uptosign server
+UptoSignArchived=Archived
+CanceledUptoSign=Process cancelled
+SignedCommonSeal=sealed
+UptoSignProcessTitle=Electronic signature
+UptoSealProcessTitle=Electronic sealing
+UptoSignProcessStarted=Electronic signature process started
+UptoSealProcessStarted=Electronic sealing process started
+UptoSignProcessing=A procedure is in progress:
+UptoSignProcessAlreadyStarted=An UptoSign process is already in progress for this document
+uptosignStatusError=Error
+uptosignStatusCancelled=Cancelled
+uptosignStatusWaiting=Waiting
+uptosignStatusSigned=Signed
+uptosignStatusSealed=Sealed
+uptosignStatusDownloaded=Downloaded
+uptosignStatusExpired=Expired
+uptosignStatusRefused=Refused
+ErrorUptoSign=UptoSign error
+ErrorUptoSignModuleVersionDatabase=Module UptoSign: Warning, your module version is inconsistent with the database version, please deactivate and reactivate the module.
+ErrorUptoSignModuleChooseDefaultUser=Warning, your uptosign module configuration is incomplete, please configure the default user to use for anonymous actions.
+ShowUptoSign=Show UptoSign record
+ShowUptoSignConfig=Show UptoSign configuration
+ShowUptoSignList=Show UptoSign list
+
+#
+# Admin / Setup
+#
+UptoSignSetupSavedPleaseTest=Configuration saved, please click the test button to validate your configuration
+UptoSignSetupThereIsNoConfig=No configuration was found!
+UPTOSIGN_ENVIRONMENT_PROD=Official server (production)
+UPTOSIGN_ENVIRONMENT_DEV=Development server (reserved)
+UPTOSIGN_ENVIRONMENT_DEMO=Demo server (free)
+CheckConnectOK=Connection with the uptosign server validated
+CreateAccountOK=Account created successfully
+CreateAccountError=Error creating account
+UPTOSIGN_ACCEPT_CGU=Accept UptoSign terms and conditions
+UPTOSIGN_ACCEPT_CGUTooltip=By checking this box you accept the <a href="https://www.uptosign.com/cgu/" target="_blank">UpToSign Terms and Conditions (link)</a> and the <a href="https://www.uptosign.com/ppdp/" target="_blank">UpToSign Data Protection Policy (link)</a>
+UPTOSIGN_REDIRECT_PAGE_AFTER_SIGN=Redirect URL after the signing process
+UPTOSIGN_REDIRECT_PAGE_AFTER_SIGNTooltip=If you want to redirect the signer to a specific page after the signing process
+UptoSignRedirectAfeterSign=Redirect URL after signing
+UPTOSIGN_HIDE_MAIL_AND_PHONE=Enable pseudo-anonymization of personal data (EXPERIMENTAL, optional, additional cost)
+UPTOSIGN_HIDE_MAIL_AND_PHONETooltip=If you enable this mode, email addresses and phone numbers will be partially masked on the produced documents. In exchange, UPTOSIGN commits to archiving the proof file for 10 years. This option is billed as a surcharge: 1 signature is then billed as 2 signatures. For more details please refer to the <a href="https://doc.cap-rel.fr/projet_uptosign/masquer_partiellement_les_informations_des_signataires">specific documentation</a>.
+UPTOSIGN_USE_PDFTOTEXT=Use PdfToText for automatic signature positioning using magic keywords if the internal PHP method does not work.
+UPTOSIGN_USE_PDFTOTEXTTooltip=Warning, this option relies on the <b>pdftotext</b> system command which must be installed on your Dolibarr server. This option allows you to use <a href="https://doc.cap-rel.fr/projet_uptosign/utiliser_des_mots-cles_magiques">magic keywords</a>
+UPTOSIGN_SEND_ERROR_MAIL_TO=Send error emails to the address
+UPTOSIGN_SEND_ERROR_MAIL_TOTooltip=In case of an error in the procedure you can receive an information email, this is especially important when the error occurs on the public page
+UPTOSIGN_SEND_NOTIF_MAIL_CC=Send a copy of notifications to the address
+UPTOSIGN_SEND_NOTIF_MAIL_CCTooltip=Regardless of who initiated the signing process, this email address will also receive notifications
+UPTOSIGN_DEFAULT_USER=Default Dolibarr user account for anonymous actions
+UPTOSIGN_DEFAULT_USERTooltip=Links actions to a default user, this key must be set
+UPTOSIGN_ADD_DIRECT_SIGN_LOCAL=Add a button to launch the signing process locally
+UPTOSIGN_ADD_DIRECT_SIGN_LOCALTooltip=Allows you to launch the signing process directly, for example if you are in presence of your customer (does not send the link by email). Only works for object types supported by Dolibarr core (proposals, interventions, contracts, etc.)
+UPTOSIGN_ADD_CONTACT_POSTE_FUNCTION=Add the contact's position/function on the signed PDF along with name
+UPTOSIGN_ADD_CONTACT_POSTE_FUNCTIONTooltip=Adds the position/function on the document along with the first and last name of the signer
+UPTOSIGN_DISABLE_GETURL_DEBUG=Disable network request debug
+UPTOSIGN_EXPERIMENTAL=Experimental zone / Advanced options reserved for adventurers
+UPTOSIGN_CREATE_SIGN_CONTACT_ONLINE=Allow the customer to create their signatory contact, <a href="https://doc.cap-rel.fr/projet_uptosign/ajout_du_contact_signataire_par_le_client" target="_blank">documentation</a>
+UPTOSIGN_CREATE_SIGN_CONTACT_ONLINETooltip=See the <a href="https://doc.cap-rel.fr/projet_uptosign/ajout_du_contact_signataire_par_le_client" target="_blank">dedicated documentation</a>, this option allows the customer, when viewing the document on your Dolibarr, to provide the signatory's details which will then be sent to uptosign to initiate the formal signature
+UPTOSIGN_CREATE_SIGN_ALL_CONTACT_LINKED=Allow any customer contact linked to the document to sign it
+UPTOSIGN_CREATE_SIGN_ALL_CONTACT_LINKEDTooltip=No need to assign the "electronic signature" role to a contact... the downside is that a customer's technician could end up signing a proposal... use with full knowledge of the consequences
+UPTOSIGN_FORCE_AS_DEFAULT_SIGN_SYSTEM_CLONE=Force UpToSign as the default signing system for cloned objects
+UPTOSIGN_FORCE_AS_DEFAULT_SIGN_SYSTEM_CLONETooltip=Only applies when the "Electronic signature" field is not set on the Dolibarr object to be signed (for example if you clone an old proposal)
+UPTOSIGN_FORCE_AS_DEFAULT_SIGN_SYSTEM=Force UpToSign as the default signing system for all new objects
+UPTOSIGN_FORCE_AS_DEFAULT_SIGN_SYSTEMTooltip=Will apply to all new proposals (or other objects) by pre-filling the "Electronic signature" field
+UPTOSIGN_FORCE_FIRST_CONTACT_AS_SIGNER=The contact created with the third party is a signer for everything by default
+UPTOSIGN_FORCE_FIRST_CONTACT_AS_SIGNERTooltip=Give all signing rights to the first contact when created during the creation of a new third party
+THIRDPARTY_SUGGEST_ALSO_ADDRESS_CREATION=Internal Dolibarr option to automatically create a contact along with a third party
+THIRDPARTY_SUGGEST_ALSO_ADDRESS_CREATIONTooltip=If you enable this option you can automatically create a contact at the same time as the third party with the same information
+UPTOSIGN_DISABLE_SMS_GLOBAL_SELECT=Choice of two-factor authentication code delivery method (default SMS)
+UPTOSIGN_DISABLE_SMS_GLOBALTooltip=Warning, the signature value is reduced if you choose anything other than SMS, this option is <b>not recommended</b> (simple signature, by SMS = enhanced signature)
+UPTOSIGN_DISABLE_SMS_SELECT_THIRDPART=Choose which third parties have a custom code delivery method
+UPTOSIGN_DISABLE_SMS_SELECT_THIRDPARTTooltip=Enable this option if you want to specify which third parties do not receive the code by SMS; it will be sent by email instead which weakens the official value of the signature (single communication channel).
+UPTOSIGNdolibarrSecurityCheck=Your Dolibarr security configuration is incomplete (password encryption system and other security keys). Please follow the %stechnical documentation%s to bring your Dolibarr into compliance. Without this change, the security links sent to your customers to view and sign documents may not work correctly.
+UPTOSIGN_SERVER_UPGRADE_IN_PROGRESS=Server upgrade in progress
+UPTOSIGN_SERVER_UPGRADE_IN_PROGRESS_MESSAGE=The UptoSign server is currently being upgraded, please try again later.
+DEFAULT_UPTOSIGN_WEBSERVICE_MSG1=Your UptoSign credit is exhausted or your subscription is inactive.
+DEFAULT_UPTOSIGN_WEBSERVICE_MSG2=Click here to view the available plans
+DEFAULT_UPTOSIGN_WEBSERVICE_PROTOCOL1=The communication protocol version is not compatible with this module version
+DEFAULT_UPTOSIGN_WEBSERVICE_PROTOCOL2=Click here to download the latest version of the module
+uptosignApiGetInfoAboutWebservice=Error retrieving remote webservice information
+
+#
+# Signature / Seal positions
+#
+UptoSignChoosesign=Signature
+UptoSignChooseseal=Sealing
+SealCoordinate=Seal (position)
+SealCoordinateToolTip=Position of the uptosign seal (x,y coordinates in millimeters of top left corner)
+SealPage=Seal page
+SealPageTooltip=Page number where to place the uptosign seal
+UptoSignFirstPlaceUpToSignSeal=1. Place the uptosign seal (mandatory)
+UptoSignTwoPlaceSigns=2. Then choose (if needed) the signer(s) of the document
+UptoSignTwoPlaceListSigns=2. Then the signature location
+UptoSignThreeTitleAndButton=3. Finally, enter the subject of your email and click the button at the bottom of the page
+uptosignEditHelpMessage=Move the labels on the page or manually enter the coordinates you want... The page number can be negative if you count from the last page (useful if you have terms and conditions for example)
+UptoSignDocumentTitle=Document and email title:
+UptoSignDocumentTitleTxt=Enter the document and email title then click the button after positioning the fields...
+
+#
+# Signing tab
+#
+UptoSignSendToSign=Send this document for signature
+UptoSignSendToSeal=Seal and timestamp this document
+UptoSignBtnOnlySignList=Send signature request to %s recipients
+UptoSignBtnOnlySignListOne=Send signature request to 1 recipient
+UptoSignSendToSignList=Send for signature
+UptoSignSendToSignListEmpty=Your recipient list is empty
+UptoSignSendToSignListMoreThanTen=Your recipient list is too large for this testing phase (max 30 procedures)
+UptoSignProcedureLocalSign=Launch local signature without sending an email to your customer
+UptoSignChooseFile=Choose the file you want to use if the default one is not correct
+UptoSignChooseFilePopup=File selection
+UptoSignNoPdfFilesAssociated=No PDF files are associated with this object!
+UptoSignConfirmRebuildPDF=This document has been signed or sealed, are you sure you want to re-generate it and therefore lose the seal and/or signature?
+UptoSignListTab=Signature position
+UptoSignListTabResult=Signed documents
+UptoSignListCard=Mass signing
+UptoSignListTarget=Recipients
+UptoSignListsPage=Multiple signatures management for the same document
+uptosignlistMenu=Multiple signatures
+uptosignListProcessInProgress=The procedure is in progress, you can no longer access this feature
+
+#
+# Digital signature extra field
+#
+DigitalSign=Electronic signature
+DigitalSignTooltip=If you want to have this document electronically signed
+DigitalSignCodeBy=[uptosign] send the two-factor authentication code by
+DigitalSignCodeByTooltip=If you choose email, your correspondent will receive the two-factor authentication code by email. Warning, this option weakens the signature level (single communication channel).
+DigitalSignCodeByEmail=email
+DigitalSignCodeBySMS=SMS
+DolibarrNative=Native Dolibarr (not legally binding)
+UpToSignCertified=UpToSign compliant with eIDAS standard (Enhanced simple signature)
+AC_UPTOSIGN=Electronic signature
+AC_UPTOSEAL=Electronic sealing
+
+#
+# Contact roles
+#
+UptoSignVendorSign=Electronic signature (vendor)
+UptoSignSupplierSign=Supplier signature
+UptoSignCustomerSign=Electronic signature
+UptoSignTechnicalSign=Electronic signature (technician)
+UptoSignAddAllDocToSign=UpToSign for all documents
+UptoSignAddAllDocToSignTooltip=Gives this contact the right to sign any type of document via uptosign (proposals, contracts, interventions, etc.)
+UptoSignAssignAllSignRoleToContact=This contact now has all signing roles
+UptoSignAssignAllSignRoleToContactError=Error assigning roles to contact
+UptoSignSignsTab=Internal signers
+UptoSignSigns=Signers
+UptoSignSignsLongTxt1=Check the boxes for Dolibarr users who will be required to sign documents via uptosign (this list does not show disabled accounts or accounts linked to external third parties):
+UptoSignUserCanSign=Dolibarr user who can be asked to sign documents
+UptoSignUserCannotSign=This user does not have the right to sign a document, change their user permissions
+DolibarrUsersWithMailAndPhone=Dolibarr users with email and mobile phone
+
+#
+# Document operations
+#
+UptoSignDocumentSeal=Document sealing
+UptoSignDocumentSign=Document signing
+UptoSignDocumentProof=Proof file
+UptoSignFileDownloaded=Document downloaded
+UptoSignProofFileDownloaded=Proof file downloaded
+UptoSignOtherModelLinked=Other linked document model
+UptoSignEventAdded=Entry added to the agenda
+UptoSignHashFile=Original file fingerprint
+UptoSignHashFileSigned=Fingerprint of the file returned by UptoSign
+UptoSignDetailsHere=Follow the link to track the process: %s
+uptosignLinkToSignPeople=Signature link sent to the %s customer by email %s or scan the attached QR code...
+UptoSignDownBkup=Download backup
+
+#
+# File verification
+#
+CheckFileWithCheckSum=Verify the file checksum
+CheckHistory=Refresh history
+UptoSignHistoryRefresh=History refresh
+UptoSignCheckFileError=Verification error
+UptoSignCheckFileOk=Verification
+UptoSignCheckFileOkMessage=The file has not been modified, no errors reported, the checksum matches the file present in Dolibarr
+UptoSignNoSignEntry=The verification signature is missing
+UptoSignFileNotFound=File not found, the file is no longer present on your storage space
+UptoSignChecksumError=The checksum does not match, the file on your storage space does not match the original file
+UptoSignFileDoesNotExists=This file no longer exists, please delete the associated UptoSign procedure in your %s Dolibarr history %s
+UptoSignDownloadFileError=File download error: the file no longer exists on the server (storage delay exceeded?)
+
+#
+# Errors
+#
+UptoSignErrorMoreThanOneConfig=You have multiple configurations matching this document type
+UptoSignErrorThereIsNoConfig=There is no configuration for this document model <b>%s</b>. Please go to the %smodule configuration%s to add one.
+UptoSignErrorErrorStampPosition=Please position the UptoSign seal on your document
+UptoSignErrorErrorSignPosition=Please place a signature on your document
+UptoSignErrorLoginWithUserPassError=Login or password error
+UptoSignErrorCustomerContactIsMissing=No customer contact is designated as a signer for this document. Please click on the Contacts/Addresses tab and choose the customer contact who must sign this document.
+UptoSignContactDoesNotExist=This contact does not exist
+UptoSignContactMissingHelp=Click on the contacts tab and choose the signers.
+UptoSignContactMissingHelpPublic=Please inform your correspondent so they can add you as an authorized signer for this document.
+uptosignErrorPdfToText=Error launching the 'pdftotext' command, please check that it is available on your server...
+uptosignErrorSmalotDoesNotExists=The SmalotPDF class does not exist, if your installation was done from the git repository, remember to run "composer i" to install the dependencies...
+uptosignErrorVendorDoesNotExists=The "vendor" subdirectory does not exist, if your installation was done from the git repository, remember to run "composer i" to install the dependencies...
+UptoSignOnlineSignFormErrorGenericMessage=An error has occurred, your correspondent has been automatically notified but we invite you to contact them to confirm the error.
+UptoSignObjectTypeNotCompatible=This object type is not compatible with the uptosign module!
+UptoSignThereIsNoSocidForThatObject=The Dolibarr object being processed does not have a field to identify the company it belongs to!
+UptoSignMissingPhoneNumber=ERROR MISSING NUMBER
+UptoSignErrorPhoneNumber=International format (+33...) required
+UptoSignMissingMail=ERROR MISSING EMAIL
+UptoSignInvalidSealCoordinates=Invalid seal coordinates format
+
+#
+# Public online signature page
+#
+UptoSignViewDocument=View document
+UpToSignContactSignIs=The designated signer for this document is %s.
+UpToSignContactSignIsWrong=If this is not you, please ask that person to sign the document or %scontact us</a> to update your customer record and designate you as the signatory contact.
+UpToSignContactSignIsEmpty=%sContact us</a> to update your customer record and designate you as the signatory contact.
+UpToSignNoContact=No contact is designated as a signer for this document.
+UpToSignYouCanCreateFirstContact=You can create a signatory contact by filling in the form below:
+UpToSignYouCanCreateFirstContactCheckbox=I want to create a signatory contact to sign this document
+UpToSignYouCanCreateOneContact=If the signatory contact is not correct, you can fill in the form below to initiate the signature with this information:
+UpToSignYouCanCreateOneContactCheckbox=I want to sign this document with a different signatory contact:
+UpToSignChooseContact=Choose the contact who must sign this document:
+WelcomeOnOnlineSignaturePageCommande=Welcome to the signature page for the order %s
+WelcomeOnOnlineSignaturePageProject=Welcome to the signature page for the project %s
+ThisScreenAllowsYouToSignDocFromCommande=This screen allows you to sign the following order online:
+ThisScreenAllowsYouToSignDocFromProject=This screen allows you to accept and sign online, or refuse, the following document:
+ThisIsInformationOnDocumentToSignCommande=This is information about the order to sign
+ThisIsInformationOnDocumentToSignProject=This is information about the project to sign
+SignatureCommandeRef=Signature of the order %s
+UptoSignSignatureProjectRef=Signature of the project %s
+FeatureOnlineSignDisabled=Online signature feature disabled or document generated before the feature was enabled
+
+#
+# Email subjects
+#
+UptoSignMailSubjectPropal=Your proposal reference %s
+UptoSignMailSubjectCommande=Your order reference %s
+UptoSignMailSubjectContract=Your contract reference %s
+UptoSignSendReminderDefaultEnUs=No reminder template found for your language, the English template is used.
+UptoSignSendRefusedDefaultEnUs=No refusal template found for your language, the English template is used.
+SealRequestSuccessful=Seal request successfully sent.
+
+#
+# Error notification emails
+#
+UpToSignMailHello=Hello, an error occurred during the UptoSign signing process. You will find technical details below
+UpToSignMailGoodBye=We hope this email helps you find the source of the problem...
+UpToSignMailSignature=This email was automatically sent by the UptoSign module for Dolibarr
+
+#
+# Signature history
+#
+uptosignTitleHistory=Signing process history
+uptosignTitleHistorySignPeople=Signer %s:
+uptosignTitleNoHistory=There is no signature history for this document
+
+#
+# Permissions
+#
+DeleteUptoSignConfig=Delete UptoSign configuration
+DeleteUptoSignList=Delete UptoSign list
+ConfirmActionUptoSignList=Are you sure you want to perform this action on %s?
+ActionsOnUptoSignList=Actions on UptoSign list
+
+#
+# Employee / HR signing
+#
+UptoSignEmployeeList=File list
+UptoSignEmployeeNew=New file
+UptoSignEmployeeRead=View employee signing files
+UptoSignEmployeeCreate=Create employee signing files
+UptosignNotEmployee=Not an employee
+
+#
+# Reseller management
+#
+UptoSignResellers=Resellers (1)
+UptoSignResellers2=Resellers (2)
+uptosignAccountReseller=Active reseller / distributor account
+uptosignAccountResellerTXT=Below you will find specific tools available to resellers / distributors
+uptosignAccountNotReseller=Normal user account
+uptosignAccountNotResellerTXT=Your account is not a distributor or reseller account, the options specific to this type of account are not accessible
+uptosignAccountResellerMyCustomers=My customers
+uptosignAccountResellerBillingData=My raw billing / consumption data for my customers over the last 6 months
+uptosignThereIsNoLocalCustomerWithThatEmail=Unfortunately no customer was found in your Dolibarr with this email address: %s
+uptosignLocalCustomerWithThatEmail=Dolibarr customer: %s
+uptosignLocalCustomerContract=Customer contract %s
+uptosignLocalCustomerCreateContract=you can %screate their contract%s automatically
+uptosignLocalCustomerCreateContractAndRecInvoice=%sContract, first invoice and recurring invoice%s
+uptosignLocalCustomerCreateAutoTooltip=Click this button to automatically create the indicated documents
+uptosignLocalCustomerRecInvoice=Recurring invoice %s
+uptosignLocalCustomerCreateContractIsDisabled=Automatic contract creation is disabled
+uptosignProrataDaysAbo=Prorated number of days calculation (%s days) for the subscription. Full month subscription price: %s EUR.
+UptosignContractCreated=The contract has been created
+UptosignFirstFactCreated=First invoice generated
+UptosignFactRectCreated=The template invoice is ready
+UptoSignResellerCron=UptoSign - Resellers
+UptoSignResellerCronComments=Automations reserved for resellers (billing)
+UPTOSIGN_RVD_AUTO=Customer management assistance
+UPTOSIGN_RVD_AUTOTooltip=This module allows you to create contracts and invoice templates for your uptosign customers in a few clicks...
+UPTOSIGN_RVD_AUTO_CREATE_CONTRACT=Enable the automatic contract creation wizard for your customers?
+UPTOSIGN_RVD_AUTO_CREATE_INVOICES=Enable the automatic recurring invoice creation wizard (requires automatic contract creation)?
+UPTOSIGN_RVD_AUTO_DEFAULT_ABO=Service to use for the base subscription
+UPTOSIGN_RVD_AUTO_DEFAULT_SIGN=Service to use for signature consumption
+UPTOSIGN_RVD_AUTO_DEFAULT_SEAL=Service to use for sealing consumption
+UPTOSIGN_RVD_AUTO_CRON=Enable the reseller scheduled task
+UPTOSIGN_RVD_AUTO_CRONTooltip=This scheduled task updates the quantities consumed by your customers for signatures and seals once a month
+uptosignAutoInvoicePeriod=Period concerned: from %s to %s
+resellers=Resellers and distributors
+server=Server configuration
+settings=General settings
+
+#
+# Workflow / Automation
+#
+UptoSignWorkflow=Automations
+UPTOSIGN_AUTO=Task automation
+UPTOSIGN_WORKFLOW_PROPAL_AUTOCREATE_INVOICE_ON_PROPAL_SIGN=Automatically create an invoice when the proposal is signed via uptosign
+UPTOSIGN_WORKFLOW_PROPAL_AUTOCREATE_INVOICE_ON_PROPAL_SIGN_WARNING=<b>Warning</b> the Dolibarr core workflow module is already configured to automatically create an order when a proposal is signed, so you may experience unexpected behavior (signed proposal -> order *and* invoice generated automatically)
+UPTOSIGN_WORKFLOW_INVOICE_AUTOSEAL_IF_FROM_PROPAL_SIGN=Automatically seal this invoice generated from the signed proposal
+UPTOSIGN_WORKFLOW_AUTO_SEND_INVOICE_IF_FROM_PROPAL_SIGN=Send by email the invoice generated from the signed proposal
+UPTOSIGN_WORKFLOW_AUTO_SEND_INVOICE_IF_FROM_PROPAL_SIGN_MODEL=Email template to use for automatically sent invoices
+UPTOSIGN_WORKFLOW_AUTO_CLOSE_ORDER=Automatically close an order upon signature
+uptosignInvoiceExists=A linked invoice already exists
+
+#
+# Template configuration
+#
+UptoSignTemplateLongTxt1=Document model configuration (signature positions, etc.) is done in the UptoSign main menu then in the Configuration list submenu
+uptosignThenClickHere=Configure this model and then click the next arrow to move to the next one

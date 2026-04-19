@@ -141,7 +141,7 @@ class mod_uptosignlist_standard extends ModeleNumRefUptoSignList
 				$max = 0;
 			}
 		} else {
-			dol_syslog("mod_uptosignlist_standard::getNextValue", LOG_DEBUG);
+			dol_syslog("uptosign: mod_uptosignlist_standard::getNextValue", LOG_DEBUG);
 			return -1;
 		}
 
@@ -155,7 +155,7 @@ class mod_uptosignlist_standard extends ModeleNumRefUptoSignList
 			$num = sprintf("%04s", $max + 1);
 		}
 
-		dol_syslog("mod_uptosignlist_standard::getNextValue return ".$this->prefix.$yymm."-".$num);
+		dol_syslog("uptosign: mod_uptosignlist_standard::getNextValue return ".$this->prefix.$yymm."-".$num);
 		return $this->prefix.$yymm."-".$num;
 	}
 }
