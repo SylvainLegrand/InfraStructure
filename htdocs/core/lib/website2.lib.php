@@ -31,6 +31,8 @@
  */
 function dolSaveMasterFile($filemaster)
 {
+	global $conf; // InfraS add
+
 	// Now generate the master.inc.php page
 	dol_syslog("We regenerate the master.inc.php file");
 
@@ -40,6 +42,11 @@ function dolSaveMasterFile($filemaster)
 	$mastercontent .= '// File generated to link to the master file - DO NOT MODIFY - It is just an include'."\n";
 	$mastercontent .= "if (! defined('USEDOLIBARRSERVER') && ! defined('USEDOLIBARREDITOR')) {\n";
 	$mastercontent .= "    if (! defined('USEEXTERNALSERVER')) define('USEEXTERNALSERVER', 1);\n";
+	// InfraS add begin - Multicompany: define DOLENTITY so the website loads in the correct entity
+	if (isModEnabled('multicompany') && !empty($conf->entity) && $conf->entity > 1) {
+		$mastercontent .= "    if (! defined('DOLENTITY')) define('DOLENTITY', ".((int) $conf->entity).");\n";
+	}
+	// InfraS add end
 	$mastercontent .= "    require_once '".DOL_DOCUMENT_ROOT."/master.inc.php';\n";
 	$mastercontent .= "}\n";
 	$mastercontent .= '?>'."\n";

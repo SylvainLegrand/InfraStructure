@@ -91,6 +91,7 @@ include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be 'inc
 $permissiontoread   = $user->hasRight('hrm', 'all', 'read');
 $permissiontoadd    = $user->hasRight('hrm', 'all', 'write'); // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 $permissiontodelete = $user->hasRight('hrm', 'all', 'delete');
+$permissiondellink  = $user->hasRight('hrm', 'all', 'write');	// InfraS add - Permission pour lier/délier des objets
 
 $upload_dir = $conf->hrm->multidir_output[isset($object->entity) ? $object->entity : 1] . '/skill';
 
