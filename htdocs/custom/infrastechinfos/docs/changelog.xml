@@ -93,7 +93,9 @@
 	</Version>
 	<Version Number="15.2.1" MonthVersion="2026-03">
 		<change type='fix'>Compatibilité avec PHP 8.4</change>
-		<change type='add'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
+	</Version>
+	<Version Number="15.2.2" MonthVersion="2026-03">
+		<change type='chg'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
 	</Version>
 	<InfraS Downloaded="20260301"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>

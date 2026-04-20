@@ -15,7 +15,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.2.1` (2026-03)
+- Dernière version locale : `15.2.2` (2026-03)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrastechinfos/`
 
@@ -251,6 +251,7 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - `15.2.1` (2026-03) : isolation du cookie JS de l'état des panneaux (`infrastechinfos_tblPSexp` au lieu de `tblPSexp`)
 - `15.2.1` (2026-03) : variable `cookieName` déplacée au scope script (hors `jQuery(document).ready()`) pour accès inter-closures
 - `15.2.1` (2026-03) : test défensif `!empty($conf->use_javascript_ajax)` au lieu de `$conf->use_javascript_ajax`
+- `15.2.2` (2026-03) : ajout d'une nouvelle famille dédiée aux modules d'hébergement (branding dynamique)
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -344,7 +345,7 @@ Le module gère sa propre entrée dans le menu « Outils » :
 
 ```xml
 <changelog>
-    <Version Number="15.2.1" MonthVersion="2026-03">
+    <Version Number="15.2.2" MonthVersion="2026-03">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -358,7 +359,7 @@ Le module gère sa propre entrée dans le menu « Outils » :
 La fonction `infrastechinfos_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "15.2.1",           // Version courante
+    0 => "15.2.2",           // Version courante
     1 => "15.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
