@@ -881,7 +881,7 @@
 		}
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		$doli_addr_livr_recep	= empty($use_doli_addr_livr) ? 0 : getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0);
-		$use_doli_addr_fact		= empty($use_doli_addr_livr) ? 0 : getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 0);
+		$use_doli_addr_fact		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 0);
 		$showadrSsT				= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 		if (!empty($showadrSsT)) {
 			if (!empty($adrSst) && $adrSst > 0) {
@@ -964,12 +964,12 @@
 				}
 			} else {
 				$usecontact		= false;
-				if (!empty($use_doli_addr_fact) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
+				if (!empty($use_doli_addr_fact) && $object->element == 'facture' && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
 					$usecontact	= true;
 					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
-				} elseif (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0 && $object->element == 'commande') {
+				} elseif (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0 && $object->element == 'commande') {
 					$usecontact	= true;
-					$result		= $object->fetch_contact($arrayidcontact['L'][0]);
+					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
 				} elseif (in_array($customerAddr, array('C', 'A')) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
 					$usecontact	= true;
 					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
@@ -981,10 +981,23 @@
 				$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdpartystatic, $usecontact ? $object->contact : '', $usecontact, $show_recep_details ? 'targetwithdetails' : 'target', $object, 1, $ticket);
 			}
 			// Shipping address
-			if (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
+			// Priority 1 : static InfraSPlus address (adrlivrfour selected), 2 : internal SHIPPING contact, 3 : external SHIPPING contact
+			if (!empty($use_doli_addr_livr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
+				if ($addresslivrstatic == 'Default') {
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
+				} else {
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
+				}
+			} elseif (!empty($use_doli_addr_livr) && isset($arrayidcontact['LI']) && is_array($arrayidcontact['LI']) && count($arrayidcontact['LI']) > 0) {
+				$result	= $object->fetch_user($arrayidcontact['LI'][0]);
+				if ($result > 0 && is_object($object->user)) {
+					$livrshow_name	= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
+					$livrshow		= $outputlangs->convToOutputCharset(dol_format_address($object->user, 0, "\n", $outputlangs));
+				}
+			} elseif (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
 				$companyDiff	= 0;
 				$result			= $object->fetch_contact($arrayidcontact['L'][0]);
-				$usecontact		= in_array($customerAddr, array('C', 'A')) ? true : false;
+				$usecontact		= in_array($customerAddr, getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON') ? array('C', 'A', 'T', 'B') : array('C', 'A')) ? true : false;
 				if ($object->contact->socid != $thirdparty->id) {
 					$companyDiff	= 1;
 					if ($object->contact->socid > 0) {
@@ -996,12 +1009,12 @@
 					}
 				}
 				$livrshow_name	= pdf_InfraSPlus_Build_Third_party_Name(($companyDiff ? $object->contact->thirdparty : $thirdparty), $outputlangs, $includealias, $object->contact, $customerAddr);
-				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $companyDiff ? $object->contact->thirdparty : $thirdparty, $usecontact ? $object->contact : '', $usecontact, $show_recep_details ? 'targetwithdetails' : 'target', $object, -1, $ticket);
+				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $companyDiff ? $object->contact->thirdparty : $thirdparty, $usecontact ? $object->contact : '', $usecontact, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, -1, $ticket);
 			} elseif (!empty($showadrlivr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
 				if ($addresslivrstatic == 'Default') {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
 				} else {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
 				}
 			}
 			// Subcontractor address
@@ -1071,6 +1084,10 @@
 		$targetDetFax		= getDolGlobalInt('INFRASPLUS_PDF_TARGET_DETAIL_FAX', 0);
 		$targetDetEmail		= getDolGlobalInt('INFRASPLUS_PDF_TARGET_DETAIL_MAIL', 0);
 		$targetDetWeb		= getDolGlobalInt('INFRASPLUS_PDF_TARGET_DETAIL_WEB', 0);
+		$targetLivrDetPhone	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_PHONE', 0);
+		$targetLivrDetFax	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_FAX', 0);
+		$targetLivrDetEmail	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_MAIL', 0);
+		$targetLivrDetWeb	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_WEB', 0);
 		$showNumCli			= getDolGlobalInt('INFRASPLUS_PDF_SHOW_NUM_CLI', 0);
 		$numCliFrm			= getDolGlobalInt('INFRASPLUS_PDF_NUM_CLI_FRM', 0);
 		$showCodeCliCompt	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_CODE_CLI_COMPT', 0);
@@ -1172,7 +1189,7 @@
 					$stringaddress	.= ($stringaddress ? "\n" : '').$moreInSourceAddr;
 				}
 			}
-			if ($mode == 'target' || $mode == 'targetwithnodetails' || preg_match('/targetwithdetails/',$mode)) {
+			if (in_array($mode, array('target', 'targetwithnodetails', 'targetlivrwithdetails')) || preg_match('/targetwithdetails/',$mode)) {
 				if (!empty($usecontact)) {
 					if (is_object($targetcontact)) {
 						if (!empty($targetcontact->address)) {
@@ -1185,9 +1202,9 @@
 							}
 							$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->convToOutputCharset(dol_format_address($companytouseforaddress, $withCountry, "\n", $outputlangs))."\n";
 						}
-						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode)) {
+						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode) || preg_match('/targetlivrwithdetails/', $mode)) {
 							// Phone
-							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
 								if (!empty($targetcontact->phone_pro) || !empty($targetcontact->phone_mobile)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
 								}
@@ -1202,19 +1219,20 @@
 								}
 							}
 							// Fax
-							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
 								if (!empty($targetcontact->fax)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcontact->fax)));
+									dol_syslog('ici stringaddress = '.$stringaddress.' mode = '.$mode.' targetDetFax = '.$targetDetFax.' targetLivrDetFax = '.$targetLivrDetFax.' targetcontact->fax = '.$targetcontact->fax, LOG_DEBUG);
 								}
 							}
 							// EMail
-							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
 								if (!empty($targetcontact->email)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($targetcontact->email);
 								}
 							}
 							// Web
-							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
 								if (!empty($targetcontact->url)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Web').' : '.$outputlangs->convToOutputCharset($targetcontact->url);
 								}
@@ -1224,9 +1242,9 @@
 				} else {
 					if (is_object($targetcompany)) {
 						$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->convToOutputCharset(dol_format_address($targetcompany, $withCountry, "\n", $outputlangs)).($ticket ? '' : "\n");
-						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode)) {
+						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode) || preg_match('/targetlivrwithdetails/', $mode)) {
 							// Phone
-							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
 								if (!empty($targetcompany->phone) || !empty($targetcompany->phone_mobile)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
 								}
@@ -1241,19 +1259,19 @@
 								}
 							}
 							// Fax
-							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
 								if (!empty($targetcompany->fax)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->fax)));
 								}
 							}
 							// EMail
-							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
 								if (!empty($targetcompany->email)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($targetcompany->email);
 								}
 							}
 							// Web
-							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
 								if (!empty($targetcompany->url)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Web').' : '.$outputlangs->convToOutputCharset($targetcompany->url);
 								}
@@ -1390,7 +1408,7 @@
 		if ($contact instanceof Contact) {
 			$contactname	= $outputlangs->convToOutputCharset($contact->getFullName($outputlangs, 1, -1));
 		}
-		return $outputlangs->convToOutputCharset($customerAddr == 'C' && !empty($contactname) ? $contactname : (in_array($customerAddr, array('B', 'A')) ? $socname.(!empty($contactname) ? "\n".$contactname : '') : $socname));
+		return $outputlangs->convToOutputCharset($customerAddr == 'C' ? $contactname : ($customerAddr == 'B' ? $socname."\n".$contactname : ($customerAddr == 'A' ? $contactname."\n".$socname : $socname)));
 	}
 
 	/**
@@ -4701,7 +4719,7 @@
 	*	@param		Translate	$outputlangs		Object lang for output
 	*	@param		array		$subtotalRecap		array of lines to print
 	*	@param		object		$template			object template we work on
-	*	@param		integer		$heightforinfotot	height reserved for info table
+	*	@param		integer		$ht_coltotal		height reserved for info table
 	*	@param		integer		$heightforfooter	height reserved for footer
 	*	@return		integer							next Y position
 	**/

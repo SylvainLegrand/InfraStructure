@@ -78,7 +78,7 @@
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error
 		**/
-		function updateSession($parameters, $user, $action)
+		function updateSession($parameters, $user, $action, $hookmanager)
 		{
 			$redirect_url	= infraspackplus_getSubstitutionRedirectUrl();
 			if (!empty($redirect_url)) {
@@ -505,7 +505,7 @@ EOJS;
 					$showadrlivr		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 0);
 					$showadrlivr		= !empty($useDoliAddr) || !empty($object->array_options['options_'.$freeadrlivr]) ? 0 : $showadrlivr;
 					$def_adrlivrfour	= getDolGlobalString('INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', '');
-					$typeadr		= in_array($object->element, array('fichinter')) ? $langs->trans('PDFInfraSPlusAdrInter') : $langs->trans('PDFInfraSPlusAdrLivr');
+					$typeadr			= in_array($object->element, array('fichinter')) ? $langs->trans('PDFInfraSPlusAdrInter') : $langs->trans('PDFInfraSPlusAdrLivr');
 					$adrlivrPost		= !empty($res_adrfact) ? $res_adrfact : GETPOST('adrlivr', 'int');	// -1 pour défaut, -2 pour aucune, >0 pour ID
 					if (!empty($showadrlivr)) {
 						$adrlivrtmp			= new Address($db);

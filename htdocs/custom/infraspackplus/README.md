@@ -4,7 +4,7 @@
 
 ## ***InfraSPackPlus***
 #### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
-* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 705 options (32 options sont modifiables directement sur la fiche du document) dont
+* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 709 options (32 options sont modifiables directement sur la fiche du document) dont
 	 * Les cadres arrondis, l’organisation des colonnes (ordre, affichage, largeur, …)
 	 * Le choix des couleurs de texte, de fond, des images, des filigranes, des types épaisseur et couleurs des lignes, …
 	 * L’affichage 'full' TTC
@@ -432,16 +432,16 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***16*** Automatiser l’utilisation d’une adresse de facturation client spécifique en choisissant le ‘label’ caractérisant cette adresse
 		* ***17*** Toujours afficher une adresse de livraison (même si l'adresse de facturation automatique est inactive)
 		* ***18*** Afficher automatiquement (par défaut) une adresse de livraison quand l'adresse de facturation automatique est active
-		* ***19*** Utiliser la gestion native des adresses de livraison (par les contacts de suivi livraison)
-		* ***20*** Afficher l'adresse de livraison sur les documents fournisseurs (devis, commandes)
-		* ***21*** Afficher l'adresse de livraison sur les documents client (devis, commandes, factures)
-		* ***22*** Afficher tous les détails disponibles des coordonnées de livraison (par défaut Adresse seule, option activée = + tél. + Fax + Email + Web)
-		* ***23*** Saisir manuellement l'adresse de livraison => utilisation d'un attribut supplémentaire dédié
-		* ***24*** Demander la livraison directement à une adresse client (principale ou secondaire) si l'adresse de livraison sur les documents fournisseurs (devis, commandes) est activée, => Liste de choix avec auto-complétions au 2ème caractère entrée
-		* ***25*** Utiliser le contact de facturation Dolibarr (type externe 'BILLING') comme adresse destinataire
+		* ***19*** Afficher l'adresse de livraison sur les documents fournisseurs (devis, commandes)
+		* ***20*** Afficher l'adresse de livraison sur les documents client (devis, commandes, factures)
+		* ***21-22*** Afficher tous les détails disponibles des coordonnées de livraison (par défaut Adresse seule, option activée = + tél. + Fax + Email + Web)
+		* ***23*** Utiliser la gestion native des adresses de livraison (par les contacts de suivi livraison)
+		* ***24*** Saisir manuellement l'adresse de livraison => utilisation d'un attribut supplémentaire dédié
+		* ***25*** Demander la livraison directement à une adresse client (principale ou secondaire) si l'adresse de livraison sur les documents fournisseurs (devis, commandes) est activée, => Liste de choix avec auto-complétions au 2ème caractère entrée
 		* ***26*** Dans le cadre de l'utilisation de la gestion native des adresses de livraison, remplacer les informations du destinataire par celles du contact de livraison sélectionné pour les les commandes (clients ou fournisseurs)
-		* ***27-28*** Afficher des détails supplémentaires disponibles pour le destinataire (minimum => adresse, avec cette option vous choisissez d'ajouter le téléphones, le fax, l'email, ou le site web, indépendamment les uns des autres)
-		* ***29-30*** Afficher l'adresse d'un contact externe d'un client comme adresse de sous-traitant dans les Ordres de Fabrication (OF créés à partir des commandes) => demande le module CustomLink des Patas-Monkey
+		* ***27*** Utiliser le contact de facturation Dolibarr (type externe 'BILLING') comme adresse destinataire
+		* ***28-29*** Afficher des détails supplémentaires disponibles pour le destinataire (minimum => adresse, avec cette option vous choisissez d'ajouter le téléphones, le fax, l'email, ou le site web, indépendamment les uns des autres)
+		* ***30-31*** Afficher l'adresse d'un contact externe d'un client comme adresse de sous-traitant dans les Ordres de Fabrication (OF créés à partir des commandes) => demande le module CustomLink des Patas-Monkey
 * Onglet Attributs supplémentaires
 	* OPTIONS CONCERNANT L'UTILISATION DES ATTRIBUTS SUPPLÉMENTAIRES DANS LES ÉDITIONS DU PACK
 		* ***1*** Choisir la couleur du texte appliquée aux valeurs des attributs supplémentaires des documents (choix graphique ou par code RVB, hexa, ou HSV)

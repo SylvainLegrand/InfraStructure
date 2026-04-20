@@ -129,15 +129,17 @@
 										'L' => ''
 										);
 				$typeadr		= 'accountStatus';
-			} elseif (in_array($object->element, array('propal'))) {
-				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'E' => $object->getIdContact('external', 'CUSTOMER'),
-										'L' => $object->getIdContact('external', 'SHIPPING')
+			} elseif (in_array($object->element, array('propal', 'supplier_proposal'))) {
+				$arrayidcontact	= array('I'  => $object->getIdContact('internal', 'SALESREPFOLL'),
+										'LI' => $object->element == 'supplier_proposal' ? $object->getIdContact('internal', 'SHIPPING') : array(),
+										'E'  => $object->getIdContact('external', 'CUSTOMER'),
+										'L'  => $object->getIdContact('external', 'SHIPPING')
 										);
 			} elseif (in_array($object->element, array('commande', 'order_supplier'))) {
-				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'E' => $object->getIdContact('external', (!empty($doli_addr_livr_recep) ? 'SHIPPING' : 'CUSTOMER')),
-										'L' => (empty($doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : '')
+				$arrayidcontact	= array('I'  => $object->getIdContact('internal', 'SALESREPFOLL'),
+										'LI' => $object->element == 'order_supplier' ? $object->getIdContact('internal', 'SHIPPING') : array(),
+										'E'  => $object->getIdContact('external', (!empty($doli_addr_livr_recep) ? 'SHIPPING' : 'CUSTOMER')),
+										'L'  => (empty($doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : array())
 										);
 			} elseif (in_array($object->element, array('facture'))) {
 				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
@@ -228,6 +230,7 @@
 			$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
 		}
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
+		$use_doli_addr_fact		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 0);
 		$doli_addr_livr_recep	= getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0) && !empty($use_doli_addr_livr) ? getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0) : 0;
 		$showadrSsT				= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 		if (!empty($showadrSsT)) {
@@ -311,37 +314,59 @@
 				}
 			} else {
 				$usecontact		= false;
-				if (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0 && $object->element == 'commande') {
+				if (!empty($use_doli_addr_fact) && $object->element == 'facture' && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
 					$usecontact	= true;
-					$result		= $object->fetch_contact($arrayidcontact['L'][0]);
+					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
+				} elseif (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0 && $object->element == 'commande') {
+					$usecontact	= true;
+					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
 				} elseif (in_array($customerAddr, array('C', 'A')) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
 					$usecontact	= true;
 					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
 				} elseif ($customerAddr == 'B' && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
-					$result	= $object->fetch_contact($arrayidcontact['E'][0]);
+					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
 				}
 				$thirdpartystatic	= $typeadr == 'supplierInvoice' ? $addresslivrstatic : ($typeadr == 'accountStatus' ? $thirdparty : infraspackplus_check_parent_addr_fact ($object));
 				$carac_client_name	= pdf_InfraSPlus_Build_Third_party_Name($thirdpartystatic, $outputlangs, $includealias, $object->contact, $customerAddr);
 				$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdpartystatic, ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 1, $ticket);
 			}
 			// Shipping address
-			if (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
-				$result		= $object->fetch_contact($arrayidcontact['L'][0]);
-				$usecontact	= in_array($customerAddr, array('C', 'A')) ? true : false;
+			// Priority 1 : static InfraSPlus address (adrlivrfour selected), 2 : internal SHIPPING contact, 3 : external SHIPPING contact
+			dol_syslog('ici - Shipping address - use_doli_addr_livr '.$use_doli_addr_livr.' showadrlivr '.$showadrlivr.' addresslivrstatic '.$addresslivrstatic.' free_addr_livr '.$free_addr_livr.' arrayidcontact LI '.print_r($arrayidcontact, true), LOG_DEBUG);
+			if (!empty($use_doli_addr_livr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
+				if ($addresslivrstatic == 'Default') {
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
+				} else {
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
+				}
+			} elseif (!empty($use_doli_addr_livr) && isset($arrayidcontact['LI']) && is_array($arrayidcontact['LI']) && count($arrayidcontact['LI']) > 0) {
+				$result	= $object->fetch_user($arrayidcontact['LI'][0]);
+				if ($result > 0 && is_object($object->user)) {
+					$livrshow_name	= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
+					$livrshow		= $outputlangs->convToOutputCharset(dol_format_address($object->user, 0, "\n", $outputlangs));
+					dol_syslog('ici - Shipping address from internal contact - livrshow_name '.$livrshow_name.' livrshow '.print_r($livrshow, true), LOG_DEBUG);
+				}
+			} elseif (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
+				$companyDiff	= 0;
+				$result			= $object->fetch_contact($arrayidcontact['L'][0]);
+				$usecontact		= in_array($customerAddr, getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON') ? array('C', 'A', 'T', 'B') : array('C', 'A')) ? true : false;
 				if ($object->contact->socid != $thirdparty->id) {
-					$object->contact->fetch_thirdparty();
 					$companyDiff	= 1;
+					if ($object->contact->socid > 0) {
+						$object->contact->fetch_thirdparty();
+					}
+					if (!is_object($object->contact->thirdparty)) {	// it's a contact not linked to a third party
+						$usecontact						= true; // force to use contact address
+						$object->contact->thirdparty	= new Societe($db); // not to have error in building address from target company
+					}
 				}
 				$livrshow_name	= pdf_InfraSPlus_Build_Third_party_Name(($companyDiff ? $object->contact->thirdparty : $thirdparty), $outputlangs, $includealias, $object->contact, $customerAddr);
-				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, ($companyDiff ? $object->contact->thirdparty : $thirdparty), ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, -1, $ticket);
-			} elseif (!empty($def_adrlivrfour) && $def_adrlivrfour == $adrlivr) {
-				// Si def_adrlivrfour égale adrlivr, afficher l'adresse de la société courante
-				$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $emetteur, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
+				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $companyDiff ? $object->contact->thirdparty : $thirdparty, $usecontact ? $object->contact : '', $usecontact, $show_recep_details ? 'targetwithdetails' : 'target', $object, -1, $ticket);
 			} elseif (!empty($showadrlivr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
 				if ($addresslivrstatic == 'Default') {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
 				} else {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
 				}
 			}
 			// Subcontractor address

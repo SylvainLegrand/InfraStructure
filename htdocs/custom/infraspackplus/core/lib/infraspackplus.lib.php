@@ -388,7 +388,7 @@
 	/**
 	*	Find module number
 	*
-	*	@param		string		$searchName		module name we look for
+	*	@param		string		$modName		module name we look for
 	*	@return		integer						-1 if KO, 0 not found or module number if Ok
 	**/
 	function infraspackplus_get_mod_number ($modName)

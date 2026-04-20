@@ -1786,8 +1786,15 @@
 	</Version>
 	<Version Number="18.14.15" MonthVersion="2026-04">
 		<change type='chg'>Amélioration de la fonction de création d'objet PDF (évite les avertissements dans les IDE)</change>
-		<change type='add'>Ajout d'une option pour afficher/masquer les lignes de séparation entre la description longue des articles et les informations complémentaires (attibuts supplémentaires, informations douanières, etc.)</change>
+		<change type='chg'>Amélioration de la gestion des adresses de facturation</change>
+		<change type='chg'>Gestion améliorée des adresses de livraison : prise en compte des adresses statiques et des contacts internes/externes</change>
+		<change type='chg'>Adresse du destinataire : séparation des deux options "Tiers et Contact" et "Contact et Tiers"</change>
+		<change type='add'>Ajout d'une option pour afficher/masquer les lignes de séparation entre la description longue des articles et les informations complémentaires (attributs supplémentaires, informations douanières, etc.)</change>
 		<change type='add'>Ajout d'une option pour utiliser la gestion des adresses de facturation native</change>
+		<change type='fix'>Correction du fichier TPL pour laisser le HRM evaluations gérer les lignes d'évaluation</change>
+	</Version>
+	<Version Number="18.15.0" MonthVersion="2026-04">
+		<change type='add'>Ajout d'une option pour sélectionner les adresses de livraison à afficher sur les documents PDF</change>
 	</Version>
 	<InfraS Downloaded="20260401"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>

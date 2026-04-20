@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.14.15` (2026-04)
+- Dernière version locale : `18.15.0` (2026-04)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -219,8 +219,11 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - `18.14.13` (2026-03) : Amélioration de la gestion des substitutions de pages et compatibilité avec Dolibarr v22 LTS
 - `18.14.14` (2026-03) : Correction d'une erreur d'affichage des reliquats pour les bon de livraison (InfraSPlus_BL)
 - `18.14.15` (2026-04) : Amélioration de la fonction de création d'objet PDF (évite les avertissements dans les IDE)
+- `18.14.15` (2026-04) : Amélioration de la gestion des adresses de livraison et facturation
+- `18.14.14` (2026-04) : Adresse du destinataire : séparation des deux options "Tiers et Contact" et "Contact et Tiers"
 - `18.14.15` (2026-04) : Ajout d'une option pour afficher/masquer les lignes de séparation entre la description longue des articles et les informations complémentaires (attibuts supplémentaires, informations douanières, etc.)
 - `18.14.15` (2026-04) : Ajout d'une option pour utiliser la gestion des adresses de facturation native
+- `18.15.0`  (2026-04) : Ajout d'une option pour sélectionner les adresses de livraison à afficher sur les documents PDF
 
 
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
@@ -317,7 +320,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="18.14.15" MonthVersion="2026-04">
+  <Version Number="18.15.0" MonthVersion="2026-04">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -336,7 +339,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.14.15",          // Version courante
+    0 => "18.15.0",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)

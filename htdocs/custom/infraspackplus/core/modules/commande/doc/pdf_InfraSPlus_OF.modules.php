@@ -700,7 +700,7 @@
 					$larg_livrshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? ($this->larg_util_txt / 2) - 2 : $this->larg_util_txt;
 					$larg_SsTshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? ($this->larg_util_txt / 2) - 2 : $this->larg_util_txt;
 					$posx_SsTshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? $this->posx_G_txt + $larg_livrshow + 4 : $this->posx_G_txt;
-					if (!empty($head['livrshow'])) {
+					if (!empty($head['livrshow']) && getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION')) {
 						$pdf->SetFont('', 'B', $default_font_size + 2);
 						$pdf->writeHTMLCell($larg_livrshow, $this->tab_hl, $this->posx_G_txt, $tab_top, dol_htmlentitiesbr($outputlangs->transnoentities('PDFInfraSPlusLivr')), 0, 1);
 						$xlivr	= $this->posx_G_txt + $pdf->GetStringWidth($outputlangs->transnoentities('PDFInfraSPlusLivr'), '', 'B', $default_font_size + 2) + 5;

@@ -498,6 +498,10 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TARGET_DETAIL_MAIL',						'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TARGET_DETAIL_PHONE',						'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TARGET_DETAIL_WEB',						'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_FAX',					'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_MAIL',					'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_PHONE',				'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_WEB',					'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TBL_LINE_COLOR',							'__ENTITY__', '128,128,128',					'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TBL_LINE_DASH_0',							'__ENTITY__', '1',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_TBL_LINE_DASH_1',							'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');

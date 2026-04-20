@@ -224,6 +224,7 @@ InfraSPlusParamshowEmetFDetails                = Afficher tous les détails disp
 InfraSPlusParamSourceDetailsList               = Sélection des détails de l'émetteur à ajouter sur les PDF générés
 InfraSPlusParamshowRecepFDetails               = Afficher tous les détails disponibles des coordonnées du destinataire (par défaut Adresse seule, option activée =  + tél. + Fax + Email + Web)
 InfraSPlusParamTargetDetailsList               = Sélection des détails du destinataire à ajouter sur les PDF générés
+InfraSPlusParamTargetLivrDetailsList           = Sélection des détails d'adresse d'expédition à ajouter sur les PDF générés
 InfraSPlusParamshowNumCli                      = Afficher le numéro client dans les documents de la chaîne des ventes (devis, commandes, fiches d'intervention, contrats, bons de livraison, factures client)
 InfraSPlusParamNumCliFrm                       = Si cette option est activée le numéro client sera affiché dans l'en-tête sous la référence client (sinon ce sera dans le cadre d'adresse destinataire)
 InfraSPlusParamshowCodeCliComp                 = Afficher le code comptable client dans les documents de la chaîne des ventes (devis, commandes, fiches d'intervention, contrats, bons de livraison, factures client)
@@ -566,14 +567,14 @@ InfraSPlusParamShowSenderAlias       = Utiliser le nom commercial alternatif (al
 InfraSPlusParamFactureParentAddrFact = Utiliser l'adresse de facturation de la maison mère (si renseignée) en lieu et place de l'adresse client => l'ensemble de la configuration des automatismes s'applique à la société mère
 InfraSPlusParamAddrLivrSyst          = Toujours afficher une adresse de livraison (même si l'adresse de facturation automatique est inactive)
 InfraSPlusParamAddrLivrSiFact        = Afficher automatiquement (par défaut) une adresse de livraison quand l'adresse de facturation automatique est active
-InfraSPlusParamUseDoliAdrLivr        = Utiliser la gestion native des adresses de livraison (par les contacts de suivi livraison)
-InfraSPlusParamDoliAdrLivrRecep      = Dans les commandes (clients ou fournisseurs) remplacer les informations du destinataire par celles du contact de livraison sélectionné
+InfraSPlusParamUseDoliAdrLivr        = Utiliser la gestion native des adresses de livraison (type interne / externe 'SHIPPING') par les contacts de suivi livraison
+InfraSPlusParamDoliAdrLivrRecep      = Dans les commandes clients remplacer les informations du destinataire par celles du contact de livraison sélectionné
 InfraSPlusParamUseDoliAdrFact        = Utiliser le contact de facturation Dolibarr (type externe 'BILLING') comme adresse destinataire
 InfraSPlusParamShowAdrLivr           = Afficher l'adresse de livraison sur les documents fournisseurs (devis, commandes) => Cette adresse est sélectionnable avant la génération du document
 InfraSPlusParamshowLivrFDetails      = Afficher tous les détails disponibles des coordonnées de livraison (par défaut Adresse seule, option activée =  + tél. + Fax + Email + Web)
 InfraSPlusParamFreeLivrExf           = Code de l'attribut supplémentaire dédié à la saisie manuelle d'une adresse de livraison
 InfraSPlusParamLabelExfFreeAddrLivr  = Adresse de livraison (manuelle)
-InfraSPlusParamShowAdrRecep          = Afficher l'adresse de livraison sur les documents client (devis, commandes, factures) => Cette adresse est sélectionnable avant la génération du document (active automatiquement l'option cachée de gestion multi-adresse des tiers)
+InfraSPlusParamShowAdrRecep          = Afficher l'adresse de livraison sur les documents client (devis, commandes) => Cette adresse est sélectionnable avant la génération du document (active automatiquement l'option cachée de gestion multi-adresse des tiers)
 InfraSPlusParamAdrLivrMixte          = Si l'adresse de livraison sur les documents fournisseurs (devis, commandes) est activée, permet de choisir la livraison directement à une adresse client (principale ou secondaire)
 InfraSPlusParamAdrTiersSsT           = Afficher l'adresse d'un contact externe d'un client (module "CustomLink") comme adresse de sous-traitant dans les Ordres de Fabrication (OF créés à partir des commandes)
 InfraSPlusParamTypeContactSsT        = Type de contact utilisé comme identifiant de sous-traitant dans les contacts externes d'un tiers

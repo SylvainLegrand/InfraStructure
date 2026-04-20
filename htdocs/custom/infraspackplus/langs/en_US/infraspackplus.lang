@@ -224,6 +224,7 @@ InfraSPlusParamshowEmetFDetails                = Displays all available details 
 InfraSPlusParamSourceDetailsList               = Select issuer details to add on generated PDFs
 InfraSPlusParamshowRecepFDetails               = Displays all available details of the recipient's address (default Address only, option enabled =  + phone + Fax + Email + Web)
 InfraSPlusParamTargetDetailsList               = Select recipient details to add on generated PDFs
+InfraSPlusParamTargetLivrDetailsList           = Select shipping address details to add on generated PDFs
 InfraSPlusParamshowNumCli                      = Show the customer number in the sales chain documents (quotes, orders, intervention sheets, contracts, delivery notes, customer invoices)
 InfraSPlusParamNumCliFrm                       = If this option is activated, the customer number will be displayed in the header under the customer reference (otherwise it will be in the recipient address frame)
 InfraSPlusParamshowCodeCliComp                 = Show the customer accounting code in documents in the sales chain (quotes, orders, job cards, contracts, delivery notes, customer invoices)
@@ -566,14 +567,14 @@ InfraSPlusParamShowSenderAlias       = Use the alternative business name (alias)
 InfraSPlusParamFactureParentAddrFact = Use the billing address of the parent company (if filled in) instead of the customer address => the entire automation configuration applies to the parent company
 InfraSPlusParamAddrLivrSyst          = Always display a delivery address (even if the automatic billing address is inactive)
 InfraSPlusParamAddrLivrSiFact        = Automatically display (default) a delivery address when the automatic billing address is active
-InfraSPlusParamUseDoliAdrLivr        = Use the native management of delivery addresses (by delivery tracking contacts)
-InfraSPlusParamDoliAdrLivrRecep      = In the orders (customers or suppliers) replace the recipient's information with those of the selected delivery contact
+InfraSPlusParamUseDoliAdrLivr        = Use the native management of delivery addresses (internal / external type 'SHIPPING') through delivery tracking contacts.
+InfraSPlusParamDoliAdrLivrRecep      = In the customer orders replace the recipient's information with those of the selected delivery contact
 InfraSPlusParamUseDoliAdrFact        = Use the Dolibarr billing contact (external type 'BILLING') as recipient address
 InfraSPlusParamShowAdrLivr           = Show delivery address on supplier documents (commercial proposals, orders) => This address is selectable before document generation
 InfraSPlusParamshowLivrFDetails      = Displays all available delivery details (default Address only, option enabled =  + phone + Fax + Email + Web)
 InfraSPlusParamFreeLivrExf           = Code of the additional attribute dedicated to the manual entry of a delivery address
 InfraSPlusParamLabelExfFreeAddrLivr  = Delivery address (manual)
-InfraSPlusParamShowAdrRecep          = Show delivery address on customer documents (commercial proposals, orders, invoices) => This address is selectable before document generation (automatically activates the hidden multi-address management option of third parties)
+InfraSPlusParamShowAdrRecep          = Show delivery address on customer documents (commercial proposals, orders) => This address is selectable before document generation (automatically activates the hidden multi-address management option of third parties)
 InfraSPlusParamAdrLivrMixte          = If the delivery address on the supplier documents (quotations, orders) is activated, allows you to choose the delivery directly to a customer address (main or secondary)
 InfraSPlusParamAdrTiersSsT           = Display the address of a customer's external contact ("CustomLink" module) as a subcontractor's address in Production Orders (OF created from orders)
 InfraSPlusParamTypeContactSsT        = Type of contact used as a subcontractor ID in external contacts of a third party

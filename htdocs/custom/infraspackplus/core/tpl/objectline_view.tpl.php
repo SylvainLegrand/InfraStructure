@@ -21,6 +21,10 @@
 	* 	\ingroup	InfraS
 	* 	\brief		change template from Dolibarr
 	************************************************/
+	// Skip this template for HRM evaluations (they have their own specific template)
+	if (is_object($this) && property_exists($this, 'element') && $this->element == 'evaluation') {
+		return 0;	// Let the HRM template handle evaluation lines
+	}
 	$isV19p 	= version_compare(DOL_VERSION, '19.0.0') >= 0;
 	$isV20p 	= version_compare(DOL_VERSION, '20.0.0') >= 0;
 	$isV21p 	= version_compare(DOL_VERSION, '21.0.0') >= 0;

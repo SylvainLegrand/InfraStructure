@@ -989,7 +989,7 @@
 					$tab_top		+= $height_incoterms;
 					// Livraison
 					$height_livr	= 0;
-					if (!empty($head['livrshow'])) {
+					if (!empty($head['livrshow']) && getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION')) {
 						$pdf->SetFont('', 'B', $default_font_size + 2);
 						$pdf->writeHTMLCell($this->larg_util_txt, $this->tab_hl, $this->posx_G_txt, $tab_top, dol_htmlentitiesbr($outputlangs->transnoentities('PDFInfraSPlusLivr')), 0, 1);
 						$xlivr	= $pdf->GetX() + $pdf->GetStringWidth($outputlangs->transnoentities('PDFInfraSPlusLivr'), '', 'B', $default_font_size + 2) + 5;
@@ -1626,7 +1626,7 @@
 			if (!empty($showaddress)) {
 				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
 										'E' => $object->getIdContact('external', (!empty($this->doli_addr_livr_recep) ? 'SHIPPING' : 'CUSTOMER')),
-										'L' => (empty($this->doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : '')
+										'L' => (empty($this->doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : array())
 										);
 				$addresses		= array();
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', 0, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
