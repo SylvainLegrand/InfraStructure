@@ -350,7 +350,7 @@ if ($action == 'install' && $allowonlineinstall) {
 								$submodulenamedir = $conf->admin->dir_temp.'/'.$tmpdir.'/htdocs/'.$modulenameval;
 							}
 							dol_syslog("We copy now directory ".$submodulenamedir." into target dir ".$dirins.'/'.$modulenameval);
-							$result = dolCopyDir($submodulenamedir, $dirins.'/'.$modulenameval, '0444', 1);
+							$result = dolCopyDir($submodulenamedir, $dirins.'/'.$modulenameval, getDolGlobalString('MAIN_UMASK', '0664'), 1);	// InfraS change
 							if ($result <= 0) {
 								dol_syslog('Failed to call dolCopyDir result='.$result." with param ".$submodulenamedir." and ".$dirins.'/'.$modulenameval, LOG_WARNING);
 								$langs->load("errors");
