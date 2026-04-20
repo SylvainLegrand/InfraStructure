@@ -1,0 +1,93 @@
+# < de_DE language file >
+# Copyright (C) <2017>  <AXeL>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Support page
+#
+ListExportImportSetupSupport=Konfiguration des Moduls „Export/Import-Liste” – Support / Über
+InoveaAboutDesc1=Dieses Modul wurde von <a href="https://inovea-conseil.com/" target="_blank">Inovea Conseil</a> entwickelt. Ihr Dolibarr-Partner (Entwicklung, Hosting und Schulung). <br><br>Die Dokumentation zu Ihrem Modul finden Sie unter <a href="https://www. dolibiz.com/support/" target="_blank">unserem Dokumentationsbereich</a><br><br>Bei Fragen oder Feedback kontaktieren Sie uns bitte unter <a href="mailto:support@open-dsi.fr">support@open-dsi.fr</a><br><br>Bei Fragen oder Feedback reichen Sie bitte eine Supportanfrage in unserem
+InoveaAboutDesc2=Supportbereich Inovea Conseil
+InoveaAboutDesc3=oder kontaktieren Sie uns unter <a href="mailto:support@inovea-conseil.com">support@inovea-conseil.com</a> oder unter +33 3 29 66 95 78<br><br>Entdecken Sie unsere Module und Dienstleistungen auf <a href="https://www. dolibiz.com" target="_blank">unserer Website www.dolibiz.com</a> oder im <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=inovea&submit_search=Rechercher" target="_blank">Dolistore</a>
+
+Module432592Name = Liste exportieren/importieren
+Module432592Desc = Ermöglicht das Herunterladen/Hochladen von Listen in verschiedenen Formaten
+
+Permission4325921 = Listen exportieren
+Permission4325922 = Listen importieren
+
+ListExportImportSetup=Konfiguration des Moduls „Liste exportieren/importieren” – Einrichtung
+ListExportImportSetupDocs=Konfiguration des Moduls „Liste exportieren/importieren” – Dokumentation
+Setup = Modul-Setup
+About = Über das Modul
+Documentation = Dokumentation
+Settings = Einstellungen
+ListExportImportSettings = Allgemeine Einstellungen
+ListExportFormats = Formate für den Listenexport
+ListImportFormats = Formate für den Listenimport
+Formats = Formate
+Active = Aktiv
+Description = Beschreibung
+Position = Position
+Down = Nach unten
+Nach oben = Nach oben
+
+UseCompactMode = Kompaktmodus verwenden
+EnableFreeList = Option „Freie Liste” aktivieren
+ForTestPurposeOnly = Nur zu Testzwecken, Verwendung auf eigene Gefahr
+DataShouldFitToTableFields = %s Dateidaten sollten in die Tabellenfelder passen
+CSVFromDBDescription = %s Exportieren Sie Datenbankdaten als CSV-Datei (<b>Sie sollten dasselbe Dateiformat für den CSV-Import verwenden</b>)
+CSVExportDataSeparator = Datentrennzeichen für CSV-Export/Import
+IgnoredLists = Ignorierte Listen
+DoNotRemoveTotal = Gesamtzeile nicht aus exportierten Listen entfernen
+DeleteSpaceFromNumbers = Leerzeichen aus Zahlen löschen
+
+ListExport = Exportieren
+ListImport = Importieren
+
+FileGenerationInProgress = %s Datei wird erstellt.
+FileImportationInProgress = %s-Datei wird importiert.
+FileIsEmpty = Die ausgewählte Datei ist leer.
+WrongFileExt = Die ausgewählte Datei ist keine %s-Datei.
+FileContentNotMatchWithTableName = Der Dateiinhalt stimmt nicht mit der aktuellen Liste überein. Bitte versuchen Sie es mit einer anderen %s-Datei.
+ImportFailed = Import fehlgeschlagen.
+ConfirmImport = Möchten Sie den Import bestätigen?
+OnlySqlInsertStatementIsAccepted = Leider werden beim Import aus einer SQL-Datei nur INSERT-Anweisungen akzeptiert.
+ConfirmFreeList = Möchten Sie die Liste wirklich freigeben?<br><br>(Dadurch werden alle Listendaten aus Ihrer Datenbank gelöscht! Bitte stellen Sie sicher, dass Sie eine Sicherungskopie haben, bevor Sie dies tun.
+ExportsFullList = Die gesamte Liste wird exportiert.
+
+ExportCSV = In CSV exportieren.
+ExportCSVFromDB = Aus DB-Daten in CSV exportieren.
+ExportSQL = In SQL exportieren.
+ExportPDF = In PDF exportieren.
+ExportPNG = In PNG exportieren.
+ImportSQL = Aus SQL importieren.
+ImportCSV = Aus CSV importieren.
+FreeList = Liste freigeben.
+PrintDateOnPdfExport = Datum beim PDF-Export drucken.
+
+#
+# Documentation
+#
+HowToUseIt = Wie wird es verwendet?
+HowToUseItDesc = Sie können jede Liste aus Dolibarr in den verfügbaren Formaten herunterladen. Neben jedem Listentitel befindet sich eine Schaltfläche/ein Symbol.
+HowToUseItMore = <i>(Sie können den Modus in den Moduleinstellungen ändern)</i>
+HowExportWorks = Wie funktioniert der Export?
+HowExportWorksDesc = Sobald Sie das Exportformat ausgewählt haben, erscheint ein kleines Popup-Fenster. Sie müssen nur warten, bis der Exportvorgang abgeschlossen ist, danach können Sie Ihre Datei herunterladen.
+HowImportWorks = Wie funktioniert der Import?
+HowImportWorksDesc = Auf die gleiche Weise: Zuerst wählen Sie das Importformat, dann wählen Sie Ihre Importdatei aus und warten, bis der Importvorgang abgeschlossen ist. Das war's schon.
+HowImportWorksNotes = <b>Hinweise</b>: Beachten Sie, dass der Importvorgang sehr empfindlich ist. Wenn Sie also nicht die richtige Importdatei verwenden oder Ihre Daten nicht in die Tabellenfelder passen, kann der Importvorgang fehlschlagen. <br><br><b>Fälle, in denen der Import fehlschlagen kann</b>: <br><b>- Fall</b>: Sie versuchen, eine Rechnungsliste aus einer CSV-Datei zu importieren, erhalten jedoch Fehlermeldungen.<br><b>* Lösung</b>: Sie müssen überprüfen, ob die Daten Ihrer CSV-Datei genau zu den Tabellenfeldern passen (Sie können dies in Ihrem phpmyadmin überprüfen oder einfach googeln, wenn Sie nicht wissen, wie das geht).<br><b>- Fall</b>: Sie versuchen, Ihre Bestellliste in eine neue Dolibarr-Installation zu importieren, ohne zuvor die Produktliste oder sogar die Liste von Drittanbietern zu importieren. In diesem Fall erhalten Sie eine Fehlermeldung und der Import funktioniert nicht.<br><b>* Lösung</b>: Wenn Sie eine neue Installation von Dolibarr haben und Ihre Daten dorthin importieren möchten, verwenden Sie am besten das Dolibarr-Tool zum Exportieren/Importieren von Datenbanken.
+INeedSomeHelp = Ich brauche Hilfe.
+INeedSomeHelpDesc = Bitte kontaktieren Sie uns (siehe Seite „Über uns”) und wir helfen Ihnen gerne weiter.
