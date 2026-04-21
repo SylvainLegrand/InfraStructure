@@ -44,7 +44,7 @@ $( document ).ready(function() {
 
 			let paddingChars = ''
 			for (let i = 1; i < parseInt(item.level); i++) {
-				paddingChars+= '-';
+				paddingChars+= ' - ';
 			}
 
 			link.innerText = paddingChars + ' ' + item.label;
@@ -62,23 +62,62 @@ $( document ).ready(function() {
 				e.preventDefault();
 
 				let targetItem = document.getElementById( 'row-' + this.getAttribute('data-id') );
+				let $topHeader = $('#id-top');
+				let headerOffset = $topHeader.length > 0 ? $topHeader.innerHeight() : 0;
 
-				$(targetItem).offset().top
+				// Compensate sticky bars added by oblyon FIX_AREAREF_CARD / FIX_STICKY_TABS_CARD
+				if (subtotalSummaryJsConf.isOblyon) {
+					if (subtotalSummaryJsConf.fixArearefCard) {
+						let $arearef = $('div.arearef').first();
+						if ($arearef.length > 0 && $arearef.css('position') === 'sticky') {
+							headerOffset += $arearef.outerHeight();
+						}
+					}
+					if (subtotalSummaryJsConf.fixStickyTabsCard) {
+						let $stickyTabs = $('.fiche > div.tabs').first();
+						if ($stickyTabs.length === 0) {
+							$stickyTabs = $('div.tabs').first();
+						}
+						if ($stickyTabs.length > 0 && $stickyTabs.css('position') === 'sticky') {
+							headerOffset += $stickyTabs.outerHeight();
+						}
+					}
+				}
 
 				window.scroll({
 					behavior: 'smooth',
 					left: 0,
-					top: $(targetItem).offset().top - 150
+					top: $(targetItem).offset().top - headerOffset - 50
 				});
 			});
 
 			summaryMenu.appendChild(link);
 		});
 
-		let leftMenu = document.getElementById('id-left');
-		if(leftMenu != null){
-			leftMenu.parentNode.appendChild(summaryMenu);
-		}
+		// InfraS change begin
+		let floatingWrap = document.createElement('div');
+		floatingWrap.id = 'subtotal-summary-floating';
+
+		let toggleBtn = document.createElement('button');
+		toggleBtn.type = 'button';
+		toggleBtn.id = 'subtotal-summary-toggle';
+		toggleBtn.setAttribute('title', subtotalSummaryJsConf.langs.SubtotalSummaryTitle);
+		toggleBtn.innerHTML = '<span class="fa fa-list"></span>';
+		toggleBtn.addEventListener('click', function (e) {
+			e.stopPropagation();
+			floatingWrap.classList.toggle('--open');
+		});
+
+		document.addEventListener('click', function (e) {
+			if (!floatingWrap.contains(e.target)) {
+				floatingWrap.classList.remove('--open');
+			}
+		});
+
+		floatingWrap.appendChild(toggleBtn);
+		floatingWrap.appendChild(summaryMenu);
+		document.body.appendChild(floatingWrap);
+		// InfraS change end
 
 	}
 

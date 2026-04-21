@@ -18,7 +18,49 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 * This file is part of Dolibarr module Subtotal
 */
 
+// Dolibarr environment *************************
+	$res	= 0;
+	// Try main.inc.php into web root known defined into CONTEXT_DOCUMENT_ROOT (not always defined)
+	if (empty($res) && !empty($_SERVER['CONTEXT_DOCUMENT_ROOT'])) {
+		$res	= @include $_SERVER['CONTEXT_DOCUMENT_ROOT'].'/main.inc.php';
+	}
+	// Try main.inc.php into web root detected using web root calculated from SCRIPT_FILENAME
+	if (empty($res)) {
+		$tmp	= empty($_SERVER['SCRIPT_FILENAME']) ? '' : $_SERVER['SCRIPT_FILENAME'];
+		$tmp2	= realpath(__FILE__);
+		$i		= strlen($tmp) - 1;
+		$j		= strlen($tmp2) - 1;
+		while($i > 0 && $j > 0 && isset($tmp[$i]) && isset($tmp2[$j]) && $tmp[$i] == $tmp2[$j]) {
+			$i--;
+			$j--;
+		}
+		if (empty($res) && $i > 0 && file_exists(substr($tmp, 0, ($i+1)).'/main.inc.php')) {
+			$res	= @include substr($tmp, 0, ($i + 1)).'/main.inc.php';
+		}
+		if (empty($res) && $i > 0 && file_exists(dirname(substr($tmp, 0, ($i+1))).'/main.inc.php')) {
+			$res	= @include dirname(substr($tmp, 0, ($i + 1))).'/main.inc.php';
+		}
+	}
+	// Try main.inc.php using relative path
+	if (empty($res) && file_exists('../main.inc.php')) {
+		$res	= @include '../main.inc.php';
+	}
+	if (empty($res) && file_exists('../../main.inc.php')) {
+		$res	= @include '../../main.inc.php';
+	}
+	if (empty($res) && file_exists('../../../main.inc.php')) {
+		$res	= @include '../../../main.inc.php';
+	}
+	if (empty($res) && file_exists('../../../../main.inc.php')) {
+		$res	= @include '../../../../main.inc.php';
+	}
+	if (empty($res) && file_exists('../../../../../main.inc.php')) {
+		$res	= @include '../../../../../main.inc.php';
+	}
+	if (empty($res) && file_exists('../../../../../../main.inc.php')) {
+		$res	= @include '../../../../../../main.inc.php';
+	}
+	if (empty($res)) {
+		die('Include of main fails');
+	}
 
-	if (is_file('../main.inc.php')) include "../main.inc.php";
-elseif (is_file('../../../main.inc.php')) include "../../../main.inc.php";
-else include "../../main.inc.php";
