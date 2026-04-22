@@ -139,7 +139,7 @@ a.subtotal-summary-link.--target-in-viewport, a.subtotal-summary-link.--child-in
 	background: <?php echo $cssBg; ?>;
 	color: <?php echo $cssTxt; ?>;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-	cursor: pointer;
+	cursor: grab;
 	font-size: 18px;
 	line-height: 48px;
 	padding: 0;
@@ -147,6 +147,10 @@ a.subtotal-summary-link.--target-in-viewport, a.subtotal-summary-link.--child-in
 	align-items: center;
 	justify-content: center;
 	transition: background .12s ease, color .12s ease;
+}
+
+#subtotal-summary-floating.--dragging #subtotal-summary-toggle {
+	cursor: grabbing;
 }
 
 #subtotal-summary-toggle:hover {

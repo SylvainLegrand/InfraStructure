@@ -94,7 +94,6 @@ $( document ).ready(function() {
 			summaryMenu.appendChild(link);
 		});
 
-		// InfraS change begin
 		let floatingWrap = document.createElement('div');
 		floatingWrap.id = 'subtotal-summary-floating';
 
@@ -105,7 +104,9 @@ $( document ).ready(function() {
 		toggleBtn.innerHTML = '<span class="fa fa-list"></span>';
 		toggleBtn.addEventListener('click', function (e) {
 			e.stopPropagation();
-			floatingWrap.classList.toggle('--open');
+			if (!hasDragged) {
+				floatingWrap.classList.toggle('--open');
+			}
 		});
 
 		document.addEventListener('click', function (e) {
@@ -117,8 +118,96 @@ $( document ).ready(function() {
 		floatingWrap.appendChild(toggleBtn);
 		floatingWrap.appendChild(summaryMenu);
 		document.body.appendChild(floatingWrap);
-		// InfraS change end
 
+		// Draggable behavior
+		let isDragging = false;
+		let hasDragged = false;
+		let dragStartX, dragStartY, elemStartX, elemStartY;
+		const DRAG_THRESHOLD = 5;
+		const STORAGE_KEY = 'subtotal_summary_pos';
+
+		// Restore saved position
+		try {
+			let savedPos = JSON.parse(localStorage.getItem(STORAGE_KEY));
+			if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+				let maxLeft = window.innerWidth - floatingWrap.offsetWidth;
+				let maxTop = window.innerHeight - floatingWrap.offsetHeight;
+				floatingWrap.style.right = 'auto';
+				floatingWrap.style.bottom = 'auto';
+				floatingWrap.style.left = Math.min(Math.max(0, savedPos.left), maxLeft) + 'px';
+				floatingWrap.style.top = Math.min(Math.max(0, savedPos.top), maxTop) + 'px';
+			}
+		} catch (e) {}
+
+		function startDrag(clientX, clientY) {
+			let rect = floatingWrap.getBoundingClientRect();
+			elemStartX = rect.left;
+			elemStartY = rect.top;
+			dragStartX = clientX;
+			dragStartY = clientY;
+			isDragging = true;
+			hasDragged = false;
+			floatingWrap.style.transition = 'none';
+			floatingWrap.style.right = 'auto';
+			floatingWrap.style.bottom = 'auto';
+			floatingWrap.style.left = elemStartX + 'px';
+			floatingWrap.style.top = elemStartY + 'px';
+			floatingWrap.classList.add('--dragging');
+		}
+
+		function moveDrag(clientX, clientY) {
+			if (!isDragging) { return; }
+			let dx = clientX - dragStartX;
+			let dy = clientY - dragStartY;
+			if (!hasDragged && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+				hasDragged = true;
+				floatingWrap.classList.remove('--open');
+			}
+			if (hasDragged) {
+				let newLeft = Math.max(0, Math.min(window.innerWidth - floatingWrap.offsetWidth, elemStartX + dx));
+				let newTop = Math.max(0, Math.min(window.innerHeight - floatingWrap.offsetHeight, elemStartY + dy));
+				floatingWrap.style.left = newLeft + 'px';
+				floatingWrap.style.top = newTop + 'px';
+			}
+		}
+
+		function endDrag() {
+			if (!isDragging) { return; }
+			isDragging = false;
+			floatingWrap.style.transition = '';
+			floatingWrap.classList.remove('--dragging');
+			if (hasDragged) {
+				try {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify({
+						left: parseFloat(floatingWrap.style.left),
+						top: parseFloat(floatingWrap.style.top)
+					}));
+				} catch (e) {}
+			}
+		}
+
+		toggleBtn.addEventListener('mousedown', function (e) {
+			if (e.button !== 0) { return; }
+			startDrag(e.clientX, e.clientY);
+		});
+		document.addEventListener('mousemove', function (e) {
+			moveDrag(e.clientX, e.clientY);
+		});
+		document.addEventListener('mouseup', function (e) {
+			endDrag();
+		});
+		toggleBtn.addEventListener('touchstart', function (e) {
+			let t = e.touches[0];
+			startDrag(t.clientX, t.clientY);
+		}, { passive: true });
+		document.addEventListener('touchmove', function (e) {
+			if (!isDragging) { return; }
+			let t = e.touches[0];
+			moveDrag(t.clientX, t.clientY);
+		}, { passive: false });
+		document.addEventListener('touchend', function () {
+			endDrag();
+		});
 	}
 
 	/**
