@@ -210,7 +210,7 @@ if ($action != 'presend') {
 	// Addresses list	// InfraS change begin
 	if (! empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT)) {
 		dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
-		$result = infraspackplus_show_addresses($conf, $langs, $db, $object, $_SERVER["PHP_SELF"].'?socid='.$object->id);
+		$result = infraspackplus_show_addresses($object, $_SERVER["PHP_SELF"].'?socid='.$object->id);
     }
 	// InfraS change end
 }

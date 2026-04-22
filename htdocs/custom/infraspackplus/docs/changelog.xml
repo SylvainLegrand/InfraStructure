@@ -1796,7 +1796,16 @@
 	<Version Number="18.15.0" MonthVersion="2026-04">
 		<change type='add'>Ajout d'une option pour sélectionner les adresses de livraison à afficher sur les documents PDF</change>
 	</Version>
-	<InfraS Downloaded="20260401"/>
+	<Version Number="18.15.1" MonthVersion="2026-04">
+		<change type='fix'>Pied de page PDF : correction de la mesure de hauteur du texte libre HTML (rendu réel via transaction TCPDF au lieu d'une estimation texte brut)</change>
+		<change type='fix'>Désactivation du module : purge des constantes orphelines MAIN_MODULE_INFRASPACKPLUS_* (évite les 404 sur fichiers JS/CSS supprimés d'une version antérieure)</change>
+		<change type='chg'>Remplacement de require_once par include_once dans tout le module (hors substitutionpages et templates tpl) pour respecter la convention Dolibarr</change>
+		<change type='chg'>Amélioration du rendu de l'onglet 'Mentions complémentaires' dans les paramètres du module</change>
+		<change type='chg'>Refonte des règles de gestion des mentions complémentaires automatiques liées à la TVA</change>
+		<change type='chg'>Refonte de la table d'affichage des adresses (filtres, choix des colonnes à afficher, boutons d'action, colonne d'action à droite ou à gauche)</change>
+		<change type='chg'>Pied de page PDF : URL et email cliquables, icônes Unicode (☎ ✉) à la place des préfixes textuels</change>
+	</Version>
+	<InfraS Downloaded="20260422"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

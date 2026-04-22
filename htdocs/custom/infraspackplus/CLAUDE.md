@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.15.0` (2026-04)
+- Dernière version locale : `18.15.1` (2026-04)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -224,6 +224,13 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - `18.14.15` (2026-04) : Ajout d'une option pour afficher/masquer les lignes de séparation entre la description longue des articles et les informations complémentaires (attibuts supplémentaires, informations douanières, etc.)
 - `18.14.15` (2026-04) : Ajout d'une option pour utiliser la gestion des adresses de facturation native
 - `18.15.0`  (2026-04) : Ajout d'une option pour sélectionner les adresses de livraison à afficher sur les documents PDF
+- `18.15.1`  (2026-04) : Remplacement de `require_once` par `include_once` dans tout le module (hors `substitutionpages/` et `*.tpl.php`) pour respecter la convention Dolibarr
+- `18.15.1`  (2026-04) : Amélioration du rendu de l'onglet 'Mentions complémentaires' dans les paramètres du module
+- `18.15.1`  (2026-04) : Refonte des règles de gestion des mentions complémentaires automatiques liées à la TVA
+- `18.15.1`  (2026-04) : Refonte de la table d'affichage des adresses (filtres, choix des colonnes à afficher, boutons d'action, colonne d'action à droite ou à gauche)
+- `18.15.1`  (2026-04) : Pied de page PDF — correction de la mesure de hauteur du texte libre HTML (rendu réel via transaction TCPDF au lieu d'une estimation texte brut)
+- `18.15.1`  (2026-04) : Pied de page PDF — URL et email cliquables, icônes Unicode (☎ ✉) à la place des préfixes textuels
+- `18.15.1`  (2026-04) : Désactivation du module — purge des constantes orphelines `MAIN_MODULE_INFRASPACKPLUS_*` (évite les 404 sur fichiers JS/CSS supprimés d'une version antérieure)
 
 
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)

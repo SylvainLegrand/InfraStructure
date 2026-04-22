@@ -24,20 +24,20 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/payments.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/facture/modules_facture.php';
-	require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/expedition/class/'.(version_compare(DOL_VERSION, '15.0.0', '>=') ? 'expeditionlinebatch' : 'expeditionbatch').'.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/multicurrency/class/multicurrency.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/payments.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/facture/modules_facture.php';
+	include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/expedition/class/'.(version_compare(DOL_VERSION, '15.0.0', '>=') ? 'expeditionlinebatch' : 'expeditionbatch').'.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/multicurrency/class/multicurrency.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 

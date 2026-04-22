@@ -24,7 +24,7 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
@@ -332,7 +332,6 @@
 			}
 			// Shipping address
 			// Priority 1 : static InfraSPlus address (adrlivrfour selected), 2 : internal SHIPPING contact, 3 : external SHIPPING contact
-			dol_syslog('ici - Shipping address - use_doli_addr_livr '.$use_doli_addr_livr.' showadrlivr '.$showadrlivr.' addresslivrstatic '.$addresslivrstatic.' free_addr_livr '.$free_addr_livr.' arrayidcontact LI '.print_r($arrayidcontact, true), LOG_DEBUG);
 			if (!empty($use_doli_addr_livr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
 				if ($addresslivrstatic == 'Default') {
 					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
@@ -344,7 +343,6 @@
 				if ($result > 0 && is_object($object->user)) {
 					$livrshow_name	= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
 					$livrshow		= $outputlangs->convToOutputCharset(dol_format_address($object->user, 0, "\n", $outputlangs));
-					dol_syslog('ici - Shipping address from internal contact - livrshow_name '.$livrshow_name.' livrshow '.print_r($livrshow, true), LOG_DEBUG);
 				}
 			} elseif (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
 				$companyDiff	= 0;

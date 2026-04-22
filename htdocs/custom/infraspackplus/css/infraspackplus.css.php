@@ -47,7 +47,7 @@
 	session_cache_limiter('public');
 
 	require '../config.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 	// Define css type
 	header('Content-type: text/css');
@@ -308,4 +308,15 @@ img.infraspluswidthpictotitle {
 }
 button.infraspluscopyParamsBtn, .infraspluscopyParamsBtn:hover {
 	padding: 8px 25px 8px 25px;
+}
+
+#infraspackplus_addresses_table .dropdown dd ul.infraspackplusselectedfields,
+#infraspackplus_addresses_table .dropdown dd ul.infraspackplusselectedfieldsleft {
+	top: 30px;
+	min-width: 250px;
+	z-index: 1005;
+}
+
+#infraspackplus_addresses_table .dropdown dd ul.infraspackplusselectedfieldsleft {
+	right: auto;
 }

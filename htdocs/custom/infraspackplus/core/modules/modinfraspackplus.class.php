@@ -23,8 +23,8 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
@@ -428,6 +428,7 @@
 			infraspackplus_bkup_module ($this->name);
 			$sql		= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPLUS\_%" AND entity = "'.$conf->entity.'"',
 								'DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPACKPLUS\_PS\_%" AND entity = "'.$conf->entity.'"',
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "MAIN\_MODULE\_INFRASPACKPLUS\_%" AND entity = "'.$conf->entity.'"',	// purge orphan module_parts constants (e.g. keys removed from descriptor between versions)
 								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_ADDON\_PDF" AND value like "InfraSPlus_%" AND entity = "'.$conf->entity.'"',
 								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_FREE\_TEXT\_%" AND entity = "'.$conf->entity.'"',
 								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_PUBLIC\_NOTE%" AND entity = "'.$conf->entity.'"',

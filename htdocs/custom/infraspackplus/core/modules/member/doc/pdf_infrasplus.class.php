@@ -23,8 +23,8 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/commonstickergenerator.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/commonstickergenerator.class.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
 	/************************************************

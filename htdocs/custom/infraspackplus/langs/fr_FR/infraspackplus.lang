@@ -628,12 +628,11 @@ InfraSPlusParamEXFLFF                 = Afficher les attributs supplémentaires 
 
 ### Mentions page ###
 InfraSPlusParamTVAauto                       = Gestion des mentions relatives à la TVA
-InfraSPlusTxtTvaVPE                          = Exonération de TVA, article 262, I du Code général des impôts
-InfraSPlusTxtTvaVPI                          = Exonération de TVA, article 262 ter, I du Code général des impôts
-InfraSPlusTxtTvaVSE                          = TVA non applicable, article 259-1 du Code général des impôts
-InfraSPlusTxtTvaVSI                          = Exonération de TVA, article 283-2 du Code général des impôts
+InfraSPlusTxtTvaVPE                          = Exonération de TVA, article 262-I du CGI
+InfraSPlusTxtTvaVPI                          = Exonération de TVA, article 262 ter I du CGI
+InfraSPlusTxtTvaVSE                          = TVA non applicable — art. 259-1° du CGI
+InfraSPlusTxtTvaVSI                          = Autoliquidation — art. 196 directive 2006/112/CE
 InfraSPlusTxtTvaBTP                          = Autoliquidation
-InfraSPlusTxtTvaFranchise                    = TVA non applicable, article 293 B du Code général des impôts
 InfraSPlusParamConfirmSetTVAauto             = Confirmez-vous l'activation de la gestion automatique des mentions relatives à la TVA ?
 InfraSPlusParamGestionMentions               = <b>Gestion des mentions complémentaires supplémentaires dans les éditions du pack</b>
 InfraSPlusParamNewMention                    = Ajouter / Modifier une mention complémentaire aux éditions du Pack InfraS

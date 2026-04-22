@@ -23,21 +23,21 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formbank.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formbank.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	include_once DOL_DOCUMENT_ROOT.'/product/class/productcustomerprice.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 	if (isModEnabled('ouvrage')) {
 		dol_include_once('/ouvrage/class/ouvrage.class.php');
 		dol_include_once('/ouvrage/core/modules/modouvrage.class.php');
@@ -306,10 +306,10 @@
 				define('K_TCPDF_THROW_EXCEPTION_ERROR', false);
 			}
 		}
-		require_once TCPDF_PATH.'tcpdf.php';	// Load TCPDF
+		include_once TCPDF_PATH.'tcpdf.php';	// Load TCPDF
 		// We need to instantiate tcpdi object (instead of tcpdf) to use merging features. But we can disable it (this will break all merge features).
 		if (!getDolGlobalString('MAIN_DISABLE_TCPDI', '')) {
-			require_once TCPDI_PATH.'tcpdi.php';
+			include_once TCPDI_PATH.'tcpdi.php';
 		}
 		// Load InfraS subclasses that fix TCPDF ColorFlag bug (text color lost on page breaks)
 		dol_include_once('/infraspackplus/class/tcpdf_infrasplus.class.php');
@@ -466,7 +466,7 @@
 					$pdfSource	= $tmpdir.'watermark_'.md5($filigrane).'.pdf';
 					// Régénération uniquement si le cache n'existe pas ou est obsolète
 					if (!is_readable($pdfSource) || filemtime($filigrane) > filemtime($pdfSource)) {
-						require_once TCPDF_PATH.'tcpdf.php';
+						include_once TCPDF_PATH.'tcpdf.php';
 						// Création d'un PDF temporaire aux dimensions exactes de la page
 						$tmppdf	= new TCPDF('P', 'mm', array($formatpage['largeur'], $formatpage['hauteur']), true, 'UTF-8', false);
 						$tmppdf->setPrintHeader(false);
@@ -1606,45 +1606,130 @@
 	}
 
 	/**
-	*	Function whitch returns vat statement (according to the seller, the buyer and the products present in the document)
-	*	If the seller is in france and not subject to VAT => statement n° 1 => End of rule.
-	*	If the seller is not subject to VAT => End of rule.
-	*	If the seller and the buyer are from the same country => End of rule.
-	*	If the seller and the buyer are from different countries from the EEC and there are services on the document => statement n° 2 => End of rule.
-	*	If the seller is from the EEC but not the buyer and there are services on the document => statement n° 3 => End of rule.
-	*	If the seller and the buyer are from different countries from the EEC and there are products on the document => statement n° 4 => End of rule.
-	*	If the seller is from the EEC but not the buyer and there are products on the document => statement n° 5 => End of rule.
-	*
-	*	@param	object		$object			Object shown in PDF
-	*	@param	object		$seller			Object seller
-	*	@param	object		$buyer			Object buyer
-	*	@param	boolean		$hasService		there are services on the document
-	*	@param	boolean		$hasProduct		there are products on the document
-	*	@param	boolean		$show_tva_btp	we show the BTP mention
-	*	@return array						0 = no mention or array of mention (keys are 'F' => franchise, 'S' => services, 'P' => products)
-	**/
-	function pdf_InfraSPlus_VAT_auto($object, $seller, $buyer, $hasService = 0, $hasProduct = 0, $show_tva_btp = 0)
+	 *	Function which returns VAT statements to display on the document
+	 *	(according to seller, buyer, lines nature and delivery context).
+	 *
+	 *	Rules applied (France-based ERP):
+	 *		1. Seller under VAT franchise (FR art. 293 B CGI)				=> statement F (n°1)
+	 *		2. Seller not subject to VAT for other reasons					=> no mention
+	 *		3. Service B2B, buyer in another EU country with valid VATn		=> statement S (n°2) reverse charge
+	 *		4. Service B2B, buyer outside EU								=> statement S (n°3) art. 259-1° CGI
+	 *		5. Goods delivered to another EU country, B2B with valid VATn	=> statement P (n°4) art. 262 ter I CGI
+	 *		6. Goods delivered outside EU (export)							=> statement P (n°5) art. 262-I CGI
+	 *		7. Seller and buyer same country AND delivery domestic			=> no mention (standard domestic VAT)
+	 *		8. BTP auto-liquidation (domestic B2B construction works)		=> statement B (n°6) if flag set
+	 *
+	 *	Note: the function returns mentions per line category ('S' for services, 'P' for goods) so that a mixed invoice displays all relevant mentions.
+	 *
+	 *	@param	object		$object			Object shown in PDF (invoice, proposal, order...)
+	 *	@param	object		$seller			Seller company object
+	 *	@param	object		$buyer			Buyer thirdparty object
+	 *	@param	array		$arrayidcontact	Array of contact IDs involved in the document (e.g. billing, shipping, other contacts)
+	*	@param	int			$adrlivr		Shipping address ID
+	 *	@param	boolean		$hasService		TRUE if the document contains at least one service line
+	 *	@param	boolean		$hasProduct		TRUE if the document contains at least one goods line
+	 *	@param	boolean		$show_tva_btp	TRUE to force display of the BTP auto-liquidation mention
+	 *	@return	array|int					0 if no mention, otherwise array keyed by:
+	 *										'F' => franchise mention
+	 *										'S' => service mention
+	 *										'P' => goods mention
+	 *										'B' => BTP mention
+	 */
+	function pdf_InfraSPlus_VAT_auto($object, $seller, $buyer, $arrayidcontact, $adrlivr, $hasService = 0, $hasProduct = 0, $show_tva_btp = 0)
 	{
-		$result			= array();
-		$franchise		= ((is_numeric($seller->tva_assuj) && empty($seller->tva_assuj)) || (!is_numeric($seller->tva_assuj) && $seller->tva_assuj == 'franchise')) ? 1 : 0;
-		$sellerCC		= $seller->country_code;
-		$sellerInEEC	= isInEEC($seller);
-		$buyerCC		= $buyer->country_code;
-		$buyerInEEC		= isInEEC($buyer);
-		// ($franchise && $sellerCC != 'FR') || $sellerCC == $buyerCC => nothing to do
+		global $db;
+
+		$result				= array();
+		$use_doli_addr_livr	= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
+		// ----- Seller status -----
+		$franchise			= ((is_numeric($seller->tva_assuj) && empty($seller->tva_assuj)) || (!is_numeric($seller->tva_assuj) && $seller->tva_assuj == 'franchise')) ? 1 : 0;
+		$sellerCC			= $seller->country_code;
+		$sellerInEEC		= isInEEC($seller);
+		// ----- Buyer status -----
+		$buyerCC			= $buyer->country_code;
+		$buyerInEEC			= isInEEC($buyer);
+		// B2B requires a non-empty intra-community VAT number.
+		// Ideally this number should have been validated against VIES beforehand.
+		$buyerIsB2B			= !empty(trim((string) ($buyer->tva_intra ?? ''))) ? 1 : 0;
+		// ----- Delivery country for goods -----
+		// Priority: explicit shipping address on the document, else buyer's country.
+		$deliveryCC			= $buyerCC;
+		$adrlivr			= (int) $adrlivr;
+		// Use of a Dolibarr delivery address (if the flag is activated): we first look to see if a delivery contact is attached to the document, then we use the country code of this contact if it exists and is provided.
+		if (!empty($use_doli_addr_livr) && isset($arrayidcontact['L']) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
+			$res	= $object->fetch_contact($arrayidcontact['L'][0]);
+			if ($res > 0 && is_object($object->contact)) {
+				$deliveryCC	= $object->contact->country_code;
+			}
+		} elseif ($adrlivr > 0) {	// fallback to direct use of delivery address ID if provided (InfraSPackPlus standard field on order, proposal, invoice...)
+			$addresslivrstatic	= new Address($db);
+			$addresslivrfound	= $addresslivrstatic->fetch($adrlivr, 0, '');
+			if ($addresslivrfound == 1) {
+				$deliveryCC	= $addresslivrstatic->country_code;
+			}
+		}
+		$deliveryInEEC	= pdf_InfraSPlus_isInEECByCountryCode($deliveryCC); // helper; see note below
+		// =========================================================
+		// RULE 1 — Seller under French VAT franchise (art. 293 B CGI)
+		// =========================================================
 		if ($sellerCC == 'FR' && !empty($franchise)) {
-			$result['F']	= pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_1');
-		} elseif (!empty($sellerInEEC) && !empty($buyerInEEC) && $sellerCC != $buyerCC) {
-			$result['S']	= !empty($hasService) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_2') : '';
-			$result['P']	= !empty($hasProduct) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_4') : '';
-		} elseif (!empty($sellerInEEC) && empty($buyerInEEC)) {
-			$result['S']	= !empty($hasService) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_3') : '';
-			$result['P']	= !empty($hasProduct) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_5') : '';
+			$result['F'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_1');
+			// Franchise invoices don't carry further VAT mentions.
+			if (!empty($show_tva_btp)) {
+				$result['B'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_6');
+			}
+			return count($result) > 0 ? $result : 0;
 		}
+		// =========================================================
+		// SERVICES — rule based on buyer's country (art. 259-1° CGI)
+		// =========================================================
+		if (!empty($hasService)) {
+			if (!empty($sellerInEEC) && !empty($buyerInEEC) && $sellerCC != $buyerCC && $buyerIsB2B) {
+				// Service B2B intra-UE => reverse charge
+				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_2');
+			} elseif (!empty($sellerInEEC) && empty($buyerInEEC)) {
+				// Service to a buyer outside the EU (B2B or B2C of "immaterial" services)
+				// => not taxable in France
+				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_3');
+			}
+			// Other service cases (domestic, or B2C intra-UE below OSS threshold)
+			// => standard VAT of the seller, no special mention.
+		}
+		// =========================================================
+		// GOODS — rule based on DELIVERY country, not buyer's siège
+		// =========================================================
+		if (!empty($hasProduct)) {
+			if (!empty($sellerInEEC) && !empty($deliveryInEEC) && $sellerCC != $deliveryCC && $buyerIsB2B) {
+				// Intra-community supply of goods B2B => exemption art. 262 ter I CGI
+				$result['P'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_4');
+			} elseif (!empty($sellerInEEC) && empty($deliveryInEEC)) {
+				// Export outside the EU => exemption art. 262-I CGI
+				$result['P'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_5');
+			}
+			// Other goods cases (delivered domestically, or B2C intra-UE below OSS threshold)
+			// => standard domestic VAT, no special mention.
+		}
+		// =========================================================
+		// BTP — domestic B2B auto-liquidation (French construction works)
+		// =========================================================
 		if (!empty($show_tva_btp)) {
-			$result['B']	= pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_6');
+			$result['B'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_6');
 		}
-		return is_array($result) && count($result) > 0 ? $result : 0;
+		return count($result) > 0 ? $result : 0;
+	}
+
+	/**
+	 *  Helper: check whether a country code belongs to the EU.
+	 *  Wraps isInEEC() which in Dolibarr expects an object with ->country_code.
+	 */
+	function pdf_InfraSPlus_isInEECByCountryCode($country_code)
+	{
+		if (empty($country_code)) {
+			return 0;
+		}
+		$fake				= new stdClass();
+		$fake->country_code	= $country_code;
+		return isInEEC($fake);
 	}
 
 	/**
@@ -4463,18 +4548,39 @@
 	{
 		global $conf, $user;
 
+		// Footer base style (color, bold option, font size)
 		$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
 		$footer_bold	= getDolGlobalInt('INFRASPLUS_PDF_REFD_FROM_CUSTOMER', 0);
 		$noendline		= !empty($noendline) || getDolGlobalInt('INFRASPLUS_PDF_NO_LINE_FOOTER') ? 1 : 0;
 		$pdf->SetFont('', $footer_bold ? 'B' : '', 7);
 		$alignL1		= 'C';
-		// First line of company infos
+		// Line 1 content: either a custom HTML free text (INFRASPLUS_PDF_FOOTER_FREETEXT) or built from company data (below)
 		if (getDolGlobalString('INFRASPLUS_PDF_FOOTER_FREETEXT', '')) {
 			$footer_freeText	= getDolGlobalString('INFRASPLUS_PDF_FOOTER_FREETEXT', '');
 			$line1				= pdf_InfraSPlus_formatNotes($object, $outputlangs, $footer_freeText);
-			$htLine1			= $pdf->getStringHeight($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), dol_htmlentitiesbr($line1), true, false, array(), 0);
-			$alignL1			= '';
+			$largeurLine1		= $formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']);
+			$htmlLine1			= dol_htmlentitiesbr($line1);
+			// Measure the REAL rendered height of HTML content: getStringHeight() only accounts for raw text,
+			// ignoring HTML tags (<a>, <b>, <br>, etc.) which produce a different height in writeHTMLCell().
+			// We render it on a PDF transaction (virtual write), read the Y delta, then rollback.
+			$pdf->startTransaction();
+			$y_before			= $pdf->GetY();
+			$page_before		= $pdf->getPage();
+			$pdf->writeHTMLCell($largeurLine1, 0, $formatpage['mgauche'], $y_before, $htmlLine1, 0, 1, false, true, '', true);
+			$y_after			= $pdf->GetY();
+			$page_after			= $pdf->getPage();
+			if ($page_after == $page_before) {
+				$htLine1		= $y_after - $y_before;
+			} else {
+				// The virtual write triggered a page break: fallback to text-based estimate
+				$htLine1		= $pdf->getStringHeight($largeurLine1, $htmlLine1, true, false, array(), 0);
+			}
+			// rollbackTransaction(true) restores the current object in place (no reassignment needed)
+			$pdf->rollbackTransaction(true);
+			$alignL1	= '';
 		} else {
+			// Automatic mode: build line1 (company address), line2 (contacts), line3 (juridical/capital), line4 (prof IDs / VAT)
+			// from $fromcompany data, based on $showdetails bitmask digits.
 			$line1 = ''; $htLine1 = 3; $line2 = ''; $line3 = ''; $line4 = ''; $line5 = 0;
 			if (substr($showdetails, 0, 1) == 1 || substr($showdetails, 0, 1) == 3) {
 				if (!empty($fromcompany->name)) {
@@ -4494,17 +4600,24 @@
 				}
 			}
 			if (substr($showdetails, 0, 1) == 2 || substr($showdetails, 0, 1) == 3) {
+				// Phone/Fax: plain text, HTML-escaped so special chars don't break writeHTMLCell rendering
 				if (!empty($fromcompany->phone)) {
-					$line2	.= ($line2 ? ' - ' : '').$outputlangs->transnoentities('PhoneShort').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->phone))); // Phone
+					$line2	.= ($line2 ? ' - ' : '').'<span style = "font-family:dejavusans;">&#x260E;</span> '.dol_escape_htmltag($outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->phone)))); // Phone (Unicode BLACK TELEPHONE)
 				}
 				if (!empty($fromcompany->fax)) {
-					$line2	.= ($line2 ? ' - ' : '').$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->fax))); // Fax
+					$line2	.= ($line2 ? ' - ' : '').dol_escape_htmltag($outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->fax)))); // Fax
 				}
+				// URL: wrap as <a href> so it becomes a clickable link in the PDF (add http:// if scheme is missing)
 				if (!empty($fromcompany->url)) {
-					$line2	.= ($line2 ? ' - ' : '').$fromcompany->url; // URL
+					$urlHref	= $fromcompany->url;
+					if (!preg_match('/^https?:\/\//i', $urlHref)) {
+						$urlHref	= 'http://'.$urlHref;
+					}
+					$line2	.= ($line2 ? ' - ' : '').'<a href = "'.dol_escape_htmltag($urlHref).'" target = "_blank" rel = "noopener">'.dol_escape_htmltag($fromcompany->url).'</a>'; // URL (clickable, opens in new tab)
 				}
+				// Email: wrap as mailto: link
 				if (!empty($fromcompany->email)) {
-					$line2	.= ($line2 ? ' - ' : '').$fromcompany->email; // Email
+					$line2	.= ($line2 ? ' - ' : '').'<b>@</b> <a href = "mailto:'.dol_escape_htmltag($fromcompany->email).'">'.dol_escape_htmltag($fromcompany->email).'</a>'; // Email (clickable, Unicode ENVELOPE, subscript alignment)
 				}
 			}
 			if (substr($showdetails, 1, 1) == 1 || ($fromcompany->country_code == 'DE')) {
@@ -4580,9 +4693,10 @@
 				}
 			}
 		}
+		// Line 5 content: optional partner logo at the bottom of the footer (height depends on the actual image ratio)
 		if (substr($showdetails, 4, 1) == 1) {
 			$logodir	= !empty($conf->mycompany->multidir_output[$objEntity]) ? $conf->mycompany->multidir_output[$objEntity] : $conf->mycompany->dir_output;
-			$logospied	= $logodir.'/logos/'.$image_foot;	// Logos partenaires en ligne 5
+			$logospied	= $logodir.'/logos/'.$image_foot;
 			if (is_readable($logospied)) {
 				include_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 				$imglinesize	= pdf_InfraSPlus_getSizeForImage($logospied, $maxsizeimgfoot['largeur'], $maxsizeimgfoot['hauteur']);
@@ -4591,25 +4705,33 @@
 				}
 			}
 		}
-		// The start of the bottom of this page footer is positioned according to # of lines
+		// Compute total footer height (separator + line1..4 + line5 logo + bottom margin)
+		// This is used to position the footer block at the bottom of the page
 		$nopage				= $pdf->PageNo();
 		$nbpage				= $pdf->getNumPages();
 		$marginwithfooter	= ($nopage == $nbpage && empty($hidesupline) ? 1 : 0) + (!empty($line1) ? $htLine1 : 0) + (!empty($line2) ? 3 : 0) + (!empty($line3) ? 3 : 0) + (!empty($line4) ? 3 : 0) + $line5 + $formatpage['mbasse'];
+		// Compute-only mode: caller just wants to know the footer height to reserve space above
 		if ($calculseul == 1) {
 			return $marginwithfooter;
 		}
+		// Drawing phase: position cursor at the top of the footer block
 		$posy	= $formatpage['hauteur'] - $marginwithfooter;
 		$pdf->SetY($posy);
+		// Horizontal separator above the footer (only on the last page, unless disabled)
 		if (empty($noendline) && $nopage == $nbpage && empty($hidesupline)) {
 			$pdf->line($formatpage['mgauche'], $posy, $formatpage['largeur']-$formatpage['mdroite'], $posy, $LineStyle);
 			$posy++;
 		}
+		// Line 1 (HTML-capable): freetext or company address. Advance by real measured height ($htLine1)
+		// or fallback 3mm (6mm if a gap with next line is requested by showdetails digit 4)
 		if (!empty($line1)) {
 			$pdf->writeHTMLCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), $htLine1, $formatpage['mgauche'], $posy, dol_htmlentitiesbr($line1), 0, 1, false, true, $alignL1, true);
 			$posy	+= $htLine1 == 3 ? (substr($showdetails, 3, 1) == 1 ? 6 : 3) : $htLine1;
 		}
+		// Line 2 (HTML): contacts including clickable URL / email links (rendered via writeHTMLCell)
+		// Lines 3-4 (plain text): juridical status / capital, professional IDs / VAT number
 		if (!empty($line2)) {
-			$pdf->MultiCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), 2, $line2, 0, 'C', 0, 1, $formatpage['mgauche'], $posy, true, 0, 0, false, 0, 'M', false);
+			$pdf->writeHTMLCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), 3, $formatpage['mgauche'], $posy, $line2, 0, 1, false, true, 'C', true);
 			$posy	+= 3;
 		}
 		if (!empty($line3)) {
@@ -4619,18 +4741,21 @@
 		if (!empty($line4)) {
 			$pdf->MultiCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), 2, $line4, 0, 'C', 0, 1, $formatpage['mgauche'], $posy, true, 0, 0, false, 0, 'M', false);
 		}
+		// Line 5: partner logo, horizontally centered in the column
 		if (!empty($logospied) && is_readable($logospied) && !empty($line5)) {
 			$posy			+= $htLine1 == 3 ? 3 : 0;
-			$posxpicture	= $formatpage['mgauche'] + (($formatpage['largeur'] - $formatpage['mgauche'] - $formatpage['mdroite'] - $imglinesize['width']) / 2);	// centre l'image dans la colonne
-			$pdf->Image($logospied, $posxpicture, $posy, $imglinesize['width'], $line5);	// width = 0 or height = 0 (auto)
+			$posxpicture	= $formatpage['mgauche'] + (($formatpage['largeur'] - $formatpage['mgauche'] - $formatpage['mdroite'] - $imglinesize['width']) / 2);
+			$pdf->Image($logospied, $posxpicture, $posy, $imglinesize['width'], $line5);
 		}
+		// Page number in the bottom-right corner (forced to Helvetica for ISO compatibility)
 		$pdf->SetFont('', '', 7);
-		if (empty($hidepagenum)) { // Show page nb only on iso languages (so default Helvetica font)
+		if (empty($hidepagenum)) {
 			$prevFont									= $pdf->getFontFamily();
 			$pdf->SetFont('Helvetica');
 			if (!getDolGlobalString('MAIN_USE_FPDF', '')) {
 				$pdf->MultiCell(26, 2, $pdf->PageNo().' / '.$pdf->getAliasNbPages(), 0, 'R', 0, 1, $formatpage['largeur'] - ($formatpage['mdroite'] + 20), $formatpage['hauteur'] - $formatpage['mbasse'], true, 0, 0, false, 0, 'M', false);
 			} else {
+				// FPDF fallback: {nb} placeholder is resolved by FPDF at page close
 				$pdf->MultiCell(26, 2, $pdf->PageNo().' / {nb}', 0, 'R', 0, 1, $formatpage['largeur'] - ($formatpage['mdroite'] + 20), $formatpage['hauteur'] - $formatpage['mbasse'], true, 0, 0, false, 0, 'M', false);
 			}
 			$pdf->SetFont($prevFont);

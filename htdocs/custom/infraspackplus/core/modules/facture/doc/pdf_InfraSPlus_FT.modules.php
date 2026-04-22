@@ -23,14 +23,14 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/facture/modules_facture.php';
-	require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/facture/modules_facture.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
 	/************************************************
@@ -93,6 +93,7 @@
 		public $categoryOfOperation	= -1;	// @var int Category of operation	// unknown by default
 		public $formatpage;
 		public $use_iso_location;
+		public $arrayidcontact;
 		public $dash_between_line;
 		public $product_use_unit;
 		public $hide_vat_ifnull;
@@ -979,13 +980,13 @@
 			}
 			// Show list of linked objects
 			$dimCadres['Y']	= ($posy + $this->tab_hl) > $posyBC ? $posy + $this->tab_hl : $posyBC;
+			$this->arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
+											'E' => $object->getIdContact('external', 'BILLING'),
+											'L' => $object->getIdContact('external', 'SHIPPING')
+											);
 			if (!empty($showaddress)) {
-				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'E' => $object->getIdContact('external', 'BILLING'),
-										'L' => $object->getIdContact('external', 'SHIPPING')
-										);
 				$addresses		= array();
-				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', $this->adrfact, 1, -2, -2, $this->customerAddrSelect, $this->include_alias);
+				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $this->arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', $this->adrfact, 1, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$dimCadres['xS']	= $this->formatpage['mgauche'];
 				$dimCadres['xR']	= $this->formatpage['mgauche'];
 				$hauteurcadre		= pdf_InfraSPlus_writeFrame($pdf, $outputlangs, $default_font_size, $this->tab_hl, $dimCadres, $this->emetteur, $addresses, 1);
@@ -1150,7 +1151,7 @@
 			}
 			// VAT statements
 			if (!empty($this->text_TVA_auto)) {
-				$statements	= pdf_InfraSPlus_VAT_auto($object, $this->emetteur, $object->thirdparty, $this->hasService, $this->hasProduct, $this->show_tva_btp);
+				$statements	= pdf_InfraSPlus_VAT_auto($object, $this->emetteur, $object->thirdparty, $this->arrayidcontact, $this->adrlivr, $this->hasService, $this->hasProduct, $this->show_tva_btp);
 				if (is_array($statements)) {
 					if (!empty($statements['F'])) {
 						$posytabinfo	= pdf_InfraSPlus_write_VAT_mention($pdf, $object, $outputlangs, $statements['F'], $larg_tabinfo, $tabinfo_hl, $posxtabinfo, $posytabinfo);

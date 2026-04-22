@@ -24,25 +24,25 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/translate.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/mrp/class/mo.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/translate.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/ajax.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/mrp/class/mo.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
@@ -784,7 +784,7 @@ EOJS;
 					}
 					$filesFromBom	= getDolGlobalInt('INFRASPLUS_PDF_FILES_FROM_BOM', 0);
 					if (!empty($filesFromBom) && $object instanceof Mo) {
-						require_once DOL_DOCUMENT_ROOT.'/bom/class/bom.class.php';
+						include_once DOL_DOCUMENT_ROOT.'/bom/class/bom.class.php';
 						$bomstatic		= new BOM($db);
 						$bomstatic->fetch($object->fk_bom);
 						$upload_dir2	= 'bom/'.dol_sanitizeFileName($bomstatic->ref);
@@ -793,7 +793,7 @@ EOJS;
 					}
 					$filesFromProject	= getDolGlobalInt('INFRASPLUS_PDF_FILES_FROM_PROJECT', 0);
 					if (!empty($filesFromProject) && !$object instanceof Project) {
-						require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+						include_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 						$projectstatic	= new Project($db);
 						$projectstatic->fetch($object->fk_project);
 						$upload_dir3	= 'projet/'.dol_sanitizeFileName($projectstatic->ref);

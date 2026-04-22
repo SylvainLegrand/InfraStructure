@@ -24,15 +24,15 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/delivery/modules_delivery.php';
-	require_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/delivery/modules_delivery.php';
+	include_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 

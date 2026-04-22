@@ -26,11 +26,11 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	require_once dol_buildpath('/advancedictionaries/core/actions_dictionaries.inc.php');
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once dol_buildpath('/advancedictionaries/core/actions_dictionaries.inc.php');
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 

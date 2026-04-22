@@ -23,12 +23,12 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/expedition/modules_expedition.php';
-	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/expedition/modules_expedition.php';
+	include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
 	/************************************************

@@ -628,12 +628,11 @@ InfraSPlusParamEXFLFF                 = Show extra fields of supplier Invoice li
 
 ### Mentions page ###
 InfraSPlusParamTVAauto                       = Management of information relating to VAT
-InfraSPlusTxtTvaVPE                          = VAT exemption, article 262, I of the General Tax Code
-InfraSPlusTxtTvaVPI                          = VAT exemption, article 262 ter, I of the General Tax Code
-InfraSPlusTxtTvaVSE                          = VAT not applicable, article 259-1 of the General Tax Code
-InfraSPlusTxtTvaVSI                          = VAT exemption, article 283-2 of the General Tax Code
-InfraSPlusTxtTvaBTP                          = Self-liquidation
-InfraSPlusTxtTvaFranchise                    = VAT not applicable, article 293 B of the General Tax Code
+InfraSPlusTxtTvaVPE                          = VAT exemption, article 262-I of the French tax code (CGI)
+InfraSPlusTxtTvaVPI                          = VAT exemption, article 262 ter I of the French tax code (CGI)
+InfraSPlusTxtTvaVSE                          = VAT not applicable — art. 259-1° of the French tax code (CGI)
+InfraSPlusTxtTvaVSI                          = Reverse charge — art. 196 directive 2006/112/EC
+InfraSPlusTxtTvaBTP                          = Reverse charge
 InfraSPlusParamConfirmSetTVAauto             = Do you confirm the activation of the automatic management of the information relating to VAT?
 InfraSPlusParamGestionMentions               = <b>Management of Additional informations usable in the different editions of the InfraS Pack</b>
 InfraSPlusParamNewMention                    = Add / Edit an additional mention to the InfraS Pack editions

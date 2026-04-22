@@ -26,13 +26,13 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formadmin.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formadmin.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
 	// Translations *********************************

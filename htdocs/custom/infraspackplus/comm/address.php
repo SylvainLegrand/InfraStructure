@@ -26,9 +26,9 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 
 	global $user;
@@ -140,12 +140,17 @@
 		}
 	} elseif ($action == 'confirm_delete' && $confirm == 'yes' && !empty($user->hasRight('societe', 'supprimer'))) {
 		$result	= $object->delete($id);
-		if ($result == 0) {
+		if ($result > 0) {
+			if (!empty($backtopage)) {
+				header('Location: '.$backtopage);
+				exit;
+			}
 			header('Location: '.DOL_URL_ROOT.'/societe/contact.php?socid='.$socid);
-			exit ;
+			exit;
 		} else {
 			$reload	= 0;
 			$action	= '';
+			setEventMessages($object->error, $object->errors, 'errors');
 		}
 	}
 
@@ -209,9 +214,7 @@
 			print '					<tr>
 										<td class = "tdtop">'.$langs->trans('Address').'</td>
 										<td colspan = "3">
-											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">';
-			print dol_escape_htmltag($object->address, 0, 1);
-			print '							</textarea>';
+											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">'.dol_escape_htmltag($object->address, 0, 1).'</textarea>';
 			print $form->widgetForTranslation('address', $object, $permissiontoadd, 'textarea', 'alphanohtml', 'quatrevingtpercent');
 			print '						</td>
 									</tr>';
@@ -275,9 +278,7 @@
 			print '					<tr>
 										<td>'.$langs->trans('Note').'</td>
 										<td colspan = "3">
-											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">';
-			print $object->note;
-			print '							</textarea>
+											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">'.dol_escape_htmltag($object->note, 0, 1).'</textarea>
 										</td>
 									</tr>';
 			print '				</table>
@@ -350,9 +351,7 @@
 			print '					<tr>
 										<td class = "tdtop">'.$langs->trans('Address').'</td>
 										<td colspan = "3">
-											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">';
-			print dol_escape_htmltag($object->address, 0, 1);
-			print '							</textarea>';
+											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">'.dol_escape_htmltag($object->address, 0, 1).'</textarea>';
 			print $form->widgetForTranslation('address', $object, $permissiontoadd, 'textarea', 'alphanohtml', 'quatrevingtpercent');
 			print '						</td>
 									</tr>';
@@ -416,9 +415,7 @@
 			print '					<tr>
 										<td>'.$langs->trans('Note').'</td>
 										<td colspan = "3">
-											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">';
-			print $object->note;
-			print '							</textarea>
+											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">'.dol_escape_htmltag($object->note, 0, 1).'</textarea>
 										</td>
 									</tr>';
 			print '				</table>
@@ -445,7 +442,7 @@
 		}
 		// Confirmation delete
 		if ($action == 'delete') {
-			print $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id, $langs->trans('DeleteAddress'), $langs->trans('ConfirmDeleteAddress'), 'confirm_delete');
+			print $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.(!empty($backtopage) ? '&backtopage='.urlencode($backtopage) : ''), $langs->trans('InfraSPlusParamDeleteAddress'), $langs->trans('InfraSPlusParamConfirmDeleteAddress'), 'confirm_delete', '', '', 1, 200, 500, 0, 'Yes', 'No');
 		}
 		$nblines	= count($object->lines);
 		if (!empty($nblines)) {
@@ -525,14 +522,17 @@
 				print '				<div class = "inline-block divButAction">
 										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&action=create&backtopage='.urlencode($backtopage).'">'.$langs->trans('Add').'</a>
 									</div>';
+				if (!empty($id) && !empty($objectLine)) {
+					print '			<div class = "inline-block divButAction">
+										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.'&action=edit&backtopage='.urlencode($backtopage).'">'.$langs->trans('Modify').'</a>
+									</div>';
+				}
+			}
+			if (!empty($user->hasRight('societe', 'supprimer')) && !empty($id) && !empty($objectLine)) {
 				print '				<div class = "inline-block divButAction">
-										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=edit&backtopage='.urlencode($backtopage).'">'.$langs->trans('Modify').'</a>
+										<a class = "butActionDelete" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.'&action=delete&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
 									</div>';
 			}
-			if (!empty($user->hasRight('societe', 'supprimer')))
-				print '				<div class = "inline-block divButAction">
-										<a class = "butActionDelete" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=delete&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
-									</div>';
 		}
 		print '				</div>';
 	}

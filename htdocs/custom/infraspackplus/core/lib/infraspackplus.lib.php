@@ -18,23 +18,24 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/fichinter/modules_fichinter.php';
-	require_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/fichinter/modules_fichinter.php';
+	include_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 	// For retrocompatibility Dolibarr < 20.0
@@ -125,7 +126,7 @@
 					}
 				}
 			} else {
-				require_once $filefound;
+				include_once $filefound;
 				$rootFileName	.= !empty($modelhead) ? '_'.$modelhead : '';
 				$functionList	= array ('pdf_'.$rootFileName.'_pagehead', 'pdf_'.$rootFileName.'_writeAddresses', 'pdf_'.$rootFileName.'_writeFrame', 'pdf_'.$rootFileName.'_getAddresses');
 				foreach ($functionList as $function) {
@@ -231,7 +232,7 @@
 					}
 				}
 			} else {
-				require_once $filefound;
+				include_once $filefound;
 				$rootFileName	.= !empty($modelFoot) ? '_'.$modelFoot : '';
 				$functionList	= array ('pdf_'.$rootFileName.'_pagefoot');
 				foreach ($functionList as $function) {
@@ -540,8 +541,8 @@
 		if (!defined('K_PATH_FONTS')) {
 			define('K_PATH_FONTS', DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/fonts/');
 		}
-		require_once TCPDF_PATH.'tcpdf.php';
-		require_once TCPDF_PATH.'include/tcpdf_fonts.php';
+		include_once TCPDF_PATH.'tcpdf.php';
+		include_once TCPDF_PATH.'include/tcpdf_fonts.php';
 		$options	= array();
 		$typefont	= array('TrueTypeUnicode', 'TrueType', 'Type1', 'CID0JP', 'CID0KR', 'CID0CS', 'CID0CT');
 		if (in_array($type, $typefont)) {
@@ -639,7 +640,7 @@
 			$i		= 0;
 			if (!empty($num)) {
 				$result	.= $hasLabel ? '&nbsp;'.$langs->trans('InfraSPlusParam'.$typeDict.'3').'&nbsp;' : '';
-				$result	.= '<select class = "flat" name="'.$htmlname.'" style = "max-width:270px;"'.($onChange ? 'onchange = "'.$onChange.';"' : '').'>';
+				$result	.= '<select class = "flat minwidth300 maxwidth400" name="'.$htmlname.'"'.($onChange ? ' onchange = "'.$onChange.';"' : '').'>';
 				if (!empty($showempty)) {
 					$result	.= '<option value = "-1"';
 					if ($selected == -1) {
@@ -654,7 +655,7 @@
 					if ($obj->code == $selected) {
 						$result	.= ' selected';
 					}
-					$result	.= '>'.dol_trunc($libelle, 32, 'middle').'</option>';
+					$result	.= '>'.dol_trunc($libelle, 38, 'middle').'</option>';
 					$i++;
 				}
 				$result	.= '</select>';
@@ -973,21 +974,19 @@
 	/**
 	*	Show html area for list of addresses
 	*
-	*	@param	Conf		$conf		Object conf
-	*	@param	Translate	$langs		Object langs
-	*	@param	DoliDB		$db			Database handler
 	*	@param	Societe		$object		Third party object
 	*	@param	string		$backtopage	Url to go once address is created
 	*	@return	integer					Number of addresses
 	**/
-	function infraspackplus_show_addresses($conf, $langs, $db, $object, $backtopage = '')
+	function infraspackplus_show_addresses($object, $backtopage = '')
 	{
-		global $user;
+		global $db, $langs, $user;
 
 		dol_include_once('/infraspackplus/class/address.class.php');
 
 		$langs->load('infraspackplus@infraspackplus');
 
+		$form			= new Form($db);
 		$addresses		= new Address($db);
 		$num			= $addresses->fetch_lines($object->id);
 		$newcardbutton	= '';
@@ -996,49 +995,181 @@
 									<span class = "fa fa-plus-circle valignmiddle"></span>
 								</a>';
 		}
+		$arrayfields	= array(
+			'label'		=> array('label' => $langs->trans('InfraSPlusParamAdressAlias'),	'checked' => 1, 'position' => 10),
+			'name'		=> array('label' => $langs->trans('CompanyName'),					'checked' => 1, 'position' => 20),
+			'address'	=> array('label' => $langs->trans('Address'),						'checked' => 1, 'position' => 25),
+			'town'		=> array('label' => $langs->trans('Town'),							'checked' => 1, 'position' => 30),
+			'country'	=> array('label' => $langs->trans('Country'),						'checked' => 1, 'position' => 40),
+			'phone'		=> array('label' => $langs->trans('Phone'),						'checked' => 1, 'position' => 50),
+			'fax'		=> array('label' => $langs->trans('Fax'),							'checked' => 1, 'position' => 60),
+			'email'		=> array('label' => $langs->trans('Email'),						'checked' => 1, 'position' => 70),
+			'url'		=> array('label' => $langs->trans('url'),							'checked' => 1, 'position' => 80),
+			'note'		=> array('label' => $langs->trans('Note'),							'checked' => 1, 'position' => 90),
+		);
+		$arrayfields	= dol_sort_array($arrayfields, 'position');
+		$selectedfields	= $form->multiSelectArrayWithCheckbox('infraspackplusselectedfields', $arrayfields, 'infraspackplus_addresses', getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN'));
+		$actionLeft		= getDolGlobalInt('MAIN_CHECKBOX_LEFT_COLUMN');
 		print load_fiche_titre($langs->trans('AddressesForCompany'), $newcardbutton, '');
-		print '		<table class = "noborder" width = "100%">
-						<tr class = "liste_titre">
-							<th>'.$langs->trans('InfraSPlusParamAdressAlias').'</th>
-							<th>'.$langs->trans('CompanyName').'</th>
-							<th>'.$langs->trans('Town').'</th>
-							<th>'.$langs->trans('Country').'</th>
-							<th>'.$langs->trans('Phone').'</th>
-							<th>'.$langs->trans('Fax').'</th>
-							<th>'.$langs->trans('Email').'</th>
-							<th>'.$langs->trans('url').'</th>
-							<th>&nbsp;</th>
-						</tr>';
+		print '			<form id = "form_filter_addresses" method = "GET" action = "#" onsubmit = "return false;">
+							<table id = "infraspackplus_addresses_table" class = "noborder" width = "100%">
+								<tr class = "liste_titre_filter">';
+		if ($actionLeft) {
+			print '					<td class = "liste_titre center maxwidthsearch actioncolumn">'.$form->showFilterButtons('left').'</td>';
+		}
+		foreach ($arrayfields as $fkey => $fval) {
+			if (!empty($fval['checked'])) {
+				print '				<td class = "liste_titre" data-field = "'.dol_escape_htmltag($fkey).'"><input type = "text" class = "flat width75" oninput = "infraspackplusFilterAddresses();" data-field = "'.dol_escape_htmltag($fkey).'"></td>';
+			}
+		}
+		if (!$actionLeft) {
+			print '					<td class = "liste_titre center maxwidthsearch actioncolumn">'.$form->showFilterButtons().'</td>';
+		}
+		print '					</tr>
+								<tr class = "liste_titre">';
+		if ($actionLeft) {
+			print '					<th class = "center maxwidthsearch actioncolumn">'.$selectedfields.'</th>';
+		}
+		foreach ($arrayfields as $fkey => $fval) {
+			if (!empty($fval['checked'])) {
+				print '				<th data-field = "'.dol_escape_htmltag($fkey).'">'.$fval['label'].'</th>';
+			}
+		}
+		if (!$actionLeft) {
+			print '					<th class = "center maxwidthsearch actioncolumn">'.$selectedfields.'</th>';
+		}
+		print '					</tr>';
 		if ($num > 0) {
 			foreach ($addresses->lines as $address) {
 				$addressstatic	= new Address($db);
 				$addressstatic->fetch($address->id);
-				$img	= picto_from_langcode($address->country_code);
-				print '	<tr class = "oddeven">
-							<td>'.$addressstatic->getNomUrl(1, '&backtopage='.urlencode($backtopage)).'</td>
-							<td>'.$addressstatic->name.'</td>
-							<td>'.$addressstatic->town.'</td>
-							<td>'.($img ? $img.' ' : '').$addressstatic->country.'</td>
-							<td>';
-				print dol_print_phone($addressstatic->phone, $addressstatic->country_code, $addressstatic->id, $object->id,'AC_TEL');	// Lien click to dial
-				print '		</td>
-							<td>';
-				print dol_print_phone($addressstatic->fax, $addressstatic->country_code, $addressstatic->id, $object->id, 'AC_FAX');	// Lien click to dial
-				print '		</td>
-							<td>'.$addressstatic->email.'</td>
-							<td>'.$addressstatic->url.'</td>';
+				$img			= picto_from_langcode($address->country_code);
+				$actions		= '';
 				if (!empty($user->hasRight('societe', 'creer'))) {
-					print '	<td align = "right">
-								<a href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=edit&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">';
-					print img_edit();
-					print '		</a>
-							</td>';
+					$actions	.= '<a class = "editfielda marginrightonly" href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=edit&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">'.img_edit().'</a>';
 				}
-				print '	</tr>';
+				if (!empty($user->hasRight('societe', 'supprimer'))) {
+					$actions	.= '<a class = "reposition" href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=delete&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">'.img_delete().'</a>';
+				}
+				$actionCell		= !empty($actions) ? '<td>'.$actions.'</td>' : '<td></td>';
+				print '			<tr class = "oddeven infraspackplus_address_row">';
+				if ($actionLeft) {
+					print $actionCell;
+				}
+				foreach ($arrayfields as $fkey => $fval) {
+					if (empty($fval['checked'])) {
+						continue;
+					}
+					switch ($fkey) {
+						case 'label':
+							print '	<td data-field = "label">'.$addressstatic->getNomUrl(1, '&backtopage='.urlencode($backtopage)).'</td>';
+							break;
+						case 'name':
+							print '	<td data-field = "name">'.dol_escape_htmltag($addressstatic->name).'</td>';
+							break;
+						case 'address':
+							print '	<td data-field = "address">'.dol_nl2br(dol_escape_htmltag($addressstatic->address, 0, 1)).'</td>';
+							break;
+						case 'town':
+							print '	<td data-field = "town">'.dol_escape_htmltag($addressstatic->town).'</td>';
+							break;
+						case 'country':
+							print '	<td data-field = "country">'.($img ? $img.' ' : '').dol_escape_htmltag($addressstatic->country).'</td>';
+							break;
+						case 'phone':
+							print '	<td data-field = "phone">'.dol_print_phone($addressstatic->phone, $addressstatic->country_code, $addressstatic->id, $object->id, 'AC_TEL').'</td>';
+							break;
+						case 'fax':
+							print '	<td data-field = "fax">'.dol_print_phone($addressstatic->fax, $addressstatic->country_code, $addressstatic->id, $object->id, 'AC_FAX').'</td>';
+							break;
+						case 'email':
+							print '	<td data-field = "email">'.dol_escape_htmltag($addressstatic->email).'</td>';
+							break;
+						case 'url':
+							print '	<td data-field = "url">'.dol_escape_htmltag($addressstatic->url).'</td>';
+							break;
+						case 'note':
+							print '	<td data-field = "note">'.dol_nl2br(dol_escape_htmltag($addressstatic->note, 0, 1)).'</td>';
+							break;
+					}
+				}
+				if (!$actionLeft) {
+					print $actionCell;
+				}
+				print '			</tr>';
 			}
 		}
-		print '		</table>
-					<br>';
+		print '				</table>
+						</form>
+						<br />';
+		print '			<script type = "text/javascript">
+							function infraspackplusFilterAddresses() {
+								var table	= document.getElementById(\'infraspackplus_addresses_table\');
+								if (!table) return;
+								var inputs	= table.querySelectorAll(\'tr.liste_titre_filter input[data-field]\');
+								var rows	= table.querySelectorAll(\'tr.infraspackplus_address_row\');
+								rows.forEach(function(row) {
+									var show	= true;
+									inputs.forEach(function(inp) {
+										var filter	= inp.value.toLowerCase().trim();
+										if (!filter) return;
+										var field	= inp.getAttribute(\'data-field\');
+										var cell	= row.querySelector(\'td[data-field="\' + field + \'"]\');
+										if (!cell || cell.textContent.toLowerCase().indexOf(filter) === -1) {
+											show = false;
+										}
+									});
+									row.style.display	= show ? \'\' : \'none\';
+								});
+							}
+							function infraspackplusResetFilterAddresses() {
+								var table	= document.getElementById(\'infraspackplus_addresses_table\');
+								if (!table) return;
+								var inputs	= table.querySelectorAll(\'tr.liste_titre_filter input[data-field]\');
+								inputs.forEach(function(inp) { inp.value = \'\'; });
+								infraspackplusFilterAddresses();
+							}
+							(function() {
+								var formFilter	= document.getElementById(\'form_filter_addresses\');
+								if (!formFilter) return;
+								formFilter.addEventListener(\'click\', function(e) {
+									var btn	= e.target.closest(\'button.button_removefilter\');
+									if (btn) {
+										e.preventDefault();
+										infraspackplusResetFilterAddresses();
+										return;
+									}
+									btn	= e.target.closest(\'button.button_search\');
+									if (btn) {
+										e.preventDefault();
+										infraspackplusFilterAddresses();
+									}
+								});
+								var table	= document.getElementById(\'infraspackplus_addresses_table\');
+								if (!table) return;
+								var dropdown	= table.querySelector(\'.multiselectcheckboxinfraspackplusselectedfields\');
+								if (!dropdown) return;
+								dropdown.addEventListener(\'click\', function(e) {
+									var cb	= e.target.closest(\'input[type="checkbox"]\');
+									if (!cb) return;
+									setTimeout(function() {
+										var hidden	= table.querySelector(\'input.infraspackplusselectedfields\');
+										if (!hidden) return;
+										var data	= new FormData();
+										data.append(\'varpage\', \'infraspackplus_addresses\');
+										data.append(\'selectedfields\', hidden.value);
+										data.append(\'token\', \''.newToken().'\');
+										fetch(\''.dol_escape_js(dol_buildpath('/infraspackplus/ajax/save_selectedfields.php', 1)).'\', {
+											method: \'POST\',
+											body: data,
+											credentials: \'same-origin\'
+										}).then(function() {
+											window.location.reload();
+										});
+									}, 50);
+								});
+							})();
+						</script>';
 		return $num;
 	}
 

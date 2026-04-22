@@ -27,16 +27,16 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
@@ -454,8 +454,8 @@
 		infraspackplus_print_btn_action('Opt', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 3);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_CUSTOM_COUNTRY_ADDR', 'on_off', $langs->trans('InfraSPlusParamUseCustomCountryAddr'), '', array(), 1, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_COUNTRY', 'on_off', $langs->trans('InfraSPlusParamWithCountry'), '', array(), 1, 1, '', $num);
+		// $num = 3
 		if (empty(getDolGlobalString('INFRASPLUS_PDF_HIDE_RECEP_FRAME', '')) || !empty($specialHead['frameinfos'])) {
-			// $num = 2
 			infraspackplus_print_hr(3);
 			if (empty(getDolGlobalString('MAIN_PDF_DISABLESOURCEDETAILS', ''))) {
 				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_STATUS_WITH_SENDER_NAME', 'on_off', $langs->trans('InfraSPlusParamshowStatusWithSenderName'), '', array(), 1, 1, '', $num);
@@ -504,7 +504,7 @@
 		} else {
 			$num	+= 9;
 		}
-		// $num = 11
+		// $num = 12
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_STATUS_WITH_CLIENT_NAME', 'on_off', $langs->trans('InfraSPlusParamshowStatusWithClientName'), '', array(), 1, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_PARENT_ADDR_FACT', 'on_off', $langs->trans('InfraSPlusParamFactureParentAddrFact'), '', array(), 1, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SENDER_ALIAS', 'on_off', $langs->trans('InfraSPlusParamShowSenderAlias').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 1, 1, '', $num);
@@ -512,6 +512,7 @@
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamCustomerAddrSelect'), '', $metas, 1, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_CODE_ADDR_FACT', 'input', $langs->trans('InfraSPlusParamCodeAddrFact1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCodeAddrFact2'), '', array(), 1, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SYST', 'on_off', $langs->trans('InfraSPlusParamAddrLivrSyst'), '', array(), 1, 1, '', $num);
+		// $num = 18
 		if (!getDolGlobalString('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SYST', '')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SI_FACT', 'on_off', $langs->trans('InfraSPlusParamAddrLivrSiFact'), '', array(), 1, 1, '', $num);
 		} else {
@@ -520,6 +521,7 @@
 		// $num = 19
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADRESSE_LIVRAISON', 'on_off', $langs->trans('InfraSPlusParamShowAdrLivr'), '', array(), 1, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 'on_off', $langs->trans('InfraSPlusParamShowAdrRecep'), '', array(), 1, 1, '', $num);
+		// $num = 21
 		if (getDolGlobalString('MAIN_PDF_ADDALSOTARGETDETAILS', '')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_LIVR_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowLivrFDetails'), '', array(), 1, 1, '', $num);
 		} else {
@@ -541,6 +543,7 @@
 		} else {
 			$num++;
 		}
+		// $num = 24
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREE_LIVR_EXF', 'input', $descFreeLivr, '', array(), 1, 1, '', $num);
 		if (!getDolGlobalString('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', '')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADRESSE_LIVRAISON_MIXTE', 'on_off', $langs->trans('InfraSPlusParamAdrLivrMixte'), '', array(), 1, 1, '', $num);
@@ -550,7 +553,7 @@
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 'on_off', $langs->trans('InfraSPlusParamDoliAdrLivrRecep'), '', array(), 1, 1, '', $num);
 		}
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 'on_off', $langs->trans('InfraSPlusParamUseDoliAdrFact'), '', array(), 1, 1, '', $num);
-		// $num = 27
+		// $num = 28
 		if (getDolGlobalString('MAIN_PDF_ADDALSOTARGETDETAILS', '')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_RECEP_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowRecepFDetails'), '', array(), 1, 1, '', $num);
 		} else {
@@ -567,7 +570,7 @@
 		} else {
 			$num++;
 		}
-		// $num = 29
+		// $num = 30
 		if (isModEnabled('customlink')) {
 			infraspackplus_print_hr(3);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 'on_off', $langs->trans('InfraSPlusParamAdrTiersSsT'), '', array(), 1, 1, '', $num);
@@ -579,7 +582,7 @@
 		} else {
 			$num	+= 2;
 		}
-		// $num = 31
+		// $num = 32
 	}
 	print '			</table>
 				</div>

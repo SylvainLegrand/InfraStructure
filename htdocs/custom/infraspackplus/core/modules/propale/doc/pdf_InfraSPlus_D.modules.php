@@ -24,16 +24,16 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/propale/modules_propale.php';
-	require_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/propale/modules_propale.php';
+	include_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 	if (isModEnabled('infras2bridge')) {
@@ -93,6 +93,7 @@
 		public $marge_basse;
 		public $formatpage;
 		public $use_iso_location;
+		public $arrayidcontact;
 		public $dash_between_line;
 		public $product_use_unit;
 		public $hide_vat_ifnull;
@@ -1611,7 +1612,7 @@
 					}
 					// If propal merge product PDF is active
 					if (!empty($this->produit_pdf_merge) && (empty($this->product_merge) || !empty($this->mergeproduct))) {
-						require_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
+						include_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
 						$already_merged = array ('products' => array(), 'files' => array());
 						foreach ($object->lines as $line) {
 							if (!empty($line->fk_product) && ! (in_array($line->fk_product, $already_merged['products']))) {
@@ -1777,14 +1778,14 @@
 				$posy	= pdf_InfraSPlus_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, $w, $this->tab_hl, $align);
 				$posy	+= 0.5;
 			}
-			$dimCadres['Y']	= ($this->use_iso_location && $posy <= $this->top_recep_corner ? $this->top_recep_corner : ($heightLogo > $posy + $this->tab_hl ? $heightLogo : $posy + $this->tab_hl));
+			$dimCadres['Y']			= ($this->use_iso_location && $posy <= $this->top_recep_corner ? $this->top_recep_corner : ($heightLogo > $posy + $this->tab_hl ? $heightLogo : $posy + $this->tab_hl));
+			$this->arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
+											'E' => $object->getIdContact('external', 'CUSTOMER'),
+											'L' => $object->getIdContact('external', 'SHIPPING')
+											);
 			if (!empty($showaddress)) {
-				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'E' => $object->getIdContact('external', 'CUSTOMER'),
-										'L' => $object->getIdContact('external', 'SHIPPING')
-										);
 				$addresses		= array();
-				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', 0, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
+				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $this->arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', 0, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}
 			$hauteurhead	= array('totalhead'		=> $dimCadres['Y'] + $hauteurcadre,
@@ -1990,7 +1991,7 @@
 			$posxcol2info		= $posxtabinfo + $larg_col1info;
 			// VAT statements
 			if (!empty($this->text_TVA_auto)) {
-				$statements	= pdf_InfraSPlus_VAT_auto($object, $this->emetteur, $object->thirdparty, $this->hasService, $this->hasProduct, $this->show_tva_btp);
+				$statements	= pdf_InfraSPlus_VAT_auto($object, $this->emetteur, $object->thirdparty, $this->arrayidcontact, $this->adrlivr, $this->hasService, $this->hasProduct, $this->show_tva_btp);
 				if (is_array($statements)) {
 					$pdf->SetFont('', '', $default_font_size - 2);
 					if (!empty($statements['F'])) {

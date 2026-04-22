@@ -628,12 +628,11 @@ InfraSPlusParamEXFLFF                 = Visualiza atributos adicionales de las l
 
 ### Mentions page ###
 InfraSPlusParamTVAauto                       = Gestión de la información relativa al IVA
-InfraSPlusTxtTvaVPE                          = Exención del IVA, artículo 262, I del Código General Tributario
-InfraSPlusTxtTvaVPI                          = Exención del IVA, artículo 262 ter, I del Código General Tributario
-InfraSPlusTxtTvaVSE                          = IVA no aplicable, artículo 259-1 del Código General Tributario
-InfraSPlusTxtTvaVSI                          = Exención del IVA, artículo 283-2 del Código General Tributario
+InfraSPlusTxtTvaVPE                          = Exención del IVA, artículo 262-I del código fiscal francés (CGI)
+InfraSPlusTxtTvaVPI                          = Exención del IVA, artículo 262 ter I del código fiscal francés (CGI)
+InfraSPlusTxtTvaVSE                          = IVA no aplicable — art. 259-1° del código fiscal francés (CGI)
+InfraSPlusTxtTvaVSI                          = Autoliquidación — art. 196 directiva 2006/112/CE
 InfraSPlusTxtTvaBTP                          = Autoliquidación
-InfraSPlusTxtTvaFranchise                    = IVA no aplicable, artículo 293 B del Código General Tributario
 InfraSPlusParamConfirmSetTVAauto             = ¿Confirmas la activación de la gestión automática de la información relativa al IVA?
 InfraSPlusParamGestionMentions               = <b>Opciones concerniendo para la utilización de Información adicional en las ediciones del pack</b>
 InfraSPlusParamNewMention                    = Agregar / Editar una mención adicional a las ediciones de InfraS Pack

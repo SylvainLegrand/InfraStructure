@@ -24,48 +24,48 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/project/modules_project.php';
-	require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/project/modules_project.php';
+	include_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 	if (isModEnabled('propal')) {
-		require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
 	}
 	if (isModEnabled('facture')) {
-		require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 	}
 	if (isModEnabled('facture')) {
-		require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture-rec.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture-rec.class.php';
 	}
 	if (isModEnabled('commande')) {
-		require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
 	}
 	if (isModEnabled('fournisseur')) {
-		require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
 	}
 	if (isModEnabled('fournisseur')) {
-		require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
 	}
 	if (isModEnabled('contrat')) {
-		require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
 	}
 	if (isModEnabled('ficheinter')) {
-		require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
 	}
 	if (isModEnabled('deplacement')) {
-		require_once DOL_DOCUMENT_ROOT.'/compta/deplacement/class/deplacement.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/compta/deplacement/class/deplacement.class.php';
 	}
 	if (isModEnabled('expensereport')) {
-		require_once DOL_DOCUMENT_ROOT.'/expensereport/class/expensereport.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/expensereport/class/expensereport.class.php';
 	}
 	if (isModEnabled('agenda')) {
-		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+		include_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 	}
 	if (isModEnabled('ndfp')) {
 		dol_include_once('/ndfp/class/ndfp.class.php');
