@@ -18,38 +18,37 @@
 	* along with this program. If not, see <https://www.gnu.org/licenses/>.
 	**************************************************/
 
-	// Libraries ************************************
-	include DOL_DOCUMENT_ROOT.'/core/tpl/originproductline.tpl.php';
-
 	// Protection to avoid direct call of template
 	if (empty($conf) || ! is_object($conf)) {
 		print "Error, template page can't be called as URL";
 		exit;
 	}
 
-	$selected = 1;
-	// invoke the core template we are overriding, but inhibit direct output: instead, store it in a variable
 	ob_start();
-	$coreTplRow = ob_get_clean();
+	include DOL_DOCUMENT_ROOT.'/core/tpl/originproductline.tpl.php';
+	$coreTplRow	= ob_get_clean();
+
+	$selected	= 1;
 	// If this is a subtotal line: we don't print the row from the core tpl: we override it completely because we don't want to show qty etc.
-	if ($this->tpl['subtotal'] ?? '' == $this->tpl['id'] && in_array($this->tpl['sub-type'] ?? '', array('title', 'total', 'freetext'))) {
-		print '<tr class="oddeven'.(empty($this->tpl['strike']) ? '' : ' strikefordisabled').(!empty($this->tpl['sub-tr-class']) ? ' '.dol_escape_htmltag($this->tpl['sub-tr-class']) : '').'" '.(!empty($this->tpl['sub-tr-style']) ? 'style="'.dol_escape_htmltag($this->tpl['sub-tr-style']).'"' : '').'>';	// InfraS change
+	if (($this->tpl['subtotal'] ?? '') == $this->tpl['id'] && in_array($this->tpl['sub-type'] ?? '', array('title', 'total', 'freetext'))) {
+		print '<tr class="oddeven'.(empty($this->tpl['strike']) ? '' : ' strikefordisabled').(!empty($this->tpl['sub-tr-class']) ? ' '.dol_escape_htmltag($this->tpl['sub-tr-class']) : '').'" '.(!empty($this->tpl['sub-tr-style']) ? 'style="'.$this->tpl['sub-tr-style'].'"' : '').'>';
 		// We only use the overridden HTML to compute the colspan, but we don't print it
 		$colspan	= 1;
-		$dom		= new DOMDocument();
-		// From Gemini: suppress libxml errors in case $coreTplRow contains invalid HTML
-		libxml_use_internal_errors(true);
-		$dom->loadHTML($coreTplRow);
-		libxml_clear_errors();
-		libxml_use_internal_errors(false);
-		$xpath		= new DOMXPath($dom);
-		$tdNodes	= $xpath->query('//tr[1]/td');	// Find <td> that are direct children of the first <tr>
-		if ($tdNodes && $tdNodes->length >= 2) {
-			$colspan = $tdNodes->length - 1; // -1 to make room for the <td> containing the checkbox
+		if (!empty($coreTplRow)) {
+			$dom	= new DOMDocument();
+			libxml_use_internal_errors(true);
+			$dom->loadHTML($coreTplRow);
+			libxml_clear_errors();
+			libxml_use_internal_errors(false);
+			$xpath		= new DOMXPath($dom);
+			$tdNodes	= $xpath->query('//tr[1]/td');	// Find <td> that are direct children of the first <tr>
+			if ($tdNodes && $tdNodes->length >= 2) {
+				$colspan	= $tdNodes->length - 1;	// -1 to make room for the <td> containing the checkbox
+			}
 		}
-		print '<td colspan="'.$colspan.'" '.dol_escape_htmltag($this->tpl['sub-td-style']).'>'.dol_escape_htmltag($this->tpl['sublabel']).'</td>';
+		print '<td colspan="'.((int) $colspan).'"'.(!empty($this->tpl['sub-td-style']) ? ' '.$this->tpl['sub-td-style'] : '').'>'.$this->tpl['sublabel'].'</td>';
 		if (! empty($selectedLines) && ! in_array($this->tpl['id'], $selectedLines)) {
-			$selected = 0;
+			$selected	= 0;
 		}
 		print '		<td class="center">
 						<input id="cb'.dol_escape_htmltag($this->tpl['id']).'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.dol_escape_htmltag($this->tpl['id']).'"'.($selected ? ' checked="checked"' : '').'>

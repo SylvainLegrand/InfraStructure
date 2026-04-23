@@ -25,7 +25,7 @@
 	*************************************************/
 
 	// Dolibarr environment *************************
-	require '../config.php'; // InfraS change
+	require '../config.php';
 
 	// Libraries ************************************
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';

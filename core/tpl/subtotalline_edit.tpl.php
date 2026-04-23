@@ -119,7 +119,6 @@
 						</div>';
 	}
 	if (TSubtotal::isTitle($line) && !getDolGlobalString('SUBTOTAL_HIDE_OPTIONS_TITLE')) {
-		// InfraS add begin
 		if (!empty(isModEnabled('infraspackplus')) && in_array($object->element, array('propal', 'commande', 'facture'))) {
 			print '		<div>
 							<input style="vertical-align:sub;" type="checkbox" name="line-showTableHeaderBefore" id="subtotal-showTableHeaderBefore" value="10" '.((!empty($line->array_options['options_show_table_header_before']) && $line->array_options['options_show_table_header_before'] > 0) ? 'checked="checked"' : '').' />&nbsp;
@@ -134,7 +133,6 @@
 							<label for="subtotal-printCondensed">'.$langs->trans('SubTotalPrintCondensed').'</label>
 						</div>';
 		}
-		// InfraS add end
 		$form	= new Form($db);
 		print '			<div>
 							<label for="subtotal_tva_tx">'.$form->textwithpicto($langs->trans('SubTotalApplyDefaultTva'), $langs->trans('SubTotalApplyDefaultTvaHelp')).'</label>

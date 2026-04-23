@@ -120,7 +120,7 @@
 		* @param	string       $desc	 Description of line (only used for facture and propal for the moment, not used for supplier invoice and supplier propal)
 		* @return	int
 		*/
-		static function addSubTotalLine(&$object, $label, $qty, $rang=-1, $desc = '')	// InfraS change
+		static function addSubTotalLine(&$object, $label, $qty, $rang=-1, $desc = '')
 		{
 			$res	= 0;
 			$desc	= '';
@@ -903,7 +903,7 @@
 		* @param	int		$origin_pdf		unused [lines that used it are commented out]
 		* @param	int		$fromInfraS		unused [lines that used it are commented out]
 		*/
-		public static function addRecapPage(&$parameters, &$origin_pdf, $fromInfraS = 0)	// InfraS change
+		public static function addRecapPage(&$parameters, &$origin_pdf, $fromInfraS = 0)
 		{
 			global $user, $conf, $langs;
 
@@ -1090,10 +1090,10 @@
 			$pdf->Close();
 			$pdf->Output($file, 'F');
 			if (empty($fromInfraS)) {
-				$pagecount = self::concat($outputlangs, array($origin_file, $file), $origin_file);	// InfraS change
+				$pagecount = self::concat($outputlangs, array($origin_file, $file), $origin_file);
 			}
 			if (!empty($fromInfraS)){
-				return $file;	// InfraS add
+				return $file;
 			}
 			if (!getDolGlobalString('SUBTOTAL_KEEP_RECAP_FILE')) {
 				unlink($file);
@@ -1403,7 +1403,6 @@
 			return $value;
 		}
 
-		// InfraS add begin
 		/**
 		* Retourne le taux de TVA unique des lignes comprises entre un Titre et un Sous-total de même niveau.
 		* On peut appeler cette fonction en partant d'un titre ou d'un sous-total.
@@ -1473,5 +1472,4 @@
 			}
 			return $tva_unique;
 		}
-		// InfraS add end
 	}

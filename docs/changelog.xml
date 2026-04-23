@@ -343,7 +343,11 @@
     <Version Number="3.30.1" MonthVersion="2026-04">
         <change type='chg'>Affichage du sommaire rapide (SubTotalQuickSummary) sous forme de bouton flottant dépliable au lieu d'un menu dans la sidebar</change>
     </Version>
-    <InfraS Downloaded="20260420"/>
+    <Version Number="3.30.2" MonthVersion="2026-04">
+        <change type='fix'>Performances génération PDF : pré-chauffage du cache parent/titre au plus tôt dans beforePDFCreation et remplacement des appels directs getParentTitleOfLine par la version cachée (évite des O(n²) lors du rendu de documents avec beaucoup de lignes)</change>
+        <change type='fix'>Performances génération PDF : mémoïsation du résultat de get_totalLineFromObject et du array_reverse des lignes durant le pipeline PDF (gain significatif sur les documents avec plusieurs dizaines de sous-totaux)</change>
+    </Version>
+    <InfraS Downloaded="20260401"/>
     <Dolibarr minVersion="16.0.0" maxVersion="23.x.x"/>
     <PHP minVersion="7.0" maxVersion="8.2"/>
 </changelog>

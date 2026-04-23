@@ -317,50 +317,42 @@
 		*/
 		private function AddLineUnderTitle(&$object, $action)
 		{
-			$id = GETPOST('under_title', 'int'); // InfraS change: Id du titre
-			if ($id <= 0) {	// InfraS change
+			$id = GETPOST('under_title', 'int');
+			if ($id <= 0) {
 				return;
 			}
 			switch ($action) {
 				case 'LINEPROPAL_INSERT':
 					$parent  = new Propal($this->db);
 					$parent->fetch($object->fk_propal);
-					// InfraS add begin
 					$lineobj = new PropaleLigne($this->db);
 					$lineobj->fetch($id);
 					$rang    = $lineobj->rang;
-					// InfraS add end
 					break;
 				case 'LINEORDER_INSERT':
 					$parent = new Commande($this->db);
 					$parent->fetch($object->fk_commande);
-					// InfraS add begin
 					$lineobj = new OrderLine($this->db);
 					$lineobj->fetch($id);
 					$rang    = $lineobj->rang;
-					// InfraS add end
 					break;
 				case 'LINEBILL_INSERT':
 					$parent = new Facture($this->db);
 					$parent->fetch($object->fk_facture);
-					// InfraS add begin
 					$lineobj = new FactureLigne($this->db);
 					$lineobj->fetch($id);
 					$rang    = $lineobj->rang;
-					// InfraS add end
 					break;
 				case 'LINEBILL_SUPPLIER_CREATE':
 					$parent = new FactureFournisseur($this->db);
 					$parent->fetch($object->fk_facture_fourn);
-					// InfraS add begin
 					$lineobj = new SupplierInvoiceLine($this->db);
 					$lineobj->fetch($id);
 					$rang    = $lineobj->rang;
-					// InfraS add end
 					break;
 				default:
 					$parent = $object;
-					$rang   = null;	// InfraS add
+					$rang   = null;
 					break;
 			}
 			if (getDolGlobalString('SUBTOTAL_ADD_LINE_UNDER_TITLE_AT_END_BLOCK')) {

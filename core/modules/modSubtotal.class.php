@@ -145,7 +145,6 @@
 			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
 			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
 			$extra->addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			// InfraS add begin
 			$extra->addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
 			$extra->addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
 			$extra->addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
@@ -159,7 +158,6 @@
 				// Désactive le sommaire rapide
 				dolibarr_set_const($db, 'SUBTOTAL_DISABLE_SUMMARY', 1, 'chaine', 0, '', $conf->entity);
 			}
-			// InfraS add end
 			return $this->_init($sql, $options);
 		}
 

@@ -31,7 +31,7 @@
 	require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
 	dol_include_once('/subtotal/class/subtotal.class.php');
 	if (isModEnabled('ouvrage')) {
-		dol_include_once('/ouvrage/class/ouvrage.class.php');	// InfraS add
+		dol_include_once('/ouvrage/class/ouvrage.class.php');
 	}
 
 	/**
@@ -355,7 +355,7 @@
 			if($line->qty > 1) {
 				$str = str_repeat($nbsp, (floatval($line->qty) - 1) * 3);
 			}
-			$html .= '<option value="'.dol_escape_htmltag($line->id).'">'.dol_escape_htmltag($str.(!empty($line->label) ? $line->label : dol_trunc($line->desc, 30))).'</option>'; // InfraS change : use id instead of rang
+			$html .= '<option value="'.dol_escape_htmltag($line->id).'">'.dol_escape_htmltag($str.(!empty($line->label) ? $line->label : dol_trunc($line->desc, 30))).'</option>';
 		}
 		$html .= '</select>';
 		return $html;
@@ -633,9 +633,9 @@
 		$label					= GETPOST('line-title', 'restricthtml');
 		$description			= ($line->qty>90) ? '' : GETPOST('line-description', 'restricthtml');
 		$pagebreak				= GETPOST('line-pagebreak', 'int');
-		$showTableHeaderBefore	= GETPOST('line-showTableHeaderBefore', 'int');	// InfraS add
-		$printAsList			= GETPOST('line-printAsList', 'int');	// InfraS add
-		$printCondensed			= GETPOST('line-printCondensed', 'int');	// InfraS add
+		$showTableHeaderBefore	= GETPOST('line-showTableHeaderBefore', 'int');
+		$printAsList			= GETPOST('line-printAsList', 'int');
+		$printCondensed			= GETPOST('line-printCondensed', 'int');
 		$showTotalHT			= GETPOST('line-showTotalHT', 'int');
 		$showReduc				= GETPOST('line-showReduc', 'int');
 		$showQty				= GETPOSTISSET('line-showQty') ? GETPOST('line-showQty', 'int') : -1;
@@ -647,9 +647,9 @@
 				$line->qty = $level;
 			}
 		}
-		$line->array_options['options_show_table_header_before']	= $showTableHeaderBefore;	// InfraS add
-		$line->array_options['options_print_as_list']				= $printAsList;	// InfraS add
-		$line->array_options['options_print_condensed']				= $printCondensed;	// InfraS add
+		$line->array_options['options_show_table_header_before']	= $showTableHeaderBefore;
+		$line->array_options['options_print_as_list']				= $printAsList;
+		$line->array_options['options_print_condensed']				= $printCondensed;
 		$line->array_options['options_show_total_ht']				= $showTotalHT;
 		$line->array_options['options_show_reduc']					= $showReduc;
 		$line->array_options['options_subtotal_show_qty']			= $showQty;
@@ -963,7 +963,7 @@
 	{
 		global $db;
 
-		$previous_progress	= (floatval(DOL_VERSION) >= 21) ? $line->getAllPrevProgress($factureid) : $line->get_prev_progress($factureid);	// InfraS change
+		$previous_progress	= (floatval(DOL_VERSION) >= 21) ? $line->getAllPrevProgress($factureid) : $line->get_prev_progress($factureid);
 		$parent				= new Facture($db);
 		$res				= $parent->fetch($factureid);
 		if ($res) {
@@ -1007,12 +1007,23 @@
 	* @param	int					$return_all	Return all
 	* @return	array|float|int
 	*/
-	function get_totalLineFromObject(&$object, &$line, $use_level = false, $return_all = 0) 
+	function get_totalLineFromObject(&$object, &$line, $use_level = false, $return_all = 0)
 	{
 		$rang	= $line->rang;
 		$lvl	= 0;
 		if (TSubtotal::isSubtotal($line)) {
 			$lvl = TSubtotal::getNiveau($line);
+		}
+		// Mémoïsation du résultat par (rang, lvl, use_level, return_all) durant la génération PDF (flag warmed posé par warmPDFSubtotalCache)
+		$memoEnabled	= isset($object->context['subtotalCache']['warmed']) && !empty($object->context['subtotalCache']['warmed']);
+		$memoKey		= $rang.'|'.$lvl.'|'.intval((bool) $use_level).'|'.intval($return_all);
+		if ($memoEnabled) {
+			if (!isset($object->context['subtotalCache']['totalLineByKey']) || !is_array($object->context['subtotalCache']['totalLineByKey'])) {
+				$object->context['subtotalCache']['totalLineByKey']	= array();
+			}
+			if (array_key_exists($memoKey, $object->context['subtotalCache']['totalLineByKey'])) {
+				return $object->context['subtotalCache']['totalLineByKey'][$memoKey];
+			}
 		}
 		$title_break				= TSubtotal::getParentTitleOfLine($object, $rang, $lvl);
 		$total						= 0;
@@ -1020,19 +1031,26 @@
 		$total_ttc					= 0;
 		$total_qty					= 0;
 		$TTotal_tva					= array();
-		$TTotal_tva_array			= array();	// InfraS add
-		$multicurrency_total_ht		= 0;	// InfraS add
-		$multicurrency_total_ttc	= 0;	// InfraS add
+		$TTotal_tva_array			= array();
+		$multicurrency_total_ht		= 0;
+		$multicurrency_total_ttc	= 0;
 		$sign						= 1;
-		$TLineReverse				= array_reverse($object->lines);
-		$listOuvrages				= array();	// InfraS add
+		// Cache du array_reverse durant la génération PDF (flag warmed)
+		if ($memoEnabled) {
+			if (!isset($object->context['subtotalCache']['linesReversed']) || !is_array($object->context['subtotalCache']['linesReversed'])) {
+				$object->context['subtotalCache']['linesReversed']	= array_reverse($object->lines);
+			}
+			$TLineReverse	= $object->context['subtotalCache']['linesReversed'];
+		} else {
+			$TLineReverse	= array_reverse($object->lines);
+		}
+		$listOuvrages				= array();
 		if (isset($object->type) && $object->type == 2 && getDolGlobalString('INVOICE_POSITIVE_CREDIT_NOTE')) {
 			$sign = -1;
 		}
-		if (!empty(isModEnabled('ouvrage'))) {	// InfraS add
+		if (!empty(isModEnabled('ouvrage')) && class_exists('Ouvrage') ) {
 			// loop over the lines above the current total line
 			foreach ($TLineReverse as $l) {
-				// InfraS add begin
 				$isOuvrage	= Ouvrage::isOuvrage($l) ? 1 : 0;	// ouvrage ??
 				if (!empty($title_break) && $title_break->id == $l->id) {
 					break;								// We go back from the end to the beginning, so when we find the associated title we stop
@@ -1041,27 +1059,26 @@
 				}
 			}
 		}
-		// InfraS add end
-		foreach($TLineReverse as $l) {	// InfraS add
+		foreach($TLineReverse as $l) {
 			$l->total_ttc				= doubleval($l->total_ttc);
 			$l->total_ht				= doubleval($l->total_ht);
-			$l->multicurrency_total_ht	= doubleval($l->multicurrency_total_ht);	// InfraS add
-			$l->multicurrency_total_ttc = doubleval($l->multicurrency_total_ttc);	// InfraS add
-			$isOuvrage					= !empty(isModEnabled('ouvrage')) && Ouvrage::isOuvrage($l) ? 1 : 0;	// InfraS add
+			$l->multicurrency_total_ht	= doubleval($l->multicurrency_total_ht);
+			$l->multicurrency_total_ttc = doubleval($l->multicurrency_total_ttc);
+			$isOuvrage					= !empty(isModEnabled('ouvrage')) && class_exists('Ouvrage') && Ouvrage::isOuvrage($l) ? 1 : 0;
 			if ($l->rang >= $rang) {
 				continue;
 			}
 			if (!empty($title_break) && $title_break->id == $l->id) {
 				break;
-			} elseif (!TSubtotal::isModSubtotalLine($l) && empty($isOuvrage)) {	// InfraS change
-				$totalQty	= !empty($listOuvrages) && !empty($l->fk_parent_line) && array_key_exists($l->fk_parent_line, $listOuvrages) ? $listOuvrages[$l->fk_parent_line] : 1;	// InfraS add
+			} elseif (!TSubtotal::isModSubtotalLine($l) && empty($isOuvrage)) {
+				$totalQty	= !empty($listOuvrages) && !empty($l->fk_parent_line) && array_key_exists($l->fk_parent_line, $listOuvrages) ? $listOuvrages[$l->fk_parent_line] : 1;
 				$total_qty += $l->qty;
 				if ($object->element == 'facture' && $object->type == Facture::TYPE_SITUATION) {
-					$sitFacTotLineAvt	= getDolGlobalInt('INFRASPLUS_PDF_SITFAC_TOTLINE_AVT', 0);	// InfraS add
+					$sitFacTotLineAvt	= getDolGlobalInt('INFRASPLUS_PDF_SITFAC_TOTLINE_AVT', 0);
 					// 1 = (legacy mode): situation_percent is cumulative (state at situation)
 					// 2 = (new mode): situation_percent is non-cumulative (delta of current situation)
 					$isCumulative = getDolGlobalInt('INVOICE_USE_SITUATION') === 1;
-					if ($l->situation_percent > 0 && !empty($l->total_ht) && empty($sitFacTotLineAvt)) {	// InfraS change
+					if ($l->situation_percent > 0 && !empty($l->total_ht) && empty($sitFacTotLineAvt)) {
 						$prev_progress = method_exists($l, 'get_prev_progress') ? $l->get_prev_progress($object->id) : 0;
 						if ($isCumulative) {
 							// legacy mode: $l->situation_percent = cumulative progress within the cycle
@@ -1071,16 +1088,16 @@
 							$lineTotalHT				= $sign * $l->total_ht * $progressRatio;
 							$lineTotalTVA				= $sign * $l->total_tva * $progressRatio;
 							$lineTotalTTC				= $sign * $l->total_ttc * $progressRatio;
-							$lineMulticurrencyTotalHT	= $sign * $l->multicurrency_total_ht * $progressRatio;	// InfraS add
-							$lineMulticurrencyTotalTTC	= $sign * $l->multicurrency_total_ttc * $progressRatio;	// InfraS add
+							$lineMulticurrencyTotalHT	= $sign * $l->multicurrency_total_ht * $progressRatio;
+							$lineMulticurrencyTotalTTC	= $sign * $l->multicurrency_total_ttc * $progressRatio;
 						} else {
 							// new mode: $l->situation_percent = progress delta of this situation invoice
 							// the delta (=non-cumulative) values are stored directly on the line
 							$lineTotalHT				= $l->total_ht;
 							$lineTotalTVA				= $l->total_tva;
 							$lineTotalTTC				= $l->total_ttc;
-							$lineMulticurrencyTotalHT	= $l->multicurrency_total_ht;	// InfraS add
-							$lineMulticurrencyTotalTTC	= $l->multicurrency_total_ttc;	// InfraS add
+							$lineMulticurrencyTotalHT	= $l->multicurrency_total_ht;
+							$lineMulticurrencyTotalTTC	= $l->multicurrency_total_ttc;
 						}
 						$total						+= $lineTotalHT;
 						$total_tva					+= $lineTotalTVA;
@@ -1089,7 +1106,6 @@
 							$TTotal_tva[$l->tva_tx]	= 0;
 						}
 						$TTotal_tva[$l->tva_tx]		+= $lineTotalTVA;
-						// InfraS add begin
 						$multicurrency_total_ht		+= $lineMulticurrencyTotalHT;
 						$multicurrency_total_ttc	+= $lineMulticurrencyTotalTTC;
 					} elseif ($l->product_type != 9) {
@@ -1100,18 +1116,16 @@
 						$multicurrency_total_ht		+= $l->multicurrency_total_ht * $totalQty;
 						$multicurrency_total_ttc	+= $l->multicurrency_total_ttc * $totalQty;
 					}
-					// InfraS add end
-				} elseif ($l->product_type != 9) {	// InfraS change
-					$total							+= $l->total_ht * $totalQty;	// InfraS change
-					$total_tva						+= $l->total_tva * $totalQty;	// InfraS change
-					$multicurrency_total_ht			+= $l->multicurrency_total_ht * $totalQty;	// InfraS add
+				} elseif ($l->product_type != 9) {
+					$total							+= $l->total_ht * $totalQty;
+					$total_tva						+= $l->total_tva * $totalQty;
+					$multicurrency_total_ht			+= $l->multicurrency_total_ht * $totalQty;
 					if (! isset($TTotal_tva[$l->tva_tx])) {
 						$TTotal_tva[$l->tva_tx]	= 0;
 					}
-					$TTotal_tva[$l->tva_tx]			+= $l->total_tva * $totalQty;	// InfraS change
-					$total_ttc						+= $l->total_ttc * $totalQty;	// InfraS change
-					$multicurrency_total_ttc		+= $l->multicurrency_total_ttc * $totalQty;	// InfraS add
-					// InfraS add begin
+					$TTotal_tva[$l->tva_tx]			+= $l->total_tva * $totalQty;
+					$total_ttc						+= $l->total_ttc * $totalQty;
+					$multicurrency_total_ttc		+= $l->multicurrency_total_ttc * $totalQty;
 					$vatrate = (string) $l->tva_tx;
 					if (($l->info_bits & 0x01) == 0x01) {
 						$vatrate .= '*';
@@ -1121,15 +1135,19 @@
 						$TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] = 0;
 					}
 					$TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')] = array('vatrate' => $vatrate, 'vatcode' => $vatcode, 'amount' => $TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] + $l->total_tva, 'base' => $total);
-					// InfraS add end
 				}
 			}
 		}
+		// Stockage du résultat dans le cache mémoïsé si activé
 		if (!$return_all) {
-			return $total;
+			$result	= $total;
 		} else {
-			return array($total, $total_tva, $total_ttc, $TTotal_tva, $total_qty, $TTotal_tva_array, $multicurrency_total_ht, $multicurrency_total_ttc);	// InfraS change
+			$result	= array($total, $total_tva, $total_ttc, $TTotal_tva, $total_qty, $TTotal_tva_array, $multicurrency_total_ht, $multicurrency_total_ttc);
 		}
+		if ($memoEnabled) {
+			$object->context['subtotalCache']['totalLineByKey'][$memoKey]	= $result;
+		}
+		return $result;
 	}
 
 	/**
@@ -1239,8 +1257,8 @@
 	*/
 	function setDocTVA(&$pdf, &$object)
 	{
-		$hidesubdetails	= GETPOST('hidesubdetails', 'int');	// InfraS change
-		if(empty($hidesubdetails)) return false;	// InfraS change
+		$hidesubdetails	= GETPOST('hidesubdetails', 'int');
+		if(empty($hidesubdetails)) return false;
 		// TODO can't add VAT to document without lines... :-/
 		return true;
 	}
