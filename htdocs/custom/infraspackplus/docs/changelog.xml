@@ -1805,7 +1805,10 @@
 		<change type='chg'>Refonte de la table d'affichage des adresses (filtres, choix des colonnes à afficher, boutons d'action, colonne d'action à droite ou à gauche)</change>
 		<change type='chg'>Pied de page PDF : URL et email cliquables, icônes Unicode (☎ ✉) à la place des préfixes textuels</change>
 	</Version>
-	<InfraS Downloaded="20260422"/>
+	<Version Number="18.15.2" MonthVersion="2026-04">
+		<change type='fix'>Performances génération PDF : mise en cache du substitutionarray et de urlwithroot dans pdf_InfraSPlus_formatNotes (par object/outputlangs). Les appels pdf_getSubstitutionArray + complete_substitutions_array étaient recalculés à chaque ligne alors qu'ils ne dépendent pas du contenu de la note. Gain majeur sur les documents avec plusieurs centaines de lignes (facteur ~4 à 5× sur le temps total de génération PDF constaté).</change>
+	</Version>
+	<InfraS Downloaded="20260423"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

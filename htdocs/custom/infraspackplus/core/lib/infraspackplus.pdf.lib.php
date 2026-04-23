@@ -2044,8 +2044,21 @@
 	{
 		global $dolibarr_main_url_root;
 
-		$substitutionarray	= pdf_getSubstitutionArray($outputlangs, null, $object);
-		complete_substitutions_array($substitutionarray, $outputlangs, $object);
+		// Cache du substitutionarray et de urlwithroot par (object, outputlangs).
+		// pdf_getSubstitutionArray + complete_substitutions_array sont coûteuses et indépendantes de $notes ;
+		// elles étaient recalculées à chaque ligne (228 fois) lors d'une génération PDF (gain mesuré ~25s / 228 lignes).
+		static $__ipp_fn_cache	= array();
+		$__ipp_cacheKey			= (is_object($object) ? spl_object_hash($object) : 'no_obj').'|'.(is_object($outputlangs) ? spl_object_hash($outputlangs) : 'no_lg');
+		if (!isset($__ipp_fn_cache[$__ipp_cacheKey])) {
+			$__sa								= pdf_getSubstitutionArray($outputlangs, null, $object);
+			complete_substitutions_array($__sa, $outputlangs, $object);
+			$__urlwithouturlroot				= preg_replace('/'.preg_quote(DOL_URL_ROOT, '/').'$/i', '', trim($dolibarr_main_url_root));
+			$__ipp_fn_cache[$__ipp_cacheKey]	= array('substitutionarray'	=> $__sa,
+														'urlwithroot'		=> $__urlwithouturlroot.DOL_URL_ROOT,
+														);
+		}
+		$substitutionarray	= $__ipp_fn_cache[$__ipp_cacheKey]['substitutionarray'];
+		$urlwithroot		= $__ipp_fn_cache[$__ipp_cacheKey]['urlwithroot'];
 		$html				= make_substitutions($notes, $substitutionarray, $outputlangs);
 		// Clean variables not found
 		$reg				= array();
@@ -2053,8 +2066,6 @@
 			$html	= str_replace($reg[0], '', $html);
 		}
 		// the code below came from a Dolibarr v10 native function (convertBackOfficeMediasLinksToPublicLinks()) on functions2.lib.php
-		$urlwithouturlroot	= preg_replace('/'.preg_quote(DOL_URL_ROOT, '/').'$/i', '', trim($dolibarr_main_url_root));	// Define $urlwithroot
-		$urlwithroot		= $urlwithouturlroot.DOL_URL_ROOT;		// This is to use external domain name found into config file
 		$html				= preg_replace('/src="[a-zA-Z0-9_\/\-\.]*(viewimage\.php\?modulepart=medias[^"]*)"/', 'src="'.$urlwithroot.'/\1"', preg_replace('#amp;#', '', $html));
 		return $html;
 	}
