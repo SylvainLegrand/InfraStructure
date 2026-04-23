@@ -873,12 +873,12 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				$_SESSION[$sessname][$object->id] = $hideInnerLines;
 
 				$hidesubdetails= GETPOST('hidesubdetails', 'int');	// InfraS change
-				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname2]) || !isset($_SESSION[$sessname2][$object->id]) || !is_array($_SESSION[$sessname2][$object->id]))
+				if (!array_key_exists($sessname2, $_SESSION) || empty($_SESSION[$sessname2]) || !is_array($_SESSION[$sessname2]) || !isset($_SESSION[$sessname2][$object->id]) || !is_array($_SESSION[$sessname2][$object->id]))
 					$_SESSION[$sessname2] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname2][$object->id] = $hidesubdetails;	// InfraS change
 
 				$hideprices = GETPOST('hideprices', 'int');
-				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname3]) || !isset($_SESSION[$sessname3][$object->id]) || !is_array($_SESSION[$sessname3][$object->id]))
+				if (!array_key_exists($sessname3, $_SESSION) || empty($_SESSION[$sessname3]) || !is_array($_SESSION[$sessname3]) || !isset($_SESSION[$sessname3][$object->id]) || !is_array($_SESSION[$sessname3][$object->id]))
 					$_SESSION[$sessname3] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname3][$object->id] = $hideprices;
 
@@ -1233,6 +1233,9 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 						$total += $lineTotalHT;
 						$total_tva += $lineTotalTVA;
 						$total_ttc += $lineTotalTTC;
+						if (!isset($TTotal_tva[$l->tva_tx])) {
+							$TTotal_tva[$l->tva_tx] = 0;
+						}
 						$TTotal_tva[$l->tva_tx] += $lineTotalTVA;
 						// InfraS add begin
 						$multicurrency_total_ht += $lineMulticurrencyTotalHT;
@@ -2813,7 +2816,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				}
 
 
-				$this->pdf_add_total($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h);
+				$this->pdfAddTotal($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h);
 
 				if (!empty(getDolGlobalString('SUBTOTAL_DISABLE_FIX_TRANSACTION'))) {
 					$pageAfter = $pdf->getPage();
@@ -2823,7 +2826,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 						$pdf->rollbackTransaction(true);
 						$pdf->addPage('', '', true);
 						$posy = $pdf->GetY();
-						$this->pdf_add_total($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h);
+						$this->pdfAddTotal($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h);
 						$posy = $pdf->GetY();
 						//print 'add ST'.$pdf->getPage().'<br />';
 					} else // No pagebreak
