@@ -616,11 +616,7 @@ class FormWebPortal extends Form
 				}
 				if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
 					list($parentName, $parentField) = explode('|', $InfoFieldList[3]);
-					if (!empty($InfoFieldList[4]) && strpos($InfoFieldList[4], 'extra.') !== false) {
-						$keyList .= ', main.'.$parentField;
-					} else {
-						$keyList .= ', '.$parentField;
-					}
+					$keyList .= ', ' . $parentField;
 				}
 
 				$filter_categorie = false;
@@ -1287,12 +1283,13 @@ class FormWebPortal extends Form
 	public function inputText($htmlName, $value, $morecss = '', $moreparam = '', $options = array())
 	{
 		global $langs;
-
 		$out = '';
 		if (!empty($options)) {
 			// If the textarea field has a list of arrayofkeyval into its definition, we suggest a combo with possible values to fill the textarea.
+			$out .= '<div class="text-area-multi-input-add-group" >';
 			$out .= $this->selectarray($htmlName . "_multiinput", $options, '', 1, 0, 0, $moreparam, 0, 0, 0, '', "flat maxwidthonphone" . $morecss);
 			$out .= '<input id="' . $htmlName . '_multiinputadd" type="button" class="button" value="' . $langs->trans("Add") . '">';
+			$out .= '</div>';
 			$out .= "<script>";
 			$out .= '
 					function handlemultiinputdisabling(htmlname){
@@ -1342,7 +1339,7 @@ class FormWebPortal extends Form
 		}
 
 		require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
-		$doleditor = new DolEditor($htmlName, (string) $value, '', 200, 'dolibarr_notes', 'In', false, false, false, ROWS_5, '90%');
+		$doleditor = new DolEditor($htmlName, (string) $value, '', 200, 'dolibarr_notes', 'In', false, false, false, ROWS_5);
 		$out .= (string) $doleditor->Create(1, '', true, '', '', $moreparam, $morecss);
 
 		return $out;
