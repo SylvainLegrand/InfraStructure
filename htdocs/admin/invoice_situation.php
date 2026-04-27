@@ -107,7 +107,8 @@ $item->fieldAttr = array(
 	'type' => 'number',
 	'step' => '0.01',
 	'min' => 0,
-	'max' => 100
+	'max' => 100,
+	'class' => 'width75 right',
 );
 
 
@@ -132,6 +133,8 @@ include DOL_DOCUMENT_ROOT.'/core/actions_setmoduleoptions.inc.php';
 /*
  * View
  */
+
+$action = 'edit';
 
 $dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
 
