@@ -3,7 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ### Unreleased
 
+### Release 1.5
+- NEW : Release V23 - *08/04/2026* - 1.5
+
 ### Release 1.4
+- FIX : Compat V22 - *02/10/2025* - 1.4.2
 - FIX : Compat v21 - *11/12/2024* - 1.4.1
 - FIX : Compat v20  
   Changed Dolibarr compatibility range to 16 min - 20 max - *28/07/2024* - 1.4.0
