@@ -15,11 +15,11 @@
 Informations module (issues du code et du changelog local) :
 
 - Éditeur : InfraS - Sylvain Legrand (fork maintenu, basé sur l'original ATM Consulting)
-- Numéro module : `104777`
+- Numéro module : `550090`
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `23.x.x`
 - Compatibilité PHP : `7.0` à `8.4`
-- Dernière version locale : `18.1.2` (2026-04)
+- Dernière version locale : `18.1.3` (2026-04)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -83,12 +83,8 @@ htdocs/custom/infrastructure/
 │   ├── es_ES/infrastructure.lang
 │   └── fr_FR/infrastructure.lang
 ├── script/
-│   ├── import-from-milestone-b3.8.php      # Import depuis module Milestone (branche 3.8)
-│   ├── import-from-milestone.php           # Import depuis module Milestone
 │   ├── interface.php                       # Endpoint AJAX générique (rank, NC, etc.)
-│   ├── maj_infrastructure_nc.php           # Mise à jour des NC
-│   ├── migrate-from-subtotal.php           # Migration manuelle depuis module subtotal (wrapper de core/lib/infrastructureMigrateSubtotal.lib.php)
-│   └── migrate_titles_to_7.0.php           # Migration titres ancien format
+│   └── migrate-from-subtotal.php           # Migration manuelle depuis module subtotal (wrapper de core/lib/infrastructureMigrateSubtotal.lib.php)
 └── sql/
     ├── data.sql                            # Constantes module (INSERT llx_const)
     └── llx_c_infrastructure_free_text.sql        # Table dictionnaire
@@ -209,7 +205,7 @@ Le module s'appuie sur :
 
 ### Types de lignes spéciales
 
-Le module ajoute 3 types de lignes spéciales identifiées par `special_code = 104777` (numéro du module) et `product_type = 9`. Le type est distingué par la valeur de `qty` :
+Le module ajoute 3 types de lignes spéciales identifiées par `special_code = 550090` (numéro du module) et `product_type = 9`. Le type est distingué par la valeur de `qty` :
 
 | Type | Valeur `qty` | Description | Utilisation |
 |------|-------------|-------------|-------------|
@@ -285,7 +281,7 @@ formObjectOptions() : injection du sommaire JS + formulaires modaux de saisie
 addMoreActionsButtons() : boutons « Ajouter titre / sous-total / texte libre / dupliquer »
     ↓
 doActions() : traitement des soumissions
-    - add_title       → création d'une ligne (qty=1..9, product_type=9, special_code=104777)
+    - add_title       → création d'une ligne (qty=1..9, product_type=9, special_code=550090)
     - add_infrastructure    → qty=91..99
     - add_freetext    → qty=50
     - edit_title / edit_infrastructure / edit_freetext → mise à jour
@@ -444,7 +440,7 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 
 ## Points d'attention (Watchpoints)
 
-- `special_code = 104777` et `product_type = 9` identifient les lignes spéciales du module
+- `special_code = 550090` et `product_type = 9` identifient les lignes spéciales du module
 - La distinction titre / sous-total / texte libre se fait via `qty` (titre : 1-9, sous-total : 91-99, texte libre : 50)
 - Le module est **incompatible** avec `modMilestone` (iNodbox) — bloqué à l'activation
 - La version locale est lue via `infrastructure_getLocalVersionMinDoli('infrastructure')` depuis `docs/changelog.xml`
@@ -480,12 +476,14 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 - `3.30.0` (2026-03) : nouvel onglet « Changelog » en administration ; ajout du descripteur CLAUDE.md ; amélioration CSS ; synchronisation en_US/es_ES/it_IT
 - `3.30.1` (2026-04) : sommaire rapide (`InfrastructureQuickSummary`) affiché en bouton flottant dépliable au lieu d'un menu en sidebar ; compensation des barres sticky oblyon (`FIX_AREAREF_CARD`, `FIX_STICKY_TABS_CARD`) lors du scroll ; nettoyage des images inutilisées du dossier `img/`
 - `18.1.2` (2026-04) : bascule vers la numérotation alignée sur la version Dolibarr minimale (`18.x.y`, même convention que `infraspackplus`) ; optimisations de performance PDF — pré-chauffage du cache parent/titre au plus tôt dans `beforePDFCreation` et remplacement des appels directs à `getParentTitleOfLine` par la version cachée (évite des O(n²) sur documents volumineux) ; mémoïsation de `get_totalLineFromObject` et du `array_reverse` des lignes durant le pipeline PDF
+- `18.1.3` (2026-04) : Correction de la requête SQL, les constantes et les extrafields pour éviter les erreurs ou doublons si les champs existent déjà.
+
 
 ## Notes techniques (Technical notes)
 
 ### Classe `TInfrastructure` (Business logic)
 
-Le fichier `class/infrastructure.class.php` contient la classe métier `TInfrastructure`. Toutes les méthodes sont **statiques** ; les identifiants sont basés sur `special_code = 104777` et `product_type = 9`.
+Le fichier `class/infrastructure.class.php` contient la classe métier `TInfrastructure`. Toutes les méthodes sont **statiques** ; les identifiants sont basés sur `special_code = 550090` et `product_type = 9`.
 
 #### Identification des lignes
 
@@ -680,7 +678,7 @@ Le reclassement AJAX passe par `script/interface.php` (endpoint générique : JS
 
 ```xml
 <changelog>
-    <Version Number="3.30.1" MonthVersion="2026-04">
+    <Version Number="18.1.3" MonthVersion="2026-04">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -698,7 +696,7 @@ Le reclassement AJAX passe par `script/interface.php` (endpoint générique : JS
 La fonction `infrastructure_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "3.30.1",          // Version courante
+    0 => "18.1.3",          // Version courante
     1 => "16.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
@@ -712,7 +710,7 @@ La fonction `infrastructure_getLocalVersionMinDoli()` parse ce XML et retourne u
 
 Les modèles PDF InfraSPlus (propal, facture, commande, etc.) intègrent nativement le support des structures infrastructure :
 
-- reconnaissance des lignes spéciales (`special_code = 104777`, `product_type = 9`),
+- reconnaissance des lignes spéciales (`special_code = 550090`, `product_type = 9`),
 - rendu personnalisé des titres selon `INFRASTRUCTURE_TITLE_STYLE`,
 - affichage des sous-totaux avec répartition TVA,
 - support des modes `hideblock`, `print_as_list`, `print_condensed`,
@@ -724,7 +722,7 @@ Les modèles PDF InfraSPlus (propal, facture, commande, etc.) intègrent nativem
 Le module `infrasdiscount` exclut automatiquement les lignes infrastructure de ses calculs via :
 
 ```php
-infrasdiscount_isInfrastructureLine($line)   // special_code == 104777 && product_type == 9
+infrasdiscount_isInfrastructureLine($line)   // special_code == 550090 && product_type == 9
 infrasdiscount_isInfrastructureTitle($line)  // qty ∈ [1..9]
 infrasdiscount_isInfrastructureTotal($line)  // qty ∈ [91..99]
 ```

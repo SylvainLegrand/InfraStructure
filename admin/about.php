@@ -59,7 +59,7 @@
 
 	// Configuration header *************************
 	$head   = infrastructure_admin_prepare_head();
-	print dol_get_fiche_head($head, 'about', $langs->trans("Module104777Name"), 0, 'infrastructure@infrastructure');
+	print dol_get_fiche_head($head, 'about', $langs->trans("Module550090Name"), 0, 'infrastructure@infrastructure');
 
 	// About page goes here *************************
 	if ($conf->use_javascript_ajax) {

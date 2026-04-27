@@ -196,7 +196,7 @@
 		ob_start();
 		$jsConf = array('langs' => array('AddTitleBlocFromOrdersToInvoice'		=> $langs->trans('InfrastructureAddTitleBlocFromOrderstoinvoice'),
 										'AddShippingListToTile'					=> $langs->trans('InfrastructureAddShippingListToTile'),
-										'InfrastructureOptions'						=> $langs->trans('InfrastructureOptions'),
+										'InfrastructureOptions'					=> $langs->trans('InfrastructureOptions'),
 										'UseHiddenConfToAutoCheck'				=> $langs->trans('InfrastructureUseHiddenConfToAutoCheck'),
 									),
 						'isModShippingEnable' 									=> isModEnabled('expedition'),
@@ -378,6 +378,38 @@
 			}
 		}
 		return $TFreeText;
+	}
+
+	/**
+	* Add an extrafield if it does not already exist
+	*
+	* @param	string 		$attrname		Name of the extrafield attribute (without "options_" prefix)
+	* @param	string 		$label			Label of the extrafield to display
+	* @param	string 		$type			Type of the extrafield (varchar, int, date, ...)
+	* @param	int			$pos			Position of the extrafield in the list of extrafields of the element
+	* @param	string 		$size			Size of the extrafield (only for varchar)
+	* @param	string 		$element_type	Type of element on which extrafield must be added (propaldet, commandedet, ...)
+	* @param	int			$unique			Whether the extrafield must be unique or not
+	* @param	int			$required		Whether the extrafield is required or not
+	* @param	string		$default		Default value of the extrafield
+	* @param	mixed		$param			Additional parameters of the extrafield (associative array, only for select and multiselect types, with "options" key containing options of the select)
+	* @param	int			$alwayseditable	Whether the extrafield must be always editable or not (even if the line is closed/locked)
+	* @param	string		$perms			Permissions for the extrafield (a combination of 'r', 'w', 'd' for read, write and delete permissions)
+	* @param	string		$list			Whether the extrafield must be displayed in the list view or not (1 or 0)
+	* @param	int			$printable		Whether the extrafield must be printable or not (1 or 0)
+	* @return	int					1 if extrafield has been added, 0 if extrafield already exists, <0 if error occurred
+	*/
+	function infrastructure_addExtraField($attrname, $label, $type, $pos, $size, $element_type, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $printable) {
+
+		global $db;
+
+		$extra		= new ExtraFields($db);
+		$extra->fetch_name_optionals_label($element_type);
+		$existing	= (!empty($extra->attributes[$element_type]['label']) && is_array($extra->attributes[$element_type]['label'])) ? array_keys($extra->attributes[$element_type]['label']) : array();
+		if (in_array($attrname, $existing, true)) {
+			return 0; // déjà existant
+		}
+		return $extra->addExtraField($attrname, $label, $type, $pos, $size, $element_type, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $printable);
 	}
 
 	/**

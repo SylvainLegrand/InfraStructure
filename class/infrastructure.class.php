@@ -1,5 +1,5 @@
 ﻿<?php
-	/***************************************************
+	/*************************************************** 
 	* Copyright (C) 2025 ATM Consulting <support@atm-consulting.fr>
 	* Copyright (C) 2025-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
     *
@@ -28,7 +28,7 @@
 
 	class TInfrastructure
 	{
-		static $module_number = 104777;
+		static $module_number = 550090;
 
 		/**
 		* Init infrastructure qty list by level
@@ -112,7 +112,7 @@
 
 		/**
 		* Permet d'ajouter une ligne de sous-total ou de titre à un document (propal, commande, facture, etc...)n'est pas appelé lors de la  de facture depuis un object (propal/command)
-		*
+		* 
 		* @param	CommonObject $object Document on which we want to add a infrastructure line
 		* @param	string       $label	 Label of line
 		* @param	int          $qty	 Quantity to put on line (used to determine the level of the title or infrastructure line, for example qty 1 for a title of level 1, qty 2 for a title of level 2, etc... and inversely for infrastructure line with qty 99 for a infrastructure of level 1, qty 98 for a infrastructure of level 2, etc...)
@@ -511,7 +511,7 @@
 		/**
 		* @param	CommonObjectLine	$line	Line object we want to know if it's a title line and get the level of title if it's the case (level is determined by qty field, for example qty 1 for a title of level 1, qty 2 for a title of level 2, etc...)
 		* @param	int					$level	Level of title line to check (if -1 just check if it's a title line without checking level)
-		* @return	bool
+		* @return	bool				
 		*/
 		public static function isTitle(&$line, $level = -1)
 		{
@@ -526,7 +526,7 @@
 		/**
 		* @param	CommonObjectLine	$line	Line object we want to know if it's a infrastructure line and get the level of infrastructure if it's the case (level is determined by qty field, for example qty 90 for a infrastructure of level 1, qty 91 for a infrastructure of level 2, etc...)
 		* @param	int					$level	Level of infrastructure line to check (if -1 just check if it's a infrastructure line without checking level)
-		* @return	bool
+		* @return	bool				
 		*/
 		public static function isInfrastructure(&$line, $level = -1)
 		{
@@ -1236,7 +1236,7 @@
 			$tab2_hl			= 4;
 			$pdf->SetFont('', '', $default_font_size - 1);
 			// Tableau total
-			$col1x	= 120;
+			$col1x	= 120; 
 			$col2x	= 170;
 			if ($objmarge->page_largeur < 210) { // To work with US executive format
 				$col2x-=20;

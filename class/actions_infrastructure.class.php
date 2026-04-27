@@ -47,7 +47,7 @@
 	class ActionsInfrastructure extends \infrastructure\RetroCompatCommonHookActions
 	{
 		public $db;											// @var DoliDB $db Database handler
-		public $module_number = 104777;
+		public $module_number = 550090;
 		public $error;										// @var string $error
 		public $errors = array();							// @var array $errors
 		public $allow_move_block_lines;						// @var bool Allow move block lines
@@ -357,7 +357,7 @@
 			return 0;
 		}
 
-		/**
+		/** 
 		* Overloading the formObjectOptions function : replacing the parent's function with the one below
 		*
 		* @param 	array			$parameters  array           meta datas of the hook (context, etc...)
@@ -521,16 +521,16 @@
 			global $conf;
 
 			if (in_array($action, array('builddoc', 'addline', 'confirm_valid', 'confirm_paiement'))) {
-				$line											= &$parameters['line'];
-				$object											= &$parameters['object'];
-				$substitutionarray								= &$parameters['substitutionarray'];
-				$substitutionarray['line_not_modinfrastructure']		= true;
-				$substitutionarray['line_modinfrastructure']			= false;
+				$line												= &$parameters['line'];
+				$object												= &$parameters['object'];
+				$substitutionarray									= &$parameters['substitutionarray'];
+				$substitutionarray['line_not_modinfrastructure']	= true;
+				$substitutionarray['line_modinfrastructure']		= false;
 				$substitutionarray['line_modinfrastructure_total']	= false;
 				$substitutionarray['line_modinfrastructure_title']	= false;
 				if ($line->product_type == 9 && $line->special_code == $this->module_number) {
-					$substitutionarray['line_modinfrastructure']		= 1;
-					$substitutionarray['line_not_modinfrastructure']	= false;
+					$substitutionarray['line_modinfrastructure']	= 1;
+					$substitutionarray['line_not_modinfrastructure']= false;
 					$substitutionarray['line_price_ht']			= $substitutionarray['line_price_vat']
 																= $substitutionarray['line_price_ttc']
 																= $substitutionarray['line_vatrate']
@@ -2140,7 +2140,7 @@
 						$line_show_qty = false;
 						if (TInfrastructure::isInfrastructure($line)) {
 							/* Total */
-							$TInfrastructureDatas				= infrastructure_get_totalLineFromObject($object, $line, false, 1);
+							$TInfrastructureDatas		= infrastructure_get_totalLineFromObject($object, $line, false, 1);
 							$total_line					= $TInfrastructureDatas[0];
 							$multicurrency_total_line	= $TInfrastructureDatas[6];
 							$total_qty					= $TInfrastructureDatas[4];
@@ -2901,7 +2901,7 @@
 				 */
 				if ($TCurrentContexts[0] == 'order') {
 					$element = 'Commande';
-					if (!class_exists($element)) { include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';}
+					if (!class_exists($element)) { include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';} 
 				} elseif ($TCurrentContexts[0] == 'invoice') {
 					$element = 'Facture';
 					if (!class_exists($element)) { include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';}
@@ -3328,7 +3328,7 @@
 		{
 			$contexts = explode(':', $parameters['context']);
 			if (in_array('checkmarginlist', $contexts)) {
-				$this->resprints = ' AND  d.special_code != 104777';
+				$this->resprints = ' AND  d.special_code != 550090';
 			}
 			return 0; // succès
 		}

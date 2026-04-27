@@ -1,5 +1,5 @@
 ﻿<?php
-	/**************************************************
+	/************************************************** 
 	* Copyright (C) 2015   		Jean-François Ferry	<jfefe@aternatik.fr>
 	* Copyright (C) 2016   		Laurent Destailleur	<eldy@users.sourceforge.net>
 	* Copyright (C) 2020   		Thibault FOUCART	<support@ptibogxiv.net>
@@ -131,7 +131,7 @@
 		}
 
 		/**
-		* @param	DoliDB			$db
+		* @param	DoliDB			$db				
 		* @param	int				$idline
 		* @param	string			$objectLine
 		* @param	string 			$objectMaster

@@ -238,6 +238,11 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const		.= ' AND entity = '.((int) $conf->entity);
 			$sql_const		.= ' ORDER BY name';
 			fwrite($handle, infrastructure_bkup_table ('const', $sql_const, $cols_const, $duplicate, 0, ''));
+			$cols_dict		= array ('label', 'content', 'active', 'entity');
+			$duplicate_dict	= array ('2', 'content', 'label');
+			$sql_dict		= 'SELECT '.implode(', ', $cols_dict).' FROM '.$db->prefix().'c_infrastructure_free_text WHERE entity = "'.$conf->entity .'" ORDER BY label';
+			fwrite($handle, infrastructure_bkup_table ('c_infrastructure_free_text', $sql_dict, $cols_dict, $duplicate_dict, 1, ''));
+
 			// Enabling back the keys/index checking
 			$sqlfooter		= '
 ALTER TABLE '.$db->prefix().'const ENABLE KEYS;

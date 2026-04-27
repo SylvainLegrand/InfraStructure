@@ -24,6 +24,7 @@
 	include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
 	dol_include_once('/infrastructure/class/infrastructure.class.php');
 	dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
+	dol_include_once('/infrastructure/core/lib/infrastructureAdmin.lib.php');
 
 	/**
 	 * Triggers class
@@ -52,7 +53,7 @@
 			$this->db			= $db;
 			$this->name			= preg_replace('/^Interface/i', '', get_class($this));
 			$this->family		= 'Modules '.$langs->trans('basename');
-			$this->description	= $langs->trans('Module104777DescTrigger');
+			$this->description	= $langs->trans('Module550090DescTrigger');
 			$currentversion		= infrastructure_getLocalVersionMinDoli('infrastructure');
 			$this->version		= $currentversion[0];	// 'development', 'experimental', 'dolibarr' or version
 			$this->picto		= 'infrastructure@infrastructure';

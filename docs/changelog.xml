@@ -352,7 +352,12 @@
 		<change type='fix'>Performances génération PDF : mémoïsation du résultat de get_totalLineFromObject et du array_reverse des lignes durant le pipeline PDF (gain significatif sur les documents avec plusieurs dizaines de sous-totaux)</change>
 		<change type='chg'>Affichage du sommaire rapide (InfrastructureQuickSummary) sous forme de bouton flottant dépliable au lieu d'un menu dans la sidebar</change>
 		<change type='chg'>Nettoyage des images inutilisées du dossier img/ (captures, logos et sources GIMP non référencés)</change>
+		<change type='chg'>Changement du numéro de module : 104777 → 550090 (propriété $this->numero, TInfrastructure::$module_number, ActionsInfrastructure::$module_number, special_code stocké sur les lignes). Clés de traduction Module104777Name/Desc/DescTrigger renommées en Module550090*. Migration SQL automatique via la nouvelle fonction infrastructure_migrateSpecialCode() appelée dans modInfrastructure::init() en étape 4 du bloc subtotal (après cleanup) — la valeur 104777 provenait exclusivement du module subtotal. Aussi déclenchable manuellement via script/migrate-from-subtotal.php. Update en transaction sur propaldet, commandedet, facturedet, supplier_proposaldet, commande_fournisseurdet, facture_fourn_det</change>
+		<change type='chg'>Suppression des scripts de maintenance manuelle obsolètes : script/maj_infrastructure_nc.php, script/migrate_titles_to_7.0.php, script/import-from-milestone.php et script/import-from-milestone-b3.8.php (outils one-shot non automatisés, non référencés par le code du module)</change>
 		<change type='chg'>Refactor : préfixe infrastructure_ ajouté à toutes les fonctions de core/lib/infrastructure.lib.php pour éviter les collisions de noms globaux (getTitle, doUpdate, addNumerotation, etc.). Pour les fonctions préfixées par un underscore, le _ initial est supprimé (_updateLineNC devient infrastructure_updateLineNC). Appels mis à jour dans actions_infrastructure, api_infrastructure, infrastructure.class, templates tpl, trigger, script/interface.php, script/maj_infrastructure_nc.php et admin/infrastructuresetup.php</change>
+	</Version>
+	<Version Number="18.1.3" MonthVersion="2026-05">
+		<change type='fix'>Correction de la requête SQL, les constantes et les extrafields pour éviter les erreurs ou doublons si les champs existent déjà.</change>
 	</Version>
 	<InfraS Downloaded="20260424"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="23.x.x"/>

@@ -89,6 +89,20 @@
 		}
 	}
 
+	// Étape complémentaire : migration du special_code 104777 → 550090
+	call_user_func($logger, '');
+	call_user_func($logger, str_repeat('-', 80));
+	call_user_func($logger, 'Migration special_code 104777 → 550090 — mode : '.($confirm ? 'EXECUTION' : 'SIMULATION'));
+	$resCode	= infrastructure_migrateSpecialCode($db, $conf, !$confirm, $logger);
+	if (! $resCode['success']) {
+		call_user_func($logger, 'ÉCHEC MIGRATION special_code : '.count($resCode['errors']).' erreur(s) — rollback effectué.');
+		foreach ($resCode['errors'] as $e) {
+			call_user_func($logger, '  - '.$e);
+		}
+	} else {
+		call_user_func($logger, 'Total lignes '.($confirm ? 'migrées' : 'à migrer').' : '.(int) $resCode['updated']);
+	}
+
 	if (! $isCli) {
 		echo '</pre>';
 	}

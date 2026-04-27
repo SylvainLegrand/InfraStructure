@@ -1,11 +1,11 @@
-﻿# Dolibarr language file - en_US - Infrastructure
+# Dolibarr language file - en_US - Infrastructure
 CHARSET                         = UTF-8
 basenameInfrastructure          = InfraS
 modnameInfrastructure           = Infrastructure
 modcomnameInfrastructure        = Infrastructure
-Module104777Name                = Infrastructure
-Module104777Desc                = Allows adding titles and infrastructures to proposals, orders and invoices
-Module104777DescTrigger         = Trigger for advanced InfraS project management
+Module550090Name                = Infrastructure
+Module550090Desc                = Allows adding titles and infrastructures to proposals, orders and invoices
+Module550090DescTrigger         = Trigger for advanced InfraS project management
 easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Minimum Dolibarr version required
 NewVersionAvailable             = Latest version available
@@ -222,3 +222,4 @@ InfrastructureErrorClassXNotExists             = ERROR: the PHP class %s is not 
 InfrastructureMigrateSubtotalFailed            = Migration test from subtotal module failed, activation aborted
 InfrastructureMigrateSubtotalRealRunFailed     = Real migration from subtotal module failed
 InfrastructureCleanupSubtotalFailed            = Cleanup of subtotal module after migration failed
+InfrastructureMigrateSpecialCodeFailed         = Special code migration (104777 to 550090) failed, activation aborted

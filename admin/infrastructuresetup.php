@@ -210,13 +210,13 @@
 			$metas	= $form->selectarray('INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS', array(0 => $langs->transnoentities('No'), 1 => $langs->transnoentities('Yes')), getDolGlobalInt('INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS', 1), 0, 0, 0, '', 1, 0, 0, '', 'infrastructurewidth270 centpercent');
 			$num	= infrastructure_print_input('', 'select', $langs->trans('InfrastructureManageComprisNoncompris'), '', $metas, 2, 1, '', $num);
 			$metas	= $form->selectarray('INFRASTRUCTURE_TFIELD_TO_KEEP_WITH_NC',array('pdf_getlineqty'			=> $langs->trans('Qty'),
-																								'pdf_getlinevatrate'		=> $langs->trans('VAT'),
-																								'pdf_getlineupexcltax'		=> $langs->trans('PriceUHT'),
-																								'pdf_getlinetotalexcltax'	=> $langs->trans('TotalHT'),
-																								'pdf_getlinetotalincltax'	=> $langs->trans('TotalTTC'),
-																								'pdf_getlineunit'			=> $langs->trans('Unit'),
-																								'pdf_getlineremisepercent'	=> $langs->trans('Discount')
-																								),
+																										'pdf_getlinevatrate'		=> $langs->trans('VAT'),
+																										'pdf_getlineupexcltax'		=> $langs->trans('PriceUHT'),
+																										'pdf_getlinetotalexcltax'	=> $langs->trans('TotalHT'),
+																										'pdf_getlinetotalincltax'	=> $langs->trans('TotalTTC'),
+																										'pdf_getlineunit'			=> $langs->trans('Unit'),
+																										'pdf_getlineremisepercent'	=> $langs->trans('Discount')
+																										),
 										getDolGlobalInt('INFRASTRUCTURE_TFIELD_TO_KEEP_WITH_NC', 1), 0, 0, 0, '', 1, 0, 0, '', 'infrastructurewidth270 centpercent');
 			$num	= infrastructure_print_input('', 'select', $langs->trans('INFRASTRUCTURE_TFIELD_TO_KEEP_WITH_NC'), '', $metas, 2, 1, '', $num);
 			$num	= infrastructure_print_input('INFRASTRUCTURE_NONCOMPRIS_UPDATE_PA_HT', 'on_off', $langs->trans('InfrastructureNoncomprisUpdatePaHt'), 'InfrastructureNoncomprisUpdatePaHtInfo', array(), 2, 1, '', $num);

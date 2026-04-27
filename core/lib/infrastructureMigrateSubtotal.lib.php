@@ -172,14 +172,14 @@
 
 				$table		= $TTablePerElement[$elementtype];
 
-				$sqlCol		= 'SHOW COLUMNS FROM '.$table.' LIKE \'options\\_subtotal\\_show\\_qty\'';
+				$sqlCol		= 'SHOW COLUMNS FROM '.$table.' LIKE \'subtotal\\_show\\_qty\'';
 				$resCol		= $db->query($sqlCol);
 				$hasOld		= ($resCol && $db->num_rows($resCol) > 0);
 				if ($resCol) {
 					$db->free($resCol);
 				}
 
-				$sqlCol2	= 'SHOW COLUMNS FROM '.$table.' LIKE \'options\\_infrastructure\\_show\\_qty\'';
+				$sqlCol2	= 'SHOW COLUMNS FROM '.$table.' LIKE \'infrastructure\\_show\\_qty\'';
 				$resCol2	= $db->query($sqlCol2);
 				$hasNew		= ($resCol2 && $db->num_rows($resCol2) > 0);
 				if ($resCol2) {
@@ -187,8 +187,8 @@
 				}
 
 				if ($hasOld && ! $hasNew) {
-					$log('    - '.$table.' : CHANGE COLUMN options_subtotal_show_qty → options_infrastructure_show_qty');
-					$sqlAlt		= 'ALTER TABLE '.$table.' CHANGE COLUMN options_subtotal_show_qty options_infrastructure_show_qty INT DEFAULT NULL';
+					$log('    - '.$table.' : CHANGE COLUMN subtotal_show_qty → infrastructure_show_qty');
+					$sqlAlt		= 'ALTER TABLE '.$table.' CHANGE COLUMN subtotal_show_qty infrastructure_show_qty INT DEFAULT NULL';
 					if (! $db->query($sqlAlt)) {
 						$msg				= 'Erreur ALTER '.$table.' : '.$db->lasterror();
 						$result['errors'][]	= $msg;
@@ -198,8 +198,8 @@
 					}
 				} elseif ($hasOld && $hasNew) {
 					$log('    - '.$table.' : les deux colonnes existent → copie puis DROP');
-					$sqlCopy	= 'UPDATE '.$table.' SET options_infrastructure_show_qty = options_subtotal_show_qty'
-								.' WHERE options_infrastructure_show_qty IS NULL AND options_subtotal_show_qty IS NOT NULL';
+					$sqlCopy	= 'UPDATE '.$table.' SET infrastructure_show_qty = subtotal_show_qty'
+								.' WHERE infrastructure_show_qty IS NULL AND subtotal_show_qty IS NOT NULL';
 					if (! $db->query($sqlCopy)) {
 						$msg				= 'Erreur UPDATE '.$table.' : '.$db->lasterror();
 						$result['errors'][]	= $msg;
@@ -207,7 +207,7 @@
 						$error++;
 						break;
 					}
-					$sqlDrop	= 'ALTER TABLE '.$table.' DROP COLUMN options_subtotal_show_qty';
+					$sqlDrop	= 'ALTER TABLE '.$table.' DROP COLUMN subtotal_show_qty';
 					if (! $db->query($sqlDrop)) {
 						$msg				= 'Erreur DROP '.$table.' : '.$db->lasterror();
 						$result['errors'][]	= $msg;
@@ -362,4 +362,64 @@
 		}
 		$db->commit();
 		return 1;
+	}
+
+	/**
+	*	Migre le special_code de l'ancien numéro de module infrastructure (104777)
+	*	vers le nouveau (550090) sur toutes les tables de lignes concernées.
+	*
+	*	@param		DoliDB		$db			Handler BDD
+	*	@param		Conf		$conf		Configuration
+	*	@param		boolean		$dryRun		Si vrai, rollback final (simulation)
+	*	@param		callable	$logger		Callable optionnel logger(string $msg)
+	*	@return		array					['success'=>bool, 'errors'=>string[], 'updated'=>int]
+	**/
+	function infrastructure_migrateSpecialCode($db, $conf, $dryRun = true, $logger = null)
+	{
+		$result			= array('success' => true, 'errors' => array(), 'updated' => 0);
+		$oldCode		= 104777;
+		$newCode		= 550090;
+		$tables			= array('propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det');
+		$error			= 0;
+
+		$log	= function ($m) use ($logger) {
+			if (is_callable($logger)) {
+				call_user_func($logger, $m);
+			}
+		};
+
+		$db->begin();
+
+		$log('Migration special_code '.$oldCode.' → '.$newCode);
+		foreach ($tables as $table) {
+			$sqlUpd		= 'UPDATE '.MAIN_DB_PREFIX.$db->escape($table)
+						.' SET special_code = '.((int) $newCode)
+						.' WHERE special_code = '.((int) $oldCode);
+			$resql		= $db->query($sqlUpd);
+			if (! $resql) {
+				$msg				= 'Erreur update '.$table.' : '.$db->lasterror();
+				$result['errors'][]	= $msg;
+				$log('  '.$msg);
+				$error++;
+				break;
+			}
+			$count				= $db->affected_rows($resql);
+			$result['updated']	+= $count;
+			$log('  - '.$table.' : '.$count.' ligne(s) mise(s) à jour');
+		}
+
+		if ($error) {
+			$db->rollback();
+			$result['success']	= false;
+			return $result;
+		}
+
+		if ($dryRun) {
+			$db->rollback();
+			$log('Dry-run : rollback effectué.');
+		} else {
+			$db->commit();
+		}
+
+		return $result;
 	}

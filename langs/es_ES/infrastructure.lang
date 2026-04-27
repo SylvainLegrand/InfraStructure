@@ -1,11 +1,11 @@
-﻿# Dolibarr language file - es_ES - Infrastructure
+# Dolibarr language file - es_ES - Infrastructure
 CHARSET                         = UTF-8
 basenameInfrastructure          = InfraS
 modnameInfrastructure           = Infrastructure
 modcomnameInfrastructure        = Infrastructure
-Module104777Name                = Infrastructure
-Module104777Desc                = Permite agregar títulos y infrastructurees a los presupuestos, pedidos y facturas
-Module104777DescTrigger         = Trigger para la gestión avanzada de proyectos InfraS
+Module550090Name                = Infrastructure
+Module550090Desc                = Permite agregar títulos y infrastructurees a los presupuestos, pedidos y facturas
+Module550090DescTrigger         = Trigger para la gestión avanzada de proyectos InfraS
 easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Versión mínima de Dolibarr necesaria
 NewVersionAvailable             = Última versión disponible
