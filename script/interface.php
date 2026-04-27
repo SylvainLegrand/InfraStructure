@@ -1,95 +1,143 @@
-<?php
-/**
-* SPDX-License-Identifier: GPL-3.0-or-later
-* This file is part of Dolibarr module Subtotal
-*/
+ï»¿<?php
 
+	/************************************************
+	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
+	*
+	* This program is free software: you can redistribute it and/or modify
+	* it under the terms of the GNU General Public License as published by
+	* the Free Software Foundation, either version 3 of the License, or
+	* (at your option) any later version.
+	*
+	* This program is distributed in the hope that it will be useful,
+	* but WITHOUT ANY WARRANTY; without even the implied warranty of
+	* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	* GNU General Public License for more details.
+	*
+	* You should have received a copy of the GNU General Public License
+	* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	************************************************/
 
-	if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', 1);
-	if (! defined('NOCSRFCHECK')) define('NOCSRFCHECK', 1);
+	/************************************************
+	* 	\file		./infrastructure/script/interface.php
+	* 	\ingroup	Infrastructure
+	* 	\brief		Page to interface the module Infrastructure
+	************************************************/
 
+	// Dolibarr environment *************************
 	require '../config.php';
+	if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', 1);
 
-	dol_include_once('/subtotal/lib/subtotal.lib.php');
-	dol_include_once('/subtotal/class/subtotal.class.php');
+	// Libraries ************************************
 	dol_include_once('/comm/propal/class/propal.class.php');
 	dol_include_once('/commande/class/commande.class.php');
 	dol_include_once('/compta/facture/class/facture.class.php');
 	dol_include_once('/fourn/class/fournisseur.commande.class.php');
-	dol_include_once('/supplier_proposal/class/supplier_proposal.class.php');
 	dol_include_once('/fourn/class/fournisseur.facture.class.php');
-	require_once __DIR__ . '/../class/subTotalJsonResponse.class.php';
+	dol_include_once('/infrastructure/class/infrastructure.class.php');
+	dol_include_once('/infrastructure/class/subInfrastructureJsonResponse.class.php');
+	dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
+	dol_include_once('/supplier_proposal/class/supplier_proposal.class.php');
 
-	$get=GETPOST('get', 'none');
-	$set=GETPOST('set', 'none');
+	$langs->load('infrastructure@infrastructure');
+
+	// Access control
+	restrictedArea($user, 'infrastructure');
+
+	// Whitelist of allowed element class names
+	$TAllowedElements	= array('propal'				=> 'Propal',
+								'commande'				=> 'Commande',
+								'facture'				=> 'Facture',
+								'supplier_proposal'		=> 'SupplierProposal',
+								'order_supplier'		=> 'CommandeFournisseur',
+								'invoice_supplier'		=> 'FactureFournisseur',
+								// Aliases (class names as sent by JS)
+								'Propal'				=> 'Propal',
+								'Commande'				=> 'Commande',
+								'Facture'				=> 'Facture',
+								'SupplierProposal'		=> 'SupplierProposal',
+								'CommandeFournisseur'	=> 'CommandeFournisseur',
+								'FactureFournisseur'	=> 'FactureFournisseur',
+							);
+
+	$get	= GETPOST('get', 'aZ09');
+	$set	= GETPOST('set', 'aZ09');
+
+	// CSRF protection for state-changing actions
+	if (!empty($set)) {
+		$sentToken	= GETPOST('token', 'alphanohtml');
+		$validToken	= !empty($_SESSION['token']) ? $_SESSION['token'] : '';
+		$newToken	= !empty($_SESSION['newtoken']) ? $_SESSION['newtoken'] : '';
+		if (empty($sentToken) || ($sentToken !== $validToken && $sentToken !== $newToken)) {
+			http_response_code(403);
+			echo json_encode(array('error' => 'Invalid CSRF token'));
+			exit;
+		}
+	}
 
 	switch ($get) {
-		//récupération des lignes contenues dans un titre sous total en fonction d'un élément et de la ligne de titre concernée
+		//rÃ©cupÃ©ration des lignes contenues dans un titre sous total en fonction d'un Ã©lÃ©ment et de la ligne de titre concernÃ©e
 		case 'getLinesFromTitle':
-
 			global $db;
-
-			$element = GETPOST('element', 'none');
-			$element_id = GETPOST('elementid', 'none');
-			$id_line = GETPOST('lineid', 'int');
-
-			$object = new $element($db);
+			$element	= GETPOST('element', 'aZ09');
+			$element_id	= GETPOSTINT('elementid');
+			$id_line	= GETPOSTINT('lineid');
+			if (empty($TAllowedElements[$element]) || $element_id <= 0) {
+				http_response_code(400);
+				echo json_encode(array('error' => 'Invalid element'));
+				break;
+			}
+			$className	= $TAllowedElements[$element];
+			$object		= new $className($db);
 			$object->fetch($element_id);
-
 			if(!empty($object->lines)) {
-				$TRes = array();
-
+				$TRes	= array();
 				foreach ($object->lines as $line) {
 					if ($line->id == $id_line) {
-						$title_line = $line;
-						$subline_line = TSubtotal::getSubLineOfTitle($object, $title_line->rang);
+						$title_line		= $line;
+						$subline_line	= TInfrastructure::getSubLineOfTitle($object, $title_line->rang);
 						break;
 					}
 				}
-
 				foreach ($object->lines as $line) {
-
-					$parent_line = TSubtotal::getParentTitleOfLine($object, $line->rang);
-
+					$parent_line	= TInfrastructure::getParentTitleOfLine($object, $line->rang);
 					if(!empty($subline_line)) {
 						if ($line->product_type != 9 && $line->rang > $title_line->rang && $line->rang < $subline_line->rang) {
-							$TRes[$parent_line->id][] = $line->id;
+							$TRes[$parent_line->id][]	= $line->id;
 						}
 					} else {
 						if ($line->product_type != 9 && $line->rang > $title_line->rang) {
-							$TRes[$parent_line->id][] = $line->id;
+							$TRes[$parent_line->id][]	= $line->id;
 						}
 					}
 				}
 			}
-
 			echo json_encode($TRes);
 			break;
 		default:
 			break;
 	}
-
 	switch ($set) {
 		case 'updateLineNC': // Gestion du Compris/Non Compris via les titres et/ou lignes
-			echo json_encode( _updateLineNC(GETPOST('element', 'none'), GETPOST('elementid', 'none'), GETPOST('lineid', 'none'), GETPOST('subtotal_nc', 'none')) );
-
-			break;
-
-		//Mise à jour de la donnée "hideblock" sur une ligne titre afin de savoir si le bloc doit être caché ou pas
+			echo json_encode( infrastructure_updateLineNC(GETPOST('element', 'aZ09'), GETPOSTINT('elementid'), GETPOSTINT('lineid'), GETPOSTINT('infrastructure_nc')) );
+		break;
+		//Mise ï¿½ jour de la donnï¿½e "hideblock" sur une ligne titre afin de savoir si le bloc doit ï¿½tre cachï¿½ ou pas
 		case 'update_hideblock_data':
-			$jsonResponse = new SubTotalJsonResponse();
+			$jsonResponse = new SubInfrastructureJsonResponse();
 			_updateHideBlockData($jsonResponse);
 			echo $jsonResponse->getJsonResponse();
-			break;
-
+		break;
 		case 'updateall_hideblock_data' :
-			$element = GETPOST('element', 'alphanohtml');
-			$element_id = GETPOST('elementid', 'int');
-			$value = GETPOST('value', 'int');
-
-			$object = new $element($db);
+			$element	= GETPOST('element', 'aZ09');
+			$element_id	= GETPOSTINT('elementid');
+			$value		= GETPOSTINT('value');
+			if (empty($TAllowedElements[$element]) || $element_id <= 0) {
+				http_response_code(400);
+				echo json_encode(array('error' => 'Invalid element'));
+				break;
+			}
+			$className	= $TAllowedElements[$element];
+			$object		= new $className($db);
 			$object->fetch($element_id);
-
 			if(!empty($object->lines)) {
 				foreach ($object->lines as $line) {
 					if ($line->product_type == 9) {
@@ -99,68 +147,55 @@
 					}
 				}
 			}
-
-			break;
+		break;
 		default:
-			break;
+		break;
 	}
 
+	/**
+	* @param SubInfrastructureJsonResponse $jsonResponse
+	* @return bool|void
+	*/
+	function _updateHideBlockData($jsonResponse) {
 
+		global  $db, $langs, $TAllowedElements;
 
-
-
-/**
- * @param SubTotalJsonResponse $jsonResponse
- * @return bool|void
- */
-function _updateHideBlockData($jsonResponse) {
-	global  $db, $langs;
-
-	$data = GETPOST('data', 'array');
-
-	$element = $data['element'];
-	$element_id = $data['element_id'];
-
-	if(empty($element)){
-		$jsonResponse->msg = $langs->trans('ElementMissing');
-		$jsonResponse->result = 0;
-		return false;
-	}
-
-	if(empty($element_id)){
-		$jsonResponse->msg = $langs->trans('ElementIdMissing');
-		$jsonResponse->result = 0;
-		return false;
-	}
-
-	$titleStatusList = $data['titleStatusList'];
-
-
-	if(!empty($titleStatusList)){
-		$object = new $element($db); // TODO : repris du dev de base mais il faut ajouter de la vérification ça c'est pas normale
-
-		if($object->fetch($element_id) <= 0){
-			$jsonResponse->msg = $langs->trans('ErrorFetchingElement');
-			$jsonResponse->result = 0;
+		$data		= GETPOST('data', 'array');
+		$element	= isset($data['element']) ? $data['element'] : '';
+		$element_id	= isset($data['element_id']) ? (int) $data['element_id'] : 0;
+		if (empty($element) || empty($TAllowedElements[$element])) {
+			$jsonResponse->msg		= $langs->trans('ElementMissing');
+			$jsonResponse->result	= 0;
 			return false;
 		}
-
-		if($object->fetch($element_id) >0 && !empty($object->lines)) {
-			foreach ($object->lines as $line) {
-				if ($line->product_type != 9) { // si ce n'est pas du sous total, skip
-					continue;
-				}
-
-				foreach($titleStatusList as $lineStatus){
-					if ($line->id = $lineStatus['id']) {
-						$line->fetch_optionals();
-						$line->array_options['options_hideblock'] = intval($lineStatus['status']);
-						$line->insertExtraFields();
+		if ($element_id <= 0) {
+			$jsonResponse->msg		= $langs->trans('ElementIdMissing');
+			$jsonResponse->result	= 0;
+			return false;
+		}
+		$titleStatusList	= isset($data['titleStatusList']) ? $data['titleStatusList'] : array();
+		if (!empty($titleStatusList)) {
+			$className		= $TAllowedElements[$element];
+			$object			= new $className($db);
+			if ($object->fetch($element_id) <= 0){
+				$jsonResponse->msg		= $langs->trans('ErrorFetchingElement');
+				$jsonResponse->result	= 0;
+				return false;
+			}
+			if ($object->fetch($element_id) > 0 && !empty($object->lines)) {
+				foreach ($object->lines as $line) {
+					if ($line->product_type != 9) { // si ce n'est pas du sous total, skip
+						continue;
+					}
+					foreach($titleStatusList as $lineStatus){
+						if ($line->id == $lineStatus['id']) {
+							$line->fetch_optionals();
+							$line->array_options['options_hideblock'] = intval($lineStatus['status']);
+							$line->insertExtraFields();
+						}
 					}
 				}
 			}
 		}
+		$jsonResponse->result = 1;
 	}
-
-	$jsonResponse->result = 1;
-}

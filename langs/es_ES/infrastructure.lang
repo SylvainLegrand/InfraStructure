@@ -1,0 +1,221 @@
+﻿# Dolibarr language file - es_ES - Infrastructure
+CHARSET                         = UTF-8
+basenameInfrastructure          = InfraS
+modnameInfrastructure           = Infrastructure
+modcomnameInfrastructure        = Infrastructure
+Module104777Name                = Infrastructure
+Module104777Desc                = Permite agregar títulos y infrastructurees a los presupuestos, pedidos y facturas
+Module104777DescTrigger         = Trigger para la gestión avanzada de proyectos InfraS
+easyaFamily                     = Easya Solutions
+DolibarrMinVersionRequired      = Versión mínima de Dolibarr necesaria
+NewVersionAvailable             = Última versión disponible
+PiloteVersion                   = Versión piloto
+InfrastructureCaution           = <b>¡ATENCIÓN!</b>
+InfrastructureCautionMess       = <center><b>----- ¡leer atentamente! -----</b></center>
+InfrastructureXMLextError       = <br><center>La extensión PHP 'XML' no está cargada<br>Algunas funcionalidades del módulo no estarán disponibles</center>
+InfrastructureChangelogXMLError = Error changelog.xml
+InfrastructureMinDolVersion     = Versión mínima desconocida
+InfrastructurenoMaxDolVersion   = Versión máxima desconocida
+
+### Actions et boutons ###
+InfrastructuresAndTitlesActionBtnLabel = Título & Infrastructure
+
+### Setup page  ###
+InfrastructureSetup                                            = Configuración general
+InfrastructureParamTitleComp                                   = Parámetros del módulo Infrastructure
+InfrastructureParamAction1                                     = Guardar / Restaurar todos los parámetros del módulo
+InfrastructureParamAction2                                     = <br>(después de una restauración, actualice la página (F5) para ver el resultado)
+InfrastructureParamBkup                                        = Guardar
+InfrastructureParamRestore                                     = Restaurar
+InfrastructureParamCautionSave                                 = ¡Haga clic en el botón '<b>Guardar</b>' después de cada cambio!
+InfrastructureHideFoldersByDefault                             = Plegar carpetas por defecto
+Infrastructure_ForceHideAll                                    = Ocultar todas las líneas del bloque así como las líneas de los bloques de título de nivel inferior
+InfrastructureHideOptionsTitle                                 = Ocultar opciones de título
+InfrastructureHideOptionsBuildDoc                              = Ocultar las opciones de generación de documentos
+InfrastructureHideOptionsBreakPageBefore                       = Ocultar la opción de salto de página antes
+Infrastructure_HideAll                                         = Ocultar todas las líneas
+Infrastructure_Hide                                            = Ocultar las líneas
+InfrastructureHideSubtitleOnFold                               = Ocultar las líneas de título y infrastructure hijo
+InfrastructureHidePriceDefaultChecked                          = Por defecto, marcar la casilla "Ocultar el precio de las líneas de los conjuntos" al generar los PDF
+InfrastructureHideDocumentTotal                                = Ocultar totales
+InfrastructureIfHidePricesShowQty                              = Mostrar la cantidad en las líneas de producto
+Infrastructure_ShowAll                                         = Mostrar todas las líneas
+Infrastructure_Show                                            = Mostrar las líneas
+InfrastructureUseNewFormat                                     = Activar funcionalidad avanzada
+InfrastructureUseNewFormatHelp                                 = Al activar esta opción, aparecen nuevas funcionalidades y comportamientos.<br/>Entre los nuevos comportamientos: <ul><li>Agrega la noción de nivel de título y de infrastructure</li></ul>
+InfrastructureUseNumerotation                                  = Activar numeración automática en PDF
+InfrastructureAllowAddBlock                                    = Permitir agregar un título y infrastructure
+InfrastructureAllowEditBlock                                   = Permitir editar un título o infrastructure
+InfrastructureAllowRemoveBlock                                 = Permitir eliminar un título o infrastructure
+InfrastructureAllowDuplicateBlock                              = Permitir la duplicación de un bloque
+InfrastructureAllowDuplicateLine                               = Permitir la duplicación de una línea
+InfrastructureAllowExtrafieldsOnTitle                          = Permitir la visualización de los campos adicionales en los títulos (los datos registrados se completarán en las líneas del bloque)
+InfrastructureAllowAddLineUnderTitle                           = Permitir agregar una línea libre y/o producto directamente bajo un título
+InfrastructureTextLineStyle                                    = Estilo de los textos libres (B = negrita, U = subrayado, I = cursiva)
+InfrastructureTitleStyle                                       = Estilo de los títulos (B = negrita, U = subrayado, I = cursiva)
+InfrastructureTitleSize                                        = Tamaño de los títulos
+InfrastructureTitleSizeInfo                                    = igual a 9 si no se especifica
+InfrastructureTitleToAddUnderTitle                             = Agregar debajo
+InfrastructureTitleBackgroundcolor                             = Color de fondo utilizado para los títulos
+InfrastructureInfrastructureStyle                              = Estilo de los infrastructurees (B = negrita, U = subrayado, I = cursiva)
+InfrastructureInfrastructureHideBackground                     = Desactivar el uso de un color de fondo (resaltado) para los infrastructurees
+InfrastructureInfrastructureBackgroundcolor                    = Color de fondo utilizado para los infrastructurees
+InfrastructureBlocFoldMode                                     = Comportamiento al ocultar un bloque de título
+InfrastructureOptions                                          = <b>Opciones del módulo Infrastructure para la impresión</b>
+InfrastructureOneLineIfHideInnerlines                          = Obtener una sola línea de título + total si se usa la opción "%s" (experimental)
+InfrastructureReplaceWithVatIfHideInnerlines                   = Reemplazar con detalle de IVA si se usa la opción "%s" (experimental)
+InfrastructureNumberOfHiddenLines                              = Número de líneas ocultas
+Infrastructure_ForceShowAll                                    = Mostrar todas las líneas del bloque así como las líneas de los bloques de título de nivel inferior
+InfrastructureKeepSubtitleDisplayOnFold                        = Mostrar las líneas de título y infrastructure hijo
+InfrastructureAddTitleBlocFromOrderstoinvoice                  = Agregar un bloque de título y infrastructure entre cada pedido
+InfrastructureAutoAddInfrastructureOnAddingNewTitle            = Al agregar un título, se agregarán los infrastructurees faltantes arriba
+InfrastructureAddLineUnderTitleAtEndBlock                      = El agregado bajo un título se hará al final de la sección
+InfrastructureTextForTitleOrdetstoinvoice                      = Texto de los títulos al facturar vía pestaña cliente -> botón "Facturar pedidos"
+InfrastructureTextForTitleOrdetstoinvoiceInfo                  = Claves de reemplazo:<br /><b>__REFORDER__</b> = Referencia del pedido<br /><b>__REFCUSTOMER__</b> = Referencia del cliente del pedido
+InfrastructureDefaultDisplayQtyForInfrastructureOnElements     = Activar la visualización de la suma de cantidades en las líneas de infrastructure para plantillas de documentos:
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Activar la visualización de la suma de cantidades en las líneas de infrastructure para las plantillas de documentos seleccionadas
+InfrastructureTitleAndInfrastructureBrightnessPercentage       = Porcentaje de reducción de brillo entre cada nivel de títulos / subtítulos / infrastructurees
+InfrastructureTitleAndInfrastructureBrightnessPercentageInfo   = Los colores elegidos arriba serán los del nivel 1 y los niveles inferiores serán más claros según este porcentaje (nivel 1 = color elegido, nivel 2 = color elegido - porcentaje, nivel 3 = color elegido - 2*porcentaje, etc.)
+
+### Changelog / Support ###
+InfrastructureParamChangelog            = Soporte / changelog
+InfrastructureParamPresent1             = <b>Este módulo es una creación de<b>
+InfrastructureParamPresent2             = <b>, la documentación está disponible en nuestro sitio web<b>
+InfrastructureParamSlogan               = ¡Estructura tu crecimiento!
+InfrastructureParamLienModules          = Nuestros Módulos
+InfrastructureParamSupport              = Solicitud de soporte
+InfrastructureParamMoreModulesLink      = Nuestros módulos en Dolistore
+InfrastructureParamLienDocs             = Nuestra Documentación
+InfrastructureParamLicense              = bajo Licencia GPL v3 y superior
+InfrastructureParamPreferedPartner1     = Miembro del programa oficial
+InfrastructureParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia
+InfrastructureParamObjet                = <h3>Objeto:</h3>
+InfrastructureParamHistoryUpdates       = <b>Historial de actualizaciones:</b>
+InfrastructureParamSkipCheck            = Descarga desactivada
+InfrastructureParamNumberVersion        = N° de versión
+InfrastructureParamDolinfrasVersion     = N° de versión LTS
+InfrastructureParamMonthVersion         = Fecha
+InfrastructureParamChangesVersion       = Modificaciones
+InfrastructureParamCheckNewVersion      = Nuevo Changelog
+InfrastructureParamCheckNewVersionTitle = Haga clic para descargar el changelog de la última versión disponible
+InfrastructureSupportInformation        = Información
+
+### Actions Infrastructure ###
+InfrastructureTitle                                 = Título del grupo
+Infrastructure                                      = Infrastructure
+InfrastructureAddLineDescription                    = Descripción...
+InfrastructureSubtitle                              = Título del subgrupo
+InfrastructureAddTitle                              = Agregar un título
+InfrastructureSubInfrastructure                     = Sub-infrastructure
+InfrastructureAddInfrastructure                     = Agregar un infrastructure
+InfrastructureAddSubTitle                           = Agregar un subtítulo
+InfrastructureAddSubInfrastructure                  = Agregar un sub-infrastructure
+InfrastructureHideInnerLines                        = Ocultar el detalle de los conjuntos
+InfrastructureHideDetails                           = Ocultar precio y cantidades de las líneas de los conjuntos
+InfrastructureHidePrice                             = Ocultar el precio de las líneas de los conjuntos
+InfrastructureYourTitleLabel                        = Ingrese su título
+InfrastructureYourInfrastructureLabel               = Ingrese su infrastructure
+InfrastructureYourTextLabel                         = Ingrese su descripción
+InfrastructureDeleteWithAllLines                    = Eliminar con todas las líneas contenidas
+InfrastructureConfirmDeleteAllThisLines             = ¿Confirma la eliminación de %s líneas?
+InfrastructureAddBreakPageBefore                    = Agregar un salto de página antes.
+InfrastructureShowTableHeaderBefore                 = Mostrar el encabezado de la tabla SOLO justo antes de este título
+InfrastructurePrintAsList                           = Imprimir los detalles de este título como una lista
+InfrastructurePrintCondensed                        = Imprimir los detalles de este título en formato resumido
+InfrastructureLineShowQty                           = Mostrar la cantidad del infrastructure
+InfrastructureLevel                                 = Nivel
+InfrastructureLabel                                 = <b>Infrastructure: </b>
+InfrastructureDuplicate                             = Duplicar
+InfrastructureAddFreeText                           = Agregar una línea de texto
+InfrastructureAmountBeforeTaxesSubjectToVATXPercent = Importe sin impuestos sujeto a %s (%s %%)
+InfrastructureMoveTitleBlock                        = Mover el bloque de título completo
+InfrastructureShowTotalHTOnInfrastructureBlock      = Mostrar el Precio Unitario sin IVA del infrastructure
+InfrastructureShowReducOnInfrastructureBlock        = Mostrar el descuento en la línea de infrastructure
+
+### Duplication ###
+InfrastructureDuplicateSuccess        = %s líneas duplicadas
+InfrastructureDuplicateLineidNotFound = Imposible duplicar el bloque, el identificador del título no fue encontrado
+InfrastructureDuplicateError          = Error en la duplicación
+
+### TVA et progression ###
+InfrastructureApplyDefaultTva                        = Aplicar un IVA al bloque
+InfrastructureApplyDefaultTvaHelp                    = Permite definir un IVA general a todas las líneas del bloque
+InfrastructureApplyProgress                          = Aplicar un avance al bloque
+InfrastructureSuccessUpdatedLine                     = Líneas actualizadas: %s
+InfrastructureErrorUpdatedLine                       = Error: %s líneas no actualizadas
+InfrastructureNbProgressNotUpdated                   = Atención: avance no actualizado para %s líneas (avance anterior inferior a la nueva tasa)
+InfrastructureShowTvaOnInfrastructureLinesOnElements = Mostrar la tasa de IVA con los infrastructurees si todas las filas del bloque tienen la misma tasa
+InfrastructureLimitTvaOnCondensedBlocs               = Limitar la visualización de la tasa de IVA a los bloques impresos en formato condensado o de lista.
+
+### Gestion des "Non Compris" ###
+InfrastructureManageNonCompris         = Gestión de "No incluidos"
+InfrastructureUpdateNcSuccess          = Total actualizado
+InfrastructureUpdateNcError            = Error: total no actualizado
+InfrastructureNcTitle                  = NC
+InfrastructureNcTitleHelp              = Gestión de bloques No Incluidos en el cálculo del total
+InfrastructureManageComprisNoncompris  = Activar la gestión de los bloques "No Incluidos" para excluir del total
+InfrastructureTfieldToKeepWithNc       = Columnas a mostrar en las líneas marcadas como "No Incluidas"
+InfrastructureNoncomprisUpdatePaHt     = La gestión de no-incluidos también vacía el precio de coste
+InfrastructureNoncomprisUpdatePaHtInfo = Atención: si vuelve a poner la línea como incluida, tendrá que volver a ingresar el precio de coste
+
+### Récapitulatif ###
+InfrastructureRecap                            = Resumen
+InfrastructurePropalTitle                      = Presupuesto %s %s
+InfrastructureCommandeTitle                    = Pedido %s %s
+InfrastructureInvoiceTitle                     = Factura %s %s
+InfrastructureRecapLot                         = Resumen de lotes
+InfrastructureRecapGeneration                  = Generar un resumen por título
+InfrastructureKeepRecapFile                    = Conservar el PDF de resumen después de la fusión
+InfrastructurePropalAddRecap                   = Activar la generación del resumen en los presupuestos
+InfrastructureCommandeAddRecap                 = Activar la generación del resumen en los pedidos
+InfrastructureInvoiceAddRecap                  = Activar la generación del resumen en las facturas
+InfrastructureWarningRecapObjectElementUnknown = No se puede generar el resumen por título, elemento desconocido: %s
+InfrastructureAddRecap                         = Agregar el resumen
+
+### Extrafields ###
+InfrastructureFreeLineDictionary                    = Línea de texto predefinido
+InfrastructureLabelForUnderTitle                    = Agregar en el bloque:
+InfrastructureLabelForFreeText                      = Texto predefinido:
+InfrastructureFreeTextOrDesc                        = o escribir una descripción...
+InfrastructureShowExtrafields                       = Editar los atributos complementarios
+InfrastructureHideExtrafields                       = Ocultar los atributos complementarios
+InfrastructureSetupForExtrafields                   = Parámetros relacionados con los campos adicionales
+InfrastructureListOfExtrafieldsPropaldet            = Campos adicionales disponibles en los títulos de presupuestos a clientes
+InfrastructureListOfExtrafieldsCommandedet          = Campos adicionales disponibles en los títulos de pedidos de clientes
+InfrastructureListOfExtrafieldsFacturedet           = Campos adicionales disponibles en los títulos de facturas a clientes
+InfrastructureConcatTitleLabelInInfrastructureLabel = En las líneas de infrastructure del PDF, agregar la etiqueta del título al que está asociado.
+
+### Commandes expédiables ###
+InfrastructureAddLineTitleInOrderShippable      = Agregar las líneas Título, total, libre a los pedidos enviables (tendrá que eliminar las líneas de infrastructure manualmente si es necesario)
+InfrastructureAddLineTitleInOrderShippableTitle = Configuración de la opción de gestión de líneas del módulo infrastructure para pedidos enviables
+InfrastructureShippableOrder                    = Configuración de la opción de gestión de líneas del módulo infrastructure para pedidos enviables
+InfrastructureNoTitleShowOnExpedGeneration      = No reportar las líneas de título al generar los envíos
+
+### Expéditions et livraisons ###
+InfrastructureLinkedShippings       = Órdenes de envío vinculadas
+InfrastructureLinkedShipping        = Orden de envío vinculada
+InfrastructureLinkedDeliveries      = Albaranes vinculados
+InfrastructureLinkedDelivery        = Albarán vinculado
+InfrastructureAddShippingListToTile = Agregar la lista de referencias de los albaranes o notas de entrega relacionados a la descripción del bloque de título
+
+### Options diverses ###
+InfrastructureCloneLInfrastructureBlock      = Clonar el bloque título/infrastructure
+InfrastructureDisplayMarginOnInfrastructures = Mostrar los márgenes en las líneas de infrastructure
+InfrastructureQuickSummary                   = Resumen rápido
+InfrastructureDisableSummary                 = Desactivar el menú "resumen rápido" (botón flotante visible cuando el documento tiene títulos)
+InfrastructureOptions                        = Opciones de infrastructure
+InfrastructureSetup                          = Configuración del módulo infrastructure
+InfrastructureSetupPage                      = Configuración del módulo infrastructure
+InfrastructureSetupForSubBlocs               = Configuración de la opción "Ocultar el precio de las líneas de los conjuntos"
+InfrastructureUseHiddenConfToAutoCheck       = Para preseleccionar por defecto, puede activar la configuración
+InfrastructureExperimental                   = EXPERIMENTAL
+InfrastructureExperimentalZone               = Configuraciones experimentales u obsoletas
+InfrastructureShowQtyOnTitles                = Mostrar la cantidad en las líneas de infrastructure (solo en el caso de un producto virtual agregado)
+InfrastructureOnlyHideSubproductsPrices      = Ocultar únicamente los precios de los productos dentro de un conjunto
+
+### Erreurs ###
+InfrastructureErrorDeleteLine                  = Error al eliminar una línea del módulo infrastructure
+InfrastructureErrorLoadingLinesFromLinkedOrder = Error al cargar las líneas de pedido asociadas al envío
+InfrastructureErrorLoadingLinkedOrder          = Error al cargar el pedido asociado al envío
+InfrastructureErrorNoLinkedOrder               = Sin pedido asociado
+InfrastructureErrorClassXNotExists             = ERROR: la clase PHP %s no está cargada
