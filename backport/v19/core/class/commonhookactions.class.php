@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace infrastructure;
 
 /* Copyright (C) 2023 Laurent Destailleur  <eldy@users.sourceforge.net>

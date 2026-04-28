@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 	/*************************************************
 	* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
 	* Copyright (C) 2022 SuperAdmin <maxime@gmail.com>

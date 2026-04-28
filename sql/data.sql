@@ -1,4 +1,4 @@
-﻿--	/************************************************
+--	/************************************************
 --	* Copyright (C) 2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 --	*
 --	* This program is free software: you can redistribute it and/or modify

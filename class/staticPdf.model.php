@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 	/**************************************************
 	* Copyright (C) 2025 ATM Consulting <support@atm-consulting.fr>
 	* Copyright (C) 2025-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>

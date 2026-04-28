@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 	/************************************************
 	* Copyright (C) 2016-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
 	*

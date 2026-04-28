@@ -1,4 +1,4 @@
-﻿if (typeof infrastructureSummaryJsConf === undefined) {
+if (typeof infrastructureSummaryJsConf === undefined) {
 	var infrastructureSummaryJsConf = {
 		langs: {
 			'InfrastructureSummaryTitle': 'Quick summary'
