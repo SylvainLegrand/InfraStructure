@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.15.2` (2026-04)
+- Dernière version locale : `18.15.3` (2026-04)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -231,7 +231,8 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - `18.15.1`  (2026-04) : Pied de page PDF — correction de la mesure de hauteur du texte libre HTML (rendu réel via transaction TCPDF au lieu d'une estimation texte brut)
 - `18.15.1`  (2026-04) : Pied de page PDF — URL et email cliquables, icônes Unicode (☎ ✉) à la place des préfixes textuels
 - `18.15.1`  (2026-04) : Désactivation du module — purge des constantes orphelines `MAIN_MODULE_INFRASPACKPLUS_*` (évite les 404 sur fichiers JS/CSS supprimés d'une version antérieure)
-- `18.15.2`  (2026-04) : Performances génération PDF : mise en cache du substitutionarray et de urlwithroot dans pdf_InfraSPlus_formatNotes => Les appels pdf_getSubstitutionArray + complete_substitutions_array étaient recalculés à chaque ligne alors qu'ils ne dépendent pas du contenu de la note. 
+- `18.15.2`  (2026-04) : Performances génération PDF : mise en cache du substitutionarray et de urlwithroot dans pdf_InfraSPlus_formatNotes => Les appels pdf_getSubstitutionArray + complete_substitutions_array étaient recalculés à chaque ligne alors qu'ils ne dépendent pas du contenu de la note.
+- `18.15.3`  (2026-04) : Facture (`pdf_InfraSPlus_F`) — correction d'un saut de page indésirable avant le tableau des totaux quand UPTOSIGN est actif et que le bloc info bas (RIB/IBAN/BIC) est volumineux. La cellule `MultiCell` de la signature client (hauteur `ht_signarea`) débordait du bas de page et déclenchait un auto-break TCPDF. La position Y de la signature est désormais clampée à `page_hauteur - heightforfooter - ht_signarea` pour rester dans la page ; la zone étant invisible (`SetAlpha(0)`), le décalage éventuel n'a pas d'impact visuel. La réservation `$posytabinfo += 10` reste inchangée pour ne pas générer de zone vide entre le bloc info bas et le pied de page. Les autres templates ne sont pas concernés : la signature client y est dessinée par `_signature_area()`, fonction séparée qui calcule sa propre hauteur en mode `calculseul`.
 
 
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)

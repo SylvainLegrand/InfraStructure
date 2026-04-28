@@ -1808,7 +1808,10 @@
 	<Version Number="18.15.2" MonthVersion="2026-04">
 		<change type='fix'>Performances génération PDF : mise en cache du substitutionarray et de urlwithroot dans pdf_InfraSPlus_formatNotes (par object/outputlangs). Les appels pdf_getSubstitutionArray + complete_substitutions_array étaient recalculés à chaque ligne alors qu'ils ne dépendent pas du contenu de la note. Gain majeur sur les documents avec plusieurs centaines de lignes (facteur ~4 à 5× sur le temps total de génération PDF constaté).</change>
 	</Version>
-	<InfraS Downloaded="20260423"/>
+	<Version Number="18.15.3" MonthVersion="2026-04">
+		<change type='fix'>Facture (pdf_InfraSPlus_F) : correction d'un saut de page indésirable avant le tableau des totaux quand UPTOSIGN est actif et que le bloc info bas (RIB/IBAN/BIC) est volumineux. La cellule MultiCell de la signature client (hauteur ht_signarea) débordait du bas de page et déclenchait un auto-break TCPDF. La position Y de la signature est maintenant clampée pour rester dans la page (page_hauteur - heightforfooter - ht_signarea), la zone étant invisible (SetAlpha 0) le décalage éventuel n'a pas d'impact visuel. La réservation $posytabinfo += 10 reste inchangée pour ne pas créer de zone vide entre le bloc info et le pied de page.</change>
+	</Version>
+	<InfraS Downloaded="20260428"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
