@@ -1,5 +1,5 @@
 ﻿<?php
-	/*************************************************** 
+	/***************************************************
 	* Copyright (C) 2025 ATM Consulting <support@atm-consulting.fr>
 	* Copyright (C) 2025-2026	Sylvain Legrand - <contact@infras.fr>	InfraS - <https://www.infras.fr>
     *
@@ -28,7 +28,25 @@
 
 	class TInfrastructure
 	{
-		static $module_number = 550090;
+		/** @var int|null Cache du numéro du module (lu depuis modInfrastructure->numero) */
+		public static $module_number = null;
+
+		/**
+		*	Retourne le numéro du module lu depuis le descripteur modInfrastructure.
+		*	Mis en cache en propriété statique à la première lecture.
+		*
+		*	@return	int
+		**/
+		public static function getModuleNumber()
+		{
+			if (self::$module_number === null) {
+				global $db;
+				dol_include_once('/infrastructure/core/modules/modInfrastructure.class.php');
+				$mod					= new modInfrastructure($db);
+				self::$module_number	= (int) $mod->numero;
+			}
+			return self::$module_number;
+		}
 
 		/**
 		* Init infrastructure qty list by level
@@ -112,7 +130,7 @@
 
 		/**
 		* Permet d'ajouter une ligne de sous-total ou de titre à un document (propal, commande, facture, etc...)n'est pas appelé lors de la  de facture depuis un object (propal/command)
-		* 
+		*
 		* @param	CommonObject $object Document on which we want to add a infrastructure line
 		* @param	string       $label	 Label of line
 		* @param	int          $qty	 Quantity to put on line (used to determine the level of the title or infrastructure line, for example qty 1 for a title of level 1, qty 2 for a title of level 2, etc... and inversely for infrastructure line with qty 99 for a infrastructure of level 1, qty 98 for a infrastructure of level 2, etc...)
@@ -130,21 +148,21 @@
 				$label	= '';
 			}
 			if ($object->element=='facture') {
-				$res	=  $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 'HT', 0, 9, $rang, TInfrastructure::$module_number, '', 0, 0, null, 0, $label);
+				$res	=  $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 'HT', 0, 9, $rang, TInfrastructure::getModuleNumber(), '', 0, 0, null, 0, $label);
 			} elseif ($object->element=='invoice_supplier') {
-				$object->special_code	= TInfrastructure::$module_number;
-				$res					= $object->addline($label, 0, 0, 0, 0, $qty, 0, 0, 0, 0, 0, 0, 'HT', 9, $rang, false, array(), null, 0, 0, '', TInfrastructure::$module_number);
+				$object->special_code	= TInfrastructure::getModuleNumber();
+				$res					= $object->addline($label, 0, 0, 0, 0, $qty, 0, 0, 0, 0, 0, 0, 'HT', 9, $rang, false, array(), null, 0, 0, '', TInfrastructure::getModuleNumber());
 			} elseif ($object->element=='propal') {
-				$res	= $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 'HT', 0, 0, 9, $rang, TInfrastructure::$module_number, 0, 0, 0, $label);
+				$res	= $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 'HT', 0, 0, 9, $rang, TInfrastructure::getModuleNumber(), 0, 0, 0, $label);
 			} elseif ($object->element=='supplier_proposal') {
-				$res	= $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 'HT', 0, 0, 9, $rang, TInfrastructure::$module_number, 0, 0, 0, $label);
+				$res	= $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 'HT', 0, 0, 9, $rang, TInfrastructure::getModuleNumber(), 0, 0, 0, $label);
 			} elseif ($object->element=='commande') {
-				$res	=  $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 0, 0, 'HT', 0, '', '', 9, $rang, TInfrastructure::$module_number, 0, null, 0, $label);
+				$res	=  $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 0, 0, 'HT', 0, '', '', 9, $rang, TInfrastructure::getModuleNumber(), 0, null, 0, $label);
 			} elseif ($object->element=='order_supplier') {
-				$object->special_code	= TInfrastructure::$module_number; // à garder pour la rétrocompatibilité
-				$res					= $object->addline($label, 0, $qty, 0, 0, 0, 0, 0, '', 0, 'HT', 0, 9, 0, false, null, null, 0, null, 0, '', 0, -1, TInfrastructure::$module_number);
+				$object->special_code	= TInfrastructure::getModuleNumber(); // à garder pour la rétrocompatibilité
+				$res					= $object->addline($label, 0, $qty, 0, 0, 0, 0, 0, '', 0, 'HT', 0, 9, 0, false, null, null, 0, null, 0, '', 0, -1, TInfrastructure::getModuleNumber());
 			} elseif ($object->element=='facturerec') {
-				$res =  $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 'HT', 0, '', 0, 9, $rang, TInfrastructure::$module_number, $label);
+				$res =  $object->addline($desc, 0, $qty, 0, 0, 0, 0, 0, 'HT', 0, '', 0, 9, $rang, TInfrastructure::getModuleNumber(), $label);
 			}
 			self::generateDoc($object);
 			return $res;
@@ -511,11 +529,11 @@
 		/**
 		* @param	CommonObjectLine	$line	Line object we want to know if it's a title line and get the level of title if it's the case (level is determined by qty field, for example qty 1 for a title of level 1, qty 2 for a title of level 2, etc...)
 		* @param	int					$level	Level of title line to check (if -1 just check if it's a title line without checking level)
-		* @return	bool				
+		* @return	bool
 		*/
 		public static function isTitle(&$line, $level = -1)
 		{
-			$res	= !empty($line->special_code) && $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty <= 9;
+			$res	= !empty($line->special_code) && $line->special_code == self::getModuleNumber() && $line->product_type == 9 && $line->qty <= 9;
 			if ($res && $level > -1) {
 				return $line->qty == $level;
 			} else {
@@ -526,11 +544,11 @@
 		/**
 		* @param	CommonObjectLine	$line	Line object we want to know if it's a infrastructure line and get the level of infrastructure if it's the case (level is determined by qty field, for example qty 90 for a infrastructure of level 1, qty 91 for a infrastructure of level 2, etc...)
 		* @param	int					$level	Level of infrastructure line to check (if -1 just check if it's a infrastructure line without checking level)
-		* @return	bool				
+		* @return	bool
 		*/
 		public static function isInfrastructure(&$line, $level = -1)
 		{
-			$res = !empty($line->special_code) && $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty >= 90;
+			$res = !empty($line->special_code) && $line->special_code == self::getModuleNumber() && $line->product_type == 9 && $line->qty >= 90;
 			if ($res && $level > -1) {
 				return self::getNiveau($line) == $level;
 			} else {
@@ -544,7 +562,7 @@
 		*/
 		public static function isFreeText(&$line)
 		{
-			return !empty($line->special_code) && $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty == 50;
+			return !empty($line->special_code) && $line->special_code == self::getModuleNumber() && $line->product_type == 9 && $line->qty == 50;
 		}
 
 		/**
@@ -781,7 +799,7 @@
 					$res	= $object->updateline($rowid, $desc, $pu, $qty, $remise_percent, $txtva, $txlocaltax1, $txlocaltax2, $price_base_type, $info_bits, $date_start, $date_end, $type, $fk_parent_line, $skip_update_total, $fk_fournprice, $pa_ht, $label, $special_code, $array_options, $fk_unit, 0, $notrigger);
 					break;
 				case 'order_supplier':
-					$object->special_code	= SELF::$module_number;
+					$object->special_code	= self::getModuleNumber();
 					if (empty($desc) ) {
 						$desc = $label;
 					}
@@ -791,7 +809,7 @@
 					$res	= $object->updateline($rowid, $desc, $pu, $qty, $remise_percent, $date_start, $date_end, $txtva, $txlocaltax1, $txlocaltax2, $price_base_type, $info_bits, $type, $fk_parent_line, $skip_update_total, $fk_fournprice, $pa_ht, $label, $special_code, $array_options, $situation_percent, $fk_unit, 0, $notrigger);
 					break;
 				case 'invoice_supplier':
-					$object->special_code = SELF::$module_number;
+					$object->special_code = self::getModuleNumber();
 					if (empty($desc)) {
 						$desc	= $label;
 					}
@@ -1236,7 +1254,7 @@
 			$tab2_hl			= 4;
 			$pdf->SetFont('', '', $default_font_size - 1);
 			// Tableau total
-			$col1x	= 120; 
+			$col1x	= 120;
 			$col2x	= 170;
 			if ($objmarge->page_largeur < 210) { // To work with US executive format
 				$col2x-=20;

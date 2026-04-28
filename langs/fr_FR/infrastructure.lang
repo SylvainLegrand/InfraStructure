@@ -1,11 +1,11 @@
 ﻿# Dolibarr language file - fr_FR - Infrastructure
 CHARSET                         = UTF-8
 basenameInfrastructure          = InfraS
-modnameInfrastructure           = Infrastructure
-modcomnameInfrastructure        = Infrastructure
-Module550090Name                = Sous-Total
-Module550090Desc                = Permet l'ajout de titre et de sous-totaux sur les propositions commerciales, commandes et factures
-Module550090DescTrigger         = Trigger pour la gestion avancée des projets InfraS
+modnameInfrastructure           = infrastructure
+modcomnameInfrastructure        = InfraStructure
+Module550090Name                = InfraStructure
+Module550090Desc                = Permet de structurer les documents commerciaux en regroupant les lignes par titre et sous-total, avec de nombreuses options de personnalisation et de gestion des titres.
+Module550090DescTrigger         = Trigger pour la gestion du module InfraStructure
 easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Version minimum de Dolibarr nécessaire
 NewVersionAvailable             = Dernière version disponible
@@ -17,10 +17,10 @@ InfrastructureChangelogXMLError = Erreur changelog.xml
 InfrastructurenoMinDolVersion   = Pas de version minimum connue
 InfrastructurenoMaxDolVersion   = Pas de version maximum connue
 
-### Actions et boutons ###
+### Actions and buttons ###
 InfrastructuresAndTitlesActionBtnLabel = Titre & Sous total
 
-### Setup page  ###
+### Setup page ###
 InfrastructureSetup                                            = Configuration générale
 InfrastructureParamTitleComp                                   = Paramètres du module Infrastructure
 InfrastructureParamAction1                                     = Sauvegarder / Restaurer l'ensemble des paramètres du module
@@ -45,9 +45,9 @@ Infrastructure_Show                                            = Afficher les li
 InfrastructureUseNewFormat                                     = Activer l'utilisation avancée
 InfrastructureUseNewFormatHelp                                 = En activant cette option, de nouvelles fonctionnalités et comportements apparaissent.<br/>Parmi les nouveaux comportement : <ul><li>Ajoute la notion de niveau de titre et de sous total</li></ul>
 InfrastructureUseNumerotation                                  = Activer la numérotation automatique sur le PDF
-InfrastructureAllowAddBlock                                    = Autoriser l'ajout d'un titre et sous-total
-InfrastructureAllowEditBlock                                   = Autoriser l'édition d'un titre ou sous-total
-InfrastructureAllowRemoveBlock                                 = Autoriser la suppression d'un titre ou sous-total
+InfrastructureAllowAddBlock                                    = Autoriser l'ajout de titres et sous-totaux
+InfrastructureAllowEditBlock                                   = Autoriser l'édition des titres et sous-totaux
+InfrastructureAllowRemoveBlock                                 = Autoriser la suppression des titres et sous-totaux
 InfrastructureAllowDuplicateBlock                              = Autoriser la duplication d'un bloc
 InfrastructureAllowDuplicateLine                               = Autoriser la duplication d'une ligne
 InfrastructureAllowExtrafieldsOnTitle                          = Autoriser l'affichage des extrafields sur les titres (les données enregistrées seront alors peuplées sur les lignes du bloc)
@@ -101,7 +101,7 @@ InfrastructureParamCheckNewVersion      = Nouveau Changelog
 InfrastructureParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
 InfrastructureSupportInformation        = Informations 
 
-### Actions Infrastructure ###
+### Infrastructure actions ###
 InfrastructureTitle                                 = Titre du groupement
 Infrastructure                                      = Sous-total
 InfrastructureAddLineDescription                    = Description...
@@ -138,7 +138,7 @@ InfrastructureDuplicateSuccess        = %s lignes dupliquées
 InfrastructureDuplicateLineidNotFound = Impossible de dupliquer le bloc, l'identifiant du titre est introuvable
 InfrastructureDuplicateError          = Échec de la duplication
 
-### TVA et progression ###
+### VAT and progress ###
 InfrastructureApplyDefaultTva                        = Appliquer une TVA au bloc
 InfrastructureApplyDefaultTvaHelp                    = Permet de définir une TVA générale à toutes les lignes du bloc
 InfrastructureApplyProgress                          = Appliquer une progression au bloc
@@ -148,7 +148,7 @@ InfrastructureNbProgressNotUpdated                   = Attention : progression n
 InfrastructureShowTvaOnInfrastructureLinesOnElements = Afficher le taux de TVA avec les sous-totaux si toutes les lignes du bloc ont un taux identique
 InfrastructureLimitTvaOnCondensedBlocs               = Limiter l'affichage du taux de TVA aux blocs imprimées en condensé ou en liste.
 
-### Gestion des "Non Compris" ###
+### "Not Included" (NC) management ###
 InfrastructureManageNonCompris         = Gestion des "Non compris"
 InfrastructureUpdateNcSuccess          = Total mis à jour
 InfrastructureUpdateNcError            = Erreur : total non mis à jour
@@ -159,7 +159,7 @@ InfrastructureTfieldToKeepWithNc       = Colonnes à afficher sur lignes marqué
 InfrastructureNoncomprisUpdatePaHt     = La gestion des non-compris vide aussi le prix de revient
 InfrastructureNoncomprisUpdatePaHtInfo = Attention, si vous rendez de nouveau la ligne comprise, il faudra de nouveau saisir le prix de revient
 
-### Récapitulatif ###
+### Summary ###
 InfrastructureRecap                            = Récapitulatif
 InfrastructurePropalTitle                      = Devis %s %s
 InfrastructureCommandeTitle                    = Commande %s %s
@@ -186,27 +186,27 @@ InfrastructureListOfExtrafieldsCommandedet          = Champs complémentaires di
 InfrastructureListOfExtrafieldsFacturedet           = Champs complémentaires disponible sur les titres dans les factures clients
 InfrastructureConcatTitleLabelInInfrastructureLabel = Sur les lignes de sous total des PDF, ajouter le libellé du titre auquel cette dernière est rattaché.
 
-### Commandes expédiables ###
+### Shippable orders ###
 InfrastructureAddLineTitleInOrderShippable      = Ajouter les lignes Titre , total , libre aux commandes expédiables (il faudra supprimer les lignes de sous-total à la main si le besoin s'en fait sentir )
 InfrastructureAddLineTitleInOrderShippableTitle = Paramétrage de l'option gestion des lignes du module infrastructure pour les commandes expédiables
 InfrastructureShippableOrder                    = Paramétrage de l'option gestion des lignes du module infrastructure pour les commandes expédiables
 InfrastructureNoTitleShowOnExpedGeneration      = Ne pas reporter les lignes de titre lors de la génération d'expédition
 
-### Expéditions et livraisons ###
+### Shipments and deliveries ###
 InfrastructureLinkedShippings       = Bons d'expéditions liés
 InfrastructureLinkedShipping        = Bon d'expédition lié
 InfrastructureLinkedDeliveries      = Bons de livraison liés
 InfrastructureLinkedDelivery        = Bon de livraison lié
 InfrastructureAddShippingListToTile = Ajouter à la description du bloc titre la liste des références des bons d'expédition ou de livraison liés
 
-### Options diverses ###
+### Miscellaneous options ###
 InfrastructureCloneLInfrastructureBlock      = Cloner le bloc titre/sous-total
 InfrastructureDisplayMarginOnInfrastructures = Afficher les marges sur les lignes de sous-totaux
 InfrastructureQuickSummary                   = Sommaire rapide
 InfrastructureDisableSummary                 = Désactiver le menu "sommaire rapide" (bouton flottant visible lorsque le document a des titres)
-InfrastructureOptions                        = Options sous-total
-InfrastructureSetup                          = Paramètre module sous total
-InfrastructureSetupPage                      = Paramètre module sous total
+InfrastructureOptions                        = Options InfraStructure
+InfrastructureSetup                          = Paramètre module InfraStructure
+InfrastructureSetupPage                      = Paramètre module InfraStructure
 InfrastructureSetupForSubBlocs               = Paramétrage de l'option "Cacher le prix des lignes des ensembles"
 InfrastructureUseHiddenConfToAutoCheck       = Pour précocher par défaut vous pouvez activer la configuration divers
 InfrastructureExperimental                   = EXPERIMENTAL
@@ -214,8 +214,8 @@ InfrastructureExperimentalZone               = Configurations expérimentales ou
 InfrastructureShowQtyOnTitles                = Afficher la quantité sur les lignes de sous-total (uniquement dans le cas d'un produit virtuel ajouté)
 InfrastructureOnlyHideSubproductsPrices      = Masquer uniquement les prix pour les produits se trouvant dans un ensemble
 
-### Erreurs ###
-InfrastructureErrorDeleteLine                  = Erreur lors de la suppression d'une ligne du module sous total
+### Errors ###
+InfrastructureErrorDeleteLine                  = Erreur lors de la suppression d'une ligne du module InfraStructure
 InfrastructureErrorLoadingLinesFromLinkedOrder = Erreur lors du chargement des lignes de commande associées à l'expedition
 InfrastructureErrorLoadingLinkedOrder          = Erreur lors du chargement de la commande associées à l'expedition
 InfrastructureErrorNoLinkedOrder               = pas de commande associée

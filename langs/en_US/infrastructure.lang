@@ -1,11 +1,11 @@
-# Dolibarr language file - en_US - Infrastructure
+﻿# Dolibarr language file - en_US - Infrastructure
 CHARSET                         = UTF-8
 basenameInfrastructure          = InfraS
-modnameInfrastructure           = Infrastructure
-modcomnameInfrastructure        = Infrastructure
-Module550090Name                = Infrastructure
-Module550090Desc                = Allows adding titles and infrastructures to proposals, orders and invoices
-Module550090DescTrigger         = Trigger for advanced InfraS project management
+modnameInfrastructure           = infrastructure
+modcomnameInfrastructure        = InfraStructure
+Module550090Name                = InfraStructure
+Module550090Desc                = Allows structuring commercial documents by grouping lines by title and subtotal, with many customization and title management options.
+Module550090DescTrigger         = Trigger for the InfraStructure module management
 easyaFamily                     = Easya Solutions
 DolibarrMinVersionRequired      = Minimum Dolibarr version required
 NewVersionAvailable             = Latest version available
@@ -14,14 +14,14 @@ InfrastructureCaution           = <b>WARNING!</b>
 InfrastructureCautionMess       = <center><b>----- please read carefully! -----</b></center>
 InfrastructureXMLextError       = <br><center>The PHP 'XML' extension is not loaded<br>Some module features will not be available</center>
 InfrastructureChangelogXMLError = Error changelog.xml
-InfrastructureMinDolVersion     = No known minimum version
+InfrastructurenoMinDolVersion   = No known minimum version
 InfrastructurenoMaxDolVersion   = No known maximum version
 
-### Actions et boutons ###
+### Actions and buttons ###
 InfrastructuresAndTitlesActionBtnLabel = Title & Infrastructure
 
 ### Setup page ###
-InfrastructureSetup                                            = General setup
+InfrastructureSetup                                            = Infrastructure module setup
 InfrastructureParamTitleComp                                   = Infrastructure module settings
 InfrastructureParamAction1                                     = Save / Restore all module settings
 InfrastructureParamAction2                                     = <br>(after a restore, refresh the page (F5) to see the result)
@@ -40,6 +40,7 @@ InfrastructureHidePriceDefaultChecked                          = By default, che
 InfrastructureHideDocumentTotal                                = Hide totals
 InfrastructureIfHidePricesShowQty                              = Display quantity on product lines
 Infrastructure_ShowAll                                         = Show all lines
+Infrastructure_Hide                                            = Hide lines
 Infrastructure_Show                                            = Show lines
 InfrastructureUseNewFormat                                     = Enable advanced functionality
 InfrastructureUseNewFormatHelp                                 = By enabling this option, new features and behaviors appear.<br/>Among the new behaviors: <ul><li>Adds the notion of title level and infrastructure</li></ul>
@@ -61,7 +62,7 @@ InfrastructureInfrastructureStyle                              = Infrastructures
 InfrastructureInfrastructureHideBackground                     = Disable background color (highlighting) for infrastructures
 InfrastructureInfrastructureBackgroundcolor                    = Background color used for infrastructures
 InfrastructureBlocFoldMode                                     = Behavior when hiding a title block
-InfrastructureOptions                                          = <b>Infrastructure module options for printing</b>
+InfrastructureOptions                                          = Infrastructure options
 InfrastructureOneLineIfHideInnerlines                          = Get one line with title and infrastructure if "%s" is enabled (experimental)
 InfrastructureReplaceWithVatIfHideInnerlines                   = Replace with VAT details if "%s" is enabled (experimental)
 InfrastructureNumberOfHiddenLines                              = Number of hidden lines
@@ -100,7 +101,7 @@ InfrastructureParamCheckNewVersion      = New Changelog
 InfrastructureParamCheckNewVersionTitle = Click to download the changelog of the latest available version
 InfrastructureSupportInformation        = Information
 
-### Actions Infrastructure ###
+### Infrastructure actions ###
 InfrastructureTitle                                 = Group title
 Infrastructure                                      = Infrastructure
 InfrastructureAddLineDescription                    = Description...
@@ -137,7 +138,7 @@ InfrastructureDuplicateSuccess        = %s lines duplicated
 InfrastructureDuplicateLineidNotFound = Unable to duplicate the block, the title identifier was not found
 InfrastructureDuplicateError          = Duplication failed
 
-### TVA et progression ###
+### VAT and progress ###
 InfrastructureApplyDefaultTva                        = Apply a VAT to the block
 InfrastructureApplyDefaultTvaHelp                    = Allows to define a general VAT on all lines of the block
 InfrastructureApplyProgress                          = Apply a progress to the block
@@ -147,7 +148,7 @@ InfrastructureNbProgressNotUpdated                   = Warning: progress not upd
 InfrastructureShowTvaOnInfrastructureLinesOnElements = Show VAT rate with infrastructures if all rows in the block have the same rate
 InfrastructureLimitTvaOnCondensedBlocs               = Limit the display of the VAT rate to blocks printed in condensed or list format.
 
-### Gestion des "Non Compris" ###
+### "Not Included" (NC) management ###
 InfrastructureManageNonCompris         = Management of "Not included"
 InfrastructureUpdateNcSuccess          = Total updated
 InfrastructureUpdateNcError            = Error: total not updated
@@ -158,7 +159,7 @@ InfrastructureTfieldToKeepWithNc       = Columns to display on lines marked "Not
 InfrastructureNoncomprisUpdatePaHt     = The "Not Included" management also empties the cost price
 InfrastructureNoncomprisUpdatePaHtInfo = Warning: if you set the line back to included, you will need to re-enter the cost price
 
-### Récapitulatif ###
+### Summary ###
 InfrastructureRecap                            = Summary
 InfrastructurePropalTitle                      = Proposal %s %s
 InfrastructureCommandeTitle                    = Order %s %s
@@ -185,20 +186,20 @@ InfrastructureListOfExtrafieldsCommandedet          = Additional fields availabl
 InfrastructureListOfExtrafieldsFacturedet           = Additional fields available on titles in customer invoices
 InfrastructureConcatTitleLabelInInfrastructureLabel = On the infrastructure lines of the PDF, add the title label to which it is attached.
 
-### Commandes expédiables ###
+### Shippable orders ###
 InfrastructureAddLineTitleInOrderShippable      = Add Title, total, free lines to shippable orders (you will need to manually remove infrastructure lines if necessary)
 InfrastructureAddLineTitleInOrderShippableTitle = Line management option setup for the infrastructure module for shippable orders
 InfrastructureShippableOrder                    = Line management option setup for the infrastructure module for shippable orders
 InfrastructureNoTitleShowOnExpedGeneration      = Do not carry over title lines when generating shipments
 
-### Expéditions et livraisons ###
+### Shipments and deliveries ###
 InfrastructureLinkedShippings       = Linked shipping orders
 InfrastructureLinkedShipping        = Linked shipping order
 InfrastructureLinkedDeliveries      = Linked delivery notes
 InfrastructureLinkedDelivery        = Linked delivery note
 InfrastructureAddShippingListToTile = Add the reference list of related shipping or delivery notes to the title block description
 
-### Options diverses ###
+### Miscellaneous options ###
 InfrastructureCloneLInfrastructureBlock      = Clone the title/infrastructure block
 InfrastructureDisplayMarginOnInfrastructures = Display margins on infrastructure lines
 InfrastructureQuickSummary                   = Quick summary
@@ -213,7 +214,7 @@ InfrastructureExperimentalZone               = Experimental or deprecated config
 InfrastructureShowQtyOnTitles                = Display quantity on infrastructure lines (only when a virtual product is added)
 InfrastructureOnlyHideSubproductsPrices      = Hide only prices for products in a set
 
-### Erreurs ###
+### Errors ###
 InfrastructureErrorDeleteLine                  = Error when deleting a line from the infrastructure module
 InfrastructureErrorLoadingLinesFromLinkedOrder = Error while loading order lines associated with the shipment
 InfrastructureErrorLoadingLinkedOrder          = Error while loading the order associated with the shipment

@@ -47,7 +47,7 @@
 	class ActionsInfrastructure extends \infrastructure\RetroCompatCommonHookActions
 	{
 		public $db;											// @var DoliDB $db Database handler
-		public $module_number = 550090;
+		public $module_number;								// @var int Numéro du module (initialisé dans le constructeur via TInfrastructure::getModuleNumber())
 		public $error;										// @var string $error
 		public $errors = array();							// @var array $errors
 		public $allow_move_block_lines;						// @var bool Allow move block lines
@@ -66,6 +66,7 @@
 
 			$langs->load('infrastructure@infrastructure');
 			$this->db						= $db;
+			$this->module_number			= TInfrastructure::getModuleNumber();
 			$this->allow_move_block_lines	= true;
 		}
 
@@ -357,7 +358,7 @@
 			return 0;
 		}
 
-		/** 
+		/**
 		* Overloading the formObjectOptions function : replacing the parent's function with the one below
 		*
 		* @param 	array			$parameters  array           meta datas of the hook (context, etc...)
@@ -2144,8 +2145,8 @@
 							$total_line					= $TInfrastructureDatas[0];
 							$multicurrency_total_line	= $TInfrastructureDatas[6];
 							$total_qty					= $TInfrastructureDatas[4];
-							if ($show_qty_bu_deault = TInfrastructure::showQtyForObject($object)) {
-								$line_show_qty	= TInfrastructure::showQtyForObjectLine($line, $show_qty_bu_deault);
+							if (($show_qty_by_default = TInfrastructure::showQtyForObject($object))) { // Assignation et if sur le retour de cette assignation pour éviter de faire appel à la fonction showQtyForObject() pour chaque ligne
+								$line_show_qty	= TInfrastructure::showQtyForObjectLine($line, $show_qty_by_default);
 							}
 						}
 
@@ -2901,7 +2902,7 @@
 				 */
 				if ($TCurrentContexts[0] == 'order') {
 					$element = 'Commande';
-					if (!class_exists($element)) { include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';} 
+					if (!class_exists($element)) { include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';}
 				} elseif ($TCurrentContexts[0] == 'invoice') {
 					$element = 'Facture';
 					if (!class_exists($element)) { include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';}

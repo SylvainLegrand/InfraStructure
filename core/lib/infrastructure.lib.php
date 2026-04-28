@@ -230,7 +230,7 @@
 
 	/**
 	* Create extrafield "infrastructure_nc" on document lines.
-	* 
+	*
 	* @return  void
 	*/
 	function infrastructure_createExtraComprisNonCompris() {
@@ -634,15 +634,15 @@
 					});
 					$('a[rel=add_free_text]').click(function (e) {
 						e.preventDefault();
-						promptInfrastructure('addFreeTxt', 
-							"<?php echo $langs->transnoentitiesnoconv('InfrastructureYourTextLabel') ?>", 
-							"<?php echo $langs->trans('InfrastructureAddLineDescription'); ?>", 
-							'?<?php echo $idvar ?>=<?php echo $object->id; ?>', 
+						promptInfrastructure('addFreeTxt',
+							"<?php echo $langs->transnoentitiesnoconv('InfrastructureYourTextLabel') ?>",
+							"<?php echo $langs->trans('InfrastructureAddLineDescription'); ?>",
+							'?<?php echo $idvar ?>=<?php echo $object->id; ?>',
 							'<?php echo $_SERVER['PHP_SELF']; ?>', {
 								<?php echo $idvar; ?>: <?php echo (int)$object->id; ?>,action:'add_free_text'
 							},
-							true, 
-							true, 
+							true,
+							true,
 							<?php echo getDolGlobalString('INFRASTRUCTURE_ALLOW_ADD_LINE_UNDER_TITLE') ? 'true' : 'false'; ?>
 						);
 					});

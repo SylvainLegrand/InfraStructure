@@ -109,7 +109,7 @@
 			$this->rights			= array(); 																					// Permission array used by this module
 			$this->menu				= array(); 																					// List of menus to add
 		}
-		
+
 		/**
 		* Function called when module is enabled.
 		* The init function add constants, boxes, permissions and menus

@@ -78,10 +78,11 @@ htdocs/custom/infrastructure/
 ├── js/
 │   ├── infrastructure.lib.js                     # Helpers drag & drop et titres
 │   └── summary-menu.js                     # Sommaire rapide flottant
-├── langs/
+├── langs/                                   # Fichiers alignés (même ordre, même indentation, mêmes libellés de sections en anglais)
 │   ├── en_US/infrastructure.lang
 │   ├── es_ES/infrastructure.lang
-│   └── fr_FR/infrastructure.lang
+│   ├── fr_FR/infrastructure.lang            # Fichier de référence pour la structure
+│   └── it_IT/infrastructure.lang
 ├── script/
 │   ├── interface.php                       # Endpoint AJAX générique (rank, NC, etc.)
 │   └── migrate-from-subtotal.php           # Migration manuelle depuis module subtotal (wrapper de core/lib/infrastructureMigrateSubtotal.lib.php)
@@ -440,7 +441,7 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 
 ## Points d'attention (Watchpoints)
 
-- `special_code = 550090` et `product_type = 9` identifient les lignes spéciales du module
+- `special_code = 550090` et `product_type = 9` identifient les lignes spéciales du module — le numéro `550090` est déclaré uniquement dans `modInfrastructure->numero` ; `TInfrastructure::getModuleNumber()` le lit et le cache en propriété statique, `ActionsInfrastructure->module_number` est initialisé dans le constructeur via la même méthode (aucune valeur en dur dans les classes métier)
 - La distinction titre / sous-total / texte libre se fait via `qty` (titre : 1-9, sous-total : 91-99, texte libre : 50)
 - Le module est **incompatible** avec `modMilestone` (iNodbox) — bloqué à l'activation
 - La version locale est lue via `infrastructure_getLocalVersionMinDoli('infrastructure')` depuis `docs/changelog.xml`
