@@ -754,10 +754,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 		$preferedPartnerPath	= dol_buildpath('/'.$appliname.'/img/Dolibarr_preferred_partner.png', 1);
 		$listUpD				= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
 		$urlInfraS				= 'https://infras.fr';
-		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname;
+		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname.'/page/presentation-generale';
 		$urlstore				= 'https://infras.store/';
 		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
-		$InputCarac				= 'class = "button infrassearchwidth180 infrassearchheight32" name = "readmore" type = "button"';
+		$InputCarac				= 'class = "butAction infrassearchwidth180 infrassearchheight32" name = "readmore" type = "button"';
 		$supportvalue			= '/******************************'.'<br/>';
 		$supportvalue			.= ' * Module : '.$langs->trans('modcomnameSearch').'<br/>';
 		$supportvalue			.= ' * Module version : '.$version.'<br/>';
@@ -784,7 +784,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 												</td>
 												<td class = "center valignmiddle infrassearchwidthtrentepercent">
 													<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSSearchParamLienModules').'" /></a>
-													<button class = "button infrassearchwidth180 infrassearchheight32" type = "submit" >'.$langs->trans('InfraSSearchParamSupport').'</button>
+													<button class = "butAction infrassearchwidth180 infrassearchheight32" type = "submit" >'.$langs->trans('InfraSSearchParamSupport').'</button>
 												</td>
 												<td rowspan = "3" class = "right bold valignbottom infrassearchwidthtrentepercent infrassearchslogan">
 													<a href = "'.$urlDoli.'" target = "_blank"><img class = "infrassearchnoborder infrassearchwidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;

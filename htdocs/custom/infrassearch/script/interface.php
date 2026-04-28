@@ -500,9 +500,11 @@
 		$escapedKeyPhLocal		= !empty($keywordPhoneLocal) ? $db->escape($db->escapeforlike($keywordPhoneLocal)) : '';
 
 		// Pré-calculer les conversions de type une seule fois (au lieu de dans chaque itération de la boucle interne)
+		// La condition ltrim($keyword, '0') === $keyword exclut les fragments à zéros initiaux (ex. "0001")
+		// qui sont des morceaux de référence textuels et non des entiers
 		$d_keyword	= _isDate($keyword);
 		$i_keyword	= 0;
-		if (!$looksLikePhone && is_numeric($keyword)) {
+		if (!$looksLikePhone && is_numeric($keyword) && ltrim($keyword, '0') === $keyword) {
 			$i_keyword	= (double) $keyword;
 			if ($i_keyword > 2147483647 || empty($i_keyword)) {
 				$i_keyword	= 0;
@@ -549,7 +551,10 @@
 				if (isset($skipColumnsMap[$fieldname]) || strpos($fieldname, 'fk_') === 0) {
 					continue;
 				}
-				if (strpos($tbl->Type, 'varchar') !== false || strpos($tbl->Type, 'text') !== false) {
+				// Détection du type SQL via regex ancrée au début pour éviter les faux positifs.
+				// Ex. strpos('point', 'int') !== false (positions 2-4) faisait planter la requête
+				// sur les colonnes geopoint (point) avec une comparaison int.
+				if (preg_match('/^(varchar|char|tinytext|text|mediumtext|longtext)/i', $tbl->Type)) {
 					$sql_where	.= ' OR '.$table.'.'.$fieldname.' LIKE "%'.$escapedKeyword.'%"';
 					// Recherche normalisée pour les champs téléphone/fax : comparaison en chiffres uniquement
 					if ($looksLikePhone && preg_match('/phone|fax|mobile|tel/i', $fieldname)) {
@@ -559,17 +564,18 @@
 							$sql_where	.= ' OR '.$stripPhone.' LIKE "%'.$escapedKeyPhLocal.'%"';
 						}
 					}
-				} elseif (strpos($tbl->Type, 'int') !== false || strpos($tbl->Type, 'double') !== false || strpos($tbl->Type, 'float') !== false) {
+				} elseif (preg_match('/^(tinyint|smallint|mediumint|int|bigint|float|double|decimal|numeric|real)/i', $tbl->Type)) {
 					if (!empty($i_keyword)) {
 						$sql_where	.= ' OR '.$table.'.'.$fieldname.' = '.((int) $i_keyword);
 					}
-				} elseif (strpos($tbl->Type, 'date') !== false || strpos($tbl->Type, 'time') !== false) {
+				} elseif (preg_match('/^(date|datetime|timestamp|time|year)/i', $tbl->Type)) {
 					if (!empty($escapedKeywordDate)) {
 						$sql_where	.= ' OR '.$table.'.'.$fieldname.' LIKE "'.$escapedKeywordDate.'%"';
 					}
-				} else {
+				} elseif (preg_match('/^(enum|set)/i', $tbl->Type)) {
 					$sql_where	.= ' OR '.$table.'.'.$fieldname.' = "'.$db->escape($keyword).'"';
 				}
+				// Types ignorés : point, geometry, blob, binary, bit, json, etc.
 			}
 		}
 		$sql_where	.= in_array($db->prefix().'product', $tables) ? ' OR '.$db->prefix().'product.ref LIKE "%'.$escapedKeyword.'%"' : '';

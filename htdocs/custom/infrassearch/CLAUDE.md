@@ -16,7 +16,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.4.6` (2026-03)
+- Dernière version locale : `15.4.7` (2026-04)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrassearch/`
 
@@ -81,7 +81,7 @@ Dans `core/modules/modinfrassearch.class.php` :
 	- `paramMenu` (par défaut : activée)
 	- `paramInfraSSearch`
 	- `paramBkpRest`
-- **Famille** : `Dolibarr LTS by InfraS` (branding dynamique si module dolinfras activé) ou `Modules Recherche`
+- **Famille** : `Dolibarr LTS by InfraS` (branding dynamique si module dolinfras activé et constante `DOLINFRAS_FAMILY` définie) ou `Modules Recherche` (famille par défaut si dolinfras absent)
 
 ### Initialisation (Lifecycle : `init()`)
 
@@ -114,22 +114,22 @@ Le module crée deux niveaux de menus dans le menu Outils :
    - Condition : `infrassearch_no_topmenu()` retourne `true`
    - Permission : aucune (visible pour tous)
 
-2. **Sous-menu InfraSSearch** (trois entrées) :
+2. **Sous-menu InfraSSearch** (quatre entrées) :
    - **Titre module** (position 65) : accès à la configuration
+     - URL : `/core/tools.php?leftmenu=infrassearch`
      - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
    - **Changelog** (position 66) : historique des versions
      - URL : `/infrassearch/admin/changelog.php`
      - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
    - **Paramètres** (position 67) : configuration du module
      - URL : `/infrassearch/admin/infrassearchsetup.php`
-     - Permission : `$user->hasRight('infrassearch', 'paramInfraSSearch')`
-   - **À propos** (position 68) : présentation et informations
-     - URL : `/infrassearch/admin/about.php`
-     - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
-   - **Recherche** (position 100) : page de recherche dédiée
+     - Permission : `$user->hasRight('infrassearch', 'paramMenu')` ET `$user->hasRight('infrassearch', 'paramInfraSSearch')`
+   - **Recherche** (position 130) : page de recherche dédiée
      - URL : `/infrassearch/search.php`
-     - Icône : `object_search@infrassearch`
-     - Permission : `$user->hasRight('infrassearch', 'paramMenu')`
+     - Titre : traduction de `InfraSSearchInputPlaceHolder` (« Rechercher... »)
+     - Permission : aucune (visible pour tous)
+
+**Note** : le menu « À propos » n'est pas présent dans la structure de menus du descripteur (accessible uniquement via les onglets admin).
 ## Fonctionnement principal (Core behavior)
 
 Le module propose 4 points d’intégration :
@@ -157,13 +157,56 @@ Le module ne possède pas de trigger. Aucun événement n'est écouté (pas de r
 
 ## Données / SQL (Data model)
 
-Table principale :
+Le module crée 1 table SQL :
 
-- `llx_infrassearch_history`
+### `llx_infrassearch_history` — Historique fil d'Ariane
 
-Colonnes principales : `rowid`, `entity`, `element`, `fk_element`, `fk_user`, `tms`.
+| Colonne | Type | Description |
+|---------|------|-------------|
+| `rowid` | int (PK) | Identifiant unique |
+| `entity` | int | Entité multi-société (NOT NULL, défaut : 0) |
+| `element` | varchar(64) | Type d'objet consulté (ex. `facture`, `societe`, `propal`) |
+| `fk_element` | int | ID de l'objet consulté (NOT NULL) |
+| `fk_user` | int | Utilisateur ayant consulté l'objet (NOT NULL, défaut : 0) |
+| `tms` | timestamp | Date et heure de dernière consultation (auto-update) |
+
+Index : `entity`, `element`, `fk_element`, `fk_user`.
+
+### Données initiales (`data.sql`)
+
+11 constantes insérées à l'activation :
+
+| Constante | Valeur par défaut | Description |
+|-----------|-------------------|-------------|
+| `INFRASSEARCH_BREADCRUMB` | `1` | Fil d'Ariane activé |
+| `INFRASSEARCH_NB_BREADCRUMB` | `10` | Nombre d'objets dans le fil d'Ariane |
+| `INFRASSEARCH_NB_CAR` | `3` | Nombre minimum de caractères pour déclencher la recherche |
+| `INFRASSEARCH_NB_SEC` | `500` | Délai avant déclenchement de la recherche (ms) |
+| `INFRASSEARCH_NB_ROWS` | `5` | Nombre maximum de résultats par type |
+| `INFRASSEARCH_ONLY_IN_ENTITY` | `1` | Restreint la recherche à l'entité courante |
+| `INFRASSEARCH_ON_TOP_MENU` | `1` | Affiche la recherche dans le menu haut |
+| `INFRASSEARCH_ORDER` | `1` | Ordre de tri : 1=DESC (décroissant) |
+| `INFRASSEARCH_REPLACE_STD` | `0` | Remplace la recherche standard (désactivé par défaut) |
+| `INFRASSEARCH_SHOW_FIND_FIELD` | `0` | Affiche le champ contenant l'expression recherchée (désactivé) |
+| `INFRASSEARCH_SORT` | `DESC` | Tri des résultats par date |
+
+### Nettoyage automatique
+
+Le hook `printCommonFooter` effectue un nettoyage glissant de l'historique :
+- Conservation : entrées postérieures au 1er du mois précédent (environ 1 mois)
+- Déclenchement : à chaque consultation d'objet
+- Requête : `DELETE FROM llx_infrassearch_history WHERE tms < DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01 00:00:00') AND entity = {entity}`
 
 Le nettoyage de l’historique est effectué dans le hook `printCommonFooter` (conservation glissante).
+## Pages principales (Main pages)
+
+| Page | Rôle |
+|------|------|
+| `search.php` | Page de recherche dédiée accessible depuis le menu Outils → InfraSSearch → Recherche. Affiche un champ de saisie et exécute une recherche AJAX parallèle sur tous les types d'objets activés. Les résultats sont affichés en tuiles égalisées (jquery.tile.min.js) |
+| `script/interface.php` | Endpoint AJAX du moteur de recherche. Support de deux modes : `get=search-all` (recherche globale pour autocomplete du menu haut) et `get=search` (recherche par type pour la page dédiée). Retourne JSON ou HTML selon le mode |
+| `admin/infrassearchsetup.php` | Configuration générale du module : activation des types d'objets, ordre d'affichage, paramètres de déclenchement de la recherche, tri, sauvegarde/restauration des paramètres |
+| `admin/changelog.php` | Affichage du changelog avec bannière de support InfraS, comparaison version locale/téléchargée, bouton de vérification de mise à jour, liens vers le Wiki InfraSSearch et le formulaire de support |
+| `admin/about.php` | Affiche `README.md` en HTML avec bouton retour vers le haut de page |
 ## Fonctions utilitaires (Library functions)
 
 ### `infrassearch.lib.php`
@@ -195,6 +238,49 @@ Bibliothèque d'administration contenant les fonctions de paramétrage :
 | `infrassearch_restore_module($appliname)` | Restauration des paramètres depuis le fichier SQL |
 | `infrassearch_num_pos()` | Génère les options HTML de numérotation de position (tri des modules) |
 | `infrassearch_print_*()` | Fonctions d'affichage HTML pour les tableaux admin |
+
+## Traductions (Translations)
+
+Trois répertoires de traduction : `en_US`, `es_ES`, `fr_FR`. Fichier unique `infrassearch.lang` par locale. Chargement :
+
+```php
+$langs->load('infrassearch@infrassearch');
+```
+
+Clés de traduction principales :
+
+- `Module550080Name` / `Module550080Desc` — nom et description du module
+- `InfraSSearchCautionMess` / `InfraSXMLextError` — messages d'alerte extension PHP
+- `InfraSSearchChangelogXMLError` — erreur de parsing XML
+- `InfraSSearchWait` — message « Recherche en cours... » (affichage du gif loading)
+- `InfraSSearchInputPlaceHolder` — placeholder du champ de recherche
+- `InfraSSearchBreadcrumb` / `InfraSSearchBreadcrumbShortCut` — libellés du fil d'Ariane
+- `InfraSSearchLib*` — libellés des types d'objets (InfraSSearchLibSociete, InfraSSearchLibFacture, etc.)
+- `InfraSSearchParam*` — libellés des paramètres et de la bannière de support/changelog
+- `InfraSSearchTitleComp` — titre de la section « Paramètres généraux »
+
+## CSS (Styles)
+
+`css/infrassearch.css.php` : feuille de style dynamique PHP chargée via `module_parts`. Contient :
+
+- **Polices embarquées** : `puentebold` (branding Dolibarr), `NeuropolRegular` (branding InfraS)
+- **Classes de branding** : `.infrassearchneuropolinfras`, `.infrassearchpuentedolibarr`, `.infrassearchCaution`
+- **Classes de dimensionnement** : `.infrassearchwidth110/180/220/270`, `.infrassearchheight25/32/50/75`, `.infrassearchwidthquatrevingtdixpercent`, `.infrassearchminwidth700imp`
+- **Classes de changelog** : `.infrassearchchangelogbase`, `.infrassearchchangefix` (rouge), `.infrassearchchangeadd` (vert), `.infrassearchchangechg` (bleu), `.infrassearchchangedefault`, `.infrassearchbgorange` (nouvelles versions disponibles), `.infrassearchbggreen` (versions en avance), `.infrassearchbgred` (erreurs)
+- **Classes d'affichage** : `.infrassearchnoborder`, `.infrassearchnopadding`, `.infrassearchmargintop10imp`, `.infrassearchslogan`, `.infrassearchcolor`, `.infrassearchtitleparam`, `.infrassearchsubtitleparam`
+- **Classes de résultats de recherche** : `.infrassearchbgtrans` (fond transparent pour le champ de saisie), `.loading` (affichage du gif durant la recherche)
+- **Classes de boutons** : `.infrassearchScrollUp` (bouton retour vers le haut de page)
+- **Classes de tableaux** : `.infrassearchHR` (séparateur horizontal), `.infrassearchFinal` (ligne finale invisible)
+
+## JavaScript
+
+`js/jquery.tile.min.js` : bibliothèque jQuery pour l'affichage en tuiles des résultats de recherche sur la page dédiée (`search.php`). Égalise automatiquement la hauteur des blocs de résultats pour un affichage homogène.
+
+Utilisation dans `search.php` :
+```javascript
+$('#results').find('.search-results').tile();
+```
+
 ## Constantes de configuration (Key settings)
 
 Constantes système utilisées par le module :
@@ -274,6 +360,10 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - `15.4.4` (2026-03) : Documentation : enrichissement des Notes Techniques du descripteur CLAUDE.md
 - `15.4.5` (2026-03) : amélioration de l'affichage lors de la recherche (gif loading)
 - `15.4.6` (2026-03) : amélioration de la compatibilité avec le module externe et thème Oblyon
+- `15.4.7` (2026-04) : correction d'un bug majeur — la détection de type SQL via `strpos($Type, 'int')` matchait à tort les colonnes `point` (`geo**point**`), faisant planter silencieusement toute recherche purement numérique sur les modules joignant `llx_societe` / `llx_socpeople`. Remplacement par regex ancrée au début (`/^(int|tinyint|...)/i`)
+- `15.4.7` (2026-04) : correction d'un bug de pertinence — les fragments à zéros initiaux (`0001`, `001`) étaient interprétés comme l'entier `1`, polluant les résultats avec des matches sur `qty=1`, `status=1`, etc. Filtre ajouté : `ltrim($keyword, '0') === $keyword`
+- `15.4.7` (2026-04) : correction de la gestion de session expirée sur les endpoints AJAX — `main.inc.php` retournait silencieusement le HTML du formulaire de login (HTTP 200) à la place du JSON / HTML attendu. Détection client de `name="username"` dans la réponse et rechargement de la page pour déclencher la redirection normale vers le login (3 points d\'AJAX corrigés : menu haut, recherche standard remplacée, page de recherche dédiée)
+- `15.4.7` (2026-04) : correction de la purge du fil d\'Ariane — le filtre `fk_user = $user->id` empêchait la suppression des entrées des utilisateurs qui ne consultent plus d\'objets, faisant croître la table indéfiniment (entrées de 2022 toujours présentes). Purge globale par entité, comparaison directe `tms <` (au lieu de `DATE_FORMAT(tms,...)` pour permettre l\'usage d\'index), et nettoyage des entrées corrompues (`element=''`, `fk_element <= 0`). Sécurité : ajout de `$db->escape($object->element)` et cast `(int)` sur les identifiants
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -322,11 +412,14 @@ La fonction `_search()` effectue une recherche en profondeur sur toutes les colo
 
 2. **Introspection dynamique** : pour chaque table de `$tables`, un `DESCRIBE` (mis en cache statique `$describeCache`) récupère les colonnes et leurs types
 
-3. **Construction du WHERE** :
-   - Colonnes `varchar`/`text` → `LIKE "%keyword%"`
-   - Colonnes `int`/`double`/`float` → `= (int) keyword` (si valeur numérique, ≤ 2147483647)
-   - Colonnes `date`/`time` → `LIKE "keyword%"` (si la saisie est une date valide)
+3. **Construction du WHERE** (détection de type via regex ancrée au début pour éviter les faux positifs comme `strpos('point', 'int') !== false`) :
+   - Colonnes `varchar`/`char`/`text`/`tinytext`/`mediumtext`/`longtext` → `LIKE "%keyword%"`
+   - Colonnes `tinyint`/`smallint`/`mediumint`/`int`/`bigint`/`float`/`double`/`decimal`/`numeric`/`real` → `= (int) keyword` (si valeur numérique sans zéros initiaux, ≤ 2147483647)
+   - Colonnes `date`/`datetime`/`timestamp`/`time`/`year` → `LIKE "keyword%"` (si la saisie est une date valide)
+   - Colonnes `enum`/`set` → `= "keyword"` (égalité stricte)
    - Colonnes techniques exclues : `rowid`, `entity`, `import_key`, `model_pdf`, `last_main_doc`, `tms`, `fk_*`, etc.
+   - Types ignorés (pas de clause générée) : `point`, `geometry`, `polygon`, `blob`, `binary`, `bit`, `json`, etc.
+   - Les fragments numériques à zéros initiaux (`0001`, `001`) sont traités uniquement via la branche `LIKE` (filtre `ltrim($keyword, '0') === $keyword`) pour éviter de polluer les résultats avec des matches `= 1` sur des colonnes int/double sans rapport (status, qty, etc.)
 
 4. **Recherche croisée** :
    - Produits : `product.ref LIKE "%keyword%"` ajouté si la table `product` est jointe
@@ -453,7 +546,7 @@ Le module dispose d'un mécanisme de sauvegarde/restauration des paramètres acc
 
 ```xml
 <changelog>
-    <Version Number="15.4.6" MonthVersion="2026-03">
+    <Version Number="15.4.7" MonthVersion="2026-03">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -467,7 +560,7 @@ Le module dispose d'un mécanisme de sauvegarde/restauration des paramètres acc
 La fonction `infrassearch_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "15.4.6",           // Version courante
+    0 => "15.4.7",           // Version courante
     1 => "15.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
@@ -543,3 +636,41 @@ Fonctions utilitaires pour les pages d'administration :
 3. Ajouter le mapping dans `getobjectclass()` si le classpath/classname est non standard
 4. Créer la constante `INFRASSEARCH_MOD_<TYPE>` et `INFRASSEARCH_POS_<TYPE>`
 5. Ajouter le `require_once` conditionnel dans les `$classPaths` de `interface.php`
+
+## Sécurité (Security)
+
+Le module implémente plusieurs couches de sécurité :
+
+### Échappement et validation des entrées
+
+- **GETPOST** : tous les paramètres utilisateur sont validés via `GETPOST()` avec types appropriés (`alpha`, `int`, `aZ09`, etc.)
+- **SQL Injection** : utilisation systématique de `$db->escape()` et `$db->escapeforlike()` pour les valeurs non entières, cast `(int)` pour les identifiants
+- **XSS** : échappement via `dol_escape_htmltag()` pour toutes les sorties HTML, `dol_escape_js()` pour les chaînes JavaScript
+- **PHP_SELF** : échappement des URLs de formulaires basées sur `$_SERVER['PHP_SELF']` (correction v15.4.2)
+
+### Introspection SQL sécurisée
+
+- **DESCRIBE avec cache** : les requêtes `DESCRIBE` sont mises en cache statique pour éviter les répétitions et limiter l'exposition
+- **Exclusion de colonnes** : les colonnes techniques (`fk_*`, `import_key`, `model_pdf`, etc.) sont exclues du WHERE pour réduire la surface d'attaque
+- **Validation de types** : vérification des types SQL avant construction des clauses (seuls `varchar`, `text`, `int`, `double`, `float`, `date`, `time` sont supportés)
+
+### Protection CSRF
+
+- **Tokens** : utilisation de `newToken()` pour tous les formulaires d'administration
+- **Validation automatique** : Dolibarr valide les tokens selon `MAIN_SECURITY_CSRF_WITH_TOKEN`
+
+### Permissions et contrôle d'accès
+
+- **restrictedArea** : appel systématique après `main.inc.php` dans les pages admin
+- **Vérification de permissions** : accès aux paramètres protégé par `paramInfraSSearch`, sauvegarde/restauration par `paramBkpRest`
+- **Entité multi-société** : respect strict de `$conf->entity` dans toutes les requêtes SQL et historique
+
+### Journalisation
+
+- **Erreurs SQL** : journalisation via `dol_syslog(..., LOG_ERR)` de toutes les erreurs de requête (ajouté v15.4.0)
+- **Erreurs HTTP 500** : détection et journalisation des erreurs critiques dans le fil d'Ariane via `handleInfraSearchError()`
+
+### Changelog XML
+
+- **XXE** : lecture du changelog avec `LIBXML_NONET` pour bloquer les entités externes
+- **Validation** : vérification de l'extension PHP XML requise via `infrassearch_test_php_ext()`

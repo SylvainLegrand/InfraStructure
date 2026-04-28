@@ -76,6 +76,12 @@
 									,keyword : keyword
 								}
 							}).done(function(data) {
+								// Session expirée : main.inc.php renvoie le formulaire de login en HTML (200 OK)
+								// au lieu du tableau de résultats. On recharge la page pour passer par le flux normal de redirection.
+								if (typeof data === "string" && /name="username"/i.test(data)) {
+									window.location.reload();
+									return;
+								}
 								$("#results span.loading").remove();
 								$div = $("<div class = \"result\" />");
 								$div.append(data);

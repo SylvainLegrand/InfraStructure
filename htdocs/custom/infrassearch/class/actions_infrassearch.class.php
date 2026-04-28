@@ -174,6 +174,13 @@
 																	});
 																	response(c);
 																}
+																,error: function(xhr) {
+																	// Session expirée : main.inc.php renvoie le formulaire de login en HTML (200 OK)
+																	// au lieu d\'un JSON. On recharge la page pour passer par le flux normal de redirection.
+																	if (xhr && xhr.responseText && /name="username"/i.test(xhr.responseText)) {
+																		window.location.reload();
+																	}
+																}
 															});
 														},
 														minLength: '.$nbCar.',
@@ -255,6 +262,13 @@
 														});
 													});
 													response(c);
+												}
+												,error: function(xhr) {
+													// Session expirée : main.inc.php renvoie le formulaire de login en HTML (200 OK)
+													// au lieu d\'un JSON. On recharge la page pour passer par le flux normal de redirection.
+													if (xhr && xhr.responseText && /name="username"/i.test(xhr.responseText)) {
+														window.location.reload();
+													}
 												}
 											});
 										},
@@ -350,24 +364,29 @@
 			global $user, $conf, $object;
 
 			$objectId	= !empty($object->id) ? $object->id : (!empty($object->rowid) ? $object->rowid : '');
-			if (is_object($object) && property_exists($object, 'element') && !empty($objectId) && $object->element != 'commonsign') {
-				// Clean
+			if (is_object($object) && property_exists($object, 'element') && !empty($object->element) && !empty($objectId) && $object->element != 'commonsign') {
+				$elementEscaped	= $this->db->escape($object->element);
+				// Clean : purge globale des entrées de plus d'1 mois (toutes les entités et tous les utilisateurs).
+				// Avant 15.4.7, le filtre fk_user = $user->id empêchait la purge des entrées des utilisateurs qui ne consultent plus d'objets,
+				// faisant croître la table indéfiniment. Comparaison directe sur tms (au lieu de DATE_FORMAT) pour pouvoir utiliser un index.
+				// On en profite pour purger les entrées corrompues sans element / fk_element exploitable.
 				$sqlclean	= 'DELETE FROM '.$this->db->prefix().'infrassearch_history';
-				$sqlclean	.= ' WHERE entity = '.$conf->entity;
-				$sqlclean	.= ' AND fk_user = '.$user->id;
-				$sqlclean	.= ' AND DATE_FORMAT(tms, "%Y-%m-%d") <  DATE_FORMAT(CURDATE(), "%Y-%m-01") - INTERVAL 1 MONTH';	// we keep the last month only
+				$sqlclean	.= ' WHERE entity = '.((int) $conf->entity);
+				$sqlclean	.= ' AND (tms < DATE_FORMAT(CURDATE(), "%Y-%m-01") - INTERVAL 1 MONTH';	// we keep the last month only
+				$sqlclean	.= ' OR element = ""';
+				$sqlclean	.= ' OR fk_element <= 0)';
 				$this->db->query($sqlclean);
-				// Delete
+				// Delete : déduplique l'entrée pour cet utilisateur sur cet objet précis (avant ré-insertion ci-dessous)
 				$sqldel		= 'DELETE FROM '.$this->db->prefix().'infrassearch_history';
-				$sqldel		.= ' WHERE entity = '.$conf->entity;
-				$sqldel		.= ' AND element = "'.$object->element.'"';
-				$sqldel		.= ' AND fk_element = '.$objectId;
-				$sqldel		.= ' AND fk_user = '.$user->id;
+				$sqldel		.= ' WHERE entity = '.((int) $conf->entity);
+				$sqldel		.= ' AND element = "'.$elementEscaped.'"';
+				$sqldel		.= ' AND fk_element = '.((int) $objectId);
+				$sqldel		.= ' AND fk_user = '.((int) $user->id);
 				$this->db->query($sqldel);
 				// Add
 				$sqladd		= 'INSERT INTO '.$this->db->prefix().'infrassearch_history';
 				$sqladd		.= ' (entity, element, fk_element, fk_user)';
-				$sqladd		.= ' VALUES ('.$conf->entity.', "'.$object->element.'", '.$objectId.', '.$user->id.')';
+				$sqladd		.= ' VALUES ('.((int) $conf->entity).', "'.$elementEscaped.'", '.((int) $objectId).', '.((int) $user->id).')';
 				$this->db->query($sqladd);
 			}
 			return 0;

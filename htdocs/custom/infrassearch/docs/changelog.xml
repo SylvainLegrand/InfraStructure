@@ -312,7 +312,14 @@
 	<Version Number="15.4.6" MonthVersion="2026-03">
 		<change type='chg'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
 	</Version>
-	<InfraS Downloaded="20260301"/>
+	<Version Number="15.4.7" MonthVersion="2026-04">
+		<change type='fix'>Création du nouveau lien vers le Wiki InfraSSearch</change>
+		<change type='fix'>Recherche : Bug majeur, les recherches purement numériques échouaient silencieusement à cause d'une mauvaise détection du type SQL "point" (colonnes geopoint sur llx_societe / llx_socpeople) prises pour des entiers, faisant planter la requête entière</change>
+		<change type='fix'>Recherche : Les fragments de référence à zéros initiaux (ex. "0001", "001") étaient interprétés comme des entiers et polluaient les résultats avec des matches non pertinents sur les colonnes int / double</change>
+		<change type='fix'>Recherche : Quand la session expirait, le moteur AJAX recevait silencieusement le formulaire de login HTML à la place du JSON / HTML attendu (échec de parsing JSON sans handler d'erreur côté menu haut, formulaire de login imbriqué dans la page de résultats côté page dédiée). Détection du marqueur name="username" dans la réponse AJAX et rechargement de la page pour déclencher la redirection normale vers le login</change>
+		<change type='fix'>Fil d'Ariane : la purge des entrées de plus d'un mois ne s'appliquait qu'à l'utilisateur courant (filtre fk_user = $user->id), laissant accumuler indéfiniment les entrées des utilisateurs qui ne consultent plus d'objets. Purge globale par entité, comparaison directe sur tms (au lieu de DATE_FORMAT, pour permettre l'utilisation d'index), et nettoyage des entrées corrompues (element vide, fk_element invalide). Échappement de element et cast int des identifiants ajoutés au passage.</change>
+	</Version>
+	<InfraS Downloaded="20260428"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

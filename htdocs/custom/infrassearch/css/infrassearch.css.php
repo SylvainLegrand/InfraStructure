@@ -224,6 +224,7 @@ img.infrassearchwidthpictotitle {
 }
 
 .infrassearchslogan {
+	color: #ffffff;
 	font-size: 16px;
 }
 
