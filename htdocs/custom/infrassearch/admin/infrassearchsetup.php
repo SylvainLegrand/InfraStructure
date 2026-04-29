@@ -126,52 +126,71 @@
 	$modules_key		= array();
 	$modulesdir			= dolGetModulesDirs();
 	// List of all modules that can be used in the search
+	// Phase 1 : scan once each ACTIVE module descriptor (avoid reinstantiation per object type AND avoid side effects from disabled modules)
+	$modulesCache		= array();
+	foreach ($modulesdir as $dir) {	// Load modules attributes in arrays (name, numero, orders) from dir directory
+		$handle	= @opendir(dol_osencode($dir));
+		if (! is_resource($handle)) {
+			continue;
+		}
+		while (($file = readdir($handle))!== false) {
+			if (! is_readable($dir.$file) || substr($file, 0, 3) != 'mod' || substr($file, dol_strlen($file) - 10) != '.class.php') {
+				continue;
+			}
+			$modName	= substr($file, 0, dol_strlen($file) - 10);
+			if (empty($modName)) {
+				continue;
+			}
+			// Filter on filename: only instantiate active modules (skip disabled modules to avoid constructor side effects)
+			$estimatedValid	= strtolower(preg_replace('/^mod/i', '', $modName));
+			$estimatedValid	= $estimatedValid == 'propale' ? 'propal' : $estimatedValid;
+			$estimatedValid	= $estimatedValid == 'supplierproposal' ? 'supplier_proposal' : $estimatedValid;
+			if (! in_array($estimatedValid, $conf->modules)) {
+				continue;
+			}
+			$res	= include_once $dir.$file;
+			if (! class_exists($modName)) {
+				continue;
+			}
+			$objMod			= new $modName($db);
+			$valid			= strtolower(preg_replace('/^mod/i', '', $objMod->name));
+			$valid			= $valid == 'propale' ? 'propal' : $valid;
+			$valid			= $valid == 'supplierproposal' ? 'supplier_proposal' : $valid;
+			$modulesCache[]	= array('valid' => $valid, 'objMod' => $objMod);
+		}
+		closedir($handle);
+	}
+	// Phase 2 : match cached modules with each TObjectType (preserving listTObjectType order)
 	foreach ($listTObjectType as $TObjectType) {
-		foreach ($modulesdir as $dir) {	// Load modules attributes in arrays (name, numero, orders) from dir directory
-			$handle	= @opendir(dol_osencode($dir));
-			if (is_resource($handle)) {
-				while (($file = readdir($handle))!== false) {
-					if (is_readable($dir.$file) && substr($file, 0, 3) == 'mod' && substr($file, dol_strlen($file) - 10) == '.class.php') {
-						$modName	= substr($file, 0, dol_strlen($file) - 10);
-						if ($modName) {
-							$res	= include_once $dir.$file;
-							if (class_exists($modName)) {
-								$objMod			= new $modName($db);
-								$valid			= strtolower(preg_replace('/^mod/i', '', $objMod->name));
-								$valid			= $valid == 'propale' ? 'propal' : $valid;
-								$valid			= $valid == 'supplierproposal' ? 'supplier_proposal' : $valid;
-								$validmodule	= false;
-								if ($valid == $TObjectType && in_array($valid, $conf->modules)) {
-									$modules[$TObjectType]	= $valid == 'product' && in_array('service', $conf->modules) ? $objMod->getName().'/Services' : $objMod->getName();
-									$modules[$TObjectType]	= $valid == 'knowledgemanagement' ? $langs->trans('InfraSSearchLibknowledgemanagement') : $modules[$TObjectType];
-									$modules[$TObjectType]	= $modules[$TObjectType] == 'Propalehistory' ? $langs->trans('InfraSSearchLibPropalHist') : $modules[$TObjectType];
-									$modules[$TObjectType]	= $modules[$TObjectType] == 'rmindr' ? $langs->trans('InfraSSearchLibrmindr') : $modules[$TObjectType];
-									$modules[$TObjectType]	= $modules[$TObjectType] == 'factory' ? $langs->trans('InfraSSearchLibFactory') : $modules[$TObjectType];
-									$modules[$TObjectType]	= $modules[$TObjectType] == 'knowledgemanagement' ? $langs->trans('InfraSSearchLibknowledgemanagement') : $modules[$TObjectType];
-									$validmodule			= true;
-								} elseif ($TObjectType == 'contact' && $valid == 'societe' && in_array($valid, $conf->modules)) {
-									$modules[$TObjectType]	= 'Contacts '.$objMod->getName();
-									$validmodule			= true;
-								} elseif ($TObjectType == 'task' && $valid == 'projet' && in_array($valid, $conf->modules)) {
-									$modules[$TObjectType]	= 'Tâches '.$objMod->getName();
-									$validmodule			= true;
-								} elseif ($TObjectType == 'commandefournisseur' && $valid == 'fournisseur' && in_array($valid, $conf->modules)) {
-									$modules[$TObjectType]	= 'Commandes '.$objMod->getName();
-									$validmodule			= true;
-								} elseif ($TObjectType == 'facturefournisseur' && $valid == 'fournisseur' && in_array($valid, $conf->modules)) {
-									$modules[$TObjectType]	= 'Factures '.$objMod->getName();
-									$validmodule			= true;
-								}
-								if ($validmodule) {
-									$modules_names[$TObjectType]	= $objMod->name;
-									$modules_picto[$TObjectType]	= (isset($objMod->picto) && $objMod->picto) ? $objMod->picto : 'generic';
-									$modules_key[$TObjectType]		= 'INFRASSEARCH_MOD_'.strtoupper($TObjectType);
-								}
-							}
-						}
-					}
-				}
-				closedir($handle);
+		foreach ($modulesCache as $cached) {
+			$valid			= $cached['valid'];
+			$objMod			= $cached['objMod'];
+			$validmodule	= false;
+			if ($valid == $TObjectType && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $valid == 'product' && in_array('service', $conf->modules) ? $objMod->getName().'/Services' : $objMod->getName();
+				$modules[$TObjectType]	= $valid == 'knowledgemanagement' ? $langs->trans('InfraSSearchLibknowledgemanagement') : $modules[$TObjectType];
+				$modules[$TObjectType]	= $modules[$TObjectType] == 'Propalehistory' ? $langs->trans('InfraSSearchLibPropalHist') : $modules[$TObjectType];
+				$modules[$TObjectType]	= $modules[$TObjectType] == 'rmindr' ? $langs->trans('InfraSSearchLibrmindr') : $modules[$TObjectType];
+				$modules[$TObjectType]	= $modules[$TObjectType] == 'factory' ? $langs->trans('InfraSSearchLibFactory') : $modules[$TObjectType];
+				$modules[$TObjectType]	= $modules[$TObjectType] == 'knowledgemanagement' ? $langs->trans('InfraSSearchLibknowledgemanagement') : $modules[$TObjectType];
+				$validmodule			= true;
+			} elseif ($TObjectType == 'contact' && $valid == 'societe' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= 'Contacts '.$objMod->getName();
+				$validmodule			= true;
+			} elseif ($TObjectType == 'task' && $valid == 'projet' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= 'Tâches '.$objMod->getName();
+				$validmodule			= true;
+			} elseif ($TObjectType == 'commandefournisseur' && $valid == 'fournisseur' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= 'Commandes '.$objMod->getName();
+				$validmodule			= true;
+			} elseif ($TObjectType == 'facturefournisseur' && $valid == 'fournisseur' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= 'Factures '.$objMod->getName();
+				$validmodule			= true;
+			}
+			if ($validmodule) {
+				$modules_names[$TObjectType]	= $objMod->name;
+				$modules_picto[$TObjectType]	= (isset($objMod->picto) && $objMod->picto) ? $objMod->picto : 'generic';
+				$modules_key[$TObjectType]		= 'INFRASSEARCH_MOD_'.strtoupper($TObjectType);
 			}
 		}
 	}

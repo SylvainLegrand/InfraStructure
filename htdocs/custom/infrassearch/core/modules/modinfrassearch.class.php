@@ -189,11 +189,14 @@
 			infrassearch_restore_module ($this->name);
 			$listTObjectType	= array('agenda', 'categorie', 'commande', 'commandefournisseur', 'contact', 'contacttracking', 'contrat', 'domain', 'equipement', 'expedition', 'expensereport',
 										'factory', 'facture', 'facturefournisseur', 'ficheinter', 'hosting', 'knowledgemanagement', 'ndfp', 'product', 'projet', 'propal', 'propalehistory', 'rmindr',
-										'societe', 'supplier_proposal', 'task', 'ticketsup');
+										'societe', 'supplier_proposal', 'task');
 			dolibarr_set_const($db, 'INFRASSEARCH_LISTTOBJECTTYPE', implode(',', $listTObjectType), 'chaine', 0, 'InfraSSearch module', $conf->entity);
 			dolibarr_set_const($db, 'INFRASSEARCH_DOL_VERSION',		DOL_VERSION,	'chaine', 0, 'InfraSSearch module', $conf->entity);
 			dolibarr_set_const($db, 'INFRASSEARCH_MAIN_VERSION',	$this->version,	'chaine', 0, 'InfraSSearch module', $conf->entity);
-			$sql				= array('UPDATE '.$this->db->prefix().'const SET name = REPLACE(name, "INFRASSEARCH_", "INFRASSEARCH_MOD_") WHERE name IN ("INFRASSEARCH_AGENDA", "INFRASSEARCH_CATEGORIE", "INFRASSEARCH_COMMANDE", "INFRASSEARCH_COMMANDEFOURNISSEUR", "INFRASSEARCH_CONTACT", "INFRASSEARCH_CONTACTTRACKING", "INFRASSEARCH_CONTRAT", "INFRASSEARCH_DOMAIN", "INFRASSEARCH_EQUIPEMENT", "INFRASSEARCH_EXPEDITION", "INFRASSEARCH_EXPENSEREPORT", "INFRASSEARCH_FACTORY", "INFRASSEARCH_FACTURE", "INFRASSEARCH_FACTUREFOURNISSEUR", "INFRASSEARCH_FICHEINTER", "INFRASSEARCH_HOSTING", "INFRASSEARCH_KNOWLEDGEMANAGEMENT", "INFRASSEARCH_NDFP", "INFRASSEARCH_PRODUCT", "INFRASSEARCH_PROJET", "INFRASSEARCH_PROPAL", "INFRASSEARCH_PROPALEHISTORY", "INFRASSEARCH_RMINDR", "INFRASSEARCH_SOCIETE", "INFRASSEARCH_SUPPLIER_PROPOSAL", "INFRASSEARCH_TASK", "INFRASSEARCH_TICKETSUP") AND entity = "'.$conf->entity.'"');
+			$sql				= array(
+				'UPDATE '.$this->db->prefix().'const SET name = REPLACE(name, "INFRASSEARCH_", "INFRASSEARCH_MOD_") WHERE name IN ("INFRASSEARCH_AGENDA", "INFRASSEARCH_CATEGORIE", "INFRASSEARCH_COMMANDE", "INFRASSEARCH_COMMANDEFOURNISSEUR", "INFRASSEARCH_CONTACT", "INFRASSEARCH_CONTACTTRACKING", "INFRASSEARCH_CONTRAT", "INFRASSEARCH_DOMAIN", "INFRASSEARCH_EQUIPEMENT", "INFRASSEARCH_EXPEDITION", "INFRASSEARCH_EXPENSEREPORT", "INFRASSEARCH_FACTORY", "INFRASSEARCH_FACTURE", "INFRASSEARCH_FACTUREFOURNISSEUR", "INFRASSEARCH_FICHEINTER", "INFRASSEARCH_HOSTING", "INFRASSEARCH_KNOWLEDGEMANAGEMENT", "INFRASSEARCH_NDFP", "INFRASSEARCH_PRODUCT", "INFRASSEARCH_PROJET", "INFRASSEARCH_PROPAL", "INFRASSEARCH_PROPALEHISTORY", "INFRASSEARCH_RMINDR", "INFRASSEARCH_SOCIETE", "INFRASSEARCH_SUPPLIER_PROPOSAL", "INFRASSEARCH_TASK") AND entity = "'.$conf->entity.'"',
+				'DELETE FROM '.$this->db->prefix().'const WHERE name IN ("INFRASSEARCH_TICKETSUP", "INFRASSEARCH_MOD_TICKETSUP", "INFRASSEARCH_POS_TICKETSUP") AND entity = "'.$conf->entity.'"',
+			);
 			return $this->_init($sql, $options);
 		}
 

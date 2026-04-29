@@ -364,6 +364,9 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - `15.4.7` (2026-04) : correction d'un bug de pertinence — les fragments à zéros initiaux (`0001`, `001`) étaient interprétés comme l'entier `1`, polluant les résultats avec des matches sur `qty=1`, `status=1`, etc. Filtre ajouté : `ltrim($keyword, '0') === $keyword`
 - `15.4.7` (2026-04) : correction de la gestion de session expirée sur les endpoints AJAX — `main.inc.php` retournait silencieusement le HTML du formulaire de login (HTTP 200) à la place du JSON / HTML attendu. Détection client de `name="username"` dans la réponse et rechargement de la page pour déclencher la redirection normale vers le login (3 points d\'AJAX corrigés : menu haut, recherche standard remplacée, page de recherche dédiée)
 - `15.4.7` (2026-04) : correction de la purge du fil d\'Ariane — le filtre `fk_user = $user->id` empêchait la suppression des entrées des utilisateurs qui ne consultent plus d\'objets, faisant croître la table indéfiniment (entrées de 2022 toujours présentes). Purge globale par entité, comparaison directe `tms <` (au lieu de `DATE_FORMAT(tms,...)` pour permettre l\'usage d\'index), et nettoyage des entrées corrompues (`element=''`, `fk_element <= 0`). Sécurité : ajout de `$db->escape($object->element)` et cast `(int)` sur les identifiants
+- `15.4.7` (2026-04) : optimisation du chargement de `infrassearchsetup.php` — la double boucle `foreach ($listTObjectType) { foreach ($modulesdir) }` instanciait chaque descripteur de module une fois par type d'objet (~4300 instanciations sur une instance avec ~160 modules et 27 types). Refactorisation en deux phases : phase 1 scanne et instancie chaque module une seule fois dans `$modulesCache`, phase 2 itère sur `$listTObjectType` et matche avec le cache. L'ordre d'affichage est préservé via la boucle externe sur `$listTObjectType`.
+- `15.4.7` (2026-04) : correction d'un bug d'effet de bord lors de l'instanciation des modules désactivés sur la page de paramètres. Symptômes constatés sur certaines instances (fitantanana) : alignement vertical du `login_block` cassé et favicon remplacé par l'icône Dolibarr par défaut, uniquement sur cette page. Cause : la phase 1 instanciait tous les descripteurs `mod*.class.php` présents sur disque, y compris ceux des modules désactivés ; le constructeur d'un de ces modules désactivés modifiait `$conf` ou ajoutait une ressource au top menu. Filtre ajouté **avant** `new $modName($db)` : nom estimé depuis le fichier (`modSociete.class.php` → `societe`, avec mappings `propale` → `propal` et `supplierproposal` → `supplier_proposal`), testé contre `$conf->modules`. Bénéfice secondaire : performance encore améliorée puisqu'on n'instancie plus que les modules actifs.
+- `15.4.7` (2026-04) : abandon du module externe `ticketsup` (Librethic) qui n'est plus maintenu
 - Entrées du changelog par version (types : `add`, `chg`, `fix`)
 
 Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
@@ -428,7 +431,7 @@ La fonction `_search()` effectue une recherche en profondeur sur toutes les colo
 5. **Compatibilité modules externes** :
    - `customtabs` (Patas-Monkey) : ajout dynamique des tables d'extrafields personnalisées
    - `infraspackplus` : jointure sur `infraspackplus_societe_address` si module actif et version ≥ 15.6.1
-   - Modules tiers supportés : `contacttracking`, `domain`, `hosting`, `ticketsup`, `propalehistory`, `rmindr`, `factory`, `equipement`, `ndfp`
+   - Modules tiers supportés : `contacttracking`, `domain`, `hosting`, `propalehistory`, `rmindr`, `factory`, `equipement`, `ndfp` (le support de `ticketsup` est abandonné depuis 15.4.7)
 
 ### Normalisation téléphone (Phone normalization)
 
@@ -524,7 +527,7 @@ La liste complète des types est stockée dans `INFRASSEARCH_LISTTOBJECTTYPE` (C
 | `categorie` | `Categorie` | Catégories |
 | `knowledgemanagement` | `KnowledgeRecord` | Base de connaissances |
 
-Types issus de modules externes : `contacttracking`, `domain`, `hosting`, `ticketsup`, `propalehistory`, `rmindr`, `factory`, `equipement`, `ndfp`.
+Types issus de modules externes : `contacttracking`, `domain`, `hosting`, `propalehistory`, `rmindr`, `factory`, `equipement`, `ndfp` (le support de `ticketsup` est abandonné depuis 15.4.7).
 
 Lors de la désactivation d'un module Dolibarr, le hook `doActions` (contexte `adminmodules`) supprime automatiquement les constantes `INFRASSEARCH_MOD_*` et `INFRASSEARCH_POS_*` du module désactivé.
 

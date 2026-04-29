@@ -318,8 +318,11 @@
 		<change type='fix'>Recherche : Les fragments de référence à zéros initiaux (ex. "0001", "001") étaient interprétés comme des entiers et polluaient les résultats avec des matches non pertinents sur les colonnes int / double</change>
 		<change type='fix'>Recherche : Quand la session expirait, le moteur AJAX recevait silencieusement le formulaire de login HTML à la place du JSON / HTML attendu (échec de parsing JSON sans handler d'erreur côté menu haut, formulaire de login imbriqué dans la page de résultats côté page dédiée). Détection du marqueur name="username" dans la réponse AJAX et rechargement de la page pour déclencher la redirection normale vers le login</change>
 		<change type='fix'>Fil d'Ariane : la purge des entrées de plus d'un mois ne s'appliquait qu'à l'utilisateur courant (filtre fk_user = $user->id), laissant accumuler indéfiniment les entrées des utilisateurs qui ne consultent plus d'objets. Purge globale par entité, comparaison directe sur tms (au lieu de DATE_FORMAT, pour permettre l'utilisation d'index), et nettoyage des entrées corrompues (element vide, fk_element invalide). Échappement de element et cast int des identifiants ajoutés au passage.</change>
+		<change type='fix'>Paramètres : la page de configuration instanciait tous les descripteurs de modules présents sur disque, y compris ceux désactivés. Sur certaines instances, le constructeur d'un module désactivé provoquait un effet de bord visuel (alignement vertical du login_block cassé, favicon par défaut au lieu du logo carré). Filtre ajouté avant instanciation : seuls les modules présents dans $conf->modules sont chargés.</change>
+		<change type='chg'>Paramètres : Optimisation du chargement de la page de configuration => les descripteurs de modules ne sont plus instanciés une fois par type d'objet (parcours en N×M) mais une seule fois et mis en cache, puis matchés avec la liste des types d'objets (réduction de ~4300 à ~160 instanciations sur une instance avec ~160 modules et 27 types). Combiné au filtre des modules actifs uniquement, le gain est encore plus important.</change>
+		<change type='chg'>Abandon du module Ticketsup qui n'est plus maintenu</change>
 	</Version>
-	<InfraS Downloaded="20260428"/>
+	<InfraS Downloaded="20260429"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

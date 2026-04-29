@@ -57,8 +57,6 @@
 						'/contacttracking/class/contacttracking.class.php',
 						'/domain/class/domain.class.php',
 						'/hosting/class/host.class.php',
-						'/ticketsup/class/ticketsup.class.php',
-						'/ticketsup/class/ticketsuplogs.class.php',
 						'/abricot/inc.core.php',
 						'/propalehistory/class/propaleHist.class.php',
 						'/rmindr/class/rmindr.class.php',
@@ -451,20 +449,6 @@
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'socpeople ON ('.$db->prefix().'element_contact.fk_socpeople = '.$db->prefix().'socpeople.rowid)';
 				$id_field		= $db->prefix().'projet_task.rowid';
 				$order_field	= $db->prefix().'projet_task.datec';
-			break;
-			case 'ticketsup':
-				$tables			= array($db->prefix().'ticketsup', $db->prefix().'ticketsup_extrafields', $db->prefix().'ticketsup_logs', $db->prefix().'ticketsup_msg', $db->prefix().'societe', $db->prefix().'socpeople');
-				$objname		= 'Ticketsup';
-				$complete_label = 'subject';
-				$sql_join		= 'LEFT JOIN '.$db->prefix().'ticketsup_extrafields ON ('.$db->prefix().'ticketsup.rowid = '.$db->prefix().'ticketsup_extrafields.fk_object)';
-				$sql_join		.= 'LEFT JOIN '.$db->prefix().'ticketsup_logs ON ('.$db->prefix().'ticketsup.track_id = '.$db->prefix().'ticketsup_logs.fk_track_id)';
-				$sql_join		.= 'LEFT JOIN '.$db->prefix().'ticketsup_msg ON ('.$db->prefix().'ticketsup.track_id = '.$db->prefix().'ticketsup_msg.fk_track_id)';
-				$sql_join		.= ' LEFT JOIN '.$db->prefix().'societe ON ('.$db->prefix().'ticketsup.fk_soc = '.$db->prefix().'societe.rowid)';
-				$sql_join		.= ' LEFT JOIN '.$db->prefix().'c_type_contact ON ('.$db->prefix().'c_type_contact.element = "ticketsup")';
-				$sql_join		.= ' LEFT JOIN '.$db->prefix().'element_contact ON ('.$db->prefix().'ticketsup.rowid = '.$db->prefix().'element_contact.element_id AND '.$db->prefix().'c_type_contact.rowid = '.$db->prefix().'element_contact.fk_c_type_contact)';
-				$sql_join		.= ' LEFT JOIN '.$db->prefix().'socpeople ON ('.$db->prefix().'element_contact.fk_socpeople = '.$db->prefix().'socpeople.rowid)';
-				$id_field		= $db->prefix().'ticketsup.rowid';
-				$order_field	= $db->prefix().'ticketsup.datec';
 			break;
 		}
 		$sql_where	= ' 0 ';

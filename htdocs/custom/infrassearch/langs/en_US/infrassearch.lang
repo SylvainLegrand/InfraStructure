@@ -113,7 +113,6 @@ InfraSSearchLibNdfp                = Expenses +
 InfraSSearchLibContacttracking     = Follow-up of exchanges and contacts
 InfraSSearchLibDomain              = Domains
 InfraSSearchLibHost                = Host
-InfraSSearchLibTicketsup           = Tickets
 InfraSSearchLibPropalHist          = quote variants
 InfraSSearchLibrmindr              = RmindR
 InfraSSearchLibFactory             = Manufacturing

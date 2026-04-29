@@ -113,7 +113,6 @@ InfraSSearchLibNdfp                = Notes de frais +
 InfraSSearchLibContacttracking     = Suivi des échanges et contacts
 InfraSSearchLibDomain              = Domaines
 InfraSSearchLibHost                = Hôtes
-InfraSSearchLibTicketsup           = Tickets
 InfraSSearchLibPropalHist          = Variantes de Devis
 InfraSSearchLibrmindr              = RmindR
 InfraSSearchLibFactory             = Fabrications
