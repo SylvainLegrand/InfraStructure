@@ -1,6 +1,5 @@
 <?php
-
-namespace subtotal;
+namespace infrastructure;
 
 /* Copyright (C) 2023 Laurent Destailleur  <eldy@users.sourceforge.net>
  *
@@ -27,7 +26,7 @@ namespace subtotal;
 
 if (file_exists(DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php')){
 
-	require_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
+	include_once DOL_DOCUMENT_ROOT . '/core/class/commonhookactions.class.php';
 	/**
 	 *	Parent class of all other hook actions classes
 	 */

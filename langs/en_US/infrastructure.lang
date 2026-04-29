@@ -1,0 +1,226 @@
+# Dolibarr language file - en_US - Infrastructure
+CHARSET                         = UTF-8
+basenameInfrastructure          = InfraS
+modnameInfrastructure           = infrastructure
+modcomnameInfrastructure        = InfraStructure
+Module550090Name                = InfraStructure
+Module550090Desc                = Allows structuring commercial documents by grouping lines by title and subtotal, with many customization and title management options.
+Module550090DescTrigger         = Trigger for the InfraStructure module management
+easyaFamily                     = Easya Solutions
+DolibarrMinVersionRequired      = Minimum Dolibarr version required
+NewVersionAvailable             = Latest version available
+PiloteVersion                   = Pilot version
+InfrastructureCaution           = <b>WARNING!</b>
+InfrastructureCautionMess       = <center><b>----- please read carefully! -----</b></center>
+InfrastructureXMLextError       = <br><center>The PHP 'XML' extension is not loaded<br>Some module features will not be available</center>
+InfrastructureChangelogXMLError = Error changelog.xml
+InfrastructurenoMinDolVersion   = No known minimum version
+InfrastructurenoMaxDolVersion   = No known maximum version
+
+### Actions and buttons ###
+InfrastructuresAndTitlesActionBtnLabel = Title & Infrastructure
+
+### Setup page ###
+InfrastructureSetup                                            = Infrastructure module setup
+InfrastructureParamTitleComp                                   = Infrastructure module settings
+InfrastructureParamAction1                                     = Save / Restore all module settings
+InfrastructureParamAction2                                     = <br>(after a restore, refresh the page (F5) to see the result)
+InfrastructureParamBkup                                        = Save
+InfrastructureParamRestore                                     = Restore
+InfrastructureParamCautionSave                                 = Click the '<b>Save</b>' button after any change!
+InfrastructureHideFoldersByDefault                             = Collapse folders by default
+Infrastructure_ForceHideAll                                    = Hide all lines of the block as well as lines from lower-level title blocks
+InfrastructureHideOptionsTitle                                 = Hide title options
+InfrastructureHideOptionsBuildDoc                              = Hide document generation options
+InfrastructureHideOptionsBreakPageBefore                       = Hide the page break before option
+Infrastructure_HideAll                                         = Hide all lines
+Infrastructure_Hide                                            = Hide lines
+InfrastructureHideSubtitleOnFold                               = Hide child title and infrastructure lines
+InfrastructureHidePriceDefaultChecked                          = By default, check the box "Hide the price of lines in sets" when generating PDFs
+InfrastructureHideDocumentTotal                                = Hide totals
+InfrastructureIfHidePricesShowQty                              = Display quantity on product lines
+Infrastructure_ShowAll                                         = Show all lines
+Infrastructure_Hide                                            = Hide lines
+Infrastructure_Show                                            = Show lines
+InfrastructureUseNewFormat                                     = Enable advanced functionality
+InfrastructureUseNewFormatHelp                                 = By enabling this option, new features and behaviors appear.<br/>Among the new behaviors: <ul><li>Adds the notion of title level and infrastructure</li></ul>
+InfrastructureUseNumerotation                                  = Enable auto numbering on PDF
+InfrastructureAllowAddBlock                                    = Allow adding a title and infrastructure
+InfrastructureAllowEditBlock                                   = Allow editing a title or infrastructure
+InfrastructureAllowRemoveBlock                                 = Allow deleting a title or infrastructure
+InfrastructureAllowDuplicateBlock                              = Allow block duplication
+InfrastructureAllowDuplicateLine                               = Allow line duplication
+InfrastructureAllowExtrafieldsOnTitle                          = Allow extrafields display on titles (recorded data will then populate the block lines)
+InfrastructureAllowAddLineUnderTitle                           = Allow adding a free line and/or product directly under a title
+InfrastructureTextLineStyle                                    = Free text style (B = bold, U = underline, I = italic)
+InfrastructureTitleStyle                                       = Title style (B = bold, U = underline, I = italic)
+InfrastructureTitleSize                                        = Title size
+InfrastructureTitleSizeInfo                                    = equal to 9 if not specified
+InfrastructureTitleToAddUnderTitle                             = Add under
+InfrastructureTitleBackgroundcolor                             = Background color used for titles
+InfrastructureInfrastructureStyle                              = Infrastructures style (B = bold, U = underline, I = italic)
+InfrastructureInfrastructureHideBackground                     = Disable background color (highlighting) for infrastructures
+InfrastructureInfrastructureBackgroundcolor                    = Background color used for infrastructures
+InfrastructureBlocFoldMode                                     = Behavior when hiding a title block
+InfrastructureOptions                                          = Infrastructure options
+InfrastructureOneLineIfHideInnerlines                          = Get one line with title and infrastructure if "%s" is enabled (experimental)
+InfrastructureReplaceWithVatIfHideInnerlines                   = Replace with VAT details if "%s" is enabled (experimental)
+InfrastructureNumberOfHiddenLines                              = Number of hidden lines
+Infrastructure_ForceShowAll                                    = Show all lines of the block as well as lines from lower-level title blocks
+InfrastructureKeepSubtitleDisplayOnFold                        = Show child title and infrastructure lines
+InfrastructureAddTitleBlocFromOrderstoinvoice                  = Add a title and infrastructure block between each order
+InfrastructureAutoAddInfrastructureOnAddingNewTitle            = Adding a title will add missing infrastructures above
+InfrastructureAddLineUnderTitleAtEndBlock                      = Adding under a title will be done at the end of the section
+InfrastructureTextForTitleOrdetstoinvoice                      = Title text when invoicing via customer tab -> "Invoice orders" button
+InfrastructureTextForTitleOrdetstoinvoiceInfo                  = Replacement keys:<br /><b>__REFORDER__</b> = Order reference<br /><b>__REFCUSTOMER__</b> = Customer reference of the order
+InfrastructureDefaultDisplayQtyForInfrastructureOnElements     = Enable display of quantity sum on infrastructure lines for document templates:
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Enable display of quantity sum on infrastructure lines for selected document templates
+InfrastructureTitleAndInfrastructureBrightnessPercentage       = Brightness reduction percentage between each level of titles / subtitles / infrastructures
+InfrastructureTitleAndInfrastructureBrightnessPercentageInfo   = The colors chosen above will be those of level 1 and lower levels will be lighter according to this percentage (level 1 = chosen color, level 2 = chosen color - percentage, level 3 = chosen color - 2*percentage, etc.)
+
+### Changelog / Support ###
+InfrastructureParamChangelog            = Support / changelog
+InfrastructureParamPresent1             = <b>This module is a creation of<b>
+InfrastructureParamPresent2             = <b>, documentation is available on our website<b>
+InfrastructureParamSlogan               = Structure your growth!
+InfrastructureParamLienModules          = Our Modules
+InfrastructureParamSupport              = Support request
+InfrastructureParamMoreModulesLink      = Our modules on Dolistore
+InfrastructureParamLienDocs             = Our Documentation
+InfrastructureParamLicense              = under GPL v3 License and above
+InfrastructureParamPreferedPartner1     = Member of the official program
+InfrastructureParamPreferedPartner2     = Preferred Partner, a guarantee of quality and expertise
+InfrastructureParamObjet                = <h3>Purpose:</h3>
+InfrastructureParamHistoryUpdates       = <b>Update history:</b>
+InfrastructureParamSkipCheck            = Download disabled
+InfrastructureParamNumberVersion        = Version number
+InfrastructureParamDolinfrasVersion     = LTS version number
+InfrastructureParamMonthVersion         = Date
+InfrastructureParamChangesVersion       = Changes
+InfrastructureParamCheckNewVersion      = New Changelog
+InfrastructureParamCheckNewVersionTitle = Click to download the changelog of the latest available version
+InfrastructureSupportInformation        = Information
+
+### Infrastructure actions ###
+InfrastructureTitle                                 = Group title
+Infrastructure                                      = Infrastructure
+InfrastructureAddLineDescription                    = Description...
+InfrastructureSubtitle                              = Subgroup title
+InfrastructureAddTitle                              = Add a title
+InfrastructureSubInfrastructure                     = Sub-infrastructure
+InfrastructureAddInfrastructure                     = Add a infrastructure
+InfrastructureAddSubTitle                           = Add a subtitle
+InfrastructureAddSubInfrastructure                  = Add a sub-infrastructure
+InfrastructureHideInnerLines                        = Hide the details of sets
+InfrastructureHideDetails                           = Hide price and quantities of lines in sets
+InfrastructureHidePrice                             = Hide the price of lines in sets
+InfrastructureYourTitleLabel                        = Enter your title
+InfrastructureYourInfrastructureLabel               = Enter your infrastructure
+InfrastructureYourTextLabel                         = Enter your description
+InfrastructureDeleteWithAllLines                    = Delete with all contained lines
+InfrastructureConfirmDeleteAllThisLines             = Confirm deletion of %s lines?
+InfrastructureAddBreakPageBefore                    = Add a page break before.
+InfrastructureShowTableHeaderBefore                 = ONLY display the table header just before this title
+InfrastructurePrintAsList                           = Print details of this title as a list
+InfrastructurePrintCondensed                        = Print details of this title in summary
+InfrastructureLineShowQty                           = Display the infrastructure quantity
+InfrastructureLevel                                 = Level
+InfrastructureLabel                                 = <b>Infrastructure: </b>
+InfrastructureDuplicate                             = Duplicate
+InfrastructureAddFreeText                           = Add a text line
+InfrastructureAmountBeforeTaxesSubjectToVATXPercent = Amount before taxes subject to %s (%s %%)
+InfrastructureMoveTitleBlock                        = Move the complete title block
+InfrastructureShowTotalHTOnInfrastructureBlock      = Display the Unit Price excl. tax of the infrastructure
+InfrastructureShowReducOnInfrastructureBlock        = Display the discount on the infrastructure line
+
+### Duplication ###
+InfrastructureDuplicateSuccess        = %s lines duplicated
+InfrastructureDuplicateLineidNotFound = Unable to duplicate the block, the title identifier was not found
+InfrastructureDuplicateError          = Duplication failed
+
+### VAT and progress ###
+InfrastructureApplyDefaultTva                        = Apply a VAT to the block
+InfrastructureApplyDefaultTvaHelp                    = Allows to define a general VAT on all lines of the block
+InfrastructureApplyProgress                          = Apply a progress to the block
+InfrastructureSuccessUpdatedLine                     = Lines updated: %s
+InfrastructureErrorUpdatedLine                       = Error: %s lines not updated
+InfrastructureNbProgressNotUpdated                   = Warning: progress not updated for %s lines (previous progress is lower than the new rate)
+InfrastructureShowTvaOnInfrastructureLinesOnElements = Show VAT rate with infrastructures if all rows in the block have the same rate
+InfrastructureLimitTvaOnCondensedBlocs               = Limit the display of the VAT rate to blocks printed in condensed or list format.
+
+### "Not Included" (NC) management ###
+InfrastructureManageNonCompris         = Management of "Not included"
+InfrastructureUpdateNcSuccess          = Total updated
+InfrastructureUpdateNcError            = Error: total not updated
+InfrastructureNcTitle                  = NI
+InfrastructureNcTitleHelp              = Management of blocks Not Included in the total calculation
+InfrastructureManageComprisNoncompris  = Enable management of "Not Included" blocks to exclude from total
+InfrastructureTfieldToKeepWithNc       = Columns to display on lines marked "Not Included"
+InfrastructureNoncomprisUpdatePaHt     = The "Not Included" management also empties the cost price
+InfrastructureNoncomprisUpdatePaHtInfo = Warning: if you set the line back to included, you will need to re-enter the cost price
+
+### Summary ###
+InfrastructureRecap                            = Summary
+InfrastructurePropalTitle                      = Proposal %s %s
+InfrastructureCommandeTitle                    = Order %s %s
+InfrastructureInvoiceTitle                     = Invoice %s %s
+InfrastructureRecapLot                         = Lot summary
+InfrastructureRecapGeneration                  = Generate a summary by title
+InfrastructureKeepRecapFile                    = Keep the summary PDF after merge
+InfrastructurePropalAddRecap                   = Enable summary generation on proposals
+InfrastructureCommandeAddRecap                 = Enable summary generation on orders
+InfrastructureInvoiceAddRecap                  = Enable summary generation on invoices
+InfrastructureWarningRecapObjectElementUnknown = Cannot generate the summary by title, unknown element: %s
+InfrastructureAddRecap                         = Add the summary
+
+### Extrafields ###
+InfrastructureFreeLineDictionary                    = Pre-existing text line
+InfrastructureLabelForUnderTitle                    = Add into block:
+InfrastructureLabelForFreeText                      = Pre-existing text:
+InfrastructureFreeTextOrDesc                        = or write a custom description...
+InfrastructureShowExtrafields                       = Edit additional attributes
+InfrastructureHideExtrafields                       = Hide additional attributes
+InfrastructureSetupForExtrafields                   = Settings related to additional fields
+InfrastructureListOfExtrafieldsPropaldet            = Additional fields available on titles in customer proposals
+InfrastructureListOfExtrafieldsCommandedet          = Additional fields available on titles in customer orders
+InfrastructureListOfExtrafieldsFacturedet           = Additional fields available on titles in customer invoices
+InfrastructureConcatTitleLabelInInfrastructureLabel = On the infrastructure lines of the PDF, add the title label to which it is attached.
+
+### Shippable orders ###
+InfrastructureAddLineTitleInOrderShippable      = Add Title, total, free lines to shippable orders (you will need to manually remove infrastructure lines if necessary)
+InfrastructureAddLineTitleInOrderShippableTitle = Line management option setup for the infrastructure module for shippable orders
+InfrastructureShippableOrder                    = Line management option setup for the infrastructure module for shippable orders
+InfrastructureNoTitleShowOnExpedGeneration      = Do not carry over title lines when generating shipments
+
+### Shipments and deliveries ###
+InfrastructureLinkedShippings       = Linked shipping orders
+InfrastructureLinkedShipping        = Linked shipping order
+InfrastructureLinkedDeliveries      = Linked delivery notes
+InfrastructureLinkedDelivery        = Linked delivery note
+InfrastructureAddShippingListToTile = Add the reference list of related shipping or delivery notes to the title block description
+
+### Miscellaneous options ###
+InfrastructureCloneLInfrastructureBlock      = Clone the title/infrastructure block
+InfrastructureDisplayMarginOnInfrastructures = Display margins on infrastructure lines
+InfrastructureQuickSummary                   = Quick summary
+InfrastructureDisableSummary                 = Disable the "quick summary" menu (floating button visible when the document has titles)
+InfrastructureOptions                        = Infrastructure options
+InfrastructureSetup                          = Infrastructure module setup
+InfrastructureSetupPage                      = Infrastructure module setup
+InfrastructureSetupForSubBlocs               = Setting the option "Hide the price of lines in sets"
+InfrastructureUseHiddenConfToAutoCheck       = To pre-set the default, you can activate the setting
+InfrastructureExperimental                   = EXPERIMENTAL
+InfrastructureExperimentalZone               = Experimental or deprecated configurations
+InfrastructureShowQtyOnTitles                = Display quantity on infrastructure lines (only when a virtual product is added)
+InfrastructureOnlyHideSubproductsPrices      = Hide only prices for products in a set
+
+### Errors ###
+InfrastructureErrorDeleteLine                  = Error when deleting a line from the infrastructure module
+InfrastructureErrorLoadingLinesFromLinkedOrder = Error while loading order lines associated with the shipment
+InfrastructureErrorLoadingLinkedOrder          = Error while loading the order associated with the shipment
+InfrastructureErrorNoLinkedOrder               = No associated order
+InfrastructureErrorClassXNotExists             = ERROR: the PHP class %s is not loaded
+InfrastructureMigrateSubtotalFailed            = Migration test from subtotal module failed, activation aborted
+InfrastructureMigrateSubtotalRealRunFailed     = Real migration from subtotal module failed
+InfrastructureCleanupSubtotalFailed            = Cleanup of subtotal module after migration failed
+InfrastructureMigrateSpecialCodeFailed         = Special code migration (104777 to 550090) failed, activation aborted
