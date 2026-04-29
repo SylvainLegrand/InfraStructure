@@ -541,6 +541,7 @@
 								if (action == 'addTitle' || action == 'addFreeTxt') {
 									if (typeof use_textarea != 'undefined' && use_textarea && typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined") {
 										CKEDITOR.replace('sub-total-title', {
+											customConfig: ckeditorConfig,
 											toolbar: 'dolibarr_details',
 											versionCheck: false,
 											toolbarStartupExpanded: false,
