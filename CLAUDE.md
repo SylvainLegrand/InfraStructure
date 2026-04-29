@@ -478,6 +478,7 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 - `3.30.1` (2026-04) : sommaire rapide (`InfrastructureQuickSummary`) affiché en bouton flottant dépliable au lieu d'un menu en sidebar ; compensation des barres sticky oblyon (`FIX_AREAREF_CARD`, `FIX_STICKY_TABS_CARD`) lors du scroll ; nettoyage des images inutilisées du dossier `img/`
 - `18.1.2` (2026-04) : bascule vers la numérotation alignée sur la version Dolibarr minimale (`18.x.y`, même convention que `infraspackplus`) ; optimisations de performance PDF — pré-chauffage du cache parent/titre au plus tôt dans `beforePDFCreation` et remplacement des appels directs à `getParentTitleOfLine` par la version cachée (évite des O(n²) sur documents volumineux) ; mémoïsation de `get_totalLineFromObject` et du `array_reverse` des lignes durant le pipeline PDF
 - `18.1.3` (2026-04) : Correction de la requête SQL, les constantes et les extrafields pour éviter les erreurs ou doublons si les champs existent déjà. Suppression du BOM UTF-8 et conversion CRLF → LF sur l'ensemble des fichiers texte du module (33 fichiers : PHP, JS, CSS, langs, SQL, XML, Markdown) — le BOM dans `backport/v19/core/class/commonhookactions.class.php` provoquait une erreur fatale « Namespace declaration statement has to be the very first statement » au chargement du hookmanager. Mise en conformité avec les standards Dolibarr (UTF-8 sans BOM, fins de ligne LF).
+- `18.1.3` (2026-04) : Amélioration de la function infrastructure_addExtraField()
 
 
 ## Notes techniques (Technical notes)

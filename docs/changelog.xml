@@ -362,6 +362,7 @@
 	<Version Number="18.1.3" MonthVersion="2026-05">
 		<change type='fix'>Correction de la requête SQL, les constantes et les extrafields pour éviter les erreurs ou doublons si les champs existent déjà.</change>
 		<change type='fix'>Suppression du BOM UTF-8 et conversion CRLF → LF sur l'ensemble des fichiers texte du module (33 fichiers : PHP, JS, CSS, langs, SQL, XML, Markdown). Le BOM en tête du fichier backport/v19/core/class/commonhookactions.class.php provoquait une erreur fatale "Namespace declaration statement has to be the very first statement" lors du chargement du hookmanager. Mise en conformité avec les standards Dolibarr (UTF-8 sans BOM, fins de ligne LF).</change>
+		<change type='fix'>Amélioration de la function infrastructure_addExtraField()</change>
 	</Version>
 	<InfraS Downloaded="20260428"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="23.x.x"/>
