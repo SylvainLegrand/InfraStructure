@@ -179,24 +179,24 @@
 
 			$TElementType	= array('propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det');
 			foreach ($TElementType as $element_type) {
-				infrastructure_addExtraField('show_total_ht', $langs->trans('SubTotalShowTotalHTOnSubtotalBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-				infrastructure_addExtraField('show_reduc', $langs->trans('SubTotalShowReductionOnSubtotalBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-				infrastructure_addExtraField('infrastructure_show_qty', $langs->trans('SubTotalLineShowQty'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+				infrastructure_addExtraField('show_total_ht', $langs->trans('InfrastructureShowTotalHTOnInfrastructureBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1, '', $conf->entity, '', 'isModEnabled("infrastructure")');
+				infrastructure_addExtraField('show_reduc', $langs->trans('InfrastructureShowReducOnInfrastructureBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1, '', $conf->entity, '', 'isModEnabled("infrastructure")');
+				infrastructure_addExtraField('infrastructure_show_qty', $langs->trans('SubTotalLineShowQty'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
 			}
-			infrastructure_addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('hideblock', $langs->trans('Subtotal_ForceHideAll'), 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('show_table_header_before', $langs->trans('SubTotalShowTableHeaderBefore'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('print_as_list', $langs->trans('SubTotalPrintAsList'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('print_as_list', $langs->trans('SubTotalPrintAsList'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('print_as_list', $langs->trans('SubTotalPrintAsList'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('print_condensed', $langs->trans('SubTotalPrintCondensed'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('print_condensed', $langs->trans('SubTotalPrintCondensed'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-			infrastructure_addExtraField('print_condensed', $langs->trans('SubTotalPrintCondensed'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1, '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
 			if (isModEnabled('oblyon') && getDolGlobalString('MAIN_MENU_INVERT') && getDolGlobalString('OBLYON_HIDE_LEFTMENU')) {
 				// Désactive le sommaire rapide
 				dolibarr_set_const($db, 'INFRASTRUCTURE_DISABLE_SUMMARY', 1, 'chaine', 0, '', $conf->entity);

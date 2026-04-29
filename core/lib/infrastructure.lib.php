@@ -396,10 +396,18 @@
 	* @param	int			$alwayseditable	Whether the extrafield must be always editable or not (even if the line is closed/locked)
 	* @param	string		$perms			Permissions for the extrafield (a combination of 'r', 'w', 'd' for read, write and delete permissions)
 	* @param	string		$list			Whether the extrafield must be displayed in the list view or not (1 or 0)
+	* @param	string		$help			Help text for the extrafield
+	* @param	string		$computed		Code to compute the value of the extrafield (only for computed fields)
+	* @param	string		$entity			Entity for which the extrafield must be added
+	* @param	string		$langfile		Lang file to use for the extrafield label and options (without ".lang" suffix)
+	* @param	string		$enabled		Whether the extrafield must be enabled or not (1 or 0)
+	* @param	int			$totalizable	Whether the extrafield must be totalizable or not (1 or 0)
 	* @param	int			$printable		Whether the extrafield must be printable or not (1 or 0)
-	* @return	int					1 if extrafield has been added, 0 if extrafield already exists, <0 if error occurred
+	* @param	array		$moreparams		More parameters (reserved for future use, can be empty)
+	* @param	string		$aiprompt		Prompt to use for AI generation (only for AI generated fields)
+	* @return	int							1 if extrafield has been added, 0 if extrafield already exists, <0 if error occurred
 	*/
-	function infrastructure_addExtraField($attrname, $label, $type, $pos, $size, $element_type, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $printable) {
+	function infrastructure_addExtraField($attrname, $label, $type, $pos, $size, $element_type, $unique = 0, $required = 0, $default = '', $param = '', $alwayseditable = 0, $perms = '', $list = '-1', $help = '', $computed = '', $entity = '', $langfile = '', $enabled = '1', $totalizable = 0, $printable = 0, $moreparams = array(), $aiprompt = '') {
 
 		global $db;
 
@@ -409,7 +417,7 @@
 		if (in_array($attrname, $existing, true)) {
 			return 0; // déjà existant
 		}
-		return $extra->addExtraField($attrname, $label, $type, $pos, $size, $element_type, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $printable);
+		return $extra->addExtraField($attrname, $label, $type, $pos, $size, $element_type, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $help, $computed, $entity, $langfile, $enabled, $totalizable, $printable, $moreparams, $aiprompt);
 	}
 
 	/**
