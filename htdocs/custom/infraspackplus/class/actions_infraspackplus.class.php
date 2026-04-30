@@ -1654,27 +1654,29 @@ EOJS;
 			global $object_rights, $disableedit, $disablemove, $disableremove; // TODO We should not use global var for this !
 
 			$object->fetch_thirdparty();	// If the action has not been carried out before
-			$line			= !empty($parameters['line']) ? $parameters['line'] : '';
-			$var			= !empty($parameters['var']) ? $parameters['var'] : '';
-			$num			= !empty($parameters['num']) ? $parameters['num'] : '';
-			$i				= !empty($parameters['i']) ? $parameters['i'] : '';
-			$dateSelector	= !empty($parameters['dateSelector']) ? $parameters['dateSelector'] : '';
-			$seller			= !empty($parameters['seller']) ? $parameters['seller'] : '';
-			$buyer			= !empty($parameters['buyer']) ? $parameters['buyer'] : '';
-			$selected		= !empty($parameters['selected']) ? $parameters['selected'] : '';
-			$extrafields	= !empty($parameters['extrafieldsline']) ? $parameters['extrafieldsline'] : '';
-			$defaulttpldir	= '/core/tpl';
-			$object_rights	= $object->getRights();
-			$element		= $object->element;
-			$text			= '';
-			$description	= '';
-			$TContext		= explode(':', $parameters['context']);
-			$isOuvrageLine	= infraspackplus_isLineFromExternalModule($line, $element, 'modOuvrage');
-			$isOuvrage		= isModEnabled('ouvrage') && !empty($isOuvrageLine) ? true : false;
-			$isSubTotalLine	= infraspackplus_isLineFromExternalModule($line, $element, 'modSubtotal');
-			$isATMLine		= isModEnabled('subtotal') && !empty($isSubTotalLine) ? true : false;
-			$isShipment		= in_array('ordershipmentcard', $TContext) || in_array('expeditioncard', $TContext) ? 1 : 0;
-			if (in_array($object->element, array('propal', 'commande', 'facture', 'fichinter')) && getDolGlobalString('INFRASPLUS_PDF_SHOW_DISCOUNT_OPT', '') && empty($isShipment) && empty($isATMLine) && empty($isOuvrage)) {
+			$line					= !empty($parameters['line']) ? $parameters['line'] : '';
+			$var					= !empty($parameters['var']) ? $parameters['var'] : '';
+			$num					= !empty($parameters['num']) ? $parameters['num'] : '';
+			$i						= !empty($parameters['i']) ? $parameters['i'] : '';
+			$dateSelector			= !empty($parameters['dateSelector']) ? $parameters['dateSelector'] : '';
+			$seller					= !empty($parameters['seller']) ? $parameters['seller'] : '';
+			$buyer					= !empty($parameters['buyer']) ? $parameters['buyer'] : '';
+			$selected				= !empty($parameters['selected']) ? $parameters['selected'] : '';
+			$extrafields			= !empty($parameters['extrafieldsline']) ? $parameters['extrafieldsline'] : '';
+			$defaulttpldir			= '/core/tpl';
+			$object_rights			= $object->getRights();
+			$element				= $object->element;
+			$text					= '';
+			$description			= '';
+			$TContext				= explode(':', $parameters['context']);
+			$isOuvrageLine			= infraspackplus_isLineFromExternalModule($line, $element, 'modOuvrage');
+			$isOuvrage				= isModEnabled('ouvrage') && !empty($isOuvrageLine) ? true : false;
+			$isSubTotalLine			= infraspackplus_isLineFromExternalModule($line, $element, 'modSubtotal');
+			$isATMLine				= isModEnabled('subtotal') && !empty($isSubTotalLine) ? true : false;
+			$isInfrastructureLine	= infraspackplus_isLineFromExternalModule($line, $element, 'modInfrastructure');	// InfraS add
+			$isInfraSLine			= isModEnabled('infrastructure') && !empty($isInfrastructureLine) ? true : false;	// InfraS add
+			$isShipment				= in_array('ordershipmentcard', $TContext) || in_array('expeditioncard', $TContext) ? 1 : 0;
+			if (in_array($object->element, array('propal', 'commande', 'facture', 'fichinter')) && getDolGlobalString('INFRASPLUS_PDF_SHOW_DISCOUNT_OPT', '') && empty($isShipment) && empty($isATMLine) && empty($isOuvrage) && empty($isInfraSLine)) {	// InfraS change
 				if ($action != 'editline' || $selected != $line->id) {	// Line in view mode
 					if ($line->fk_product > 0) {	// Product
 						$product_static			= new Product($db);

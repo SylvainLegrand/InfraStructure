@@ -1811,7 +1811,10 @@
 	<Version Number="18.15.3" MonthVersion="2026-04">
 		<change type='fix'>Facture (pdf_InfraSPlus_F) : correction d'un saut de page indésirable avant le tableau des totaux quand UPTOSIGN est actif et que le bloc info bas (RIB/IBAN/BIC) est volumineux. La cellule MultiCell de la signature client (hauteur ht_signarea) débordait du bas de page et déclenchait un auto-break TCPDF. La position Y de la signature est maintenant clampée pour rester dans la page (page_hauteur - heightforfooter - ht_signarea), la zone étant invisible (SetAlpha 0) le décalage éventuel n'a pas d'impact visuel. La réservation $posytabinfo += 10 reste inchangée pour ne pas créer de zone vide entre le bloc info et le pied de page.</change>
 	</Version>
-	<InfraS Downloaded="20260428"/>
+	<Version Number="18.15.4" MonthVersion="2026-04">
+		<change type='fix'>Hook printObjectLine : exclusion des lignes du module Infrastructure (special_code = numero du module modInfrastructure) du traitement INFRASPLUS_PDF_SHOW_DISCOUNT_OPT, sur le même modèle que les exclusions existantes pour les modules Subtotal (ATM) et Ouvrage. Sans ce filtre, en mode editline sur un titre ou un sous-total Infrastructure, le hook incluait le template standard objectline_edit.tpl.php en plus du template d'édition propre au module Infrastructure, ce qui produisait deux tr d'édition empilés sur la fiche document.</change>
+	</Version>
+	<InfraS Downloaded="20260429"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
