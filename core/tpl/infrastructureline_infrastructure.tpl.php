@@ -24,7 +24,7 @@
 	* 	\ingroup	infrastructure
 	* 	\brief		Template d'affichage d'une ligne sous-total (qty 90-99) en mode vue
 	*
-	* Inclus depuis infrastructureline_view.tpl.php quand TInfrastructure::isInfrastructure($line) est vrai.
+	* Inclus depuis infrastructureline_view.tpl.php quand TInfrastructure::isTotal($line) est vrai.
 	* Gère : bloc quantité cumulée, bloc marge, cellule libellé alignée à droite avec séparateur ' : '.
 	*
 	* Variables disponibles via le scope local de la méthode appelante :
@@ -56,7 +56,7 @@
 	?>
 <!-- BEGIN PHP TEMPLATE infrastructureline_infrastructure.tpl.php -->
 <?php
-	// Bloc quantité cumulée (réduit le colspan de 2)
+	// Bloc quantité cumulée (réduit le colspan de 2 ; rend une cellule à gauche)
 	if ($line_show_qty) {
 		$colspan				-= 2;
 		$titleStyleItalic		= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'I') === false ? '' : ' font-style: italic;';
@@ -67,36 +67,18 @@
 		print '</td>';
 		$colspan = 2;
 	}
-	// Bloc marge
-	if (getDolGlobalString('DISPLAY_MARGIN_ON_INFRASTRUCTURES')) {
-		$colspan--;
-		$titleStyleItalic		= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'I') === false ? '' : ' font-style: italic;';
-		$titleStyleBold			= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'B') === false ? '' : ' font-weight:bold;';
-		$titleStyleUnderline	= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'U') === false ? '' : ' text-decoration: underline;';
-		print '	<td nowrap="nowrap" colspan="'.$colspan.'" style="text-align:right;font-weight:bold;">
-					<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">Marge :</span>';
-		$parentTitleLine		= TInfrastructure::getParentTitleOfLine($object, $line->rang);
-		$productLines			= TInfrastructure::getLinesFromTitleId($object, $parentTitleLine->id);
-		$totalCostPrice			= 0;
-		if (!empty($productLines)) {
-			foreach ($productLines as $l) {
-				$product	= new Product($db);
-				$res		= $product->fetch($l->fk_product);
-				if ($res) {
-					$totalCostPrice += $product->cost_price * $l->qty;
-				}
-			}
-		}
-		$marge = $total_line - $totalCostPrice;
-		print '		&nbsp;&nbsp;'.price($marge);
-		print '	</td>';
+	// Détermine si la cellule marge sera rendue (juste avant Total HT, dans la colonne Marge)
+	$displayMargin			= getDolGlobalString('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL') && isModEnabled('margin') && !(isset($margins_hidden_by_module) && $margins_hidden_by_module);
+	$labelColspan			= $displayMargin ? $colspan - 1 : $colspan;
+	if ($labelColspan < 1) {
+		$labelColspan	= 1;
 	}
-	// Cellule principale : libellé aligné à droite
-	$style					= getDolGlobalString('INFRASTRUCTURE_INFRASTRUCTURE_STYLE', '');
+	// Cellule principale : libellé "Sous-total :" aligné à droite
+	$style					= getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE', '');
 	$titleStyleItalic		= strpos($style, 'I') === false ? '' : ' font-style: italic;';
 	$titleStyleBold			= strpos($style, 'B') === false ? '' : ' font-weight:bold;';
 	$titleStyleUnderline	= strpos($style, 'U') === false ? '' : ' text-decoration: underline;';
-	print '	<td'.(!getDolGlobalString('DISPLAY_MARGIN_ON_INFRASTRUCTURES') ? ' colspan="'.$colspan.'"' : '').' style="font-weight:bold;text-align:right">';
+	print '	<td colspan="'.$labelColspan.'" style="font-weight:bold;text-align:right">';
 	// Affichage du libellé
 	if (empty($line->label)) {
 		if (getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL')) {
@@ -117,5 +99,22 @@
 		echo img_picto($langs->trans('Pagebreak'), 'pagebreak@infrastructure');
 	}
 	echo '</td>';
+	// Cellule marge (rendue uniquement si activée + module margin actif), juste avant Total HT, sans libellé « Marge : »
+	if ($displayMargin) {
+		$parentTitleLine	= TInfrastructure::getParentTitleOfLine($object, $line->rang);
+		$productLines		= TInfrastructure::getLinesFromTitleId($object, $parentTitleLine->id);
+		$totalCostPrice		= 0;
+		if (!empty($productLines)) {
+			foreach ($productLines as $l) {
+				$product	= new Product($db);
+				$res		= $product->fetch($l->fk_product);
+				if ($res) {
+					$totalCostPrice	+= $product->cost_price * $l->qty;
+				}
+			}
+		}
+		$marge	= $total_line - $totalCostPrice;
+		print '	<td nowrap="nowrap" class="margininfos right" style="text-align:right;font-weight:bold;">'.price($marge).'</td>';
+	}
 	?>
 <!-- END PHP TEMPLATE infrastructureline_infrastructure.tpl.php -->

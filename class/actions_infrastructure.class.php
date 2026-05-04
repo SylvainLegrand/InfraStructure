@@ -173,7 +173,7 @@
 				// Mise à jour de la pile pour la ligne suivante
 				if (TInfrastructure::isTitle($line)) {
 					$openTitles[]	= $line;
-				} elseif (TInfrastructure::isInfrastructure($line)) {
+				} elseif (TInfrastructure::isTotal($line)) {
 					array_pop($openTitles);
 				}
 			}
@@ -388,7 +388,7 @@
 				if ($object->statut == 0 && $createRight) {
 					$idvar		= $object->element == 'facture' ? 'facid' : 'id';
 					if (in_array($action, array('add_title_line', 'add_total_line', 'add_subtitle_line', 'add_infrastructure_line', 'add_free_text'))) {
-						$level	= GETPOST('level', 'int'); //New avec INFRASTRUCTURE_USE_NEW_FORMAT
+						$level	= GETPOST('level', 'int');
 						if ($action == 'add_title_line') {
 							$title	= !empty(GETPOST('title', 'restricthtml')) ? GETPOST('title', 'restricthtml') : $langs->trans('InfrastructureTitle');
 							$qty	= $level < 1 ? 1 : $level ;
@@ -787,7 +787,7 @@
 			empty($pdf->marge_droite) ? $pdf->marge_droite = 0 : '';
 			empty($line->total) ? $line->total = 0 : '';
 			empty($pdf->postotalht) ? $pdf->postotalht = 0 : '';
-			$bgStyle							= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_INFRASTRUCTURE_BACKGROUND_COLOR', 'INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET');
+			$bgStyle							= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_TOTAL_BACKGROUND_COLOR', 'INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET');
 			$fillBackground						= $bgStyle['fill'];
 			$backgroundColor					= $bgStyle['color'];
 			$backgroundCellHeightOffset			= $bgStyle['heightOffset'];
@@ -850,7 +850,7 @@
 			} else {
 				$pdf->SetFillColor(240, 240, 240);
 			}
-			$style				= getDolGlobalString('INFRASTRUCTURE_INFRASTRUCTURE_STYLE') ? getDolGlobalString('INFRASTRUCTURE_INFRASTRUCTURE_STYLE') : 'B';
+			$style				= getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE') ? getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE') : 'B';
 			$pdf->SetFont('', $style, 9);
 			$curentCellPaddinds = $pdf->getCellPaddings();	// save curent cell padding
 			$pdf->setCellPaddings($curentCellPaddinds['L'], $infrastructureDefaultTopPadding, $curentCellPaddinds['R'], $infrastructureDefaultBottomPadding);	// set cell padding with column content definition for old PDF compatibility
@@ -1419,7 +1419,7 @@
 				if ($line && $line->qty == -99) { $this->resprints = ' '; return 1; }
 				$this->resprints = ' ';
 				// On récupère les montants du bloc pour les afficher dans la ligne de sous-total
-				if (TInfrastructure::isInfrastructure($line)) {
+				if (TInfrastructure::isTotal($line)) {
 					$parentTitle = $this->getCachedParentTitle($object, $line->rang);
 					if (is_object($parentTitle) && empty($parentTitle->array_options)) {
 						$parentTitle->fetch_optionals();
@@ -1478,7 +1478,7 @@
 				if ($line && $line->qty == -99) { $this->resprints = ' '; return 1; }
 				$this->resprints = ' ';
 				// Affichage de la remise
-				if (TInfrastructure::isInfrastructure($line)) {
+				if (TInfrastructure::isTotal($line)) {
 					if ($parentTitle = $this->getCachedParentTitle($object, $line->rang)) {
 						if (empty($parentTitle->array_options)) {
 							$parentTitle->fetch_optionals();
@@ -1678,7 +1678,7 @@
 				infrastructure_setDocTVA($pdf, $object);
 				infrastructure_addNumerotation($object);
 				foreach ($object->lines ?? [] as $k => &$l) {
-					if (TInfrastructure::isInfrastructure($l)) {
+					if (TInfrastructure::isTotal($l)) {
 						$parentTitle = $this->getCachedParentTitle($object, $l->rang);
 						if (is_object($parentTitle) && empty($parentTitle->array_options)) $parentTitle->fetch_optionals();
 						if (!empty($parentTitle->id) && !empty($parentTitle->array_options['options_show_reduc'])) {
@@ -1706,7 +1706,7 @@
 						if ($line->product_type == 9 && $line->rowid > 0) {
 							$fk_parent_line	= $line->rowid;
 							// Fix tk7201 - si on cache le détail, la TVA est renseigné au niveau du sous-total, l'erreur c'est s'il y a plusieurs sous-totaux pour les même lignes, ça va faire la somme
-							if (TInfrastructure::isInfrastructure($line)) {
+							if (TInfrastructure::isTotal($line)) {
 								$TInfo = infrastructure_get_totalLineFromObject($object, $line, false, 1);
 								if (TInfrastructure::getNiveau($line) == 1) {
 									$line->TTotal_tva = $TInfo[3];
@@ -2060,497 +2060,13 @@
 					}
 					return 0;
 				} elseif (in_array('invoicecard', $contexts) || in_array('invoicesuppliercard', $contexts) || in_array('propalcard', $contexts) || in_array('supplier_proposalcard', $contexts) || in_array('ordercard', $contexts) || in_array('ordersuppliercard', $contexts) || in_array('invoicereccard', $contexts)) {
-					$line->description		= empty($line->description) ? $line->desc : $line->description;
-					$TNonAffectedByMarge	= array('order_supplier', 'invoice_supplier', 'supplier_proposal');
-					$affectedByMarge		= in_array($object->element, $TNonAffectedByMarge) ? 0 : 1;
-					$colspan				= 5;
-					if ($object->element == 'order_supplier') {$colspan = 6;}
-					if ($object->element == 'invoice_supplier') {$colspan = 4;}
-					if ($object->element == 'supplier_proposal') {$colspan = 3;}
-					if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
-						$colspan++; // Ajout de la colonne PU TTC
-					}
-					if ($object->element == 'facturerec') {$colspan = 5;}
-					if (isModEnabled('multicurrency') && ($object->multicurrency_code != $conf->currency)) {
-						$colspan++; // Colonne PU Devise
-						if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
-							$colspan++; // Ajout de la colonne PU TTC
-						}
-					}
-					if ($object->element == 'commande' && $object->statut < 3 && isModEnabled('shippableorder')) {$colspan++;}
-					$margins_hidden_by_module = !isModEnabled('affmarges') ? false : !($_SESSION['marginsdisplayed']);
-					if (isModEnabled('margin') && !$margins_hidden_by_module) {$colspan++;}
-					if (isModEnabled('margin') && getDolGlobalString('DISPLAY_MARGIN_RATES') && !$margins_hidden_by_module && $affectedByMarge > 0) {$colspan++;}
-					if (isModEnabled('margin') && getDolGlobalString('DISPLAY_MARK_RATES') && !$margins_hidden_by_module && $affectedByMarge > 0) {$colspan++;}
-					if ($object->element == 'facture' && getDolGlobalString('INVOICE_USE_SITUATION') && $object->type == Facture::TYPE_SITUATION) {$colspan++;}
-					if (getDolGlobalString('PRODUCT_USE_UNITS')) {$colspan++;}
-					// Compatibility module showprice
-					if (isModEnabled('showprice')) {$colspan++;}
-					$data	= infrastructure_getHtmlData($parameters, $object, $action, $hookmanager);
-					$class	= '';	// Prepare CSS class
-					if (!empty(getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')))		$class	.= ' newInfrastructure';
-					if ($line->qty > 0 && $line->qty < 10) {
-						$class	.= ' subtitleLevel'.$line->qty;	// Sub-total level 1 to 9
-					} elseif ($line->qty > 90 && $line->qty < 100) {
-						$class	.= ' infrastructureLevel'.(100 - $line->qty);	// Sub-total level 99 (1) to 91 (9)
-					} elseif ($line->qty == 50) {
-						$class	.= ' infrastructureText';	// Free text
-					}
-					?>
-					<!-- actions_infrastructure.class.php line <?php echo __LINE__; ?> -->
-					<tr class="oddeven <?php echo $class; ?>" <?php echo $data; ?> rel="infrastructure" id="row-<?php echo $line->id ?>" style="<?php
-					if (!empty(getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT'))) {
-						$infrastructureBrightnessPercentage = getDolGlobalInt('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 10);
-						if ($line->qty <= 99 && $line->qty >= 91) {
-							$infrastructureBackgroundColor = getDolGlobalString('INFRASTRUCTURE_INFRASTRUCTURE_BACKGROUND_COLOR', '#adadcf');
-							print 'background: none; background-color:'.colorLighten( $infrastructureBackgroundColor, ($line->qty < 99 ? (99 - $line->qty) * $infrastructureBrightnessPercentage : 1)).' !important';
-						} elseif ($line->qty >= 1 && $line->qty <= 9) {
-							$titleBackgroundColor = getDolGlobalString('INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', '#adadcf');
-							print 'background: none; background-color:'.colorLighten( $titleBackgroundColor, ($line->qty > 1 ? ($line->qty - 1) * $infrastructureBrightnessPercentage : 1)).' !important';
-						} elseif ($line->qty == 50) {	// Free text
-							print '';
-						}
-						// À compléter si on veut plus de nuances de couleurs avec les niveaux 4,5,6,7,8 et 9
-					} else {
-						if ($line->qty == 99) {
-							print 'background:#ddffdd';		// Sub-total level 1
-						} elseif ($line->qty == 98) {
-							print 'background:#ddddff;';	// Sub-total level 2
-						} elseif ($line->qty == 2) {
-							print 'background:#eeeeff; ';	// Title level 2
-						} elseif ($line->qty == 50) {
-							print '';						// Free text
-						} else {
-							print 'background:#eeffee;' ;						// Title level 1 and 3 to 9
-						}
-					}
-					?>;">
-					<?php if (getDolGlobalString('MAIN_VIEW_LINE_NUMBER')) { ?>
-						<td class="linecolnum"><?php echo $i + 1; ?></td>
-					<?php } ?>
-						<?php
-						if ($object->element == 'order_supplier') {
-							$colspan--;
-						}
-						if ($object->element == 'supplier_proposal') {
-							$colspan += 2;
-						}
-						if ($object->element == 'invoice_supplier') {
-							$colspan -= 2;
-						}
-						$line_show_qty = false;
-						if (TInfrastructure::isInfrastructure($line)) {
-							/* Total */
-							$TInfrastructureDatas		= infrastructure_get_totalLineFromObject($object, $line, false, 1);
-							$total_line					= $TInfrastructureDatas[0];
-							$multicurrency_total_line	= $TInfrastructureDatas[6];
-							$total_qty					= $TInfrastructureDatas[4];
-							if (($show_qty_by_default = TInfrastructure::showQtyForObject($object))) { // Assignation et if sur le retour de cette assignation pour éviter de faire appel à la fonction showQtyForObject() pour chaque ligne
-								$line_show_qty	= TInfrastructure::showQtyForObjectLine($line, $show_qty_by_default);
-							}
-						}
-
-					?>
-					<?php
-					if ($action == 'editline' && GETPOST('lineid', 'int') == $line->id && TInfrastructure::isModInfrastructureLine($line)) {
-						include dol_buildpath('/infrastructure/core/tpl/infrastructureline_edit.tpl.php', 0);
-					} else {
-						include dol_buildpath('/infrastructure/core/tpl/infrastructureline_view.tpl.php', 0);
-					}
-					?>
-					<?php
-					if ($line->qty>90) {
-						/* Total */
-						echo '<td class="linecolht nowrap" align="right" style="font-weight:bold;" rel="infrastructure_total">'.price($total_line).'</td>';
-						if (isModEnabled('multicurrency') && ($object->multicurrency_code != $conf->currency)) {
-							echo '<td class="linecoltotalht_currency right bold">'.price($multicurrency_total_line).'</td>';
-						}
-					} else {
-						echo '<td class="linecolht movetitleblock">&nbsp;</td>';
-						if (isModEnabled('multicurrency') && ($object->multicurrency_code != $conf->currency)) {
-							echo '<td class="linecoltotalht_currency">&nbsp;</td>';
-						}
-					}
-					?>
-					<td class="center nowrap linecoledit">						<?php
-						if ($action != 'selectlines') {
-							if ($action == 'editline' && GETPOST('lineid', 'int') == $line->id && TInfrastructure::isModInfrastructureLine($line) ) {
-								?>
-								<input id="savelinebutton" class="button" type="submit" name="save" value="<?php echo $langs->trans('Save') ?>" />
-								<br />
-								<input class="button" type="button" name="cancelEditlinetitle" value="<?php echo $langs->trans('Cancel') ?>" />
-								<script type="text/javascript">
-									$(document).ready(function() {
-										$('input[name=cancelEditlinetitle]').click(function () {
-											document.location.href="<?php echo '?'.$idvar.'='.$object->id ?>";
-										});
-									});
-
-								</script>
-								<?php
-							} else {
-								if ($object->statut == 0  && $createRight && getDolGlobalString('INFRASTRUCTURE_ALLOW_DUPLICATE_BLOCK') && $object->element !== 'invoice_supplier') {
-									if (empty($line->fk_prev_id)) $line->fk_prev_id = null;
-									if (TInfrastructure::isTitle($line) && ( $line->fk_prev_id === null )) {
-										print '	<a class="infrastructure-line-action-btn" title="'.$langs->trans('InfrastructureCloneLInfrastructureBlock').'" href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=duplicate&lineid='.((int) $line->id).'&token='.$newToken.'" >
-													<i class="'.getDolGlobalString('MAIN_FONTAWESOME_ICON_STYLE').' fa-clone" aria-hidden="true"></i>';
-										print '	</a>';
-									}
-								}
-								if ($object->statut == 0  && $createRight && getDolGlobalString('INFRASTRUCTURE_ALLOW_EDIT_BLOCK')) {
-									print '		<a class="infrastructure-line-action-btn"  href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=editline&token='.$newToken.'&lineid='.((int) $line->id).'#row-'.((int) $line->id).'">'.img_edit().'</a>';
-								}
-							}
-						}
-						?>
-					</td>
-					<td class="center nowrap linecoldelete">						<?php
-							if ($action != 'editline' && $action != 'selectlines') {
-								if ($object->statut == 0  && $createRight && !empty(getDolGlobalString('INFRASTRUCTURE_ALLOW_REMOVE_BLOCK'))) {
-									$line->fk_prev_id	= empty($line->fk_prev_id) ? null : $line->fk_prev_id;
-									if (!isset($line->fk_prev_id) || $line->fk_prev_id === null) {
-										print '	<a class="infrastructure-line-action-btn"  href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=ask_deleteline&lineid='.((int) $line->id).'&token='.$newToken.'">'.img_delete().'</a>';
-									}
-									if (TInfrastructure::isTitle($line) && (!isset($line->fk_prev_id) || (isset($line->fk_prev_id) && ($line->fk_prev_id === null))) ) {
-										$img_delete		= img_delete($langs->trans('InfrastructureDeleteWithAllLines'), ' style="color:#be3535 !important;" class="pictodelete pictodeleteallline"');
-										print '	<a class="infrastructure-line-action-btn"  href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=ask_deleteallline&lineid='.((int) $line->id).'&token='.$newToken.'">'.$img_delete.'</a>';
-									}
-								}
-							}
-						?>
-					</td>
-					<?php
-					if ($object->statut == 0  && $createRight && !empty(getDolGlobalString('INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS')) && TInfrastructure::isTitle($line) && $action != 'editline' && $action != 'selectlines') {
-						print '	<td class="infrastructure_nc">
-									<input id="infrastructure_nc-'.$line->id.'" class="infrastructure_nc_chkbx" data-lineid="'.$line->id.'" type="checkbox" name="infrastructure_nc" value="1" '.(!empty($line->array_options['options_infrastructure_nc']) ? 'checked="checked"' : '').' />
-								</td>';
-					}
-					if ($num > 1 && empty($conf->browser->phone)) { ?>
-						<td class="center linecolmove tdlineupdown">						</td>
-					<?php } else { ?>
-						<td <?php echo ((empty($conf->browser->phone) && ($object->statut == 0  && $createRight ))?' class="center tdlineupdown"':' class="center"'); ?>></td>					<?php } ?>
-					<?php
-						$Telement	= array('propal', 'commande', 'facture', 'supplier_proposal', 'order_supplier', 'invoice_supplier');
-						if (!empty(getDolGlobalString('MASSACTION_CARD_ENABLE_SELECTLINES')) && $object->status == $object::STATUS_DRAFT && $usercandelete && in_array($object->element, $Telement)|| $action == 'selectlines' ) { // dolibarr 8
-							if ($action !== 'editline' && GETPOST('lineid', 'int') !== $line->id) {
-								$checked	= '';
-								if (!empty($toselect) && in_array($line->id, $toselect)) {
-									$checked = 'checked';
-								}
-								if ($action != 'editline') {
-									?>
-										<td class="linecolcheck center"><input type="checkbox" class="linecheckbox" name="line_checkbox[<?php print $i + 1; ?>]" value="<?php print $line->id; ?>"></td>
-									<?php
-								}
-							}
-						}
-					?>
-					</tr>
-					<?php
-					// Affichage des extrafields à la Dolibarr (car sinon non affiché sur les titres)
-					if (TInfrastructure::isTitle($line) && getDolGlobalString('INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE')) {
-						// Extrafields
-						$extrafieldsline	= new ExtraFields($db);
-						$extralabelsline	= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
-						$mode				= $action === 'editline' && $line->rowid == GETPOST('lineid', 'int') ? 'edit' : 'view';
-						$ex_element			= $line->element;
-						$line->element		= 'tr_extrafield_title '.$line->element; // Pour pouvoir manipuler ces tr
-						$isExtraSelected	= false;
-						$colspan			+= 3;
-						print $line->showOptionals($extrafieldsline, $mode, array('style' => ' style="background:#eeffee;" ', 'colspan' => $colspan));
-						foreach ($line->array_options as $option) {
-							if (!empty($option) && $option != "-1") {
-								$isExtraSelected = true;
-								break;
-							}
-						}
-						if ($mode === 'edit') {
-							?>
-							<script>
-								$(document).ready(function () {
-									var all_tr_extrafields = $("tr.tr_extrafield_title");
-									<?php
-									// Si un extrafield est rempli alors on affiche directement les extrafields
-									if (!$isExtraSelected) {
-										echo 'all_tr_extrafields.hide();';
-										echo 'var trad = "'.$langs->trans('InfrastructureShowExtrafields').'";';
-										echo 'var extra = 0;';
-									} else {
-										echo 'all_tr_extrafields.show();';
-										echo 'var trad = "'.$langs->trans('InfrastructureHideExtrafields').'";';
-										echo 'var extra = 1;';
-									}
-									?>
-									$("div .infrastructure_underline").append(
-										'<a id="printBlocExtrafields" onclick="return false;" href="#">' + trad + '</a>'
-										+ '<input type="hidden" name="showBlockExtrafields" id="showBlockExtrafields" value="' + extra + '" />');
-											$(document).on('click', "#printBlocExtrafields", function() {
-												var btnShowBlock = $("#showBlockExtrafields");
-												var val = btnShowBlock.val();
-												if(val == '0') {
-													btnShowBlock.val('1');
-													$("#printBlocExtrafields").html("<?php print $langs->trans('InfrastructureHideExtrafields'); ?>");
-													$(all_tr_extrafields).show();
-												} else {
-													btnShowBlock.val('0');
-													$("#printBlocExtrafields").html("<?php print $langs->trans('InfrastructureShowExtrafields'); ?>");
-													$(all_tr_extrafields).hide();
-												}
-									});
-								});
-							</script>
-							<?php
-						}
-						$line->element = $ex_element;
-					}
-					print '<!-- END OF actions_infrastructure.class.php line '.__LINE__.' -->';
+					include dol_buildpath('/infrastructure/core/tpl/infrastructureline_row_document.tpl.php', 0);
 					return 1;
 				} elseif (($object->element == 'commande' && in_array('ordershipmentcard', $contexts)) || (in_array('expeditioncard', $contexts) && $action == 'create')) {
-					$colspan	= 4;
-					$data		= infrastructure_getHtmlData($parameters, $object, $action, $hookmanager);
-					$class		= '';
-					if (!empty(getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT'))) {
-						$class	.= ' newInfrastructure';
-					}
-					if ($line->qty > 0 && $line->qty < 10) {
-						$class	.= ' subtitleLevel'.$line->qty;	// Sub-total level 1 to 9
-					} elseif ($line->qty > 90 && $line->qty < 100) {
-						$class	.= ' infrastructureLevel'.(100 - $line->qty);	// Sub-total level 99 (1) to 91 (9)
-					} elseif ($line->qty == 50) {
-						$class	.= ' infrastructureText';	// Free text
-					}
-					?>
-					<!-- actions_infrastructure.class.php line <?php echo __LINE__; ?> -->
-					<tr class="oddeven" <?php echo $data; ?> rel="infrastructure" id="row-<?php echo $line->id ?>" style="<?php
-					if (getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')) {
-						$infrastructureBrightnessPercentage = getDolGlobalInt('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 10);
-						if ($line->qty <= 99 && $line->qty >= 91) {
-							$infrastructureBackgroundColor = getDolGlobalString('INFRASTRUCTURE_INFRASTRUCTURE_BACKGROUND_COLOR', '#adadcf');
-							print 'background: none; background-color:'.colorLighten( $infrastructureBackgroundColor, ($line->qty < 99 ? (99 - $line->qty) * $infrastructureBrightnessPercentage : 1)).' !important';
-						} elseif ($line->qty >= 1 && $line->qty <= 9) {
-							$titleBackgroundColor = getDolGlobalString('INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', '#adadcf');
-							print 'background: none; background-color:'.colorLighten( $titleBackgroundColor, ($line->qty > 1 ? ($line->qty - 1) * $infrastructureBrightnessPercentage : 1)).' !important';
-						} elseif ($line->qty == 50) {	// Free text
-							print '';
-						}
-						// À compléter si on veut plus de nuances de couleurs avec les niveaux 4,5,6,7,8 et 9
-					} else {
-						if ($line->qty == 99) {
-							print 'background:#ddffdd';		// Sub-total level 1
-						} elseif ($line->qty==98) {
-							print 'background:#ddddff;';	// Sub-total level 2
-						} elseif ($line->qty==2) {
-							print 'background:#eeeeff; ';	// Title level 2
-						} elseif ($line->qty==50) {
-							print '';						// Free text
-						} else {
-							print 'background:#eeffee;';	// Title level 1 and 3 to 9
-						}
-					}
-					?>;">
-					<td style="<?php TInfrastructure::isFreeText($line) ? '' : 'font-weight:bold;'; ?>  <?php echo ($line->qty > 90) ? 'text-align:right' : '' ?> "><?php
-						if (getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')) {
-							if (TInfrastructure::isTitle($line) || TInfrastructure::isInfrastructure($line)) {
-								echo str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
-								if (TInfrastructure::isTitle($line)) {
-									print img_picto('', 'infrastructure@infrastructure').'<span style="font-size:9px;margin-left:-3px;">'.$line->qty.'</span>&nbsp;&nbsp;';
-								} else {
-									print img_picto('', 'infrastructure2@infrastructure').'<span style="font-size:9px;margin-left:-1px;">'.(100-$line->qty).'</span>&nbsp;&nbsp;';
-								}
-							}
-						} else {
-							if ($line->qty <= 1) {
-								print img_picto('', 'infrastructure@infrastructure');
-							} elseif ($line->qty==2) {
-								print img_picto('', 'subinfrastructure@infrastructure').'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-							}
-						}
-						// Get display styles and apply them
-						$titleStyleItalic		= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE'), 'I') === false ? '' : ' font-style: italic;';
-						$titleStyleBold			= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE'), 'B') === false ? '' : ' font-weight:bold;';
-						$titleStyleUnderline	= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE'), 'U') === false ? '' : ' text-decoration: underline;';
-						if (empty($line->label)) {
-							if ($line->qty >= 91 && $line->qty <= 99 && getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL')) {
-								print  $line->description.' '.infrastructure_getTitle($object, $line);
-							} else {
-								print  $line->description;
-							}
-						} else {
-							if (getDolGlobalString('PRODUIT_DESC_IN_FORM') && !empty($line->description)) {
-								print '<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" >'.$line->label.'</span><br><div class="infrastructure_desc">'.dol_htmlentitiesbr($line->description).'</div>';
-							} else {
-								print '<span class="infrastructure_label classfortooltip" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" title="'.$line->description.'">'.$line->label.'</span>';
-							}
-						}
-						//if($line->qty>90) print ' : ';
-						if (!empty($line->info_bits) && $line->info_bits > 0) echo img_picto($langs->trans('Pagebreak'), 'pagebreak@infrastructure');
-						?>
-					</td>
-					<td colspan="<?php echo $colspan; ?>">
-					<?php
-						if (in_array('expeditioncard', $contexts) && $action == 'create') {
-							$fk_entrepot = GETPOST('entrepot_id', 'int');
-							?>
-								<input type="hidden" name="idl<?php echo $i; ?>" value="<?php echo $line->id; ?>" />
-								<input type="hidden" name="qtyasked<?php echo $i; ?>" value="<?php echo $line->qty; ?>" />
-								<input type="hidden" name="qdelivered<?php echo $i; ?>" value="0" />
-								<input type="hidden" name="qtyl<?php echo $i; ?>" value="<?php echo $line->qty; ?>" />
-								<input type="hidden" name="entl<?php echo $i; ?>" value="<?php echo $fk_entrepot; ?>" />
-							<?php
-						}
-					?>
-					</td>
-					</tr>
-					<!-- END OF actions_infrastructure.class.php line <?php echo __LINE__; ?> -->
-					<?php
+					include dol_buildpath('/infrastructure/core/tpl/infrastructureline_row_shipment.tpl.php', 0);
 					return 1;
 				} elseif ($object->element == 'shipping' || $object->element == 'delivery') {
-					global $form;
-					$alreadysent		= $parameters['alreadysent'];
-					$shipment_static	= new Expedition($db);
-					$warehousestatic	= new Entrepot($db);
-					$extrafieldsline	= new ExtraFields($db);
-					$extralabelslines	= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
-					$colspan			= 4;
-					if ($object->origin && $object->origin_id > 0) {
-						$colspan++;
-					}
-					if (isModEnabled('stock')) {
-						$colspan++;
-					}
-					if (isModEnabled('productbatch')) {
-						$colspan++;
-					}
-					if ($object->statut == 0) {
-						$colspan++;
-					}
-					if ($object->statut == 0 && !getDolGlobalString('INFRASTRUCTURE_ALLOW_REMOVE_BLOCK')) {
-						$colspan++;
-					}
-					if ($object->element == 'delivery') {
-						$colspan = 2;
-					}
-					print '<!-- origin line id = '.$line->origin_line_id.' -->'; // id of order line
-					// HTML 5 data for js
-					$data	= infrastructure_getHtmlData($parameters, $object, $action, $hookmanager);
-					$class	= '';
-					if (!empty(getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')))		$class	.= ' newInfrastructure ';
-						if ($line->qty > 0 && $line->qty < 10) {
-							$class	.= ' subtitleLevel'.$line->qty;	// Sub-total level 1 to 9
-						} elseif ($line->qty > 90 && $line->qty < 100) {
-							$class	.= ' infrastructureLevel'.(100 - $line->qty);	// Sub-total level 99 (1) to 91 (9)
-						} elseif ($line->qty == 50) {
-							$class	.= ' infrastructureText';	// Free text
-						}
-						?>
-						<!-- actions_infrastructure.class.php line <?php echo __LINE__; ?> -->
-						<tr class="oddeven" <?php echo $data; ?> rel="infrastructure" id="row-<?php echo $line->id ?>" style="<?php
-							if (getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')) {
-								$infrastructureBrightnessPercentage = getDolGlobalInt('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 10);
-								if ($line->qty <= 99 && $line->qty >= 91) {
-									$infrastructureBackgroundColor = getDolGlobalString('INFRASTRUCTURE_INFRASTRUCTURE_BACKGROUND_COLOR', '#adadcf');
-									print 'background: none; background-color:'.colorLighten( $infrastructureBackgroundColor, ($line->qty < 99 ? (99 - $line->qty) * $infrastructureBrightnessPercentage : 1)).' !important';
-								} elseif ($line->qty >= 1 && $line->qty <= 9) {
-									$titleBackgroundColor = getDolGlobalString('INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', '#adadcf');
-									print 'background: none; background-color:'.colorLighten( $titleBackgroundColor, ($line->qty > 1 ? ($line->qty - 1) * $infrastructureBrightnessPercentage : 1)).' !important';
-								} elseif ($line->qty == 50) {	// Free text
-									print '';
-								}
-								// À compléter si on veut plus de nuances de couleurs avec les niveaux 4,5,6,7,8 et 9
-							} else {
-								if ($line->qty == 99) {
-									print 'background:#ddffdd';		// Sub-total level 1
-								} elseif ($line->qty == 98) {
-									print 'background:#ddddff;';	// Sub-total level 2
-								} elseif ($line->qty == 2) {
-									print 'background:#eeeeff; ';	// Title level 2
-								} elseif ($line->qty == 50) {
-									print '';						// Free text
-								} else {
-									print 'background:#eeffee;';	// Title level 1, Sub-total level 1 and 3 to 9
-								}
-							}
-						?>;">
-						<?php
-							// #
-							if (getDolGlobalString('MAIN_VIEW_LINE_NUMBER')) {
-								print '<td align="center">'.($i+1).'</td>';
-							}
-							?>
-						<td style="<?php TInfrastructure::isFreeText($line) ? '' : 'font-weight:bold;'; ?>  <?php echo ($line->qty > 90) ? 'text-align:right' : '' ?> "><?php
-							if (getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')) {
-								if (TInfrastructure::isTitle($line) || TInfrastructure::isInfrastructure($line)) {
-									echo str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
-									if (TInfrastructure::isTitle($line)) {
-										print img_picto('', 'infrastructure@infrastructure').'<span style="font-size:9px;margin-left:-3px;">'.$line->qty.'</span>&nbsp;&nbsp;';
-									} else {
-										print img_picto('', 'infrastructure2@infrastructure').'<span style="font-size:9px;margin-left:-1px;">'.(100 - $line->qty).'</span>&nbsp;&nbsp;';
-									}
-								}
-							} else {
-								if ($line->qty <= 1) {
-									print img_picto('', 'infrastructure@infrastructure');
-								} elseif ($line->qty==2) {
-									print img_picto('', 'subinfrastructure@infrastructure').'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-								}
-							}
-							// Get display styles and apply them
-							$titleStyleItalic		= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE'), 'I') === false ? '' : ' font-style: italic;';
-							$titleStyleBold			= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE'), 'B') === false ? '' : ' font-weight:bold;';
-							$titleStyleUnderline	= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE'), 'U') === false ? '' : ' text-decoration: underline;';
-							if (empty($line->label)) {
-								if ($line->qty >= 91 && $line->qty <= 99 && getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL')) {
-									print  $line->description.' '.infrastructure_getTitle($object, $line);
-								} else {
-									print  $line->description;
-								}
-							} else {
-								if (getDolGlobalString('PRODUIT_DESC_IN_FORM') && !empty($line->description)) {
-									print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" >'.$line->label.'</span><br><div class="infrastructure_desc">'.dol_htmlentitiesbr($line->description).'</div>';
-								} else {
-									print '	<span class="infrastructure_label classfortooltip " style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" title="'.$line->description.'">'.$line->label.'</span>';
-								}
-							}
-							//if($line->qty>90) print ' : ';
-							if ($line->info_bits > 0) {
-								print img_picto($langs->trans('Pagebreak'), 'pagebreak@infrastructure');
-							}
-							?>
-						</td>
-						<td colspan="<?php echo $colspan; ?>">&nbsp;</td>
-						<?php
-							if ($object->element == 'shipping' && $object->statut == 0 && getDolGlobalString('INFRASTRUCTURE_ALLOW_REMOVE_BLOCK')) {
-								print '<td class="linecoldelete nowrap" width="10">';
-								$lineid				= $line->id;
-								$line->fk_prev_id	= empty($line->fk_prev_id) ? null : $line->fk_prev_id;
-								if ($line->element === 'commandedet') {
-									foreach ($object->lines as $shipmentLine) {
-										if ((!empty($shipmentLine->fk_elementdet)) && $shipmentLine->fk_origin == 'orderline' && $shipmentLine->fk_elementdet == $line->id) {
-											$lineid = $shipmentLine->id;
-										} elseif ((!empty($shipmentLine->fk_elementdet)) && $shipmentLine->fk_origin == 'orderline' && $shipmentLine->fk_elementdet == $line->id) {
-											$lineid = $shipmentLine->id;
-										}
-									}
-								}
-								if ($line->fk_prev_id === null) {
-									print '<a href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&amp;action=deleteline&amp;lineid='.((int) $lineid).'&token='.$newToken.'">'.img_delete().'</a>';
-								}
-								if (TInfrastructure::isTitle($line) && ($line->fk_prev_id === null) ) {
-									$img_delete	 = img_delete($langs->trans('InfrastructureDeleteWithAllLines'), ' style="color:#be3535 !important;" class="pictodelete pictodeleteallline"');
-									print '<a href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&amp;action=ask_deleteallline&amp;lineid='.((int) $lineid).'&token='.$newToken.'">'.$img_delete.'</a>';
-								}
-							print '	</td>';
-						}
-						print "</tr>\r\n";
-						print "<!-- END OF actions_infrastructure.class.php -->\r\n";
-						// Display lines extrafields
-						if ($object->element == 'shipping' && getDolGlobalString('INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE') && is_array($extralabelslines) && count($extralabelslines) > 0) {
-							$line	= new ExpeditionLigne($db);
-							$line->fetch_optionals($line->id);
-							print '<tr class="oddeven">';
-							print $line->showOptionals($extrafieldsline, 'view', array('style' => $bc[$var], 'colspan' => $colspan), $i);
-						}
-
+					include dol_buildpath('/infrastructure/core/tpl/infrastructureline_row_shipping.tpl.php', 0);
 					return 1;
 				}
 			return 0;
@@ -2579,66 +2095,23 @@
 					$object->tpl['infrastructure']	= $line->id;
 					if (TInfrastructure::isTitle($line)) {
 						$object->tpl['sub-type'] = 'title';
-					} elseif (TInfrastructure::isInfrastructure($line)) {
+					} elseif (TInfrastructure::isTotal($line)) {
 						$object->tpl['sub-type'] = 'total';
 					} elseif (TInfrastructure::isFreeText($line)) {
 						$object->tpl['sub-type'] = 'freetext';
 					}
-					$object->tpl['sub-tr-style'] = '';
-					if (!empty(getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT'))) {
-						$object->tpl['sub-tr-class']	.= ' newInfrastructure';
-					}
-					if ($line->qty > 0 && $line->qty < 10) {
-						$object->tpl['sub-tr-class']	.= ' subtitleLevel'.$line->qty;			// Sub-total level 1 to 9
-					} elseif ($line->qty > 90 && $line->qty < 100) {
-						$object->tpl['sub-tr-class']	.= ' infrastructureLevel'.(100 - $line->qty);	// Sub-total level 99 (1) to 91 (9)
-					} elseif ($line->qty == 50) {
-						$object->tpl['sub-tr-class']	.= ' infrastructureText';						// Free text
-					}
-					if (getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')) {
-						$infrastructureBrightnessPercentage		= getDolGlobalInt('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 10);
-						if ($line->qty <= 99 && $line->qty >= 91) {
-							$infrastructureBackgroundColor		= getDolGlobalString('INFRASTRUCTURE_INFRASTRUCTURE_BACKGROUND_COLOR', '#adadcf');
-							$object->tpl['sub-tr-style']	= 'background: none; background-color:'.colorLighten( $infrastructureBackgroundColor, ($line->qty < 99 ? (99 - $line->qty) * $infrastructureBrightnessPercentage : 1)).' !important';
-						} elseif ($line->qty >= 1 && $line->qty <= 9) {
-							$titleBackgroundColor			= getDolGlobalString('INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', '#adadcf');
-							$object->tpl['sub-tr-style']	= 'background: none; background-color:'.colorLighten( $titleBackgroundColor, ($line->qty > 1 ? ($line->qty - 1) * $infrastructureBrightnessPercentage : 1)).' !important';
-						} elseif ($line->qty == 50) {	// Free text
-							$object->tpl['sub-tr-style']	= '';
-						}
-						// À compléter si on veut plus de nuances de couleurs avec les niveaux 4,5,6,7,8 et 9
-					} else {
-						if ($line->qty == 99) {
-							$object->tpl['sub-tr-style']	.= 'background:#ddffdd';	// Sub-total level 1
-						} elseif ($line->qty == 98) {
-							$object->tpl['sub-tr-style']	.= 'background:#ddddff;';	// Sub-total level 2
-						} elseif ($line->qty==2) {
-							$object->tpl['sub-tr-style']	.= 'background:#eeeeff; ';	// Title level 2
-						} elseif ($line->qty==50) {
-							$object->tpl['sub-tr-style']	.= '';						// Free text
-						} else {
-							$object->tpl['sub-tr-style']	.= 'background:#eeffee;';	// Title level 1, Sub-total level 1 and 3 to 9
-						}
-					}
-					$object->tpl['sub-td-style'] = '';
+					$object->tpl['sub-tr-style']	= '';
+					$object->tpl['sub-tr-class']	.= infrastructure_getLineSpecialClass($line);
+					$object->tpl['sub-tr-style']	= infrastructure_getLineSpecialStyle($line);
+					$object->tpl['sub-td-style']	= '';
 					if ($line->qty > 90) {
-						$object->tpl['sub-td-style'] = 'style="text-align:right"';
+						$object->tpl['sub-td-style']	= 'style="text-align:right"';
 					}
-					if (getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT')) {
-						if (TInfrastructure::isTitle($line) || TInfrastructure::isInfrastructure($line)) {
-							$object->tpl["sublabel"]	= str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
-							if (TInfrastructure::isTitle($line)) {
-								$object->tpl["sublabel"].= img_picto('', 'infrastructure@infrastructure').'<span style="font-size:9px;margin-left:-3px;">'.$line->qty.'</span>&nbsp;&nbsp;';
-							} else {
-								$object->tpl["sublabel"].= img_picto('', 'infrastructure2@infrastructure').'<span style="font-size:9px;margin-left:-1px;">'.(100-$line->qty).'</span>&nbsp;&nbsp;';
-							}
-						}
-					} else {
-						$object->tpl["sublabel"] = '';
-						if ($line->qty <= 1 ) {
-							$object->tpl["sublabel"] = img_picto('', 'infrastructure@infrastructure');
-						} elseif ($line->qty == 2) {
-							$object->tpl["sublabel"] = img_picto('', 'subinfrastructure@infrastructure').'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+					$object->tpl["sublabel"]	= '';
+					if (TInfrastructure::isTitle($line) || TInfrastructure::isTotal($line)) {
+						$object->tpl["sublabel"]	= str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
+						if (TInfrastructure::isTitle($line)) {
+							$object->tpl["sublabel"].= '<i class="'.getDolGlobalString('MAIN_FONTAWESOME_ICON_STYLE').' fa-tenge" aria-hidden="true"></i>'.$line->qty.'&nbsp;&nbsp;';
 						}
 					}
 					// Get display styles and apply them
@@ -2926,29 +2399,31 @@
 				$TLines			= TInfrastructure::getAllTitleFromDocument($object);	//On récupère tous les titres sous-total
 				$TBlocksToHide	= array();	//On définit quels sont les blocs à cacher en fonction des données existantes (hideblock)
 				$hideMode		= getDolGlobalString('INFRASTRUCTURE_BLOC_FOLD_MODE', 'default');
-				$hideMode		= in_array($hideMode, ['default', 'keepTitle']) ? $hideMode : 'default';
+				$hideMode		= in_array($hideMode, ['default', 'keepTitle', 'hideAll']) ? $hideMode : 'default';
 				if (!empty($TLines)) {
 					foreach ($TLines as $line) {
 						if (array_key_exists('options_hideblock', $line->array_options) && $line->array_options['options_hideblock']) $TBlocksToHide[] = $line->id;
 					}
 				}
-				$jsConf	= array('linesToHide'			=> $TBlocksToHide,
-								'hideFoldersByDefault'	=> getDolGlobalInt('INFRASTRUCTURE_HIDE_FOLDERS_BY_DEFAULT'),
-								'closeMode'				=> $hideMode, // default, keepTitle
-								'interfaceUrl'			=> dol_buildpath('/infrastructure/script/interface.php', 1),
-								'token'					=> newToken(),
-								'element'				=> $element,
-								'element_id'			=> $id,
-								'img_folder_closed' 	=> img_picto('', 'folder'),
-								'img_folder_open'		=> img_picto('', 'folder-open'),
-								'langs'					=> array('Infrastructure_HideAll'		=> $langs->transnoentities('Infrastructure_HideAll'),
-																'Infrastructure_ShowAll'		=> $langs->transnoentities('Infrastructure_ShowAll'),
-																'Infrastructure_Hide'			=> $langs->transnoentities('Infrastructure_Hide'),
-																'Infrastructure_Show'			=> $langs->transnoentities('Infrastructure_Show'),
-																'Infrastructure_ForceHideAll'	=> $langs->transnoentities('Infrastructure_ForceHideAll'),
-																'Infrastructure_ForceShowAll'	=> $langs->transnoentities('Infrastructure_ForceShowAll')
-															)
-														);
+				$jsConf		= array('linesToHide'			=> $TBlocksToHide,
+									'hideFoldersByDefault'	=> getDolGlobalInt('INFRASTRUCTURE_HIDE_FOLDERS_BY_DEFAULT'),
+									'closeMode'				=> $hideMode, // default, keepTitle, hideAll
+									'interfaceUrl'			=> dol_buildpath('/infrastructure/script/interface.php', 1),
+									'token'					=> newToken(),
+									'element'				=> $element,
+									'element_id'			=> $id,
+									'img_folder_closed' 	=> img_picto('', 'folder'),
+									'img_folder_open'		=> img_picto('', 'folder-open'),
+									'langs'					=> array('Infrastructure_HideAll'		=> $langs->transnoentities('Infrastructure_HideAll'),
+																	'Infrastructure_ShowAll'		=> $langs->transnoentities('Infrastructure_ShowAll'),
+																	'Infrastructure_Hide'			=> $langs->transnoentities('Infrastructure_Hide'),
+																	'Infrastructure_Show'			=> $langs->transnoentities('Infrastructure_Show'),
+																	'Infrastructure_ForceHideAll'	=> $langs->transnoentities('Infrastructure_ForceHideAll'),
+																	'Infrastructure_ForceShowAll'	=> $langs->transnoentities('Infrastructure_ForceShowAll')
+																)
+															);
+				$colorBloc	= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR_BLOC', 'be3535');
+				$color		= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR', '000000');
 				print '<script type="text/javascript" src="'.dol_buildpath('infrastructure/js/infrastructure.lib.js', 1).'"></script>';
 				?>
 					<style>
@@ -2962,8 +2437,12 @@
 					cursor: pointer;
 				}
 
+				.fold-infrastructure-btn[data-toggle-all-children="0"] {
+					color: #<?php echo $color; ?>;
+				}
+
 				.fold-infrastructure-btn[data-toggle-all-children="1"] {
-					color: rgb(190, 53, 53);
+					color: #<?php echo $colorBloc; ?>;
 				}
 
 				.toggle-all-folder-status:hover, .fold-infrastructure-btn:hover {
@@ -2971,7 +2450,7 @@
 				}
 
 				.fold-infrastructure-btn[data-toggle-all-children="1"]:hover {
-					color: rgb(138, 28, 28);
+					color: #<?php echo $colorBloc; ?>;
 				}
 			</style>
 			<script type="text/javascript">
@@ -3054,15 +2533,21 @@
 						}
 						/**
 						 *
-						 * @param {int} titleId
-						 * @param toggleStatus : open, closed
+						 * @param {int}     titleId
+						 * @param {string}  toggleStatus    open, closed
+						 * @param {boolean} forceHideAll    En mode 'hideAll', force le masquage de tout le contenu (sous-titres et sous-totaux compris) lors du clic sur le bouton "plier tout".
+						 * @param {boolean} ignoreCloseMode Si true, ignore le closeMode (keepTitle/hideAll) et applique le pliage en mode 'default'. Utilisé à l'init pour ne pas appliquer la logique mode-spécifique au reload.
 						 */
-						o.toggleChildFolderStatusDisplay = function (titleId, toggleStatus = 'open') {
+						o.toggleChildFolderStatusDisplay = function (titleId, toggleStatus = 'open', forceHideAll = false, ignoreCloseMode = false) {
 							let $titleLine			= $('#row-' + titleId);
 							let $collapseBtn		= $('.fold-infrastructure-btn[data-title-line-target="' + titleId + '"]');
 							let $collapseSimpleBtn	= $('.fold-infrastructure-btn[data-title-line-target="' + titleId + '"][data-toggle-all-children="0"]');
 							let $collapseAllBtn		= $('.fold-infrastructure-btn[data-title-line-target="' + titleId + '"][data-toggle-all-children="1"]');
 							let $collapseInfos		= $('.fold-infrastructure-info[data-title-line-target="' + titleId + '"]');
+							// keepTitleVisible : on garde les titres et sous-totaux enfants visibles lorsqu'on plie.
+							// Vrai pour les modes 'keepTitle' et 'hideAll', sauf si forceHideAll est passé (clic sur le bouton 2 en mode 'hideAll')
+							// ou si ignoreCloseMode est passé (init au chargement de la page, le mode ne doit s'appliquer qu'au clic).
+							let keepTitleVisible	= !forceHideAll && !ignoreCloseMode && (o.config.closeMode == 'keepTitle' || o.config.closeMode == 'hideAll');
 							if ($titleLine.length > 0) {
 								$titleLine.attr('data-folder-status', toggleStatus);
 								let haveTitle		= false;
@@ -3070,7 +2555,7 @@
 								let totalHiddenLines= 0;
 								if (childrenList.length > 0) {
 									let doNotDisplayLines = []; // Dans le cas de l'ouverture il faut vérifier que les titres enfants ne sont pas fermés avant d'ouvrir
-									let doNotHiddeLines = []; // En mode keepTitle: Dans le cas de la fermeture il faut vérifier que les titres enfants ne sont pas ouvert avant de fermer
+									let doNotHiddeLines = []; // En mode keepTitle/hideAll : Dans le cas de la fermeture il faut vérifier que les titres enfants ne sont pas ouvert avant de fermer
 									childrenList.forEach((childLineId) => {
 										let $childLine = $('#' + childLineId);
 										if ($childLine.attr('data-isinfrastructure') == "title") {
@@ -3081,12 +2566,12 @@
 											let grandChildrenList = getInfrastructureTitleChilds($childLine, true); // renvoi la liste des id des enfants
 											if ($childLine.attr('data-folder-status') == "closed") {
 												doNotDisplayLines = doNotDisplayLines.concat(grandChildrenList);
-											} else if (o.config.closeMode == 'keepTitle' && $childLine.attr('data-folder-status') == "open") {
+											} else if (keepTitleVisible && $childLine.attr('data-folder-status') == "open") {
 												doNotHiddeLines = doNotDisplayLines.concat(grandChildrenList);
 											}
 										}
 										if (toggleStatus == 'closed') {
-											if (o.config.closeMode == 'keepTitle' && ($childLine.attr('data-isinfrastructure') == "title" || $childLine.attr('data-isinfrastructure') == "infrastructure")) {
+											if (keepTitleVisible && ($childLine.attr('data-isinfrastructure') == "title" || $childLine.attr('data-isinfrastructure') == "infrastructure")) {
 												$childLine.show();
 											} else if (!doNotHiddeLines.includes(childLineId)) {
 												$childLine.hide();
@@ -3125,16 +2610,18 @@
 							}
 						}
 						// initialisation des lignes affichées ou non
+						// Au chargement de la page, on n'applique PAS la logique mode-spécifique (keepTitle/hideAll) :
+						// le mode INFRASTRUCTURE_BLOC_FOLD_MODE ne doit s'appliquer qu'au clic utilisateur.
 						$('tr[data-isinfrastructure="title"]').each(function () {
 							let lineId = $(this).attr('data-id');
 							if (lineId != null) {
 								if (o.config.linesToHide.includes(lineId)) {
-									o.toggleChildFolderStatusDisplay(lineId, 'closed');
+									o.toggleChildFolderStatusDisplay(lineId, 'closed', false, true);
 								} else {
 									if (o.config.hideFoldersByDefault == 1) {
-										o.toggleChildFolderStatusDisplay(lineId, 'closed');
+										o.toggleChildFolderStatusDisplay(lineId, 'closed', false, true);
 									} else {
-										o.toggleChildFolderStatusDisplay(lineId, 'open');
+										o.toggleChildFolderStatusDisplay(lineId, 'open', false, true);
 									}
 								}
 							}
@@ -3147,6 +2634,10 @@
 								// folderManage_click(targetTitleLineId);
 								let titleRow = $('#row-' + targetTitleLineId);
 								let newStatus = titleRow.attr('data-folder-status') == 'closed' ? 'open' : 'closed'
+								let isToggleAllBtn = $(this).attr('data-toggle-all-children') == '1';
+								// En mode 'hideAll', le bouton "plier tout" force le masquage de tout le contenu (titres et sous-totaux enfants compris).
+								// Le bouton "plier sans toucher aux titres enfants" garde lui le comportement keepTitle.
+								let forceHideAll = isToggleAllBtn && o.config.closeMode == 'hideAll';
 								let sendData = {
 									element: o.config.element,
 									element_id: o.config.element_id,
@@ -3158,7 +2649,7 @@
 								/**
 								 * Pour les boutons de type "block" bouton pour ouvrir / fermer tous les blocs enfants (ex dossier rouge)
 								 **/
-								if ($(this).attr('data-toggle-all-children') == '1') { //o.config.closeMode == 'keepTitle'
+								if (isToggleAllBtn) {
 									let childrenList = getInfrastructureTitleChilds(titleRow, true); // renvoi la liste des id des enfants
 									if (childrenList.length > 0) {
 										childrenList.forEach((childLineId) => {
@@ -3168,12 +2659,12 @@
 													'id': $childLine.attr('data-id'),
 													'status': newStatus !== 'closed' ? 0 : 1,
 												});
-												o.toggleChildFolderStatusDisplay($childLine.attr('data-id'), newStatus);
+												o.toggleChildFolderStatusDisplay($childLine.attr('data-id'), newStatus, forceHideAll);
 											}
 										});
 									}
 								}
-								o.toggleChildFolderStatusDisplay(targetTitleLineId, newStatus); // devrait être dans le callback ajax success mais pour plus d'ergonomie et rapidité de feedback je le sort
+								o.toggleChildFolderStatusDisplay(targetTitleLineId, newStatus, forceHideAll); // devrait être dans le callback ajax success mais pour plus d'ergonomie et rapidité de feedback je le sort
 								o.callInterface('set', 'update_hideblock_data', sendData, function (response) {
 									// TODO gérer un retour en cas d'érreur
 									// o.toggleChildFolderStatusDisplay(targetTitleLineId, newStatus);

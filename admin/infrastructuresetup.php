@@ -73,10 +73,19 @@
 	}
 	// Update buttons management
 	if (preg_match('/update_(.*)/', $action, $reg)) {
-		$list		= array('Gen'	=> array('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_PROPALDET', 'INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_COMMANDEDET', 'INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_FACTUREDET', 'INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS',
-											'INFRASTRUCTURE_BLOC_FOLD_MODE', 'INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS', 'INFRASTRUCTURE_TFIELD_TO_KEEP_WITH_NC',  'INFRASTRUCTURE_TEXT_LINE_STYLE', 'INFRASTRUCTURE_TITLE_SIZE', 'INFRASTRUCTURE_INFRASTRUCTURE_STYLE',
-											'INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', 'INFRASTRUCTURE_INFRASTRUCTURE_BACKGROUND_COLOR', 'INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 'INFRASTRUCTURE_TITLE_STYLE'
-												)
+		$list		= array('Gen'	=> array('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_PROPALDET',	'INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_COMMANDEDET',
+											'INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_FACTUREDET',	'INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS',
+											'INFRASTRUCTURE_BLOC_FOLD_MODE',					'INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS',
+											'INFRASTRUCTURE_TFIELD_TO_KEEP_WITH_NC',			'INFRASTRUCTURE_TEXT_LINE_STYLE',
+											'INFRASTRUCTURE_TITLE_SIZE',						'INFRASTRUCTURE_TOTAL_STYLE',
+											'INFRASTRUCTURE_TITLE_BACKGROUND_COLOR',			'INFRASTRUCTURE_TOTAL_BACKGROUND_COLOR',
+											'INFRASTRUCTURE_TITLE_COLOR_BLOC',					'INFRASTRUCTURE_TITLE_COLOR',
+											'INFRASTRUCTURE_TOTAL_COLOR',				'INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE',
+											'INFRASTRUCTURE_TITLE_STYLE',						'INFRASTRUCTURE_STYLE_TITRES_SI_LIGNES_CACHEES',
+											'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET',	'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET',
+											'INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET',		'INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET',
+											'INFRASTRUCTURE_TEXT_FOR_TITLE_ORDERS_TO_INVOICE'
+											)
 							);
 		$confkey	= $reg[1];
 		$error		= 0;
@@ -98,6 +107,7 @@
 	}
 
 	// init variables *******************************
+	$isV20p				= version_compare(DOL_VERSION, '20.0.0') >= 0;
 	$propalSelected		= explode(',', getDolGlobalString('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_PROPALDET'));
 	$orderSelected		= explode(',', getDolGlobalString('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_COMMANDEDET'));
 	$invoiceSelected	= explode(',', getDolGlobalString('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_FACTUREDET'));
@@ -176,35 +186,51 @@
 	if (!empty($accessright)) {
 		$num	= 1;
 		infrastructure_print_btn_action('Gen', $langs->trans('InfrastructureParamCautionSave'), 4);
-		$num	= infrastructure_print_input('INFRASTRUCTURE_USE_NEW_FORMAT', 'on_off', $langs->trans('InfrastructureUseNewFormat'), 'InfrastructureUseNewFormatHelp', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL', 'on_off', $langs->trans('InfrastructureConcatTitleLabelInInfrastructureLabel'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_USE_NUMEROTATION', 'on_off', $langs->trans('InfrastructureUseNumerotation'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ALLOW_ADD_BLOCK', 'on_off', $langs->trans('InfrastructureAllowAddBlock'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ALLOW_EDIT_BLOCK', 'on_off', $langs->trans('InfrastructureAllowEditBlock'), '', array(), 2, 1, '', $num);
+		// num = 5
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ALLOW_REMOVE_BLOCK', 'on_off', $langs->trans('InfrastructureAllowRemoveBlock'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ALLOW_DUPLICATE_BLOCK', 'on_off', $langs->trans('InfrastructureAllowDuplicateBlock'), '', array(), 2, 1, '', $num);
-		// num = 8
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ALLOW_DUPLICATE_LINE', 'on_off', $langs->trans('InfrastructureAllowDuplicateLine'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ALLOW_ADD_LINE_UNDER_TITLE', 'on_off', $langs->trans('InfrastructureAllowAddLineUnderTitle'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ADD_LINE_UNDER_TITLE_AT_END_BLOCK', 'on_off', $langs->trans('InfrastructureAddLineUnderTitleAtEndBlock'), '', array(), 2, 1, '', $num);
+		// num = 10
 		$num	= infrastructure_print_input('INFRASTRUCTURE_HIDE_FOLDERS_BY_DEFAULT', 'on_off', $langs->trans('InfrastructureHideFoldersByDefault'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_HIDE_OPTIONS_TITLE', 'on_off', $langs->trans('InfrastructureHideOptionsTitle'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_HIDE_OPTIONS_BREAK_PAGE_BEFORE', 'on_off', $langs->trans('InfrastructureHideOptionsBreakPageBefore'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_HIDE_OPTIONS_BUILD_DOC', 'on_off', $langs->trans('InfrastructureHideOptionsBuildDoc'), '', array(), 2, 1, '', $num);
-		$num	= infrastructure_print_input('INFRASTRUCTURE_TEXT_FOR_TITLE_ORDERS_TO_INVOICE', '', $langs->trans('InfrastructureTextForTitleOrdetstoinvoice'), $langs->transnoentities('InfrastructureTextForTitleOrdetstoinvoiceInfo'), array(), 2, 1, '', $num);
+		if ($isV20p) {
+			$num	= infrastructure_print_input('INFRASTRUCTURE_FORCE_EXPLODE_ACTION_BTN', 'on_off', $langs->trans('InfrastructureForceExplodeActionBtn'), 'InfrastructureForceExplodeActionBtnInfo', array(), 2, 1, '', $num);
+		} else {
+			$num++;
+		}
+		// num = 15
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TEXT_FOR_TITLE_ORDERS_TO_INVOICE', 'input', $langs->trans('InfrastructureTextForTitleOrdetstoinvoice'), 'InfrastructureTextForTitleOrdetstoinvoiceInfo', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_STYLE', 'input', $langs->trans('InfrastructureTitleStyle'), '', array(), 2, 1, '', $num);
-		// num = 17
+		$num	= infrastructure_print_input('INFRASTRUCTURE_STYLE_TITRES_SI_LIGNES_CACHEES', 'input', $langs->trans('InfrastructureStyleTitresSiLignesCachees'), 'InfrastructureStyleTitresSiLignesCacheesInfo', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TEXT_LINE_STYLE', 'input', $langs->trans('InfrastructureTextLineStyle'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_SIZE', 'input', $langs->trans('InfrastructureTitleSize'), $langs->transnoentities('InfrastructureTitleSizeInfo'), array(), 2, 1, '', $num);
-		$num	= infrastructure_print_input('INFRASTRUCTURE_INFRASTRUCTURE_STYLE', 'input', $langs->trans('InfrastructureInfrastructureStyle'), '', array(), 2, 1, '', $num);
-		$num	= infrastructure_print_input('INFRASTRUCTURE_DISPLAY_MARGIN_ON_INFRASTRUCTURES', 'on_off', $langs->trans('InfrastructureDisplayMarginOnInfrastructures'), '', array(), 2, 1, '', $num);
+		// num = 20
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TOTAL_STYLE', 'input', $langs->trans('InfrastructureTotalStyle'), '', array(), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL', 'on_off', $langs->trans('InfrastructureDisplayMarginOnTotal'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', 'color', $langs->trans('InfrastructureTitleBackgroundcolor'), '', array(), 2, 1, '', $num);
-		$num	= infrastructure_print_input('INFRASTRUCTURE_INFRASTRUCTURE_BACKGROUND_COLOR', 'color', $langs->trans('InfrastructureInfrastructureBackgroundcolor'), '', array(), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TOTAL_BACKGROUND_COLOR', 'color', $langs->trans('InfrastructureTotalBackgroundcolor'), '', array(), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_COLOR_BLOC', 'color', $langs->trans('InfrastructureTitleColorBloc'), '', array(), 2, 1, '', $num);
+		// num = 25
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_COLOR', 'color', $langs->trans('InfrastructureTitleColor'), '', array(), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TOTAL_COLOR', 'color', $langs->trans('InfrastructureTotalColor'), '', array(), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET', 'input', $langs->trans('InfrastructureTitleBackgroundCellHeightOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET', 'input', $langs->trans('InfrastructureTitleBackgroundCellPosYOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'input', $langs->trans('InfrastructureBackgroundCellHeightOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
+		// num = 30
+		$num	= infrastructure_print_input('INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET', 'input', $langs->trans('InfrastructureBackgroundCellPosYOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 'input', $langs->trans('InfrastructureTitleAndInfrastructureBrightnessPercentage'), 'InfrastructureTitleAndInfrastructureBrightnessPercentageInfo', array(), 2, 1, '%', $num);
-		// num = 24
 		$num	= infrastructure_print_input('INFRASTRUCTURE_DISABLE_SUMMARY', 'on_off', $langs->trans('InfrastructureDisableSummary'), '', array(), 2, 1, '', $num);
-		$metas	= $form->selectarray('INFRASTRUCTURE_BLOC_FOLD_MODE', array('default' => $langs->trans('InfrastructureHideSubtitleOnFold'), 'keepTitle' => $langs->trans('InfrastructureKeepSubtitleDisplayOnFold')), getDolGlobalString('INFRASTRUCTURE_BLOC_FOLD_MODE'), 0, 0, 0, '', 1, 0, 0, '', 'infrastructurewidth270 centpercent');
+		$metas	= $form->selectarray('INFRASTRUCTURE_BLOC_FOLD_MODE', array('default' => $langs->trans('InfrastructureHideSubtitleOnFold'), 'keepTitle' => $langs->trans('InfrastructureKeepSubtitleDisplayOnFold'), 'hideAll' => $langs->trans('InfrastructureHideAllOnFold')), getDolGlobalString('INFRASTRUCTURE_BLOC_FOLD_MODE'), 0, 0, 0, '', 1, 0, 0, '', 'infrastructurewidth270 centpercent');
 		$num	= infrastructure_print_input('', 'select', $langs->trans('InfrastructureBlocFoldMode'), '', $metas, 2, 1, '', $num);
+		// num = 34
 		if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {
 			infrastructure_print_subTitle(4, 'InfrastructureManageNonCompris');
 			$metas	= $form->selectarray('INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS', array(0 => $langs->transnoentities('No'), 1 => $langs->transnoentities('Yes')), getDolGlobalInt('INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS', 1), 0, 0, 0, '', 1, 0, 0, '', 'infrastructurewidth270 centpercent');
@@ -224,7 +250,7 @@
 		} else {
 			$num += 4;
 		}
-		// num = 30
+		// num = 38
 		infrastructure_print_subTitle(4, 'InfrastructureSetupForExtrafields');
 		$num	= infrastructure_print_input('INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE', 'on_off', $langs->trans('InfrastructureAllowExtrafieldsOnTitle'), '', array(), 2, 1, '', $num);
 		$metas	= $form->multiselectarray('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_PROPALDET', $extrafields->fetch_name_optionals_label('propaldet'), $propalSelected, 0, 0, 'centpercent', 0, 0, '', '', '');
@@ -233,7 +259,7 @@
 		$num	= infrastructure_print_input('', 'select', $langs->trans('InfrastructureListOfExtrafieldsCommandedet'), '', $metas, 2, 1, '', $num);
 		$metas	= $form->multiselectarray('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_FACTUREDET', $extrafields->fetch_name_optionals_label('facturedet'), $invoiceSelected, 0, 0, 'centpercent', 0, 0, '', '', '');
 		$num	= infrastructure_print_input('', 'select', $langs->trans('InfrastructureListOfExtrafieldsFacturedet'), '', $metas, 2, 1, '', $num);
-		// num = 34
+		// num = 42
 		infrastructure_print_subTitle(4, 'InfrastructureSetup');
 		$TField	= array('propal'			=> $langs->trans('Proposal'),
 						'commande'			=> $langs->trans('Order'),
@@ -245,13 +271,14 @@
 		$metas	= $form->multiselectarray('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS', $TField, $selected, 0, 0, 'centpercent', 0, 0, '', '', '');
 		$num	= infrastructure_print_input('', 'select', $langs->trans('InfrastructureDefaultDisplayQtyForInfrastructureOnElements'), 'InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo', $metas, 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_NO_TITLE_SHOW_ON_EXPED_GENERATION', 'on_off', $langs->trans('InfrastructureNoTitleShowOnExpedGeneration'), '', array(), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_DEFAULT_CHECK_SHIPPING_LIST_FOR_TITLE_DESC', 'on_off', $langs->trans('InfrastructureDefaultCheckShippingListForTitleDesc'), 'InfrastructureDefaultCheckShippingListForTitleDescInfo', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_SHOW_TVA_ON_INFRASTRUCTURE_LINES_ON_ELEMENTS', 'on_off', $langs->trans('InfrastructureShowTvaOnInfrastructureLinesOnElements'), '', array(), 2, 1, '', $num);
 		if (getDolGlobalInt('INFRASTRUCTURE_SHOW_TVA_ON_INFRASTRUCTURE_LINES_ON_ELEMENTS') && isModEnabled('infraspackplus')) {
 			$num	= infrastructure_print_input('INFRASTRUCTURE_LIMIT_TVA_ON_CONDENSED_BLOCS', 'on_off', $langs->trans('InfrastructureLimitTvaOnCondensedBlocs'), '', array(), 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		// num = 38
+		// num = 47
 		infrastructure_print_subTitle(4, 'InfrastructureRecapGeneration');
 		$num	= infrastructure_print_input('INFRASTRUCTURE_KEEP_RECAP_FILE', 'on_off', $langs->trans('InfrastructureKeepRecapFile'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_PROPAL_ADD_RECAP', 'on_off', $langs->trans('InfrastructurePropalAddRecap'), '', array(), 2, 1, '', $num);
@@ -260,6 +287,7 @@
 		infrastructure_print_subTitle(4, 'InfrastructureSetupForSubBlocs');
 		$num	= infrastructure_print_input('INFRASTRUCTURE_HIDE_PRICE_DEFAULT_CHECKED', 'on_off', $langs->trans('InfrastructureHidePriceDefaultChecked'), '', array(), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_IF_HIDE_PRICES_SHOW_QTY', 'on_off', $langs->trans('InfrastructureIfHidePricesShowQty'), '', array(), 2, 1, '', $num);
+		// num = 53
 		if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {
 			$num	= infrastructure_print_input('INFRASTRUCTURE_HIDE_DOCUMENT_TOTAL', 'on_off', $langs->trans('InfrastructureHideDocumentTotal'), '', array(), 2, 1, '', $num);
 		} else {
@@ -280,10 +308,11 @@
 			infrastructure_print_subTitle(4, 'InfrastructureExperimentalZone');
 			$num	= infrastructure_print_input('INFRASTRUCTURE_ONE_LINE_IF_HIDE_INNERLINES', 'on_off', $langs->trans('InfrastructureOneLineIfHideInnerlines', $langs->trans('InfrastructureHideInnerLines')), '', array(), 2, 1, '', $num);
 			$num	= infrastructure_print_input('INFRASTRUCTURE_REPLACE_WITH_VAT_IF_HIDE_INNERLINES', 'on_off', $langs->trans('InfrastructureReplaceWithVatIfHideInnerlines', $langs->trans('InfrastructureHideInnerLines')), '', array(), 2, 1, '', $num);
+			$num	= infrastructure_print_input('INFRASTRUCTURE_DISABLE_FIX_TRANSACTION', 'on_off', $langs->trans('InfrastructureDisableFixTransaction'), 'InfrastructureDisableFixTransactionInfo', array(), 2, 1, '', $num);
 		} else {
-			$num += 2;
+			$num += 3;
 		}
-		// num = 50
+		// num = 60
 		print '		</table>';
 		print '	</div>';
 	}

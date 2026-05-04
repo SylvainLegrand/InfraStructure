@@ -408,7 +408,7 @@
 						$commande = new CommandeFournisseur($this->db);
 					}
 					$commande->fetch($current_fk_commande);
-					$label = getDolGlobalString('INFRASTRUCTURE_TEXT_FOR_TITLE_ORDETSTOINVOICE');
+					$label = getDolGlobalString('INFRASTRUCTURE_TEXT_FOR_TITLE_ORDERS_TO_INVOICE');
 					if (empty($label)) {
 						$label = 'Commande [__REFORDER__]';
 						if (!$is_supplier) {
@@ -473,7 +473,7 @@
 			}
 			$doli_action	= GETPOST('action', 'aZ09');
 			$set			= GETPOST('set', 'aZ09');
-			/* if ((!in_array($doli_action, array('updateligne', 'updateline', 'addline', 'add', 'create', 'setstatut', 'save_nomenclature')) && $set != 'defaultTVA') || TInfrastructure::isTitle($object) || TInfrastructure::isInfrastructure($object) || !in_array($object->element, array('propaldet', 'commandedet', 'facturedet'))) {
+			/* if ((!in_array($doli_action, array('updateligne', 'updateline', 'addline', 'add', 'create', 'setstatut', 'save_nomenclature')) && $set != 'defaultTVA') || TInfrastructure::isTitle($object) || TInfrastructure::isTotal($object) || !in_array($object->element, array('propaldet', 'commandedet', 'facturedet'))) {
 				return;
 			} */
 			dol_syslog("[INFRASTRUCTURE_MANAGE_COMPRIS_NONCOMPRIS] Trigger '".$this->name."' for action '".$action."' launched by ".__FILE__.". object=".$object->element." id=".$object->id);
@@ -531,7 +531,7 @@
 		{
 			$object->fetch_lines();
 			foreach ($object->lines as &$line) {
-				if (TInfrastructure::isInfrastructure($line) && !empty($line->tva_tx)) {
+				if (TInfrastructure::isTotal($line) && !empty($line->tva_tx)) {
 					$line->tva_tx = 0;
 					$line->update();
 				}

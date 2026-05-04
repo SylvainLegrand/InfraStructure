@@ -69,10 +69,9 @@
 	$qty_displayed	= 0;
 	if (TInfrastructure::isTitle($line)) {
 		$qty_displayed = $line->qty;
-		print img_picto('', 'subinfrastructure@infrastructure').'<span style="font-size:9px;margin-left:-3px;color:#0075DE;">'.$qty_displayed.'</span>&nbsp;&nbsp;';
-	} elseif (TInfrastructure::isInfrastructure($line)) {
+		print '<i class="'.getDolGlobalString('MAIN_FONTAWESOME_ICON_STYLE').' fa-tenge" aria-hidden="true"></i>'.$qty_displayed.'&nbsp;&nbsp;';
+	} elseif (TInfrastructure::isTotal($line)) {
 		$qty_displayed = 100 - $line->qty;
-		print img_picto('', 'subinfrastructure2@infrastructure').'<span style="font-size:9px;margin-left:-1px;color:#0075DE;">'.$qty_displayed.'</span>&nbsp;&nbsp;';
 	} else {
 		$isFreeText = true;
 	}
@@ -82,7 +81,7 @@
 	}
 	$newlabel = $line->label;
 	if ($line->label == '' && !$isFreeText) {
-		if (TInfrastructure::isInfrastructure($line)) {
+		if (TInfrastructure::isTotal($line)) {
 			$newlabel			= $line->description.' '.infrastructure_getTitle($object, $line);
 			$line->description	= '';
 		}
@@ -97,7 +96,7 @@
 	if (!$isFreeText) {
 		print '		<input type="text" name="line-title" id-line="'.((int) $line->id).'" value="'.dol_escape_htmltag($newlabel).'" size="80" '.$readonlyForSituation.'/>&nbsp;';
 	}
-	if (getDolGlobalString('INFRASTRUCTURE_USE_NEW_FORMAT') && (TInfrastructure::isTitle($line) || TInfrastructure::isInfrastructure($line))) {
+	if (TInfrastructure::isTitle($line) || TInfrastructure::isTotal($line)) {
 		$select	= '	<select name="infrastructure_level">';
 		for ($j = 1; $j < 10; $j++) {
 			if (!empty($readonlyForSituation)) {
@@ -158,7 +157,7 @@
 	} elseif ($isFreeText) {
 		echo TInfrastructure::getFreeTextHtml($line, (bool) $readonlyForSituation);
 	}
-	if (TInfrastructure::isInfrastructure($line) && $show_qty_bu_deault = TInfrastructure::showQtyForObject($object)) {
+	if (TInfrastructure::isTotal($line) && $show_qty_bu_deault = TInfrastructure::showQtyForObject($object)) {
 		$line_show_qty = TInfrastructure::showQtyForObjectLine($line, $show_qty_bu_deault);
 		print '			<div>
 							<input style="vertical-align:sub;" type="checkbox" name="line-showQty" id="infrastructure-showQty" value="1" '.($line_show_qty ? 'checked="checked"' : '').' />&nbsp;
