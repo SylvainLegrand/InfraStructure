@@ -923,10 +923,32 @@
 	}
 
 	/**
+	*	Override PDF text color from a color configuration constant. Does nothing if the constant is empty or invalid (preserves any auto color set previously, e.g. white-on-dark by infrastructure_getPdfBackgroundStyle).
+	*
+	*	@param	TCPDF	$pdf			PDF object
+	*	@param	string	$colorConst		Global constant name for text color (e.g. 'INFRASTRUCTURE_PDF_TITLE_COLOR')
+	*	@return	bool					true if a color was applied, false if left untouched
+	*/
+	function infrastructure_setPdfTextColor(&$pdf, $colorConst)
+	{
+		$rawValue			= getDolGlobalString($colorConst);
+		if ($rawValue === '') {
+			return false;
+		}
+		$normalizedColor	= ($rawValue[0] !== '#') ? '#'.$rawValue : $rawValue;
+		if (function_exists('colorValidateHex') && colorValidateHex($normalizedColor) && function_exists('colorStringToArray')) {
+			$rgb	= colorStringToArray($normalizedColor, array(0, 0, 0));
+			$pdf->setColor('text', $rgb[0], $rgb[1], $rgb[2]);
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	* Compute PDF background style from a color configuration constant
 	*
 	* @param	TCPDF	$pdf					PDF object
-	* @param	string	$colorConst				Global constant name for background color (e.g. 'INFRASTRUCTURE_TITLE_BACKGROUND_COLOR')
+	* @param	string	$colorConst				Global constant name for background color (e.g. 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR')
 	* @param	string	$heightOffsetConst		Global constant name for cell height offset
 	* @param	string	$posYOffsetConst		Global constant name for cell Y position offset
 	* @return	array							Array with keys 'fill', 'color', 'heightOffset', 'posYOffset'
@@ -938,10 +960,11 @@
 						'heightOffset'	=> 0,
 						'posYOffset'	=> 0,
 					);
-		if (getDolGlobalString($colorConst) && function_exists('colorValidateHex') && colorValidateHex(getDolGlobalString($colorConst)) && function_exists('colorStringToArray')) {
+		$normalizedColor	= (getDolGlobalString($colorConst) !== '' && getDolGlobalString($colorConst)[0] !== '#') ? '#'.getDolGlobalString($colorConst) : getDolGlobalString($colorConst);
+		if ($normalizedColor && function_exists('colorValidateHex') && colorValidateHex($normalizedColor) && function_exists('colorStringToArray')) {
 			$result['fill']		= true;
-			$result['color']	= colorStringToArray(getDolGlobalString($colorConst), array(233, 233, 233));
-			if (function_exists('colorIsLight') && !colorIsLight(getDolGlobalString($colorConst))) {
+			$result['color']	= colorStringToArray($normalizedColor, array(233, 233, 233));
+			if (function_exists('colorIsLight') && !colorIsLight($normalizedColor)) {
 				$pdf->setColor('text', 255, 255, 255);
 			}
 			if ($heightOffsetConst && getDolGlobalString($heightOffsetConst)) {

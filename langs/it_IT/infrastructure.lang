@@ -21,6 +21,9 @@ InfrastructurenoMaxDolVersion   = Nessuna versione massima nota
 InfrastructuresAndTitlesActionBtnLabel = Struttura il mio documento
 
 ### Setup page ###
+InfrastructurePdfPrinting                                      = Paramètro stampa PDF
+InfrastructureCalculations                                     = Parametri di calcolo
+InfrastructureScreenDisplay                                    = Parametri di visualizzazione del modulo Infrastructure
 InfrastructureSetup                                            = Parametro modulo InfraStructure
 InfrastructureParamTitleComp                                   = Parametri del modulo Infrastructure
 InfrastructureParamAction1                                     = Salvare / Ripristinare tutti i parametri del modulo
@@ -55,13 +58,19 @@ InfrastructureTitleStyle                                       = Stile dei titol
 InfrastructureTitleSize                                        = Dimensione dei titoli
 InfrastructureTitleSizeInfo                                    = uguale a 9 se non specificata
 InfrastructureTitleToAddUnderTitle                             = Aggiungere sotto
-InfrastructureTitleBackgroundcolor                             = Colore di sfondo utilizzato per i titoli
+InfrastructureTitleBackgroundcolor                             = Colore di sfondo utilizzato per i titoli (visualizzazione su schermo)
 InfrastructureTotalStyle                              = Stile dei subtotali (B = grassetto, U = sottolineato, I = corsivo)
 InfrastructureTotalHideBackground                     = Disattivare l'utilizzo di un colore di sfondo (evidenziazione) per i subtotali
-InfrastructureTotalBackgroundcolor                    = Colore di sfondo utilizzato per i subtotali
+InfrastructureTotalBackgroundcolor                    = Colore di sfondo utilizzato per i subtotali (visualizzazione su schermo)
+InfrastructurePdfTitleBackgroundcolor                 = Colore di sfondo utilizzato per i titoli nei PDF
+InfrastructurePdfTotalBackgroundcolor                 = Colore di sfondo utilizzato per i subtotali nei PDF
 InfrastructureTitleColorBloc                                   = Colore del testo utilizzato per le icone di azione sui blocchi
 InfrastructureTitleColor                                       = Colore del testo utilizzato per le icone di titolo
 InfrastructureTotalColor                              = Colore del testo utilizzato per le icone di totale
+InfrastructurePdfTitleColor                           = Colore del testo utilizzato per i titoli nei PDF
+InfrastructurePdfTitleColorInfo                       = Se impostato, sovrascrive il colore automatico (bianco su sfondo scuro, nero altrimenti).
+InfrastructurePdfTotalColor                           = Colore del testo utilizzato per i subtotali nei PDF
+InfrastructurePdfTotalColorInfo                       = Se impostato, sovrascrive il colore automatico (bianco su sfondo scuro, nero altrimenti).
 InfrastructureBlocFoldMode                                     = Comportamento da adottare quando si nasconde un blocco titolo
 InfrastructureOptions                                          = Opzioni InfraStructure
 InfrastructureOneLineIfHideInnerlines                          = Avere una sola riga di titolo + totale se viene utilizzata l'opzione "%s" (sperimentale)
@@ -217,23 +226,23 @@ InfrastructureShowQtyOnTitles                = Visualizzare la quantità sulle r
 InfrastructureOnlyHideSubproductsPrices      = Nascondere unicamente i prezzi per i prodotti che si trovano in un insieme
 
 ### Errors ###
-InfrastructureErrorDeleteLine                  = Errore durante l'eliminazione di una riga del modulo InfraStructure
-InfrastructureErrorLoadingLinesFromLinkedOrder = Errore durante il caricamento delle righe d'ordine associate alla spedizione
-InfrastructureErrorLoadingLinkedOrder          = Errore durante il caricamento dell'ordine associato alla spedizione
-InfrastructureErrorNoLinkedOrder               = nessun ordine associato
-InfrastructureErrorClassXNotExists             = ERRORE: la classe PHP %s non è caricata
-InfrastructureMigrateSubtotalFailed            = Il test di migrazione dal modulo subtotal è fallito, attivazione annullata
-InfrastructureMigrateSubtotalRealRunFailed     = La migrazione reale dal modulo subtotal è fallita
-InfrastructureCleanupSubtotalFailed            = La pulizia del modulo subtotal dopo la migrazione è fallita
-InfrastructureMigrateSpecialCodeFailed         = La migrazione dello special_code (da 104777 a 550090) è fallita, attivazione annullata
+InfrastructureErrorDeleteLine                          = Errore durante l'eliminazione di una riga del modulo InfraStructure
+InfrastructureErrorLoadingLinesFromLinkedOrder         = Errore durante il caricamento delle righe d'ordine associate alla spedizione
+InfrastructureErrorLoadingLinkedOrder                  = Errore durante il caricamento dell'ordine associato alla spedizione
+InfrastructureErrorNoLinkedOrder                       = nessun ordine associato
+InfrastructureErrorClassXNotExists                     = ERRORE: la classe PHP %s non è caricata
+InfrastructureMigrateSubtotalFailed                    = Il test di migrazione dal modulo subtotal è fallito, attivazione annullata
+InfrastructureMigrateSubtotalRealRunFailed             = La migrazione reale dal modulo subtotal è fallita
+InfrastructureCleanupSubtotalFailed                    = La pulizia del modulo subtotal dopo la migrazione è fallita
+InfrastructureMigrateSpecialCodeFailed                 = La migrazione dello special_code (da 104777 a 550090) è fallita, attivazione annullata
 InfrastructureForceExplodeActionBtn                    = Forzare la visualizzazione dei pulsanti d'azione affiancati (al di fuori del menu a tendina)
 InfrastructureForceExplodeActionBtnInfo                = Mostra tutti i pulsanti d'azione « Aggiungi titolo / totale / testo libero / duplica » affiancati invece che raggruppati in un menu a tendina. Senza effetto in Dolibarr < 20 dove i pulsanti sono sempre espansi.
 InfrastructureStyleTitresSiLignesCachees               = Stile dei titoli quando il dettaglio del blocco è nascosto (B = grassetto, U = sottolineato, I = corsivo)
 InfrastructureStyleTitresSiLignesCacheesInfo           = Stile applicato al titolo quando l'opzione « Nascondi righe » (hideblock) è attivata su quel titolo. Combinare le lettere per accumulare gli stili (es. « BI » = grassetto + corsivo).
-InfrastructureTitleBackgroundCellHeightOffset          = Scostamento di altezza (mm) della cella di sfondo colorata dei titoli nei PDF
-InfrastructureTitleBackgroundCellPosYOffset            = Scostamento verticale (mm) della cella di sfondo colorata dei titoli nei PDF
-InfrastructureBackgroundCellHeightOffset               = Scostamento di altezza (mm) della cella di sfondo colorata dei subtotali nei PDF
-InfrastructureBackgroundCellPosYOffset                 = Scostamento verticale (mm) della cella di sfondo colorata dei subtotali nei PDF
+InfrastructureTitleBackgroundCellHeightOffset          = Aumento dell'altezza dello sfondo dei titoli nei PDF
+InfrastructureTitleBackgroundCellPosYOffset            = Spostamento verticale dello sfondo dei titoli nei PDF
+InfrastructureBackgroundCellHeightOffset               = Aumento dell'altezza dello sfondo dei subtotali nei PDF
+InfrastructureBackgroundCellPosYOffset                 = Spostamento verticale dello sfondo dei subtotali nei PDF
 InfrastructureBackgroundCellOffsetInfo                 = Permette di regolare finemente il rendering della cella di sfondo colorata per compensare le differenze tra altezza del testo e altezza della cella. Senza effetto se non è definito alcun colore di sfondo.
 InfrastructureDefaultCheckShippingListForTitleDesc     = Spuntare per default « Includi lista spedizioni » quando si aggiunge un titolo
 InfrastructureDefaultCheckShippingListForTitleDescInfo = Quando attivata, la casella « Aggiungi la lista delle spedizioni alla descrizione del titolo » è pre-selezionata nel modulo di aggiunta/modifica del titolo.

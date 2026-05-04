@@ -21,6 +21,9 @@ InfrastructurenoMaxDolVersion   = No known maximum version
 InfrastructuresAndTitlesActionBtnLabel = Structure my document
 
 ### Setup page ###
+InfrastructurePdfPrinting                                      = PDF printing settings
+InfrastructureCalculations                                     = Calculations
+InfrastructureScreenDisplay                                    = Infrastructure module display settings
 InfrastructureSetup                                            = Infrastructure module setup
 InfrastructureParamTitleComp                                   = Infrastructure module settings
 InfrastructureParamAction1                                     = Save / Restore all module settings
@@ -55,13 +58,19 @@ InfrastructureTitleStyle                                       = Title style (B 
 InfrastructureTitleSize                                        = Title size
 InfrastructureTitleSizeInfo                                    = equal to 9 if not specified
 InfrastructureTitleToAddUnderTitle                             = Add under
-InfrastructureTitleBackgroundcolor                             = Background color used for titles
+InfrastructureTitleBackgroundcolor                             = Background color used for titles (screen display)
 InfrastructureTotalStyle                              = Infrastructures style (B = bold, U = underline, I = italic)
 InfrastructureTotalHideBackground                     = Disable background color (highlighting) for infrastructures
-InfrastructureTotalBackgroundcolor                    = Background color used for infrastructures
+InfrastructureTotalBackgroundcolor                    = Background color used for infrastructures (screen display)
+InfrastructurePdfTitleBackgroundcolor                 = Background color used for titles in PDF output
+InfrastructurePdfTotalBackgroundcolor                 = Background color used for infrastructures in PDF output
 InfrastructureTitleColorBloc                                   = Text color used for block action icons
 InfrastructureTitleColor                                       = Text color used for title icons
 InfrastructureTotalColor                              = Text color used for total icons
+InfrastructurePdfTitleColor                           = Text color used for titles in PDF output
+InfrastructurePdfTitleColorInfo                       = If set, overrides the automatic color (white on dark background, black otherwise).
+InfrastructurePdfTotalColor                           = Text color used for subtotals in PDF output
+InfrastructurePdfTotalColorInfo                       = If set, overrides the automatic color (white on dark background, black otherwise).
 InfrastructureBlocFoldMode                                     = Behavior when hiding a title block
 InfrastructureOptions                                          = Infrastructure options
 InfrastructureOneLineIfHideInnerlines                          = Get one line with title and infrastructure if "%s" is enabled (experimental)
@@ -217,15 +226,15 @@ InfrastructureShowQtyOnTitles                = Display quantity on infrastructur
 InfrastructureOnlyHideSubproductsPrices      = Hide only prices for products in a set
 
 ### Errors ###
-InfrastructureErrorDeleteLine                  = Error when deleting a line from the infrastructure module
-InfrastructureErrorLoadingLinesFromLinkedOrder = Error while loading order lines associated with the shipment
-InfrastructureErrorLoadingLinkedOrder          = Error while loading the order associated with the shipment
-InfrastructureErrorNoLinkedOrder               = No associated order
-InfrastructureErrorClassXNotExists             = ERROR: the PHP class %s is not loaded
-InfrastructureMigrateSubtotalFailed            = Migration test from subtotal module failed, activation aborted
-InfrastructureMigrateSubtotalRealRunFailed     = Real migration from subtotal module failed
-InfrastructureCleanupSubtotalFailed            = Cleanup of subtotal module after migration failed
-InfrastructureMigrateSpecialCodeFailed         = Special code migration (104777 to 550090) failed, activation aborted
+InfrastructureErrorDeleteLine                          = Error when deleting a line from the infrastructure module
+InfrastructureErrorLoadingLinesFromLinkedOrder         = Error while loading order lines associated with the shipment
+InfrastructureErrorLoadingLinkedOrder                  = Error while loading the order associated with the shipment
+InfrastructureErrorNoLinkedOrder                       = No associated order
+InfrastructureErrorClassXNotExists                     = ERROR: the PHP class %s is not loaded
+InfrastructureMigrateSubtotalFailed                    = Migration test from subtotal module failed, activation aborted
+InfrastructureMigrateSubtotalRealRunFailed             = Real migration from subtotal module failed
+InfrastructureCleanupSubtotalFailed                    = Cleanup of subtotal module after migration failed
+InfrastructureMigrateSpecialCodeFailed                 = Special code migration (104777 to 550090) failed, activation aborted
 InfrastructureForceExplodeActionBtn                    = Force action buttons to display side-by-side (outside dropdown menu)
 InfrastructureForceExplodeActionBtnInfo                = Displays all action buttons « Add title / total / free text / duplicate » side-by-side rather than grouped in a dropdown menu. No effect in Dolibarr < 20 where buttons are always exploded.
 InfrastructureStyleTitresSiLignesCachees               = Title style when block detail is hidden (B = bold, U = underline, I = italic)

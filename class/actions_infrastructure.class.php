@@ -778,20 +778,21 @@
 		{
 			global $conf, $infrastructure_last_title_posy, $langs;
 
-			$infrastructureDefaultTopPadding			= 1;
-			$infrastructureDefaultBottomPadding		= 1;
-			$infrastructureDefaultLeftPadding			= 0.5;
-			$infrastructureDefaultRightPadding		= 0.5;
+			$infrastructureDefaultTopPadding	= 1;
+			$infrastructureDefaultBottomPadding	= 1;
+			$infrastructureDefaultLeftPadding	= 0.5;
+			$infrastructureDefaultRightPadding	= 0.5;
 			$use_multicurrency					= isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 1 : 0;
 			empty($pdf->page_largeur) ? $pdf->page_largeur = 0 : '';
 			empty($pdf->marge_droite) ? $pdf->marge_droite = 0 : '';
 			empty($line->total) ? $line->total = 0 : '';
 			empty($pdf->postotalht) ? $pdf->postotalht = 0 : '';
-			$bgStyle							= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_TOTAL_BACKGROUND_COLOR', 'INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET');
+			$bgStyle							= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TOTAL_BACKGROUND_COLOR', 'INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET');
 			$fillBackground						= $bgStyle['fill'];
 			$backgroundColor					= $bgStyle['color'];
 			$backgroundCellHeightOffset			= $bgStyle['heightOffset'];
 			$backgroundCellPosYOffset			= $bgStyle['posYOffset'];
+			infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
 			// POUR LES PDF DE TYPE PDF_EVOLUTION (ceux avec les colonnes configurables)
 			$pdfModelUseColSystem				= !empty($object->context['infrastructurePdfModelInfo']->cols); // justilise une variable au cas ou le test evolue
 			if ($pdfModelUseColSystem) {
@@ -956,11 +957,13 @@
 			empty($pdf->marge_droite) ? $pdf->marge_droite = 0 : '';
 			// Manage background color
 			$fillDescBloc				= false;
-			$bgStyle					= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET');
+			$bgStyle					= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET');
 			$fillBackground				= $bgStyle['fill'];
 			$backgroundColor			= $bgStyle['color'];
 			$backgroundCellHeightOffset	= $bgStyle['heightOffset'];
 			$backgroundCellPosYOffset	= $bgStyle['posYOffset'];
+			// User-configured text color override (takes precedence over auto white-on-dark from infrastructure_getPdfBackgroundStyle).
+			infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TITLE_COLOR');
 			//$pdf->SetTextColor('text', 0, 0, 0);
 			$infrastructure_last_title_posy	= $posy;
 			$pdf->SetXY($posx, $posy);

@@ -21,7 +21,10 @@ InfrastructurenoMaxDolVersion   = Versión máxima desconocida
 InfrastructuresAndTitlesActionBtnLabel = Estructurar mi documento
 
 ### Setup page ###
-InfrastructureSetup                                            = Configuración del módulo infrastructure
+InfrastructurePdfPrinting                                      = Configuración de impresión PDF
+InfrastructureCalculations                                     = Cálculos
+InfrastructureScreenDisplay                                    = Configuración de visualización del módulo Infrastructure
+InfrastructureSetup                                            = Configuración del módulo Infrastructure
 InfrastructureParamTitleComp                                   = Parámetros del módulo Infrastructure
 InfrastructureParamAction1                                     = Guardar / Restaurar todos los parámetros del módulo
 InfrastructureParamAction2                                     = <br>(después de una restauración, actualice la página (F5) para ver el resultado)
@@ -55,13 +58,19 @@ InfrastructureTitleStyle                                       = Estilo de los t
 InfrastructureTitleSize                                        = Tamaño de los títulos
 InfrastructureTitleSizeInfo                                    = igual a 9 si no se especifica
 InfrastructureTitleToAddUnderTitle                             = Agregar debajo
-InfrastructureTitleBackgroundcolor                             = Color de fondo utilizado para los títulos
+InfrastructureTitleBackgroundcolor                             = Color de fondo utilizado para los títulos (visualización en pantalla)
 InfrastructureTotalStyle                              = Estilo de los infrastructurees (B = negrita, U = subrayado, I = cursiva)
 InfrastructureTotalHideBackground                     = Desactivar el uso de un color de fondo (resaltado) para los infrastructurees
-InfrastructureTotalBackgroundcolor                    = Color de fondo utilizado para los infrastructurees
+InfrastructureTotalBackgroundcolor                    = Color de fondo utilizado para los infrastructurees (visualización en pantalla)
+InfrastructurePdfTitleBackgroundcolor                 = Color de fondo utilizado para los títulos en los PDF
+InfrastructurePdfTotalBackgroundcolor                 = Color de fondo utilizado para los infrastructurees en los PDF
 InfrastructureTitleColorBloc                                   = Color de texto utilizado para los iconos de acción de los bloques
 InfrastructureTitleColor                                       = Color de texto utilizado para los iconos de título
 InfrastructureTotalColor                              = Color de texto utilizado para los iconos de total
+InfrastructurePdfTitleColor                           = Color de texto utilizado para los títulos en los PDF
+InfrastructurePdfTitleColorInfo                       = Si se establece, anula el color automático (blanco sobre fondo oscuro, negro en caso contrario).
+InfrastructurePdfTotalColor                           = Color de texto utilizado para los subtotales en los PDF
+InfrastructurePdfTotalColorInfo                       = Si se establece, anula el color automático (blanco sobre fondo oscuro, negro en caso contrario).
 InfrastructureBlocFoldMode                                     = Comportamiento al ocultar un bloque de título
 InfrastructureOptions                                          = Opciones de infrastructure
 InfrastructureOneLineIfHideInnerlines                          = Obtener una sola línea de título + total si se usa la opción "%s" (experimental)
@@ -217,15 +226,15 @@ InfrastructureShowQtyOnTitles                = Mostrar la cantidad en las línea
 InfrastructureOnlyHideSubproductsPrices      = Ocultar únicamente los precios de los productos dentro de un conjunto
 
 ### Errors ###
-InfrastructureErrorDeleteLine                  = Error al eliminar una línea del módulo infrastructure
-InfrastructureErrorLoadingLinesFromLinkedOrder = Error al cargar las líneas de pedido asociadas al envío
-InfrastructureErrorLoadingLinkedOrder          = Error al cargar el pedido asociado al envío
-InfrastructureErrorNoLinkedOrder               = Sin pedido asociado
-InfrastructureErrorClassXNotExists             = ERROR: la clase PHP %s no está cargada
-InfrastructureMigrateSubtotalFailed            = La prueba de migración desde el módulo subtotal falló, activación cancelada
-InfrastructureMigrateSubtotalRealRunFailed     = La migración real desde el módulo subtotal falló
-InfrastructureCleanupSubtotalFailed            = La limpieza del módulo subtotal después de la migración falló
-InfrastructureMigrateSpecialCodeFailed         = La migración del special_code (104777 a 550090) falló, activación cancelada
+InfrastructureErrorDeleteLine                          = Error al eliminar una línea del módulo infrastructure
+InfrastructureErrorLoadingLinesFromLinkedOrder         = Error al cargar las líneas de pedido asociadas al envío
+InfrastructureErrorLoadingLinkedOrder                  = Error al cargar el pedido asociado al envío
+InfrastructureErrorNoLinkedOrder                       = Sin pedido asociado
+InfrastructureErrorClassXNotExists                     = ERROR: la clase PHP %s no está cargada
+InfrastructureMigrateSubtotalFailed                    = La prueba de migración desde el módulo subtotal falló, activación cancelada
+InfrastructureMigrateSubtotalRealRunFailed             = La migración real desde el módulo subtotal falló
+InfrastructureCleanupSubtotalFailed                    = La limpieza del módulo subtotal después de la migración falló
+InfrastructureMigrateSpecialCodeFailed                 = La migración del special_code (104777 a 550090) falló, activación cancelada
 InfrastructureForceExplodeActionBtn                    = Forzar la visualización de los botones de acción uno al lado del otro (fuera del menú desplegable)
 InfrastructureForceExplodeActionBtnInfo                = Muestra todos los botones de acción « Añadir título / total / texto libre / duplicar » uno al lado del otro en lugar de agrupados en un menú desplegable. Sin efecto en Dolibarr < 20 donde los botones siempre están desplegados.
 InfrastructureStyleTitresSiLignesCachees               = Estilo de los títulos cuando el detalle del bloque está oculto (B = negrita, U = subrayado, I = cursiva)
