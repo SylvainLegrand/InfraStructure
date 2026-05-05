@@ -102,14 +102,11 @@
 			$show = false;
 			if ($context === 'pdf') {
 				$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS_PDF');
-				if ($value === '') {
-					$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS');
-				}
 			} else {
 				$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS');
 			}
 			if ($value !== '' && in_array($object->element, explode(',', $value))) {
-				$show = true;
+				$show	= true;
 			}
 			return $show;
 		}
