@@ -121,13 +121,19 @@ print '<th class="linecoluht right nowraponall">'.$langs->trans('PriceUHT').'</t
 // Multicurrency
 if (isModEnabled("multicurrency") && $this->multicurrency_code != $conf->currency) {
 	print '<th class="linecoluht_currency right" style="width: 80px">'.$langs->trans('PriceUHT');
-	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')<span></th>';
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';	// InfraS change
 }
 
 // Price TTC
 if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {
 	print '<th class="linecoluttc right nowraponall">'.$langs->trans('PriceUTTC').'</th>';
 }
+
+// Multicurrency TTC	// InfraS add begin (fix : colonne header manquante alignée sur le bloc « Multicurrency TTC » de objectline_view_22-DolInfraS.tpl.php)
+if (isModEnabled("multicurrency") && $this->multicurrency_code && $this->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {
+	print '<th class="linecoluttc_currency right nowraponall">'.$langs->trans('PriceUTTC');
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';
+}	// InfraS add end
 
 // Qty
 print '<th class="linecolqty right">'.$langs->trans('Qty').'</th>';
@@ -212,7 +218,7 @@ print '<th class="linecolht right">'.$langs->trans('TotalHTShort').'</th>';
 // Multicurrency
 if (isModEnabled("multicurrency") && $this->multicurrency_code != $conf->currency) {
 	print '<th class="linecoltotalht_currency right">'.$langs->trans('TotalHTShort');
-	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')<span></th>';
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';	// InfraS change
 }
 
 if ($outputalsopricetotalwithtax) {

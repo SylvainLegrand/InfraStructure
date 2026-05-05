@@ -157,6 +157,11 @@ if ($nolinesbefore) {
 		<?php if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
 			<td class="linecoluttc right"><span id="title_up_ttc"><?php echo $langs->trans('PriceUTTC'); ?></span></td>
 		<?php } ?>
+		<?php // InfraS add begin (fix : Multicurrency TTC header column for the create form, backport from v23/v24) ?>
+		<?php if (isModEnabled("multicurrency") && $this->multicurrency_code && $this->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
+			<td class="linecoluttc_currency right"><span id="title_up_ttc_currency"><?php echo $langs->trans('PriceUTTC').'&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span>'; ?></span></td>
+		<?php } ?>
+		<?php // InfraS add end ?>
 		<td class="linecolqty right"><?php echo $langs->trans('Qty'); ?></td>
 		<?php
 		if (getDolGlobalInt('PRODUCT_USE_UNITS')) {
@@ -526,6 +531,15 @@ if ($nolinesbefore) {
 		</td>
 					<?php
 	}
+	// InfraS add begin (fix : Multicurrency TTC input column for the create form, backport from v23/v24)
+	if (isModEnabled("multicurrency") && $this->multicurrency_code && $this->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {
+		$coldisplay++; ?>
+		<td class="nobottom linecoluttc_currency right">
+			<input type="text" name="multicurrency_price_ttc" id="multicurrency_price_ttc" class="flat right width50" value="<?php echo(GETPOSTISSET("multicurrency_price_ttc") ? GETPOST("multicurrency_price_ttc", 'alpha', 2) : ''); ?>">
+		</td>
+					<?php
+	}
+	// InfraS add end
 	$coldisplay++;
 	?>
 	<td class="nobottom linecolqty right">

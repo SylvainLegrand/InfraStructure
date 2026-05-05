@@ -291,6 +291,12 @@ $coldisplay++;
 		}
 		print '></td>';
 	}
+	// InfraS add begin (fix : align edit row with header column linecoluttc_currency present in objectline_title.tpl.php when multicurrency + inputalsopricewithtax)
+	if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {
+		$coldisplay++;
+		print '<td class="right linecoluttc_currency">&nbsp;</td>';	// PU TTC en devise non éditable (calculé automatiquement) — placeholder pour aligner avec le header
+	}
+	// InfraS add end
 	?>
 	<td class="right">
 	<?php $coldisplay++;
