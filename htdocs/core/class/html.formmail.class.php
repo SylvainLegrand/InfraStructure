@@ -159,7 +159,7 @@ class FormMail extends Form
 	public $witherrorsto;
 
 	/**
-	 * @var string|array 		email address (string) used as pre selected destination or list of desintation (array)
+	 * @var string|array 		email address (string) used as pre selected destination or list of destination (array)
 	 * @see findToDefaultDestination()
 	 */
 	public $withtopreselected;
