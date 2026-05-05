@@ -18,9 +18,12 @@ InfrastructurenoMinDolVersion   = Pas de version minimum connue
 InfrastructurenoMaxDolVersion   = Pas de version maximum connue
 
 ### Actions and buttons ###
-InfrastructuresAndTitlesActionBtnLabel = Titre & Sous total
+InfrastructuresAndTitlesActionBtnLabel = Structurer mon document
 
 ### Setup page ###
+InfrastructurePdfPrinting                                      = Paramètres d'impression PDF
+InfrastructureCalculations                                     = Calculs
+InfrastructureScreenDisplay                                    = Paramètres d'affichage du module infrastructure
 InfrastructureSetup                                            = Configuration générale
 InfrastructureParamTitleComp                                   = Paramètres du module Infrastructure
 InfrastructureParamAction1                                     = Sauvegarder / Restaurer l'ensemble des paramètres du module
@@ -31,19 +34,17 @@ InfrastructureParamCautionSave                                 = Cliquez sur le 
 InfrastructureHideFoldersByDefault                             = Par défaut, plier les dossiers
 Infrastructure_ForceHideAll                                    = Cacher toutes les lignes du bloc ainsi que les lignes des blocs de titre de niveau inférieur
 InfrastructureHideOptionsTitle                                 = Cacher les options de titre
-InfrastructureHideOptionsBuildDoc                              = Cache les options génération du document
+InfrastructureHideOptionsBuildDoc                              = Cacher les options de génération du document
 InfrastructureHideOptionsBreakPageBefore                       = Cacher l'option du saut de page avant
 Infrastructure_HideAll                                         = Cacher toutes les lignes
 Infrastructure_Hide                                            = Cacher les lignes
-InfrastructureHideSubtitleOnFold                               = Cacher les lignes de titre et sous total enfant
+InfrastructureHideSubtitleOnFold                               = Un bouton : Masque tout le contenu du bloc (lignes article, titres et sous-totaux enfants)
 InfrastructureHidePriceDefaultChecked                          = Par défaut, cocher la case "Cacher le prix des lignes des ensembles" lors de la génération des PDF
 InfrastructureHideDocumentTotal                                = Masquer les totaux
 InfrastructureIfHidePricesShowQty                              = Afficher la quantité sur les lignes de produit
 Infrastructure_ShowAll                                         = Afficher toutes les lignes
 Infrastructure_Hide                                            = Cacher les lignes
 Infrastructure_Show                                            = Afficher les lignes
-InfrastructureUseNewFormat                                     = Activer l'utilisation avancée
-InfrastructureUseNewFormatHelp                                 = En activant cette option, de nouvelles fonctionnalités et comportements apparaissent.<br/>Parmi les nouveaux comportement : <ul><li>Ajoute la notion de niveau de titre et de sous total</li></ul>
 InfrastructureUseNumerotation                                  = Activer la numérotation automatique sur le PDF
 InfrastructureAllowAddBlock                                    = Autoriser l'ajout de titres et sous-totaux
 InfrastructureAllowEditBlock                                   = Autoriser l'édition des titres et sous-totaux
@@ -57,26 +58,44 @@ InfrastructureTitleStyle                                       = Style des titre
 InfrastructureTitleSize                                        = Taille des titres
 InfrastructureTitleSizeInfo                                    = égale à 9 si non renseignée
 InfrastructureTitleToAddUnderTitle                             = Ajouter sous
-InfrastructureTitleBackgroundcolor                             = Couleur de fond utilisée pour les titres
-InfrastructureInfrastructureStyle                              = Style des sous-totaux (B = gras, U = souligné, I = italique)
-InfrastructureInfrastructureHideBackground                     = Désactiver l'utilisation d'une couleur de fond (surlignage) pour les sous-totaux
-InfrastructureInfrastructureBackgroundcolor                    = Couleur de fond utilisée pour les sous-totaux
+InfrastructureTitleBackgroundcolor                             = Couleur de fond utilisée pour les titres (affichage écran)
+InfrastructureTotalStyle                                       = Style des sous-totaux (B = gras, U = souligné, I = italique)
+InfrastructureTotalHideBackground                              = Désactiver l'utilisation d'une couleur de fond (surlignage) pour les sous-totaux
+InfrastructureTotalBackgroundcolor                             = Couleur de fond utilisée pour les sous-totaux (affichage écran)
+InfrastructurePdfTitleBackgroundcolor                          = Couleur de fond utilisée pour les titres dans les PDF
+InfrastructurePdfTotalBackgroundcolor                          = Couleur de fond utilisée pour les sous-totaux dans les PDF
+InfrastructureTitleColorBloc                                   = Couleur de texte utilisée pour les icones d'action sur les Blocs
+InfrastructureTitleColor                                       = Couleur de texte utilisée pour les icones de titre
+InfrastructureTotalColor                                       = Couleur de texte utilisée pour les icones de total
+InfrastructurePdfTitleColor                                    = Couleur de texte utilisée pour les titres dans les PDF
+InfrastructurePdfTitleColorInfo                                = Si renseignée, écrase la couleur automatique (blanc sur fond sombre, noir sinon).
+InfrastructurePdfTotalColor                                    = Couleur de texte utilisée pour les sous-totaux dans les PDF
+InfrastructurePdfTotalColorInfo                                = Si renseignée, écrase la couleur automatique (blanc sur fond sombre, noir sinon).
+InfrastructurePdfTitleStyle                                    = Style des titres dans les PDF (B = gras, U = souligné, I = italique)
+InfrastructurePdfTitleStyleInfo                                = Si renseigné, écrase le style écran. Sinon, le style configuré pour l'affichage écran est repris.
+InfrastructurePdfTotalStyle                                    = Style des sous-totaux dans les PDF (B = gras, U = souligné, I = italique)
+InfrastructurePdfTotalStyleInfo                                = Si renseigné, écrase le style écran. Sinon, le style configuré pour l'affichage écran est repris.
 InfrastructureBlocFoldMode                                     = Comportement à adopter lorsque l'on cache un bloc de titre
 InfrastructureOptions                                          = <b>Options du module Sous-total pour l'impression</b>
 InfrastructureOneLineIfHideInnerlines                          = Avoir une seule ligne de titre + total si l'option "%s" est utilisée (expérimental)
 InfrastructureReplaceWithVatIfHideInnerlines                   = Remplacer par le détail des TVA si l'option "%s" est utilisée (expérimental)
 InfrastructureNumberOfHiddenLines                              = Nombre de lignes cachées
 Infrastructure_ForceShowAll                                    = Afficher toutes les lignes du bloc ainsi que les lignes des blocs de titre de niveau inférieur
-InfrastructureKeepSubtitleDisplayOnFold                        = Afficher les lignes de titre et sous total enfant
+InfrastructureKeepSubtitleDisplayOnFold                        = Deux boutons : le premier masque les lignes article directement sous le titre, le second masque toutes les lignes articles (y compris celles des titres imbriqués)
+InfrastructureHideAllOnFold                                    = Deux boutons : le premier masque les lignes article directement sous le titre, le second masque tout le contenu du bloc
 InfrastructureAddTitleBlocFromOrderstoinvoice                  = Ajouter un bloc titre et sous-total entre chaque commande
 InfrastructureAutoAddInfrastructureOnAddingNewTitle            = Ajouter un titre, ajoutera au-dessus les sous-totaux manquants
 InfrastructureAddLineUnderTitleAtEndBlock                      = L'ajout sous un titre se fera en fin de section 
 InfrastructureTextForTitleOrdetstoinvoice                      = Texte des titres lors de la facturation via onglet client -> bouton "Facturer commandes"
 InfrastructureTextForTitleOrdetstoinvoiceInfo                  = Clés de remplacement :<br /><b>__REFORDER__</b> = Référence de la commande<br /><b>__REFCUSTOMER__</b> = Référence client de la commande
 InfrastructureDefaultDisplayQtyForInfrastructureOnElements     = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux pour les modèles de documents :
-InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux pour les modèles de documents sélectionnés
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux pour les modèles de documents sélectionnés (affichage écran)
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdf  = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux dans les PDF pour les modèles de documents :
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdfInfo = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux dans les PDF pour les modèles de documents sélectionnés. Si aucun élément n'est sélectionné ici, le code retombe sur la sélection définie pour l'affichage écran.
 InfrastructureTitleAndInfrastructureBrightnessPercentage       = Pourcentage de réduction de la luminosité entre chaque niveau de titres / sous-titres / sous-totaux
 InfrastructureTitleAndInfrastructureBrightnessPercentageInfo   = les couleurs choisies ci-dessus seront celles du niveau 1 et les niveaux inférieurs seront plus clairs en fonction de ce pourcentage (niveau 1 = couleur choisie, niveau 2 = couleur choisie - pourcentage, niveau 3 = couleur choisie - 2*pourcentage, etc.)
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdf    = Pourcentage de réduction de la luminosité entre chaque niveau de titres / sous-titres / sous-totaux dans les PDF
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdfInfo = Si renseigné, écrase la valeur écran pour le rendu PDF. Sinon, le pourcentage configuré pour l'affichage écran est repris.
 
 ### Changelog / Support ###
 InfrastructureParamChangelog            = Suppport / changelog
@@ -201,12 +220,12 @@ InfrastructureAddShippingListToTile = Ajouter à la description du bloc titre la
 
 ### Miscellaneous options ###
 InfrastructureCloneLInfrastructureBlock      = Cloner le bloc titre/sous-total
-InfrastructureDisplayMarginOnInfrastructures = Afficher les marges sur les lignes de sous-totaux
+InfrastructureDisplayMarginOnTotal           = Afficher les marges sur les lignes de sous-totaux
 InfrastructureQuickSummary                   = Sommaire rapide
 InfrastructureDisableSummary                 = Désactiver le menu "sommaire rapide" (bouton flottant visible lorsque le document a des titres)
 InfrastructureOptions                        = Options InfraStructure
 InfrastructureSetup                          = Paramètre module InfraStructure
-InfrastructureSetupPage                      = Paramètre module InfraStructure
+InfrastructureSetupPage                      = Paramètre du module InfraStructure
 InfrastructureSetupForSubBlocs               = Paramétrage de l'option "Cacher le prix des lignes des ensembles"
 InfrastructureUseHiddenConfToAutoCheck       = Pour précocher par défaut vous pouvez activer la configuration divers
 InfrastructureExperimental                   = EXPERIMENTAL
@@ -215,12 +234,26 @@ InfrastructureShowQtyOnTitles                = Afficher la quantité sur les lig
 InfrastructureOnlyHideSubproductsPrices      = Masquer uniquement les prix pour les produits se trouvant dans un ensemble
 
 ### Errors ###
-InfrastructureErrorDeleteLine                  = Erreur lors de la suppression d'une ligne du module InfraStructure
-InfrastructureErrorLoadingLinesFromLinkedOrder = Erreur lors du chargement des lignes de commande associées à l'expedition
-InfrastructureErrorLoadingLinkedOrder          = Erreur lors du chargement de la commande associées à l'expedition
-InfrastructureErrorNoLinkedOrder               = pas de commande associée
-InfrastructureErrorClassXNotExists             = ERREUR : la classe php %s n'est pas chargée
-InfrastructureMigrateSubtotalFailed            = Le test de migration depuis le module sous-total a échoué, activation annulée
-InfrastructureMigrateSubtotalRealRunFailed     = La migration réelle depuis le module sous-total a échoué
-InfrastructureCleanupSubtotalFailed            = Le nettoyage du module sous-total après migration a échoué
-InfrastructureMigrateSpecialCodeFailed         = La migration du special_code (104777 vers 550090) a échoué, activation annulée
+InfrastructureErrorDeleteLine                          = Erreur lors de la suppression d'une ligne du module InfraStructure
+InfrastructureErrorLoadingLinesFromLinkedOrder         = Erreur lors du chargement des lignes de commande associées à l'expedition
+InfrastructureErrorLoadingLinkedOrder                  = Erreur lors du chargement de la commande associées à l'expedition
+InfrastructureErrorNoLinkedOrder                       = pas de commande associée
+InfrastructureErrorClassXNotExists                     = ERREUR : la classe php %s n'est pas chargée
+InfrastructureMigrateSubtotalFailed                    = Le test de migration depuis le module sous-total a échoué, activation annulée
+InfrastructureMigrateSubtotalRealRunFailed             = La migration réelle depuis le module sous-total a échoué
+InfrastructureCleanupSubtotalFailed                    = Le nettoyage du module sous-total après migration a échoué
+InfrastructureMigrateSpecialCodeFailed                 = La migration du special_code (104777 vers 550090) a échoué, activation annulée
+InfrastructureForceExplodeActionBtn                    = Forcer l'affichage des boutons d'action en mode éclaté (hors menu déroulant)
+InfrastructureForceExplodeActionBtnInfo                = Affiche tous les boutons d'action « Ajouter titre / sous-total / texte libre / dupliquer » côte à côte plutôt que regroupés dans un menu déroulant. Sans effet en Dolibarr < 20 où les boutons sont toujours éclatés.
+InfrastructureStyleTitresSiLignesCachees               = Style des titres lorsque le détail du bloc est caché (B = gras, U = souligné, I = italique)
+InfrastructureStyleTitresSiLignesCacheesInfo           = Style appliqué au titre quand l'option « Cacher les lignes » (hideblock) est activée sur ce titre. Combiner les lettres pour cumuler (ex. « BI » = gras + italique).
+InfrastructureTitleBackgroundCellHeightOffset          = Augmentation de la hauteur du fond des titres sur les PDF
+InfrastructureTitleBackgroundCellPosYOffset            = Décalage vertical du fond des titres dans les PDF
+InfrastructureBackgroundCellHeightOffset               = Augmentation de la hauteur du fond des sous-totaux dans les PDF
+InfrastructureBackgroundCellPosYOffset                 = Décalage vertical du fond des sous-totaux dans les PDF
+InfrastructureBackgroundCellOffsetInfo                 = Permet d'ajuster finement le rendu de la cellule de fond colorée pour compenser les écarts entre la hauteur de texte et la hauteur de cellule. Sans effet si aucune couleur de fond n'est définie.
+InfrastructureDefaultCheckShippingListForTitleDesc     = Cocher par défaut « Inclure la liste des expéditions » lors de l'ajout d'un titre
+InfrastructureDefaultCheckShippingListForTitleDescInfo = Quand activée, la case à cocher « Ajouter la liste des expéditions à la description du titre » est pré-cochée dans le formulaire d'ajout/édition de titre.
+InfrastructureDisableFixTransaction                    = Désactiver l'enrobage transactionnel des actions sur les blocs
+InfrastructureDisableFixTransactionInfo                = Si activée, les actions add/edit/remove de titres et sous-totaux ne sont plus exécutées dans une transaction SQL (begin/commit). À n'activer qu'en cas de conflit avec un autre module qui gère lui-même les transactions.
+ un autre module qui gère lui-même les transactions.

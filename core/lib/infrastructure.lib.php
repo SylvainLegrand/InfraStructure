@@ -35,6 +35,52 @@
 	}
 
 	/**
+	*	Compute the CSS class string (with leading space) to apply on a special infrastructure line.
+	*	Centralise la logique de classification des lignes spéciales pour les modes/styles dépendant du niveau et du type
+	*	(titre 1-9, sous-total 91-99, texte libre 50).
+	*
+	*	@param	CommonObjectLine	$line	Ligne spéciale du module
+	*	@return	string						Classes CSS à concaténer (ex. " newInfrastructure subtitleLevel2")
+	*/
+	function infrastructure_getLineSpecialClass($line)
+	{
+		$class	= ' newInfrastructure';
+		if (TInfrastructure::isTitle($line)) {
+			$class	.= ' subtitleLevel'.$line->qty;					// Sub-title level 1 to 9
+		} elseif (TInfrastructure::isTotal($line)) {
+			$class	.= ' infrastructureLevel'.(100 - $line->qty);	// Sub-total level 99 (1) to 91 (9)
+		} elseif (TInfrastructure::isFreeText($line)) {
+			$class	.= ' infrastructureText';						// Free text
+		}
+		return $class;
+	}
+
+	/**
+	*	Compute the inline CSS style (background-color + color) to apply on a special infrastructure line.
+	*	Centralise la logique des nuances de couleurs par niveau pour les titres (qty 1-9), les sous-totaux (qty 91-99)
+	*	et les textes libres (qty == 50). À compléter si on veut plus de nuances de couleurs avec les niveaux 4 à 9.
+	*
+	*	@param	CommonObjectLine	$line	Ligne spéciale du module
+	*	@return	string						Style CSS inline (vide si la ligne ne correspond à aucun cas géré)
+	*/
+	function infrastructure_getLineSpecialStyle($line)
+	{
+		$brightness	= getDolGlobalInt('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 10);
+		if ($line->qty >= 91 && $line->qty <= 99) {
+			$bg		= getDolGlobalString('INFRASTRUCTURE_TOTAL_BACKGROUND_COLOR', '#adadcf');
+			$color	= getDolGlobalString('INFRASTRUCTURE_TOTAL_COLOR', '000000');
+			$offset	= $line->qty < 99 ? (99 - $line->qty) * $brightness : 1;
+			return 'background: none; background-color:'.colorLighten($bg, $offset).' !important; color:#'.$color.' !important;';
+		} elseif ($line->qty >= 1 && $line->qty <= 9) {
+			$bg		= getDolGlobalString('INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', '#adadcf');
+			$color	= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR', '000000');
+			$offset	= $line->qty > 1 ? ($line->qty - 1) * $brightness : 1;
+			return 'background: none; background-color:'.colorLighten($bg, $offset).' !important; color:#'.$color.' !important;';
+		}
+		return '';
+	}
+
+	/**
 	* Add numerotation to title and infrastructure lines of an object
 	*
 	* @param	CommonObject	$object	Object
@@ -43,25 +89,14 @@
 	function infrastructure_addNumerotation(&$object)
 	{
 		if (getDolGlobalInt('INFRASTRUCTURE_USE_NUMEROTATION')) {
-			$TLineTitle		= $TTitle = $TLineInfrastructure = array();
+			$TLineTitle	= array();
 			foreach ($object->lines as &$line) {
 				if ($line->id > 0 && TInfrastructure::isModInfrastructureLine($line) && $line->qty <= 10) {
 					$TLineTitle[] = &$line;
-				} elseif ($line->id > 0 && TInfrastructure::isInfrastructure($line) && !getDolGlobalInt('INFRASTRUCTURE_USE_NEW_FORMAT')) {
-					$TLineInfrastructure[] = &$line;
 				}
 			}
 			if (!empty($TLineTitle)) {
-				$TTitleNumeroted	= infrastructure_formatNumerotation($TLineTitle);
-				$TTitle				= infrastructure_getTitlesFlatArray($TTitleNumeroted);
-				if (!empty($TLineInfrastructure)) {
-					foreach ($TLineInfrastructure as &$stLine) {
-						$parentTitle = TInfrastructure::getParentTitleOfLine($object, $stLine->rang);
-						if (!empty($parentTitle) && array_key_exists($parentTitle->id, $TTitle)) {
-							$stLine->label = $TTitle[$parentTitle->id]['numerotation'].' '.$stLine->label;
-						}
-					}
-				}
+				infrastructure_formatNumerotation($TLineTitle);
 			}
 		}
 	}
@@ -84,6 +119,7 @@
 		$nboflines			= (isset($object->lines) ? count($object->lines) : (empty($nboflines) ? 0 : $nboflines));
 		$tagidfortablednd	= (empty($tagidfortablednd) ? 'tablelines' : $tagidfortablednd);
 		$filepath			= (empty($filepath) ? '' : $filepath);
+		$color				= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR_BLOC', 'be3535');
 		if (GETPOST('action', 'aZ09') != 'editline' && $nboflines > 1) {
 			$jsConf	= array( 'useOldSplittedTrForLine' => intval(DOL_VERSION) < 16 ? 1 : 0);
 			print '<script type="text/javascript" src="'.dol_buildpath('infrastructure/js/infrastructure.lib.js', 1).'"></script>';
@@ -98,7 +134,7 @@
 					moveBlockCol.disableSelection(); // prevent selection
 					<?php if ($object->statut == 0) { ?>
 						// apply some graphical stuff
-						moveBlockCol.html('<i class="fa fa-grip-vertical"></i>');
+						moveBlockCol.html('<i class="fa fa-grip-horizontal" style="color:#<?php echo $color; ?> !important;"></i>');
 						moveBlockCol.css("text-align","center");
 						moveBlockCol.css("cursor","move");
 						titleRow.attr('title', '<?php echo html_entity_decode($langs->trans('InfrastructureMoveTitleBlock')); ?>');
@@ -259,7 +295,7 @@
 	{
 		global $user;
 
-		if (TInfrastructure::isFreeText($line) || TInfrastructure::isInfrastructure($line)) return 1;
+		if (TInfrastructure::isFreeText($line) || TInfrastructure::isTotal($line)) return 1;
 		// Update extrafield et total
 		if(! empty($infrastructure_nc)) {
 			$line->total_ht = $line->total_tva = $line->total_ttc = $line->total_localtax1 = $line->total_localtax2 =
@@ -453,8 +489,7 @@
 	{
 		if (!getDolGlobalString('INFRASTRUCTURE_ALLOW_ADD_BLOCK')) {return false;}
 
-		$jsData = array('conf' => array('INFRASTRUCTURE_USE_NEW_FORMAT'	=> getDolGlobalInt('INFRASTRUCTURE_USE_NEW_FORMAT'),
-										'MAIN_VIEW_LINE_NUMBER'		=> getDolGlobalInt('MAIN_VIEW_LINE_NUMBER'),
+		$jsData = array('conf' => array('MAIN_VIEW_LINE_NUMBER'		=> getDolGlobalInt('MAIN_VIEW_LINE_NUMBER'),
 										'token'						=> newToken(),
 										'groupBtn'					=> intval(DOL_VERSION) < 20.0 || getDolGlobalInt('INFRASTRUCTURE_FORCE_EXPLODE_ACTION_BTN') ? 0 : 1
 									),
@@ -528,16 +563,11 @@
 								dialog_html += '&emsp;<input style="max-width: 80px;" id="infrastructure_line_position" name="infrastructure_line_position" type="number" min="0" step="1" size="1" text-align="right" placeholder="' + jsInfrastructureData.langs.Position + '" />';
 							}
 							if (action == 'addTitle' || action == 'addInfrastructure') {
-
-								if (jsInfrastructureData.conf.INFRASTRUCTURE_USE_NEW_FORMAT){
-									dialog_html += '&emsp;<select name="infrastructure_line_level">';
-									for (var i=1;i<10;i++){
-										dialog_html += '<option value="' + i + '">' + jsInfrastructureData.langs.Level + ' ' + i + '</option>';
-									}
-									dialog_html += "</select>";
-								} else {
-									dialog_html += '<input type="hidden" name="infrastructure_line_level" value="' + i + '" />';
+								dialog_html += '&emsp;<select name="infrastructure_line_level">';
+								for (var i=1;i<10;i++){
+									dialog_html += '<option value="' + i + '">' + jsInfrastructureData.langs.Level + ' ' + i + '</option>';
 								}
+								dialog_html += "</select>";
 							}
 							dialog_html += '</div>';
 							$('body').append(dialog_html);
@@ -893,25 +923,69 @@
 	}
 
 	/**
-	* Compute PDF background style from a color configuration constant
+	*	Override PDF text color from a color configuration constant. Does nothing if the constant is empty or invalid (preserves any auto color set previously, e.g. white-on-dark by infrastructure_getPdfBackgroundStyle).
 	*
-	* @param	TCPDF	$pdf					PDF object
-	* @param	string	$colorConst				Global constant name for background color (e.g. 'INFRASTRUCTURE_TITLE_BACKGROUND_COLOR')
-	* @param	string	$heightOffsetConst		Global constant name for cell height offset
-	* @param	string	$posYOffsetConst		Global constant name for cell Y position offset
-	* @return	array							Array with keys 'fill', 'color', 'heightOffset', 'posYOffset'
+	*	@param	TCPDF	$pdf			PDF object
+	*	@param	string	$colorConst		Global constant name for text color (e.g. 'INFRASTRUCTURE_PDF_TITLE_COLOR')
+	*	@return	bool					true if a color was applied, false if left untouched
 	*/
-	function infrastructure_getPdfBackgroundStyle(&$pdf, $colorConst, $heightOffsetConst = '', $posYOffsetConst = '')
+	function infrastructure_setPdfTextColor(&$pdf, $colorConst)
+	{
+		$rawValue			= getDolGlobalString($colorConst);
+		if ($rawValue === '') {
+			return false;
+		}
+		$normalizedColor	= ($rawValue[0] !== '#') ? '#'.$rawValue : $rawValue;
+		if (function_exists('colorValidateHex') && colorValidateHex($normalizedColor) && function_exists('colorStringToArray')) {
+			$rgb	= colorStringToArray($normalizedColor, array(0, 0, 0));
+			$pdf->setColor('text', $rgb[0], $rgb[1], $rgb[2]);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	* Compute PDF background style from a color configuration constant.
+	* Si une ligne spéciale (titre `qty 1-9` ou sous-total `qty 91-99`) est fournie, la couleur de base est éclaircie selon
+	* le niveau via `colorLighten()` en utilisant le pourcentage de luminosité PDF dédié
+	* (`INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE_PDF`, fallback sur la version écran).
+	*
+	* @param	TCPDF				$pdf					PDF object
+	* @param	string				$colorConst				Global constant name for background color (e.g. 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR')
+	* @param	string				$heightOffsetConst		Global constant name for cell height offset
+	* @param	string				$posYOffsetConst		Global constant name for cell Y position offset
+	* @param	CommonObjectLine	$line					Ligne spéciale du module (optionnelle) — si fournie, applique la nuance par niveau
+	* @return	array										Array with keys 'fill', 'color', 'heightOffset', 'posYOffset'
+	*/
+	function infrastructure_getPdfBackgroundStyle(&$pdf, $colorConst, $heightOffsetConst = '', $posYOffsetConst = '', $line = null)
 	{
 		$result	= array('fill'			=> false,
 						'color'			=> array(233, 233, 233),
 						'heightOffset'	=> 0,
 						'posYOffset'	=> 0,
 					);
-		if (getDolGlobalString($colorConst) && function_exists('colorValidateHex') && colorValidateHex(getDolGlobalString($colorConst)) && function_exists('colorStringToArray')) {
+		$rawColor			= getDolGlobalString($colorConst);
+		$normalizedColor	= ($rawColor !== '' && $rawColor[0] !== '#') ? '#'.$rawColor : $rawColor;
+		if ($normalizedColor && function_exists('colorValidateHex') && colorValidateHex($normalizedColor) && function_exists('colorStringToArray')) {
+			if (is_object($line) && function_exists('colorLighten')) {
+				$brightness	= getDolGlobalString('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE_PDF');
+				if ($line->qty >= 91 && $line->qty <= 99) {
+					$offset				= $line->qty < 99 ? (99 - $line->qty) * $brightness : 1;
+					$lightened			= colorLighten($normalizedColor, $offset);
+					if (colorValidateHex($lightened)) {
+						$normalizedColor	= $lightened;
+					}
+				} elseif ($line->qty >= 1 && $line->qty <= 9) {
+					$offset				= $line->qty > 1 ? ($line->qty - 1) * $brightness : 1;
+					$lightened			= colorLighten($normalizedColor, $offset);
+					if (colorValidateHex($lightened)) {
+						$normalizedColor	= $lightened;
+					}
+				}
+			}
 			$result['fill']		= true;
-			$result['color']	= colorStringToArray(getDolGlobalString($colorConst), array(233, 233, 233));
-			if (function_exists('colorIsLight') && !colorIsLight(getDolGlobalString($colorConst))) {
+			$result['color']	= colorStringToArray($normalizedColor, array(233, 233, 233));
+			if (function_exists('colorIsLight') && !colorIsLight($normalizedColor)) {
 				$pdf->setColor('text', 255, 255, 255);
 			}
 			if ($heightOffsetConst && getDolGlobalString($heightOffsetConst)) {
@@ -940,7 +1014,7 @@
 		$rang		= $line->rang;
 		$qty_line	= $line->qty;
 		$lvl		= 0;
-		if (TInfrastructure::isInfrastructure($line)) {
+		if (TInfrastructure::isTotal($line)) {
 			$lvl = TInfrastructure::getNiveau($line);
 		}
 		$total			= 0;
@@ -1052,7 +1126,7 @@
 	{
 		$rang	= $line->rang;
 		$lvl	= 0;
-		if (TInfrastructure::isInfrastructure($line)) {
+		if (TInfrastructure::isTotal($line)) {
 			$lvl = TInfrastructure::getNiveau($line);
 		}
 		$memoEnabled	= isset($object->context['infrastructureCache']['warmed']) && !empty($object->context['infrastructureCache']['warmed']);
@@ -1250,7 +1324,7 @@
 			if (!empty($line->array_options['options_hideblock'])) {
 				$ThtmlData['data-folder-status']	= 'closed';
 			}
-		} elseif (TInfrastructure::isInfrastructure($line)) {
+		} elseif (TInfrastructure::isTotal($line)) {
 			$ThtmlData['data-isinfrastructure']	= 'infrastructure';
 		} else {
 			$ThtmlData['data-isinfrastructure']	= 'freetext';

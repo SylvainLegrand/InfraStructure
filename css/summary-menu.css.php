@@ -74,7 +74,6 @@
 		$cssTxtHover	= 'var(--colortextbackhmenu, #fff)';
 		$cssTxtActive	= 'var(--colortextbackhmenu, #fff)';
 	}
-	dol_syslog('ici summary-menu css.php : $isOblyon='.$isOblyon.' / $cssBg='.$cssBg.' $conf->theme '.$conf->theme, LOG_DEBUG);
 ?>
 /*html {*/
 /*	scroll-behavior: smooth;*/
@@ -115,7 +114,7 @@ a.infrastructure-summary-link{
 	line-height: 2em;
 	color: var(--colortextbackhmenu, #fff);
 	text-align: left;
-	
+
 	/*color: var(--colortextbackvmenu, #666);*/
 }
 a.infrastructure-summary-link.--target-in-viewport, a.infrastructure-summary-link.--child-in-viewport{

@@ -50,22 +50,22 @@
 			$langs->load('infrastructure@infrastructure');
 			infrastructure_test_php_ext();
 			$this->db 				= $db;
-			$this->numero			= 550090;																					// Unique Id for module
-			$this->name				= preg_replace('/^mod/i', '', get_class($this));		// Module label (no space allowed)
+			$this->numero			= 550090;																									// Unique Id for module
+			$this->name				= preg_replace('/^mod/i', '', strtolower(get_class($this)));	// Module label (no space allowed)
 			$this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
 			$this->editor_email		= 'support@infras.fr';
 			$editor_web				= 'https://www.infras.fr/';
 			$this->editor_url		= $editor_web;
 			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
-			$this->rights_class		= $this->name;																				// Key text used to identify module (for permissions, menus, etc...)
-			$family					= getDolGlobalString('EASYA_VERSION') ? 'easya' : 'Modules InfraS';					// It is used to group modules in module setup page
-			$this->family			= $family;																					// used to group modules in module setup page
+			$this->rights_class		= $this->name;																								// Key text used to identify module (for permissions, menus, etc...)
+			$family					= 'Modules '.$langs->trans('basenameInfrastructure');
+			$this->family			= $family;																									// used to group modules in module setup page
 			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-			$this->description		= $langs->trans('Module550090Desc');													// Module description
-			$this->version			= $this->getLocalVersion();																	// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
-			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);											// llx_const table to save module status enabled/disabled
-			$this->special			= 2;																						// (0=common,1=interface,2=others,3=very specific)
-			$this->picto			= 'modinfrastructure@infrastructure';														// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
+			$this->description		= $langs->trans('Module550090Desc');																	// Module description
+			$this->version			= $this->getLocalVersion();																					// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
+			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);															// llx_const table to save module status enabled/disabled
+			$this->special			= 2;																										// (0=common,1=interface,2=others,3=very specific)
+			$this->picto			= 'modinfrastructure@infrastructure';																		// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
 			$this->module_parts		= array('triggers'	=> 1,
 											'hooks'		=> array('invoicecard','invoicesuppliercard','propalcard','supplier_proposalcard','ordercard','ordersuppliercard',
 																'odtgeneration','orderstoinvoice','orderstoinvoicesupplier','admin','invoicereccard',
@@ -76,12 +76,12 @@
 											'tpl'		=> 1,
 											'css'		=> array('css' => '/infrastructure/css/infrastructure.css.php'),
 			);
-			$this->dirs				= array('/infrastructure/sql');																// Data directories to create when module is enabled.
-			$this->config_page_url	= array('infrastructuresetup.php@infrastructure');											// stored into titre/admin directory, used to setup module.
+			$this->dirs				= array('/infrastructure/sql');																				// Data directories to create when module is enabled.
+			$this->config_page_url	= array('infrastructuresetup.php@infrastructure');															// stored into titre/admin directory, used to setup module.
 			// Dependencies
-			$this->depends			= array();																					// List of modules id that must be enabled if this module is enabled
-			$this->requiredby		= array();																					// List of modules id to disable if this one is disabled
-			$this->conflictwith		= array('modMilestone');																	// List of modules id that cannot be enabled if this module is enabled
+			$this->depends			= array();																									// List of modules id that must be enabled if this module is enabled
+			$this->requiredby		= array();																									// List of modules id to disable if this one is disabled
+			$this->conflictwith		= array('modMilestone');																					// List of modules id that cannot be enabled if this module is enabled
 			$this->langfiles		= array('infrastructure@infrastructure');
 			$this->const			= array(0	=> array('INFRASTRUCTURE_STYLE_TITRES_SI_LIGNES_CACHEES', 'chaine', 'I', 'Définit le style (B : gras, I : Italique, U : Souligné) des sous titres lorsque le détail des lignes et des ensembles est caché', 1));
 			$this->tabs				= array();

@@ -164,7 +164,7 @@
 				$resMaster	= $obj->fetch($objDet->{$this->_getFkFieldName($objectLine)});
 				if ($resMaster > 0) {
 					// la ligne est elle une ligne de Total ?
-					if (TInfrastructure::isInfrastructure($objDet)) {
+					if (TInfrastructure::isTotal($objDet)) {
 						// lib  return SUM for this Total
 						return infrastructure_getTotalLineFromObject($obj, $objDet);
 					} else {

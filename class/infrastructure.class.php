@@ -93,14 +93,20 @@
 		/**
 		* Determine to show infrastructure line qty by default for this object
 		*
-		* @param   CommonObject    $object Object
-		* @return  bool            False no show infrastructure qty for this object else True
+		* @param	CommonObject	$object		Object
+		* @param	string			$context	'screen' (défaut) ou 'pdf'. En contexte 'pdf' la constante INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS_PDF prime ; si vide, fallback sur la constante écran (compat. installations existantes).
+		* @return	bool						False no show infrastructure qty for this object else True
 		*/
-		static function showQtyForObject($object)
+		static function showQtyForObject($object, $context = 'screen')
 		{
 			$show = false;
-			if (getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS') && in_array($object->element, explode(',', getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS')))) {
-				$show = true;
+			if ($context === 'pdf') {
+				$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS_PDF');
+			} else {
+				$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS');
+			}
+			if ($value !== '' && in_array($object->element, explode(',', $value))) {
+				$show	= true;
 			}
 			return $show;
 		}
@@ -313,7 +319,7 @@
 			foreach ($object->lines as &$line) {
 				if ($line->rang <= $title_line->rang) continue;
 				if (self::isTitle($line) && self::getNiveau($line) <= $title_niveau) return false; // Oups on croise un titre d'un niveau inférieur ou égale (exemple : je croise un titre niveau 2 alors que je suis sur un titre de niveau 3) pas lieu de continuer car un nouveau bloc commence
-				if (!self::isInfrastructure($line)) continue;
+				if (!self::isTotal($line)) continue;
 				$infrastructure_niveau	= self::getNiveau($line);
 				// Comparaison du niveau de la ligne de sous-total avec celui du titre
 				if ($infrastructure_niveau == $title_niveau) {
@@ -374,7 +380,7 @@
 			foreach ($object->lines as &$l) {
 				if ($l->rang <= $line->rang) {
 					continue;
-				} elseif (self::isInfrastructure($l) && self::getNiveau($l) <= self::getNiveau($line)) {
+				} elseif (self::isTotal($l) && self::getNiveau($l) <= self::getNiveau($line)) {
 					break;
 				} elseif ($breakOnTitle && self::isTitle($l) && self::getNiveau($l) <= self::getNiveau($line)) {
 					break;
@@ -385,7 +391,7 @@
 				} else {
 					// Fix DA020000 : exlure les sous-totaux du calcul (calcul pété)
 					// sinon ça compte les ligne de produit puis les sous-totaux qui leurs correspondent...
-					if (!self::isInfrastructure($l)) {
+					if (!self::isTotal($l)) {
 						$TTot['total_pa_ht']							+= $l->pa_ht * $l->qty;
 						$TTot['total_subprice']							+= $l->subprice * $l->qty;
 						$TTot['total_unit_subprice']					+= $l->subprice; // Somme des prix unitaires non remisés
@@ -477,7 +483,7 @@
 					}
 					//@INFO J'ai ma ligne titre qui contient ma ligne, par contre je check pas s'il y a un sous-total
 					return $line;
-				} elseif (self::isInfrastructure($line)) {
+				} elseif (self::isTotal($line)) {
 					// Il s'agit d'un sous-total, ça veut dire que le prochain titre théoriquement doit être ignorer (je travail avec un incrément au cas ou je croise plusieurs sous-totaux)
 					$skip_title++;
 				}
@@ -504,7 +510,7 @@
 					if ($line->rang <= $rang || ($lvl > 0 && self::getNiveau($line) < $lvl)) continue;
 					if (self::isTitle($line)) {
 						$skip_title++;
-					} elseif (self::isInfrastructure($line)) {
+					} elseif (self::isTotal($line)) {
 						if ($skip_title) {
 							$skip_title--;
 							continue;
@@ -546,7 +552,7 @@
 		* @param	int					$level	Level of infrastructure line to check (if -1 just check if it's a infrastructure line without checking level)
 		* @return	bool
 		*/
-		public static function isInfrastructure(&$line, $level = -1)
+		public static function isTotal(&$line, $level = -1)
 		{
 			$res = !empty($line->special_code) && $line->special_code == self::getModuleNumber() && $line->product_type == 9 && $line->qty >= 90;
 			if ($res && $level > -1) {
@@ -571,7 +577,7 @@
 		*/
 		public static function isModInfrastructureLine(&$line)
 		{
-			return self::isTitle($line) || self::isInfrastructure($line) || self::isFreeText($line);
+			return self::isTitle($line) || self::isTotal($line) || self::isFreeText($line);
 		}
 
 		/**
@@ -722,7 +728,7 @@
 						}
 						continue;
 					} elseif ($add_line && static::isModInfrastructureLine($line) && static::getNiveau($line) == $level) { // Si on tombe sur un sous-total, il faut que ce soit un du même niveau que le titre.
-						if (self::isInfrastructure($line)) {
+						if (self::isTotal($line)) {
 							if ($withBlockLine) {
 								$TLine[] = $line;
 							}
@@ -730,7 +736,7 @@
 						break;
 					}
 					if ($add_line) {
-						if (!$withBlockLine && (self::isTitle($line) || self::isInfrastructure($line))) {
+						if (!$withBlockLine && (self::isTitle($line) || self::isTotal($line))) {
 							continue;
 						} else {
 							$TLine[] = $line;
@@ -877,7 +883,7 @@
 				$next_title_lvl_to_skip = 0;
 				for ($y = $i; $y >= 0; $y--) {
 					// Si je tombe sur un sous-total, je récupère son niveau pour savoir quel est le prochain niveau de titre que doit ignorer
-					if (self::isInfrastructure($current_object->lines[$y])) {
+					if (self::isTotal($current_object->lines[$y])) {
 						$next_title_lvl_to_skip = self::getNiveau($current_object->lines[$y]);
 					} elseif (self::isTitle($current_object->lines[$y])) {
 						if ($current_object->lines[$y]->qty == $next_title_lvl_to_skip) {
@@ -906,7 +912,7 @@
 		{
 			if (self::isTitle($line)) {
 				return $line->qty;
-			} elseif (self::isInfrastructure($line)) {
+			} elseif (self::isTotal($line)) {
 				return 100 - $line->qty;
 			} else {
 				return 0;
@@ -1431,7 +1437,7 @@
 		*/
 		public static function getCommonVATRate($object, $lineRef)
 		{
-			if (!TInfrastructure::isTitle($lineRef) && !TInfrastructure::isInfrastructure($lineRef)) {
+			if (!TInfrastructure::isTitle($lineRef) && !TInfrastructure::isTotal($lineRef)) {
 				return false;
 			}
 			$niveau 	= TInfrastructure::getNiveau($lineRef);
@@ -1446,7 +1452,7 @@
 						continue;
 					}
 					// Si on rencontre un sous-total du même niveau que le titre initial, on marque la fin du bloc.
-					if (TInfrastructure::isInfrastructure($line) && TInfrastructure::getNiveau($line) == $niveau) {
+					if (TInfrastructure::isTotal($line) && TInfrastructure::getNiveau($line) == $niveau) {
 						$end_rang = $line->rang;
 						break;
 					}
@@ -1456,7 +1462,7 @@
 						return false;
 					}
 				}
-			} elseif (TInfrastructure::isInfrastructure($lineRef)) {
+			} elseif (TInfrastructure::isTotal($lineRef)) {
 				$end_rang = $lineRef->rang;
 				for ($i = count($object->lines) - 1; $i >= 0; $i--) {
 					$line = $object->lines[$i];
