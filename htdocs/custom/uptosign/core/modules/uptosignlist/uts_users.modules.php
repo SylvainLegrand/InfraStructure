@@ -160,7 +160,7 @@ class uptosignlist_uts_users extends UptosignListTargets
 	 */
 	public function add_to_target($uptosignlist_id)
 	{
-		dol_syslog(get_class($this)."::list id is ".$uptosignlist_id . "==============================", LOG_INFO);
+		dol_syslog("uptosign: " . get_class($this)."::list id is ".$uptosignlist_id . "==============================", LOG_INFO);
 
 		// phpcs:enable
 		global $conf, $langs;
@@ -198,7 +198,7 @@ class uptosignlist_uts_users extends UptosignListTargets
 			$num = $this->db->num_rows($result);
 			$i = 0;
 
-			dol_syslog(get_class($this)."::add_to_target mailing ".$num." targets found");
+			dol_syslog("uptosign: " . get_class($this)."::add_to_target mailing ".$num." targets found");
 
 			while ($i < $num) {
 				$obj = $this->db->fetch_object($result);
@@ -207,7 +207,7 @@ class uptosignlist_uts_users extends UptosignListTargets
 					$mobile = uptoSignFixMobile($obj->user_mobile, $obj->countrycode);
 				}
 				if (!empty($mobile)) {
-					dol_syslog(get_class($this)."::add_to_target mailing obj=".json_encode($obj));
+					dol_syslog("uptosign: " . get_class($this)."::add_to_target mailing obj=".json_encode($obj));
 					$cibles[] = array(
 						'firstname' => $obj->firstname,
 						'lastname' => $obj->lastname,
@@ -225,11 +225,11 @@ class uptosignlist_uts_users extends UptosignListTargets
 				$i++;
 			}
 		} else {
-			dol_syslog($this->db->error());
+			dol_syslog("uptosign: " . $this->db->error());
 			$this->error = $this->db->error();
 			return -1;
 		}
-		dol_syslog(get_class($this)."::add_to_target mailing cibles=".json_encode($cibles));
+		dol_syslog("uptosign: " . get_class($this)."::add_to_target mailing cibles=".json_encode($cibles));
 
 		return parent::addTargetsToDatabase($uptosignlist_id, $cibles);
 	}

@@ -1471,8 +1471,18 @@ function uptosignCreateFactureRec($customerid, $contractid, $factureid)
 	//tous les 2 du mois, le 1er tournera la tache planifiee qui actualisera les compteurs
 	$date_next_execution = dol_mktime(0, 0, 0, date('m') + 1, 2, (int) date('Y'), false);
 	$invoice_rec->date_when = $date_next_execution;
-	$invoice_rec->localtax1_tx = get_localtax($invoice_draft->localtax1_tx, 1, $invoice_draft->thirdparty);
-	$invoice_rec->localtax2_tx = get_localtax($invoice_draft->localtax2_tx, 2, $invoice_draft->thirdparty);
+	// Facture (the invoice header) does not declare localtax1_tx / localtax2_tx -- these
+	// live on the lines (FactureLigne). Read defensively to avoid Undefined property warnings.
+	// Likewise FactureRec may not declare these properties on every Dolibarr version, so
+	// only set them when the class has them as real or already-existing properties.
+	$srcLocaltax1 = $invoice_draft->localtax1_tx ?? 0;
+	$srcLocaltax2 = $invoice_draft->localtax2_tx ?? 0;
+	if (property_exists($invoice_rec, 'localtax1_tx')) {
+		$invoice_rec->localtax1_tx = get_localtax($srcLocaltax1, 1, $invoice_draft->thirdparty);
+	}
+	if (property_exists($invoice_rec, 'localtax2_tx')) {
+		$invoice_rec->localtax2_tx = get_localtax($srcLocaltax2, 2, $invoice_draft->thirdparty);
+	}
 
 	// Get first contract linked to invoice used to generate template
 	if ($invoice_draft->id > 0) {
@@ -1533,7 +1543,6 @@ function uptosignCreateFirstFacture($customerid)
 	// Create empty invoice
 	$invoice_draft->socid				= $customerid;
 	$invoice_draft->type				= Facture::TYPE_STANDARD;
-	$invoice_draft->number				= '';
 	$invoice_draft->date				= $dateinvoice;
 
 	$invoice_draft->note_private		= 'First invoice made by uptosign plugin';
@@ -1692,7 +1701,6 @@ function uptosignCreateFacture($customerid, $prorataTemporis = false, $validateI
 	// Create empty invoice
 	$invoice_draft->socid				= $customerid;
 	$invoice_draft->type				= Facture::TYPE_STANDARD;
-	$invoice_draft->number				= '';
 	$invoice_draft->date				= $dateinvoice;
 
 	$invoice_draft->note_private		= 'First invoice made by uptosign plugin';
@@ -2148,12 +2156,28 @@ function uptosignListOfFilesLinkedTo(CommonObject $obj)
 	// dol_syslog("ecm :: " . json_encode($filearray));
 	require_once DOL_DOCUMENT_ROOT . '/ecm/class/ecmfiles.class.php';
 	$ecmfile = new EcmFiles($obj->db);
-	// Check Dolibarr version to adapt options syntax for extrafields (use of Universal Search Criteria in v20.0.0 and later)
-	$isV20p = version_compare(DOL_VERSION, "20.0.0") >= 0;
-	if ($isV20p) {
+	// Detect real fetchAll() signature: in Dolibarr <=19 the $filter parameter is typed `array`,
+	// in Dolibarr >=20 it became a USF string. Some installs have mixed state where DOL_VERSION
+	// says 20+ but the file still has `array $filter`. Reflect on the actual class to pick the right form.
+	$useUsfFilter = false;
+	try {
+		$refMethod = new ReflectionMethod('EcmFiles', 'fetchAll');
+		$params = $refMethod->getParameters();
+		if (isset($params[4])) {
+			$type = $params[4]->getType();
+			$useUsfFilter = ($type === null || (string) $type !== 'array');
+		}
+	} catch (ReflectionException $e) {
+		dol_syslog("uptosign: uptosignListOfFilesLinkedTo reflection failed: " . $e->getMessage(), LOG_WARNING);
+		$useUsfFilter = version_compare(DOL_VERSION, "20.0.0") >= 0;
+	}
+	if ($useUsfFilter) {
 		$filter	= "(t.src_object_type:=:'".$obj->db->escape($obj->table_element)."') AND (t.src_object_id:=:".((int) $obj->id).")";
 	} else {
-		$filter	= "t.src_object_type = '".$obj->db->escape($obj->table_element)."' AND t.src_object_id = ".((int) $obj->id);
+		$filter	= array(
+			't.src_object_type' => $obj->table_element,
+			't.src_object_id'   => (int) $obj->id,
+		);
 	}
 	$result = $ecmfile->fetchAll('', '', 0, 0, $filter);
 	$filearray = array();

@@ -141,7 +141,11 @@ if ($enablepermissioncheck) {
 	$permissiondellink = 1;
 }
 
-$upload_dir = $conf->uptosign->multidir_output[isset($object->entity) ? $object->entity : 1].'/uptosign';
+$entityForUploadDir = isset($object->entity) ? $object->entity : 1;
+$multidirOutput = (isset($conf->uptosign->multidir_output) && is_array($conf->uptosign->multidir_output))
+	? ($conf->uptosign->multidir_output[$entityForUploadDir] ?? ($conf->uptosign->dir_output ?? DOL_DATA_ROOT . '/uptosign'))
+	: ($conf->uptosign->dir_output ?? DOL_DATA_ROOT . '/uptosign');
+$upload_dir = $multidirOutput . '/uptosign';
 
 // Security check (enable the most restrictive one)
 //if ($user->socid > 0) accessforbidden();

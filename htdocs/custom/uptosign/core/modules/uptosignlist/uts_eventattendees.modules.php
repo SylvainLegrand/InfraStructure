@@ -96,7 +96,7 @@ class uptosignlist_uts_eventattendees extends UptosignListTargets
 			$i = 0;
 			$j = 0;
 
-			dol_syslog(get_class($this)."::add_to_target mailing ".$num." targets found");
+			dol_syslog("uptosign: " . get_class($this)."::add_to_target mailing ".$num." targets found");
 
 			$old = '';
 			while ($i < $num) {
@@ -124,7 +124,7 @@ class uptosignlist_uts_eventattendees extends UptosignListTargets
 				$i++;
 			}
 		} else {
-			dol_syslog($this->db->error());
+			dol_syslog("uptosign: " . $this->db->error());
 			$this->error = $this->db->error();
 			return -1;
 		}

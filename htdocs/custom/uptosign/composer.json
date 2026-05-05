@@ -8,10 +8,10 @@
         "smalot/pdfparser": "^2.4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.6"
-    },
-    "suggest": {
-        "cap-rel/dolibarr-integration-sqlite": "For integration tests with real Dolibarr (requires PHP 8.2+)"
+        "phpunit/phpunit": "^9.6",
+        "phpstan/phpstan": "^2.1",
+        "symfony/http-client": "^6.4 || ^7.4",
+        "cap-rel/dolibarr-integration-sqlite": "@dev"
     },
     "autoload-dev": {
         "psr-4": {
@@ -24,6 +24,7 @@
         "test": "php -d pcov.directory=. vendor/bin/phpunit",
         "test:unit": "php -d pcov.directory=. vendor/bin/phpunit --testsuite unit",
         "test:integration": "php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit -c phpunit-integration-dolibarr.xml",
-        "test:coverage": "php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit"
+        "test:coverage": "php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit",
+        "test:http": "vendor/bin/phpunit -c phpunit-http.xml"
     }
 }

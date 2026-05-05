@@ -143,10 +143,10 @@ class ActionsUptoSign
 			dol_syslog("uptosign doActions uptosignAllDocsToContact", LOG_DEBUG);
 			$res = $uptoSign->giveAllRolesToContact($object);
 			if ($res > 0) {
-				dol_syslog("UptoSignAssignAllSignRoleToContact hook ok");
+				dol_syslog("uptosign: UptoSignAssignAllSignRoleToContact hook ok");
 				setEventMessages($langs->trans('UptoSignAssignAllSignRoleToContact'), [], 'mesgs');
 			} else {
-				dol_syslog("UptoSignAssignAllSignRoleToContact hook error");
+				dol_syslog("uptosign: UptoSignAssignAllSignRoleToContact hook error");
 				setEventMessages($langs->trans('UptoSignAssignAllSignRoleToContactError'), [], 'warning');
 			}
 			return $res;
@@ -229,7 +229,7 @@ class ActionsUptoSign
 
 				//erics todo				confirm_uptoseal
 				//verif si filename existe
-				$fullFileName = uptosignFindFileToUse($object, $parameters['last_main_doc']);
+				$fullFileName = uptosignFindFileToUse($object, $parameters['last_main_doc'] ?? '');
 				dol_syslog("uptosign doActions action=$action, Choosed file is filename=$fullFileName");
 
 				if ($currentcontext == 'uptosignnewonlinesign') {
@@ -913,7 +913,7 @@ class ActionsUptoSign
 
 		$error = 0;
 		$tabErrors = array();
-		dol_syslog(get_class($this) . '::doMassActions uptosign' . json_encode($parameters));
+		dol_syslog("uptosign: " . get_class($this) . '::doMassActions ' . json_encode($parameters));
 
 		$massContextClasses = array(
 			'propallist' => 'Propal',
@@ -952,7 +952,7 @@ class ActionsUptoSign
 					if ($resUTS < 0) {
 						$error++;
 						$tabErrors = array_merge($tabErrors, $uptoSign->errors);
-						dol_syslog(get_class($this) . '::doMassActions uptosign error, ' . json_encode($uptoSign->errors));
+						dol_syslog("uptosign: " . get_class($this) . '::doMassActions error, ' . json_encode($uptoSign->errors));
 					}
 				}
 			}
@@ -979,7 +979,7 @@ class ActionsUptoSign
 	{
 		global $conf, $user, $langs;
 		$langs->load("uptosign@uptosign");
-		dol_syslog(get_class($this) . '::addMoreMassActions uptosign' . json_encode($parameters));
+		dol_syslog("uptosign: " . get_class($this) . '::addMoreMassActions ' . json_encode($parameters));
 
 		$error = 0;
 		$disabled = 0;
@@ -996,7 +996,7 @@ class ActionsUptoSign
 
 		$currentcontext = $parameters['currentcontext'];
 		if (isset($massContextLabels[$currentcontext])) {
-			dol_syslog(get_class($this) . '::addMoreMassActions uptosign ' . $currentcontext);
+			dol_syslog("uptosign: " . get_class($this) . '::addMoreMassActions ' . $currentcontext);
 			$this->resprints = '<option value="uptosealMass"' . ($disabled ? ' disabled="disabled"' : '') . '>' . $langs->trans($massContextLabels[$currentcontext]) . '</option>';
 		}
 
@@ -1030,7 +1030,7 @@ class ActionsUptoSign
 
 		$ret = 0;
 		$deltemp = array();
-		dol_syslog(get_class($this) . '::executeHooks beforePDFCreation action=' . $action);
+		dol_syslog("uptosign: " . get_class($this) . '::executeHooks beforePDFCreation action=' . $action);
 
 		/* print_r($parameters); print_r($object); echo "action: " . $action; */
 		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2'))) {		// do something only for the context 'somecontext1' or 'somecontext2'
@@ -1058,7 +1058,7 @@ class ActionsUptoSign
 
 		$ret = 0;
 		$deltemp = array();
-		dol_syslog(get_class($this) . '::executeHooks action=' . $action);
+		dol_syslog("uptosign: " . get_class($this) . '::executeHooks action=' . $action);
 
 		/* print_r($parameters); print_r($object); echo "action: " . $action; */
 		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2'))) {
@@ -1351,11 +1351,11 @@ class ActionsUptoSign
 			if (is_array($result)) {
 				$res = reset($result);
 				if ($res === false) {
-					dol_syslog(get_class($this) . '::formBuilddocLineOptions file is not signed or sealed, returns resprints len=0 and 0');
+					dol_syslog("uptosign: " . get_class($this) . '::formBuilddocLineOptions file is not signed or sealed, returns resprints len=0 and 0');
 					$this->resprints = '';
 					return 0;
 				} else {
-					dol_syslog(get_class($this) . '::formBuilddocLineOptions match result ' . json_encode($res));
+					dol_syslog("uptosign: " . get_class($this) . '::formBuilddocLineOptions match result ' . json_encode($res));
 					if ($res->api_name == 'uptoseal') {
 						$out = "<td><a href=" . dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . $res->id . " title=\"Document scellé par UpToSign\"><i class=\"fas fa-stamp\"></i></a></td>";
 					} elseif ($res->api_name == 'uptosign') {
@@ -1363,12 +1363,12 @@ class ActionsUptoSign
 					}
 				}
 			} else {
-				dol_syslog(get_class($this) . '::formBuilddocLineOptions file is not known');
+				dol_syslog("uptosign: " . get_class($this) . '::formBuilddocLineOptions file is not known');
 				$this->resprints = '';
 				return 0;
 			}
 		} else {
-			dol_syslog(get_class($this) . '::formBuilddocLineOptions that file name doest not exists');
+			dol_syslog("uptosign: " . get_class($this) . '::formBuilddocLineOptions that file name doest not exists');
 			$this->resprints = '';
 			return 0;
 		}

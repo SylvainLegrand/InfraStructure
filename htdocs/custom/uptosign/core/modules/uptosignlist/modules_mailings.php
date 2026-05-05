@@ -196,14 +196,14 @@ class UptosignListTargets // This can't be abstract as it is used for some metho
 				$sql .= (empty($targetarray['source_id']) ? 'null' : "'".$this->db->escape($targetarray['source_id'])."'").",";
 				$sql .= "'".$this->db->escape(isset($targetarray['source_type']) ? $targetarray['source_type'] : '')."',";
 				$sql .= "'".UptoSignList::STATUS_DRAFT."')";
-				dol_syslog(__METHOD__, LOG_DEBUG);
+				dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 				$result = $this->db->query($sql);
 				if ($result) {
 					$j++;
 				} else {
 					if ($this->db->errno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
 						// Si erreur autre que doublon
-						dol_syslog($this->db->error().' : '.$targetarray['email']);
+						dol_syslog("uptosign: " . $this->db->error().' : '.$targetarray['email']);
 						$this->error = $this->db->error().' : '.$targetarray['email'];
 						$this->db->rollback();
 						return -1;
@@ -212,7 +212,7 @@ class UptosignListTargets // This can't be abstract as it is used for some metho
 			}
 		}
 
-		dol_syslog(__METHOD__.": mailing ".$j." targets added");
+		dol_syslog("uptosign: " . __METHOD__.": mailing ".$j." targets added");
 
 		// Update nb of recipient into emailing record
 		$this->update_nb($uptosignlist_id);
@@ -236,7 +236,7 @@ class UptosignListTargets // This can't be abstract as it is used for some metho
 		$sql .= " WHERE fk_uptosignlist = ".((int) $uptosignlist_id);
 
 		if (!$this->db->query($sql)) {
-			dol_syslog($this->db->error());
+			dol_syslog("uptosign: " . $this->db->error());
 		}
 
 		$this->update_nb($uptosignlist_id);

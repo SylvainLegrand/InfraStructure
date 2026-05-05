@@ -157,6 +157,11 @@ class UptoSignList extends CommonObject
 	public $fk_user_modif;
 	public $last_main_doc;
 	public $import_key;
+	// Mailing-related properties (set when uptosignlist_cibles.php updates the email metadata).
+	public $title;
+	public $email_from;
+	public $email_replyto;
+	public $email_errorsto;
 	public $model_pdf;
 	public $status;
 	// END MODULEBUILDER PROPERTIES
@@ -271,7 +276,7 @@ class UptoSignList extends CommonObject
 		global $langs, $extrafields;
 		$error = 0;
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$object = new self($this->db);
 
@@ -409,7 +414,7 @@ class UptoSignList extends CommonObject
 	 */
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
 	{
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$records = array();
 
@@ -468,7 +473,7 @@ class UptoSignList extends CommonObject
 			return $records;
 		} else {
 			$this->errors[] = 'Error '.$this->db->lasterror();
-			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: " . __METHOD__.' '.join(',', $this->errors), LOG_ERR);
 
 			return -1;
 		}
@@ -537,7 +542,7 @@ class UptoSignList extends CommonObject
 
 		// Protection
 		if ($this->status == self::STATUS_VALIDATED) {
-			dol_syslog(get_class($this)."::validate action abandonned: already validated", LOG_WARNING);
+			dol_syslog("uptosign: " . get_class($this)."::validate action abandonned: already validated", LOG_WARNING);
 			return 0;
 		}
 
@@ -566,7 +571,7 @@ class UptoSignList extends CommonObject
 			}
 			$sql .= " WHERE rowid = ".((int) $this->id);
 
-			dol_syslog(get_class($this)."::validate()", LOG_DEBUG);
+			dol_syslog("uptosign: " . get_class($this)."::validate()", LOG_DEBUG);
 			$resql = $this->db->query($sql);
 			if (!$resql) {
 				dol_print_error($this->db);
@@ -609,7 +614,7 @@ class UptoSignList extends CommonObject
 				$dirsource = $conf->uptosign->dir_output.'/uptosignlist/'.$oldref;
 				$dirdest = $conf->uptosign->dir_output.'/uptosignlist/'.$newref;
 				if (!$error && file_exists($dirsource)) {
-					dol_syslog(get_class($this)."::validate() rename dir ".$dirsource." into ".$dirdest);
+					dol_syslog("uptosign: " . get_class($this)."::validate() rename dir ".$dirsource." into ".$dirdest);
 
 					if (@rename($dirsource, $dirdest)) {
 						dol_syslog("uptosign: Rename ok");
@@ -1152,7 +1157,7 @@ class UptoSignList extends CommonObject
 		$this->output = '';
 		$this->error = '';
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$now = dol_now();
 

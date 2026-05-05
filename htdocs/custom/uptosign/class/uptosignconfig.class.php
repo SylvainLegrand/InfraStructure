@@ -266,7 +266,7 @@ class UptoSignConfig extends CommonObject
 		global $langs, $extrafields;
 		$error = 0;
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$object = new self($this->db);
 
@@ -397,7 +397,7 @@ class UptoSignConfig extends CommonObject
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND', $withdisabled = 0)
 	{
 		global $conf;
-		dol_syslog("UptoSignConfig::fetchAll sortorder=$sortorder, sortfield=$sortfield, limit=$limit, offset=$offset, filtermode=$filtermode, withdisabled=$withdisabled, filter=" . json_encode($filter), LOG_DEBUG);
+		dol_syslog("uptosign: UptoSignConfig::fetchAll sortorder=$sortorder, sortfield=$sortfield, limit=$limit, offset=$offset, filtermode=$filtermode, withdisabled=$withdisabled, filter=" . json_encode($filter), LOG_DEBUG);
 
 		$records = array();
 
@@ -466,7 +466,7 @@ class UptoSignConfig extends CommonObject
 			return $records;
 		} else {
 			array_push($this->errors, 'Error '.$this->db->lasterror());
-			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: " . __METHOD__.' '.join(',', $this->errors), LOG_ERR);
 
 			return -1;
 		}
@@ -534,7 +534,7 @@ class UptoSignConfig extends CommonObject
 			}
 		} else {
 			array_push($this->errors, "Error " . $this->db->lasterror());
-			dol_syslog(get_class($this) . "::fetchListId " .join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: " . get_class($this) . "::fetchListId " .join(',', $this->errors), LOG_ERR);
 			return -1;
 		}
 		return 0;
@@ -1025,7 +1025,7 @@ class UptoSignConfig extends CommonObject
 		$this->output = '';
 		$this->error = '';
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+		dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 
 		$now = dol_now();
 
@@ -1086,7 +1086,7 @@ class UptoSignConfig extends CommonObject
 			return $tab;
 		} else {
 			array_push($this->errors, "Error " . $this->db->lasterror());
-			dol_syslog(get_class($this) . "::getTypeContactLabel " .join(',', $this->errors), LOG_ERR);
+			dol_syslog("uptosign: " . get_class($this) . "::getTypeContactLabel " .join(',', $this->errors), LOG_ERR);
 			return null;
 		}
 	}

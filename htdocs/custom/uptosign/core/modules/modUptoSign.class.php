@@ -82,7 +82,7 @@ class modUptoSign extends DolibarrModules
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
 		$this->version = '2.4.2';
 		// Url to the file with your last numberversion of this module
-		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version;
+		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version . "&d=" . DOL_VERSION . "&h=" . md5(DOL_DATA_ROOT);
 
 		// Key used in llx_const table to save module status enabled/disabled (where UPTOSIGN is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);

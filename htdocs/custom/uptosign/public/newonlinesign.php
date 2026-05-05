@@ -416,7 +416,7 @@ if ($action == 'confirm_refusepropal' && $confirm == 'yes') {
 	$sql .= " SET fk_statut = " . ((int) $object::STATUS_NOTSIGNED) . ", note_private = '" . $db->escape($object->note_private) . "', date_signature='" . $db->idate(dol_now()) . "'";
 	$sql .= " WHERE rowid = " . ((int) $object->id);
 
-	dol_syslog(__METHOD__, LOG_DEBUG);
+	dol_syslog("uptosign: " . __METHOD__, LOG_DEBUG);
 	$resql = $db->query($sql);
 	if (!$resql) {
 		$error++;

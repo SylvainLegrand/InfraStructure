@@ -207,7 +207,7 @@ class uptosignlist_uts_inputfile extends UptosignListTargets
 					return -1;
 				}
 
-				dol_syslog(get_class($this)."::add_to_target mailing ".$cpt." targets found");
+				dol_syslog("uptosign: " . get_class($this)."::add_to_target mailing ".$cpt." targets found");
 			} else {
 				$langs->load("errors");
 				if ($resupload < 0) {	// Unknown error

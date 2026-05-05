@@ -265,8 +265,8 @@ if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x'
 
 // Action update description of emailing
 if ($action == 'settitle' || $action == 'setemail_from' || $action == 'setreplyto' || $action == 'setemail_errorsto') {
-	$upload_dir =
-	 $conf->mailing->dir_output."/".get_exdir($object->id, 2, 0, 1, $object, 'mailing');
+	$mailingDirOutput = isset($conf->mailing->dir_output) ? $conf->mailing->dir_output : (DOL_DATA_ROOT . '/mailing');
+	$upload_dir = $mailingDirOutput . "/" . get_exdir($object->id, 2, 0, 1, $object, 'mailing');
 	$mesg = null;
 	if ($action == 'settitle') {
 		$object->title = trim(GETPOST('title', 'alpha'));

@@ -2483,7 +2483,7 @@ class UptoSign extends CommonObject
 			unset($dataDebug["pdf"]["content"]);
 		}
 		dol_syslog("uptosign: initProcedureLight send data (without dump pdf) = " . json_encode($dataDebug));
-		dol_syslog("uptosign: initProcedureLight send data TITLE = " . json_encode($fileToSign['title']));
+		dol_syslog("uptosign: initProcedureLight send data TITLE = " . json_encode($fileToSign['title'] ?? ''));
 		dol_syslog("uptosign: initProcedureLight send redirect to = " . $endRedirect);
 		// debug
 		// return 0;
@@ -2494,11 +2494,16 @@ class UptoSign extends CommonObject
 		if ($response['http_code'] == 200 && $resultContent !== null) {
 			dol_syslog("uptosign: initProcedureLight resultContent 2 : " . json_encode($resultContent));
 		} elseif ($response['http_code'] == 403) {
-			dol_syslog("UptoSignApiError initProcedureLight error 403 : " . json_encode($resultContent['message'] ?? ''));
+			dol_syslog("uptosign: UptoSignApiError initProcedureLight error 403 : " . json_encode($resultContent['message'] ?? ''));
+			dol_syslog("uptosign: UptoSignApiError initProcedureLight 403 raw content (truncated) = " . substr((string) ($response['content'] ?? ''), 0, 2000), LOG_ERR);
+			dol_syslog("uptosign: UptoSignApiError initProcedureLight 403 curl_error = " . ($response['curl_error'] ?? ''), LOG_ERR);
 			array_push($this->errors, 'UptoSignApiError 403 : ' . ($resultContent['message'] ?? ''));
 			return --$error;
 		} else {
-			dol_syslog("UptoSignApiError initProcedureLight 3 : " . json_encode($resultContent['message'] ?? ''));
+			dol_syslog("uptosign: UptoSignApiError initProcedureLight 3 : " . json_encode($resultContent['message'] ?? ''));
+			dol_syslog("uptosign: UptoSignApiError initProcedureLight 3 http_code = " . ($response['http_code'] ?? 'null'), LOG_ERR);
+			dol_syslog("uptosign: UptoSignApiError initProcedureLight 3 raw content (truncated) = " . substr((string) ($response['content'] ?? ''), 0, 2000), LOG_ERR);
+			dol_syslog("uptosign: UptoSignApiError initProcedureLight 3 curl_error = " . ($response['curl_error'] ?? ''), LOG_ERR);
 			array_push($this->errors, 'UptoSignApiError 3a : ' . $response['http_code']);
 			array_push($this->errors, json_encode($resultContent['message'] ?? ''));
 			return --$error;
@@ -3244,10 +3249,7 @@ class UptoSign extends CommonObject
 				}
 
 				if (!empty($config->page_sign)) {	// test si la signature n'est pas désactivée pour ce type de document
-					$contactCode = isset($typeContacts[$config->fk_c_type_contact]) ? $typeContacts[$config->fk_c_type_contact] : null;
-					if (empty($contactCode)) {
-						continue;
-					}
+					$contactCode = $typeContacts[$config->fk_c_type_contact];
 					$contactIds = $object->getIdContact('external', $contactCode['code']);
 					$userIds = $object->getIdContact('internal', $contactCode['code']);
 
@@ -3338,7 +3340,7 @@ class UptoSign extends CommonObject
 
 		//check if file on disk is ok
 		$full = uptosign_full_path($this->path_file_signed);
-		if (!file_exists($full) || !is_file($full)) {
+		if (empty($full) || !file_exists($full) || !is_file($full)) {
 			array_push($this->errors, $langs->trans("UptoSignFileNotFound"));
 			--$error;
 			$this->status = UptoSign::STATUS_WAITING;

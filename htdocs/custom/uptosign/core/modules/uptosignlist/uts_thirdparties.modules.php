@@ -71,7 +71,7 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 		// phpcs:enable
 		global $conf, $langs;
 
-		dol_syslog(get_class($this)."::add_to_target_spec socid=".var_export($socid, true).' contactid='.var_export($contactid, true));
+		dol_syslog("uptosign: " . get_class($this)."::add_to_target_spec socid=".var_export($socid, true).' contactid='.var_export($contactid, true));
 
 		$cibles = array();
 
@@ -90,7 +90,7 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 					$num = $this->db->num_rows($result);
 					$i = 0;
 
-					dol_syslog(get_class($this)."::add_to_target_spec mailing ".$num." targets found", LOG_DEBUG);
+					dol_syslog("uptosign: " . get_class($this)."::add_to_target_spec mailing ".$num." targets found", LOG_DEBUG);
 
 					while ($i < $num) {
 						$obj = $this->db->fetch_object($result);
@@ -113,7 +113,7 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 						$i++;
 					}
 				} else {
-					dol_syslog($this->db->error());
+					dol_syslog("uptosign: " . $this->db->error());
 					$this->error = $this->db->error();
 					return -1;
 				}
@@ -140,7 +140,7 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 					$num = $this->db->num_rows($result);
 					$i = 0;
 
-					dol_syslog(get_class($this)."::add_to_target_spec mailing ".$num." targets found");
+					dol_syslog("uptosign: " . get_class($this)."::add_to_target_spec mailing ".$num." targets found");
 
 					while ($i < $num) {
 						$obj = $this->db->fetch_object($result);
@@ -163,7 +163,7 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 						$i++;
 					}
 				} else {
-					dol_syslog($this->db->error());
+					dol_syslog("uptosign: " . $this->db->error());
 					$this->error = $this->db->error();
 					return -1;
 				}
@@ -171,7 +171,7 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 		}
 
 
-		dol_syslog(get_class($this)."::add_to_target_spec mailing cibles=".var_export($cibles, true), LOG_DEBUG);
+		dol_syslog("uptosign: " . get_class($this)."::add_to_target_spec mailing cibles=".var_export($cibles, true), LOG_DEBUG);
 
 		return parent::addTargetsToDatabase($uptosignlist_id, $cibles);
 	}

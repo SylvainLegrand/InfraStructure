@@ -370,7 +370,7 @@ class uptosignCore implements ArrayAccess
 
 		if (empty($user) || empty($user->id)) {
 			dol_syslog('uptosignCore run, user is empty, early return', LOG_DEBUG);
-			dol_syslog(json_encode($user), LOG_DEBUG);
+			dol_syslog("uptosign: " . json_encode($user), LOG_DEBUG);
 			return -1;
 		}
 

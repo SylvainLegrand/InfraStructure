@@ -162,7 +162,7 @@ function utsbackports_getOnlineSignatureUrl($mode, $type, $ref = '', $localorext
 		if (empty($object)) {
 			$obj = new stdClass();
 		} else {
-			dol_syslog(__FUNCTION__." using global object is deprecated, please give obj as argument", LOG_WARNING);
+			dol_syslog("uptosign: " . __FUNCTION__." using global object is deprecated, please give obj as argument", LOG_WARNING);
 			$obj = $object;
 		}
 	}
