@@ -71,6 +71,10 @@ InfrastructurePdfTitleColor                                    = Couleur de text
 InfrastructurePdfTitleColorInfo                                = Si renseignée, écrase la couleur automatique (blanc sur fond sombre, noir sinon).
 InfrastructurePdfTotalColor                                    = Couleur de texte utilisée pour les sous-totaux dans les PDF
 InfrastructurePdfTotalColorInfo                                = Si renseignée, écrase la couleur automatique (blanc sur fond sombre, noir sinon).
+InfrastructurePdfTitleStyle                                    = Style des titres dans les PDF (B = gras, U = souligné, I = italique)
+InfrastructurePdfTitleStyleInfo                                = Si renseigné, écrase le style écran. Sinon, le style configuré pour l'affichage écran est repris.
+InfrastructurePdfTotalStyle                                    = Style des sous-totaux dans les PDF (B = gras, U = souligné, I = italique)
+InfrastructurePdfTotalStyleInfo                                = Si renseigné, écrase le style écran. Sinon, le style configuré pour l'affichage écran est repris.
 InfrastructureBlocFoldMode                                     = Comportement à adopter lorsque l'on cache un bloc de titre
 InfrastructureOptions                                          = <b>Options du module Sous-total pour l'impression</b>
 InfrastructureOneLineIfHideInnerlines                          = Avoir une seule ligne de titre + total si l'option "%s" est utilisée (expérimental)
@@ -85,9 +89,13 @@ InfrastructureAddLineUnderTitleAtEndBlock                      = L'ajout sous un
 InfrastructureTextForTitleOrdetstoinvoice                      = Texte des titres lors de la facturation via onglet client -> bouton "Facturer commandes"
 InfrastructureTextForTitleOrdetstoinvoiceInfo                  = Clés de remplacement :<br /><b>__REFORDER__</b> = Référence de la commande<br /><b>__REFCUSTOMER__</b> = Référence client de la commande
 InfrastructureDefaultDisplayQtyForInfrastructureOnElements     = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux pour les modèles de documents :
-InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux pour les modèles de documents sélectionnés
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux pour les modèles de documents sélectionnés (affichage écran)
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdf  = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux dans les PDF pour les modèles de documents :
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdfInfo = Activer l'affichage de la somme des quantités sur les lignes de sous-totaux dans les PDF pour les modèles de documents sélectionnés. Si aucun élément n'est sélectionné ici, le code retombe sur la sélection définie pour l'affichage écran.
 InfrastructureTitleAndInfrastructureBrightnessPercentage       = Pourcentage de réduction de la luminosité entre chaque niveau de titres / sous-titres / sous-totaux
 InfrastructureTitleAndInfrastructureBrightnessPercentageInfo   = les couleurs choisies ci-dessus seront celles du niveau 1 et les niveaux inférieurs seront plus clairs en fonction de ce pourcentage (niveau 1 = couleur choisie, niveau 2 = couleur choisie - pourcentage, niveau 3 = couleur choisie - 2*pourcentage, etc.)
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdf    = Pourcentage de réduction de la luminosité entre chaque niveau de titres / sous-titres / sous-totaux dans les PDF
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdfInfo = Si renseigné, écrase la valeur écran pour le rendu PDF. Sinon, le pourcentage configuré pour l'affichage écran est repris.
 
 ### Changelog / Support ###
 InfrastructureParamChangelog            = Suppport / changelog
@@ -217,7 +225,7 @@ InfrastructureQuickSummary                   = Sommaire rapide
 InfrastructureDisableSummary                 = Désactiver le menu "sommaire rapide" (bouton flottant visible lorsque le document a des titres)
 InfrastructureOptions                        = Options InfraStructure
 InfrastructureSetup                          = Paramètre module InfraStructure
-InfrastructureSetupPage                      = Paramètre module InfraStructure
+InfrastructureSetupPage                      = Paramètre du module InfraStructure
 InfrastructureSetupForSubBlocs               = Paramétrage de l'option "Cacher le prix des lignes des ensembles"
 InfrastructureUseHiddenConfToAutoCheck       = Pour précocher par défaut vous pouvez activer la configuration divers
 InfrastructureExperimental                   = EXPERIMENTAL

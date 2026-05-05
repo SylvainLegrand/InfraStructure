@@ -787,7 +787,7 @@
 			empty($pdf->marge_droite) ? $pdf->marge_droite = 0 : '';
 			empty($line->total) ? $line->total = 0 : '';
 			empty($pdf->postotalht) ? $pdf->postotalht = 0 : '';
-			$bgStyle							= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TOTAL_BACKGROUND_COLOR', 'INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET');
+			$bgStyle							= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TOTAL_BACKGROUND_COLOR', 'INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET', $line);
 			$fillBackground						= $bgStyle['fill'];
 			$backgroundColor					= $bgStyle['color'];
 			$backgroundCellHeightOffset			= $bgStyle['heightOffset'];
@@ -851,7 +851,8 @@
 			} else {
 				$pdf->SetFillColor(240, 240, 240);
 			}
-			$style				= getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE') ? getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE') : 'B';
+			$pdfTotalStyle		= getDolGlobalString('INFRASTRUCTURE_PDF_TOTAL_STYLE');
+			$style				= $pdfTotalStyle !== '' ? $pdfTotalStyle : 'B';
 			$pdf->SetFont('', $style, 9);
 			$curentCellPaddinds = $pdf->getCellPaddings();	// save curent cell padding
 			$pdf->setCellPaddings($curentCellPaddinds['L'], $infrastructureDefaultTopPadding, $curentCellPaddinds['R'], $infrastructureDefaultBottomPadding);	// set cell padding with column content definition for old PDF compatibility
@@ -957,7 +958,7 @@
 			empty($pdf->marge_droite) ? $pdf->marge_droite = 0 : '';
 			// Manage background color
 			$fillDescBloc				= false;
-			$bgStyle					= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET');
+			$bgStyle					= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET', $line);
 			$fillBackground				= $bgStyle['fill'];
 			$backgroundColor			= $bgStyle['color'];
 			$backgroundCellHeightOffset	= $bgStyle['heightOffset'];
@@ -969,8 +970,9 @@
 			$pdf->SetXY($posx, $posy);
 			$hideInnerLines				= GETPOST('hideInnerLines', 'int');
 			$style						= ($line->qty == 1) ? 'BU' : 'BUI';
-			if (getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE')) {
-				$style = getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE');
+			$pdfTitleStyle				= getDolGlobalString('INFRASTRUCTURE_PDF_TITLE_STYLE');
+			if ($pdfTitleStyle !== '') {
+				$style = $pdfTitleStyle;
 			}
 			$size_title = 9;
 			if (getDolGlobalString('INFRASTRUCTURE_TITLE_SIZE')) {
@@ -1093,7 +1095,7 @@
 		*/
 		public function pdf_getlineqty($parameters = array(), &$object, &$action = '')
 		{
-			global $hidesubdetails, $hideprices, $hookmanager;
+			global $hidesubdetails, $hideprices, $hookmanager, $pdf;
 
 			$i		= intval($parameters['i']);
 			$line	= isset($object->lines[$i]) ? $object->lines[$i] : null;
@@ -1120,6 +1122,9 @@
 							$this->resprints = '';
 						} else {
 							$this->resprints = $level_qty_total;
+							if (is_object($pdf)) {
+								infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
+							}
 						}
 						return 1;
 					} else {
@@ -1556,7 +1561,7 @@
 		*/
 		public function pdf_getlinevatrate($parameters = array(), &$object, &$action = '')
 		{
-			global $hidesubdetails, $hideprices, $hidedetails, $hookmanager;
+			global $hidesubdetails, $hideprices, $hidedetails, $hookmanager, $pdf;
 
 			$i			= intval($parameters['i']);
 			$line		= isset($object->lines[$i]) ? $object->lines[$i] : null;		// Dans le cas des notes de frais report ne pas traiter
@@ -1571,6 +1576,9 @@
 					   && ((!empty($line->array_options['options_print_as_list']) && $line->array_options['options_print_as_list'] > 0)
 					   || (!empty($line->array_options['options_print_condensed']) && $line->array_options['options_print_condensed'] > 0))))) {
 					   $this->resprints = vatrate($tva_unique, true);
+					if (TInfrastructure::isTotal($line) && is_object($pdf)) {
+						infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
+					}
 				} else {
 					if ($line && $line->qty == -99) { $this->resprints = ' '; return 1; }
 					$this->resprints = ' ';
@@ -1656,9 +1664,9 @@
 			 */
 			global $pdf, $conf, $langs;
 
-			if (TInfrastructure::showQtyForObject($object) === true) {
+			if (TInfrastructure::showQtyForObject($object, 'pdf') === true) {
 				$this->infrastructure_sum_qty_enabled		= true;
-				$this->infrastructure_show_qty_by_default = true;
+				$this->infrastructure_show_qty_by_default	= true;
 			}
 			if (!isset($object->context) || !is_array($object->context)) {
 				$object->context	= array();
@@ -1667,7 +1675,7 @@
 			$this->warmPDFInfrastructureCache($object);
 			$TContext	= explode(':', $parameters['context']);
 			if (in_array('pdfgeneration', $TContext)) {
-				$object->context['infrastructurePdfModelInfo']		= new stdClass(); // see defineColumnFiel method in this class
+				$object->context['infrastructurePdfModelInfo']			= new stdClass(); // see defineColumnFiel method in this class
 				$object->context['infrastructurePdfModelInfo']->cols	= false;
 				}
 				if (in_array('propalcard', $TContext) || in_array('ordercard', $TContext) || in_array('invoicecard', $TContext) || in_array('supplier_proposalcard', $TContext) || in_array('ordersuppliercard', $TContext) || in_array('invoicesuppliercard', $TContext)) {

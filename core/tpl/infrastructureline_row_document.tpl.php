@@ -127,6 +127,20 @@
 				$line_show_qty	= TInfrastructure::showQtyForObjectLine($line, $show_qty_by_default);
 			}
 		}
+		// Nombre de colonnes situées avant la colonne Qté (incluse).
+		$colsBeforeQty	= 3;	// Description + VAT + PU HT (toujours présents)
+		if (in_array($object->element, array('supplier_proposal', 'order_supplier', 'invoice_supplier'))) {
+			$colsBeforeQty++;	// linecolrefsupplier rendu après Description pour les documents fournisseurs
+		}
+		if (isModEnabled('multicurrency') && ($object->multicurrency_code != $conf->currency)) {
+			$colsBeforeQty++;	// PU HT devise
+			if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
+				$colsBeforeQty++;	// PU TTC devise
+			}
+		}
+		if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
+			$colsBeforeQty++;	// PU TTC
+		}
 		// Cellule libellé : edit ou view selon le mode
 		if ($action == 'editline' && GETPOST('lineid', 'int') == $line->id && TInfrastructure::isModInfrastructureLine($line)) {
 			include dol_buildpath('/infrastructure/core/tpl/infrastructureline_edit.tpl.php', 0);

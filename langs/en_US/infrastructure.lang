@@ -71,6 +71,10 @@ InfrastructurePdfTitleColor                           = Text color used for titl
 InfrastructurePdfTitleColorInfo                       = If set, overrides the automatic color (white on dark background, black otherwise).
 InfrastructurePdfTotalColor                           = Text color used for subtotals in PDF output
 InfrastructurePdfTotalColorInfo                       = If set, overrides the automatic color (white on dark background, black otherwise).
+InfrastructurePdfTitleStyle                           = Title style in PDF output (B = bold, U = underline, I = italic)
+InfrastructurePdfTitleStyleInfo                       = If set, overrides the screen style. Otherwise, the screen style configuration is reused.
+InfrastructurePdfTotalStyle                           = Subtotals style in PDF output (B = bold, U = underline, I = italic)
+InfrastructurePdfTotalStyleInfo                       = If set, overrides the screen style. Otherwise, the screen style configuration is reused.
 InfrastructureBlocFoldMode                                     = Behavior when hiding a title block
 InfrastructureOptions                                          = Infrastructure options
 InfrastructureOneLineIfHideInnerlines                          = Get one line with title and infrastructure if "%s" is enabled (experimental)
@@ -85,9 +89,13 @@ InfrastructureAddLineUnderTitleAtEndBlock                      = Adding under a 
 InfrastructureTextForTitleOrdetstoinvoice                      = Title text when invoicing via customer tab -> "Invoice orders" button
 InfrastructureTextForTitleOrdetstoinvoiceInfo                  = Replacement keys:<br /><b>__REFORDER__</b> = Order reference<br /><b>__REFCUSTOMER__</b> = Customer reference of the order
 InfrastructureDefaultDisplayQtyForInfrastructureOnElements     = Enable display of quantity sum on infrastructure lines for document templates:
-InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Enable display of quantity sum on infrastructure lines for selected document templates
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Enable display of quantity sum on infrastructure lines for selected document templates (screen display)
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdf  = Enable display of quantity sum on infrastructure lines in PDF output for document templates:
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdfInfo = Enable display of quantity sum on infrastructure lines in PDF output for selected document templates. If no element is selected here, the screen selection is reused as a fallback.
 InfrastructureTitleAndInfrastructureBrightnessPercentage       = Brightness reduction percentage between each level of titles / subtitles / infrastructures
 InfrastructureTitleAndInfrastructureBrightnessPercentageInfo   = The colors chosen above will be those of level 1 and lower levels will be lighter according to this percentage (level 1 = chosen color, level 2 = chosen color - percentage, level 3 = chosen color - 2*percentage, etc.)
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdf    = Brightness reduction percentage between each level of titles / subtitles / infrastructures in PDF output
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdfInfo = If set, overrides the screen value for PDF rendering. Otherwise, the percentage configured for screen display is reused.
 
 ### Changelog / Support ###
 InfrastructureParamChangelog            = Support / changelog

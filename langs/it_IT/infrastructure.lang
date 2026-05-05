@@ -71,6 +71,10 @@ InfrastructurePdfTitleColor                           = Colore del testo utilizz
 InfrastructurePdfTitleColorInfo                       = Se impostato, sovrascrive il colore automatico (bianco su sfondo scuro, nero altrimenti).
 InfrastructurePdfTotalColor                           = Colore del testo utilizzato per i subtotali nei PDF
 InfrastructurePdfTotalColorInfo                       = Se impostato, sovrascrive il colore automatico (bianco su sfondo scuro, nero altrimenti).
+InfrastructurePdfTitleStyle                           = Stile dei titoli nei PDF (B = grassetto, U = sottolineato, I = corsivo)
+InfrastructurePdfTitleStyleInfo                       = Se impostato, sovrascrive lo stile schermo. Altrimenti viene riutilizzato lo stile configurato per la visualizzazione a schermo.
+InfrastructurePdfTotalStyle                           = Stile dei subtotali nei PDF (B = grassetto, U = sottolineato, I = corsivo)
+InfrastructurePdfTotalStyleInfo                       = Se impostato, sovrascrive lo stile schermo. Altrimenti viene riutilizzato lo stile configurato per la visualizzazione a schermo.
 InfrastructureBlocFoldMode                                     = Comportamento da adottare quando si nasconde un blocco titolo
 InfrastructureOptions                                          = Opzioni InfraStructure
 InfrastructureOneLineIfHideInnerlines                          = Avere una sola riga di titolo + totale se viene utilizzata l'opzione "%s" (sperimentale)
@@ -85,9 +89,13 @@ InfrastructureAddLineUnderTitleAtEndBlock                      = L'aggiunta sott
 InfrastructureTextForTitleOrdetstoinvoice                      = Testo dei titoli durante la fatturazione tramite scheda cliente -> pulsante "Fatturare ordini"
 InfrastructureTextForTitleOrdetstoinvoiceInfo                  = Chiavi di sostituzione:<br /><b>__REFORDER__</b> = Riferimento dell'ordine<br /><b>__REFCUSTOMER__</b> = Riferimento cliente dell'ordine
 InfrastructureDefaultDisplayQtyForInfrastructureOnElements     = Attivare la visualizzazione della somma delle quantità sulle righe di subtotale per i modelli di documento:
-InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Attivare la visualizzazione della somma delle quantità sulle righe di subtotale per i modelli di documento selezionati
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Attivare la visualizzazione della somma delle quantità sulle righe di subtotale per i modelli di documento selezionati (visualizzazione a schermo)
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdf  = Attivare la visualizzazione della somma delle quantità sulle righe di subtotale nei PDF per i modelli di documento:
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdfInfo = Attivare la visualizzazione della somma delle quantità sulle righe di subtotale nei PDF per i modelli di documento selezionati. Se nessun elemento è selezionato qui, viene riutilizzata la selezione a schermo come alternativa.
 InfrastructureTitleAndInfrastructureBrightnessPercentage       = Percentuale di riduzione della luminosità tra ogni livello di titoli / sottotitoli / subtotali
 InfrastructureTitleAndInfrastructureBrightnessPercentageInfo   = I colori scelti sopra saranno quelli del livello 1 e i livelli inferiori saranno più chiari in base a questa percentuale (livello 1 = colore scelto, livello 2 = colore scelto - percentuale, livello 3 = colore scelto - 2*percentuale, ecc.)
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdf    = Percentuale di riduzione della luminosità tra ogni livello di titoli / sottotitoli / subtotali nei PDF
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdfInfo = Se impostato, sovrascrive il valore a schermo per il rendering PDF. Altrimenti, viene riutilizzata la percentuale configurata per la visualizzazione a schermo.
 
 ### Changelog / Support ###
 InfrastructureParamChangelog            = Supporto / changelog

@@ -93,13 +93,22 @@
 		/**
 		* Determine to show infrastructure line qty by default for this object
 		*
-		* @param   CommonObject    $object Object
-		* @return  bool            False no show infrastructure qty for this object else True
+		* @param	CommonObject	$object		Object
+		* @param	string			$context	'screen' (défaut) ou 'pdf'. En contexte 'pdf' la constante INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS_PDF prime ; si vide, fallback sur la constante écran (compat. installations existantes).
+		* @return	bool						False no show infrastructure qty for this object else True
 		*/
-		static function showQtyForObject($object)
+		static function showQtyForObject($object, $context = 'screen')
 		{
 			$show = false;
-			if (getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS') && in_array($object->element, explode(',', getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS')))) {
+			if ($context === 'pdf') {
+				$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS_PDF');
+				if ($value === '') {
+					$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS');
+				}
+			} else {
+				$value	= getDolGlobalString('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS');
+			}
+			if ($value !== '' && in_array($object->element, explode(',', $value))) {
 				$show = true;
 			}
 			return $show;

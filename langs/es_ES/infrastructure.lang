@@ -71,6 +71,10 @@ InfrastructurePdfTitleColor                           = Color de texto utilizado
 InfrastructurePdfTitleColorInfo                       = Si se establece, anula el color automático (blanco sobre fondo oscuro, negro en caso contrario).
 InfrastructurePdfTotalColor                           = Color de texto utilizado para los subtotales en los PDF
 InfrastructurePdfTotalColorInfo                       = Si se establece, anula el color automático (blanco sobre fondo oscuro, negro en caso contrario).
+InfrastructurePdfTitleStyle                           = Estilo de los títulos en los PDF (B = negrita, U = subrayado, I = cursiva)
+InfrastructurePdfTitleStyleInfo                       = Si se establece, anula el estilo de pantalla. De lo contrario, se reutiliza la configuración del estilo de pantalla.
+InfrastructurePdfTotalStyle                           = Estilo de los subtotales en los PDF (B = negrita, U = subrayado, I = cursiva)
+InfrastructurePdfTotalStyleInfo                       = Si se establece, anula el estilo de pantalla. De lo contrario, se reutiliza la configuración del estilo de pantalla.
 InfrastructureBlocFoldMode                                     = Comportamiento al ocultar un bloque de título
 InfrastructureOptions                                          = Opciones de infrastructure
 InfrastructureOneLineIfHideInnerlines                          = Obtener una sola línea de título + total si se usa la opción "%s" (experimental)
@@ -85,9 +89,13 @@ InfrastructureAddLineUnderTitleAtEndBlock                      = El agregado baj
 InfrastructureTextForTitleOrdetstoinvoice                      = Texto de los títulos al facturar vía pestaña cliente -> botón "Facturar pedidos"
 InfrastructureTextForTitleOrdetstoinvoiceInfo                  = Claves de reemplazo:<br /><b>__REFORDER__</b> = Referencia del pedido<br /><b>__REFCUSTOMER__</b> = Referencia del cliente del pedido
 InfrastructureDefaultDisplayQtyForInfrastructureOnElements     = Activar la visualización de la suma de cantidades en las líneas de infrastructure para plantillas de documentos:
-InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Activar la visualización de la suma de cantidades en las líneas de infrastructure para las plantillas de documentos seleccionadas
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsInfo = Activar la visualización de la suma de cantidades en las líneas de infrastructure para las plantillas de documentos seleccionadas (visualización en pantalla)
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdf  = Activar la visualización de la suma de cantidades en las líneas de infrastructure en los PDF para plantillas de documentos:
+InfrastructureDefaultDisplayQtyForInfrastructureOnElementsPdfInfo = Activar la visualización de la suma de cantidades en las líneas de infrastructure en los PDF para las plantillas de documentos seleccionadas. Si no se selecciona ningún elemento aquí, se reutiliza la selección de la pantalla como alternativa.
 InfrastructureTitleAndInfrastructureBrightnessPercentage       = Porcentaje de reducción de brillo entre cada nivel de títulos / subtítulos / infrastructurees
 InfrastructureTitleAndInfrastructureBrightnessPercentageInfo   = Los colores elegidos arriba serán los del nivel 1 y los niveles inferiores serán más claros según este porcentaje (nivel 1 = color elegido, nivel 2 = color elegido - porcentaje, nivel 3 = color elegido - 2*porcentaje, etc.)
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdf    = Porcentaje de reducción de brillo entre cada nivel de títulos / subtítulos / subtotales en los PDF
+InfrastructureTitleAndInfrastructureBrightnessPercentagePdfInfo = Si se indica, sobrescribe el valor de pantalla para el render PDF. En caso contrario, se reutiliza el porcentaje configurado para la pantalla.
 
 ### Changelog / Support ###
 InfrastructureParamChangelog            = Soporte / changelog

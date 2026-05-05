@@ -945,23 +945,44 @@
 	}
 
 	/**
-	* Compute PDF background style from a color configuration constant
+	* Compute PDF background style from a color configuration constant.
+	* Si une ligne spéciale (titre `qty 1-9` ou sous-total `qty 91-99`) est fournie, la couleur de base est éclaircie selon
+	* le niveau via `colorLighten()` en utilisant le pourcentage de luminosité PDF dédié
+	* (`INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE_PDF`, fallback sur la version écran).
 	*
-	* @param	TCPDF	$pdf					PDF object
-	* @param	string	$colorConst				Global constant name for background color (e.g. 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR')
-	* @param	string	$heightOffsetConst		Global constant name for cell height offset
-	* @param	string	$posYOffsetConst		Global constant name for cell Y position offset
-	* @return	array							Array with keys 'fill', 'color', 'heightOffset', 'posYOffset'
+	* @param	TCPDF				$pdf					PDF object
+	* @param	string				$colorConst				Global constant name for background color (e.g. 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR')
+	* @param	string				$heightOffsetConst		Global constant name for cell height offset
+	* @param	string				$posYOffsetConst		Global constant name for cell Y position offset
+	* @param	CommonObjectLine	$line					Ligne spéciale du module (optionnelle) — si fournie, applique la nuance par niveau
+	* @return	array										Array with keys 'fill', 'color', 'heightOffset', 'posYOffset'
 	*/
-	function infrastructure_getPdfBackgroundStyle(&$pdf, $colorConst, $heightOffsetConst = '', $posYOffsetConst = '')
+	function infrastructure_getPdfBackgroundStyle(&$pdf, $colorConst, $heightOffsetConst = '', $posYOffsetConst = '', $line = null)
 	{
 		$result	= array('fill'			=> false,
 						'color'			=> array(233, 233, 233),
 						'heightOffset'	=> 0,
 						'posYOffset'	=> 0,
 					);
-		$normalizedColor	= (getDolGlobalString($colorConst) !== '' && getDolGlobalString($colorConst)[0] !== '#') ? '#'.getDolGlobalString($colorConst) : getDolGlobalString($colorConst);
+		$rawColor			= getDolGlobalString($colorConst);
+		$normalizedColor	= ($rawColor !== '' && $rawColor[0] !== '#') ? '#'.$rawColor : $rawColor;
 		if ($normalizedColor && function_exists('colorValidateHex') && colorValidateHex($normalizedColor) && function_exists('colorStringToArray')) {
+			if (is_object($line) && function_exists('colorLighten')) {
+				$brightness	= getDolGlobalString('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE_PDF');
+				if ($line->qty >= 91 && $line->qty <= 99) {
+					$offset				= $line->qty < 99 ? (99 - $line->qty) * $brightness : 1;
+					$lightened			= colorLighten($normalizedColor, $offset);
+					if (colorValidateHex($lightened)) {
+						$normalizedColor	= $lightened;
+					}
+				} elseif ($line->qty >= 1 && $line->qty <= 9) {
+					$offset				= $line->qty > 1 ? ($line->qty - 1) * $brightness : 1;
+					$lightened			= colorLighten($normalizedColor, $offset);
+					if (colorValidateHex($lightened)) {
+						$normalizedColor	= $lightened;
+					}
+				}
+			}
 			$result['fill']		= true;
 			$result['color']	= colorStringToArray($normalizedColor, array(233, 233, 233));
 			if (function_exists('colorIsLight') && !colorIsLight($normalizedColor)) {

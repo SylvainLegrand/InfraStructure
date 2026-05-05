@@ -56,30 +56,15 @@
 	?>
 <!-- BEGIN PHP TEMPLATE infrastructureline_infrastructure.tpl.php -->
 <?php
-	// Bloc quantité cumulée (réduit le colspan de 2 ; rend une cellule à gauche)
-	if ($line_show_qty) {
-		$colspan				-= 2;
-		$titleStyleItalic		= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'I') === false ? '' : ' font-style: italic;';
-		$titleStyleBold			= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'B') === false ? '' : ' font-weight:bold;';
-		$titleStyleUnderline	= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'U') === false ? '' : ' text-decoration: underline;';
-		print '	<td colspan="'.$colspan.'" style="text-align:right;'.$titleStyleBold.'">
-					<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.$langs->trans('Qty').' : </span>&nbsp;&nbsp;'.price($total_qty, 0, '', 0, 0);
-		print '</td>';
-		$colspan = 2;
-	}
-	// Détermine si la cellule marge sera rendue (juste avant Total HT, dans la colonne Marge)
+	// Détermine si la cellule marge sera rendue (juste avant Total HT, dans la colonne Marge native)
 	$displayMargin			= getDolGlobalString('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL') && isModEnabled('margin') && !(isset($margins_hidden_by_module) && $margins_hidden_by_module);
-	$labelColspan			= $displayMargin ? $colspan - 1 : $colspan;
-	if ($labelColspan < 1) {
-		$labelColspan	= 1;
-	}
-	// Cellule principale : libellé "Sous-total :" aligné à droite
+	// Styles communs du libellé
 	$style					= getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE', '');
 	$titleStyleItalic		= strpos($style, 'I') === false ? '' : ' font-style: italic;';
 	$titleStyleBold			= strpos($style, 'B') === false ? '' : ' font-weight:bold;';
 	$titleStyleUnderline	= strpos($style, 'U') === false ? '' : ' text-decoration: underline;';
-	print '	<td colspan="'.$labelColspan.'" style="font-weight:bold;text-align:right">';
-	// Affichage du libellé
+	// Construction du HTML du libellé "Sous-total :" (réutilisé dans les deux modes de rendu)
+	ob_start();
 	if (empty($line->label)) {
 		if (getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL')) {
 			print $line->description.' <span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.infrastructure_getTitle($object, $line).'</span>';
@@ -98,7 +83,36 @@
 	if ($line->info_bits > 0) {
 		echo img_picto($langs->trans('Pagebreak'), 'pagebreak@infrastructure');
 	}
-	echo '</td>';
+	$labelHtml		= ob_get_clean();
+	$alignedMode	= $line_show_qty && isset($colsBeforeQty) && $colsBeforeQty > 0 && ($colsBeforeQty + 1) <= $colspan;
+	if ($alignedMode) {
+		$colsAfterQty	= $colspan - $colsBeforeQty - 1 - ($displayMargin ? 1 : 0);
+		print '	<td colspan="'.$colsBeforeQty.'" style="font-weight:bold;text-align:right;">'.$labelHtml.'</td>';
+		print '	<td class="linecolqty nowraponall right" style="font-weight:bold;">'.price($total_qty, 0, '', 0, 0).'</td>';
+		// Cellule(s) vide(s) entre la colonne Qté et la colonne Marge / Total HT
+		if ($colsAfterQty > 0) {
+			print '	<td colspan="'.$colsAfterQty.'">&nbsp;</td>';
+		}
+	} else {
+		// Mode legacy (fallback) : grosse cellule "Qty : valeur" à gauche puis libellé "Sous-total :" à droite
+		if ($line_show_qty) {
+			$colspan	-= 2;
+			$qtyStyleItalic		= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'I') === false ? '' : ' font-style: italic;';
+			$qtyStyleBold		= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'B') === false ? '' : ' font-weight:bold;';
+			$qtyStyleUnderline	= strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE', ''), 'U') === false ? '' : ' text-decoration: underline;';
+			print '	<td colspan="'.$colspan.'" style="text-align:right;'.$qtyStyleBold.'">
+						<span class="infrastructure_label" style="'.$qtyStyleItalic.$qtyStyleBold.$qtyStyleUnderline.'">'.$langs->trans('Qty').' : </span>&nbsp;&nbsp;'.price($total_qty, 0, '', 0, 0);
+			print '</td>';
+			$colspan = 2;
+		}
+		$labelColspan	= $displayMargin ? $colspan - 1 : $colspan;
+		if ($labelColspan < 1) {
+			$labelColspan	= 1;
+		}
+		print '	<td colspan="'.$labelColspan.'" style="font-weight:bold;text-align:right">';
+		print $labelHtml;
+		print '</td>';
+	}
 	// Cellule marge (rendue uniquement si activée + module margin actif), juste avant Total HT, sans libellé « Marge : »
 	if ($displayMargin) {
 		$parentTitleLine	= TInfrastructure::getParentTitleOfLine($object, $line->rang);
