@@ -341,9 +341,9 @@
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE_PDF', 'input', $langs->trans('InfrastructureTitleAndInfrastructureBrightnessPercentagePdf'), 'InfrastructureTitleAndInfrastructureBrightnessPercentagePdfInfo', array(), 2, 1, '%', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET', 'input', $langs->trans('InfrastructureTitleBackgroundCellHeightOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
 		// num = 15
-		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET', 'input', $langs->trans('InfrastructureTitleBackgroundCellPosYOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_TITLE_BACKGROUND_CELL_POS_Y_OFFSET', 'input', $langs->trans('InfrastructureTitleBackgroundCellPosYOffset'), 'InfrastructureBackgroundCellOffsetInfo1', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET', 'input', $langs->trans('InfrastructureBackgroundCellHeightOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
-		$num	= infrastructure_print_input('INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET', 'input', $langs->trans('InfrastructureBackgroundCellPosYOffset'), 'InfrastructureBackgroundCellOffsetInfo', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
+		$num	= infrastructure_print_input('INFRASTRUCTURE_BACKGROUND_CELL_POS_Y_OFFSET', 'input', $langs->trans('InfrastructureBackgroundCellPosYOffset'), 'InfrastructureBackgroundCellOffsetInfo1', array('type' => 'number', 'step' => '0.01'), 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_IF_HIDE_PRICES_SHOW_QTY', 'on_off', $langs->trans('InfrastructureIfHidePricesShowQty'), '', array(), 2, 1, '', $num);
 		$TField	= array('propal'			=> $langs->trans('Proposal'),
 						'commande'			=> $langs->trans('Order'),

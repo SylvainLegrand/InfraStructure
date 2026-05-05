@@ -252,6 +252,7 @@ InfrastructureTitleBackgroundCellPosYOffset            = Spostamento verticale d
 InfrastructureBackgroundCellHeightOffset               = Aumento dell'altezza dello sfondo dei subtotali nei PDF
 InfrastructureBackgroundCellPosYOffset                 = Spostamento verticale dello sfondo dei subtotali nei PDF
 InfrastructureBackgroundCellOffsetInfo                 = Permette di regolare finemente il rendering della cella di sfondo colorata per compensare le differenze tra altezza del testo e altezza della cella. Senza effetto se non è definito alcun colore di sfondo.
+InfrastructureBackgroundCellOffsetInfo1                = Permette di regolare finemente il rendering della cella di sfondo colorata per compensare le differenze tra altezza del testo e altezza della cella. Senza effetto se non è definito alcun colore di sfondo. Numero positivo sposta verso il basso, altrimenti verso l'alto.
 InfrastructureDefaultCheckShippingListForTitleDesc     = Spuntare per default « Includi lista spedizioni » quando si aggiunge un titolo
 InfrastructureDefaultCheckShippingListForTitleDescInfo = Quando attivata, la casella « Aggiungi la lista delle spedizioni alla descrizione del titolo » è pre-selezionata nel modulo di aggiunta/modifica del titolo.
 InfrastructureDisableFixTransaction                    = Disattivare l'incapsulamento transazionale SQL delle azioni sui blocchi

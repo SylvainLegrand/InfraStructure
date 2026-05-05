@@ -252,6 +252,7 @@ InfrastructureTitleBackgroundCellPosYOffset            = Décalage vertical du f
 InfrastructureBackgroundCellHeightOffset               = Augmentation de la hauteur du fond des sous-totaux dans les PDF
 InfrastructureBackgroundCellPosYOffset                 = Décalage vertical du fond des sous-totaux dans les PDF
 InfrastructureBackgroundCellOffsetInfo                 = Permet d'ajuster finement le rendu de la cellule de fond colorée pour compenser les écarts entre la hauteur de texte et la hauteur de cellule. Sans effet si aucune couleur de fond n'est définie.
+InfrastructureBackgroundCellOffsetInfo1                = Permet d'ajuster finement le rendu de la cellule de fond colorée pour compenser les écarts entre la hauteur de texte et la hauteur de cellule. Sans effet si aucune couleur de fond n'est définie. Chiffre positive décalage vers le bas, sinon vers le haut.
 InfrastructureDefaultCheckShippingListForTitleDesc     = Cocher par défaut « Inclure la liste des expéditions » lors de l'ajout d'un titre
 InfrastructureDefaultCheckShippingListForTitleDescInfo = Quand activée, la case à cocher « Ajouter la liste des expéditions à la description du titre » est pré-cochée dans le formulaire d'ajout/édition de titre.
 InfrastructureDisableFixTransaction                    = Désactiver l'enrobage transactionnel des actions sur les blocs

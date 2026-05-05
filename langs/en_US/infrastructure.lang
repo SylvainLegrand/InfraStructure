@@ -252,6 +252,7 @@ InfrastructureTitleBackgroundCellPosYOffset            = Vertical offset (mm) of
 InfrastructureBackgroundCellHeightOffset               = Height offset (mm) of the colored background cell for totals in PDFs
 InfrastructureBackgroundCellPosYOffset                 = Vertical offset (mm) of the colored background cell for totals in PDFs
 InfrastructureBackgroundCellOffsetInfo                 = Allows fine-tuning of the colored background cell rendering to compensate for differences between text height and cell height. No effect if no background color is defined.
+InfrastructureBackgroundCellOffsetInfo1                = Allows fine-tuning of the colored background cell rendering to compensate for differences between text height and cell height. No effect if no background color is defined. Positive number moves down, otherwise moves up.
 InfrastructureDefaultCheckShippingListForTitleDesc     = Pre-check « Include shipping list » by default when adding a title
 InfrastructureDefaultCheckShippingListForTitleDescInfo = When enabled, the « Add shipping list to title description » checkbox is pre-checked in the title add/edit form.
 InfrastructureDisableFixTransaction                    = Disable SQL transaction wrapping of block actions
