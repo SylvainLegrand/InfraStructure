@@ -817,8 +817,14 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 	$metaData = $pdf->getDetails();
 	//TODO : maybe a bug with smalot / other pdf pdf parser
 	//smalot : first page is 0 https://github.com/smalot/pdfparser/blob/master/doc/Usage.md
+	// InfraS change begin
+	$pages = $pdf->getPages();
 	for ($pageNb = 1; $pageNb <= $metaData['Pages']; $pageNb++) {
-		$details = $pdf->getPages()[$pageNb]->getDetails();
+		if (!isset($pages[$pageNb])) {
+			continue;
+		}
+		$details = $pages[$pageNb]->getDetails();
+		// InfraS change end
 		// print json_encode($details);
 		$pagewidth = $details['MediaBox'][2];
 		$pageheight = $details['MediaBox'][3];
@@ -830,7 +836,7 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 			$pageheight = 210;
 		}
 
-		$data = $pdf->getPages()[$pageNb]->getDataTm();
+		$data = $pages[$pageNb]->getDataTm(); // InfraS change
 		// print json_encode($pdf->getPages()[0]);
 		foreach ($data as $dataWord) {
 			if (trim($dataWord[1]) == $keyword) {
