@@ -206,7 +206,11 @@ class FormDictionary
 				}
 
 				$tmp = array('key' => $k, 'value' => $l, 'label' => $l);
-				$tmp2 = array_intersect_key(is_array($dictionary->lines[$k]->fields) ? $dictionary->lines[$k]->fields : array(), is_array($dictionary->fields) ? $dictionary->fields : array());
+				// InfraS change begin
+				$line_fields	= (isset($dictionary->lines[$k]) && is_object($dictionary->lines[$k]) && is_array($dictionary->lines[$k]->fields)) ? $dictionary->lines[$k]->fields : array();
+				$dict_fields	= is_array($dictionary->fields) ? $dictionary->fields : array();
+				$tmp2			= array_intersect_key($line_fields, $dict_fields);
+				// InfraS change end
 				$tmp = array_merge($tmp, $tmp2);
 				array_push($outarray, $tmp);
 
