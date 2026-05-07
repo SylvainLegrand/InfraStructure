@@ -21,8 +21,8 @@
 define('NOTOKENRENEWAL', 1);
 
 require_once __DIR__ . '/functions.php';
-require_once __DIR__ . '/middlewares.php';
-require_once __DIR__.'/class/filestoimport.class.php';
+dol_include_once('/scaninvoices/middlewares.php');
+dol_include_once('/scaninvoices/class/filestoimport.class.php');
 $output = "";
 $baseVerb = getenv('BASE_VERB');
 
@@ -84,7 +84,7 @@ router('GET', 'jpgfile/(?<filename>(.*))&token=.*$', function ($params) {
 router('POST', 'rect', function ($params) {
 	global $conf, $mesg, $langs, $db;
 	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
-	$ratio = $_POST['ratio'];
+	$ratio = GETPOST('ratio', 'alpha');
 	if (!is_numeric($ratio) && !($ratio > 0)) {
 		$ratio = 1;
 	}
@@ -93,10 +93,11 @@ router('POST', 'rect', function ($params) {
 
 	$url = $scaninvoices_endpoint . '/api/ocrcuts';
 	dol_syslog('ScanInvoices internal API::RECT Try to get ocr data from rect with ' . $url . ' ...');
+	$rectIn = GETPOST('rect', 'array');
 	$param = [
 		'json' => [
-			'ocrID' => $_POST['ocrID'],
-			'rect'  => implode(":", $_POST['rect']),
+			'ocrID' => GETPOST('ocrID', 'alphanohtml'),
+			'rect'  => implode(":", is_array($rectIn) ? $rectIn : []),
 			'ratio' => $ratio,
 			'action' => 'rect',
 		]
@@ -109,7 +110,7 @@ router('POST', 'rect', function ($params) {
 		$output['texte'] = trim($json->result->texte);
 
 		$ratio = 1;
-		$rect = $_POST['rect'];
+		$rect = is_array($rectIn) ? $rectIn : [];
 		$posX = round($rect['startX'] / $ratio);
 		$posY = round($rect['startY'] / $ratio);
 		$largeur = round($rect['w'] / $ratio);
@@ -142,6 +143,9 @@ router('POST', 'importAuto', function ($params) {
 	$object->fetch($id);
 	if (!$object->fullImportSuccess()) {
 		$retour = $object->importNow($fournID);
+		if (!empty($retour['ocr_unavailable'])) {
+			dol_syslog('ScanInvoices::api importAuto: OCR unavailable, returning ocr_unavailable=true to client for id=' . $id, LOG_WARNING);
+		}
 	} else {
 		$retour['message'] = scaninvoicesMessageErreurAnalyse('DUPLICATE-001', $object->fk_supplier, $object->fk_invoice);
 		$s = new Societe($db);
@@ -165,7 +169,7 @@ router('POST', 'importAuto', function ($params) {
 router('POST', 'runocr', function ($params) {
 	global $conf, $mesg, $langs, $db;
 	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
-	$ratio = $_POST['ratio'];
+	$ratio = GETPOST('ratio', 'alpha');
 	if (!is_numeric($ratio) && !($ratio > 0)) {
 		$ratio = 1;
 	}
@@ -178,8 +182,9 @@ router('POST', 'runocr', function ($params) {
 	$keys = ['fournisseurRect','fournisseurTvaRect','ladateRect','factureRect','totalhtRect','totalttcRect'];
 	$jsonRect = [];
 	foreach ($keys as $key) {
-		if (isset($_POST[$key]) && $_POST[$key] != "") {
-			$jsonRect[$key] = $_POST[$key];
+		$val = GETPOST($key, 'array');
+		if (!empty($val)) {
+			$jsonRect[$key] = $val;
 		}
 	}
 
@@ -191,11 +196,11 @@ router('POST', 'runocr', function ($params) {
 	}
 
 	$url = $scaninvoices_endpoint . '/api/ocrcuts';
-	$lang = $_POST['lang'];
+	$lang = GETPOST('lang', 'aZ09');
 	dol_syslog('ScanInvoices internal API::RECT Try to get ocr data from rect with ' . $url . ' ... and lang=' . $lang);
 	$param = [
-		'ocrID' => $_POST['ocrID'],
-		'filename' => $_POST['filenamePDF'],
+		'ocrID' => GETPOST('ocrID', 'alphanohtml'),
+		'filename' => GETPOST('filenamePDF', 'alphanohtml'),
 		'jsonRect' => $jsonRect,
 		'ratio' => $ratio,
 		'action' => 'multicut',
@@ -295,27 +300,27 @@ router('POST', 'importInvoice', function ($params) {
 	$url = $scaninvoices_endpoint . '/api/ocrcuts';
 	// dol_syslog('ScanInvoices internal API::RECT Try to get ocr data from rect with ' . $url . ' ...');
 	$jsonRect = [
-		'fournisseurRect' => $_POST['fournisseurRect'],
-		'fournisseurTvaRect' => $_POST['fournisseurTvaRect'],
-		'ladateRect' => $_POST['ladateRect'],
-		'factureRect' => $_POST['factureRect'],
-		'totalhtRect' => $_POST['totalhtRect'],
-		'totalttcRect' => $_POST['totalttcRect'],
+		'fournisseurRect' => GETPOST('fournisseurRect', 'array'),
+		'fournisseurTvaRect' => GETPOST('fournisseurTvaRect', 'array'),
+		'ladateRect' => GETPOST('ladateRect', 'array'),
+		'factureRect' => GETPOST('factureRect', 'array'),
+		'totalhtRect' => GETPOST('totalhtRect', 'array'),
+		'totalttcRect' => GETPOST('totalttcRect', 'array'),
 	];
 	$jsonConfirmValues = [
-		'fournisseur' => $_POST['fournisseur'],
-		'fournisseurTva' => $_POST['fournisseurTva'],
-		'ladate' => $_POST['ladate'],
-		'facture' => $_POST['facture'],
-		'totalht' => $_POST['totalht'],
-		'totalttc' => $_POST['totalttc'],
+		'fournisseur' => GETPOST('fournisseur', 'alphanohtml'),
+		'fournisseurTva' => GETPOST('fournisseurTva', 'alphanohtml'),
+		'ladate' => GETPOST('ladate', 'alphanohtml'),
+		'facture' => GETPOST('facture', 'alphanohtml'),
+		'totalht' => GETPOST('totalht', 'alphanohtml'),
+		'totalttc' => GETPOST('totalttc', 'alphanohtml'),
 	];
 	$param = [
-		'ocrID' => $_POST['ocrID'],
-		'filename' => $_POST['filenamePDF'],
+		'ocrID' => GETPOST('ocrID', 'alphanohtml'),
+		'filename' => GETPOST('filenamePDF', 'alphanohtml'),
 		'jsonRect' => $jsonRect,
 		'jsonConfirmValues' => $jsonConfirmValues,
-		'ratio' => $_POST['ratio'],
+		'ratio' => GETPOST('ratio', 'alpha'),
 		'action' => 'confirmvalues',
 	];
 
@@ -359,9 +364,10 @@ router('POST', 'importInvoice', function ($params) {
 		// dol_syslog("___________________________________________________________________________________________");
 
 		//Le produit si il a été choisi sur le dropdown
-		if (isset($_POST['fournisseurProduct']) && ($_POST['fournisseurProduct'] != -1)) {
-			dol_syslog(" product choosed from dropdown : id=" . $_POST['fournisseurProduct']);
-			$data->defaultProductID = str_replace("idprod_", "", $_POST['fournisseurProduct']);
+		$fournisseurProduct = GETPOST('fournisseurProduct', 'alphanohtml');
+		if ($fournisseurProduct !== '' && $fournisseurProduct != -1) {
+			dol_syslog(" product choosed from dropdown : id=" . $fournisseurProduct);
+			$data->defaultProductID = str_replace("idprod_", "", $fournisseurProduct);
 		} else {
 			//Le produit par défaut s'il est configuré
 			$defaultproduct = new Settings($db);
@@ -428,8 +434,9 @@ router('POST', 'supplier', function ($params) {
 	$output = "";
 
 	$name = '%';
-	if (trim($_POST['name']) != '') {
-		$name .= $db->escape($_POST['name']);
+	$nameRaw = GETPOST('name', 'alphanohtml');
+	if (trim($nameRaw) != '') {
+		$name .= $db->escape($nameRaw);
 		$name .= '%';
 	}
 
@@ -450,9 +457,10 @@ router('POST', 'supplier', function ($params) {
 router('POST', 'imageInfo', function ($params) {
 	$data = [];
 	$ratio = 1;
-	$maxHeight = $_POST['maxHeight'];
-	$filenamePDF = basename($_POST['filenamePDF']);
-	$filenameJPG = str_replace('.pdf', '.jpg', $_POST['filenamePDF']);
+	$maxHeight = (int) GETPOST('maxHeight', 'int');
+	$filenamePDFRaw = GETPOST('filenamePDF', 'alphanohtml');
+	$filenamePDF = basename($filenamePDFRaw);
+	$filenameJPG = str_replace('.pdf', '.jpg', $filenamePDFRaw);
 	$filePath = scaninvoicesFindpathfor($filenamePDF, DOL_DATA_ROOT . '/scaninvoices/uploads/');
 	dol_syslog("scaninvoices api imageInfo for $filenamePDF -> $filePath");
 	$nomfichierJPG = $filePath . $filenameJPG;
@@ -490,7 +498,7 @@ router('POST', 'imageInfo', function ($params) {
 			}
 			$data['ocrID'] = $ocrID;
 
-			dol_syslog("calcul du ratio : le canvas propose maxHeight=" . $_POST['maxHeight'] . " et l'image fait $height ... résultat le ratio=$ratio");
+			dol_syslog("calcul du ratio : le canvas propose maxHeight=" . $maxHeight . " et l'image fait $height ... résultat le ratio=$ratio");
 		} else {
 			dol_syslog("Erreur de conversion du pdf en jpeg !");
 			$data['message'] = "convert scaninvoicesPdf2jpeg error";

@@ -105,7 +105,7 @@ require_once DOL_DOCUMENT_ROOT . '/expensereport/class/expensereport.class.php';
 require_once DOL_DOCUMENT_ROOT . '/ecm/class/ecmfiles.class.php';
 dol_include_once('/scaninvoices/class/settings.class.php');
 
-require_once 'lib/scaninvoices.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 const JSON_TYPE = 'json';
 const JSON_MIME_TYPE = 'application/json';

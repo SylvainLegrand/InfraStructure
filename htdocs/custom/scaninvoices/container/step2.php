@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-require_once __DIR__ . '/../class/settings.class.php';
+dol_include_once('/scaninvoices/class/settings.class.php');
 
 $filenamePDF = GETPOST('filenamePDF', 'alpha') ? GETPOST('filenamePDF', 'alpha') : "";
 $maxHeight = GETPOST('maxHeight', 'alpha') ? GETPOST('maxHeight', 'alpha') : "";

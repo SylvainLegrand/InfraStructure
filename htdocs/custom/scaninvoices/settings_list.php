@@ -102,7 +102,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 
 // load scaninvoices libraries
-require_once __DIR__.'/class/settings.class.php';
+dol_include_once('/scaninvoices/class/settings.class.php');
 
 // for other modules
 //dol_include_once('/othermodule/class/otherobject.class.php');
@@ -245,7 +245,7 @@ $now = dol_now();
 
 //$help_url="EN:Module_Settings|FR:Module_Settings_FR|ES:Módulo_Settings";
 $help_url = '';
-$title = $langs->trans('ListOf', $langs->transnoentitiesnoconv("Settingss"));
+$title = $langs->trans('ListOf', $langs->transnoentitiesnoconv("Settings"));
 
 
 // Build and execute select

@@ -160,3 +160,102 @@ AUTOMATIC_IMPORT_TABLE_HEADER_DOCUMENT=Proof
 AUTOMATIC_IMPORT_TABLE_HEADER_WAITING=waiting
 
 
+
+OcrServiceUnavailableStopChain=The OCR server is unavailable, chained import has been stopped. Please retry in a few minutes.
+
+# === Cles manquantes completees (audit MODULE.md) ===
+AnalyzeNow=Automatic analysis
+AUTOMATIC=Automatic detection
+AUTOMATIC_IMPORT_LATER_DRAG_FILE_HERE=Drag and drop here the list of files to import <b>later</b> <br /><small>(during off-peak hours, typically next night)</small>
+BlacklistError=Your server's IP address seems to be in our blacklist (this often happens if you are on a shared server or if your dolibarr's "outgoing" IP address is used by other people). Click on the <a target="_blank" href="https://bl.cap-rel.fr/check.php?data=%s">following link</a> to request a cleanup of your IP address.
+BlacklistErrorFull=Your server appears to be completely blacklisted... none of the CAP-REL servers can be reached, including the server on which we have no filtering! Check that your server can connect to remote resources and if needed ask for help from CAP-REL.
+BlacklistErrorTitle=Filtering error!
+CreateAccountError=Unable to activate the account
+CreateAccountOK=Account activation successful
+DAV_ERROR_DOUBLE_CHECK_DOCUMENTATION=Please double-check your Nextcloud server configuration -> https://doc.cap-rel.fr/projet_scaninvoices/stockage_dans_nextcloud
+DEFAULT_OCR_WEBSERVICE_MSG3=Your server's public IP address is %s
+DEFAULT_OCR_WEBSERVICE_PROTOCOL1=Your plugin version is unable to communicate with the server (protocol error), please update your plugin.
+DEFAULT_OCR_WEBSERVICE_PROTOCOL2=Click here to download the latest version of the ScanInvoice plugin
+DolibarrSetupRulesForCompanies=Warning, the configuration of the dolibarr Third Parties module may cause import issues
+ERROR_FILE_DOES_NOT_EXISTS=The file %s no longer exists on your Dolibarr server, please re-import it.
+ErrorScanInvoiceModuleVersionDatabase=Your database version is not consistent with the ScanInvoices module version, please disable and re-enable the module after updating it...
+fourn_invoice_ref=Supplier invoice reference
+ImportAnInvoice=Import an invoice
+IMPORT_FILES_FROM_NETWORK_SHARE_MAIL=Import files from the shared folder
+Import_lines=Lines import
+Import_share=Share (remote import)
+LineLabelForNewInvoicesWithECOPART=Globalization Eco Part
+LineLabelForNewInvoicesWithEXO=Globalization VAT EXO
+LineLabelForNewInvoicesWithMultiVAT=Globalization with VAT rate %s
+MailRepporting=Automatic import report
+ManualImport=Manual import
+MANUAL_IMPORT_STEP2_DOCUMENT_PRODUCT=Product/Service to use
+MANUAL_IMPORT_STEP2_TAKE_PICTURE=Photo...
+OCR_SERVER_UPGRADE_IN_PROGRESS=Server upgrade in progress
+OCR_SERVER_UPGRADE_IN_PROGRESS_MESSAGE=Your OCR server is currently being updated, please do not import any document for now and come back in a little while...
+PleaseAddItOnThirdpartCard=Missing from the third party record
+runocrError=OCR launch error
+runocrInfoThereIsNoNewZone=No new data extraction zone has been specified
+SCANINVOICES_ADD_CATEG=Associate new products with the following category
+SCANINVOICES_ADD_CATEGTooltip=If you wish, you can automatically associate this tag/category with any new product created by ScanInvoices. It will then be easier to find and filter them.
+scaninvoicesApiGetInvoicesZonesForSupplier=Unable to retrieve data from the OCR server
+scaninvoicesApiRunInvoiceAnalyzeError=Data exchange error with server %s
+ScanInvoicesAutoImportSupplier=If you wish, you can choose a supplier to assign the import to
+ScanInvoices_background_import_service=ScanInvoices automatic import service
+SCANINVOICES_BACKGROUND_SERVER_DETAILS=This procedure automatically imports documents sent to the "later" queue or stored in your shared folder (see module configuration, "Automatic import" tab)
+SCANINVOICES_DEFAULT_LIVRAISON=Product used for delivery fees
+SCANINVOICES_DEFAULT_LIVRAISONTooltip=When extracting transport or delivery fees is possible, you can associate a product/service
+SCANINVOICES_DISABLE_WARNING=Disable the display of warning messages
+SCANINVOICES_DISABLE_WARNINGTooltip=To be used if you no longer want to see warning messages (but in this case, when something does not work, you will not have the details)
+SCANINVOICES_EMAIL_USED_RESETPASS=A user account with this email address (%s) already exists on server %s but with a different password! Please click on the button below to start the password reset procedure.
+SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR=Force the due payment date, payment method and account from your third party record configuration
+SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARRTooltip=If you check this box, the supplier payment terms from your dolibarr will take priority over the data present on the imported invoice. So if your invoice indicates an invoice date of August 2 and "paid on August 2" but your dolibarr supplier record indicates "10-day payment", the payment date will then be August 12. The same applies to the payment method and account to use.
+ScanInvoicesHelp=%sDocumentation%s
+SCANINVOICES_IMPORT_SHARE_ENABLE=Import invoices from a network share
+SCANINVOICES_IMPORT_SHARE_ENABLETooltip=Enable invoice import from a shared folder on a server (nextcloud)
+SCANINVOICES_IMPORT_SHARE_LOGIN=Login
+SCANINVOICES_IMPORT_SHARE_LOGINTooltip=If your share requires authentication
+SCANINVOICES_IMPORT_SHARE_MAILREPORT=Email address
+SCANINVOICES_IMPORT_SHARE_MAILREPORTTooltip=To which email address should the import reports be sent?
+SCANINVOICES_IMPORT_SHARE_PASS=Password
+SCANINVOICES_IMPORT_SHARE_PASSTooltip=If your share requires authentication
+SCANINVOICES_IMPORT_SHARE_PORT=Port to use to connect to the server
+SCANINVOICES_IMPORT_SHARE_PORTTooltip=Enter the connection port to the storage server
+SCANINVOICES_IMPORT_SHARE_TYPE=Share type
+SCANINVOICES_IMPORT_SHARE_TYPETooltip=Indicate the share type here (nextcloud for now)
+SCANINVOICES_IMPORT_SHARE_URI=Network share address
+SCANINVOICES_IMPORT_SHARE_URITooltip=Example https://cloud.cap-rel.fr/index.php/s/qo3kEDgCtP9Nwrb
+scaninvoicesPdf2jpegError=PDF to JPEG conversion error
+ScanInvoicesSettings=Settings
+ScanInvoicesSetupPageGED=Advanced GED and DAV configuration page for ScanInvoices.
+SuppliersScanInvoiceModel=Special template that extracts the 1st page of the supplier invoice and overlays the dolibarr accounting document number
+
+#
+# About page - module info and links
+#
+OnlineDocumentation=Online documentation
+AboutModuleInfo=Module information
+AboutUsefulLinks=Useful links
+AboutSupport=Support
+AboutSAV=Support
+AboutForum=Forum
+AboutContact=Contact
+DolibarrMinVersion=Minimum Dolibarr version
+PHPMinVersion=Minimum PHP version
+ScanInvoicesSourceCode=Source code
+
+#
+# About page - feedback and donation
+#
+ScanInvoicesDoYouLikeModule=Do you like this module?
+ScanInvoicesFeedbackIntro=Your feedback helps improve our modules. Share your experience and help other users discover this module!
+ScanInvoicesYourRating=Your rating
+ScanInvoicesYourFeedback=Your feedback
+ScanInvoicesYourEmail=Your email
+ScanInvoicesFeedbackPlaceholder=Tell us what you like, what could be improved...
+ScanInvoicesSendFeedback=Send my feedback
+ScanInvoicesFeedbackSent=Thank you for your feedback!
+ScanInvoicesFeedbackSendError=Error sending feedback
+ScanInvoicesBuyMeACoffee=Buy us a coffee
+ScanInvoicesDonationText=This module required development and design time. If you find it useful and would like to support its development, consider buying us a coffee (or a little more). Every contribution helps keep the project alive and motivates us to add new features!
+ScanInvoicesOfferCoffee=Buy a coffee ... or a little more

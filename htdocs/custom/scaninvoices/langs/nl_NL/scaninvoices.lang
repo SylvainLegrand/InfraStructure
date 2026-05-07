@@ -136,3 +136,5 @@ AUTOMATIC_IMPORT_TABLE_HEADER_SUPPLIER=Aanbieder
 AUTOMATIC_IMPORT_TABLE_HEADER_INVOICE=Bill
 AUTOMATIC_IMPORT_TABLE_HEADER_DOCUMENT=Bewijs
 AUTOMATIC_IMPORT_TABLE_HEADER_WAITING=wachtend
+
+OcrServiceUnavailableStopChain=De OCR-server is niet beschikbaar. De ketenimport is gestopt. Probeer het over een paar minuten opnieuw.

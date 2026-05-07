@@ -146,3 +146,5 @@ MANUAL_IMPORT_ERROR_SUPPLIER="Errore, non è possibile creare o trovare questo f
 ScanInvoicesNeedPerms="Questo modulo richiede ampi diritti di accesso per funzionare (leggere terzi, creare terzi, diritti di accesso estesi a terzi, leggere fornitori, leggere fatture di fornitori, creare fatture di fornitori, leggere prodotti e servizi ...). E l'utente non sembra avere tutti questi diritti!"
 DateOcrSend="Data di presentazione dell'OCR"
 DateOcrReturn="Data della risposta dell'OCR"
+
+OcrServiceUnavailableStopChain=Il server OCR non è disponibile. L'importazione in serie è stata interrotta. Riprova tra qualche minuto.

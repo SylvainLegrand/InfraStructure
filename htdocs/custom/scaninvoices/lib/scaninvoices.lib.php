@@ -571,6 +571,26 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 		}
 		$mesg .= '</div>';
 		$retour['error'] = $mesg;
+
+		// Detect OCR-unavailable conditions from the curl/http result so the
+		// frontend can stop a chained-import loop instead of hammering the
+		// server. Covers: network/curl failure, server error, missing payload.
+		$curlErrorNo = isset($result['curl_error_no']) ? (int) $result['curl_error_no'] : 0;
+		$httpCode = isset($result['http_code']) ? (int) $result['http_code'] : 0;
+		$emptyPayload = !isset($result['content']) || $result['content'] === '';
+		if ($curlErrorNo !== 0 || $httpCode === 0 || $httpCode >= 500 || $emptyPayload) {
+			$retour['ocr_unavailable'] = true;
+			$retour['ocr_unavailable_reason'] = sprintf(
+				'curl_error_no=%d, http_code=%d, empty_payload=%s, curl_error_msg=%s',
+				$curlErrorNo,
+				$httpCode,
+				$emptyPayload ? '1' : '0',
+				isset($result['curl_error_msg']) ? $result['curl_error_msg'] : ''
+			);
+			dol_syslog('scaninvoicesApiRunInvoiceAnalyze: OCR service unavailable, signal frontend to stop chain :: ' . $retour['ocr_unavailable_reason'], LOG_WARNING);
+		} else {
+			dol_syslog('scaninvoicesApiRunInvoiceAnalyze: OCR call failed but not flagged unavailable (http_code=' . $httpCode . ', curl_error_no=' . $curlErrorNo . ')', LOG_WARNING);
+		}
 	}
 
 	return $retour;

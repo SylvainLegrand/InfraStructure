@@ -222,6 +222,7 @@ No new file on network share=Aucun nouveau fichier n'a été détecté dans le d
 DAV_ERROR_DOUBLE_CHECK_DOCUMENTATION=Vérifiez bien la configuration de votre serveur Nextcloud -> https://doc.cap-rel.fr/projet_scaninvoices/stockage_dans_nextcloud
 SuppliersScanInvoiceModel=Modèle spécial qui extrait la 1ere page de la facture fournisseur et ajoute en surimpression le numéro de pièce comptable dolibarr
 scaninvoicesApiRunInvoiceAnalyzeError=Erreur d'échange de données avec le serveur %s
+OcrServiceUnavailableStopChain=Le serveur OCR est indisponible, l'import en chaîne a été interrompu. Réessayez dans quelques minutes.
 supplier_invoice_ref=Référence de la facture fournisseur
 DateOcrSend=Date d'envoi à l'OCR
 DateOcrReturn=Date de réponse de l'OCR
@@ -247,3 +248,33 @@ SCANINVOICES_DISABLE_WARNINGTooltip = À utiliser si vous ne voulez plus voir le
 
 SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR = Forcer la date de règlement due, moyen et paiement et compte avec la configuration de votre fiche de tiers
 SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARRSTooltip = Si vous cochez cette case les conditions de règlement fournisseur de votre dolibarr seront prioritaires sur les données présentes sur la facture importée. Ainsi si votre facture indique date de facturation le 2 aout et "payée le 2 le aout" mais que votre fiche fournisseur dolibarr indique "paiement à 10 jours" la date de paiement sera alors le 12 aout. Il en sera de même pour le moyen de paiement et le compte à utiliser.
+
+#
+# Page À propos - infos module et liens
+#
+OnlineDocumentation=Documentation en ligne
+AboutModuleInfo=Informations sur le module
+AboutUsefulLinks=Liens utiles
+AboutSupport=Support
+AboutSAV=Support
+AboutForum=Forum
+AboutContact=Contact
+DolibarrMinVersion=Version minimale de Dolibarr
+PHPMinVersion=Version minimale de PHP
+ScanInvoicesSourceCode=Code source
+
+#
+# Page À propos - feedback et donation
+#
+ScanInvoicesDoYouLikeModule=Vous aimez ce module ?
+ScanInvoicesFeedbackIntro=Vos retours aident à améliorer nos modules. Partagez votre expérience et aidez d'autres utilisateurs à découvrir ce module !
+ScanInvoicesYourRating=Votre note
+ScanInvoicesYourFeedback=Votre avis
+ScanInvoicesYourEmail=Votre email
+ScanInvoicesFeedbackPlaceholder=Dites-nous ce que vous aimez, ce qui pourrait être amélioré...
+ScanInvoicesSendFeedback=Envoyer mon avis
+ScanInvoicesFeedbackSent=Merci pour votre retour !
+ScanInvoicesFeedbackSendError=Erreur lors de l'envoi du retour
+ScanInvoicesBuyMeACoffee=Offrez-nous un café
+ScanInvoicesDonationText=Ce module nous a demandé du temps de développement et de conception. Si vous le trouvez utile et souhaitez soutenir son développement, pensez à nous offrir un café (ou un peu plus). Chaque contribution aide à maintenir le projet en vie et nous motive à ajouter de nouvelles fonctionnalités !
+ScanInvoicesOfferCoffee=Offrir un café ... ou un peu plus

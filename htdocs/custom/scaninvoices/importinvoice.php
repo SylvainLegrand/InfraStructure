@@ -72,7 +72,7 @@ if (!$res && file_exists('../../../main.inc.php')) {
 if (!$res) {
 	exit('Include of main fails');
 }
-require_once __DIR__.'/lib/scaninvoices.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 
 $permissiontoaccess = $user->rights->scaninvoices->read;

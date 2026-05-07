@@ -72,11 +72,11 @@ class modScanInvoices extends DolibarrModules
 		$this->editor_name = 'CAP-REL';
 		$this->editor_url = 'https://cap-rel.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.4.78';
+		$this->version = '1.4.80';
 		// Procol version
 		$this->protocol = '1';
 		// Url to the file with your last numberversion of this module
-		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version;
+		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version . "&d=" . DOL_VERSION . "&h=" . md5(DOL_DATA_ROOT);
 
 		// Key used in llx_const table to save module status enabled/disabled (where SCANINVOICES is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -535,6 +535,16 @@ class modScanInvoices extends DolibarrModules
 		}
 
 		dolibarr_set_const($this->db, 'SCANINVOICE_MODULE_VERSION', $this->version, 'chaine', 0, 'Active module version', $conf->entity);
+		// Flush Memcached if active so menus/permissions/constants do not stay stale after activation/upgrade
+		if (isModEnabled('memcached') && class_exists('Memcached')) {
+			$m = new Memcached();
+			$tmparray = explode(':', $conf->global->MEMCACHED_SERVER);
+			$result = $m->addServer($tmparray[0], !empty($tmparray[1]) ? $tmparray[1] : 11211);
+			if ($result) {
+				/* Invalidate all items in 1 second */
+				$m->flush(1);
+			}
+		}
 		return $this->_init($sql, $options);
 	}
 

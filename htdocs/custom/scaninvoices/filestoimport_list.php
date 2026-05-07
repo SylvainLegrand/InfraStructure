@@ -120,7 +120,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 
 // load scaninvoices libraries
-require_once __DIR__.'/class/filestoimport.class.php';
+dol_include_once('/scaninvoices/class/filestoimport.class.php');
 
 // for other modules
 //dol_include_once('/othermodule/class/otherobject.class.php');
@@ -563,6 +563,22 @@ if ($importHtml != "") {
 <script language='javascript'>
 var ListeFichiers = [<?php echo $listeFichiers; ?>];
 
+// Delay (ms) between two sequential imports, to avoid hammering the OCR server
+var IMPORT_CHAIN_DELAY_MS = 1000;
+
+function scheduleNextImport(nb) {
+	if ((nb + 1) >= ListeFichiers.length) {
+		return;
+	}
+	if (ListeFichiers[nb + 1].id == "") {
+		return;
+	}
+	console.log("importOneInvoice: scheduling next import in " + IMPORT_CHAIN_DELAY_MS + "ms");
+	setTimeout(function () {
+		importOneInvoice(nb + 1, ListeFichiers[nb + 1]);
+	}, IMPORT_CHAIN_DELAY_MS);
+}
+
 //Démarre l'analyse de toutes les factures mais une par une pour ne pas éclater le serveur
 function importOneInvoice(nb, id) {
 	if(id == "") {
@@ -602,12 +618,17 @@ function importOneInvoice(nb, id) {
 
 				//Pour le post final
 				resolve();
-				console.log(" importOneInvoice ok, try next ?");
-				if(((nb + 1) < ListeFichiers.length)) {
-					if(ListeFichiers[nb+1].id != "") {
-					  importOneInvoice(nb+1,ListeFichiers[nb+1])
-					}
+
+				// Backend signals that the OCR service is unavailable: stop the
+				// chain instead of hammering the server with the remaining files
+				if (data.ocr_unavailable === true) {
+					console.warn("importOneInvoice: OCR service unavailable, aborting chain at index " + nb + " of " + ListeFichiers.length);
+					$.jnotify("<?php echo dol_escape_js($langs->transnoentities('OcrServiceUnavailableStopChain')); ?>", "error", true);
+					return;
 				}
+
+				console.log(" importOneInvoice ok, try next ?");
+				scheduleNextImport(nb);
 			},
 			error: function (request, textStatus, error) {
 				if (textStatus === "timeout") {
@@ -620,12 +641,11 @@ function importOneInvoice(nb, id) {
 				}
 				//try next ?
 				reject();
-				console.log(" importOneInvoice error, try next ?" + nb + ' et ' + ListeFichiers.length);
-				if ((nb + 1) < ListeFichiers.length) {
-				  if(ListeFichiers[nb+1].id != "") {
-					importOneInvoice(nb+1,ListeFichiers[nb+1])
-				  }
-				}
+
+				// Network/HTTP error talking to our own backend: most likely the
+				// OCR call took too long or the server is overloaded. Stop the
+				// chain rather than queueing 20 more failures.
+				console.warn("importOneInvoice: ajax error, aborting chain at index " + nb + " of " + ListeFichiers.length);
 			}
 		});
 	});

@@ -917,12 +917,14 @@ class Filestoimport extends CommonObject
 					$cuser = new User($this->db);
 					$cuser->fetch($obj->fk_user_author);
 					$this->user_creation = $cuser;
+					$this->user_creation_id = $cuser->id;
 				}
 
 				if ($obj->fk_user_valid) {
 					$vuser = new User($this->db);
 					$vuser->fetch($obj->fk_user_valid);
 					$this->user_validation = $vuser;
+					$this->user_validation_id = $vuser->id;
 				}
 
 				$this->date_creation     = $this->db->jdate($obj->datec);
@@ -1204,6 +1206,9 @@ class Filestoimport extends CommonObject
 		$retour = scaninvoicesApiRunInvoiceAnalyze($this, $completefilename, $fournID);
 		if ($retour['error'] != "") {
 			dol_syslog('ScanInvoices: Erreur de traitement, sauvegarde dans message (2)');
+		}
+		if (!empty($retour['ocr_unavailable'])) {
+			dol_syslog('ScanInvoices::importNow: OCR service unavailable, propagating ocr_unavailable flag to caller for ref=' . $this->ref . ', filename=' . $this->filename, LOG_WARNING);
 		}
 
 		return $retour;

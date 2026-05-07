@@ -21,7 +21,7 @@
 
 /** @var Form $form */
 
-require_once __DIR__ . '/lib/scaninvoices.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 
 $apiInfoFromServer = scaninvoicesApiGetInfoAboutWebservice();

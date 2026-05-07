@@ -1,5 +1,9 @@
 # CHANGELOG SCANINVOICES FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 1.4.80 - 20260506
+
+* fix pdf upload storm / delay and handle server throttle
+
 ## 1.4.78 - 20260106
 
 * fix setup-3 yes/no : unset does not work !

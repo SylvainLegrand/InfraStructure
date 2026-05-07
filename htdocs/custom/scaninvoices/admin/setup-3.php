@@ -58,7 +58,7 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-require_once '../lib/scaninvoices.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 //require_once "../class/myclass.class.php";
 require_once DOL_DOCUMENT_ROOT.'/includes/sabre/autoload.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
@@ -90,7 +90,7 @@ $useFormSetup = 1;
 if (!class_exists('FormSetup')) {
 	// For retrocompatibility Dolibarr < 16.0
 	if (floatval(DOL_VERSION) < 16.0 && !class_exists('FormSetup')) {
-		require_once __DIR__ . '/../backport/v16/core/class/html.formsetup.class.php';
+		dol_include_once('/scaninvoices/backport/v16/core/class/html.formsetup.class.php');
 	} else {
 		require_once DOL_DOCUMENT_ROOT . '/core/class/html.formsetup.class.php';
 	}

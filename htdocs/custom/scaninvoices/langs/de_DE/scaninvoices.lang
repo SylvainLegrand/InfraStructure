@@ -150,3 +150,5 @@ DateOcrSend=Datum der OCR-Übermittlung
 DateOcrReturn=Datum OCR-Antwort
 ERROR_FIELD_EMPTY=Das Feld %s ist leer!
 supplier_invoice_ref=Referenz der Lieferantenrechnung
+
+OcrServiceUnavailableStopChain=Der OCR-Server ist nicht verfügbar. Der Kettenimport wurde unterbrochen. Bitte versuchen Sie es in einigen Minuten erneut.

@@ -22,7 +22,7 @@
 ?>
 
 <div class="container">
-	<form method="post" action="<?php echo $_SERVER["PHP_SELF"] . "?step=2"; ?>">
+	<form method="post" action="<?php echo $_SERVER["PHP_SELF"] . "?step=2"; ?>" data-submit-once>
 		<input type="hidden" name="step" value="2">
 		<input type="hidden" name="filenamePDF" value="<?php echo $filename ?>">
 		<input type="hidden" name="maxHeight" value="">
@@ -78,9 +78,21 @@
 		</div>
 	</form>
 </div>
-<script language="javascript">
+<script>
 $(document).ready(function() {
 	// If file name is passed from prev step
 	$('#maxHeight').val(window.innerHeight);
+});
+
+// Anti-double-click: disable the submit button as soon as the form is submitted (cf. MODULE.md section 12)
+document.querySelectorAll('form[data-submit-once]').forEach(function(form) {
+	form.addEventListener('submit', function() {
+		var btn = form.querySelector('[type="submit"]');
+		if (btn) {
+			btn.disabled = true;
+			btn.dataset.originalText = btn.innerHTML;
+			btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> ' + (btn.dataset.loadingText || btn.textContent);
+		}
+	});
 });
 </script>

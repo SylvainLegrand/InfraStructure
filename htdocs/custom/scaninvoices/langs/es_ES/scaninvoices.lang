@@ -152,3 +152,5 @@ ERROR_FIELD_EMPTY=¡El campo %s está vacío!
 supplier_invoice_ref=Referencia de la factura del proveedor
 Filestoimports=Archivos para importar
 Filetoimport=Archivos para importar
+
+OcrServiceUnavailableStopChain=El servidor OCR no está disponible. La importación encadenada se ha detenido. Por favor, inténtelo de nuevo en unos minutos.
