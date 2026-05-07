@@ -65,7 +65,7 @@ class ActionsListExportImport
 
 		if ($is_list)
 		{
-                    if ($user->rights->listexportimport->export || $user->rights->listexportimport->import)
+                    if ($user->hasRight('listexportimport', 'export') || $user->hasRight('listexportimport', 'import')) // InfraS change
                     {
                         $langs->load('listexportimport@listexportimport');
 
@@ -77,14 +77,14 @@ class ActionsListExportImport
                                         dol_buildpath('/listexportimport/js/jspdf.plugin.autotable.js',1),
                                         dol_buildpath('/listexportimport/js/html2canvas.min.js',1)
                                     );
-                        
+
                         $pathtocss = array();
-                        
+
                         dol_include_once('listexportimport/lib/listexportimport.lib.php');
                         dol_include_once('listexportimport/class/listexportimport.class.php');
-                        
+
                         $list = new ListExportImport($db);
-                        
+
                         $more_buttons = array(
                                             array('picto' => 'sql_delete.png', 'title' => 'FreeList', 'alt' => 'free', 'class' => 'import', 'active' => ($conf->global->LIST_EXPORT_IMPORT_ENABLE_FREE_LIST && $user->admin))
                                         );
@@ -97,7 +97,7 @@ class ActionsListExportImport
                                 $download = '&nbsp;&nbsp;&nbsp;';
                                 $download.= getCompactedButtons($list->formats, $langs->trans('ListExport'), dol_buildpath('/listexportimport/img/export.png',1));
                             }
-                            
+
                             if ($user->rights->listexportimport->import) {
                                 $list->getFormats('import');
                                 if (count($list->formats) > 0) {
@@ -108,7 +108,7 @@ class ActionsListExportImport
                         } else {
                             $download = '&nbsp;';
                             $list->getFormats();
-                            
+
                             // List export/import formats buttons
                             foreach($list->formats as $format) {
                                 if ($format->active) {
@@ -117,7 +117,7 @@ class ActionsListExportImport
                                     }
                                 }
                             }
-                            
+
                             // More buttons
                             foreach($more_buttons as $button) {
                                 if ($button['active']) {
@@ -127,15 +127,15 @@ class ActionsListExportImport
                                 }
                             }
                         }
-                        
+
                         // add import file input
                         if ($user->rights->listexportimport->import) {
                             $download.= '<input type="file" class="hidden" style="display: none;" id="import-file-input" accept=".sql"/>';
                         }
-                        
+
                         $socid = GETPOST('socid');
                         if(empty($socid)) $socid = 0;
-			
+
                         // Inclusion des fichiers CSS
                         foreach ($pathtocss as $css)
                         {
@@ -148,7 +148,7 @@ class ActionsListExportImport
                         }
 			?>
 			<script type="text/javascript" language="javascript">
-			
+
 			$(document).ready(function() {
                                 var $form = $('div.fiche form').first(); // Les formulaire de liste n'ont pas tous les même name
 
@@ -168,17 +168,17 @@ class ActionsListExportImport
                                     $('.dropdown-click .dropdown-content').removeClass('show');
                                     $(this).next().addClass('show');
                                 });
-                                
+
                                 $(".import").on('click', function(event) {
                                     var $self = $(this);
                                     var $format = $self.attr("title");
-                                    
+
                                     if ($format == 'free')
                                     {
                                         data = {};
                                         data.action = 'free_sql';
                                         data.url = $form.attr('action');
-                                        
+
                                         $('#dialogforpopup').html('<?php echo img_picto('', 'info', ' style="vertical-align: middle;"').'&nbsp;'.addslashes($langs->trans('ConfirmFreeList')); ?>');
                                         $('#dialogforpopup').dialog({
                                                 title: '<?php echo $langs->trans('FreeList'); ?>',
@@ -244,7 +244,7 @@ class ActionsListExportImport
                                     var filetype = $(fileinput).attr('name');
                                     var filename = $(fileinput).val();
                                     var $popup_message = '';
-                                    
+
                                     switch (filetype)
                                     {
                                         case 'csv':
@@ -254,7 +254,7 @@ class ActionsListExportImport
                                                 $popup_message = '<?php echo $langs->trans('FileImportationInProgress', 'SQL'); ?>';
                                                 break;
                                     }
-                                    
+
                                     $('#dialogforpopup').html($popup_message);
                                     $('#dialogforpopup').dialog({
                                             title: '<?php echo $langs->trans('ListImport'); ?>',
@@ -272,7 +272,7 @@ class ActionsListExportImport
                                         var $listname = $(document).find("title").text();
                                         var $filename = $listname != '' ? $listname : 'export';
                                         var $popup_message = '';
-                                        
+
                                         // Get popup message & Add filename extension
                                         switch ($format)
                                         {
@@ -296,14 +296,14 @@ class ActionsListExportImport
                                             default:
                                                 $popup_message = '<?php echo $langs->trans('FileGenerationInProgress'); ?>';
                                         }
-                                        
+
                                         // Sql/Csv from db export
                                         if ($format == 'sql' || $format == 'csvfromdb')
                                         {
                                             data = {};
                                             data.action = $format == 'sql' ? 'export_sql' : 'export_csv_from_db';
                                             data.url = $form.attr('action');
-                                            
+
                                             $('#dialogforpopup').html($popup_message);
                                             $('#dialogforpopup').dialog({
                                                     title: '<?php echo $langs->trans('ListExport'); ?>',
@@ -319,7 +319,7 @@ class ActionsListExportImport
                                                                     console.log(exported_data);
                                                                     var args = [$format, exported_data, $filename];
                                                                     exportTableToFile.apply($self, args);
-                                                                    
+
                                                                     $('#dialogforpopup').dialog('close');
                                                             });
                                                     }
@@ -335,7 +335,7 @@ class ActionsListExportImport
                                                     open : function(event, ui) {
                                                             var args = ['table.liste', $filename];
                                                             exportTableToPNG.apply($self, args);
-                                                            
+
                                                             //$('#dialogforpopup').dialog('close');
                                                     }
                                             });
@@ -367,7 +367,7 @@ class ActionsListExportImport
                                                                     // Suppression des filtres de la liste
                                                                     $table.find('tr.liste_titre_filter').remove(); // >= 6.0
                                                                     $table.find('tr:has(td.liste_titre)').remove(); // < 6.0
-                                                                    
+
                                                                     // Suppression des éléments ignorés / à ne pas exporter
                                                                     $table.find('th.do_not_export, td.do_not_export').remove();
 
@@ -452,7 +452,7 @@ class ActionsListExportImport
                                         } // fin else, if ($format == 'sql')
 				});
 			});
-			
+
 			</script>
 			<?php
                     } // end if ($user->rights->listexportimport->export || $user->rights->listexportimport->import)
