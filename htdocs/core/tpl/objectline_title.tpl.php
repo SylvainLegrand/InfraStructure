@@ -116,7 +116,7 @@ print '<th class="linecoluht right nowraponall">'.$langs->trans('PriceUHT').'</t
 // Multicurrency
 if (isModEnabled("multicurrency") && $this->multicurrency_code != $conf->currency) {
 	print '<th class="linecoluht_currency right" style="width: 80px">'.$langs->trans('PriceUHT');
-	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';	// InfraS change
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';
 }
 
 // Price TTC
@@ -214,8 +214,8 @@ print '<th class="linecolht right">'.$langs->trans('TotalHTShort').'</th>';
 
 // Multicurrency
 if (isModEnabled("multicurrency") && $this->multicurrency_code != $conf->currency) {
-	print '<th class="linecolutotalht_currency right">'.$langs->trans('TotalHTShort');	// InfraS change
-	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';	// InfraS change
+	print '<th class="linecoltotalht_currency right">'.$langs->trans('TotalHTShort');
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';
 }
 
 if ($outputalsopricetotalwithtax) {
