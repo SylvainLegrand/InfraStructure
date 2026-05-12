@@ -505,7 +505,9 @@ if (empty($reshook)) {
 		if ($result <= 0) {
 			setEventMessages($object->error, $object->errors, 'errors');
 			$action = '';
-		}
+		} else {	// InfraS change
+			setEventMessages($langs->trans("FileGenerated"), null, 'mesgs');	// InfraS add
+		}	// InfraS add
 	}
 
 	// Delete file in doc form
