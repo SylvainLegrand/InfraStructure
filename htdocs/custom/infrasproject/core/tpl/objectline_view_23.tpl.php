@@ -1,15 +1,16 @@
 <?php
-/* Copyright (C) 2010-2013	Regis Houssin			<regis.houssin@inodbox.com>
- * Copyright (C) 2010-2011	Laurent Destailleur		<eldy@users.sourceforge.net>
- * Copyright (C) 2012-2013	Christophe Battarel		<christophe.battarel@altairis.fr>
- * Copyright (C) 2012		Cédric Salvador			<csalvador@gpcsolutions.fr>
- * Copyright (C) 2012-2014	Raphaël Doursenaud		<rdoursenaud@gpcsolutions.fr>
- * Copyright (C) 2013		Florian Henry			<florian.henry@open-concept.pro>
- * Copyright (C) 2017		Juanjo Menent			<jmenent@2byte.es>
- * Copyright (C) 2022		OpenDSI					<support@open-dsi.fr>
- * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
- * Copyright (C) 2024-2026	Alexandre Spangaro		<alexandre@inovea-conseil.com>
- * Copyright (C) 2024		Frédéric France			<frederic.france@free.fr>
+/* Copyright (C) 2010-2013	Regis Houssin		<regis.houssin@inodbox.com>
+ * Copyright (C) 2010-2011	Laurent Destailleur	<eldy@users.sourceforge.net>
+ * Copyright (C) 2012-2013	Christophe Battarel	<christophe.battarel@altairis.fr>
+ * Copyright (C) 2012       Cédric Salvador     <csalvador@gpcsolutions.fr>
+ * Copyright (C) 2012-2014  Raphaël Doursenaud  <rdoursenaud@gpcsolutions.fr>
+ * Copyright (C) 2013		Florian Henry		<florian.henry@open-concept.pro>
+ * Copyright (C) 2017		Juanjo Menent		<jmenent@2byte.es>
+ * Copyright (C) 2022		OpenDSI				<support@open-dsi.fr>
+ * Copyright (C) 2024-2025	MDW					<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024-2026  Alexandre Spangaro  <alexandre@inovea-conseil.com>
+ * Copyright (C) 2024-2025  Frédéric France		<frederic.france@free.fr>
+ * Copyright (C) 2025       Lenin Rivas			<lenin.rivas777@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,17 +39,17 @@
  * $text, $description, $line
  */
 /**
- * @var CommonObject $object
- * @var CommonObject $this
- * @var CommonObjectLine $line
  * @var Conf $conf
  * @var Form $form
  * @var HookManager $hookmanager
- * @var ?Product $product_static
  * @var Societe $mysoc
  * @var Translate $langs
  * @var User $user
  *
+ * @var CommonObject $object
+ * @var CommonObject $this
+ * @var CommonObjectLine $line
+ * @var ?Product $product_static
  * @var string $action
  * @var int $i
  * @var int $forceall
@@ -56,6 +57,7 @@
  * @var int $senderissupplier
  * @var string $text
  * @var string $description
+ * @var int	$dateSelector
  */
 // Protection to avoid direct call of template
 if (empty($object) || !is_object($object)) {
@@ -66,7 +68,7 @@ if (empty($object) || !is_object($object)) {
 '
 @phan-var-force PropaleLigne|ContratLigne|CommonObjectLine|CommonInvoiceLine|CommonOrderLine|ExpeditionLigne|DeliveryLine|FactureFournisseurLigneRec|SupplierInvoiceLine|SupplierProposalLine $line
 @phan-var-force CommonObject $this
-@phan-var-force Propal|Contrat|Commande|Facture|Expedition|Delivery|FactureFournisseur|FactureFournisseur|SupplierProposal $object
+@phan-var-force Propal|Contrat|Commande|Facture|Expedition|Delivery|CommandeFournisseur|FactureFournisseur|SupplierProposal $object
 @phan-var-force 0|1 $forceall
 @phan-var-force int $num
 @phan-var-force ?Product $product_static
@@ -179,16 +181,16 @@ if (($line->info_bits & 2) == 2) {
 		}
 	}
 } else {
-	$format = (getDolGlobalString('MAIN_USE_HOURMIN_IN_DATE_RANGE') ? 'dayhour' : 'day');
+	$format = (getDolGlobalInt('MAIN_USE_HOURMIN_IN_DATE_RANGE') ? 'dayhour' : 'day');
 
 	if ($line->fk_product > 0) {
 		if (getDolGlobalInt('MAIN_ENABLE_AJAX_TOOLTIP')) {
-			print (!empty($line->fk_parent_line) ? img_picto('', 'rightarrow') : '') . $text;
+			print (!empty($line->fk_parent_line) ? img_picto('', 'rightarrow.png') : '') . $text;
 			if (!getDolGlobalInt('PRODUIT_DESC_IN_FORM')) {
 				print $form->textwithpicto('', $description);
 			}
 		} else {
-			print $form->textwithtooltip($text, $description, 3, 0, '', (string) $i, 0, (!empty($line->fk_parent_line) ? img_picto('', 'rightarrow') : ''));
+			print $form->textwithtooltip($text, $description, 3, 0, '', (string) $i, 0, (!empty($line->fk_parent_line) ? img_picto('', 'rightarrow.png') : ''));
 		}
 	} else {
 		$type = (!empty($line->product_type) ? $line->product_type : $line->fk_product_type);
@@ -203,7 +205,7 @@ if (($line->info_bits & 2) == 2) {
 			print $form->textwithtooltip($text, dol_htmlentitiesbr($line->description), 3, 0, '', (string) $i, 0, (!empty($line->fk_parent_line) ? img_picto('', 'rightarrow') : ''));
 		} else {
 			if (!empty($line->fk_parent_line)) {
-				print img_picto('', 'rightarrow');
+				print img_picto('', 'rightarrow.png');
 			}
 			if (preg_match('/^\(DEPOSIT\)/', $line->description)) {
 				$newdesc = preg_replace('/^\(DEPOSIT\)/', $langs->trans("Deposit"), $line->description);
@@ -343,7 +345,7 @@ if (!getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
 			$buyer = $object->thirdparty;
 		}
 
-		if ($mysoc->useLocalTax(1)) {
+		if ($mysoc->useLocalTax(1, 1, $mysoc)) {
 			if (($seller->country_code == $buyer->country_code) || $line->total_localtax1 || $seller->useLocalTax(1)) {
 				$tooltiponprice .= '<br>'.$langs->transcountry("TotalLT1", $seller->country_code).'='.price($line->total_localtax1, 0, '', 0, 0);
 				$tooltiponpricemultiprice .= '<br>'.$langs->transcountry("TotalLT1", $seller->country_code).'='.price($line->multicurrency_total_localtax1, 0, '', 0, 0);
@@ -352,7 +354,7 @@ if (!getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
 				$tooltiponpricemultiprice .= '<br>'.$langs->transcountry("TotalLT1", $seller->country_code).'=<span class="opacitymedium">'.$langs->trans($senderissupplier ? "NotUsedForThisVendor" : "NotUsedForThisCustomer").'</span>';
 			}
 		}
-		if ($mysoc->useLocalTax(2)) {
+		if ($mysoc->useLocalTax(2, 1, $mysoc)) {
 			if ((isset($seller->country_code) && isset($buyer->thirdparty->country_code) && $seller->country_code == $buyer->thirdparty->country_code) || $line->total_localtax2 || $seller->useLocalTax(2)) {
 				$tooltiponprice .= '<br>'.$langs->transcountry("TotalLT2", $seller->country_code).'='.price($line->total_localtax2, 0, '', 0, 0);
 				$tooltiponpricemultiprice .= '<br>'.$langs->transcountry("TotalLT2", $seller->country_code).'='.price($line->multicurrency_total_localtax2, 0, '', 0, 0);
@@ -415,20 +417,36 @@ print $tooltiponpriceend;
 
 	<td class="linecoluht nowraponall right"><?php $coldisplay++; ?><?php print price($sign * $line->subprice); ?></td>
 
-<?php if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) { ?> <!-- InfraS change -->
+<?php if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency) { ?> <!-- InfraS change -->
 	<td class="linecoluht_currency nowraponall right"><?php $coldisplay++; ?><?php print price($sign * $line->multicurrency_subprice); ?></td>
 <?php }
 
 if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
 	<td class="linecoluttc nowraponall right"><?php $coldisplay++; ?><?php
-	$upinctax = isset($line->pu_ttc) ? $line->pu_ttc : null;
-	if (getDolGlobalInt('MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES')) {
+	$upinctax = isset($line->subprice_ttc) ? $line->subprice_ttc : null;
+	if (!$upinctax && $line->total_ttc && $line->qty) {
 		$upinctax = price2num($line->total_ttc / (float) $line->qty, 'MU');
 	}
-	print(isset($upinctax) ? price($sign * $upinctax) : price($sign * $line->subprice));
+	if (!$upinctax) {
+		$multicurrency_upinctax = price2num($line->multicurrency_subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
+	}
+	print (isset($upinctax) ? price($sign * $upinctax) : price($sign * $line->subprice));	// if upinctax can't be known, we show subprice excl ta
+	?></td>
+<?php }
+
+// Multicurrency TTC
+if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?> <!-- InfraS change -->
+	<td class="linecoluttc_currency nowraponall right"><?php $coldisplay++; ?><?php
+	$multicurrency_upinctax = isset($line->multicurrency_subprice_ttc) ? $line->multicurrency_subprice_ttc : null;
+	if (!$multicurrency_upinctax && $line->multicurrency_total_ttc && $line->qty) {
+		$multicurrency_upinctax = price2num($line->multicurrency_total_ttc / (float) $line->qty, 'MU');
+	}
+	if (!$multicurrency_upinctax) {
+		$multicurrency_upinctax = price2num($line->multicurrency_subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
+	}
+	print (isset($multicurrency_upinctax) ? price($sign * $multicurrency_upinctax) : price($sign * $line->multicurrency_subprice));		// if upinctax can't be known, we show subprice excl ta
 	?></td>
 <?php } ?>
-
 	<td class="linecolqty nowraponall right"><?php $coldisplay++; ?>
 <?php
 if ((($line->info_bits & 2) != 2) && $line->special_code != 3) {
@@ -466,7 +484,7 @@ if (isset($object->situation_cycle_ref) && $object->situation_cycle_ref) {	// In
 	$coldisplay++;
 	if (getDolGlobalInt('INVOICE_USE_SITUATION') == 2) {
 		$previous_progress = $line->getAllPrevProgress($object->id);
-		$current_progress = $previous_progress + floatval($line->situation_percent);
+		$current_progress = $previous_progress + (float) $line->situation_percent;
 		print '<td class="linecolcycleref nowrap right">'.$current_progress.'%</td>';
 		$coldisplay++;
 		print '<td  class="nowrap right">'.$line->situation_percent.'%</td>';
@@ -511,8 +529,8 @@ if ($line->special_code == 3) {
 	print price($sign * $line->total_ht);
 	print $tooltiponpriceend;
 	print '</td>';
-	if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {	// InfraS change
-		print '<td class="linecoltotalht_currency nowrap right">';	// InfraS change (fix typo : linecolUtotalht_currency → linecoltotalht_currency, alignement avec le header)
+	if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency) {	// InfraS change
+		print '<td class="linecoltotalht_currency nowrap right">';
 		print $tooltiponpricemultiprice;
 		print price($sign * $line->multicurrency_total_ht);
 		print $tooltiponpriceendmultiprice;

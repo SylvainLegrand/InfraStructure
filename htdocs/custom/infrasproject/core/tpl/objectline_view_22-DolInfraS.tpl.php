@@ -538,7 +538,7 @@ if ($line->special_code == 3) {
 	print $tooltiponpriceend;
 	print '</td>';
 	if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {	// InfraS change
-		print '<td class="linecoltotalht_currency nowrap right">';	// InfraS change (fix typo : linecolUtotalht_currency → linecoltotalht_currency, alignement avec le header)
+		print '<td class="linecoltotalht_currency nowrap right">';
 		print $tooltiponpricemultiprice;
 		print price($sign * $line->multicurrency_total_ht);
 		print $tooltiponpriceendmultiprice;

@@ -234,7 +234,10 @@
 		<change type='fix'>Templates Dolibarr v22 (objectline_create_22.tpl.php et objectline_create_22-DolInfraS.tpl.php) : backport de la colonne Multicurrency TTC depuis v23/v24 dans le formulaire de création d'une nouvelle ligne. Deux ajouts par fichier : (1) cellule header linecoluttc_currency dans le mini-header de la liste_titre du create form, (2) cellule input multicurrency_price_ttc dans la zone des inputs. Sans ces ajouts, le mini-header et la ligne d'inputs étaient décalés d'une colonne par rapport à la ligne titre principale (objectline_title) après le fix précédent qui a ajouté la colonne linecoluttc_currency au header. Le JS du create form référençait déjà l'input multicurrency_price_ttc dans ses sélecteurs jQuery (.show(), .hide(), .val('')) sans que l'élément ne soit jamais rendu côté HTML — incohérence corrigée. Versions 23 et 24 d'InfraSProject avaient déjà ces blocs (probablement issus d'un backport upstream Dolibarr v23+).</change>
 		<change type='fix'>Templates Dolibarr v22 à v24 : ajout d'une cellule placeholder linecoluttc_currency dans les 4 fichiers d'édition de ligne (objectline_edit_22.tpl.php, objectline_edit_22-DolInfraS.tpl.php, objectline_edit_23.tpl.php, objectline_edit_24.tpl.php) pour aligner la ligne d'édition sur la colonne header linecoluttc_currency ajoutée par le fix précédent. Sans ce placeholder, en mode édition d'une ligne d'un document multidevise avec inputalsopricewithtax actif, la cellule qty et toutes les cellules suivantes étaient décalées d'une colonne par rapport au header. La cellule est volontairement non éditable (PU TTC en devise calculé automatiquement à partir du PU HT en devise et du taux de TVA). Condition d'apparition identique à celle du header (multicurrency + multicurrency_code != currency + inputalsopricewithtax + !MAIN_NO_INPUT_PRICE_WITH_TAX).</change>
 	</Version>
-	<InfraS Downloaded="20260429"/>
+	<Version Number="18.8.9" MonthVersion="2026-05">
+		<change type='chg'>Compatibilité Dolibarr v22 à v24</change>
+	</Version>
+	<InfraS Downloaded="20260512"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
