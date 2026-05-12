@@ -1403,6 +1403,7 @@ span.fa.fa-plus-circle.paddingleft {
 	padding-bottom: 1px;
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap; /* InfraS change : permettre à #credit_note_options de passer à la ligne pour éviter le chevauchement avec le bloc factures modèles */
 }
 .divsocialnetwork:not(:last-child) {
 	padding-<?php print $right; ?>: 20px;

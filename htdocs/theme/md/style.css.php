@@ -1557,7 +1557,7 @@ span.fa.fa-plus-circle.paddingleft {
 	margin-left: 1px;
 }
 .listofinvoicetype {
-	height: 28px;
+	min-height: 28px; /* InfraS change : min-height au lieu de height fixe pour permettre l'expansion de #credit_note_options */
 	vertical-align: middle;
 }
 .divsocialnetwork:not(:last-child) {

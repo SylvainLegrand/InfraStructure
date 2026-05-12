@@ -1623,9 +1623,22 @@ a.impayee:hover { font-weight: bold; color: #550000; }
     margin-left: 1px;
 }
 .listofinvoicetype {
-    height: 28px;
+    /* InfraS change begin : alignement sur le modèle eldy (flex + min-height + flex-wrap) pour éviter le chevauchement avec le bloc factures modèles quand #credit_note_options est affiché */
+    min-height: 1.8em;
     vertical-align: middle;
+    padding-top: 7px;
+    padding-bottom: 1px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    /* InfraS change end */
 }
+/* InfraS add begin : décalage horizontal de #credit_note_options pour rendre visible sa dépendance au radio "Facture avoir pour correction..." */
+#credit_note_options {
+    margin-<?php print $left; ?>: 30px;
+    width: 100%;
+}
+/* InfraS add end */
 .divsocialnetwork:not(:first-child) {
     padding-left: 20px;
 }
