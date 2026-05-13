@@ -236,6 +236,10 @@ img.infrastructurewidthpictotitle {
 	width: 220px;
 }
 
+.infrastructurewidth250 {
+	width: 250px;
+}
+
 .infrastructurewidth270 {
 	width: 270px;
 }

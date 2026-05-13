@@ -48,7 +48,7 @@
 	$currentversion	= infrastructure_getLocalVersionMinDoli('infrastructure');
 
 	// View *****************************************
-	$page_name		= $langs->trans('InfrastructureSetup').' - '.$langs->trans('Changelog');
+	$page_name		= $langs->trans('Infrastructure').' - '.$langs->trans('InfrastructureParamChangelog');
 	llxHeader('', $page_name);
 	$linkback		= !empty($user->admin) ? '<a href = "'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans('BackToModuleList').'</a>' : '';
 	print load_fiche_titre($page_name, $linkback, 'title_setup');

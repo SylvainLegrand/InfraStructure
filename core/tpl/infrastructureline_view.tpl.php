@@ -26,7 +26,7 @@
 	*
 	* Inclus depuis ActionsInfrastructure::printObjectLine() pour les 3 contextes de rendu :
 	*   - 'document'  (défaut) : fiche devis/commande/facture/... — bloc 1 de printObjectLine.
-	*                            Les sous-totaux sont dispatchés vers infrastructureline_infrastructure.tpl.php
+	*                            Les sous-totaux sont dispatchés vers infrastructureline_total.tpl.php
 	*                            (cellules quantité cumulée + marge + libellé aligné droite).
 	*                            Boutons de pliage rendus pour les titres.
 	*                            Style du libellé : INFRASTRUCTURE_TEXT_LINE_STYLE pour free text,
@@ -36,7 +36,7 @@
 	*                  sans dispatch ni boutons de pliage. Sous-totaux indentés et alignés à droite.
 	*                  Style du libellé : INFRASTRUCTURE_TITLE_STYLE pour tous les types.
 	*                  Cas particulier : sur sous-total avec label vide et option
-	*                  INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL active, le titre parent
+	*                  INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL active, le titre parent
 	*                  est concaténé à la description.
 	*
 	* Variables disponibles via le scope local de la méthode appelante :
@@ -70,7 +70,7 @@
 
 	// Dispatch vers le template dédié pour les sous-totaux (uniquement contexte 'document')
 	if ($infrastructureViewContext === 'document' && TInfrastructure::isTotal($line)) {
-		include dol_buildpath('/infrastructure/core/tpl/infrastructureline_infrastructure.tpl.php', 0);
+		include dol_buildpath('/infrastructure/core/tpl/infrastructureline_total.tpl.php', 0);
 		return;
 	}
 	// View *****************************************
@@ -103,7 +103,7 @@
 	$titleStyleUnderline	= strpos($style, 'U') === false ? '' : ' text-decoration: underline;';
 	// Affichage du libellé
 	if (empty($line->label)) {
-		if ($infrastructureViewContext === 'shipment' && TInfrastructure::isTotal($line) && getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL')) {
+		if ($infrastructureViewContext === 'shipment' && TInfrastructure::isTotal($line) && getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
 			// Sous-total à label vide en contexte shipment : concaténer le titre parent à la description
 			print dol_escape_htmltag($line->description).' '.dol_escape_htmltag(infrastructure_getTitle($object, $line));
 		} else {

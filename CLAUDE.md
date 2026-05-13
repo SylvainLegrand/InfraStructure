@@ -19,7 +19,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `23.x.x`
 - Compatibilité PHP : `7.0` à `8.4`
-- Dernière version locale : `18.3.0` (2026-04)
+- Dernière version locale : `18.4.0` (2026-05)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -62,7 +62,7 @@ htdocs/custom/infrastructure/
 │   │   └── modInfrastructure.class.php
 │   ├── tpl/
 │   │   ├── infrastructureline_edit.tpl.php
-│   │   ├── infrastructureline_infrastructure.tpl.php
+│   │   ├── infrastructureline_total.tpl.php
 │   │   ├── infrastructureline_row_document.tpl.php
 │   │   ├── infrastructureline_row_shipment.tpl.php
 │   │   ├── infrastructureline_row_shipping.tpl.php
@@ -112,7 +112,7 @@ Dans `core/modules/modInfrastructure.class.php` :
 - **ExtraFields** : créés automatiquement à l'activation sur `propaldet`, `commandedet`, `facturedet`, `supplier_proposaldet`, `commande_fournisseurdet`, `facture_fourn_det`
 - **Famille** : `Modules InfraS` (ou `easya` si la constante `EASYA_VERSION` est présente)
 - **Constantes prédéfinies** (dans `$this->const`) :
-	- `INFRASTRUCTURE_STYLE_TITRES_SI_LIGNES_CACHEES` (défaut `I`)
+	- `INFRASTRUCTURE_PDF_TITLE_STYLE_IF_HIDDEN_LINES` (défaut `I`)
 	- `INFRASTRUCTURE_ALLOW_ADD_BLOCK` / `INFRASTRUCTURE_ALLOW_EDIT_BLOCK` / `INFRASTRUCTURE_ALLOW_REMOVE_BLOCK` (défaut `1`)
 	- `INFRASTRUCTURE_TITLE_STYLE` (défaut `BU`) — sert aussi de fallback PDF si `INFRASTRUCTURE_PDF_TITLE_STYLE` est vide
 	- `INFRASTRUCTURE_TOTAL_STYLE` (défaut `B`) — idem fallback PDF si `INFRASTRUCTURE_PDF_TOTAL_STYLE` est vide
@@ -345,21 +345,22 @@ Métadonnées des blocs stockées via ExtraFields sur les lignes de documents :
 Constantes actives usuelles (voir `sql/data.sql` et la page `admin/infrastructuresetup.php` pour la liste complète) :
 
 - **Permissions globales** : `INFRASTRUCTURE_ALLOW_ADD_BLOCK` / `_EDIT_BLOCK` / `_REMOVE_BLOCK` / `_DUPLICATE_BLOCK` / `_DUPLICATE_LINE` / `_ADD_LINE_UNDER_TITLE`
-- **Comportement d'insertion** : `INFRASTRUCTURE_ADD_LINE_UNDER_TITLE_AT_END_BLOCK`, `INFRASTRUCTURE_AUTO_ADD_INFRASTRUCTURE_ON_ADDING_NEW_TITLE`
+- **Comportement d'insertion** : `INFRASTRUCTURE_ADD_LINE_UNDER_TITLE_AT_END_BLOCK`, `INFRASTRUCTURE_AUTO_ADD_TOTAL_ON_ADDING_NEW_TITLE`
 - **ExtraFields sur titres** : `INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE`
-- **Concaténation labels** : `INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL`
+- **Concaténation labels** : `INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL`
 - **Styles écran** : `INFRASTRUCTURE_TITLE_STYLE` (défaut `BU`), `INFRASTRUCTURE_TOTAL_STYLE` (défaut `B`) — fallback pour PDF si versions PDF vides
 - **Styles PDF** (18.3.0+) : `INFRASTRUCTURE_PDF_TITLE_STYLE`, `INFRASTRUCTURE_PDF_TOTAL_STYLE` (écrasent la version écran)
-- **Styles spéciaux** : `INFRASTRUCTURE_STYLE_TITRES_SI_LIGNES_CACHEES` (défaut `I`)
+- **Totaux sur titres** (18.4.0+) : `INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL` (reporte Total HT et taux TVA du bloc directement sur la ligne de titre, supprime l'impression des sous-totaux)
+- **Styles spéciaux** : `INFRASTRUCTURE_PDF_TITLE_STYLE_IF_HIDDEN_LINES` (défaut `I`)
 - **Couleurs** : `INFRASTRUCTURE_TITLE_BACKGROUND_COLOR` / `_TOTAL_BACKGROUND_COLOR` / `_TITLE_COLOR` / `_TOTAL_COLOR` / `_TITLE_COLOR_BLOC`
-- **Affichage quantités sous-totaux** : `INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_INFRASTRUCTURE_ON_ELEMENTS` (CSV) + variante PDF `_PDF` (18.3.0+)
+- **Affichage quantités sous-totaux** : `INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_TOTAL_ON_ELEMENTS` (CSV) + variante PDF `_PDF` (18.3.0+)
 - **Pliage** : `INFRASTRUCTURE_BLOC_FOLD_MODE` (`default` / `keepTitle` / `hideAll`), `INFRASTRUCTURE_HIDE_FOLDERS_BY_DEFAULT` (3.28.0+)
 - **TVA** : `INFRASTRUCTURE_LIMIT_TVA_ON_CONDENSED_BLOCS` (3.28.4+)
 - **Récapitulatif PDF** : `INFRASTRUCTURE_PROPAL_ADD_RECAP` / `_COMMANDE_ADD_RECAP` / `_INVOICE_ADD_RECAP`, `INFRASTRUCTURE_KEEP_RECAP_FILE`
 - **Marge sur sous-totaux** : `INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL`
 - **UI** : `INFRASTRUCTURE_HIDE_OPTIONS_BUILD_DOC`, `INFRASTRUCTURE_DISABLE_SUMMARY`, `INFRASTRUCTURE_FORCE_EXPLODE_ACTION_BTN`, `INFRASTRUCTURE_DEFAULT_CHECK_SHIPPING_LIST_FOR_TITLE_DESC`
 - **Expéditions** : `NO_TITLE_SHOW_ON_EXPED_GENERATION`
-- **Offsets PDF** : `INFRASTRUCTURE_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET` / `_POS_Y_OFFSET`, `INFRASTRUCTURE_BACKGROUND_CELL_HEIGHT_OFFSET` / `_POS_Y_OFFSET`
+- **Offsets PDF** : `INFRASTRUCTURE_PDF_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET` / `_POS_Y_OFFSET`, `INFRASTRUCTURE_PDF_TOTAL_BACKGROUND_CELL_HEIGHT_OFFSET` / `_POS_Y_OFFSET`
 - **Expérimental** : `INFRASTRUCTURE_DISABLE_FIX_TRANSACTION`, `INFRASTRUCTURE_ONE_LINE_IF_HIDE_INNERLINES`, `INFRASTRUCTURE_REPLACE_WITH_VAT_IF_HIDE_INNERLINES`
 
 Point de vigilance : la liste complète des constantes par défaut (~30) est dans `sql/data.sql`. Toute modification manuelle est persistante tant que le module n'est pas désactivé.
@@ -440,6 +441,9 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 - `18.2.0` (2026-04) : refactor majeur, regroupé par thématique : Renommages des constantes et des clés de traduction, extraction des 3 blocs vers des templates dédiés, Convergence du rendu de cellule libellé, Pliages des blocs, Marges sur sous-totaux, Suppression de `INFRASTRUCTURE_USE_NEW_FORMAT`, Application des classes CSS de niveau et Nouvelles options exposées en admin.
 - `18.3.0` (2026-05) : Séparation des couleurs de fond, de texte des titres et sous-totaux, des styles de texte (B/U/I), du pourcentage de réduction de la luminosité par niveau et de la sélection « Afficher la quantité cumulée par défaut » entre l'affichage écran et le rendu PDF.
 - `18.3.0` (2026-05) : Alignement de la quantité cumulée des sous-totaux sur la colonne Qté native de Dolibarr.
+- `18.3.1` (2026-05) : Nettoyage des résidus de compatibilité avec les versions Dolibarr antérieures à 18 (le module exige Dolibarr >= 18.0.0). Suppression des branches de code mort testant DOL_VERSION dans le trigger, `core/lib/infrastructure.lib.php`, `class/actions_infrastructure.class.php`, `core/tpl/infrastructureline_row_document.tpl.php` (4 occurrences `MAIN_NO_INPUT_PRICE_WITH_TAX`), `core/tpl/infrastructureline_edit.tpl.php` (signature `showInputField`) ainsi que la branche associée et la valeur par défaut dans `js/infrastructure.lib.js` et `js/summary-menu.js` (`useOldSplittedTrForLine`).
+- `18.4.0` (2026-05) : Nouvelle option `INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL` — quand active, supprime l'impression des sous-totaux dans le PDF et reporte leur Total HT, Total TTC et taux de TVA commun directement sur les colonnes correspondantes de la ligne de titre parent. Toutes les options d'apparence et d'affichage TVA dédiées aux sous-totaux sont automatiquement masquées dans la page d'administration. Implémenté via la nouvelle fonction `infrastructure_applyTitleWithTotal()` (core/lib/infrastructure.lib.php) invoquée dans `beforePDFCreation` avant `infrastructure_applyTitlePrintAsListOrCondensed()`, avec pré-chauffe du cache `infrastructure_getCachedTitleHasTotal()` pour préserver le comportement de `hideqtys` / `hideprices` / `hideInnerLines` en combinaison.
+- `18.4.0` (2026-05) : Refactor — extraction des 13 méthodes helpers internes de `class/actions_infrastructure.class.php` vers `core/lib/infrastructure.lib.php` sous forme de fonctions standalone préfixées `infrastructure_`. Trois groupes : cache PDF (5 fonctions), rendu colonnes PDF (4 fonctions), préparation des lignes (4 fonctions). Voir le changelog pour la liste complète et les détails de l'état déplacé.
 
 
 ## Notes techniques (Technical notes)
@@ -541,7 +545,7 @@ Ligne 7 : Sous-total « Services » (qty=91) → 150,00 €
 - **`show_total_ht = 1`** : affiche le montant HT sur la ligne sous-total
 - **`show_reduc = 1`** : cumule et affiche le total des réductions du bloc
 - **`infrastructure_show_qty = 1`** : cumule et affiche la quantité totale du bloc
-- **`hideblock = 1`** (titre) : masque les lignes du bloc, change le style du titre (`INFRASTRUCTURE_STYLE_TITRES_SI_LIGNES_CACHEES`), les lignes cachées restent comptabilisées dans les sous-totaux suivants (selon paramétrage)
+- **`hideblock = 1`** (titre) : masque les lignes du bloc, change le style du titre (`INFRASTRUCTURE_PDF_TITLE_STYLE_IF_HIDDEN_LINES`), les lignes cachées restent comptabilisées dans les sous-totaux suivants (selon paramétrage)
 - **`show_table_header_before = 1`** (titre) : répète l'en-tête du tableau juste avant ce titre dans le PDF
 - **`print_as_list = 1`** (titre) : rendu en liste à puces
 - **`print_condensed = 1`** (titre) : rendu condensé ; calcul TVA adapté si `INFRASTRUCTURE_LIMIT_TVA_ON_CONDENSED_BLOCS` activé
@@ -555,7 +559,7 @@ Ligne 7 : Sous-total « Services » (qty=91) → 150,00 €
 | `originproductline.tpl.php` | Override du rendu lors de la création depuis un document d'origine |
 | `infrastructureline_view.tpl.php` | Cellule libellé (mode consultation) — contextes `'document'` et `'shipment'` |
 | `infrastructureline_edit.tpl.php` | Cellule libellé (mode édition) |
-| `infrastructureline_infrastructure.tpl.php` | Rendu spécifique des lignes sous-total |
+| `infrastructureline_total.tpl.php` | Rendu spécifique des lignes sous-total |
 | `infrastructureline_row_document.tpl.php` | `<tr>` complet en contexte fiche document principale |
 | `infrastructureline_row_shipment.tpl.php` | `<tr>` complet en contexte création d'expédition depuis commande |
 | `infrastructureline_row_shipping.tpl.php` | `<tr>` complet en contexte fiche shipping/delivery |
@@ -595,7 +599,7 @@ Injecté par `actions_infrastructure.class.php::formObjectOptions()` quand `INFR
 
 - **`js/summary-menu.js`** : construit `#infrastructure-summary-floating` avec dropdown listant les titres (`<a class="infrastructure-summary-link">`). Au clic : scroll smooth vers `#row-<lineid>`
 - **`css/summary-menu.css.php`** : CSS adapté automatiquement (variables `--bgnavtop*` pour `oblyon` / `--colorbackhmenu1` pour les autres thèmes)
-- **Configuration JS** (`infrastructureSummaryJsConf`) injectée par PHP : `langs.InfrastructureSummaryTitle`, `useOldSplittedTrForLine` (compatibilité Dolibarr < 16), `isOblyon`, `fixArearefCard`, `fixStickyTabsCard`
+- **Configuration JS** (`infrastructureSummaryJsConf`) injectée par PHP : `langs.InfrastructureSummaryTitle`, `isOblyon`, `fixArearefCard`, `fixStickyTabsCard`
 
 **Compensation du scroll sous oblyon** : quand `FIX_AREAREF_CARD` ou `FIX_STICKY_TABS_CARD` sont actives, `div.arearef` et/ou `div.tabs:first-of-type` deviennent `position: sticky` et masqueraient la ligne cible. Le JS ajoute leur `outerHeight()` à l'offset de scroll quand ces éléments sont effectivement en `position: sticky`.
 
@@ -622,7 +626,7 @@ Injecté par `actions_infrastructure.class.php::formObjectOptions()` quand `INFR
 
 ```php
 [
-    0 => "18.3.0",           // Version courante
+    0 => "18.4.0",           // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)

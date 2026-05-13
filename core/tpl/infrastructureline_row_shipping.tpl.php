@@ -117,19 +117,19 @@
 		}
 		if ($line->fk_prev_id === null) {
 			$color		= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR', '000000');
-			$img_delete	= img_delete('default', ' style="color:#'.$color.' !important;"');
+			$img_delete	= img_delete('default', ' style="color:'.$color.' !important;"');
 			print '<a href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&amp;action=deleteline&amp;lineid='.((int) $lineid).'&token='.$newToken.'">'.$img_delete.'</a>';
 		}
 		if (TInfrastructure::isTitle($line) && ($line->fk_prev_id === null)) {
 			$color		= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR_BLOC', 'be3535');
-			$img_delete	= img_delete($langs->trans('InfrastructureDeleteWithAllLines'), ' style="color:#'.$color.' !important;" class="pictodelete pictodeleteallline"');
+			$img_delete	= img_delete($langs->trans('InfrastructureDeleteWithAllLines'), ' style="color:'.$color.' !important;" class="pictodelete pictodeleteallline"');
 			print '<a href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.((int) $object->id).'&amp;action=ask_deleteallline&amp;lineid='.((int) $lineid).'&token='.$newToken.'">'.$img_delete.'</a>';
 		}
 		print '	</td>';
 	}
 	print "</tr>\r\n";
 	// Display lines extrafields
-	if ($object->element == 'shipping' && getDolGlobalString('INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE') && is_array($extralabelslines) && count($extralabelslines) > 0) {
+	if ($object->element == 'shipping' && getDolGlobalInt('INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE') && is_array($extralabelslines) && count($extralabelslines) > 0) {
 		$line	= new ExpeditionLigne($db);
 		$line->fetch_optionals($line->id);
 		print '<tr class="oddeven">';

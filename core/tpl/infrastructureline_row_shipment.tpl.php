@@ -56,7 +56,7 @@
 	dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
 
 	// View *****************************************
-	$colspan	= 4;
+	$colspan	= 6;
 	$data		= infrastructure_getHtmlData($parameters, $object, $action, $hookmanager);
 	$class		= infrastructure_getLineSpecialClass($line);
 	?>

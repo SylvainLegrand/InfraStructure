@@ -214,7 +214,7 @@
 			// Shipping title/infrastructure cleanup / Clone handling / Situation final
 			if ($action == 'SHIPPING_CREATE') {
 				$this->ShippingCreate($object, $user, $langs);
-			} elseif (in_array($action, array('PROPAL_CREATE', 'ORDER_CREATE', 'BILL_CREATE')) && floatval(DOL_VERSION) >= 8.0 && !empty($object->context) && in_array('createfromclone', $object->context)) {
+			} elseif (in_array($action, array('PROPAL_CREATE', 'ORDER_CREATE', 'BILL_CREATE')) && !empty($object->context) && in_array('createfromclone', $object->context)) {
 				$this->CreateFromClone($object, $user, $action, $langs, $conf);
 			} elseif ($action == 'BILL_MODIFY') {
 				$this->SituationFinal($object);
@@ -241,7 +241,7 @@
 					$originOriginLine = new OrderLine($object->db);
 					if ($originOriginLine->fetch($originLine->fk_elementdet) > 0) {
 						if (TInfrastructure::isModInfrastructureLine($originOriginLine)) {
-							$object->special_code = TInfrastructure::$module_number;
+							$object->special_code = TInfrastructure::getModuleNumber();
 							$object->update($user, 1);
 						}
 					}
@@ -257,7 +257,7 @@
 				$TInvoices[$object->fk_facture]	= $isEligible;
 			}
 			if ($TInvoices[$object->fk_facture]) {
-				if (!empty($object->origin) && !empty($object->origin_id) && $object->special_code == TInfrastructure::$module_number) {
+				if (!empty($object->origin) && !empty($object->origin_id) && $object->special_code == TInfrastructure::getModuleNumber()) {
 					$valuedeposit	= price2num(str_replace('%', '', GETPOST('valuedeposit', 'alpha')), 'MU');
 					$object->qty	= 100 * $object->qty / $valuedeposit;
 					if ($object->update(null, 1) < 0) {
@@ -297,8 +297,8 @@
 				$this->errors	= $originOrderLine->errors;
 				return $originOrderLineFetchReturn;
 			}
-			if ($originOrderLine->special_code == TInfrastructure::$module_number) {
-				$object->special_code	= TInfrastructure::$module_number;
+			if ($originOrderLine->special_code == TInfrastructure::getModuleNumber()) {
+				$object->special_code	= TInfrastructure::getModuleNumber();
 				$updateReturn			= $object->update($user, 1); // No trigger to prevent loops
 				if ($updateReturn < 0) {
 					$this->error	= $object->error;
@@ -584,7 +584,7 @@
 					}
 				}
 				if (TInfrastructure::isModInfrastructureLine($orderline)) {
-					$line->special_code = TInfrastructure::$module_number;
+					$line->special_code = TInfrastructure::getModuleNumber();
 				}
 				if (TInfrastructure::isTitle($line)) {
 					$lines = TInfrastructure::getLinesFromTitleId($object, $line->id, true);

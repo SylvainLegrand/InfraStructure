@@ -65,7 +65,7 @@
 			$this->version			= $this->getLocalVersion();																					// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);															// llx_const table to save module status enabled/disabled
 			$this->special			= 2;																										// (0=common,1=interface,2=others,3=very specific)
-			$this->picto			= 'modinfrastructure@infrastructure';																		// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
+			$this->picto			= $this->name.'@'.$this->name;																			// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
 			$this->module_parts		= array('triggers'	=> 1,
 											'hooks'		=> array('invoicecard','invoicesuppliercard','propalcard','supplier_proposalcard','ordercard','ordersuppliercard',
 																'odtgeneration','orderstoinvoice','orderstoinvoicesupplier','admin','invoicereccard',
@@ -74,23 +74,23 @@
 																'supplierorderlist','supplierinvoicelist','cron','pdfgeneration','checkmarginlist'
 																),
 											'tpl'		=> 1,
-											'css'		=> array('css' => '/infrastructure/css/infrastructure.css.php'),
+											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php')
 			);
-			$this->dirs				= array('/infrastructure/sql');																				// Data directories to create when module is enabled.
-			$this->config_page_url	= array('infrastructuresetup.php@infrastructure');															// stored into titre/admin directory, used to setup module.
+			$this->dirs				= array('/'.$this->name.'/sql');																				// Data directories to create when module is enabled.
+			$this->config_page_url	= array($this->name.'setup.php@'.$this->name);															// stored into titre/admin directory, used to setup module.
 			// Dependencies
 			$this->depends			= array();																									// List of modules id that must be enabled if this module is enabled
 			$this->requiredby		= array();																									// List of modules id to disable if this one is disabled
 			$this->conflictwith		= array('modMilestone');																					// List of modules id that cannot be enabled if this module is enabled
-			$this->langfiles		= array('infrastructure@infrastructure');
-			$this->const			= array(0	=> array('INFRASTRUCTURE_STYLE_TITRES_SI_LIGNES_CACHEES', 'chaine', 'I', 'Définit le style (B : gras, I : Italique, U : Souligné) des sous titres lorsque le détail des lignes et des ensembles est caché', 1));
+			$this->langfiles		= array($this->name.'@'.$this->name);
+			$this->const			= array(0	=> array('MAIN_USE_HTML5_COLOR_SELECTOR', 'chaine', '1', 'InfraStructure module', 1));
 			$this->tabs				= array();
 			if (!isModEnabled('infrastructure')) {
 				$conf->infrastructure			= new stdClass();
 				$conf->infrastructure->enabled	= 0;
 			}
 			// Dictionnaries
-			$this->dictionaries		= array('langs'				=>'infrastructure@infrastructure',
+			$this->dictionaries		= array('langs'				=> $this->name.'@'.$this->name,
 											'tabname'			=> array(MAIN_DB_PREFIX.'c_infrastructure_free_text'),			// List of tables we want to see into dictonnary editor
 											'tablib'			=> array($langs->trans('InfrastructureFreeLineDictionary')),// Label of tables
 											'tabsql'			=> array('SELECT f.rowid as rowid, f.label, f.content, f.entity, f.active FROM '. $db->prefix() .'c_infrastructure_free_text as f WHERE f.entity='.$conf->entity),	// Request to select fields
@@ -99,7 +99,7 @@
 											'tabfieldvalue'		=> array('label,content'),										// List of fields (list of fields to edit a record)
 											'tabfieldinsert'	=> array('label,content,entity'),								// List of fields (list of fields for insert)
 											'tabrowid'			=> array('rowid'),												// Name of columns with primary key (try to always name it 'rowid')
-											'tabcond'			=> array(isModEnabled('infrastructure'))
+											'tabcond'			=> array(isModEnabled($this->name))
 										);
 			// Boxes
 			$this->boxes			= array(); 																					// Boxes list
@@ -126,11 +126,11 @@
 			$sql	= array();
 
 			// Création préalable des tables infrastructure (nécessaire comme cible de migration)
-			$this->loadTables();
-
+			$this->_load_tables('/'.$this->name.'/sql/');
+			infrastructure_restore_module ($this->name);
 			// Migration depuis le module subtotal si présent et activé
 			if (isModEnabled('subtotal')) {
-				dol_include_once('/infrastructure/core/lib/infrastructureMigrateSubtotal.lib.php');
+				dol_include_once('/'.$this->name.'/core/lib/infrastructureMigrateSubtotal.lib.php');
 				$logMessages		= array();
 				$logger				= function ($msg) use (&$logMessages) {
 					$logMessages[]	= $msg;
@@ -175,28 +175,28 @@
 				}
 				dol_syslog('modInfrastructure::init migration subtotal → infrastructure OK — messages : '.implode("\n", $logMessages));
 			}
-			dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
+			dol_include_once('/'.$this->name.'/core/lib/'.$this->name.'.lib.php');
 
 			$TElementType	= array('propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det');
 			foreach ($TElementType as $element_type) {
-				infrastructure_addExtraField('show_total_ht', $langs->trans('InfrastructureShowTotalHTOnInfrastructureBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1, '', $conf->entity, '', 'isModEnabled("infrastructure")');
-				infrastructure_addExtraField('show_reduc', $langs->trans('InfrastructureShowReducOnInfrastructureBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1, '', $conf->entity, '', 'isModEnabled("infrastructure")');
-				infrastructure_addExtraField('infrastructure_show_qty', $langs->trans('SubTotalLineShowQty'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+				infrastructure_addExtraField('show_total_ht', $langs->trans('InfrastructureShowTotalHTOnInfrastructureBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+				infrastructure_addExtraField('show_reduc', $langs->trans('InfrastructureShowReducOnInfrastructureBlock'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+				infrastructure_addExtraField('infrastructure_show_qty', $langs->trans('InfrastructureLineShowQty'), 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
 			}
-			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1, '', $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, 1, 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
-			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', 1, $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('hideblock', $langs->trans('Infrastructure_ForceHideAll'), 'int', 4, 2, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('show_table_header_before', $langs->trans('InfrastructureShowTableHeaderBefore'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_as_list', $langs->trans('InfrastructurePrintAsList'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+			infrastructure_addExtraField('print_condensed', $langs->trans('InfrastructurePrintCondensed'), 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
 			if (isModEnabled('oblyon') && getDolGlobalString('MAIN_MENU_INVERT') && getDolGlobalString('OBLYON_HIDE_LEFTMENU')) {
 				// Désactive le sommaire rapide
 				dolibarr_set_const($db, 'INFRASTRUCTURE_DISABLE_SUMMARY', 1, 'chaine', 0, '', $conf->entity);
@@ -221,19 +221,6 @@
 							'DROP TABLE IF EXISTS '.$this->db->prefix().'c_infrastructure_free_text'
 							);
 			return $this->_remove($sql, $options);
-		}
-
-		/**
-		* Create tables, keys and data required by module
-		* Files llx_table1.sql, llx_table1.key.sql llx_data.sql with create table, create keys
-		* and create data commands must be stored in directory /titre/sql/
-		* This function is called by this->init
-		*
-		* 	@return		int		<=0 if KO, >0 if OK
-		*/
-		private function loadTables()
-		{
-			return $this->_load_tables('/infrastructure/sql/');
 		}
 
 		/**

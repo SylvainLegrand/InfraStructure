@@ -20,7 +20,7 @@
 	**************************************************/
 
 	/************************************************
-	* 	\file		./infrastructure/core/tpl/infrastructureline_infrastructure.tpl.php
+	* 	\file		./infrastructure/core/tpl/infrastructureline_total.tpl.php
 	* 	\ingroup	infrastructure
 	* 	\brief		Template d'affichage d'une ligne sous-total (qty 90-99) en mode vue
 	*
@@ -39,6 +39,7 @@
 	*   @var	DoliDB				$db				Handler base de données
 	*   @var	Conf				$conf			Configuration globale
 	*   @var	Translate			$langs			Traductions
+	*   @var	User				$user			Utilisateur courant (utilisé pour les permissions margins)
 	*   @var	ActionsInfrastructure		$this			Instance de la classe hook
 	************************************************/
 
@@ -54,10 +55,11 @@
 
 	// View *****************************************
 	?>
-<!-- BEGIN PHP TEMPLATE infrastructureline_infrastructure.tpl.php -->
+<!-- BEGIN PHP TEMPLATE infrastructureline_total.tpl.php -->
 <?php
 	// Détermine si la cellule marge sera rendue (juste avant Total HT, dans la colonne Marge native)
-	$displayMargin			= getDolGlobalString('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL') && isModEnabled('margin') && !(isset($margins_hidden_by_module) && $margins_hidden_by_module);
+	// Aligné sur les permissions Dolibarr standard (cf. core/tpl/objectline_view.tpl.php) : module margin actif, utilisateur interne, droit margins.liretous, pas de masquage par le module affmarges.
+	$displayMargin			= getDolGlobalString('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL') && isModEnabled('margin') && empty($user->socid) && !(isset($margins_hidden_by_module) && $margins_hidden_by_module) && !empty($user) && $user->hasRight('margins', 'liretous');
 	// Styles communs du libellé
 	$style					= getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE', '');
 	$titleStyleItalic		= strpos($style, 'I') === false ? '' : ' font-style: italic;';
@@ -66,7 +68,7 @@
 	// Construction du HTML du libellé "Sous-total :" (réutilisé dans les deux modes de rendu)
 	ob_start();
 	if (empty($line->label)) {
-		if (getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_INFRASTRUCTURE_LABEL')) {
+		if (getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
 			print $line->description.' <span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.infrastructure_getTitle($object, $line).'</span>';
 		} else {
 			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.$line->description.'</span>';
@@ -131,4 +133,4 @@
 		print '	<td nowrap="nowrap" class="margininfos right" style="text-align:right;font-weight:bold;">'.price($marge).'</td>';
 	}
 	?>
-<!-- END PHP TEMPLATE infrastructureline_infrastructure.tpl.php -->
+<!-- END PHP TEMPLATE infrastructureline_total.tpl.php -->

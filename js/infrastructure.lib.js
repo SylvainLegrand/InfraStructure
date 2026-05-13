@@ -34,16 +34,6 @@ if (typeof getInfrastructureTitleChilds !== "function") {
 
 			if (indexOfFirstTitle < 0 && indexOfFirstInfrastructure < 0) {
 				TcurrentChilds.push($(this).attr('id'));
-
-				// Add extraffield support for dolibarr > 7
-				let thisId = $(this).attr('data-id');
-				let thisElement = $(this).attr('data-element');
-
-				if (thisId != undefined && thisElement != undefined && infrastructureSummaryJsConf.useOldSplittedTrForLine) {
-					$('[data-targetid="'+thisId+'"][data-element="extrafield"][data-targetelement="'+thisElement+'"]').each(function (index) {
-						TcurrentChilds.push($(this).attr('id'));
-					});
-				}
 			}
 		});
 

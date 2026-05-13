@@ -1,10 +1,10 @@
-![](img/infrastructure.png)
+![](img/infrastructure_small.png)
 
 
 
-# ***Infrastructure***
+# ***InfraStructure***
 #### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d'expertise.
-* Le module ***Infrastructure*** simplifie la structuration de vos documents commerciaux :
+* Le module ***InfraStructure*** simplifie la structuration de vos documents commerciaux :
 	* Vous pouvez insérer des titres pour organiser vos documents en sections claires et professionnelles
 	* Les titres supportent plusieurs niveaux d'imbrication (titre, sous-titre, sous-sous-titre, jusqu'à 9 niveaux) avec numérotation automatique optionnelle
 	* Des sous-totaux sont automatiquement calculés pour chaque section (Total HT, quantité, TVA, réductions, marge)
@@ -25,7 +25,7 @@
 
 ## Licence
 
-***Infrastructure*** est distribué sous les termes de la licence GNU General Public License v3+ ou supérieure.
+***InfraStructure*** est distribué sous les termes de la licence GNU General Public License v3+ ou supérieure.
 
 Copyright (C) 2013-2026 ATM Consulting
 Copyright (C) 2016-2026 Sylvain Legrand - InfraS
@@ -37,10 +37,10 @@ voir le fichier LICENSE pour plus d'informations
 Utilise PHP Markdown de Michel Fortin sous licence BSD pour afficher ce fichier README
 
 
-## Ce qu'est ***Infrastructure***
+## Ce qu'est ***InfraStructure***
 
-***Infrastructure*** est un module optionnel de Dolibarr ERP & CRM enrichissant la gestion des documents commerciaux par un système de structuration avancé (titres, sous-totaux, textes libres).
-***Infrastructure*** est disponible pour les documents suivants :
+***InfraStructure*** est un module optionnel de Dolibarr ERP & CRM enrichissant la gestion des documents commerciaux par un système de structuration avancé (titres, sous-totaux, textes libres).
+***InfraStructure*** est disponible pour les documents suivants :
 * Chaîne des ventes
 	* Propositions commerciales (devis)
 	* Commandes clients
@@ -63,7 +63,7 @@ Utilise PHP Markdown de Michel Fortin sous licence BSD pour afficher ce fichier 
 
 ## Activation des modifications
 
-Pour le bon fonctionnement du module ***Infrastructure*** :
+Pour le bon fonctionnement du module ***InfraStructure*** :
 * Après toute mise à jour du module
 	* Il est IMPERATIF de désactiver puis réactiver le module pour appliquer les modifications nécessaires
 
@@ -71,7 +71,7 @@ Pour le bon fonctionnement du module ***Infrastructure*** :
 
 ## Fonctionnalités (toutes optionnelles)
 
-Les options sont regroupées en trois sections dans la page d'administration du module (Outils admin > Modules > Infrastructure > Configuration). L'ordre ci-dessous reproduit fidèlement l'ordre de la page d'administration.
+Les options sont regroupées en trois sections dans la page d'administration du module (Outils admin > Modules > InfraStructure > Configuration). L'ordre ci-dessous reproduit fidèlement l'ordre de la page d'administration.
 
 * Onglet Paramètres ***InfraS***
 	* PARAMÈTRES DU MODULE INFRASTRUCTURE
@@ -105,41 +105,42 @@ Les options sont regroupées en trois sections dans la page d'administration du 
 		* ***7*** L'ajout sous un titre se fait en fin de section (au lieu du début)
 		* ***8*** Plier les dossiers par défaut
 		* ***9*** Cacher les options de titre
-		* ***10*** Forcer les boutons d'action en mode éclaté hors dropdown (Dolibarr ≥ 20)
-		* ***11*** Style des textes libres (B = gras, U = souligné, I = italique)
-		* ***12*** Style des titres (B / U / I)
-		* ***13*** Style des sous-totaux (B / U / I)
-		* ***14*** Pourcentage de réduction de luminosité entre niveaux d'imbrication
-		* ***15*** Désactiver le menu « sommaire rapide » (bouton flottant)
-		* ***16*** Mode de pliage des blocs (`default` / `keepTitle` / `hideAll`)
-		* ***17*** Afficher la somme des quantités sur les sous-totaux par type de document (devis, commande, facture, propal/commande/facture fournisseur)
-		* ***18*** Couleur de fond des sous-totaux
+		* ***10*** Cacher l'option de saut de page avant
+		* ***11*** Forcer les boutons d'action en mode éclaté hors dropdown (Dolibarr ≥ 20)
+		* ***12*** Style des textes libres (B = gras, U = souligné, I = italique)
+		* ***13*** Style des titres (B / U / I)
+		* ***14*** Style des sous-totaux (B / U / I)
+		* ***15*** Pourcentage de réduction de luminosité entre niveaux d'imbrication
+		* ***16*** Désactiver le menu « sommaire rapide » (bouton flottant)
+		* ***17*** Mode de pliage des blocs (`default` / `keepTitle` / `hideAll`)
+		* ***18*** Afficher la somme des quantités sur les sous-totaux par type de document (devis, commande, facture, propal/commande/facture fournisseur)
 		* ***19*** Couleur de fond des titres
 		* ***20*** Couleur des icônes de titre
-		* ***21*** Couleur des icônes de sous-total
-		* ***22*** Couleur des icônes d'action sur les blocs
+		* ***21*** Couleur des icônes d'action sur les blocs
+		* ***22*** Couleur de fond des sous-totaux
+		* ***23*** Couleur des icônes de sous-total
+		* ***24*** Cacher les options de génération du document
 	* PARAMÈTRES D'IMPRESSION PDF
 		* ***1*** Activer la numérotation automatique sur le PDF
-		* ***2*** Concaténer le libellé du titre rattaché dans le libellé du sous-total
-		* ***3*** Cacher les options de génération du document
-		* ***4*** Cacher l'option de saut de page avant
-		* ***5*** Taille de police des titres (défaut 9 si vide)
-		* ***6*** Style des titres lorsque le détail du bloc est caché (B / U / I, ex. « BI »)
-		* ***7*** Style des titres dans les PDF (écrase le style écran)
-		* ***8*** Style des sous-totaux dans les PDF (écrase le style écran)
-		* ***9*** Couleur de fond des titres dans les PDF
-		* ***10*** Couleur des titres dans les PDF (écrase la couleur automatique)
-		* ***11*** Couleur de fond des sous-totaux dans les PDF
-		* ***12*** Couleur des sous-totaux dans les PDF (écrase la couleur automatique)
-		* ***13*** Pourcentage de luminosité par niveau d'imbrication dans les PDF
-		* ***14*** Augmentation de hauteur du fond des titres dans les PDF
-		* ***15*** Décalage vertical du fond des titres dans les PDF
-		* ***16*** Augmentation de hauteur du fond des sous-totaux dans les PDF
-		* ***17*** Décalage vertical du fond des sous-totaux dans les PDF
-		* ***18*** Afficher les quantités sur les lignes produit lorsque les prix sont cachés
-		* ***19*** Affichage des quantités sur les sous-totaux dans les PDF par type de document (fallback sur la sélection écran si vide)
-		* ***20*** Afficher le taux de TVA sur les sous-totaux quand toutes les lignes du bloc ont le même taux
-		* ***21*** Limiter l'affichage du taux de TVA aux blocs imprimés en condensé ou en liste (si InfraSPackPlus actif)
+		* ***2*** Imprimer les totaux directement sur les lignes de titre
+		* ***3*** Taille de police des titres (défaut 9 si vide)
+		* ***4*** Style des titres lorsque le détail du bloc est caché (B / U / I, ex. « BI »)
+		* ***5*** Style des titres dans les PDF (écrase le style écran)
+		* ***6*** Style des sous-totaux dans les PDF (écrase le style écran)
+		* ***7*** Couleur de fond des titres dans les PDF
+		* ***8*** Couleur des titres dans les PDF (écrase la couleur automatique)
+		* ***9*** Couleur de fond des sous-totaux dans les PDF
+		* ***10*** Couleur des sous-totaux dans les PDF (écrase la couleur automatique)
+		* ***11*** Concaténer le libellé du titre rattaché dans le libellé du sous-total
+		* ***12*** Pourcentage de luminosité par niveau d'imbrication dans les PDF
+		* ***13*** Augmentation de hauteur du fond des titres dans les PDF
+		* ***14*** Décalage vertical du fond des titres dans les PDF
+		* ***15*** Augmentation de hauteur du fond des sous-totaux dans les PDF
+		* ***16*** Décalage vertical du fond des sous-totaux dans les PDF
+		* ***17*** Afficher les quantités sur les lignes produit lorsque les prix sont cachés
+		* ***18*** Affichage des quantités sur les sous-totaux dans les PDF par type de document (fallback sur la sélection écran si vide)
+		* ***19*** Afficher le taux de TVA sur les sous-totaux quand toutes les lignes du bloc ont le même taux
+		* ***20*** Limiter l'affichage du taux de TVA aux blocs imprimés en condensé ou en liste (si InfraSPackPlus actif)
 
 #### Génération d'un récapitulatif par titre
 
@@ -152,8 +153,8 @@ Les options sont regroupées en trois sections dans la page d'administration du 
 
 ## Compatibilité
 
-***Infrastructure*** est compatible avec les modules tiers suivants :
-* Module ***InfraSPackPlus*** (InfraS) - Modèles PDF avancés (support natif des structures Infrastructure)
+***InfraStructure*** est compatible avec les modules tiers suivants :
+* Module ***InfraSPackPlus*** (InfraS) - Modèles PDF avancés (support natif)
 * Module ***InfraSDiscount*** (InfraS) - Gestion des remises (exclusion automatique des lignes spéciales)
 * Module ***Ouvrage / Forfait*** (Inovea)
 * Module ***Équipement*** (Patas-Monkey)
@@ -175,4 +176,4 @@ Voir fichier ChangeLog (onglet « Changelog » dans l'administration du module) 
 
 ## DOCUMENTATION
 
-La documentation est disponible sur le site [wiki.infras.fr](https://wiki.infras.fr/index.php?title=Infrastructure "wiki InfraS").
+La documentation est disponible sur le site [wiki.infras.fr](https://wiki.infras.fr/index.php?title=InfraStructure "wiki InfraS").

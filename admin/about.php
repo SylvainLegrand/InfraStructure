@@ -51,10 +51,10 @@
 													)
 							);
 	// View *********************************
-	$page_name  = $langs->trans('InfrastructureSetup').' - '.$langs->trans('About');
+	$page_name  = $langs->trans('Infrastructure').' - '.$langs->trans('About');
 	llxHeader('', $page_name);
 	$newToken   = function_exists('newToken') ? newToken() : $_SESSION['newtoken'];
-	$linkback   = '<a href="' . DOL_URL_ROOT . '/admin/modules.php&token='.$newToken.'">'. $langs->trans("BackToModuleList") . '</a>';
+	$linkback	= !empty($user->admin) ? '<a href = "'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans('BackToModuleList').'</a>' : '';
 	print load_fiche_titre($page_name, $linkback);
 
 	// Configuration header *************************

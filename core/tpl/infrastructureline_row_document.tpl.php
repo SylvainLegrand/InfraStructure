@@ -30,7 +30,7 @@
 	* Rend l'intégralité du <tr>...</tr> :
 	*   - cellule numéro de ligne (si MAIN_VIEW_LINE_NUMBER)
 	*   - cellule libellé (déléguée à infrastructureline_view.tpl.php en mode vue ou infrastructureline_edit.tpl.php en mode édition,
-	*     dispatch vers infrastructureline_infrastructure.tpl.php pour les sous-totaux en mode vue)
+	*     dispatch vers infrastructureline_total.tpl.php pour les sous-totaux en mode vue)
 	*   - cellule total HT (avec multicurrency)
 	*   - cellule edit (clone + edit en mode vue, save + cancel en mode édition)
 	*   - cellule delete (delete + delete-all sur les titres)
@@ -78,21 +78,22 @@
 	if ($object->element == 'order_supplier') {$colspan = 6;}
 	if ($object->element == 'invoice_supplier') {$colspan = 4;}
 	if ($object->element == 'supplier_proposal') {$colspan = 3;}
-	if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
+	if (empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
 		$colspan++;	// Ajout de la colonne PU TTC
 	}
 	if ($object->element == 'facturerec') {$colspan = 5;}
 	if (isModEnabled('multicurrency') && ($object->multicurrency_code != $conf->currency)) {
 		$colspan++;	// Colonne PU Devise
-		if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
+		if (empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
 			$colspan++;	// Ajout de la colonne PU TTC
 		}
 	}
 	if ($object->element == 'commande' && $object->statut < 3 && isModEnabled('shippableorder')) {$colspan++;}
 	$margins_hidden_by_module	= !isModEnabled('affmarges') ? false : !($_SESSION['marginsdisplayed']);
-	if (isModEnabled('margin') && !$margins_hidden_by_module) {$colspan++;}
-	if (isModEnabled('margin') && getDolGlobalString('DISPLAY_MARGIN_RATES') && !$margins_hidden_by_module && $affectedByMarge > 0) {$colspan++;}
-	if (isModEnabled('margin') && getDolGlobalString('DISPLAY_MARK_RATES') && !$margins_hidden_by_module && $affectedByMarge > 0) {$colspan++;}
+	$canSeeMargin				= isModEnabled('margin') && empty($user->socid) && !$margins_hidden_by_module;
+	if ($canSeeMargin && $user->hasRight('margins', 'creer')) {$colspan++;}																					// Colonne PA HT (prix de revient)
+	if ($canSeeMargin && getDolGlobalString('DISPLAY_MARGIN_RATES') && $user->hasRight('margins', 'liretous') && $affectedByMarge > 0) {$colspan++;}	// Colonne Marge %
+	if ($canSeeMargin && getDolGlobalString('DISPLAY_MARK_RATES') && $user->hasRight('margins', 'liretous') && $affectedByMarge > 0) {$colspan++;}	// Colonne Marque %
 	if ($object->element == 'facture' && getDolGlobalString('INVOICE_USE_SITUATION') && $object->type == Facture::TYPE_SITUATION) {$colspan++;}
 	if (getDolGlobalString('PRODUCT_USE_UNITS')) {$colspan++;}
 	// Compatibility module showprice
@@ -116,7 +117,7 @@
 		if ($object->element == 'invoice_supplier') {
 			$colspan -= 2;
 		}
-		// Pour les sous-totaux : pré-calculs du total + quantité cumulée (utilisés par infrastructureline_infrastructure.tpl.php)
+		// Pour les sous-totaux : pré-calculs du total + quantité cumulée (utilisés par infrastructureline_total.tpl.php)
 		$line_show_qty	= false;
 		if (TInfrastructure::isTotal($line)) {
 			$TInfrastructureDatas		= infrastructure_get_totalLineFromObject($object, $line, false, 1);
@@ -134,11 +135,11 @@
 		}
 		if (isModEnabled('multicurrency') && ($object->multicurrency_code != $conf->currency)) {
 			$colsBeforeQty++;	// PU HT devise
-			if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
+			if (empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
 				$colsBeforeQty++;	// PU TTC devise
 			}
 		}
-		if (DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
+		if (empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) {
 			$colsBeforeQty++;	// PU TTC
 		}
 		// Cellule libellé : edit ou view selon le mode
@@ -181,14 +182,14 @@
 					if (TInfrastructure::isTitle($line) && ($line->fk_prev_id === null)) {
 						$color	= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR_BLOC', 'be3535');
 						print '	<a class="infrastructure-line-action-btn" title="'.$langs->trans('InfrastructureCloneLInfrastructureBlock').'" href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=duplicate&lineid='.((int) $line->id).'&token='.$newToken.'" >
-									<i class="'.getDolGlobalString('MAIN_FONTAWESOME_ICON_STYLE').' fa-clone" aria-hidden="true" style="color:#'.$color.' !important;"></i>
+									<i class="'.getDolGlobalString('MAIN_FONTAWESOME_ICON_STYLE').' fa-clone" aria-hidden="true" style="color:'.$color.' !important;"></i>
 								</a>';
 					}
 				}
 				if ($object->statut == 0 && $createRight && getDolGlobalString('INFRASTRUCTURE_ALLOW_EDIT_BLOCK')) {
 					$color	= getDolGlobalString(TInfrastructure::isTitle($line) ? 'INFRASTRUCTURE_TITLE_COLOR' : 'INFRASTRUCTURE_TOTAL_COLOR', '000000');
 					print '		<a class="infrastructure-line-action-btn"  href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=editline&token='.$newToken.'&lineid='.((int) $line->id).'#row-'.((int) $line->id).'">
-									'.img_edit('default', 0, ' style="color:#'.$color.' !important;"').'
+									'.img_edit('default', 0, ' style="color:'.$color.' !important;"').'
 								</a>';
 				}
 			}
@@ -201,12 +202,12 @@
 				$line->fk_prev_id	= empty($line->fk_prev_id) ? null : $line->fk_prev_id;
 				if (!isset($line->fk_prev_id) || $line->fk_prev_id === null) {
 					$color		= getDolGlobalString(TInfrastructure::isTitle($line) ? 'INFRASTRUCTURE_TITLE_COLOR' : 'INFRASTRUCTURE_TOTAL_COLOR', '000000');
-					$img_delete	= img_delete('default', ' style="color:#'.$color.' !important;"', '');
+					$img_delete	= img_delete('default', ' style="color:'.$color.' !important;"', '');
 					print '	<a class="infrastructure-line-action-btn"  href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=ask_deleteline&lineid='.((int) $line->id).'&token='.$newToken.'">'.$img_delete.'</a>';
 				}
 				if (TInfrastructure::isTitle($line) && (!isset($line->fk_prev_id) || (isset($line->fk_prev_id) && ($line->fk_prev_id === null)))) {
 					$color		= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR_BLOC', 'be3535');
-					$img_delete	= img_delete($langs->trans('InfrastructureDeleteWithAllLines'), ' style="color:#'.$color.' !important;" class="pictodelete pictodeleteallline"');
+					$img_delete	= img_delete($langs->trans('InfrastructureDeleteWithAllLines'), ' style="color:'.$color.' !important;" class="pictodelete pictodeleteallline"');
 					print '	<a class="infrastructure-line-action-btn"  href="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?'.$idvar.'='.((int) $object->id).'&action=ask_deleteallline&lineid='.((int) $line->id).'&token='.$newToken.'">'.$img_delete.'</a>';
 				}
 			}
@@ -245,7 +246,7 @@
 	</tr>
 	<?php
 	// Affichage des extrafields à la Dolibarr (sinon non affiché sur les titres)
-	if (TInfrastructure::isTitle($line) && getDolGlobalString('INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE')) {
+	if (TInfrastructure::isTitle($line) && getDolGlobalInt('INFRASTRUCTURE_ALLOW_EXTRAFIELDS_ON_TITLE')) {
 		$extrafieldsline	= new ExtraFields($db);
 		$extralabelsline	= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
 		$mode				= $action === 'editline' && $line->rowid == GETPOST('lineid', 'int') ? 'edit' : 'view';

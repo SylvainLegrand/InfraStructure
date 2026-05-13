@@ -65,17 +65,17 @@
 	*/
 	function infrastructure_getLineSpecialStyle($line)
 	{
-		$brightness	= getDolGlobalInt('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE', 10);
+		$brightness	= getDolGlobalInt('INFRASTRUCTURE_TITLE_AND_TOTAL_BRIGHTNESS_PERCENTAGE', 10);
 		if ($line->qty >= 91 && $line->qty <= 99) {
 			$bg		= getDolGlobalString('INFRASTRUCTURE_TOTAL_BACKGROUND_COLOR', '#adadcf');
 			$color	= getDolGlobalString('INFRASTRUCTURE_TOTAL_COLOR', '000000');
 			$offset	= $line->qty < 99 ? (99 - $line->qty) * $brightness : 1;
-			return 'background: none; background-color:'.colorLighten($bg, $offset).' !important; color:#'.$color.' !important;';
+			return 'background: none; background-color:'.colorLighten($bg, $offset).' !important; color:'.$color.' !important;';
 		} elseif ($line->qty >= 1 && $line->qty <= 9) {
 			$bg		= getDolGlobalString('INFRASTRUCTURE_TITLE_BACKGROUND_COLOR', '#adadcf');
 			$color	= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR', '000000');
 			$offset	= $line->qty > 1 ? ($line->qty - 1) * $brightness : 1;
-			return 'background: none; background-color:'.colorLighten($bg, $offset).' !important; color:#'.$color.' !important;';
+			return 'background: none; background-color:'.colorLighten($bg, $offset).' !important; color:'.$color.' !important;';
 		}
 		return '';
 	}
@@ -121,12 +121,10 @@
 		$filepath			= (empty($filepath) ? '' : $filepath);
 		$color				= getDolGlobalString('INFRASTRUCTURE_TITLE_COLOR_BLOC', 'be3535');
 		if (GETPOST('action', 'aZ09') != 'editline' && $nboflines > 1) {
-			$jsConf	= array( 'useOldSplittedTrForLine' => intval(DOL_VERSION) < 16 ? 1 : 0);
 			print '<script type="text/javascript" src="'.dol_buildpath('infrastructure/js/infrastructure.lib.js', 1).'"></script>';
 			?>
 			<script type="text/javascript">
 				$(document).ready(function () {
-					let infrastructureConf = <?php print json_encode($jsConf); ?>;
 					// target some elements
 					var titleRow = $('tr[data-isinfrastructure="title"]');
 					var lastTitleCol = titleRow.find('td:last-child');
@@ -134,11 +132,11 @@
 					moveBlockCol.disableSelection(); // prevent selection
 					<?php if ($object->statut == 0) { ?>
 						// apply some graphical stuff
-						moveBlockCol.html('<i class="fa fa-grip-horizontal" style="color:#<?php echo $color; ?> !important;"></i>');
+						moveBlockCol.html('<i class="fa fa-grip-horizontal" style="color:<?php echo $color; ?> !important;"></i>');
 						moveBlockCol.css("text-align","center");
 						moveBlockCol.css("cursor","move");
 						titleRow.attr('title', '<?php echo html_entity_decode($langs->trans('InfrastructureMoveTitleBlock')); ?>');
-						$( "#<?php echo $tagidfortablednd; ?>" ).sortable({
+						$( "<?php echo $tagidfortablednd; ?>" ).sortable({
 							cursor: "move",
 							handle: ".movetitleblock",
 							items: 'tr:not(.nodrag,.nodrop,.noblockdrop)',
@@ -246,7 +244,8 @@
 				let tr = '<tr><td>' + jsConf.langs.InfrastructureOptions + '</td><td>';
 				tr += '<label><input type="checkbox" value="1" name="infrastructure_add_title_bloc_from_orderstoinvoice" checked="checked" /> ' + jsConf.langs.AddTitleBlocFromOrdersToInvoice + '</label>';
 				if (jsConf.isModShippingEnable) {
-					tr += '<br/><label><input type="checkbox" value="1" name="infrastructure_add_shipping_list_to_title_desc" /> ' + jsConf.langs.AddShippingListToTile + ' <i class="fa fa-question-circle" title="' + jsConf.langs.UseHiddenConfToAutoCheck + ' INFRASTRUCTURE_DEFAULT_CHECK_SHIPPING_LIST_FOR_TITLE_DESC"></label>';
+					let shippingChecked = jsConf.INFRASTRUCTURE_DEFAULT_CHECK_SHIPPING_LIST_FOR_TITLE_DESC ? ' checked="checked"' : '';
+					tr += '<br/><label><input type="checkbox" value="1" name="infrastructure_add_shipping_list_to_title_desc"' + shippingChecked + ' /> ' + jsConf.langs.AddShippingListToTile + ' <i class="fa fa-question-circle" title="' + jsConf.langs.UseHiddenConfToAutoCheck + ' INFRASTRUCTURE_DEFAULT_CHECK_SHIPPING_LIST_FOR_TITLE_DESC"></label>';
 				}
 				tr += '<td></tr>';
 				let $noteTextArea = $("textarea[name=note]");
@@ -469,7 +468,7 @@
 		foreach ($object->lines as $line) {
 			if ($line->id == $currentLine->id) {break;}
 			$qty_search	= 100 - $currentLine->qty;
-			if ($line->product_type == 9 && $line->special_code == TInfrastructure::$module_number && $line->qty == $qty_search) {
+			if ($line->product_type == 9 && $line->special_code == TInfrastructure::getModuleNumber() && $line->qty == $qty_search) {
 				$res	= ($line->label) ? $line->label : (($line->description) ? $line->description : $line->desc);
 			}
 		}
@@ -708,8 +707,12 @@
 		$printCondensed			= GETPOST('line-printCondensed', 'int');
 		$showTotalHT			= GETPOST('line-showTotalHT', 'int');
 		$showReduc				= GETPOST('line-showReduc', 'int');
-		$showQty				= GETPOSTISSET('line-showQty') ? GETPOST('line-showQty', 'int') : -1;
 		$level					= GETPOST('infrastructure_level', 'int');
+		// Pré-charger les ExtraFields existants pour conserver options_infrastructure_show_qty lorsque la case
+		// "Afficher la quantité cumulée" n'apparaît pas dans le formulaire (constante globale vide à l'édition).
+		if (empty($line->array_options) && method_exists($line, 'fetch_optionals')) {
+			$line->fetch_optionals();
+		}
 		if (!empty($level)) {
 			if ($line->qty > 90) {
 				$line->qty = 100 - $level; // Si on edit une ligne sous-total
@@ -722,8 +725,15 @@
 		$line->array_options['options_print_condensed']				= $printCondensed;
 		$line->array_options['options_show_total_ht']				= $showTotalHT;
 		$line->array_options['options_show_reduc']					= $showReduc;
-		$line->array_options['options_infrastructure_show_qty']			= $showQty;
-		$res														= TInfrastructure::doUpdateLine($object, $line->id, $description, 0, $line->qty, 0, '', '', 0, 9, 0, 0, 'HT', $pagebreak, 0, 1, null, 0, $label, TInfrastructure::$module_number, $line->array_options);
+		// N'écraser options_infrastructure_show_qty que si le formulaire incluait effectivement la case
+		// (marqueur hidden 'line-showQty-present' rendu uniquement quand showQtyForObject() est vrai).
+		// Sans ce garde-fou, une édition de sous-total alors que la constante globale est vide écrasait
+		// systématiquement la valeur en -1, masquant la qté même après réactivation de la constante.
+		if (GETPOSTISSET('line-showQty-present')) {
+			$showQty												= GETPOSTISSET('line-showQty') ? GETPOST('line-showQty', 'int') : -1;
+			$line->array_options['options_infrastructure_show_qty']	= $showQty;
+		}
+		$res														= TInfrastructure::doUpdateLine($object, $line->id, $description, 0, $line->qty, 0, '', '', 0, 9, 0, 0, 'HT', $pagebreak, 0, 1, null, 0, $label, TInfrastructure::getModuleNumber(), $line->array_options);
 		$TKey														= null;
 		if ($line->element == 'propaldet' && getDolGlobalString('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_PROPALDET')) {
 			$TKey = explode(',', getDolGlobalString('INFRASTRUCTURE_LIST_OF_EXTRAFIELDS_PROPALDET'));
@@ -897,7 +907,7 @@
 	* Get session variable names for hide options based on context
 	*
 	* @param	array	$contextArray	Array of context strings
-	* @return	array					Array with keys 'hideInnerLines', 'hidesubdetails', 'hideprices'
+	* @return	array					Array with keys 'hideInnerLines', 'hideqtys', 'hideprices'
 	*/
 	function infrastructure_getSessionNames($contextArray)
 	{
@@ -917,7 +927,7 @@
 			$suffix = 'unknown';
 		}
 		return array('hideInnerLines'	=> 'infrastructure_hideInnerLines_'.$suffix,
-					'hidesubdetails'	=> 'infrastructure_hidesubdetails_'.$suffix,
+					'hideqtys'	=> 'infrastructure_hideqtys_'.$suffix,
 					'hideprices'		=> 'infrastructure_hideprices_'.$suffix,
 				);
 	}
@@ -948,7 +958,7 @@
 	* Compute PDF background style from a color configuration constant.
 	* Si une ligne spéciale (titre `qty 1-9` ou sous-total `qty 91-99`) est fournie, la couleur de base est éclaircie selon
 	* le niveau via `colorLighten()` en utilisant le pourcentage de luminosité PDF dédié
-	* (`INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE_PDF`, fallback sur la version écran).
+	* (`INFRASTRUCTURE_PDF_TITLE_AND_TOTAL_BRIGHTNESS_PERCENTAGE`, fallback sur la version écran).
 	*
 	* @param	TCPDF				$pdf					PDF object
 	* @param	string				$colorConst				Global constant name for background color (e.g. 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR')
@@ -968,7 +978,7 @@
 		$normalizedColor	= ($rawColor !== '' && $rawColor[0] !== '#') ? '#'.$rawColor : $rawColor;
 		if ($normalizedColor && function_exists('colorValidateHex') && colorValidateHex($normalizedColor) && function_exists('colorStringToArray')) {
 			if (is_object($line) && function_exists('colorLighten')) {
-				$brightness	= getDolGlobalString('INFRASTRUCTURE_TITLE_AND_INFRASTRUCTURE_BRIGHTNESS_PERCENTAGE_PDF');
+				$brightness	= (float) getDolGlobalString('INFRASTRUCTURE_PDF_TITLE_AND_TOTAL_BRIGHTNESS_PERCENTAGE');
 				if ($line->qty >= 91 && $line->qty <= 99) {
 					$offset				= $line->qty < 99 ? (99 - $line->qty) * $brightness : 1;
 					$lightened			= colorLighten($normalizedColor, $offset);
@@ -996,6 +1006,34 @@
 			}
 		}
 		return $result;
+	}
+
+	/**
+	*	Format a price for PDF rendering. Clone autonome de pdf_InfraSPlus_price() (module InfraSPackPlus)
+	*	pour permettre au module Infrastructure de fonctionner indépendamment.
+	*	Utilise les constantes INFRASPLUS_PDF_ROUNDING_UP / INFRASPLUS_PDF_ROUNDING_TOT / INFRASPLUS_PDF_SHOW_CUR_SYMB
+	*	si elles sont définies (lecture directe de llx_const, ne nécessite pas que le module InfraSPackPlus soit actif),
+	*	sinon retombe sur les constantes Dolibarr standard MAIN_MAX_DECIMALS_UNIT / MAIN_MAX_DECIMALS_TOT.
+	*
+	*	@param	CommonObject	$object			Document parent (utilisé pour multicurrency_code)
+	*	@param	float			$price			Montant à formater
+	*	@param	Translate		$outputlangs	Translations
+	*	@param	int				$forceSymb		Force l'affichage du symbole de devise (1 = oui)
+	*	@param	int				$local			Force l'usage de la devise locale (vs multicurrency_code)
+	*	@param	string			$priceType		'U' pour prix unitaire, 'T' pour total, '' pour autre
+	*	@return	string							Montant formaté
+	**/
+	function infrastructure_pdf_price($object, $price, $outputlangs, $forceSymb = 0, $local = 0, $priceType = '')
+	{
+		global $conf;
+
+		$roundingUP		= getDolGlobalInt('INFRASPLUS_PDF_ROUNDING_UP', 0);
+		$roundingTot	= getDolGlobalInt('INFRASPLUS_PDF_ROUNDING_TOT', 0);
+		$roundingDol	= min(getDolGlobalString('MAIN_MAX_DECIMALS_UNIT', ''), getDolGlobalString('MAIN_MAX_DECIMALS_TOT', ''));
+		$rounding		= empty($priceType) || ($priceType == 'U' && empty($roundingUP)) || ($priceType == 'T' && empty($roundingTot)) ? $roundingDol : ($priceType == 'U' ? $roundingUP : ($priceType == 'T' ? $roundingTot : ''));
+		$currency		= !empty($object->multicurrency_code) && empty($local) ? $object->multicurrency_code : $conf->currency;
+		$showCurSymb	= !empty($forceSymb) ? 1 : getDolGlobalInt('INFRASPLUS_PDF_SHOW_CUR_SYMB', 0);
+		return price($price, 0, $outputlangs, 1, $rounding, $rounding, !empty($showCurSymb) ? $currency : '');
 	}
 
 	/**
@@ -1369,8 +1407,8 @@
 	*/
 	function infrastructure_setDocTVA(&$pdf, &$object)
 	{
-		$hidesubdetails	= GETPOST('hidesubdetails', 'int');
-		if(empty($hidesubdetails)) return false;
+		$hideqtys	= GETPOST('hideqtys', 'int');
+		if(empty($hideqtys)) return false;
 		// TODO can't add VAT to document without lines... :-/
 		return true;
 	}
@@ -1398,4 +1436,681 @@
 			});
 		</script>
 		<?php
+	}
+
+	// PDF generation cache helpers *****************
+
+	/**
+	*	Cache du parent title d'une ligne (par rang). Évite de refaire un array_reverse + foreach complet à chaque appel de hook PDF.
+	*
+	*	@param	CommonObject	$object	Document
+	*	@param	int				$rang	Rang de la ligne
+	*	@return	bool|object				Ligne titre parente ou false
+	**/
+	function infrastructure_getCachedParentTitle(&$object, $rang)
+	{
+		if (!isset($object->context) || !is_array($object->context)) {
+			$object->context	= array();
+		}
+		if (!isset($object->context['infrastructureCache']) || !is_array($object->context['infrastructureCache'])) {
+			$object->context['infrastructureCache']	= array();
+		}
+		if (!isset($object->context['infrastructureCache']['parentTitleByRang']) || !is_array($object->context['infrastructureCache']['parentTitleByRang'])) {
+			$object->context['infrastructureCache']['parentTitleByRang']	= array();
+		}
+		if (array_key_exists($rang, $object->context['infrastructureCache']['parentTitleByRang'])) {
+			return $object->context['infrastructureCache']['parentTitleByRang'][$rang];
+		}
+		// Si le cache a été pré-chauffé (infrastructure_warmPDFInfrastructureCache), l'absence de clé => pas de parent
+		if (!empty($object->context['infrastructureCache']['warmed'])) {
+			$object->context['infrastructureCache']['parentTitleByRang'][$rang]	= false;
+			return false;
+		}
+		$res	= TInfrastructure::getParentTitleOfLine($object, $rang, 0);
+		$object->context['infrastructureCache']['parentTitleByRang'][$rang]	= $res;
+		return $res;
+	}
+
+	/**
+	*	Cache de la chaîne complète des titres englobants d'une ligne. Reproduit TInfrastructure::getAllTitleFromLine mais en O(1) après pré-chauffage.
+	*	Fallback sur l'implémentation non mise en cache si le cache n'a pas été chauffé.
+	*
+	*	@param	CommonObject			$object		Document
+	*	@param	CommonObjectLine		$line		Ligne
+	*	@return	array								Titres englobants indexés par id
+	**/
+	function infrastructure_getCachedAllTitleFromLine(&$object, &$line)
+	{
+		if (empty($line) || !is_object($line) || !isset($line->rang)) {
+			return array();
+		}
+		if (!isset($object->context) || !is_array($object->context)) {
+			$object->context	= array();
+		}
+		if (!isset($object->context['infrastructureCache']) || !is_array($object->context['infrastructureCache'])) {
+			$object->context['infrastructureCache']	= array();
+		}
+		if (isset($object->context['infrastructureCache']['allTitleChainByRang'][$line->rang])) {
+			return $object->context['infrastructureCache']['allTitleChainByRang'][$line->rang];
+		}
+		if (!empty($object->context['infrastructureCache']['warmed'])) {
+			// Cache chauffé mais rang absent => chaîne vide
+			return array();
+		}
+		return TInfrastructure::getAllTitleFromLine($line);
+	}
+
+	/**
+	*	Pré-chauffage du cache des titres parents pour toutes les lignes en un seul passage.
+	*	Évite les O(n²) cumulés dans les hooks PDF (appels répétés de getParentTitleOfLine + getAllTitleFromLine).
+	*	Utilise une pile de titres ouverts : title => push, infrastructure => pop (sémantique alignée sur getParentTitleOfLine avec $lvl=0).
+	*
+	*	@param	CommonObject	$object	Document
+	*	@return	void
+	**/
+	function infrastructure_warmPDFInfrastructureCache(&$object)
+	{
+		if (empty($object->lines) || !is_array($object->lines)) {
+			return;
+		}
+		if (!isset($object->context) || !is_array($object->context)) {
+			$object->context	= array();
+		}
+		if (!isset($object->context['infrastructureCache']) || !is_array($object->context['infrastructureCache'])) {
+			$object->context['infrastructureCache']	= array();
+		}
+		$parentByRang	= array();
+		$chainByRang	= array();
+		$openTitles		= array();	// pile de lignes titre ouvertes
+		foreach ($object->lines as $line) {
+			if (!is_object($line) || !isset($line->rang)) {
+				continue;
+			}
+			// Parent du rang courant = sommet de pile avant traitement
+			$parent		= !empty($openTitles) ? end($openTitles) : false;
+			$parentByRang[$line->rang]	= $parent;
+			// Chaîne complète = parent + chaîne du parent (indexée par id comme getAllTitleFromLine)
+			if ($parent) {
+				$parentChain	= isset($chainByRang[$parent->rang]) ? $chainByRang[$parent->rang] : array();
+				$chain			= array($parent->id => $parent) + $parentChain;
+			} else {
+				$chain	= array();
+			}
+			$chainByRang[$line->rang]	= $chain;
+			// Mise à jour de la pile pour la ligne suivante
+			if (TInfrastructure::isTitle($line)) {
+				$openTitles[]	= $line;
+			} elseif (TInfrastructure::isTotal($line)) {
+				array_pop($openTitles);
+			}
+		}
+		$object->context['infrastructureCache']['parentTitleByRang']	= $parentByRang;
+		$object->context['infrastructureCache']['allTitleChainByRang']	= $chainByRang;
+		$object->context['infrastructureCache']['warmed']				= true;
+	}
+
+	/**
+	*	Cache du résultat de titleHasTotalLine pour une ligne titre.
+	*
+	*	@param	CommonObject	$object			Document
+	*	@param	object			$title_line		Ligne titre
+	*	@param	bool			$strict_mode	Mode strict
+	*	@return	bool
+	**/
+	function infrastructure_getCachedTitleHasTotal(&$object, &$title_line, $strict_mode = false)
+	{
+		if (empty($title_line) || !is_object($title_line) || !isset($title_line->rang)) {
+			return false;
+		}
+		if (!isset($object->context) || !is_array($object->context)) {
+			$object->context	= array();
+		}
+		if (!isset($object->context['infrastructureCache']) || !is_array($object->context['infrastructureCache'])) {
+			$object->context['infrastructureCache']	= array();
+		}
+		if (!isset($object->context['infrastructureCache']['titleHasTotalByKey']) || !is_array($object->context['infrastructureCache']['titleHasTotalByKey'])) {
+			$object->context['infrastructureCache']['titleHasTotalByKey']	= array();
+		}
+		$key	= $title_line->rang.'_'.($strict_mode ? '1' : '0');
+		if (array_key_exists($key, $object->context['infrastructureCache']['titleHasTotalByKey'])) {
+			return $object->context['infrastructureCache']['titleHasTotalByKey'][$key];
+		}
+		$res	= TInfrastructure::titleHasTotalLine($object, $title_line, $strict_mode, false);
+		$object->context['infrastructureCache']['titleHasTotalByKey'][$key]	= $res;
+		return $res;
+	}
+
+	/**
+	*	Cache local du tableau INFRASTRUCTURE_TFIELD_TO_KEEP_WITH_NC (évite l'explode à chaque ligne).
+	*	Variable statique locale — pas de réinitialisation entre PDFs successifs car la constante ne change pas en cours de requête.
+	*
+	*	@return	array
+	**/
+	function infrastructure_getNcTfieldKeepList()
+	{
+		static $cache	= null;
+		if ($cache === null) {
+			$raw	= getDolGlobalString('INFRASTRUCTURE_TFIELD_TO_KEEP_WITH_NC', '');
+			$cache	= ($raw === '') ? array() : explode(',', $raw);
+		}
+		return $cache;
+	}
+
+	// PDF rendering helpers ************************
+
+	/**
+	*	Capture l'instance du modèle PDF natif appelant via debug_backtrace (parcours de la pile à la recherche d'un objet possédant la méthode _tableau()).
+	*	Résultat mis en cache sur $object->context['infrastructureCache']['nativePdfModel'] pour éviter le coût des debug_backtrace successifs durant une même génération PDF.
+	*	Le cache est réinitialisé par beforePDFCreation qui vide $object->context['infrastructureCache'].
+	*
+	*	@param	CommonObject	$object		Document (porte le cache via $object->context)
+	*	@return	object|null					Instance du modèle PDF appelant, ou null si non trouvé
+	**/
+	function infrastructure_getCallerNativePdfModel(&$object)
+	{
+		if (!isset($object->context) || !is_array($object->context)) {
+			$object->context	= array();
+		}
+		if (!isset($object->context['infrastructureCache']) || !is_array($object->context['infrastructureCache'])) {
+			$object->context['infrastructureCache']	= array();
+		}
+		$cache	= $object->context['infrastructureCache']['nativePdfModel'] ?? null;
+		if ($cache === false) {
+			return null;
+		}
+		if (is_object($cache)) {
+			return $cache;
+		}
+		$bt	= debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT);
+		foreach ($bt as $frame) {
+			if (empty($frame['object']) || !is_object($frame['object'])) {
+				continue;
+			}
+			$obj	= $frame['object'];
+			if ($obj instanceof ActionsInfrastructure) {
+				continue;
+			}
+			if (method_exists($obj, '_tableau')) {
+				$object->context['infrastructureCache']['nativePdfModel']	= $obj;
+				return $obj;
+			}
+		}
+		$object->context['infrastructureCache']['nativePdfModel']	= false;
+		return null;
+	}
+
+	/**
+	*	Dessine l'en-tête de tableau (libellés des colonnes) au-dessus d'un titre infrastructure portant l'option show_table_header_before.
+	*	Compatible modèles natifs Dolibarr legacy (pdf_azur, pdf_cyan, pdf_crabe, pdf_sponge, pdf_einstein) via les propriétés posxXXX, et modèles modernes à cols (pdf_octopus, pdf_eratosthene) via $pdfModel->cols.
+	*
+	*	@param	TCPDF		$pdf		Instance PDF
+	*	@param	object		$pdfModel	Instance du modèle PDF appelant
+	*	@param	float		$posy		Position Y où dessiner l'en-tête
+	*	@return	float					Hauteur consommée en mm (0 si rien dessiné)
+	**/
+	function infrastructure_drawNativeTableHeaderBefore($pdf, $pdfModel, $posy)
+	{
+		global $langs;
+
+		if (!function_exists('pdf_getPDFFontSize')) {
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+		}
+		$default_font_size	= pdf_getPDFFontSize($langs);
+		$headerHeight		= 5;	// Hauteur standard d'un en-tête de tableau (5 mm dans pdf_azur)
+		$pdf->SetTextColor(0, 0, 0);
+		$pdf->SetFont('', '', $default_font_size - 1);
+		// Modèles modernes avec cols (pdf_octopus, pdf_eratosthene...) : utilise la définition de colonnes du modèle
+		if (property_exists($pdfModel, 'cols') && is_array($pdfModel->cols) && !empty($pdfModel->cols)) {
+			foreach ($pdfModel->cols as $colKey => $colDef) {
+				if (method_exists($pdfModel, 'getColumnStatus') && !$pdfModel->getColumnStatus($colKey)) {
+					continue;
+				}
+				if (empty($colDef['title'])) {
+					continue;
+				}
+				$xstartpos	= (int) ($colDef['xStartPos'] ?? 0);
+				$padLeft	= (int) ($colDef['title']['padding'][3] ?? 0);
+				$padTop		= (int) ($colDef['title']['padding'][0] ?? 0);
+				$padRight	= (int) ($colDef['title']['padding'][1] ?? 0);
+				$width		= (int) ($colDef['width'] ?? 0) - $padLeft - $padRight;
+				$labelText	= !empty($colDef['title']['label']) ? $colDef['title']['label'] : $langs->transnoentities($colDef['title']['textkey'] ?? '');
+				$align		= $colDef['title']['align'] ?? 'L';
+				if ($width > 0) {
+					$pdf->SetXY($xstartpos + $padLeft, $posy + $padTop);
+					$pdf->MultiCell($width, 2, $labelText, '', $align);
+				}
+			}
+			if (property_exists($pdfModel, 'marge_gauche') && property_exists($pdfModel, 'marge_droite') && property_exists($pdfModel, 'page_largeur')) {
+				$pdf->line($pdfModel->marge_gauche, $posy + $headerHeight, $pdfModel->page_largeur - $pdfModel->marge_droite, $posy + $headerHeight);
+			}
+			return $headerHeight;
+		}
+		// Modèles natifs legacy (pdf_azur, pdf_cyan, pdf_crabe, pdf_sponge, pdf_einstein) : aligne sur la logique de _tableau() de ces modèles
+		if (property_exists($pdfModel, 'posxdesc') && property_exists($pdfModel, 'posxup') && property_exists($pdfModel, 'posxqty')) {
+			$posxdesc			= $pdfModel->posxdesc;
+			$posxup				= $pdfModel->posxup;
+			$posxqty			= $pdfModel->posxqty;
+			$posxtva			= property_exists($pdfModel, 'posxtva') ? $pdfModel->posxtva : null;
+			$posxunit			= property_exists($pdfModel, 'posxunit') ? $pdfModel->posxunit : null;
+			$posxdiscount		= property_exists($pdfModel, 'posxdiscount') ? $pdfModel->posxdiscount : null;
+			$postotalht			= property_exists($pdfModel, 'postotalht') ? $pdfModel->postotalht : null;
+			$atleastonediscount	= property_exists($pdfModel, 'atleastonediscount') ? $pdfModel->atleastonediscount : 0;
+			$pdf->SetXY($posxdesc - 1, $posy + 1);
+			$pdf->MultiCell(108, 2, $langs->transnoentities('Designation'), '', 'L');
+			if (!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') && !getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN') && $posxtva !== null) {
+				$pdf->SetXY($posxtva - 3, $posy + 1);
+				$pdf->MultiCell($posxup - $posxtva + 3, 2, $langs->transnoentities('VAT'), '', 'C');
+			}
+			$pdf->SetXY($posxup - 1, $posy + 1);
+			$pdf->MultiCell($posxqty - $posxup - 1, 2, $langs->transnoentities('PriceUHT'), '', 'C');
+			if ($posxunit !== null) {
+				$pdf->SetXY($posxqty - 1, $posy + 1);
+				$pdf->MultiCell($posxunit - $posxqty - 1, 2, $langs->transnoentities('Qty'), '', 'C');
+				if (getDolGlobalInt('PRODUCT_USE_UNITS') && $posxdiscount !== null) {
+					$pdf->SetXY($posxunit - 1, $posy + 1);
+					$pdf->MultiCell($posxdiscount - $posxunit - 1, 2, $langs->transnoentities('Unit'), '', 'C');
+				}
+			} else {
+				$pdf->SetXY($posxqty - 1, $posy + 1);
+				$endXqty	= $posxdiscount !== null ? $posxdiscount - 1 : ($postotalht !== null ? $postotalht - 1 : $posxqty + 16);
+				$pdf->MultiCell($endXqty - $posxqty, 2, $langs->transnoentities('Qty'), '', 'C');
+			}
+			if (!empty($atleastonediscount) && $posxdiscount !== null && $postotalht !== null) {
+				$pdf->SetXY($posxdiscount - 1, $posy + 1);
+				$pdf->MultiCell($postotalht - $posxdiscount + 1, 2, $langs->transnoentities('ReductionShort'), '', 'C');
+			}
+			if ($postotalht !== null) {
+				$pdf->SetXY($postotalht - 1, $posy + 1);
+				$pdf->MultiCell(30, 2, $langs->transnoentities('TotalHTShort'), '', 'C');
+			}
+			if (property_exists($pdfModel, 'marge_gauche') && property_exists($pdfModel, 'marge_droite') && property_exists($pdfModel, 'page_largeur')) {
+				$pdf->line($pdfModel->marge_gauche, $posy + $headerHeight, $pdfModel->page_largeur - $pdfModel->marge_droite, $posy + $headerHeight);
+			}
+			return $headerHeight;
+		}
+		return 0;
+	}
+
+	/**
+	*	Redessine les valeurs des colonnes TVA, Total HT (et Total TTC si disponible) sur la ligne d'un titre porteur de totaux stockés.
+	*	Utilisé après un pagebreak où les hooks vat/total ont été neutralisés (sinon Dolibarr les dessinerait avec le $curY d'origine — avant pagebreak — soit dans la zone d'en-tête de la nouvelle page).
+	*	Compatible modèles natifs Dolibarr legacy (pdf_azur, pdf_cyan, pdf_crabe, pdf_sponge, pdf_einstein) via les propriétés posxXXX / postotalht, et modèles modernes à cols (pdf_octopus, pdf_eratosthene) via $pdfModel->cols.
+	*
+	*	@param	TCPDF			$pdf		Instance PDF
+	*	@param	object			$pdfModel	Instance du modèle PDF appelant
+	*	@param	CommonObject	$object		Document parent
+	*	@param	object			$line		Ligne titre
+	*	@param	float			$posy		Position Y où dessiner les colonnes
+	*	@return	void
+	**/
+	function infrastructure_drawTitleColumnsAtPosY($pdf, $pdfModel, &$object, &$line, $posy)
+	{
+		global $langs;
+
+		$use_multicurrency	= isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 1 : 0;
+		$totalHtToPrint		= '';
+		if (isset($line->infrastructure_title_total_ht)) {
+			if ($use_multicurrency && isset($line->infrastructure_title_multicurrency_total_ht)) {
+				$totalHtToPrint	= price($line->infrastructure_title_multicurrency_total_ht, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+			} else {
+				$totalHtToPrint	= price($line->infrastructure_title_total_ht, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+			}
+		}
+		$totalTtcToPrint	= '';
+		if (isset($line->infrastructure_title_total_ttc)) {
+			if ($use_multicurrency && isset($line->infrastructure_title_multicurrency_total_ttc)) {
+				$totalTtcToPrint	= price($line->infrastructure_title_multicurrency_total_ttc, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+			} else {
+				$totalTtcToPrint	= price($line->infrastructure_title_total_ttc, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+			}
+		}
+		$vatToPrint			= '';
+		if (isset($line->infrastructure_common_vat) && $line->infrastructure_common_vat !== false && $line->infrastructure_common_vat !== null) {
+			$vatToPrint		= vatrate($line->infrastructure_common_vat, true);
+		}
+		$qtyToPrint			= '';
+		if (isset($line->infrastructure_title_total_qty)) {
+			$qtyToPrint		= (string) $line->infrastructure_title_total_qty;
+		}
+		if ($totalHtToPrint === '' && $vatToPrint === '' && $totalTtcToPrint === '' && $qtyToPrint === '') {
+			return;
+		}
+		$titleStyle	= getDolGlobalString('INFRASTRUCTURE_PDF_TITLE_STYLE');
+		$pdf->SetFont('', $titleStyle, 9);
+		infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TITLE_COLOR');
+		// Modèles modernes à cols (pdf_octopus, pdf_eratosthene...)
+		if (property_exists($pdfModel, 'cols') && is_array($pdfModel->cols) && !empty($pdfModel->cols)) {
+			if ($vatToPrint !== '') {
+				infrastructure_drawTitleColumnCell($pdf, $pdfModel, 'vat', $posy, $vatToPrint);
+			}
+			if ($qtyToPrint !== '') {
+				infrastructure_drawTitleColumnCell($pdf, $pdfModel, 'qty', $posy, $qtyToPrint);
+			}
+			if ($totalHtToPrint !== '') {
+				infrastructure_drawTitleColumnCell($pdf, $pdfModel, 'totalexcltax', $posy, $totalHtToPrint);
+			}
+			if ($totalTtcToPrint !== '') {
+				infrastructure_drawTitleColumnCell($pdf, $pdfModel, 'totalincltax', $posy, $totalTtcToPrint);
+			}
+			return;
+		}
+		// Modèles InfraSPlus (infraspackplus) : système $pdfModel->tableau[col]['posx'|'larg'] indexé par clés 'tva' / 'qty' / 'totalht' / 'totalttc'. Les positions sont calculées dans write_file() avant le rendu des lignes.
+		// Le libellé du titre est dessiné par pdfAddTitle avec setCellPaddings(L, 1, R, 1) — padding top de 1mm qui décale verticalement le contenu de 1mm vers le bas par rapport au $posy d'entrée. Pour aligner les valeurs TVA / Qté / Total HT / Total TTC sur la même baseline que le libellé, on applique la même offset Y de 1mm aux MultiCell (équivalent à la branche legacy ci-dessous qui utilise $posy + 1).
+		if (property_exists($pdfModel, 'tableau') && is_array($pdfModel->tableau)) {
+			$heightline	= property_exists($pdfModel, 'heightline') && !empty($pdfModel->heightline) ? $pdfModel->heightline : 3;
+			$padTop		= 1.0;
+			if ($vatToPrint !== '' && !empty($pdfModel->tableau['tva']['posx']) && !empty($pdfModel->tableau['tva']['larg'])) {
+				$pdf->MultiCell($pdfModel->tableau['tva']['larg'], $heightline, $vatToPrint, '', 'R', 0, 1, $pdfModel->tableau['tva']['posx'], $posy + $padTop, true, 0, 0, false, 0, 'M', false);
+			}
+			if ($qtyToPrint !== '' && !empty($pdfModel->tableau['qty']['posx']) && !empty($pdfModel->tableau['qty']['larg'])) {
+				$pdf->MultiCell($pdfModel->tableau['qty']['larg'], $heightline, $qtyToPrint, '', 'R', 0, 1, $pdfModel->tableau['qty']['posx'], $posy + $padTop, true, 0, 0, false, 0, 'M', false);
+			}
+			if ($totalHtToPrint !== '' && !empty($pdfModel->tableau['totalht']['posx']) && !empty($pdfModel->tableau['totalht']['larg'])) {
+				$pdf->MultiCell($pdfModel->tableau['totalht']['larg'], $heightline, $totalHtToPrint, '', 'R', 0, 1, $pdfModel->tableau['totalht']['posx'], $posy + $padTop, true, 0, 0, false, 0, 'M', false);
+			}
+			if ($totalTtcToPrint !== '' && !empty($pdfModel->tableau['totalttc']['posx']) && !empty($pdfModel->tableau['totalttc']['larg'])) {
+				$pdf->MultiCell($pdfModel->tableau['totalttc']['larg'], $heightline, $totalTtcToPrint, '', 'R', 0, 1, $pdfModel->tableau['totalttc']['posx'], $posy + $padTop, true, 0, 0, false, 0, 'M', false);
+			}
+			return;
+		}
+		// Modèles natifs legacy (pdf_azur, pdf_cyan, pdf_crabe, pdf_sponge, pdf_einstein) : utilise les propriétés posxXXX
+		if (property_exists($pdfModel, 'posxtva') && $pdfModel->posxtva && $vatToPrint !== '') {
+			$posxup	= property_exists($pdfModel, 'posxup') ? $pdfModel->posxup : ($pdfModel->posxtva + 12);
+			$pdf->SetXY($pdfModel->posxtva - 3, $posy + 1);
+			$pdf->MultiCell($posxup - $pdfModel->posxtva + 3, 3, $vatToPrint, 0, 'R');
+		}
+		if (property_exists($pdfModel, 'posxqty') && $pdfModel->posxqty && $qtyToPrint !== '') {
+			$endXqty	= property_exists($pdfModel, 'posxunit') && $pdfModel->posxunit
+				? $pdfModel->posxunit : (property_exists($pdfModel, 'posxdiscount') && $pdfModel->posxdiscount
+				? $pdfModel->posxdiscount : (property_exists($pdfModel, 'postotalht') && $pdfModel->postotalht ? $pdfModel->postotalht : $pdfModel->posxqty + 16));
+			$pdf->SetXY($pdfModel->posxqty - 1, $posy + 1);
+			$pdf->MultiCell($endXqty - $pdfModel->posxqty, 3, $qtyToPrint, 0, 'R');
+		}
+		if (property_exists($pdfModel, 'postotalht') && $pdfModel->postotalht && $totalHtToPrint !== '') {
+			$rightEdge	= property_exists($pdfModel, 'page_largeur') && property_exists($pdfModel, 'marge_droite')
+				? $pdfModel->page_largeur - $pdfModel->marge_droite
+				: $pdfModel->postotalht + 30;
+			$pdf->SetXY($pdfModel->postotalht, $posy + 1);
+			$pdf->MultiCell($rightEdge - $pdfModel->postotalht, 3, $totalHtToPrint, 0, 'R');
+		}
+	}
+
+	/**
+	*	Dessine le contenu d'une cellule de colonne sur un modèle PDF moderne (à cols).
+	*	Reproduit le placement effectué par printStdColumnContent() pour assurer un alignement identique au rendu standard.
+	*
+	*	@param	TCPDF		$pdf		Instance PDF
+	*	@param	object		$pdfModel	Instance du modèle PDF appelant
+	*	@param	string		$colKey		Clé de colonne (ex. 'vat', 'totalexcltax', 'totalincltax')
+	*	@param	float		$posy		Position Y de la cellule
+	*	@param	string		$text		Texte à afficher
+	*	@return	void
+	**/
+	function infrastructure_drawTitleColumnCell($pdf, $pdfModel, $colKey, $posy, $text)
+	{
+		if (empty($pdfModel->cols[$colKey])) {
+			return;
+		}
+		if (method_exists($pdfModel, 'getColumnStatus') && !$pdfModel->getColumnStatus($colKey)) {
+			return;
+		}
+		$colDef		= $pdfModel->cols[$colKey];
+		$xstartpos	= (int) ($colDef['xStartPos'] ?? 0);
+		$padLeft	= (int) ($colDef['content']['padding'][3] ?? 0);
+		$padTop		= (int) ($colDef['content']['padding'][0] ?? 0);
+		$padRight	= (int) ($colDef['content']['padding'][1] ?? 0);
+		$width		= (int) ($colDef['width'] ?? 0) - $padLeft - $padRight;
+		$align		= $colDef['content']['align'] ?? 'R';
+		if ($width > 0) {
+			$pdf->SetXY($xstartpos + $padLeft, $posy + $padTop);
+			$pdf->MultiCell($width, 2, $text, '', $align);
+		}
+	}
+
+	// PDF lines preprocessing helpers (called from beforePDFCreation) ***
+
+	/**
+	*	Force remise_percent = 100 (sentinelle non nulle) sur les sous-totaux dont le titre parent porte l'option show_reduc.
+	*	Sans cela, pdf_azur et autres modèles natifs n'invoquent pas le hook pdf_getlineremisepercent (test if ($line->remise_percent)) et le pourcentage de remise globale calculé par ce hook ne s'affiche jamais.
+	*	Le pourcentage réel est calculé ensuite par le hook qui réécrit $this->resprints.
+	*
+	*	@param	CommonObject	$object	Document parent
+	*	@return	void
+	**/
+	function infrastructure_forceRemisePercentForShowReduc(&$object)
+	{
+		if (empty($object->lines) || !is_array($object->lines)) {
+			return;
+		}
+		foreach ($object->lines as &$line) {
+			if (TInfrastructure::isTotal($line)) {
+				$parentTitle	= infrastructure_getCachedParentTitle($object, $line->rang);
+				if (is_object($parentTitle) && empty($parentTitle->array_options)) {
+					$parentTitle->fetch_optionals();
+				}
+				if (!empty($parentTitle->id) && !empty($parentTitle->array_options['options_show_reduc'])) {
+					$line->remise_percent	= 100;	// Sentinel non-zero — final % comes from pdf_getlineremisepercent hook
+				}
+			}
+		}
+		unset($line);
+	}
+
+	/**
+	*	Implements the INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL option : when active, copies the totals (HT, TVA, TTC, multicurrency, common VAT rate) from each subtotal line to its parent title line (same level), then physically removes the subtotal lines from $object->lines so they are not rendered in the PDF. The title-side hooks (pdf_getlinetotalexcltax / pdf_getlinetotalwithtax / pdf_getlinevatrate) read the stored values to render totals directly on the title row.
+	*
+	*	Must run BEFORE infrastructure_applyTitlePrintAsListOrCondensed so the children of titles flagged with print_as_list / print_condensed are still present when getCommonVATRate / infrastructure_get_totalLineFromObject iterate $object->lines on each subtotal.
+	*
+	*	@param	CommonObject	$object	Document parent (propal, commande, facture...)
+	*	@return	void
+	**/
+	function infrastructure_applyTitleWithTotal(&$object)
+	{
+		if (empty($object->lines) || !is_array($object->lines)) {
+			return;
+		}
+		if (empty(getDolGlobalString('INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL'))) {
+			return;
+		}
+		// Pré-chauffe infrastructure_getCachedTitleHasTotal pour chaque titre AVANT la suppression des sous-totaux. Sinon les hooks hideqtys / hideprices / hideInnerLines (qui exigent la présence d'un sous-total sous le titre parent) seraient désactivés à tort puisque la fonction itère $object->lines pour trouver le sous-total.
+		foreach ($object->lines as $line) {
+			if (TInfrastructure::isTitle($line)) {
+				infrastructure_getCachedTitleHasTotal($object, $line, false);
+				infrastructure_getCachedTitleHasTotal($object, $line, true);
+			}
+		}
+		$showQtyByDefault	= TInfrastructure::showQtyForObject($object, 'pdf');
+		$linesToHide		= array();
+		foreach ($object->lines as $idx => $subTotal) {
+			if (!TInfrastructure::isTotal($subTotal)) {
+				continue;
+			}
+			// Localise le titre parent : titre de même niveau précédent le sous-total dans $object->lines.
+			$niveau			= TInfrastructure::getNiveau($subTotal);
+			$parentTitleIdx	= -1;
+			for ($j = $idx - 1; $j >= 0; $j--) {
+				$prev	= $object->lines[$j];
+				if (TInfrastructure::isTitle($prev) && TInfrastructure::getNiveau($prev) == $niveau) {
+					$parentTitleIdx	= $j;
+					break;
+				}
+			}
+			if ($parentTitleIdx >= 0) {
+				$TInfo		= infrastructure_get_totalLineFromObject($object, $subTotal, false, 1);
+				$vatRate	= TInfrastructure::getCommonVATRate($object, $subTotal);
+				$parent		= &$object->lines[$parentTitleIdx];
+				$parent->infrastructure_title_total_ht	= $TInfo[0];
+				$parent->infrastructure_title_total_tva	= $TInfo[1];
+				$parent->infrastructure_title_total_ttc	= $TInfo[2];
+				if (!empty($TInfo[6])) {
+					$parent->infrastructure_title_multicurrency_total_ht	= $TInfo[6];
+				}
+				if (!empty($TInfo[7])) {
+					$parent->infrastructure_title_multicurrency_total_ttc	= $TInfo[7];
+				}
+				$parent->infrastructure_common_vat	= $vatRate;
+				// Quantité cumulée : reportée sur le titre si INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_TOTAL_ON_ELEMENTS_PDF
+				if ($showQtyByDefault) {
+					if (empty($subTotal->array_options) && method_exists($subTotal, 'fetch_optionals')) {
+						$subTotal->fetch_optionals();
+					}
+					if (TInfrastructure::showQtyForObjectLine($subTotal, $showQtyByDefault)) {
+						$parent->infrastructure_title_total_qty	= $TInfo[4];
+					}
+				}
+				unset($parent);
+			}
+			$linesToHide[$idx]	= true;
+		}
+		if (!empty($linesToHide)) {
+			$newLines	= array();
+			foreach ($object->lines as $idx => $line) {
+				if (empty($linesToHide[$idx])) {
+					$newLines[]	= $line;
+				}
+			}
+			$object->lines	= array_values($newLines);
+		}
+	}
+
+	/**
+	*	Folds child product/service lines below a title flagged with print_as_list (qty 20) or print_condensed (qty 30) into the title's description, then removes those children from $object->lines. Allows native Dolibarr PDF templates (azur, crabe, sponge, cyan...) to honor the InfraStructure block options the same way the InfraSPackPlus templates do via descWorksHidden.
+	*
+	*	Children are accumulated up to the next infrastructure-line (title, subtotal, free text) — sub-titles terminate the parent's accumulation. The transformation is in-memory only; the database is untouched.
+	*
+	*	@param	CommonObject	$object	Document parent (propal, commande, facture...)
+	*	@return	void
+	**/
+	function infrastructure_applyTitlePrintAsListOrCondensed(&$object)
+	{
+		if (empty($object->lines) || !is_array($object->lines)) {
+			return;
+		}
+		// Quick check : do we have at least one title with the flag ? Avoid useless work.
+		$hasFlaggedTitle	= false;
+		foreach ($object->lines as $line) {
+			if (TInfrastructure::isTitle($line)) {
+				$pal	= !empty($line->array_options['options_print_as_list']) && $line->array_options['options_print_as_list'] > 0;
+				$pcond	= !empty($line->array_options['options_print_condensed']) && $line->array_options['options_print_condensed'] > 0;
+				if ($pal || $pcond) {
+					$hasFlaggedTitle	= true;
+					break;
+				}
+			}
+		}
+		if (!$hasFlaggedTitle) {
+			return;
+		}
+		// Subtotals will lose their children once we filter — freeze their totals now (same pattern as hideInnerLines flow).
+		foreach ($object->lines as &$line) {
+			if (TInfrastructure::isTotal($line)) {
+				$TInfo				= infrastructure_get_totalLineFromObject($object, $line, false, 1);
+				$line->total_ht		= $TInfo[0];
+				$line->total_tva	= $TInfo[1];
+				$line->total		= $line->total_ht;
+				$line->total_ttc	= $TInfo[2];
+				if (TInfrastructure::getNiveau($line) == 1) {
+					$line->TTotal_tva		= $TInfo[3];
+					$line->TTotal_tva_array	= $TInfo[5];
+				}
+				if (!empty($TInfo[6])) {
+					$line->multicurrency_total_ht	= $TInfo[6];
+				}
+				if (!empty($TInfo[7])) {
+					$line->multicurrency_total_ttc	= $TInfo[7];
+				}
+				// Pré-calcul du taux TVA commun pendant que les lignes filles sont encore présentes (pdf_getlinevatrate les cherchera après leur suppression).
+				$line->infrastructure_common_vat	= TInfrastructure::getCommonVATRate($object, $line);
+			}
+		}
+		unset($line);
+		$groupTitleIdx	= -1;	// Index in $object->lines of the title currently absorbing children, -1 if none
+		$groupMode		= '';	// 'list' or 'condensed'
+		$groupBuffer	= '';	// HTML accumulated for the current group
+		$linesToHide	= array();
+		foreach ($object->lines as $idx => $line) {
+			if (TInfrastructure::isTitle($line)) {
+				if ($groupTitleIdx >= 0 && $groupBuffer !== '') {
+					infrastructure_flushPrintAsListGroup($object, $groupTitleIdx, $groupMode, $groupBuffer);
+				}
+				$groupTitleIdx	= -1;
+				$groupMode		= '';
+				$groupBuffer	= '';
+				$printAsList	= !empty($line->array_options['options_print_as_list']) && $line->array_options['options_print_as_list'] > 0;
+				$printCondensed	= !empty($line->array_options['options_print_condensed']) && $line->array_options['options_print_condensed'] > 0;
+				if ($printAsList) {
+					$groupTitleIdx	= $idx;
+					$groupMode		= 'list';
+					$groupBuffer	= '<ul>';
+				} elseif ($printCondensed) {
+					$groupTitleIdx	= $idx;
+					$groupMode		= 'condensed';
+					$groupBuffer	= '';
+				}
+			} elseif (TInfrastructure::isTotal($line) || TInfrastructure::isFreeText($line)) {
+				if ($groupTitleIdx >= 0 && $groupBuffer !== '') {
+					infrastructure_flushPrintAsListGroup($object, $groupTitleIdx, $groupMode, $groupBuffer);
+				}
+				$groupTitleIdx	= -1;
+				$groupMode		= '';
+				$groupBuffer	= '';
+			} else {
+				if ($groupTitleIdx >= 0) {
+					$linesToHide[$idx]	= true;
+					$rawLabel			= '';
+					if (!empty($line->label)) {
+						$rawLabel	= $line->label;
+					} elseif (!empty($line->product_label)) {
+						$rawLabel	= $line->product_label;
+					} elseif (!empty($line->product_ref)) {
+						$rawLabel	= $line->product_ref;
+					} elseif (!empty($line->desc)) {
+						$rawLabel	= $line->desc;
+					} elseif (!empty($line->description)) {
+						$rawLabel	= $line->description;
+					}
+					$cleanLabel	= dol_escape_htmltag(trim(strip_tags($rawLabel)));
+					$qtySuffix	= ((float) $line->qty > 1) ? ' ('.$line->qty.')' : '';
+					if ($groupMode === 'list') {
+						$groupBuffer	.= '<li>'.$cleanLabel.$qtySuffix.'</li>';
+					} else {
+						$groupBuffer	.= ($groupBuffer === '' ? '' : ', ').$cleanLabel.$qtySuffix;
+					}
+				}
+			}
+		}
+		if ($groupTitleIdx >= 0 && $groupBuffer !== '') {
+			infrastructure_flushPrintAsListGroup($object, $groupTitleIdx, $groupMode, $groupBuffer);
+		}
+		if (!empty($linesToHide)) {
+			$newLines	= array();
+			foreach ($object->lines as $idx => $line) {
+				if (empty($linesToHide[$idx])) {
+					$newLines[]	= $line;
+				}
+			}
+			$object->lines	= array_values($newLines);
+		}
+	}
+
+	/**
+	*	Append the buffered list/condensed HTML to a title line's desc/description so native Dolibarr PDF templates render it below the title label.
+	*
+	*	@param	CommonObject	$object			Document parent
+	*	@param	int				$groupTitleIdx	Index of the title line in $object->lines
+	*	@param	string			$groupMode		'list' or 'condensed'
+	*	@param	string			$groupBuffer	Accumulated HTML body
+	*	@return	void
+	**/
+	function infrastructure_flushPrintAsListGroup(&$object, $groupTitleIdx, $groupMode, $groupBuffer)
+	{
+		if (!isset($object->lines[$groupTitleIdx])) {
+			return;
+		}
+		$closing	= ($groupMode === 'list') ? '</ul>' : '';
+		$existing	= $object->lines[$groupTitleIdx]->desc ?? '';
+		$separator	= ($existing !== '' && substr($existing, -6) !== '</ul>' && substr($existing, -5) !== '<br/>') ? '<br/>' : '';
+		$merged		= $existing.$separator.$groupBuffer.$closing;
+		$object->lines[$groupTitleIdx]->desc		= $merged;
+		$object->lines[$groupTitleIdx]->description	= $merged;
 	}

@@ -2,8 +2,7 @@ if (typeof infrastructureSummaryJsConf === undefined) {
 	var infrastructureSummaryJsConf = {
 		langs: {
 			'InfrastructureSummaryTitle': 'Quick summary'
-		},
-		useOldSplittedTrForLine: 0
+		}
 	};
 }
 
