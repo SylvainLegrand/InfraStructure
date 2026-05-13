@@ -431,8 +431,8 @@
 					$listDescBib			= array();
 					$objproduct					= new Product($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						$isOuvrage		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isOuvrage		= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
+						$isSubTotalLine	= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
 						$isProd			= !empty($object->lines[$i]->fk_product) && empty($isOuvrage) && empty($isSubTotalLine) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						// Test des options Sous-total
 						if (!empty($isSubTotalLine)) {	// ATM lines
@@ -451,6 +451,10 @@
 									$subtotalRecap	= pdf_InfraSPlus_subtotal_getrecap ($object, $i, $subtotalRecap);
 								}
 							}
+						}
+						// Sous-totaux Infrastructure : collecte pour récap (si add_recap actif)
+						if (!empty($this->add_recap) && infraspackplus_isInfrastructureTotal($object->lines[$i])) {
+							$subtotalRecap	= pdf_InfraSPlus_subtotal_getrecap($object, $i, $subtotalRecap);
 						}
 						// Comportements spéciaux => ouvrage ou sous-total avec le contenu masqué, réduit ou condensé
 						if (!empty($isTitleToList)) {
@@ -795,8 +799,8 @@
 					// Loop on each lines
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Gestion des ouvrages, titres, sous-titres et sous-totaux
-						$isOuvrage		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isOuvrage		= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
+						$isSubTotalLine	= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
 						$isSubTitle		= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
 						$isSubTotal		= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
 						if (!empty($isSubTotal) && !empty($this->subti_with_subto)) {

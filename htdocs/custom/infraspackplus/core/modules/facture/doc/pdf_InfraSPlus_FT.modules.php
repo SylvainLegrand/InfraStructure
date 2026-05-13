@@ -503,8 +503,8 @@
 								}
 							}
 						}
-						$isOuvrage			= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isOuvrage			= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
+						$isSubTotalLine		= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
 						$isProd				= !empty($object->lines[$i]->fk_product) && empty($isOuvrage) && empty($isSubTotalLine) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						// determine category of operation
 						$this->hasProduct	+= $object->lines[$i]->product_type == Product::TYPE_PRODUCT ? 1 : 0;	// Products
@@ -711,6 +711,9 @@
 						if (!empty(pdf_InfraSPlus_escapeEns($object, $i, 1))) {
 							continue;	// COmposants d'ouvrage Inovea masqués
 						}
+						$isInfraSLine	= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
+						$isInfraSTotal	= infraspackplus_isInfrastructureTotal($object->lines[$i]) ? 1 : 0;	// Sous-total infrastructure (qty 91..99)
+						$colYOffset	= !empty($isInfraSTotal) ? 1.0 : 0;	// pdfAddTotal applique setCellPaddings T=1 au libellé du sous-total. Les MultiCell des colonnes voisines ne respectent pas ce padding (hauteur explicite + valign 'M'), d'où un décalage visuel de ~1mm. On compense en décalant manuellement le Y des MultiCell pour les sous-totaux infrastructure.
 						$curY													= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 4);	// Into loop to work with multipage
 						$pdf->SetTextColor(0, 0, 0);
@@ -781,19 +784,19 @@
 						}
 						$pdf->SetFont('', '', $default_font_size - 4);	// On repositionne la police par defaut
 						// N°
-						$pdf->MultiCell($this->tableau['ref']['larg'], $this->heightline, $i + 1, '', 'R', 0, 1, $this->tableau['ref']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+						$pdf->MultiCell($this->tableau['ref']['larg'], $this->heightline, $i + 1, '', 'R', 0, 1, $this->tableau['ref']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 						// Quantity
 						$qty	= pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
-						$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $qty, '', 'R', 0, 1, $this->tableau['qty']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+						$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $qty, '', 'R', 0, 1, $this->tableau['qty']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 						// Unit
 						$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails);
-						$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
+						$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY + $colYOffset, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
 						// Discounted price
 						$up_disc	= pdf_InfraSPlus_getlineincldiscountexcltax($object, $i, $outputlangs, $hidedetails, null, $pricesObjProd[$i]);
-						$pdf->MultiCell($this->tableau['updisc']['larg'], $this->heightline, $up_disc, '', 'R', 0, 1, $this->tableau['updisc']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+						$pdf->MultiCell($this->tableau['updisc']['larg'], $this->heightline, $up_disc, '', 'R', 0, 1, $this->tableau['updisc']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 						// Total line
 						$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $i, $outputlangs, $hidedetails);
-						$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+						$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 						// Add dash or space between line
 						if ($i < ($nblignes - 1)) {
 							$pdf->setPage($pageposafter);

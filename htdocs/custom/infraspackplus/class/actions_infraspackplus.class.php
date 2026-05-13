@@ -54,9 +54,9 @@
 	class Actionsinfraspackplus
 	{
 		public $db;	// @var DoliDB Database handler.
-		public $results = array();	// @var array Hook results. Propagated to $hookmanager->resArray for later reuse
+		public $results = [];	// @var array Hook results. Propagated to $hookmanager->resArray for later reuse
 		public $resprints;	// @var string String displayed by executeHook() immediately after return
-		public $errors = array();	// @var array Errors
+		public $errors = [];	// @var array Errors
 
 		/**
 		* Constructor
@@ -64,7 +64,7 @@
 		* @param	DATABASE	$db		db object
 		* @return	void
 		**/
-		public function __construct($db)
+		public function __construct(DoliDB $db)
 		{
 			$this->db	= $db;
 		}
@@ -78,7 +78,7 @@
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error
 		**/
-		function updateSession($parameters, $user, $action, $hookmanager)
+		public function updateSession(array $parameters, User $user, string $action, HookManager $hookmanager)
 		{
 			$redirect_url	= infraspackplus_getSubstitutionRedirectUrl();
 			if (!empty($redirect_url)) {
@@ -98,11 +98,11 @@
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error
 		**/
-		public function afterLogin($parameters, &$object, &$action, $hookmanager)
+		public function afterLogin($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			global $langs;
 
-			$currentversion	= array();
+			$currentversion	= [];
 			$currentversion	= infraspackplus_getLocalVersionMinDoli('infraspackplus');
 			if (!getDolGlobalString('INFRASPACKPLUS_DISABLE_CHECK_VERSION_MAX', '') && version_compare(explode('.', DOL_VERSION)[0], explode('.', $currentversion[4])[0], '>')) {
 				setEventMessages($langs->trans('PDFInfraSPlusWarningMaxVersion', DOL_VERSION, $currentversion[0], $currentversion[4]), null, 'warnings');
@@ -128,7 +128,7 @@
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error, 0 on success, 1 to replace standard code + $this->resprints HTML code to show
 		**/
-		public function formBuilddocOptions($parameters, &$object, &$action, $hookmanager)
+		public function formBuilddocOptions($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			global $conf, $db, $langs, $user;
 
@@ -161,7 +161,7 @@
 				// Colspan
 					$colspan = 6;
 				// Présentation générale des options, Récupération des paramètres sauvegardés
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport'])) {
 					$langs->load('infraspackplus@infraspackplus');
 					infraspackplus_test_new_fields('infraspackplus');	// Check the database configuration
 					$idvar				= ($object->element == 'facture') ? 'facid' : 'id';
@@ -247,10 +247,10 @@ EOJS;
 											<tr class = "infrasfold cursorpointer infrasplusbgtrans" style = "'.$titleStyle.'"><td class = "center" colspan = "'.$colspan.'" style = "font-size: 120%;">'.$titleOptions.'</td></tr>';
 				}
 				// Logo et Adresse expéditeur, Mentions complémentaires + Image en pied de document
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport'])) {
 					$factor		= getDolGlobalString('INFRASPLUS_PDF_FACTOR_PRE', '');
 					// logo
-					$logos		= array();
+					$logos		= [];
 					$logodir	= !empty($conf->mycompany->multidir_output[$object->entity]) ? $conf->mycompany->multidir_output[$object->entity] : $conf->mycompany->dir_output;
 					foreach (glob($logodir.'/logos/*.jpg') as $file) {
 						$logos[]	= dol_basename($file);
@@ -288,12 +288,12 @@ EOJS;
 						$this->resprints	.= ' data-html = "'.dol_escape_htmltag($logos[$i]).'">'.$logos[$i].'</option>';
 					}
 					$this->resprints	.= '		</select>';
-					$this->resprints	.= ajax_combobox('selectlogo', array(), 0, 0, 'resolve');
+					$this->resprints	.= ajax_combobox('selectlogo', [], 0, 0, 'resolve');
 					$this->resprints	.= '	</td>
 											</tr>';
 					unset($i);
 					// adresse expéditeur
-					if (!in_array($object->element, array('product', 'mo', 'bom'))) {
+					if (!in_array($object->element, ['product', 'mo', 'bom'])) {
 						$adrPost		= GETPOST('adr', 'alpha') == 'none' ? '' : GETPOST('adr', 'int');
 						$countryAddr	= getDolGlobalInt('INFRASPLUS_PDF_USE_CUSTOM_COUNTRY_ADDR', 0);
 						$adrtmp			= new Address($db);
@@ -315,12 +315,12 @@ EOJS;
 							}
 						}
 						$this->resprints	.= '		</select>';
-						$this->resprints	.= ajax_combobox('selectadr', array(), 0, 0, 'resolve');
+						$this->resprints	.= ajax_combobox('selectadr', [], 0, 0, 'resolve');
 						$this->resprints	.= '	</td>
 												</tr>';
 					}
 					// adresse destinataire
-					if (!in_array($object->element, array('product', 'mo', 'bom'))) {
+					if (!in_array($object->element, ['product', 'mo', 'bom'])) {
 						$customerAddrPost	 = empty(GETPOST('customerAddrSelect', 'alpha')) || GETPOST('customerAddrSelect', 'alpha') == 'none' ? 'T' : GETPOST('customerAddrSelect', 'alpha');
 						$this->resprints	.=	'<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 													<td colspan = "'.$colspan.'" align = "right">
@@ -331,7 +331,7 @@ EOJS;
 															<option name = "customerAddrSelect" value = "B"'.($customerAddrPost == 'B' ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('InfraSPlusParamThirdpartyBothAddr')).'">'.$langs->trans('InfraSPlusParamThirdpartyBothAddr').'</option>
 															<option name = "customerAddrSelect" value = "A"'.($customerAddrPost == 'A' ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('InfraSPlusParamContactBothAddr')).'">'.$langs->trans('InfraSPlusParamContactBothAddr').'</option>
 														</select>';
-						$this->resprints	.= ajax_combobox('selectcustomerAddrSelect', array(), 0, 0, 'resolve');
+						$this->resprints	.= ajax_combobox('selectcustomerAddrSelect', [], 0, 0, 'resolve');
 						$this->resprints	.= '	</td>
 												</tr>';
 					}
@@ -370,12 +370,12 @@ EOJS;
 					}
 					if (!empty($result_freeT)) {
 						$num		= $db->num_rows($result_freeT);
-						$listFreeT	= array();
+						$listFreeT	= [];
 						dol_syslog('actions_infraspackplus.class::formBuilddocOptions num_rows($result_freeT) = '.$num);
 						for ($i = 0; $i < $num; $i++) {
 							$objFreeT	= $db->fetch_object($result_freeT);
 							if (!empty($objFreeT)) {
-								$listFreeT[$objFreeT->name] = array('id' => $objFreeT->name, 'fulllabel' => ($objFreeT->libelle ? $objFreeT->libelle : $langs->trans('PDFInfraSPlusMentionsBase')));
+								$listFreeT[$objFreeT->name] = ['id' => $objFreeT->name, 'fulllabel' => ($objFreeT->libelle ?: $langs->trans('PDFInfraSPlusMentionsBase'))];
 							}
 						}
 						$db->free($result_freeT);
@@ -383,7 +383,7 @@ EOJS;
 					} else {
 						dol_print_error($db);
 					}
-					$arrayFreeT	= array ();
+					$arrayFreeT	= [];
 					if (is_array($listFreeT) && count($listFreeT) > 0) {
 						dol_syslog('actions_infraspackplus.class::formBuilddocOptions count($listFreeT) = '.count($listFreeT));
 						foreach($listFreeT as $key => $value) {
@@ -432,14 +432,14 @@ EOJS;
 					} else {
 						$usentascover	= '';
 					}
-					$listNoteP	= array();
+					$listNoteP	= [];
 					if (!empty($result_noteP)) {
 						$num	= $db->num_rows($result_noteP);
 						dol_syslog('actions_infraspackplus.class::formBuilddocOptions num_rows($result_noteP) = '.$num);
 						for ($i = 0; $i < $num; $i++) {
 							$objNoteP = $db->fetch_object($result_noteP);
 							if (!empty($objNoteP)) {
-								$listNoteP[$objNoteP->name] = array('id'=>$objNoteP->name, 'fulllabel'=>($objNoteP->libelle ? $objNoteP->libelle : $langs->trans('PDFInfraSPlusNotesBase')));
+								$listNoteP[$objNoteP->name] = ['id'=>$objNoteP->name, 'fulllabel'=>($objNoteP->libelle ?: $langs->trans('PDFInfraSPlusNotesBase'))];
 							}
 						}
 						$db->free($result_noteP);
@@ -447,7 +447,7 @@ EOJS;
 					} else {
 						dol_print_error($db);
 					}
-					$arrayNoteP	= array ();
+					$arrayNoteP	= [];
 					if (count($listNoteP) > 0) {
 						dol_syslog('actions_infraspackplus.class::formBuilddocOptions count($listNoteP) = '.count($listNoteP));
 						foreach($listNoteP as $key => $value) {
@@ -481,7 +481,7 @@ EOJS;
 						$this->resprints	.= ' data-html = "'.dol_escape_htmltag($logos[$i]).'">'.$logos[$i].'</option>';
 					}
 					$this->resprints	.= '		</select>';
-					$this->resprints	.= ajax_combobox('selectpied', array(), 0, 0, 'resolve');
+					$this->resprints	.= ajax_combobox('selectpied', [], 0, 0, 'resolve');
 					$this->resprints	.= '	</td>
 											</tr>';
 					unset($i);
@@ -495,7 +495,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "pied" value = '.GETPOST('pied', 'alpha').'>';
 				}
 				// Adresse de livraison (client)
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'fichinter', 'shipping', 'reception', 'delivery', 'project'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'fichinter', 'shipping', 'reception', 'delivery', 'project'])) {
 					// Adresse de livraison par défaut sur 'de base' si on utilise l'adresse de facturation automatique
 					if (getDolGlobalInt('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SI_FACT', 0) && $object->element == 'facture') {
 						$res_adrfact = $listOptions['adrlivr']['value'];
@@ -505,7 +505,7 @@ EOJS;
 					$showadrlivr		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 0);
 					$showadrlivr		= !empty($useDoliAddr) || !empty($object->array_options['options_'.$freeadrlivr]) ? 0 : $showadrlivr;
 					$def_adrlivrfour	= getDolGlobalString('INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', '');
-					$typeadr			= in_array($object->element, array('fichinter')) ? $langs->trans('PDFInfraSPlusAdrInter') : $langs->trans('PDFInfraSPlusAdrLivr');
+					$typeadr			= in_array($object->element, ['fichinter']) ? $langs->trans('PDFInfraSPlusAdrInter') : $langs->trans('PDFInfraSPlusAdrLivr');
 					$adrlivrPost		= !empty($res_adrfact) ? $res_adrfact : GETPOST('adrlivr', 'int');	// -1 pour défaut, -2 pour aucune, >0 pour ID
 					if (!empty($showadrlivr)) {
 						$adrlivrtmp			= new Address($db);
@@ -522,7 +522,7 @@ EOJS;
 							}
 						}
 						$this->resprints	.= '		</select>';
-						$this->resprints	.= ajax_combobox('selectadrlivr', array(), 0, 0, 'resolve');
+						$this->resprints	.= ajax_combobox('selectadrlivr', [], 0, 0, 'resolve');
 						$this->resprints	.= '	</td>
 												</tr>';
 					}
@@ -530,12 +530,12 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "adrlivr" value = '.GETPOST('adrlivr', 'int').'>';
 				}
 				// Sous-Traitant (lié au client via "CustomLink")
-				if (isModEnabled('customlink') && in_array($object->element, array('commande', 'shipping', 'reception', 'delivery'))) {
+				if (isModEnabled('customlink') && in_array($object->element, ['commande', 'shipping', 'reception', 'delivery'])) {
 					$showadrSsT	= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 					$typeCtSsT	= getDolGlobalString('INFRASPLUS_PDF_TYPE_SOUS_TRAITANT', '');
 					$doc_id		= GETPOST('id', 'int');
-					$SstPost	= GETPOST('Sst', 'int') ? GETPOST('Sst', 'int') : '-2';
-					$adrSstPost	= GETPOST('adrSst', 'int') ? GETPOST('adrSst', 'int') : '-2';
+					$SstPost	= GETPOST('Sst', 'int') ?: '-2';
+					$adrSstPost	= GETPOST('adrSst', 'int') ?: '-2';
 					if (!empty($showadrSsT) && !empty($typeCtSsT)) {
 						$sql_listSsT	= 'SELECT DISTINCT s.rowid, s.nom';
 						$sql_listSsT	.= ' FROM '.$db->prefix().'socpeople AS sp';
@@ -544,7 +544,7 @@ EOJS;
 						$sql_listSsT	.= ' WHERE ec.element_id = '.$object->thirdparty->id.' AND ec.fk_c_type_contact = '.$typeCtSsT;
 						$res_listSsT	= $db->query($sql_listSsT);
 						dol_syslog('actions_infraspackplus.class::formBuilddocOptions sql_listSsT = '.$sql_listSsT);
-						$ar_listSsT		= array();
+						$ar_listSsT		= [];
 						$num_SsT		= $db->num_rows($res_listSsT);
 						if (!empty($res_listSsT) && $num_SsT > 0) {
 							$this->resprints	.= '<tr class = "oddeven InfraSPermLastOpt">
@@ -557,7 +557,7 @@ EOJS;
 								$this->resprints	.= '		<option name = "Sst" value = "'.$ar_listSsT['rowid'].'"'.($SstPost === $ar_listSsT['rowid'] ? ' selected' : '').' data-html = "'.dol_escape_htmltag($ar_listSsT['nom']).'">'.$ar_listSsT['nom'].'</option>';
 							}
 							$this->resprints	.= '		</select>';
-							$this->resprints	.= ajax_combobox('selectSst', array(), 0, 0, 'resolve');
+							$this->resprints	.= ajax_combobox('selectSst', [], 0, 0, 'resolve');
 							$this->resprints	.= '	</td>
 													</tr>';
 							if ($SstPost !== -2 || $num_SsT == 1) {
@@ -576,7 +576,7 @@ EOJS;
 									}
 								}
 								$this->resprints	.= '		</select>';
-								$this->resprints	.= ajax_combobox('selectadrSst', array(), 0, 0, 'resolve');
+								$this->resprints	.= ajax_combobox('selectadrSst', [], 0, 0, 'resolve');
 								$this->resprints	.= '	</td>
 														</tr>';
 							}
@@ -591,7 +591,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "adrSst" value = '.GETPOST('adrSst', 'int').'>';
 				}
 				// Adresse de livraison spéciale fournisseur (interne ou interne + client)
-				if (in_array($object->element, array('supplier_proposal', 'order_supplier'))) {
+				if (in_array($object->element, ['supplier_proposal', 'order_supplier'])) {
 					$useDoliAddr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 					$freeadrlivr		= getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', '');
 					$showadrlivrfour	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_LIVRAISON', 0);
@@ -619,7 +619,7 @@ EOJS;
 								}
 							}
 							$this->resprints	.= '		</select>';
-							$this->resprints	.= ajax_combobox('selectadrlivrfour', array(), 0, 0, 'resolve');
+							$this->resprints	.= ajax_combobox('selectadrlivrfour', [], 0, 0, 'resolve');
 							$this->resprints	.= '	</td>
 													</tr>';
 						} else {
@@ -640,12 +640,16 @@ EOJS;
 										continue;
 									}
 									// 'I' internal (ID => llx_infraspackplus_societe_address rowid) ; 'C' main company address (ID => llx_societe rowid) ; 'S' secondary company address (ID => llx_infraspackplus_societe_address rowid)
-									if ($lineadr->socid == 0) {
-										$prefixLabel	= 'I_';	// 'I' => Internal => name (label) / town
-									} elseif ($lineadr->socid == 'NULL') {
-										$prefixLabel	= 'C_';	// 'C' => Customer => soc_name / town
-									} else {
-										$prefixLabel	= 'S_';	// 'S' => Supplier => soc_name / name (label) / town
+									switch ($lineadr->socid) {
+										case 0:
+											$prefixLabel	= 'I_';	// 'I' => Internal => name (label) / town
+											break;
+										case 'NULL':
+											$prefixLabel	= 'C_';	// 'C' => Customer => soc_name / town
+											break;
+										default:
+											$prefixLabel	= 'S_';	// 'S' => Supplier => soc_name / name (label) / town
+											break;
 									}
 									$value				= $prefixLabel.$lineadr->id;
 									$labelToShow		= $lineadr->socid == '0' ? '' : $lineadr->soc_name;
@@ -655,7 +659,7 @@ EOJS;
 								}
 							}
 							$this->resprints	.= '		</select>';
-							$this->resprints	.= ajax_combobox('selectadrlivrfour', array(), 0, 0, 'resolve');
+							$this->resprints	.= ajax_combobox('selectadrlivrfour', [], 0, 0, 'resolve');
 							$this->resprints	.= '	</td>
 													</tr>';
 						}
@@ -668,7 +672,7 @@ EOJS;
 				if (!empty($user->hasRight('infraspackplus', 'paramCGV'))) {
 					$CGbyLang	= getDolGlobalString('MAIN_MULTILANGS', '') && getDolGlobalString('INFRASPLUS_PDF_CGV_FROM_LANG', '') && !empty($object->thirdparty->default_lang) ? 1 : 0;
 					// CGV
-					if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat'))) {
+					if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat'])) {
 						$cgvbydefPost	= GETPOST('cgv', 'alpha') == 'none' ? '' : GETPOST('cgv', 'alpha');
 						$CGVs			= infraspackplus_get_CGfiles ('CGV', $object->entity, $object);
 						if (count($CGVs) > 0) {
@@ -682,7 +686,7 @@ EOJS;
 								$this->resprints	.=	'		<option name = "cgv" value = "'.$CGVs[$i].($cgvbydef === $CGVs[$i] ? '" selected' : '"').' data-html = "'.dol_escape_htmltag($CGVs[$i]).'">'.$CGVs[$i].'</option>';
 							}
 							$this->resprints	.= '		</select>';
-							$this->resprints	.= ajax_combobox('selectcgv', array(), 0, 0, 'resolve');
+							$this->resprints	.= ajax_combobox('selectcgv', [], 0, 0, 'resolve');
 							$this->resprints	.= '	</td>
 													</tr>';
 							unset($i);
@@ -691,7 +695,7 @@ EOJS;
 						$this->resprints	.= '<input type = "hidden" name = "cgv" value = '.GETPOST('cgv', 'alpha').'>';
 					}
 					// CGI
-					if (in_array($object->element, array('fichinter'))) {
+					if (in_array($object->element, ['fichinter'])) {
 						$cgibydefPost	= GETPOST('cgi', 'alpha') == 'none' ? '' : GETPOST('cgi', 'alpha');
 						$CGIs			= infraspackplus_get_CGfiles ('CGI', $object->entity, $object);
 						if (count($CGIs) > 0) {
@@ -705,7 +709,7 @@ EOJS;
 								$this->resprints	.=	'		<option name = "cgi" value = "'.$CGIs[$i].($cgibydef === $CGIs[$i] ? '" selected' : '"').' data-html = "'.dol_escape_htmltag($CGIs[$i]).'">'.$CGIs[$i].'</option>';
 							}
 							$this->resprints	.= '		</select>';
-							$this->resprints	.= ajax_combobox('selectcgi', array(), 0, 0, 'resolve');
+							$this->resprints	.= ajax_combobox('selectcgi', [], 0, 0, 'resolve');
 							$this->resprints	.= '	</td>
 													</tr>';
 							unset($i);
@@ -714,7 +718,7 @@ EOJS;
 						$this->resprints	.= '<input type = "hidden" name = "cgi" value = '.GETPOST('cgi', 'alpha').'>';
 					}
 					// CGA
-					if (in_array($object->element, array('supplier_proposal', 'order_supplier'))) {
+					if (in_array($object->element, ['supplier_proposal', 'order_supplier'])) {
 						$cgabydefPost	= GETPOST('cga', 'alpha') == 'none' ? '' : GETPOST('cga', 'alpha');
 						$CGAs			= infraspackplus_get_CGfiles ('CGA', $object->entity, $object);
 						if (count($CGAs) > 0) {
@@ -728,7 +732,7 @@ EOJS;
 								$this->resprints	.=	'		<option name = "cga" value = "'.$CGAs[$i].($cgabydef === $CGAs[$i] ? '" selected' : '"').' data-html = "'.dol_escape_htmltag($CGAs[$i]).'">'.$CGAs[$i].'</option>';
 							}
 							$this->resprints	.= '		</select>';
-							$this->resprints	.= ajax_combobox('selectcga', array(), 0, 0, 'resolve');
+							$this->resprints	.= ajax_combobox('selectcga', [], 0, 0, 'resolve');
 							$this->resprints	.= '	</td>
 													</tr>';
 							unset($i);
@@ -747,33 +751,47 @@ EOJS;
 					$selected_Files		= is_array($filesPost) ? $filesPost : explode ('-', $filesPost);
 					// Update list of files in database
 					$system_upload_dir	= '';
-					$filesArray			= array();
-					if ($object->element == 'propal') {
-						$system_upload_dir	= !empty($conf->propal->multidir_output[$conf->entity]) ? $conf->propal->multidir_output[$conf->entity] : $conf->propal->dir_output;
-					} elseif ($object->element == 'commande') {
-						$system_upload_dir	= !empty($conf->commande->multidir_output[$conf->entity]) ? $conf->commande->multidir_output[$conf->entity] : $conf->commande->dir_output;
-					} elseif ($object->element == 'facture') {
-						$system_upload_dir	= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
-					} elseif ($object->element == 'contrat') {
-						$system_upload_dir	= !empty($conf->contrat->multidir_output[$conf->entity]) ? $conf->contrat->multidir_output[$conf->entity] : $conf->contrat->dir_output;
-					} elseif ($object->element == 'shipping') {
-						$system_upload_dir	= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
-					} elseif ($object->element == 'fichinter') {
-						$system_upload_dir	= !empty($conf->ficheinter->multidir_output[$conf->entity]) ? $conf->ficheinter->multidir_output[$conf->entity] : $conf->ficheinter->dir_output;
-					} elseif ($object->element == 'order_supplier') {
-						$system_upload_dir	= !empty($conf->fournisseur->commande->multidir_output[$conf->entity]) ? $conf->fournisseur->commande->multidir_output[$conf->entity] : $conf->fournisseur->commande->dir_output;
-					} elseif ($object->element == 'supplier_proposal') {
-						$system_upload_dir	= !empty($conf->supplierproposal->multidir_output[$conf->entity]) ? $conf->supplierproposal->multidir_output[$conf->entity] : $conf->supplierproposal->dir_output;
-					} elseif ($object->element == 'project') {
-						$system_upload_dir	= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
-					} elseif ($object->element == 'mo') {
-						$system_upload_dir	= !empty($conf->mrp->multidir_output[$conf->entity]) ? $conf->mrp->multidir_output[$conf->entity] : $conf->mrp->dir_output;
-					} elseif ($object->element == 'bom') {
-						$system_upload_dir	= !empty($conf->bom->multidir_output[$conf->entity]) ? $conf->bom->multidir_output[$conf->entity] : $conf->bom->dir_output;
-					} elseif ($object->element == 'expensereport') {
-						$system_upload_dir	= !empty($conf->expensereport->multidir_output[$conf->entity]) ? $conf->expensereport->multidir_output[$conf->entity] : $conf->expensereport->dir_output;
-					} elseif ($object->element == 'user') {
-						$system_upload_dir	= !empty($conf->user->multidir_output[$conf->entity]) ? $conf->user->multidir_output[$conf->entity] : $conf->user->dir_output;
+					$filesArray			= [];
+					switch ($object->element) {
+						case 'propal':
+							$system_upload_dir	= !empty($conf->propal->multidir_output[$conf->entity]) ? $conf->propal->multidir_output[$conf->entity] : $conf->propal->dir_output;
+							break;
+						case 'commande':
+							$system_upload_dir	= !empty($conf->commande->multidir_output[$conf->entity]) ? $conf->commande->multidir_output[$conf->entity] : $conf->commande->dir_output;
+							break;
+						case 'facture':
+							$system_upload_dir	= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
+							break;
+						case 'contrat':
+							$system_upload_dir	= !empty($conf->contrat->multidir_output[$conf->entity]) ? $conf->contrat->multidir_output[$conf->entity] : $conf->contrat->dir_output;
+							break;
+						case 'shipping':
+							$system_upload_dir	= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
+							break;
+						case 'fichinter':
+							$system_upload_dir	= !empty($conf->ficheinter->multidir_output[$conf->entity]) ? $conf->ficheinter->multidir_output[$conf->entity] : $conf->ficheinter->dir_output;
+							break;
+						case 'order_supplier':
+							$system_upload_dir	= !empty($conf->fournisseur->commande->multidir_output[$conf->entity]) ? $conf->fournisseur->commande->multidir_output[$conf->entity] : $conf->fournisseur->commande->dir_output;
+							break;
+						case 'supplier_proposal':
+							$system_upload_dir	= !empty($conf->supplierproposal->multidir_output[$conf->entity]) ? $conf->supplierproposal->multidir_output[$conf->entity] : $conf->supplierproposal->dir_output;
+							break;
+						case 'project':
+							$system_upload_dir	= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
+							break;
+						case 'mo':
+							$system_upload_dir	= !empty($conf->mrp->multidir_output[$conf->entity]) ? $conf->mrp->multidir_output[$conf->entity] : $conf->mrp->dir_output;
+							break;
+						case 'bom':
+							$system_upload_dir	= !empty($conf->bom->multidir_output[$conf->entity]) ? $conf->bom->multidir_output[$conf->entity] : $conf->bom->dir_output;
+							break;
+						case 'expensereport':
+							$system_upload_dir	= !empty($conf->expensereport->multidir_output[$conf->entity]) ? $conf->expensereport->multidir_output[$conf->entity] : $conf->expensereport->dir_output;
+							break;
+						case 'user':
+							$system_upload_dir	= !empty($conf->user->multidir_output[$conf->entity]) ? $conf->user->multidir_output[$conf->entity] : $conf->user->dir_output;
+							break;
 					}
 					if (!empty($system_upload_dir)) {
 						$system_upload_dir			.= '/'.dol_sanitizeFileName($object->ref);
@@ -788,8 +806,8 @@ EOJS;
 						$bomstatic		= new BOM($db);
 						$bomstatic->fetch($object->fk_bom);
 						$upload_dir2	= 'bom/'.dol_sanitizeFileName($bomstatic->ref);
-						$filesArray2	= dol_dir_list_in_database($upload_dir2, '\.pdf$', array('(\.meta|_preview.*\.png)$','^\.'));
-						$filesArray		= array_merge($filesArray, $filesArray2);
+						$filesArray2	= dol_dir_list_in_database($upload_dir2, '\.pdf$', ['(\.meta|_preview.*\.png)$','^\.']);
+						$filesArray		= [...$filesArray, ...$filesArray2];
 					}
 					$filesFromProject	= getDolGlobalInt('INFRASPLUS_PDF_FILES_FROM_PROJECT', 0);
 					if (!empty($filesFromProject) && !$object instanceof Project) {
@@ -797,8 +815,8 @@ EOJS;
 						$projectstatic	= new Project($db);
 						$projectstatic->fetch($object->fk_project);
 						$upload_dir3	= 'projet/'.dol_sanitizeFileName($projectstatic->ref);
-						$filesArray3	= dol_dir_list_in_database($upload_dir3, '\.pdf$', array('(\.meta|_preview.*\.png)$','^\.'));
-						$filesArray		= array_merge($filesArray, $filesArray3);
+						$filesArray3	= dol_dir_list_in_database($upload_dir3, '\.pdf$', ['(\.meta|_preview.*\.png)$','^\.']);
+						$filesArray		= [...$filesArray, ...$filesArray3];
 					}
 					// fichiers du module Attestation de TVA
 					if (isModEnabled('attestationtva')) {
@@ -809,8 +827,8 @@ EOJS;
 								$attestationtvastatic	= new AttestationTVA($db);
 								$attestationtvastatic->fetch('', $object->id);
 								$upload_dir4			= 'attestationtva/'.dol_sanitizeFileName($attestationtvastatic->ref);
-								$filesArray4			= dol_dir_list_in_database($upload_dir4, '\.pdf$', array('(\.meta|_preview.*\.png)$','^\.'));
-								$filesArray				= array_merge($filesArray, $filesArray4);
+								$filesArray4			= dol_dir_list_in_database($upload_dir4, '\.pdf$', ['(\.meta|_preview.*\.png)$','^\.']);
+								$filesArray				= [...$filesArray, ...$filesArray4];
 							}
 						}
 					}
@@ -821,7 +839,7 @@ EOJS;
 						$listpdfs			= dol_dir_list($dirpdfs, 'files', 0, '\.pdf$', null, 'name', SORT_ASC, 0, 1, '', 0);
 						$listspecialfiles	= dol_dir_list(dol_buildpath('/infraspackplus/core/modules/specialfiles', 0), 'files', 0, '\.php$', null, 'name', SORT_ASC, 0, 0, '', 0);
 						$listspecialfiles	= array_column($listspecialfiles, 'name');
-						$filesArray4		= array();
+						$filesArray4		= [];
 						foreach ($listpdfs as $pdf) {
 							if (empty($pdf['name'])) {
 								continue;
@@ -840,9 +858,9 @@ EOJS;
 							}
 						}
 						completeFileArrayWithDatabaseInfo($filesArray4, (!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles');
-						$filesArray	= array_merge($filesArray, $filesArray4);
+						$filesArray	= [...$filesArray, ...$filesArray4];
 					}
-					$arrayFiles	= array();
+					$arrayFiles	= [];
 					if (is_array($filesArray) && count($filesArray) > 0) {
 						dol_syslog('actions_infraspackplus.class::formBuilddocOptions count($filesArray) = '.count($filesArray));
 						foreach($filesArray as $file) {
@@ -872,7 +890,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "expensereportfiles" value = '.GETPOST('expensereportfiles', 'alpha').'>';
 				}
 				// Alias
-				if (!in_array($object->element, array('product', 'mo', 'bom'))) {
+				if (!in_array($object->element, ['product', 'mo', 'bom'])) {
 					$includealiasPost	= empty(GETPOST('includealias', 'alpha')) || GETPOST('includealias', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -884,7 +902,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "includealias" value = '.GETPOST('includealias', 'alpha').'>';
 				}
 				// Fusion documentation produits / services
-				if (in_array($object->element, array('propal'))) {
+				if (in_array($object->element, ['propal'])) {
 					$productMerge	= getDolGlobalInt('INFRASPLUS_PDF_PRODUIT_MERGE_PROPAL', 0);
 					if (!empty($productMerge)) {
 						$mergeproductPost	= empty(GETPOST('mergeproduct', 'alpha')) || GETPOST('mergeproduct', 'alpha') == 'none' ? 0 : 1;
@@ -899,7 +917,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "mergeproduct" value = '.GETPOST('mergeproduct', 'alpha').'>';
 				}
 				// Page de garde
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat'])) {
 					if (!empty($usentascover)) {
 						$usentascoverpost	= empty(GETPOST('usentascover', 'alpha')) || GETPOST('usentascover', 'alpha') == 'none' ? 0 : 1;
 						$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
@@ -913,7 +931,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "usentascover" value = '.GETPOST('usentascover', 'alpha').'>';
 				}
 				// Infos Douanières (Poids, volume, dimensions et code SH
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'shipping', 'reception', 'delivery'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'shipping', 'reception', 'delivery'])) {
 					$wvccPost	= GETPOST('showwvccchk', 'alpha');
 					if ($wvccPost != -2) {
 						$showwvccchk		= empty($wvccPost) || $wvccPost == 'none' ? 0 : 1;
@@ -930,7 +948,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "showwvccchk" value = '.GETPOST('showwvccchk', 'alpha').'>';
 				}
 				// Image des produits / services dans les documents client ou les commandes fournisseur
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'order_supplier'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'order_supplier'])) {
 					$hidepictPost		= empty(GETPOST('hidepict', 'alpha')) || GETPOST('hidepict', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -942,7 +960,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "hidepict" value = '.GETPOST('hidepict', 'alpha').'>';
 				}
 				// colonne référence
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery'])) {
 					$hasrefcol			= getDolGlobalInt('INFRASPLUS_PDF_WITH_REF_COLUMN', 0);
 					$refcolPost			= empty(GETPOST('refcol', 'alpha')) || GETPOST('refcol', 'alpha') == 'none' ? 0 : 1;
 					if (!empty($hasrefcol)) {
@@ -957,7 +975,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "refcol" value = '.GETPOST('refcol', 'alpha').'>';
 				}
 				// durées (total et ligne par ligne) dans les fiches d'intervention
-				if (in_array($object->element, array('fichinter'))) {
+				if (in_array($object->element, ['fichinter'])) {
 					$hidetimespentPost	= empty(GETPOST('hidetimespent', 'alpha')) || GETPOST('hidetimespent', 'alpha') == 'none'	? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -970,7 +988,7 @@ EOJS;
 				}
 				// Description longue des produits / services
 				$hidelabel	= getDolGlobalInt('INFRASPLUS_PDF_HIDE_LABEL', 0);
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'fichinter', 'shipping', 'reception', 'supplier_proposal', 'order_supplier')) && empty($hidelabel)) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'fichinter', 'shipping', 'reception', 'supplier_proposal', 'order_supplier']) && empty($hidelabel)) {
 					$hidedescPost		= empty(GETPOST('hidedesc', 'alpha')) || GETPOST('hidedesc', 'alpha') == 'none'	? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -984,7 +1002,7 @@ EOJS;
 				// Remise
 				$discountAuto	= getDolGlobalInt('INFRASPLUS_PDF_DISCOUNT_AUTO', 0);
 				$hidediscPost	= empty(GETPOST('hidedisc', 'alpha')) || GETPOST('hidedisc', 'alpha') == 'none' ? 0 : 1;
-				if (in_array($object->element, array('propal', 'commande', 'contrat', 'facture', 'fichinter')) && empty($discountAuto)) {
+				if (in_array($object->element, ['propal', 'commande', 'contrat', 'facture', 'fichinter']) && empty($discountAuto)) {
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
 													<label for = "hidedisc">'.$langs->trans('PDFInfraSPlusHideDiscchk').'</label>&nbsp;
@@ -996,7 +1014,7 @@ EOJS;
 				}
 				// Prix brutes
 				$enable_rawprices	= getDolGlobalInt('INFRASPLUS_PDF_PROPAL_WITH_RAW_PRICES', 0);
-				if (in_array($object->element, array('propal')) && !empty($enable_rawprices)) {
+				if (in_array($object->element, ['propal']) && !empty($enable_rawprices)) {
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
 													<label for = "rawprices">'.$langs->trans('PDFInfraSPlusRawPriceschk').'</label>&nbsp;
@@ -1005,7 +1023,7 @@ EOJS;
 											</tr>';
 				}
 				// Description seule
-				if (in_array($object->element, array('propal', 'commande', 'contrat', 'fichinter'))) {
+				if (in_array($object->element, ['propal', 'commande', 'contrat', 'fichinter'])) {
 					$hidecolsPost		= empty(GETPOST('hidecols', 'alpha')) || GETPOST('hidecols', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -1018,7 +1036,7 @@ EOJS;
 				}
 				// Affichage du total HT sur le BL
 				$showpriceblPost	= empty(GETPOST('showpricebl', 'alpha')) || GETPOST('showpricebl', 'alpha') == 'none' ? 0 : 1;
-				if (in_array($object->element, array('shipping'))) {
+				if (in_array($object->element, ['shipping'])) {
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
 													<label for = "showpricebl">'.$langs->trans('PDFInfraSPlusShowPriceBLchk').'</label>&nbsp;
@@ -1029,7 +1047,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "showpricebl" value = '.GETPOST('showpricebl', 'alpha').'>';
 				}
 				// Information concernant l'adresse de facturation automatique
-				if (in_array($object->element, array('facture'))) {
+				if (in_array($object->element, ['facture'])) {
 					$def_adrfact		= getDolGlobalString('INFRASPLUS_PDF_FACTURE_CODE_ADDR_FACT', '');
 					$adrfactPost		= empty(GETPOST('adrfact', 'alpha')) || GETPOST('adrfact', 'alpha') == 'none' ? 0 : 1;
 					$client				= infraspackplus_check_parent_addr_fact($object);
@@ -1049,7 +1067,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "adrfact" value = '.GETPOST('adrfact', 'alpha').'>';
 				}
 				// Affichage du total des remises si l'inclusion dans la table des totaux est inactive
-				if (in_array($object->element, array('propal', 'commande', 'facture')) && !getDolGlobalInt('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT',0)) {
+				if (in_array($object->element, ['propal', 'commande', 'facture']) && !getDolGlobalInt('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT',0)) {
 					$showtotdiscPost	= empty(GETPOST('showtotdisc', 'alpha')) || GETPOST('showtotdisc', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -1061,7 +1079,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "showtotdisc" value = '.GETPOST('showtotdisc', 'alpha').'>';
 				}
 				// Affichage de la mention d'autoliquidation BTP
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'order_supplier'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'order_supplier'])) {
 					$hastxttvabtp	= getDolGlobalInt('INFRASPLUS_PDF_FREETEXT_TVA_6', 0);
 					if (!empty($hastxttvabtp)) {
 						$showtvabtpPost		= empty(GETPOST('showtvabtp', 'alpha')) || GETPOST('showtvabtp', 'alpha') == 'none'	? 0	: 1;
@@ -1076,7 +1094,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "showtvabtp" value = '.GETPOST('showtvabtp', 'alpha').'>';
 				}
 				// Affichage des totaux en pied de document sur les fiches d'intervention
-				if (in_array($object->element, array('fichinter'))) {
+				if (in_array($object->element, ['fichinter'])) {
 					$showtotPost		= empty(GETPOST('showtot', 'alpha')) || GETPOST('showtot', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -1088,7 +1106,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "showtot" value = '.GETPOST('showtot', 'alpha').'>';
 				}
 				// Afficher / Masquer le mode de paiement par virement
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter'])) {
 					$showvirPost		= empty(GETPOST('showvir', 'alpha')) || GETPOST('showvir', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -1100,7 +1118,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "showvir" value = '.GETPOST('showvir', 'alpha').'>';
 				}
 				// Désactivation des paiements spéciaux
-				if (in_array($object->element, array('propal'))) {
+				if (in_array($object->element, ['propal'])) {
 					$showpayspecPost	= empty(GETPOST('showpayspec', 'alpha')) || GETPOST('showpayspec', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -1113,7 +1131,7 @@ EOJS;
 				}
 
 				// Afficher / Masquer la zone de signature société émettrice sur les fiches d'intervention
-				if (in_array($object->element, array('propal'))) {
+				if (in_array($object->element, ['propal'])) {
 					$hassignemet	= getDolGlobalInt('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE_EMET', 0);
 					if (!empty($hassignemet)) {
 						$showPropalSignEmetPost	= empty(GETPOST('showPropalSignEmet', 'alpha')) || GETPOST('showPropalSignEmet', 'alpha') == 'none' ? 0 : 1;
@@ -1129,13 +1147,13 @@ EOJS;
 				}
 
 				// Saisie de la signature client (PAD)
-				if (in_array($object->element, array('propal', 'commande', 'contrat', 'fichinter', 'shipping', 'reception', 'project'))) {
+				if (in_array($object->element, ['propal', 'commande', 'contrat', 'fichinter', 'shipping', 'reception', 'project'])) {
 					$getSign	= getDolGlobalInt('INFRASPLUS_PDF_GET_CUSTOMER_SIGNING', 0);
 					// N'afficher le bouton de signature que pour les documents validés
-					if (($object instanceof Propal && $object->status == Propal::STATUS_VALIDATED) || ($object instanceof Commande && $object->status == Commande::STATUS_VALIDATED) ||
-						($object instanceof Contrat && $object->status == Contrat::STATUS_VALIDATED) || ($object instanceof Fichinter && $object->status == Fichinter::STATUS_VALIDATED) ||
-						($object instanceof Expedition && $object->status == Expedition::STATUS_VALIDATED) || ($object instanceof Reception && $object->status == Reception::STATUS_VALIDATED) ||
-						($object instanceof Project && $object->status == Project::STATUS_VALIDATED))
+					if ($object instanceof Propal && $object->status == Propal::STATUS_VALIDATED || $object instanceof Commande && $object->status == Commande::STATUS_VALIDATED ||
+						$object instanceof Contrat && $object->status == Contrat::STATUS_VALIDATED || $object instanceof Fichinter && $object->status == Fichinter::STATUS_VALIDATED ||
+						$object instanceof Expedition && $object->status == Expedition::STATUS_VALIDATED || $object instanceof Reception && $object->status == Reception::STATUS_VALIDATED ||
+						$object instanceof Project && $object->status == Project::STATUS_VALIDATED)
 					{
 						$isOk	= 1;
 					} else {
@@ -1152,7 +1170,7 @@ EOJS;
 					}
 				}
 				// ligne de séparation fin des options InfraSPackPlus
-				if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport'))) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport'])) {
 					$this->resprints	.= '<tr class = "infrasplusbgtrans"><td class = "center infrasplusnopadding" colspan = "'.$colspan.'"><hr class = "quatrevingtpercent"></td></tr>';
 				}
 			}
@@ -1168,14 +1186,14 @@ EOJS;
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error
 		**/
-		public function beforePDFCreation($parameters, &$object, &$action, $hookmanager)
+		public function beforePDFCreation($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			global $conf, $db, $mysoc, $user;
 
 			$_SESSION['InfraSPackPlus_model']	= true;	// Write a session variable to indicate that we are using an InfraSPackPlus template
 			$manualPrint						= GETPOST('action', 'alpha') == 'builddoc' ? 1 : 0;	// from html.formfile.class.php => showdocuments
-			pdf_InfraSPlus_getInstance(array(), 'mm', 'P', true);
-			if (in_array($object->element, array('propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'user'))) {
+			pdf_InfraSPlus_getInstance([], 'mm', 'P', true);
+			if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'user'])) {
 				$freeadrlivr		= getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', '');
 				// Récupération des paramètres sauvegardés (Liés à l'utilisateur, au document ou par défaut => configuration module)
 				$defaultParams		= infraspackplus_defaultParam($object);
@@ -1195,7 +1213,7 @@ EOJS;
 				// adresse destinataire
 				$this->results['customerAddrSelect']	= GETPOST('customerAddrSelect', 'alpha') == 'none' ? '' : GETPOST('customerAddrSelect', 'alpha');
 				// Mentions complémentaires
-				$this->results['listfreet']				= array();
+				$this->results['listfreet']				= [];
 				$freeTPost								= GETPOST('listfreet', 'alpha') == 'none' ? '' : GETPOST('listfreet', 'none');
 				if ($freeTPost == '' && GETPOST('showsysmcbase', 'alpha') == '') {
 					$this->results['listfreet']	= 'none';
@@ -1204,7 +1222,7 @@ EOJS;
 					$this->results['listfreet'][]	= GETPOST('showsysmcbase', 'alpha');
 				}
 				if (is_array($this->results['listfreet']) && is_array ($freeTPost)) {
-					$this->results['listfreet']		= array_merge($this->results['listfreet'], $freeTPost);
+					$this->results['listfreet']		= [...$this->results['listfreet'], ...$freeTPost];
 				} elseif ($freeTPost != '') {
 					$this->results['listfreet'][]	= GETPOST('listfreet', 'alpha');
 				}
@@ -1212,7 +1230,7 @@ EOJS;
 					$this->results['listfreet']	= array_flip(array_flip($this->results['listfreet']));	// clean array for unique keys
 				}
 				// Notes publiques standards
-				$this->results['listnotep']	= array();
+				$this->results['listnotep']	= [];
 				$notePPost					= GETPOST('listnotep', 'alpha') == 'none' ? '' : GETPOST('listnotep', 'none');
 				if ($notePPost == '' && GETPOST('showsysntbase', 'alpha') == '') {
 					$this->results['listnotep']		= 'none';
@@ -1221,7 +1239,7 @@ EOJS;
 					$this->results['listnotep'][]	= GETPOST('showsysntbase', 'alpha');
 				}
 				if (is_array($this->results['listnotep']) && is_array ($notePPost)) {
-					$this->results['listnotep']		= array_merge($this->results['listnotep'], $notePPost);
+					$this->results['listnotep']		= [...$this->results['listnotep'], ...$notePPost];
 				} elseif ($notePPost != '') {
 					$this->results['listnotep'][]	= $notePPost;
 				}
@@ -1268,11 +1286,11 @@ EOJS;
 				// CGA
 				$this->results['cga']			= GETPOST('cga', 'alpha') == 'none' ? '' : GETPOST('cga', 'alpha');
 				// Fichiers joints à fusionner
-				$this->results['filesArray']	= array();
+				$this->results['filesArray']	= [];
 				if (GETPOST('filesArray', 'alpha') == '') {
 					$this->results['filesArray']	= 'none';
 				} elseif (is_array($this->results['filesArray']) && is_array (GETPOST('filesArray', 'array'))) {
-					$this->results['filesArray']	= array_merge($this->results['filesArray'], GETPOST('filesArray', 'array'));
+					$this->results['filesArray']	= [...$this->results['filesArray'], ...GETPOST('filesArray', 'array')];
 				} elseif (GETPOST('filesArray', 'alpha') != '') {
 					$this->results['filesArray']	= GETPOST('filesArray', 'alpha');
 				}
@@ -1326,17 +1344,25 @@ EOJS;
 				// Options du module Sous-total
 				if (isModEnabled('subtotal')) {
 					$this->results['hideInnerLines']	= GETPOST('hideInnerLines', 'int');
-					if (getDolGlobalString('SUBTOTAL_PROPAL_ADD_RECAP', '') && in_array($object->element, array('propal'))
-						|| (getDolGlobalString('SUBTOTAL_COMMANDE_ADD_RECAP', '') && in_array($object->element, array('commande')))
-						|| (getDolGlobalString('SUBTOTAL_INVOICE_ADD_RECAP', '') && in_array($object->element, array('facture')))) {
+					if (getDolGlobalString('SUBTOTAL_PROPAL_ADD_RECAP', '') && in_array($object->element, ['propal'])
+						|| getDolGlobalString('SUBTOTAL_COMMANDE_ADD_RECAP', '') && in_array($object->element, ['commande'])
+						|| getDolGlobalString('SUBTOTAL_INVOICE_ADD_RECAP', '') && in_array($object->element, ['facture'])) {
 						$this->results['subtotal_add_recap']	= GETPOST('subtotal_add_recap');
 					}
 				}
+				// Options du module Infrastructure
+				if (isModEnabled('infrastructure')) {
+					if (getDolGlobalString('INFRASTRUCTURE_PROPAL_ADD_RECAP', '') && in_array($object->element, ['propal'])
+						|| getDolGlobalString('INFRASTRUCTURE_COMMANDE_ADD_RECAP', '') && in_array($object->element, ['commande'])
+						|| getDolGlobalString('INFRASTRUCTURE_INVOICE_ADD_RECAP', '') && in_array($object->element, ['facture'])) {
+						$this->results['infrastructure_add_recap']	= GETPOST('infrastructure_add_recap');
+					}
+				}
 				// enregistrement des choix utilisateur
-				$paramsResultsUser	= array();
-				$paramsResultsDoc	= array();
-				$paramsResultsType	= array();
-				$paramsResultsCust	= array();
+				$paramsResultsUser	= [];
+				$paramsResultsDoc	= [];
+				$paramsResultsType	= [];
+				$paramsResultsCust	= [];
 				foreach ($listOptions as $option => $optionParams) {
 					$constname	= 'INFRASPLUS_PDF_OPTION_'.$option;
 					if (!empty($this->results[$option])) {
@@ -1345,14 +1371,19 @@ EOJS;
 						$constvalue	= 'none';
 					}
 					$bkptype	= getDolGlobalString($constname, 'none');
-					if ($bkptype == 'user') {
-						$paramsResultsUser[$option]	= $constvalue;
-					} elseif ($bkptype == 'doc') {
-						$paramsResultsDoc[$option]	= $constvalue;
-					} elseif ($bkptype == 'type') {
-						$paramsResultsType[$option]	= $constvalue;
-					} elseif ($bkptype == 'cust') {
-						$paramsResultsCust[$option]	= $constvalue;
+					switch ($bkptype) {
+						case 'user':
+							$paramsResultsUser[$option]	= $constvalue;
+							break;
+						case 'doc':
+							$paramsResultsDoc[$option]	= $constvalue;
+							break;
+						case 'type':
+							$paramsResultsType[$option]	= $constvalue;
+							break;
+						case 'cust':
+							$paramsResultsCust[$option]	= $constvalue;
+							break;
 					}
 				}
 				$txtResultsParamsUser	= http_build_query ($paramsResultsUser, '');	// écriture de la chaine
@@ -1380,7 +1411,7 @@ EOJS;
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error
 		**/
-		public function afterPDFCreation($parameters, &$object, &$action, $hookmanager)
+		public function afterPDFCreation($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			unset($_SESSION['InfraSPackPlus_model']);	// Destroys the session variable that indicates that we are using an InfraSPackPlus template
 			return 0;
@@ -1396,7 +1427,7 @@ EOJS;
 		* @return	int + string					< 0 on error, 0 on success, 1 to replace standard code
 		*											$this->resprints HTML code to show
 		**/
-		public function formObjectOptions($parameters, &$object, &$action, $hookmanager)
+		public function formObjectOptions($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			global $conf, $db, $langs;
 
@@ -1409,7 +1440,7 @@ EOJS;
 			if (in_array('thirdpartycard', $TContext) && $ParamLogoEmet) {
 				$selected_logo_emet	= infraspackplus_getLogoEmet($object->id);
 				if ($action == 'create' || $action == 'edit') {
-					$listlogos	= array();
+					$listlogos	= [];
 					$logodir	= !empty($conf->mycompany->multidir_output[$object->entity]) ? $conf->mycompany->multidir_output[$object->entity]	: $conf->mycompany->dir_output;
 					foreach (glob($logodir.'/logos/*.jpg') as $file) {
 						$listlogos[]	= dol_basename($file);
@@ -1435,7 +1466,7 @@ EOJS;
 				} else {
 					$this->resprints	.= '<tr>
 												<td>'.$langs->trans('PDFInfraSPlusLogo').'</td>
-												<td colspan = "'.$colspanshort++.'" class = "maxwidthonsmartphone">'.($selected_logo_emet ? $selected_logo_emet : $langs->trans('PDFInfraSPlusDefaultLogo')).'</td>
+												<td colspan = "'.$colspanshort++.'" class = "maxwidthonsmartphone">'.($selected_logo_emet ?: $langs->trans('PDFInfraSPlusDefaultLogo')).'</td>
 											</tr>';
 				}
 			}
@@ -1451,7 +1482,7 @@ EOJS;
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error, 0 on success, 1 to replace standard code
 		**/
-		public function doActions($parameters, &$object, &$action, $hookmanager)
+		public function doActions($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			global $db, $conf, $langs, $user;
 
@@ -1472,9 +1503,9 @@ EOJS;
 				$onNotesChange	= $action == 'setnote_public' && getDolGlobalInt('INFRASPLUS_PDF_UPDATE_ON_NOTES_CHANGE', 0) && !GETPOST('cancel', 'alpha') ? 1 : 0;	// If we want to generate the document PDF when notes are changed
 				$onExfChange	= $action == 'update_extras' && getDolGlobalInt('INFRASPLUS_PDF_UPDATE_ON_EXF_CHANGE', 0) ? 1 : 0;	// If we want to generate the document PDF when extrafields are changed
 				$onFieldsChange	= ($action == 'setecheance'|| $action =='setconditions' || $action =='setmode' || $action =='setbankaccount' || $action =='setdate_livraison' || $action =='setavailability') && getDolGlobalInt('INFRASPLUS_PDF_UPDATE_ON_FIELDS_CHANGE', 0) ? 1 : 0;	// If we want to generate the document PDF when fields are changed
-				$hidedetails	= (GETPOSTINT('hidedetails') ? GETPOSTINT('hidedetails') : (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS', '') ? 1 : 0));
-				$hidedesc		= (GETPOSTINT('hidedesc') ? GETPOSTINT('hidedesc') : (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DESC', '') ? 1 : 0));
-				$hideref		= (GETPOSTINT('hideref') ? GETPOSTINT('hideref') : (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF', '') ? 1 : 0));
+				$hidedetails	= (GETPOSTINT('hidedetails') ?: (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS', '') ? 1 : 0));
+				$hidedesc		= (GETPOSTINT('hidedesc') ?: (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DESC', '') ? 1 : 0));
+				$hideref		= (GETPOSTINT('hideref') ?: (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_REF', '') ? 1 : 0));
 				$confirm		= GETPOST('confirm', 'alpha');
 				$idwarehouse	= GETPOSTINT('idwarehouse');
 				if (is_object($object) && !empty($object->id)) {
@@ -1482,7 +1513,7 @@ EOJS;
 				}
 				if ($object instanceof Propal) {
 					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'propal_advance', 'validate');
-					if ($usercanvalidate && (($action == 'confirm_validate' && $confirm == 'yes') || ($object->status == Propal::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_validate' && $confirm == 'yes' || $object->status == Propal::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1497,7 +1528,7 @@ EOJS;
 				}
 				if ($object instanceof Commande) {
 					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('commande', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('commande', 'order_advance', 'validate');
-					if ($usercanvalidate && (($action == 'confirm_validate' && $confirm == 'yes') || ($object->status == Commande::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_validate' && $confirm == 'yes' || $object->status == Commande::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange))) {
 						$result			= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1512,7 +1543,7 @@ EOJS;
 				}
 				if ($object instanceof Facture) {
 					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('facture', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('facture', 'invoice_advance', 'validate');
-					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->status == Facture::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_valid' && $confirm == 'yes' || $object->status == Facture::STATUS_VALIDATED && ($onNotesChange || $onExfChange || $onFieldsChange))) {
 						$result			= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1527,7 +1558,7 @@ EOJS;
 				}
 				if ($object instanceof Contrat) {
 					$usercanvalidate	= $user->hasRight('contrat', 'creer');
-					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->statut == Contrat::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_valid' && $confirm == 'yes' || $object->statut == Contrat::STATUS_VALIDATED && ($onNotesChange || $onExfChange))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1542,7 +1573,7 @@ EOJS;
 				}
 				if ($object instanceof Fichinter) {
 					$usercanvalidate	= $user->hasRight('fichinter', 'creer');
-					if ($usercanvalidate && (($action == 'confirm_validate' && $confirm == 'yes') || ($object->statut == Fichinter::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_validate' && $confirm == 'yes' || $object->statut == Fichinter::STATUS_VALIDATED && ($onNotesChange || $onExfChange))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result > 0) {
 							header('Location: '.$_SERVER['PHP_SELF'].'?id='.$object->id);
@@ -1554,7 +1585,7 @@ EOJS;
 				}
 				if ($object instanceof Expedition) {
 					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'shipping_advance', 'validate');
-					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->status == Expedition::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_valid' && $confirm == 'yes' || $object->status == Expedition::STATUS_VALIDATED && ($onNotesChange || $onExfChange))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1569,7 +1600,7 @@ EOJS;
 				}
 				if ($object instanceof Reception) {
 					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('reception', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('reception', 'reception_advance', 'validate');
-					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->statut == Reception::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_valid' && $confirm == 'yes' || $object->statut == Reception::STATUS_VALIDATED && ($onNotesChange || $onExfChange))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1584,7 +1615,7 @@ EOJS;
 				}
 				if ( $object instanceof Delivery ) {
 					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'delivery', 'creer') || getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('expedition', 'delivery_advance', 'validate');
-					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->statut == 1 && ($onNotesChange || $onExfChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_valid' && $confirm == 'yes' || $object->statut == 1 && ($onNotesChange || $onExfChange))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1604,7 +1635,7 @@ EOJS;
 					if ($id > 0 || !empty($ref)) {
 						$object->fetch($id, $ref);
 					}
-					if ($usercanvalidate && (($action == 'confirm_validate' && $confirm == 'yes') || ($object->status == SupplierProposal::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
+					if ($usercanvalidate && ($action == 'confirm_validate' && $confirm == 'yes' || $object->status == SupplierProposal::STATUS_VALIDATED && ($onNotesChange || $onExfChange))) {
 						$result	= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1619,10 +1650,10 @@ EOJS;
 				}
 				if ($object instanceof CommandeFournisseur) {
 					// Common permissions
-					$usercancreate		= ($user->hasRight('fournisseur', 'commande', 'creer') || $user->hasRight('supplier_order', 'creer'));
+					$usercancreate		= $user->hasRight('fournisseur', 'commande', 'creer') || $user->hasRight('supplier_order', 'creer');
 					// Advanced permissions
-					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS') && !empty($usercancreate) || (getDolGlobalString('MAIN_USE_ADVANCED_PERMS') && $user->hasRight('fournisseur', 'supplier_order_advance', 'validate'));
-					if ($usercanvalidate && (($action == 'confirm_valid' && $confirm == 'yes') || ($object->status == CommandeFournisseur::STATUS_VALIDATED && ($onNotesChange || $onExfChange)))) {
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS') && !empty($usercancreate) || getDolGlobalString('MAIN_USE_ADVANCED_PERMS') && $user->hasRight('fournisseur', 'supplier_order_advance', 'validate');
+					if ($usercanvalidate && ($action == 'confirm_valid' && $confirm == 'yes' || $object->status == CommandeFournisseur::STATUS_VALIDATED && ($onNotesChange || $onExfChange))) {
 						$result			= infraspackplus_semiauto_update($object, $hidedetails, $hidedesc, $hideref, $idwarehouse, $locationTarget, $action);
 						if ($result < 0) {
 							$langs->load('errors');
@@ -1647,7 +1678,7 @@ EOJS;
 		* @param	string			$action			Current action (if set). Generally create or edit or null
 		* @return	int								< 0 on error, 0 on success, 1 to replace standard code
 		**/
-		public function printObjectLine($parameters, &$object, &$action)
+		public function printObjectLine(array $parameters, CommonObject &$object, string &$action)
 		{
 			global $db, $conf, $langs, $user, $object, $hookmanager;
 			global $form;
@@ -1673,10 +1704,9 @@ EOJS;
 			$isOuvrage				= isModEnabled('ouvrage') && !empty($isOuvrageLine) ? true : false;
 			$isSubTotalLine			= infraspackplus_isLineFromExternalModule($line, $element, 'modSubtotal');
 			$isATMLine				= isModEnabled('subtotal') && !empty($isSubTotalLine) ? true : false;
-			$isInfrastructureLine	= infraspackplus_isLineFromExternalModule($line, $element, 'modInfrastructure');	// InfraS add
-			$isInfraSLine			= isModEnabled('infrastructure') && !empty($isInfrastructureLine) ? true : false;	// InfraS add
+			$isInfraSLine			= infraspackplus_isInfrastructureLine($line);
 			$isShipment				= in_array('ordershipmentcard', $TContext) || in_array('expeditioncard', $TContext) ? 1 : 0;
-			if (in_array($object->element, array('propal', 'commande', 'facture', 'fichinter')) && getDolGlobalString('INFRASPLUS_PDF_SHOW_DISCOUNT_OPT', '') && empty($isShipment) && empty($isATMLine) && empty($isOuvrage) && empty($isInfraSLine)) {	// InfraS change
+			if (in_array($object->element, ['propal', 'commande', 'facture', 'fichinter']) && getDolGlobalString('INFRASPLUS_PDF_SHOW_DISCOUNT_OPT', '') && empty($isShipment) && empty($isATMLine) && empty($isOuvrage) && empty($isInfraSLine)) {
 				if ($action != 'editline' || $selected != $line->id) {	// Line in view mode
 					if ($line->fk_product > 0) {	// Product
 						$product_static			= new Product($db);
@@ -1710,7 +1740,7 @@ EOJS;
 						$text			.= ' - '.(!empty($line->label) ? $line->label : $label);
 						$description	.= (getDolGlobalString('PRODUIT_DESC_IN_FORM', '') ? '' : (!empty($line->description) ? dol_htmlentitiesbr($line->description) : '')); // Description is what to show on popup. We shown nothing if already into desc.
 					}
-					$line->pu_ttc	= price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + ((!empty($line->tva_tx) ? $line->tva_tx : 0) / 100)), 'MU');
+					$line->pu_ttc	= price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + (!empty($line->tva_tx) ? $line->tva_tx : 0) / 100), 'MU');
 					// Output template part (modules that overwrite templates must declare this into descriptor)
 					// Use global variables + $dateSelector + $seller and $buyer
 					$dolibranch		= explode('.', DOL_VERSION);
@@ -1724,10 +1754,10 @@ EOJS;
 				}
 				if ($object->statut == 0 && $action == 'editline' && $selected == $line->id) {	// Line in update mode
 					$label			= !empty($line->label) ? $line->label : ($line->fk_product > 0 ? $line->product_label : '');
-					$line->pu_ttc	= price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + ((!empty($line->tva_tx) ? $line->tva_tx : 0) / 100)), 'MU');
+					$line->pu_ttc	= price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + (!empty($line->tva_tx) ? $line->tva_tx : 0) / 100), 'MU');
 					// Output template part (modules that overwrite templates must declare this into descriptor)
 					// Use global variables + $dateSelector + $seller and $buyer
-					$dirtpls		= array_merge($conf->modules_parts['tpl'], array($defaulttpldir));
+					$dirtpls		= array_merge($conf->modules_parts['tpl'], [$defaulttpldir]);
 					foreach ($dirtpls as $module => $reldir) {
 						$tpl	= !empty($module) ? dol_buildpath($reldir.'/objectline_edit.tpl.php') : DOL_DOCUMENT_ROOT.$reldir.'/objectline_edit.tpl.php';
 						$res	= empty($conf->file->strict_mode) ? @include $tpl : include $tpl;	// for debug

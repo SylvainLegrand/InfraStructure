@@ -797,6 +797,9 @@
 					$nexY			= $tab_top + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
 					// Loop on each lines
 					for ($i = 0 ; $i < $nblignes ; $i++) {
+						$isInfraSLine	= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
+						$isInfraSTotal	= infraspackplus_isInfrastructureTotal($object->lines[$i]) ? 1 : 0;	// Sous-total infrastructure (qty 91..99)
+						$colYOffset	= !empty($isInfraSTotal) ? 1.0 : 0;	// pdfAddTotal applique setCellPaddings T=1 au libellé du sous-total. Les MultiCell des colonnes voisines ne respectent pas ce padding (hauteur explicite + valign 'M'), d'où un décalage visuel de ~1mm. On compense en décalant manuellement le Y des MultiCell pour les sous-totaux infrastructure.
 						$curY	= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
 						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
@@ -819,7 +822,7 @@
 						// Hauteur du code barre
 						if (!empty($this->show_bc_col)) {
 							$pdf->startTransaction();
-							$BC					= pdf_InfraSPlus_writelineBC($pdf, $object, $i, $this->bodytxtcolor, $this->tableau['ref']['posx'], $curY, $this->wBC, $this->hBC);
+							$BC					= pdf_InfraSPlus_writelineBC($pdf, $object, $i, $this->bodytxtcolor, $this->tableau['ref']['posx'], $curY + $colYOffset, $this->wBC, $this->hBC);
 							$this->heightline	= $BC < 1 ? $this->tab_hl : ($BC == 2 ? $this->dimC2D : $this->hBC);
 							$pdf->rollbackTransaction(true);
 						}
@@ -932,11 +935,11 @@
 						$pdf->SetFont('', '', $default_font_size - 1);	// On repositionne la police par defaut
 						// Bar code or ref
 						if (!empty($this->show_bc_col)) {
-							pdf_InfraSPlus_writelineBC($pdf, $object, $i, $this->bodytxtcolor, $this->tableau['ref']['posx'], $curY, $this->wBC, $this->hBC);
+							pdf_InfraSPlus_writelineBC($pdf, $object, $i, $this->bodytxtcolor, $this->tableau['ref']['posx'], $curY + $colYOffset, $this->wBC, $this->hBC);
 						}
 						if (!empty($this->refcol)) {
 							$pagepos	= $pdf->getPage();
-							$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
+							$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY + $colYOffset, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 							$pdf->setPage($pagepos);
 						}
 						// Position
@@ -960,9 +963,9 @@
 						// Unit
 						if (!empty($this->product_use_unit)) {
 							$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails);
-							$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
+							$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY + $colYOffset, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
 						}
-						$isSubFreeT	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal') && $object->lines[$i]->qty	== 50 ? 1 : 0;	// Ligne libre ATM
+						$isSubFreeT	= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal') && $object->lines[$i]->qty	== 50 ? 1 : 0;	// Ligne libre ATM
 						if (empty($isSubFreeT)) {
 							// Qty ordered
 							if (empty($this->hide_ordered)) {
@@ -973,11 +976,11 @@
 								$pdf->MultiCell($this->tableau['rel']['larg'], $this->heightline, $qty_rel[$i], '', 'C', 0, 1, $this->tableau['rel']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
 							}
 							// Qty to ship
-							$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $object->lines[$i]->qty_shipped, '', 'C', 0, 1, $this->tableau['qty']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+							$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $object->lines[$i]->qty_shipped, '', 'C', 0, 1, $this->tableau['qty']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 							// Total HT
 							if (!empty($this->showpricebl)) {
 								$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $i, $outputlangs, $hidedetails);
-								$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'C', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+								$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'C', 0, 1, $this->tableau['totalht']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 							}
 						}
 						// Add dash or space between line

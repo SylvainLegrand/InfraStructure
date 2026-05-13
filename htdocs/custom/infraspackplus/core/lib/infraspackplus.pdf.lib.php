@@ -49,6 +49,9 @@
 	if (isModEnabled('milestone')) {
 		dol_include_once('/milestone/core/modules/modMilestone.class.php');
 	}
+	if (isModEnabled('infrastructure')) {
+		dol_include_once('/infrastructure/class/infrastructure.class.php');
+	}
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 	// For retrocompatibility Dolibarr < 21.0
@@ -2804,6 +2807,11 @@
 			$isSubTotal	= 0;
 			$isSubFreeT	= 0;
 		}
+		// Texte libre Infrastructure : aligne le comportement sur celui du module Subtotal pour l'option INFRASPLUS_PDF_DESC_FULL_LINE et la mise en forme générique de pdf_InfraSPlus_getlinedesc
+		$isInfraFreeT	= infraspackplus_isInfrastructureFreeText($object->lines[$i]);
+		if (empty($isSubFreeT) && !empty($isInfraFreeT)) {
+			$isSubFreeT	= 1;
+		}
 		$isOuvrage	= pdf_InfraSPlus_escapeEns ($object, $i, 2);	// Ouvrage Inovea
 		if (isModEnabled('milestone')) {	// ligne Milestone - Jalon
 			$isMilestoneLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modMilestone');
@@ -2818,7 +2826,7 @@
 				$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h--, 0.001, '1111', $frm, $frmstyle, $bodybgsubticolor);
 			}
 		}
-		if (is_object($hookmanager) && empty($isATMLine) && empty($isMilestoneLine)) {
+		if (is_object($hookmanager) && empty($isATMLine) && empty($isMilestoneLine) && empty($isInfraFreeT)) {	// Skip hook pour les textes libres Infrastructure : actions_infrastructure::pdf_writelinedesc dessinerait en largeur de cellule, masquant l'option INFRASPLUS_PDF_DESC_FULL_LINE — on délègue le rendu à pdf_InfraSPlus_getlinedesc (cas $isSubFreeT) qui sait étendre la cellule en pleine largeur.
 			$special_code	= empty($object->lines[$i]->special_code) ? '' : $object->lines[$i]->special_code;
 			if (!empty($object->lines[$i]->fk_parent_line)) {
 				$special_code	= $object->getSpecialCode($object->lines[$i]->fk_parent_line);
@@ -4810,24 +4818,41 @@
 	**/
 	function pdf_InfraSPlus_subtotal_getrecap ($object, $i, $subtotalRecap)
 	{
-		// TODO contrôles en double ?
-		$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
-		$isSubTitle		= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
-		$isSubTotal		= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
-		if (!empty($isSubTotal)) {	// Sous-total trouvé
-			foreach ($object->lines as $line) {	// Parcours des lignes depuis le début
-				if ($line->id == $object->lines[$i]->id) {
-					break;	// Ligne de sous-total courant trouvée on arrête le parcours
+		$line				= $object->lines[$i];
+		$isATMSubtotal		= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($line, $object->element, 'modSubtotal') && $line->qty > 90;
+		$isInfraSubtotal	= infraspackplus_isInfrastructureTotal($line);
+		if (empty($isATMSubtotal) && empty($isInfraSubtotal)) {
+			return $subtotalRecap;
+		}
+		$titleRang	= 0;
+		$titleLine	= $i;	// Fallback si aucun titre n'est trouvé (cas dégénéré) : on retombera sur le libellé du sous-total
+		if (!empty($isATMSubtotal)) {
+			// Convention ATM Subtotal : sous-total qty=99 ferme titre qty=1, donc qty_titre = 100 - qty_sous_total
+			$level	= 100 - $line->qty;
+			foreach ($object->lines as $k => $candidate) {
+				if ($candidate->id == $line->id) {
+					break;
 				}
-				$qty_search		= 100 - $object->lines[$i]->qty;	// calcul de la qty du sous-titre correspondant au sous-total courant (niveau)
-				$isSubTotalLine	= infraspackplus_isLineFromExternalModule($line, $object->element, 'modSubtotal');
-				$isSubTitle		= $isSubTotalLine && $line->qty < 10 ? 1 : 0;	// Sous-titre ATM
-				if (!empty($isSubTitle) && $line->qty == $qty_search) {
-					$titleRang	= $line->rang;	// ligne de sous-titre correspondant au sous-total courant trouvée
+				$isATMTitle	= infraspackplus_isLineFromExternalModule($candidate, $object->element, 'modSubtotal') && $candidate->qty < 10 ? 1 : 0;
+				if (!empty($isATMTitle) && $candidate->qty == $level) {
+					$titleRang	= $candidate->rang;
+					$titleLine	= $k;
 				}
 			}
-			$subtotalRecap[]	= array('line' => $i, 'type' => 'subtotal', 'rang' => $titleRang, 'level' => $qty_search);	// Enregistrement du lien entre le sous-total ($i) et son sous-titre associé ($titleRang)
+		} elseif (!empty($isInfraSubtotal)) {
+			// Convention Infrastructure : niveau = qty - 90 ; le titre parent porte qty = niveau
+			$level	= TInfrastructure::getNiveau($line);
+			foreach ($object->lines as $k => $candidate) {
+				if ($candidate->id == $line->id) {
+					break;
+				}
+				if (TInfrastructure::isTitle($candidate, $level)) {
+					$titleRang	= $candidate->rang;
+					$titleLine	= $k;
+				}
+			}
 		}
+		$subtotalRecap[]	= array('line' => $i, 'titleLine' => $titleLine, 'type' => 'subtotal', 'rang' => $titleRang, 'level' => $level);
 		return $subtotalRecap;
 	}
 
@@ -4867,12 +4892,26 @@
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$pdf->MultiCell($template->formatpage['largeur'] - $template->formatpage['mgauche'] - $template->formatpage['mdroite'], $template->heightline * 2, $outputlangs->transnoentities('PDFInfraSPlusRecap'), '', 'C', 0, 1, $template->formatpage['mgauche'], $tab_top + 10, true, 0, 0, false, 0, 'M', false);
 		$pdf->SetFont('', '', $default_font_size - 1);
+		// Cohérence visuelle : aligner le style du libellé sur celui des totaux. Le hook infrastructure pdf_getlinetotalexcltax applique SetFont/SetTextColor (style + couleur des sous-totaux) avant chaque rendu de cellule total, ce qui fuite sur le writeHTMLCell du libellé de l'itération suivante. Sans ce pré-alignement, le 1er libellé apparaît en style/couleur par défaut, les suivants en style sous-total. On applique explicitement le même style avant chaque libellé.
+		if (isModEnabled('infrastructure')) {
+			dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
+		}
 		$posy				= $tab_top + 30;
 		$nblignes			= count($subtotalRecap);
 		for ($i = 0 ; $i < $nblignes ; $i++) {
 			$pageposbefore	= $pdf->getPage();
 			$posx			= $template->tableau['desc']['posx'] + ($subtotalRecap[$i]['level'] > 1 ? $subtotalRecap[$i]['level'] * 4 : 0);
-			pdf_InfraSPlus_writelinedesc($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs, $template->formatpage, $template->horLineStyle, $template->tableau['desc']['larg'], $template->heightline, $posx, $posy, 0, 0, 0, '', null, 0, 1);
+			$titleLine		= isset($subtotalRecap[$i]['titleLine']) ? $subtotalRecap[$i]['titleLine'] : $subtotalRecap[$i]['line'];	// Libellé du titre parent (et non du sous-total qui peut être vide ou générique)
+			// Rendu direct du libellé : on évite pdf_InfraSPlus_writelinedesc qui appliquerait les options de la ligne titre (saut de page via info_bits, print_as_list, hideblock, ...) au récap
+			$titleObj		= !empty($object->lines[$titleLine]) ? $object->lines[$titleLine] : null;
+			$titleLabel		= $titleObj && !empty($titleObj->label) ? $titleObj->label : ($titleObj && !empty($titleObj->desc) ? $titleObj->desc : ($titleObj && !empty($titleObj->description) ? $titleObj->description : ''));
+			$titleLabel		= pdf_InfraSPlus_formatNotes($object, $outputlangs, $titleLabel);
+			// Applique le style sous-total Infrastructure avant le libellé pour rester cohérent avec les colonnes totaux rendues plus loin (le hook pdf_getlinetotalexcltax d'infrastructure les force déjà à ce style).
+			if (isModEnabled('infrastructure') && function_exists('infrastructure_setPdfTextColor')) {
+				$pdf->SetFont('', getDolGlobalString('INFRASTRUCTURE_PDF_TOTAL_STYLE', ''), $default_font_size - 1);
+				infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
+			}
+			$pdf->writeHTMLCell($template->tableau['desc']['larg'], $template->heightline, $posx, $posy, $outputlangs->convToOutputCharset($titleLabel), 0, 1, false, true, 'L', true);
 			// Total line
 			if (empty($template->hide_vat)) {
 				$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
@@ -5310,4 +5349,55 @@
 			$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 		}
 		$pdf->SetAlpha(1);
+	}
+
+	/**
+	*	Check if a document line belongs to the Infrastructure module (title, subtotal or free text)
+	*
+	*	@param		object		$line	Line object to test
+	*	@return		bool				true if the line is an Infrastructure special line
+	**/
+	function infraspackplus_isInfrastructureLine ($line)
+	{
+		if (!isModEnabled('infrastructure')) {
+			return false;
+		}
+		if (!class_exists('TInfrastructure')) {
+			dol_include_once('/infrastructure/class/infrastructure.class.php');
+		}
+		return class_exists('TInfrastructure') && TInfrastructure::isModInfrastructureLine($line);
+	}
+
+	/**
+	*	Check if a document line is an Infrastructure subtotal line (qty 91..99)
+	*
+	*	@param		object		$line	Line object to test
+	*	@return		bool				true if the line is an Infrastructure subtotal
+	**/
+	function infraspackplus_isInfrastructureTotal ($line)
+	{
+		if (!isModEnabled('infrastructure')) {
+			return false;
+		}
+		if (!class_exists('TInfrastructure')) {
+			dol_include_once('/infrastructure/class/infrastructure.class.php');
+		}
+		return class_exists('TInfrastructure') && TInfrastructure::isTotal($line);
+	}
+
+	/**
+	*	Check if a document line is an Infrastructure free text line (qty == 50)
+	*
+	*	@param		object		$line	Line object to test
+	*	@return		bool				true if the line is an Infrastructure free text
+	**/
+	function infraspackplus_isInfrastructureFreeText ($line)
+	{
+		if (!isModEnabled('infrastructure')) {
+			return false;
+		}
+		if (!class_exists('TInfrastructure')) {
+			dol_include_once('/infrastructure/class/infrastructure.class.php');
+		}
+		return class_exists('TInfrastructure') && TInfrastructure::isFreeText($line);
 	}
