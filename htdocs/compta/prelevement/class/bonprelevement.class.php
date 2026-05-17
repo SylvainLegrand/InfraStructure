@@ -1197,6 +1197,9 @@ class BonPrelevement extends CommonObject
 			}
 			$sql .= " AND pd.traite = 0";
 			$sql .= " AND pd.ext_payment_id IS NULL";
+			if ($sourcetype != 'salary') {
+				$sql .= " AND sr.type = 'ban'";		// TODO Add AND sr.type = 'ban' for users too
+			}
 			if ($dids !== [0] && !empty($dids)) {
 				$sql .= " AND pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
 			}
@@ -1899,7 +1902,8 @@ class BonPrelevement extends CommonObject
 						if (!empty($cachearraytotestduplicate[$obj->pl_rowid])) { // InfraS change
 							$soc = new Societe($this->db);
 							$soc->fetch($obj->socid);
-							$this->error = $langs->trans('ErrorCompanyHasDuplicateDefaultBAN', $soc->getNomUrl());
+							$msg = (empty($thirdpartyBANIds)) ? 'ErrorCompanyHasDuplicateDefaultBAN' : 'ErrorCompanyHasDuplicateInvoicesBAN';
+							$this->error = $langs->trans($msg, $soc->getNomUrl());
 							$this->invoice_in_error[$obj->idfac] = $this->error;
 							$result = -2;
 							break;

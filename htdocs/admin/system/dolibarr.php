@@ -98,7 +98,12 @@ print load_fiche_titre($title, '', 'title_setup');
 print '<div class="div-table-responsive-no-min">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><td class="titlefieldcreate">'.$langs->trans("Version").'</td><td></td></tr>'."\n";
-print '<tr class="oddeven"><td>'.$langs->trans("CurrentVersion").'<br><span class="opacitymedium">('.$langs->trans("Programs").')</span></td><td>'.DOL_VERSION;
+if ($osden_version = getDolGlobalString('OSDEN_VERSION')) {
+	print '<tr class="oddeven"><td>'.$langs->trans("Osden").'</td><td>'.$osden_version . '('. $langs->trans('Dolibarr') . ' ' .  DOL_VERSION . ')';
+} else {
+	print '<tr class="oddeven"><td>'.$langs->trans("CurrentVersion").' ('.$langs->trans("Programs").')</td><td>'.DOL_VERSION;
+}
+
 // If current version differs from last upgrade
 if (!getDolGlobalString('MAIN_VERSION_LAST_UPGRADE')) {
 	// Compare version with last install database version (upgrades never occurred)
