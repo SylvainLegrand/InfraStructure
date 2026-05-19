@@ -168,7 +168,7 @@
 					$urlTo				= '?'.$idvar.'='.$object->id;
 					$ht_signarea		= getDolGlobalInt('INFRASPLUS_PDF_HT_SIGN_AREA', 24) * 7.5;
 					$signColor			= getDolGlobalString('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', '0,0,0');
-					$signColor			= '#'.colorArrayToHex(explode(',', $signColor));
+					$signColor			= '#'.colorArrayToHex(colorStringToArray($signColor, [0, 0, 0]));
 					// Page JS to toggle some parameters
 					$permHide			= !empty($InfraSPermLastOpt) ? '.infrasfoldable' : '.InfraSPermLastOpt';
 					$permFoldFunction	= !empty($InfraSPermLastOpt) ? '$(".infrasfoldable").toggle();' : '';
