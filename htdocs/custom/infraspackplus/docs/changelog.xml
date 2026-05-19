@@ -1829,7 +1829,10 @@
 	<Version Number="18.15.6" MonthVersion="2026-05">
 		<change type='fix'>Hook formBuilddocOptions (actions_infraspackplus.class.php) : robustesse de la lecture de la constante INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR. L'ancien code colorArrayToHex(explode(',', $signColor)) supposait que la valeur stockée était toujours un triplet RGB valide ; quand la constante existait en base mais avec une valeur vide (cas observé chez itplast : ancienne installation upgradée sans que l'INSERT par défaut de data.sql ait été rejoué, ou champ effacé puis pas re-sauvé dans l'admin), explode renvoyait un tableau à un seul élément vide, colorArrayToHex passait alors les check is_array / empty puis appelait dechex('') sur les index 1 et 2 inexistants — provoquant deux PHP Warning "Undefined array key" sur PHP 7.4/8.0/8.1 et un PHP Fatal TypeError sur PHP 8.2+ qui bloquait totalement l'affichage de la fiche BOM / Propal / Facture / etc. (toutes les pages qui appellent showdocuments via FormFile). Le hook fournit toute la liste des éléments via in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport']), donc l'impact couvre toutes les cards des types listés. Correctif : remplacement par colorArrayToHex(colorStringToArray($signColor, [0, 0, 0])) ; colorStringToArray valide proprement le format (hex ou RGB comma-separated), garantit un tableau à 3 entiers, et fallback sur le défaut quand l'entrée est vide ou malformée. Pattern aligné sur celui utilisé par core/class/html.formsetup.class.php et core/class/html.formother.class.php. Aucune migration de données nécessaire : les valeurs valides existantes ('0,0,0', '255,128,64', etc.) sont strictement préservées.</change>
 	</Version>
-	<InfraS Downloaded="20260518"/>
+	<Version Number="18.15.7" MonthVersion="2026-05">
+		<change type='chg'>Ajout d’un nouveau paramètre dans la fonction `select_infraspackplus_dict` pour permettre une sélection multiple.</change>
+	</Version>
+	<InfraS Downloaded="20260519"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

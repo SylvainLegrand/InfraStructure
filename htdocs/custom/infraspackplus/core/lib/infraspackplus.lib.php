@@ -613,16 +613,17 @@
 	/**
 	*	Return list of mention
 	*
-	*	@param	string	$dict			SQL table name
-	*	@param	string	$selected		Preselected type
-	*	@param	string	$htmlname		Name of field in html form
-	* 	@param	int		$showempty		Add an empty field
-	*	@param	string	$onChange		JavaScript for onchange event
-	*	@param	int		$hasLabel		Show label before select
-	*	@param	string	$filter			MySQL filter (example : 'code LIKE "TVA\_%"')
-	*	@return	string					Select html tag with all mention labels found
+	*	@param	string			$dict			SQL table name
+	*	@param	string			$selected		Preselected type
+	*	@param	string			$htmlname		Name of field in html form
+	* 	@param	int				$showempty		Add an empty field
+	*	@param	string			$onChange		JavaScript for onchange event
+	*	@param	int				$hasLabel		Show label before select
+	*	@param	string			$filter			MySQL filter (example : 'code LIKE "TVA\_%"')
+	*	@param	int				$needArray		Ask for an array instead of a html string
+	*	@return	string | array					Select html tag with all mention labels found
 	**/
-	function select_infraspackplus_dict($dict, $selected = '', $htmlname = 'fk_infraspackplus_dict', $showempty = 0, $onChange = '', $hasLabel = 1, $filter = '')
+	function select_infraspackplus_dict($dict, $selected = '', $htmlname = 'fk_infraspackplus_dict', $showempty = 0, $onChange = '', $hasLabel = 1, $filter = '', $needArray = 0)
 	{
 		global $db, $conf, $langs;
 
@@ -638,6 +639,15 @@
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
 			$i		= 0;
+			if ($needArray) {
+				$result	= [];
+				while ($obj = $db->fetch_object($resql)) {
+					if (getDolGlobalString('PROPOSAL_FREE_TEXT_'.$obj->code, '') && getDolGlobalString('INVOICE_FREE_TEXT_'.$obj->code, '')) {
+						$result[$obj->code]	= $obj->libelle;
+					}
+				}
+				return $result;
+			}
 			if (!empty($num)) {
 				$result	.= $hasLabel ? '&nbsp;'.$langs->trans('InfraSPlusParam'.$typeDict.'3').'&nbsp;' : '';
 				$result	.= '<select class = "flat minwidth300 maxwidth400" name="'.$htmlname.'"'.($onChange ? ' onchange = "'.$onChange.';"' : '').'>';
