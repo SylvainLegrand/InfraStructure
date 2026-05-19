@@ -1,25 +1,25 @@
-# htdocs/api - REST API
+# htdocs/api — API REST
 
-RESTful API using Restler framework. Authentication via DOLAPIKEY header.
+API RESTful utilisant le framework Restler. Authentification via l'en-tête DOLAPIKEY.
 
-## Directory Structure
+## Structure des répertoires
 
-| File | Purpose |
-|------|---------|
-| index.php | API entry point (Restler bootstrap) |
-| class/api.class.php | Base class (DolibarrApi) |
-| class/api_access.class.php | Auth handler (DolibarrApiAccess) |
+| Fichier | Objectif |
+|---------|----------|
+| index.php | Point d'entrée de l'API (bootstrap Restler) |
+| class/api.class.php | Classe de base (DolibarrApi) |
+| class/api_access.class.php | Gestionnaire d'authentification (DolibarrApiAccess) |
 
-## Creating API Endpoints
+## Création de points d'entrée API
 
-Use `/dolibarr-api-development` skill for complete patterns and examples.
+Utilisez la skill `/dolibarr-api-development` pour les motifs et exemples complets.
 
-API classes are auto-discovered from `{module}/class/api_{module}.class.php`.
+Les classes API sont auto-découvertes depuis `{module}/class/api_{module}.class.php`.
 
-## Common Endpoints
+## Points d'entrée courants
 
 - `/invoices`, `/orders`, `/thirdparties`, `/products`, `/contacts`, `/users`
 
 ## Documentation
 
-API explorer: `{dolibarr_url}/api/index.php/explorer`
+Explorateur API : `{dolibarr_url}/api/index.php/explorer`

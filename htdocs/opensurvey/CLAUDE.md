@@ -27,30 +27,6 @@ opensurvey/
 │   └── create_classic.php
 └── admin/                # Module settings
 ```
-
-## Main Class (Opensurveysondage)
-
-```php
-class Opensurveysondage extends CommonObject
-{
-    public $table_element = 'opensurvey_sondage';
-    public $element = 'opensurvey';
-
-    // Survey types
-    const TYPE_DATE = 0;       // Date poll (meeting scheduling)
-    const TYPE_CLASSIC = 1;    // Standard poll (multiple choice)
-
-    public $id_sondage;        // Unique survey ID
-    public $titre;             // Title
-    public $description;       // Description
-    public $format;            // TYPE_DATE or TYPE_CLASSIC
-    public $date_fin;          // Expiry date
-    public $sujet;             // Options (serialized)
-    public $allow_comments;    // Comments enabled
-    public $allow_spy;         // Results visible to all
-}
-```
-
 ## Survey Types
 
 | Type | Use Case |

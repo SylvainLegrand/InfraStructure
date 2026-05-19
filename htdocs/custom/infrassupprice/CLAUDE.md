@@ -201,23 +201,7 @@ Si modification SQL / descripteur / permissions / hooks / constantes :
 
 ## Dernières mises à jour (Recent updates)
 
-- `15.2.0` (2026-02) : corrections d'injections SQL dans la classe métier et le hook (cast int/float, `$db->escape()`, guillemets simples)
-- `15.2.0` (2026-02) : ajout du contrôle d'accès et de `NOTOKENRENEWAL` sur les endpoints AJAX
-- `15.2.0` (2026-02) : échappement des URLs de formulaires basées sur `PHP_SELF` (durcissement XSS)
-- `15.2.0` (2026-02) : suppression de l'exposition des requêtes SQL dans les messages d'erreur
-- `15.2.0` (2026-02) : remplacement de `now()` SQL par `$db->idate(dol_now())`
-- `15.2.0` (2026-02) : validation GETPOST avec types appropriés sur tous les paramètres non typés
-- `15.2.0` (2026-02) : normalisation `elseif` (PSR-12) et harmonisation de la librairie admin
-- `15.2.0` (2026-02) : ajout du fichier CLAUDE.md
-- `15.3.0` (2026-03) : amélioration du descripteur CLAUDE.md : ajout des Notes techniques
-- `15.3.0` (2026-03) : ajout d'un test de comparaison de la version majeure Dolibarr (avertissement si version non supportée)
-- `15.3.1` (2026-03) : compatibilité avec PHP 8.4
-- `15.3.2` (2026-03) : ajout de l'affichage de la version Dolinfras dans `infrassupprice_getSupportInformation()`
-- `15.3.2` (2026-03) : ajout de la clé de traduction `InfraSSupPriceParamDolinfrasVersion` (fr_FR, en_US, es_ES)
-- `15.3.3` (2026-03) : ajout d'une nouvelle famille dynamique dédiée aux modules d'hébergement (branding « Dolibarr LTS by InfraS »)
-- Entrées du changelog par version (types : `add`, `chg`, `fix`)
-
-Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+Voir `docs/changelog.xml` pour l'historique complet des versions.
 
 ## Notes techniques (Technical notes)
 

@@ -29,42 +29,7 @@ fourn/
 ├── paiement/             # Supplier payments
 └── admin/                # Module settings
 ```
-
-## Supplier Order (CommandeFournisseur)
-
-```php
-class CommandeFournisseur extends CommonOrder
-{
-    public $table_element = 'commande_fournisseur';
-    public $element = 'order_supplier';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_ACCEPTED = 2;
-    const STATUS_ORDERSENT = 3;
-    const STATUS_RECEIVED_PARTIALLY = 4;
-    const STATUS_RECEIVED_COMPLETELY = 5;
-    const STATUS_CANCELED = 6;
-    const STATUS_REFUSED = 7;
-}
-```
-
 ## Supplier Invoice (FactureFournisseur)
-
-```php
-class FactureFournisseur extends CommonInvoice
-{
-    public $table_element = 'facture_fourn';
-    public $element = 'invoice_supplier';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_CLOSED = 2;
-    const STATUS_ABANDONED = 3;
-}
-```
 
 ## Permissions
 

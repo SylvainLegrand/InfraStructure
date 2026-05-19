@@ -237,24 +237,7 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 
 ## Dernières mises à jour (Recent updates)
 
-- `15.0.0` (2024-07) : version initiale — fork d'InfraSTechInfo pour compatibilité Dolibarr 15+
-- `15.0.1` (2024-09) : correction de la détection de version PHP XML
-- `15.0.2` (2024-11) : amélioration de l'affichage des totaux
-- `15.1.0` (2026-02) : alignement des fonctions lib admin sur infraspackplus, infraswidgets et infrassearch (27 corrections)
-- `15.1.0` (2026-02) : ajout du fichier CLAUDE.md pour l'intégration avec Claude Code (IA)
-- `15.1.0` (2026-02) : audit de sécurité : corrections XSS, CSRF, typage des variables
-- `15.1.0` (2026-02) : remplacement des balises HTML obsolètes (`<FONT>`) par du CSS
-- `15.1.0` (2026-02) : amélioration de la documentation PHPDoc
-- `15.2.0` (2026-03) : ajout d'un test de comparaison de la version majeure Dolibarr (avertissement si version non supportée)
-- `15.2.0` (2026-03) : correction de la logique de détection de version max (utilisation de `explode()` au lieu de `strstr()`)
-- `15.2.0` (2026-03) : amélioration du descripteur CLAUDE.md : ajout des Notes techniques
-- `15.2.1` (2026-03) : isolation du cookie JS de l'état des panneaux (`infrastechinfos_tblPSexp` au lieu de `tblPSexp`)
-- `15.2.1` (2026-03) : variable `cookieName` déplacée au scope script (hors `jQuery(document).ready()`) pour accès inter-closures
-- `15.2.1` (2026-03) : test défensif `!empty($conf->use_javascript_ajax)` au lieu de `$conf->use_javascript_ajax`
-- `15.2.2` (2026-03) : ajout d'une nouvelle famille dédiée aux modules d'hébergement (branding dynamique)
-- Entrées du changelog par version (types : `add`, `chg`, `fix`)
-
-Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+Voir `docs/changelog.xml` pour l'historique complet des versions.
 
 ## Notes techniques (Technical notes)
 

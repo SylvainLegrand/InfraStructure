@@ -23,25 +23,6 @@ delivery/
 ├── document.php          # Documents
 └── note.php              # Notes
 ```
-
-## Main Class (Delivery)
-
-```php
-class Delivery extends CommonObject
-{
-    public $table_element = 'delivery';
-    public $element = 'delivery';
-
-    // Status constants
-    const STATUS_DRAFT = -1;
-    const STATUS_VALIDATED = 0;
-
-    public $socid;             // Customer ID
-    public $fk_expedition;     // Source shipment
-    public $date_delivery;     // Delivery date
-}
-```
-
 ## Relationship to Shipments
 
 Delivery notes confirm receipt of shipments:

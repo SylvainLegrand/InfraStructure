@@ -25,38 +25,9 @@ loan/
 ├── document.php          # Attached documents
 └── admin/                # Module settings
 ```
-
-## Main Class (Loan)
-
-```php
-class Loan extends CommonObject
-{
-    public $table_element = 'loan';
-    public $element = 'loan';
-
-    public $capital;           // Principal amount
-    public $datestart;         // Start date
-    public $dateend;           // End date
-    public $nbterm;            // Number of terms
-    public $rate;              // Interest rate
-    public $fk_bank;           // Linked bank account
-}
-```
-
 ## Loan Schedule (LoanSchedule)
 
 Repayment schedule entries:
-
-```php
-class LoanSchedule extends CommonObject
-{
-    public $fk_loan;           // Parent loan
-    public $datep;             // Payment date
-    public $amount_capital;    // Principal portion
-    public $amount_insurance;  // Insurance portion
-    public $amount_interest;   // Interest portion
-}
-```
 
 ## Permissions
 

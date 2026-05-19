@@ -25,26 +25,6 @@ societe/
 ├── consumption.php       # Consumption stats
 └── admin/                # Module settings
 ```
-
-## Main Class (Societe)
-
-```php
-class Societe extends CommonObject
-{
-    public $table_element = 'societe';
-    public $element = 'societe';
-
-    // Type constants
-    const TYPE_CUSTOMER = 1;
-    const TYPE_SUPPLIER = 2;
-    const TYPE_PROSPECT = 3;
-
-    // Status
-    const STATUS_CLOSED = 0;
-    const STATUS_OPEN = 1;
-}
-```
-
 ## Third Party Types
 
 | Property | Value | Description |

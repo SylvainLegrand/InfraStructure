@@ -24,33 +24,6 @@ holiday/
 ├── view_log.php          # Change log
 └── admin/                # Module settings
 ```
-
-## Main Class (Holiday)
-
-```php
-class Holiday extends CommonObject
-{
-    public $table_element = 'holiday';
-    public $element = 'holiday';
-
-    // Status constants
-    const STATUS_DRAFT = 1;
-    const STATUS_VALIDATED = 2;
-    const STATUS_APPROVED = 3;
-    const STATUS_CANCELED = 4;
-    const STATUS_REFUSED = 5;
-
-    public $fk_user;           // Employee user ID
-    public $fk_validator;      // Approver user ID
-    public $fk_type;           // Leave type
-    public $date_debut;        // Start date
-    public $date_fin;          // End date
-    public $halfday;           // Half-day option
-    public $statut;            // Status
-    public $description;       // Request reason
-}
-```
-
 ## Leave Types
 
 Defined in dictionary `llx_c_holiday_types`:

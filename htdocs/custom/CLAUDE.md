@@ -4,23 +4,7 @@ External modules are installed in `htdocs/custom/`. This directory is preserved 
 
 ## Module Builder
 
-Use `/dolibarr-new-module` to create a new module from scratch with all standard files and structure.
-
-Dolibarr includes a built-in Module Builder (since v12.0) at **Home > Developer Tools > Module Builder**.
-
-### When to Use Module Builder
-
-- Create new modules with standard objects
-- Generate CRUD pages, list views, API endpoints
-- Set up module descriptor, permissions, menus
-- Create extrafields-compatible objects
-
-### Module Builder Workflow
-
-1. **Create module:** Enter module name to generate `modMyModule.class.php`
-2. **Add objects:** Define fields via UI to generate class + SQL + pages
-3. **Configure:** Set permissions, menus, tabs, hooks
-4. **Export:** Download as ZIP or develop directly in `htdocs/custom/`
+Use `/dolibarr-new-module` skill to create a new module. Built-in GUI at **Home > Developer Tools > Module Builder** (Dolibarr ≥ 12.0).
 
 ## Module Structure
 

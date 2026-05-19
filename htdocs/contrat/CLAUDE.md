@@ -24,22 +24,6 @@ contrat/
 ├── document.php          # Attached documents
 └── admin/                # Module settings
 ```
-
-## Main Class (Contrat)
-
-```php
-class Contrat extends CommonObject
-{
-    public $table_element = 'contrat';
-    public $element = 'contrat';
-
-    // Contract status
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_CLOSED = 2;
-}
-```
-
 ## Service Line Status (ContratLigne)
 
 | Constant | Value | Description |

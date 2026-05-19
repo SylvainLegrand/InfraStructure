@@ -22,31 +22,6 @@ workstation/
 ├── workstation_document.php
 └── admin/                # Module settings
 ```
-
-## Main Class (Workstation)
-
-```php
-class Workstation extends CommonObject
-{
-    public $table_element = 'workstation_workstation';
-    public $element = 'workstation';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_DISABLED = 9;
-
-    public $ref;               // Reference
-    public $label;             // Name
-    public $type;              // Type (human, machine, etc.)
-    public $nb_operators;      // Number of operators
-    public $thm_operator;      // Hourly rate - operator
-    public $thm_machine;       // Hourly rate - machine
-    public $capacity;          // Production capacity
-    public $fk_warehouse;      // Linked warehouse
-}
-```
-
 ## Workstation Types
 
 | Type | Description |

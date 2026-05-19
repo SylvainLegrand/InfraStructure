@@ -224,29 +224,7 @@ Si modification SQL / descripteur / permissions / hooks / templates / trigger :
 
 ## Dernières mises à jour (Recent updates)
 
-- `18.8.0` (2026-02) : ajout du fichier CLAUDE.md pour l'intégration avec Claude Code (IA)
-- `18.8.0` (2026-02) : audit de sécurité : ~30 corrections (SQL injection, XSS, CSRF, typage des variables)
-- `18.8.0` (2026-02) : correction du nom de constante PHP XML (`INFRASPROJECT_PHP_EXT_XML` → `INFRAS_PHP_EXT_XML`)
-- `18.8.0` (2026-02) : correction des classes CSS résiduelles d'un autre module dans les pages de paramètres
-- `18.8.0` (2026-02) : ajout des includes manquants (FormCompany, FormOther) dans la bibliothèque Admin
-- `18.8.0` (2026-02) : remplacement des balises HTML obsolètes (`<FONT>`) par du CSS
-- `18.8.0` (2026-02) : alignement du code avec les autres modules InfraS (infraspackplus, infraswidgets, infrassearch)
-- `18.8.0` (2026-02) : amélioration de la documentation PHPDoc
-- `18.8.1` (2026-03) : Documentation : refonte complète des Notes techniques du CLAUDE.md
-- `18.8.1` (2026-03) : Ajout d'un test de comparaison de la version majeur de Dolibarr supportée
-- `18.8.1` (2026-03) : compatibilité Dolibarr v23 (fichiers templates et pages de substitution)
-- `18.8.1` (2026-03) : compatibilité Dolibarr v24 (fichiers templates et pages de substitution)
-- `18.8.2` (2026-03) : mise à jour des fichiers de routage TPL pour la détection des versions Dolibarr v23 et v24
-- `18.8.3` (2026-03) : simplification de `infrasproject_is_substitution_page()` — utilisation de `strpos()` au lieu de regex complexe
-- `18.8.3` (2026-03) : ajout de `infrasproject_getSubstitutionRedirectUrl()` — gestion centralisée des redirections avec filtrage des paramètres GET (exclusion du token CSRF)
-- `18.8.4` (2026-03) : ajout d'une nouvelle famille dédiée aux modules d'hébergement (branding dynamique)
-- `18.8.5` (2026-03) : Amélioration de la gestion des substitutions de pages et compatibilité avec Dolibarr v22 LTS
-- `18.8.6` (2026-04) : Amélioration de la compatibilité avec Dolibarr v22 à v24
-- `18.8.7` (2026-04) : Amélioration de la compatibilité avec Dolibarr v22 à v24
-- `18.8.8` (2026-04) : Templates Dolibarr v22 à v24 — correction d'un **décalage de colonnes** sur les lignes de document quand le multidevise est actif (devis/commande/facture en devise étrangère). `objectline_view_22-DolInfraS.tpl.php` imprimait une cellule `<td class="linecoluttc_currency">` (P.U TTC en devise) sans que `objectline_title_22-DolInfraS.tpl.php` ne déclare la colonne `<th>` correspondante → toutes les colonnes à droite étaient décalées (Total HT $ glissait sous edit, etc.). Ajout du bloc « Multicurrency TTC » manquant dans le header sous la même condition que dans le view. **Correction du typo CSS** `linecolUtotalht_currency` → `linecoltotalht_currency` (cellule Total HT en devise) dans les 4 fichiers `objectline_view_22.tpl.php`, `objectline_view_22-DolInfraS.tpl.php`, `objectline_view_23.tpl.php`, `objectline_view_24.tpl.php`. **Ajout d'une cellule placeholder** `linecoluttc_currency` dans les 4 fichiers `objectline_edit_*.tpl.php` (versions 22, 22-DolInfraS, 23, 24) pour aligner la ligne d'édition sur la nouvelle colonne header (PU TTC en devise non éditable car calculé automatiquement). **Backport de la colonne Multicurrency TTC** dans le formulaire de création (`objectline_create_22.tpl.php` et `objectline_create_22-DolInfraS.tpl.php`) — les v23/v24 l'avaient déjà : (1) cellule header `linecoluttc_currency` dans le mini-header `liste_titre` du create form, (2) cellule input `multicurrency_price_ttc` dans la zone des inputs. Le JS du create form référençait déjà cet input dans ses sélecteurs jQuery sans que l'élément ne soit rendu côté HTML — incohérence corrigée. Les bugs sont hérités du core Dolibarr (`htdocs/core/tpl/objectline_view.tpl.php` lignes 437-449 et 533 vs `objectline_title.tpl.php` ; absence de cellule placeholder équivalente dans `objectline_edit.tpl.php`) lors du copier-coller initial des surcharges. À remonter en amont sur GitHub Dolibarr.
-- Entrées du changelog par version (types : `add`, `chg`, `fix`)
-
-Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+Voir `docs/changelog.xml` pour l'historique complet des versions.
 
 ## Notes techniques (Technical notes)
 

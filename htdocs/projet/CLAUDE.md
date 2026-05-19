@@ -28,46 +28,7 @@ projet/
 ├── contact.php           # Project contacts
 └── admin/                # Module settings
 ```
-
-## Project Class
-
-```php
-class Project extends CommonObject
-{
-    public $table_element = 'projet';
-    public $element = 'project';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_CLOSED = 2;
-
-    public $socid;             // Customer ID
-    public $date_start;        // Start date
-    public $date_end;          // End date
-    public $opp_status;        // Opportunity status
-    public $opp_amount;        // Opportunity amount
-    public $opp_percent;       // Win probability
-}
-```
-
 ## Task Class
-
-```php
-class Task extends CommonObject
-{
-    public $table_element = 'projet_task';
-    public $element = 'project_task';
-
-    public $fk_projet;         // Parent project
-    public $fk_task_parent;    // Parent task (hierarchy)
-    public $label;             // Task name
-    public $date_start;
-    public $date_end;
-    public $planned_workload;  // Planned hours
-    public $progress;          // Completion percentage
-}
-```
 
 ## Time Tracking
 

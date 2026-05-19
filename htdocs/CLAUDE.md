@@ -1,26 +1,26 @@
-# htdocs - Web Application
+# htdocs — Application web
 
-Main web application directory containing all PHP pages, classes, and modules.
+Répertoire principal contenant toutes les pages PHP, classes et modules.
 
-## Key Files
+## Fichiers clés
 
-| File | Purpose |
-|------|---------|
-| main.inc.php | Include in all web pages (full init) |
-| master.inc.php | Lightweight init for CLI/background |
+| Fichier | Objectif |
+|---------|----------|
+| main.inc.php | Include dans toutes les pages web (initialisation complète) |
+| master.inc.php | Initialisation légère pour CLI/arrière-plan |
 
-## Directory Overview
+## Vue d'ensemble des répertoires
 
-| Directory | Purpose |
-|-----------|---------|
-| core/ | Framework classes, libs, modules, triggers, hooks |
-| api/ | REST API endpoints (Restler) |
-| admin/ | System administration pages |
-| conf/ | Configuration (conf.php - never commit) |
-| custom/ | External modules (preserved on upgrade) |
-| includes/ | Third-party libs (TCPDF, PHPMailer, Restler) |
-| langs/ | Translations (118 languages) |
-| theme/ | UI themes (eldy, md) |
-| public/ | Public pages (no auth required) |
-| install/ | Install/upgrade wizard, SQL schemas |
-| [module]/ | Business modules |
+| Répertoire | Objectif |
+|-----------|----------|
+| core/ | Classes framework, bibliothèques, modules, triggers, hooks |
+| api/ | Points d'entrée API REST (Restler) |
+| admin/ | Pages d'administration système |
+| conf/ | Configuration (conf.php - ne jamais commiter) |
+| custom/ | Modules externes (conservés à la mise à jour) |
+| includes/ | Bibliothèques tierces (TCPDF, PHPMailer, Restler) |
+| langs/ | Traductions (118 langues) |
+| theme/ | Thèmes UI (eldy, md) |
+| public/ | Pages publiques (pas d'auth requise) |
+| install/ | Assistant d'installation/mise à jour, schémas SQL |
+| [module]/ | Modules métier |

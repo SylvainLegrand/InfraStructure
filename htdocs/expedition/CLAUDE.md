@@ -25,28 +25,6 @@ expedition/
 ├── note.php              # Notes
 └── admin/                # Module settings
 ```
-
-## Main Class (Expedition)
-
-```php
-class Expedition extends CommonObject
-{
-    public $table_element = 'expedition';
-    public $element = 'shipping';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_CLOSED = 2;
-
-    public $socid;             // Customer ID
-    public $fk_commande;       // Source customer order
-    public $date_shipping;     // Shipping date
-    public $tracking_number;   // Tracking reference
-    public $shipping_method;   // Shipping method
-}
-```
-
 ## Status Values
 
 | Constant | Value | Description |

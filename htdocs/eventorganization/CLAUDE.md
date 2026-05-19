@@ -25,45 +25,7 @@ eventorganization/
 ├── public/               # Public registration
 └── admin/                # Module settings
 ```
-
-## ConferenceOrBooth Class
-
-```php
-class ConferenceOrBooth extends CommonObject
-{
-    public $table_element = 'eventorganization_conferenceorbooth';
-    public $element = 'conferenceorbooth';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_CLOSED = 9;
-
-    public $ref;               // Reference
-    public $label;             // Event name
-    public $fk_project;        // Linked project
-    public $fk_soc;            // Organizer
-    public $datep;             // Event date
-    public $datef;             // End date
-    public $location;          // Venue
-    public $note_public;       // Public notes
-    public $note_private;      // Private notes
-}
-```
-
 ## ConferenceOrBoothAttendee Class
-
-```php
-class ConferenceOrBoothAttendee extends CommonObject
-{
-    public $fk_actioncomm;     // Linked event
-    public $fk_soc;            // Attendee company
-    public $email;             // Attendee email
-    public $date_subscription; // Registration date
-    public $amount;            // Registration fee
-    public $status;            // Registration status
-}
-```
 
 ## Project Integration
 

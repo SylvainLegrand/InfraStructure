@@ -1086,6 +1086,41 @@ if (!defined('NOLOGIN')) {
 		}
 	}
 
+	// InfraS add begin
+	// Update timezone data from POST on every request (even for existing sessions)
+	// Ensures dol_tz_string is refreshed if login form is re-submitted with new timezone data
+	if (isset($_SESSION["dol_login"])) {
+		if (!empty($_POST["tz_string"])) {
+			$tz_string_update = GETPOST("tz_string", "alphanohtml");
+			$tz_string_update = preg_replace('/\s*\(.+\)$/', '', $tz_string_update);
+			$tz_string_update = preg_replace('/,/', '/', $tz_string_update);
+			$tz_string_update = preg_replace('/\s/', '_', $tz_string_update);
+			$_SESSION["dol_tz_string"] = $tz_string_update;
+		}
+		if (!empty($_POST["tz"])) {
+			$_SESSION["dol_tz"] = GETPOSTINT("tz");
+		}
+		if (!empty($_POST["dst_observed"])) {
+			$_SESSION["dol_dst_observed"] = GETPOSTINT("dst_observed");
+		}
+		if (!empty($_POST["dst_first"])) {
+			$_SESSION["dol_dst_first"] = GETPOST("dst_first", "alphanohtml");
+		}
+		if (!empty($_POST["dst_second"])) {
+			$_SESSION["dol_dst_second"] = GETPOST("dst_second", "alphanohtml");
+		}
+		// Recalculate dol_dst based on dates if both are provided
+		if (!empty($_SESSION["dol_dst_first"]) && !empty($_SESSION["dol_dst_second"])) {
+			$_SESSION["dol_dst"] = 0;
+			$datenow = dol_now();
+			$datefirst = dol_stringtotime($_SESSION["dol_dst_first"]);
+			$datesecond = dol_stringtotime($_SESSION["dol_dst_second"]);
+			if ($datenow >= $datefirst && $datenow < $datesecond) {
+				$_SESSION["dol_dst"] = 1;
+			}
+		}
+	}
+	// InfraS add end
 
 	// If user admin, we force the rights-based modules
 	if ($user->admin) {

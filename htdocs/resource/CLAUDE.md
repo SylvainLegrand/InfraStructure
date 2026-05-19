@@ -24,25 +24,6 @@ resource/
 ├── document.php          # Documents
 └── admin/                # Module settings
 ```
-
-## Main Class (Dolresource)
-
-```php
-class Dolresource extends CommonObject
-{
-    public $table_element = 'resource';
-    public $element = 'dolresource';
-
-    public $ref;               // Reference
-    public $description;       // Description
-    public $fk_code_type_resource;  // Resource type
-    public $country_id;        // Country
-    public $phone;             // Phone
-    public $max_users;         // Max concurrent users
-    public $tms;               // Last modification
-}
-```
-
 ## Resource Types
 
 Resource types defined in dictionary `llx_c_type_resource`:

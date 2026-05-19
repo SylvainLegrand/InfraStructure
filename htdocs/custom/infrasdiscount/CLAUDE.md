@@ -221,28 +221,7 @@ Si modification SQL / descripteur / permissions / hooks / triggers :
 
 ## Dernières mises à jour (Recent updates)
 
-- `15.3.0` (2026-02) : durcissements sécurité — sanitisation GETPOST, protection XSS sur `PHP_SELF` et `SERVER_SOFTWARE`, restriction regex des constantes, externalisation OAuth2, contrôles permissions, remplacement `addslashes()` par `$db->escape()`
-- `15.3.0` (2026-02) : correction de l'appel `infraspackplus_print_input()` → `infrasdiscount_print_input()`, du modulepart backup et du slash manquant dans `dol_buildpath()`
-- `15.3.0` (2026-02) : isolation du cookie JS (`infrasdiscount_tblPSexp`) et alignement sur les conventions des modules InfraS
-- `15.3.0` (2026-02) : remplacement syntaxe dépréciée `$user->rights` par `$user->hasRight()`
-- `15.3.0` (2026-02) : ajout du fichier CLAUDE.md
-- `15.3.1` (2026-02) : correction du trigger `BILL_PAYED` quand l'authentification Sort&Group n'est pas activée
-- `15.3.2` (2026-03) : Modification du trigger `BILL_PAYED` ajout d'une option pour l'utilisation du lien SortAndGroup
-- `15.3.2` (2026-03) : ajout d'une option pour l'utilisation du lien SortAndGroup dans le trigger
-- `15.3.2` (2026-03) : ajout d'un test de comparaison de la version majeure Dolibarr (avertissement si version non supportée)
-- `15.3.2` (2026-03) : amélioration du descripteur CLAUDE.md : ajout des Notes techniques
-- `15.3.3` (2026-03) : compatibilité avec PHP 8.4
-- `15.3.4` (2026-03) : branding dynamique — ajout de `infrasdiscount_getVersionDolinfras()` pour lire et stocker la version LTS Dolibarr dans `DOLINFRAS_VERSION`
-- `15.3.4` (2026-03) : mise à jour de `infrasdiscount_getLocalVersionMinDoli()` avec classes CSS modernes (remplacement `<font>` par `<span class="infrasdiscountCaution">`)
-- `15.3.4` (2026-03) : ajout de l'affichage de la version Dolinfras dans `infrasdiscount_getSupportInformation()`
-- `15.3.4` (2026-03) : famille du module affiche « Dolibarr by InfraS » quand `DOLINFRAS_VERSION` est définie (branding dynamique)
-- `15.3.4` (2026-03) : ajout de la clé de traduction `InfraSDiscountParamDolinfrasVersion` (fr_FR, en_US, es_ES, it_IT)
-- `15.3.4` (2026-03) : ajout du support dark mode pour les éléments de branding (`.infras-dark-bg .infrasdiscountneuropolinfras` dans le CSS)
-- `15.3.5` (2026-04) : correction de l'exclusion des lignes libres (sans produit lié) dans `infrasdiscount_calculateCascadeBase()` — comparaison lâche PHP (`null == ''`) remplacée par `empty()` + comparaison stricte (`!==`), compatible toutes versions Dolibarr
-- `15.3.5` (2026-04) : ajout de `isset()` avant chaque accès à `options_specialtype` dans `actions_infrasdiscount.class.php` pour éviter les warnings PHP sur les lignes sans extrafield
-- Entrées du changelog par version (types : `add`, `chg`, `fix`)
-
-Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+Voir `docs/changelog.xml` pour l'historique complet des versions.
 
 ## Notes techniques (Technical notes)
 

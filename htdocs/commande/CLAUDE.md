@@ -23,24 +23,6 @@ commande/
 ├── orderstoinvoice.php   # Convert to invoice
 └── admin/                # Module settings
 ```
-
-## Main Class (Commande)
-
-```php
-class Commande extends CommonOrder
-{
-    public $table_element = 'commande';
-    public $element = 'commande';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_SHIPMENTONPROCESS = 2;
-    const STATUS_CLOSED = 3;
-    const STATUS_CANCELED = -1;
-}
-```
-
 ## Status Values
 
 | Constant | Value | Description |

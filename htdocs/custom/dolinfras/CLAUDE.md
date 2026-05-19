@@ -273,7 +273,4 @@ La fonction génère un HTML complet comprenant :
 
 ## Dernières mises à jour (Recent updates)
 
-- `18.0.0` (2026-03) : version initiale — branding dynamique, hook afterLogin, changelog avec bannière de support, détection dark mode, durcissement sécurité (XXE, XSS, CSRF), compatibilité PHP 8.4
-- Entrées du changelog par version (types : `add`, `chg`, `fix`)
-
-Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+Voir `docs/changelog.xml` pour l'historique complet des versions.

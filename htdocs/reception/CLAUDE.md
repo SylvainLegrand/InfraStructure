@@ -23,27 +23,6 @@ reception/
 ├── document.php          # Documents
 └── admin/                # Module settings
 ```
-
-## Main Class (Reception)
-
-```php
-class Reception extends CommonObject
-{
-    public $table_element = 'reception';
-    public $element = 'reception';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_CLOSED = 2;
-
-    public $socid;             // Supplier ID
-    public $fk_commande;       // Source supplier order
-    public $date_reception;    // Reception date
-    public $tracking_number;   // Tracking reference
-}
-```
-
 ## Status Values
 
 | Constant | Value | Description |

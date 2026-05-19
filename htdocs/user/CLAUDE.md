@@ -26,26 +26,6 @@ user/
 ├── param_ihm.php         # UI preferences
 └── admin/                # Module settings
 ```
-
-## User Class
-
-```php
-class User extends CommonObject
-{
-    public $table_element = 'user';
-    public $element = 'user';
-
-    public $login;             // Login name
-    public $pass;              // Password (hashed)
-    public $firstname;         // First name
-    public $lastname;          // Last name
-    public $email;             // Email
-    public $admin;             // Is admin (0/1)
-    public $entity;            // Entity ID
-    public $statut;            // Status (0=disabled, 1=enabled)
-}
-```
-
 ## Permission Checks
 
 ```php
@@ -64,17 +44,6 @@ if ($user->admin) { }
 ## User Groups
 
 Groups define sets of permissions:
-
-```php
-class UserGroup extends CommonObject
-{
-    public $name;              // Group name
-    public $entity;            // Entity ID
-}
-
-// Add user to group
-$usergroup->addUser($user->id);
-```
 
 ## User Context
 

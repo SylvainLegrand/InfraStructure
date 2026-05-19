@@ -35,46 +35,7 @@ hrm/
 
 Work locations/offices:
 
-```php
-class Establishment extends CommonObject
-{
-    public $table_element = 'establishment';
-    public $element = 'establishment';
-
-    public $label;             // Name
-    public $address;           // Address
-    public $zip;               // Postal code
-    public $town;              // City
-    public $country_id;        // Country
-}
-```
-
-## Job Positions
-
-```php
-class Job extends CommonObject
-{
-    public $table_element = 'hrm_job';
-    public $element = 'job';
-
-    public $label;             // Job title
-    public $description;       // Job description
-}
-```
-
 ## Skills
-
-```php
-class Skill extends CommonObject
-{
-    public $table_element = 'hrm_skill';
-    public $element = 'skill';
-
-    public $label;             // Skill name
-    public $description;       // Skill description
-    public $skill_type;        // Type (technical, soft, etc.)
-}
-```
 
 ## Skill Assignment
 

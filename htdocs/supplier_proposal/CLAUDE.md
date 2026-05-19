@@ -23,24 +23,6 @@ supplier_proposal/
 ├── document.php          # Documents
 └── admin/                # Module settings
 ```
-
-## Main Class (SupplierProposal)
-
-```php
-class SupplierProposal extends CommonObject
-{
-    public $table_element = 'supplier_proposal';
-    public $element = 'supplier_proposal';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_SIGNED = 2;
-    const STATUS_NOTSIGNED = 3;
-    const STATUS_CLOSE = 4;
-}
-```
-
 ## Status Values
 
 | Constant | Value | Description |

@@ -23,29 +23,6 @@ don/
 ├── document.php          # Attached documents
 └── admin/                # Module settings
 ```
-
-## Main Class (Don)
-
-```php
-class Don extends CommonObject
-{
-    public $table_element = 'don';
-    public $element = 'don';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_PAID = 2;
-    const STATUS_CANCELED = -1;
-
-    public $amount;            // Donation amount
-    public $societe;           // Donor company name
-    public $firstname;         // Donor first name
-    public $lastname;          // Donor last name
-    public $datedon;           // Donation date
-}
-```
-
 ## Status Values
 
 | Constant | Value | Description |

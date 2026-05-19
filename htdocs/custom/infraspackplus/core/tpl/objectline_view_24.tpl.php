@@ -558,13 +558,12 @@ if ($usemargins && isModEnabled('margin') && empty($user->socid)) {
 
 // Price total without tax
 if ($line->special_code == 3) {
+	print '<td class="linecolht nowrap right">'.$langs->trans('Option').'</td>'; // InfraS change
 	$coldisplay++;
-	$colspanOptions	= '';
-	if (isModEnabled('multicurrency') && $object->multicurrency_code != $conf->currency) {
+	if (isModEnabled('multicurrency') && $object->multicurrency_code != $conf->currency) { // InfraS change
+		print '<td class="linecoltotalht_currency nowrap right">'.$langs->trans('Option').'</td>'; // InfraS change
 		$coldisplay++;
-		$colspanOptions	= ' colspan="2"';
 	}
-	print '<td class="linecoloption nowrap right"'.$colspanOptions.'>'.$langs->trans('Option').'</td>';
 } else {
 	print '<td class="linecolht nowrap right">';
 	$coldisplay++;

@@ -23,53 +23,13 @@ emailcollector/
 │   └── emailcollectoraction.class.php
 └── admin/                # Module settings
 ```
-
-## EmailCollector Class
-
-```php
-class EmailCollector extends CommonObject
-{
-    public $table_element = 'emailcollector_emailcollector';
-    public $element = 'emailcollector';
-
-    // Status constants
-    const STATUS_DISABLED = 0;
-    const STATUS_ENABLED = 1;
-
-    public $label;             // Collector name
-    public $host;              // IMAP server
-    public $login;             // IMAP login
-    public $password;          // IMAP password
-    public $source_directory;  // IMAP folder
-    public $datelastresult;    // Last run date
-}
-```
-
 ## Filters
 
 Define which emails to process:
 
-```php
-class EmailCollectorFilter extends CommonObject
-{
-    public $fk_emailcollector;
-    public $type;              // from, to, subject, etc.
-    public $rulevalue;         // Filter value
-}
-```
-
 ## Actions
 
 Define what to do with matching emails:
-
-```php
-class EmailCollectorAction extends CommonObject
-{
-    public $fk_emailcollector;
-    public $type;              // Action type
-    public $actionparam;       // Action parameters
-}
-```
 
 ## Action Types
 

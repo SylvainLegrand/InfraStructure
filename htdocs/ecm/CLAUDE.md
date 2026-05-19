@@ -25,38 +25,7 @@ ecm/
 ├── file_card.php         # File detail
 └── admin/                # Module settings
 ```
-
-## EcmDirectory Class
-
-```php
-class EcmDirectory extends CommonObject
-{
-    public $table_element = 'ecm_directories';
-    public $element = 'ecm_directories';
-
-    public $label;             // Directory name
-    public $fk_parent;         // Parent directory (hierarchy)
-    public $description;       // Description
-    public $cachenbofdoc;      // Document count cache
-}
-```
-
 ## EcmFiles Class
-
-```php
-class EcmFiles extends CommonObject
-{
-    public $table_element = 'ecm_files';
-    public $element = 'ecm_files';
-
-    public $filename;          // File name
-    public $filepath;          // Relative path
-    public $fullpath_orig;     // Original full path
-    public $description;       // Description
-    public $gen_or_uploaded;   // 'generated' or 'uploaded'
-    public $share;             // Share hash for public links
-}
-```
 
 ## File Storage
 

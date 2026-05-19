@@ -351,25 +351,7 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 
 ## Dernières mises à jour (Recent updates)
 
-- `15.4.2` (2026-02) : harmonisation de la documentation `CLAUDE.md` et des tags de traductions `###...###`
-- `15.4.2` (2026-02) : échappement de l'affichage de `SERVER_SOFTWARE`
-- `15.4.2` (2026-02) : échappement des URLs de formulaires basées sur `PHP_SELF` (durcissement XSS)
-- `15.4.3` (2026-02) : variable `cookieName` déplacée au scope script pour corriger la persistance de l'état des panneaux après soumission de formulaire
-- `15.4.3` (2026-02) : isolation du cookie JS de l'état des panneaux (`infrassearch_tblPSexp` au lieu de `tblPSexp`) pour éviter les collisions inter-modules
-- `15.4.4` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
-- `15.4.4` (2026-03) : Documentation : enrichissement des Notes Techniques du descripteur CLAUDE.md
-- `15.4.5` (2026-03) : amélioration de l'affichage lors de la recherche (gif loading)
-- `15.4.6` (2026-03) : amélioration de la compatibilité avec le module externe et thème Oblyon
-- `15.4.7` (2026-04) : correction d'un bug majeur — la détection de type SQL via `strpos($Type, 'int')` matchait à tort les colonnes `point` (`geo**point**`), faisant planter silencieusement toute recherche purement numérique sur les modules joignant `llx_societe` / `llx_socpeople`. Remplacement par regex ancrée au début (`/^(int|tinyint|...)/i`)
-- `15.4.7` (2026-04) : correction d'un bug de pertinence — les fragments à zéros initiaux (`0001`, `001`) étaient interprétés comme l'entier `1`, polluant les résultats avec des matches sur `qty=1`, `status=1`, etc. Filtre ajouté : `ltrim($keyword, '0') === $keyword`
-- `15.4.7` (2026-04) : correction de la gestion de session expirée sur les endpoints AJAX — `main.inc.php` retournait silencieusement le HTML du formulaire de login (HTTP 200) à la place du JSON / HTML attendu. Détection client de `name="username"` dans la réponse et rechargement de la page pour déclencher la redirection normale vers le login (3 points d\'AJAX corrigés : menu haut, recherche standard remplacée, page de recherche dédiée)
-- `15.4.7` (2026-04) : correction de la purge du fil d\'Ariane — le filtre `fk_user = $user->id` empêchait la suppression des entrées des utilisateurs qui ne consultent plus d\'objets, faisant croître la table indéfiniment (entrées de 2022 toujours présentes). Purge globale par entité, comparaison directe `tms <` (au lieu de `DATE_FORMAT(tms,...)` pour permettre l\'usage d\'index), et nettoyage des entrées corrompues (`element=''`, `fk_element <= 0`). Sécurité : ajout de `$db->escape($object->element)` et cast `(int)` sur les identifiants
-- `15.4.7` (2026-04) : optimisation du chargement de `infrassearchsetup.php` — la double boucle `foreach ($listTObjectType) { foreach ($modulesdir) }` instanciait chaque descripteur de module une fois par type d'objet (~4300 instanciations sur une instance avec ~160 modules et 27 types). Refactorisation en deux phases : phase 1 scanne et instancie chaque module une seule fois dans `$modulesCache`, phase 2 itère sur `$listTObjectType` et matche avec le cache. L'ordre d'affichage est préservé via la boucle externe sur `$listTObjectType`.
-- `15.4.7` (2026-04) : correction d'un bug d'effet de bord lors de l'instanciation des modules désactivés sur la page de paramètres. Symptômes constatés sur certaines instances (fitantanana) : alignement vertical du `login_block` cassé et favicon remplacé par l'icône Dolibarr par défaut, uniquement sur cette page. Cause : la phase 1 instanciait tous les descripteurs `mod*.class.php` présents sur disque, y compris ceux des modules désactivés ; le constructeur d'un de ces modules désactivés modifiait `$conf` ou ajoutait une ressource au top menu. Filtre ajouté **avant** `new $modName($db)` : nom estimé depuis le fichier (`modSociete.class.php` → `societe`, avec mappings `propale` → `propal` et `supplierproposal` → `supplier_proposal`), testé contre `$conf->modules`. Bénéfice secondaire : performance encore améliorée puisqu'on n'instancie plus que les modules actifs.
-- `15.4.7` (2026-04) : abandon du module externe `ticketsup` (Librethic) qui n'est plus maintenu
-- Entrées du changelog par version (types : `add`, `chg`, `fix`)
-
-Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+Voir `docs/changelog.xml` pour l'historique complet des versions.
 
 ## Notes techniques (Technical notes)
 

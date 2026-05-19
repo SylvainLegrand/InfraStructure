@@ -18,19 +18,6 @@ multicurrency/
 │   └── multicurrency.class.php
 └── admin/                # Currency settings
 ```
-
-## Main Class (MultiCurrency)
-
-```php
-class MultiCurrency extends CommonObject
-{
-    public $code;              // Currency code (EUR, USD)
-    public $name;              // Currency name
-    public $rate;              // Exchange rate to base currency
-    public $date_sync;         // Last rate update
-}
-```
-
 ## Usage in Documents
 
 Commercial documents store:

@@ -193,20 +193,7 @@ Si modification du descripteur / permissions / hooks / constantes :
 
 ## Dernières mises à jour (Recent updates)
 
-- `18.1.0` (2026-02) : durcissements sécurité — échappement `$_SERVER['PHP_SELF']` sur pages admin et boutons du hook
-- `18.1.0` (2026-02) : correction injection SQL dans le descripteur module (cast entity en entier)
-- `18.1.0` (2026-02) : suppression d'un `error_log` de debug laissé en production
-- `18.1.0` (2026-02) : typage `GETPOST(..., 'alpha')` sur les champs de recherche prix des pages de substitution
-- `18.1.0` (2026-02) : échappement XSS des valeurs de recherche et encodage URL dans les pages de substitution
-- `18.1.0` (2026-02) : nouveau lien Wiki InfraSDiscount, amélioration CSS, ajout documentation CLAUDE.md
-- `18.1.1` (2026-03) : correction de la comparaison de version max Dolibarr — utilisation du numéro de branche majeur uniquement (`explode()` au lieu de `strstr()`)
-- `18.1.2` (2026-03) : compatibilité avec PHP 8.4
-- `18.1.3` (2026-03) : ajout de `infrascusp_getSubstitutionRedirectUrl()` — gestion centralisée des redirections avec filtrage des paramètres GET (exclusion du token CSRF)
-- `18.1.3` (2026-03) : simplification de `infrascusp_is_substitution_page()` — utilisation de `strpos()` au lieu de regex complexe
-- `18.1.4` (2026-03) : ajout d'une nouvelle famille dédiée aux modules d'hébergement (branding dynamique)
-- Entrées du changelog par version (types : `add`, `chg`, `fix`)
-
-Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis. Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée.
+Voir `docs/changelog.xml` pour l'historique complet des versions.
 
 ## Notes techniques (Technical notes)
 

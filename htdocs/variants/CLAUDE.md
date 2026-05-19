@@ -29,42 +29,13 @@ variants/
 
 Defines variant types (e.g., "Size", "Color"):
 
-```php
-class ProductAttribute extends CommonObject
-{
-    public $label;             // "Size", "Color"
-    public $ref;               // Reference code
-    public $rang;              // Display order
-}
-```
-
 ### ProductAttributeValue
 
 Values for an attribute (e.g., "Small", "Medium", "Large"):
 
-```php
-class ProductAttributeValue extends CommonObject
-{
-    public $fk_product_attribute;  // Parent attribute
-    public $ref;                   // Value reference
-    public $value;                 // Display value
-}
-```
-
 ### ProductCombination
 
 Links parent product to variant products:
-
-```php
-class ProductCombination extends CommonObject
-{
-    public $fk_product_parent;     // Parent product ID
-    public $fk_product_child;      // Variant product ID
-    public $variation_price;       // Price adjustment
-    public $variation_price_percentage;
-    public $variation_weight;      // Weight adjustment
-}
-```
 
 ## Usage
 

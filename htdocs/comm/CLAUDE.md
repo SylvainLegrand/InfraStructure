@@ -23,25 +23,6 @@ comm/
 ├── mailing/                  # Mass mailing
 └── admin/                    # Module settings
 ```
-
-## Main Class (Propal)
-
-```php
-class Propal extends CommonObject
-{
-    public $table_element = 'propal';
-    public $element = 'propal';
-    public $fk_element = 'fk_propal';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_SIGNED = 2;
-    const STATUS_NOTSIGNED = 3;
-    const STATUS_BILLED = 4;
-}
-```
-
 ## Status Values
 
 | Constant | Value | Description |

@@ -22,26 +22,6 @@ webhook/
 ├── history.php           # Delivery history
 └── admin/                # Module settings
 ```
-
-## Target Class
-
-```php
-class Target extends CommonObject
-{
-    public $table_element = 'webhook_target';
-    public $element = 'target';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-
-    public $ref;               // Reference
-    public $url;               // Target URL
-    public $secret;            // HMAC secret
-    public $trigger_codes;     // Trigger events (comma-separated)
-}
-```
-
 ## Trigger Events
 
 Configure which triggers fire webhooks:

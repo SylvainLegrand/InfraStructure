@@ -23,25 +23,6 @@ salaries/
 ├── info.php              # Payment info
 └── admin/                # Module settings
 ```
-
-## Main Class (Salary)
-
-```php
-class Salary extends CommonObject
-{
-    public $table_element = 'salary';
-    public $element = 'salary';
-
-    public $fk_user;           // Employee user ID
-    public $amount;            // Salary amount
-    public $datesp;            // Period start date
-    public $dateep;            // Period end date
-    public $datep;             // Payment date
-    public $fk_bank;           // Bank account
-    public $label;             // Description
-}
-```
-
 ## Features
 
 - Salary payment tracking

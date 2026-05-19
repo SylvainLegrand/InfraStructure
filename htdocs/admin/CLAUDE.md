@@ -1,34 +1,34 @@
-# htdocs/admin - System Administration
+# htdocs/admin — Administration système
 
-Administration pages for system configuration, modules, and settings.
+Pages d'administration pour la configuration système, les modules et les paramètres.
 
-## Key Files
+## Fichiers clés
 
-| File | Purpose |
-|------|---------|
-| modules.php | Module activation/deactivation |
-| const.php | System constants editor |
-| company.php | Main company setup |
-| dict.php | Dictionary tables management |
-| security.php | Security settings |
-| mails.php | Email configuration |
+| Fichier | Objectif |
+|---------|----------|
+| modules.php | Activation/désactivation des modules |
+| const.php | Éditeur de constantes système |
+| company.php | Configuration de la société principale |
+| dict.php | Gestion des tables de dictionnaire |
+| security.php | Paramètres de sécurité |
+| mails.php | Configuration des emails |
 
-## Admin Page Development
+## Développement de pages admin
 
-See `/dolibarr-page-patterns` skill for admin page templates and patterns.
+Consultez la skill `/dolibarr-page-patterns` pour les templates et motifs de pages admin.
 
-Module admin pages are typically at `htdocs/[module]/admin/setup.php`.
+Les pages admin des modules se trouvent généralement à `htdocs/[module]/admin/setup.php`.
 
-## Setting Constants
+## Définition de constantes
 
 ```php
-// Set constant
+// Définir une constante
 dolibarr_set_const($db, 'CONSTANT_NAME', $value, 'chaine', 0, '', $conf->entity);
 
-// Delete constant
+// Supprimer une constante
 dolibarr_del_const($db, 'CONSTANT_NAME', $conf->entity);
 ```
 
-## Dictionary Management
+## Gestion des dictionnaires
 
-Dictionaries (lookup tables) are managed via `admin/dict.php` with entries in `llx_c_*` tables.
+Les dictionnaires (tables de recherche) sont gérés via `admin/dict.php` avec des entrées dans les tables `llx_c_*`.

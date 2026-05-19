@@ -22,33 +22,6 @@ partnership/
 ├── partnership_document.php
 └── admin/                # Module settings
 ```
-
-## Main Class (Partnership)
-
-```php
-class Partnership extends CommonObject
-{
-    public $table_element = 'partnership';
-    public $element = 'partnership';
-
-    // Status constants
-    const STATUS_DRAFT = 0;
-    const STATUS_VALIDATED = 1;
-    const STATUS_APPROVED = 2;
-    const STATUS_REFUSED = 3;
-    const STATUS_CANCELED = 9;
-
-    public $ref;               // Reference
-    public $fk_soc;            // Partner company
-    public $fk_member;         // Partner member
-    public $date_partnership_start;
-    public $date_partnership_end;
-    public $url;               // Partner website
-    public $note_public;       // Public notes
-    public $count_last_url_check_error;
-}
-```
-
 ## Partner Types
 
 Partnerships can be linked to:
