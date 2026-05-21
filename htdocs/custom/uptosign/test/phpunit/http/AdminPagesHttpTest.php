@@ -138,6 +138,35 @@ class AdminPagesHttpTest extends HttpTestCase
     }
 
     /**
+     * Sub-pages attached to an UptoSignList (cibles, contact, document, etc.)
+     * all read GETPOSTINT('id') and skip their detailed render path when no id
+     * is given. Test them with the real utsl_id so getNomUrl(), getLibStatut(),
+     * tab rendering, and contact lookups are actually executed.
+     *
+     * @dataProvider uptosignListSubPagesProvider
+     */
+    public function testUptoSignListSubPageWithId(string $page): void
+    {
+        $id = $this->resolveTestId('utsl_id');
+        $url = '/' . $page . '?id=' . $id;
+        $response = $this->get($url);
+        $this->assertNoPhpError($response, $url);
+    }
+
+    public static function uptosignListSubPagesProvider(): array
+    {
+        return [
+            'uptosignlist_advcibles.php' => ['uptosignlist_advcibles.php'],
+            'uptosignlist_agenda.php'    => ['uptosignlist_agenda.php'],
+            'uptosignlist_cibles.php'    => ['uptosignlist_cibles.php'],
+            'uptosignlist_contact.php'   => ['uptosignlist_contact.php'],
+            'uptosignlist_docs.php'      => ['uptosignlist_docs.php'],
+            'uptosignlist_document.php'  => ['uptosignlist_document.php'],
+            'uptosignlist_note.php'      => ['uptosignlist_note.php'],
+        ];
+    }
+
+    /**
      * @dataProvider allPostActionsProvider
      */
     public function testPostActionWithoutError(string $page, string $action, string $urlPrefix): void
@@ -179,7 +208,8 @@ class AdminPagesHttpTest extends HttpTestCase
         }
         $files = glob($dir . '/*.php');
         $cases = [];
-        $skipActions = ['create', 'edit', 'delete', 'view'];
+        // 'specimen' skipped: GETPOST('object') is empty in tests, causing Class "" not found.
+        $skipActions = ['create', 'edit', 'delete', 'view', 'specimen'];
         $excluded = ['t.php'];
         foreach ($files as $file) {
             $basename = basename($file);
@@ -187,7 +217,8 @@ class AdminPagesHttpTest extends HttpTestCase
                 continue;
             }
             $content = file_get_contents($file);
-            if (preg_match_all('/\$action\s*==\s*[\'"]([a-z_]+)[\'"]/i', $content, $matches)) {
+            // Match both == (loose) and === (strict) comparisons.
+            if (preg_match_all('/\$action\s*===?\s*[\'"]([a-z_]+)[\'"]/i', $content, $matches)) {
                 $actions = array_unique($matches[1]);
                 foreach ($actions as $act) {
                     if (in_array($act, $skipActions, true)) {

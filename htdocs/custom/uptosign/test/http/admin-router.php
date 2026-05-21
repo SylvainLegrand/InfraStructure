@@ -138,28 +138,53 @@ if (!$dbInitialized) {
     $confTemplate = $sqliteVendorPath . '/htdocs/conf/conf.php_sqlite';
     if (file_exists($confTemplate)) {
         copy($confTemplate, $confPath);
+        // The template's $dolibarr_main_data_root resolves to '<sqlite>/htdocs/../documents'.
+        // Dolibarr propagates that non-canonical path into DOL_DATA_ROOT, and helper
+        // functions like uptosign_relative_path() rely on str_replace(DOL_DATA_ROOT, ...).
+        // If a caller (eg. uptosign_tab.php after dol_sanitizePathName strips '..') feeds
+        // a canonical path to those helpers, the str_replace silently fails to match and
+        // every (path_file, hash_file) comparison breaks. Canonicalise here so both sides
+        // see the same prefix.
+        $canonicalDataRoot = realpath($sqliteVendorPath . '/documents');
+        if ($canonicalDataRoot !== false) {
+            $confContent = file_get_contents($confPath);
+            $confContent = preg_replace(
+                '/\$dolibarr_main_data_root\s*=\s*[^;]+;/',
+                '$dolibarr_main_data_root=' . var_export($canonicalDataRoot, true) . ';',
+                $confContent
+            );
+            file_put_contents($confPath, $confContent);
+        }
     }
 
-    if (is_file($originalDbPath)) {
-        if (!file_exists($originalDbPath . '.backup')) {
-            copy($originalDbPath, $originalDbPath . '.backup');
+    // We need the RAM DB to PERSIST across requests for the same server lifetime
+    // (fixtures created by one request must be readable by the next). The PHP CLI
+    // built-in server resets top-level `static` variables AND calls register_shutdown_function
+    // handlers at the end of EVERY request, not at process exit -- so the original
+    // restore-on-shutdown logic was wiping the DB between requests.
+    //
+    // Strategy: detect "first request of this server lifetime" by the absence of
+    // $ramDbPath (the PID-scoped RAM file). Subsequent requests find it already
+    // there and skip the whole swap.
+    //   - If a stale symlink survives from a previous server (different PID), drop
+    //     it and restore the original DB from .backup so we get a fresh starting state.
+    //   - No shutdown handler. The RAM file and the symlink survive until the next
+    //     phpunit run, which detects the stale state and rebuilds from .backup.
+    if (!file_exists($ramDbPath)) {
+        if (is_link($originalDbPath)) {
+            unlink($originalDbPath);
         }
-        copy($originalDbPath, $ramDbPath);
-        unlink($originalDbPath);
-        symlink($ramDbPath, $originalDbPath);
-
-        register_shutdown_function(function () use ($originalDbPath, $ramDbPath) {
-            if (is_link($originalDbPath)) {
-                unlink($originalDbPath);
+        if (!is_file($originalDbPath) && file_exists($originalDbPath . '.backup')) {
+            copy($originalDbPath . '.backup', $originalDbPath);
+        }
+        if (is_file($originalDbPath)) {
+            if (!file_exists($originalDbPath . '.backup')) {
+                copy($originalDbPath, $originalDbPath . '.backup');
             }
-            if (file_exists($originalDbPath . '.backup')) {
-                copy($originalDbPath . '.backup', $originalDbPath);
-                unlink($originalDbPath . '.backup');
-            }
-            if (file_exists($ramDbPath)) {
-                unlink($ramDbPath);
-            }
-        });
+            copy($originalDbPath, $ramDbPath);
+            unlink($originalDbPath);
+            symlink($ramDbPath, $originalDbPath);
+        }
     }
     $dbInitialized = true;
 }
@@ -228,12 +253,24 @@ if (!$moduleDeployed) {
     // Same approach as test/phpunit/integration-dolibarr/bootstrap.php
     // which deliberately does NOT call init().
     require_once $projectRoot . '/core/modules/modUptoSign.class.php';
+    // Silence Warning/Deprecated for the WHOLE deploy block, not just the schema
+    // creation. Without this, Dolibarr's Contact::create() and friends spray HTML-
+    // formatted Deprecated notices into the response stream (display_errors=1) and
+    // pollute the JSON body of subsequent fixture endpoints called in the same
+    // request lifecycle. Errors are restored before the request handler runs.
     $previousErrorReporting = error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED);
 
-    // Create module tables manually using native SQLite3.
-    uptosignHttpTestCreateModuleTables($projectRoot, $ramDbPath);
-
-    error_reporting($previousErrorReporting);
+    // Create module tables manually using native SQLite3, but only on the FIRST
+    // request of the server lifetime. uptosignHttpTestCreateModuleTables DROPs +
+    // re-creates the tables, so calling it on every request would wipe out any
+    // row inserted by a previous request (eg. a fixture created via a setup
+    // endpoint, then read by a later POST). The $testDataFlag is the same flag
+    // used below to gate the test-data seeding -- if it is absent, the server
+    // is brand new and the schema needs to be (re)created.
+    $testDataFlag = $ramDiskPath . '/uptosign_http_test_data_' . getmypid() . '.json';
+    if (!file_exists($testDataFlag)) {
+        uptosignHttpTestCreateModuleTables($projectRoot, $ramDbPath);
+    }
 
     // Enable module
     if (!isset($conf->uptosign)) {
@@ -248,12 +285,21 @@ if (!$moduleDeployed) {
         $conf->modules = array();
     }
     $conf->modules['uptosign'] = 'uptosign';
+    // hasRight() short-circuits to 0 when isModEnabled($module) is false (= when
+    // $conf->modules[$module] is empty). Enable the modules that uptosign_tab.php
+    // and its $otherModulesRights guard rely on, otherwise every POST short-circuits
+    // on accessforbidden() before reaching the idempotency check.
+    $conf->modules['societe']  = 'societe';
+    $conf->modules['propal']   = 'propal';
+    $conf->modules['commande'] = 'commande';
+    $conf->modules['facture']  = 'facture';
 
     // Test data (thirdparty + contact + uptosign + uptosignlist + uptosignconfig)
     // is created only ONCE per server lifetime. PHP top-level `static` does not
     // persist between built-in server requests, so we use a flag file on disk.
     // The shutdown handler that restores the original DB also removes this flag.
-    $testDataFlag = $ramDiskPath . '/uptosign_http_test_data_' . getmypid() . '.json';
+    // $testDataFlag was already computed above so we could gate schema creation
+    // by the same condition.
     if (!file_exists($testDataFlag)) {
         require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
         require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
@@ -324,13 +370,16 @@ if (!$moduleDeployed) {
             'utsc_id' => $utscId,
         ]));
 
-        // Make sure the flag is removed when the server stops.
-        register_shutdown_function(function () use ($testDataFlag) {
-            if (file_exists($testDataFlag)) {
-                @unlink($testDataFlag);
-            }
-        });
+        // No shutdown handler to delete the flag. In the PHP CLI built-in server,
+        // shutdown handlers fire at the END OF EACH REQUEST, not at process exit -
+        // deleting the flag here would force the deploy block (and createModuleTables)
+        // to re-run on the next request, wiping any fixture inserted in between.
+        // The flag persists for the server lifetime (PID-scoped path) and is naturally
+        // stale at the next phpunit run because the PID changes.
     }
+
+    // Restore error reporting now that the noisy deploy block is done.
+    error_reporting($previousErrorReporting);
 
     $moduleDeployed = true;
 }
@@ -390,6 +439,167 @@ $user->rights->societe->client->voir = 1;
 
 // Reload langs
 $langs->loadLangs(array('admin', 'uptosign@uptosign'));
+
+// ---------------------------------------------------------------
+// 4b. Test fixtures for uptosign_tab.php idempotency guard
+// ---------------------------------------------------------------
+// /seal-test-fixtures-create
+//   Creates a brand-new Propal + fake PDF + in-flight UptoSign(STATUS_WAITING) wired
+//   together for the idempotency guard to detect a duplicate on POST. Returns JSON
+//   with the ids and paths the HTTP test needs to build its POST body.
+if ($requestPath === '/seal-test-fixtures-create') {
+    // Swallow any HTML-formatted Warning/Deprecated that Dolibarr core emits while
+    // creating Societe/Contact/Propal/UptoSign, so the response stays pure JSON.
+    ob_start();
+
+    require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+    require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+    require_once $projectRoot . '/class/uptosign.class.php';
+    require_once $projectRoot . '/lib/uptosign.lib.php';
+
+    // 1) Reuse the seeded Societe if available, otherwise create one.
+    $socId = (int) ($testIds['soc_id'] ?? 0);
+    if ($socId <= 0) {
+        $soc = new Societe($db);
+        $soc->name = 'Test Company Seal ' . uniqid();
+        $soc->client = 1;
+        $soc->create($user);
+        $socId = (int) $soc->id;
+    }
+
+    // 2) Create a real Propal so uptosign_handle_all_type_of_objects()->fetch() succeeds.
+    $propal = new Propal($db);
+    $propal->socid = $socId;
+    $propal->date = dol_now();
+    $propal->entity = 1;
+    $propalCreate = $propal->create($user);
+    if ($propalCreate <= 0) {
+        ob_end_clean();
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'error' => 'propal->create failed',
+            'errors' => (array) $propal->errors,
+        ]);
+        return;
+    }
+
+    // 3) Create the destination directory and a dummy PDF Dolibarr-style:
+    //    DOL_DATA_ROOT/propal/<ref>/<ref>.pdf
+    $relDir = 'propal/' . dol_sanitizeFileName($propal->ref);
+    $fullDir = DOL_DATA_ROOT . '/' . $relDir;
+    if (!is_dir($fullDir)) {
+        mkdir($fullDir, 0755, true);
+    }
+    $pdfName = dol_sanitizeFileName($propal->ref) . '.pdf';
+    $pdfFullPath = $fullDir . '/' . $pdfName;
+    $pdfContent = '%PDF-1.4 seal-test-fixture ' . $propal->ref . ' ' . microtime(true);
+    file_put_contents($pdfFullPath, $pdfContent);
+    // Canonicalise the path before exposing it to the test. dol_sanitizePathName()
+    // (which uptosign_tab.php applies to the POSTed pdfFileName) strips '..' from
+    // the string, so feeding it a relative-style path like "htdocs/../documents/..."
+    // would yield "htdocs/documents/..." which then fails realpath() and trips the
+    // "Invalid file path" accessforbidden guard before our idempotency check runs.
+    $pdfFullPath = realpath($pdfFullPath);
+    $hash = hash_file('sha256', $pdfFullPath);
+    $relPath = uptosign_relative_path($pdfFullPath);
+
+    // 4) Insert an UptoSign row in STATUS_WAITING for that propal + PDF so the
+    //    idempotency guard treats any incoming POST as a duplicate.
+    $uts = new UptoSign($db);
+    $uts->ref = 'SEAL-FX-' . uniqid();
+    $uts->label = 'Seal idempotency fixture';
+    $uts->fk_soc = $socId;
+    $uts->status = UptoSign::STATUS_WAITING;
+    $uts->entity = 1;
+    $uts->object_type = 'propal';
+    $uts->fk_object = (int) $propal->id;
+    $uts->date_creation = dol_now();
+    $utsCreate = $uts->create($user);
+    if ($utsCreate <= 0) {
+        ob_end_clean();
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'error' => 'UptoSign->create failed',
+            'errors' => (array) $uts->errors,
+        ]);
+        return;
+    }
+
+    // create() does not persist all fields we need (path_file, hash_file, api_name),
+    // so force them via a direct UPDATE. Same pattern as the integration test fixtures.
+    $sql = 'UPDATE ' . MAIN_DB_PREFIX . 'uptosign SET'
+        . " path_file = '" . $db->escape($relPath) . "'"
+        . ", hash_file = '" . $db->escape($hash) . "'"
+        . ", api_name = 'uptoseal'"
+        . ', status = ' . UptoSign::STATUS_WAITING
+        . ' WHERE rowid = ' . ((int) $uts->id);
+    $db->query($sql);
+
+    ob_end_clean();
+    header('Content-Type: application/json');
+    echo json_encode([
+        'propal_id' => (int) $propal->id,
+        'propal_ref' => $propal->ref,
+        'pdf_full_path' => $pdfFullPath,
+        'pdf_full_path_b64' => base64_encode($pdfFullPath),
+        'pdf_rel_path' => $relPath,
+        'uts_id' => (int) $uts->id,
+        'hash' => $hash,
+    ]);
+    return;
+}
+
+// /seal-test-count?fk_object=X&object_type=propal&api_name=uptoseal
+//   Counts UptoSign rows matching the given criteria. Used to assert that a duplicate
+//   POST did not spawn an extra row, and that a regenerated PDF did spawn one.
+if ($requestPath === '/seal-test-count') {
+    $fkObject = (int) ($_GET['fk_object'] ?? 0);
+    $objectType = (string) ($_GET['object_type'] ?? '');
+    $apiName = (string) ($_GET['api_name'] ?? '');
+    $sql = 'SELECT COUNT(*) AS cnt FROM ' . MAIN_DB_PREFIX . 'uptosign'
+        . ' WHERE fk_object = ' . $fkObject
+        . " AND object_type = '" . $db->escape($objectType) . "'"
+        . " AND api_name = '" . $db->escape($apiName) . "'";
+    $resql = $db->query($sql);
+    $cnt = 0;
+    if ($resql) {
+        $obj = $db->fetch_object($resql);
+        $cnt = (int) $obj->cnt;
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['count' => $cnt]);
+    return;
+}
+
+// /seal-test-bump-pdf?path=<rel-path-under-DOL_DATA_ROOT>
+//   Overwrites the fixture PDF with new content so its sha256 changes. Used to test
+//   that the idempotency guard does NOT trigger when the source document was regenerated.
+if ($requestPath === '/seal-test-bump-pdf') {
+    $relPath = (string) ($_GET['path'] ?? '');
+    if ($relPath === '' || strpos($relPath, '..') !== false) {
+        http_response_code(400);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'invalid path']);
+        return;
+    }
+    $fullPath = DOL_DATA_ROOT . '/' . $relPath;
+    if (!is_file($fullPath)) {
+        http_response_code(404);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'pdf not found', 'path' => $fullPath]);
+        return;
+    }
+    $newContent = '%PDF-1.4 regenerated ' . microtime(true);
+    file_put_contents($fullPath, $newContent);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'path' => $fullPath,
+        'new_hash' => hash_file('sha256', $fullPath),
+    ]);
+    return;
+}
 
 // ---------------------------------------------------------------
 // 5. Create shim main.inc.php for admin pages

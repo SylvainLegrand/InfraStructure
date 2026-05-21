@@ -314,7 +314,7 @@ class ActionsUptoSign
 				// no break
 			case "uptosealsync":
 				if ($signOrSeal == "") {
-					$signOrSeal = $parameters['signOrSeal'] ?? ''; // InfraS change
+					$signOrSeal = $parameters['signOrSeal'] ?? '';
 				}
 				if (!isset($mode) || $mode == "") {
 					$mode = 'sync';

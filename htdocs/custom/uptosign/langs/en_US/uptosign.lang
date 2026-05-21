@@ -492,6 +492,7 @@ UptoSignMailSubjectContract=Your contract reference %s
 UptoSignSendReminderDefaultEnUs=No reminder template found for your language, the English template is used.
 UptoSignSendRefusedDefaultEnUs=No refusal template found for your language, the English template is used.
 SealRequestSuccessful=Seal request successfully sent.
+UptoSignDuplicateRequestRedirect=An identical procedure is already in progress for this document. You have been redirected to the existing procedure.
 
 #
 # Error notification emails

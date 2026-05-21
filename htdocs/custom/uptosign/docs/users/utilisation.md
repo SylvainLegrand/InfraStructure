@@ -70,27 +70,11 @@ Pour activer cette fonctionnalité, cochez l'option **Signature locale** dans le
 
 ## Signature en masse
 
-La signature en masse permet d'envoyer un même document à plusieurs destinataires pour signature.
+La signature en masse permet d'envoyer un **même document** à plusieurs destinataires, chacun signant **indépendamment** sur sa propre copie. Chaque destinataire reçoit son lien personnel et signe sans voir les autres signataires.
 
-### Créer une liste de destinataires
+Le mode opératoire complet (création de l'enveloppe, ajout des destinataires depuis 7 sources possibles, format CSV pour l'import, validation, positionnement et envoi, suivi des destinataires) est détaillé sur la page dédiée : [Signature en masse](signature-en-masse.md).
 
-1. Accédez à la page **Signatures multiples** depuis le menu UptoSign
-2. Créez une nouvelle liste
-3. Ajoutez les destinataires à partir de différentes sources :
-    - Contacts Dolibarr
-    - Utilisateurs Dolibarr
-    - Tiers
-    - Adhérents
-    - Participants à un événement
-    - Import depuis un fichier
-    - Saisie manuelle (format : `email;nom;prenom;autre`)
-
-### Lancer la signature
-
-1. Positionnez le sceau et la signature sur le document
-2. Cliquez sur **Lancer la demande de signature auprès de X destinataires**
-
-> **Attention** : la limite par envoi est de 30 procédures simultanées pour la phase de tests.
+> **Limite** : 30 destinataires maximum par enveloppe. Au-delà, créez plusieurs enveloppes successives.
 
 ## Actions de masse depuis les listes
 

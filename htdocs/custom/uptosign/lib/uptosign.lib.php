@@ -687,6 +687,52 @@ function uptosign_relative_path($path)
 }
 
 /**
+ * Detect a duplicate in-flight seal/sign request.
+ *
+ * Idempotency guard against double-clicks, F5 and back-arrow navigation on the seal/sign
+ * confirmation page: re-posting the same form must not spawn a second remote procedure.
+ *
+ * Returns the existing UptoSign record only when ALL of the following match:
+ *  - same fk_object + object_type
+ *  - same api_name (uptosign and uptoseal are independent procedures)
+ *  - same path_file (same source PDF)
+ *  - status === STATUS_WAITING (procedure still pending)
+ *  - hash_file === sha256 of the current source file (different hash means the document
+ *    has been regenerated, the caller is allowed to create a fresh procedure)
+ *
+ * @param UptoSign $uts            Fresh UptoSign instance used to perform the lookup
+ * @param int      $fkObject       Business object id
+ * @param string   $objectType     Unified object type (eg. "propal", "commande", ...)
+ * @param string   $apiName        "uptosign" or "uptoseal"
+ * @param string   $sourceFullPath Absolute path of the source PDF the caller is about to submit
+ * @return UptoSign|null           The in-flight record if a duplicate is detected, null otherwise
+ */
+function uptosign_find_duplicate_inflight(UptoSign $uts, $fkObject, $objectType, $apiName, $sourceFullPath)
+{
+	if ($sourceFullPath === '' || !is_file($sourceFullPath)) {
+		dol_syslog("uptosign: duplicate-inflight check skipped, source file not readable: $sourceFullPath", LOG_WARNING);
+		return null;
+	}
+
+	$pathFilter = uptosign_relative_path($sourceFullPath);
+	$existing = $uts->fetchByObject((int) $fkObject, (string) $objectType, array(
+		'api_name'  => (string) $apiName,
+		'path_file' => $pathFilter,
+	));
+	if (!is_array($existing) || count($existing) === 0) {
+		return null;
+	}
+
+	$currentHash = hash_file('sha256', $sourceFullPath);
+	foreach ($existing as $ex) {
+		if ((int) $ex->status === UptoSign::STATUS_WAITING && $ex->hash_file === $currentHash) {
+			return $ex;
+		}
+	}
+	return null;
+}
+
+/**
  * create new file name according to dolibarr guidelines
  *
  * @param   string $filename	[$filename description]
@@ -817,14 +863,12 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 	$metaData = $pdf->getDetails();
 	//TODO : maybe a bug with smalot / other pdf pdf parser
 	//smalot : first page is 0 https://github.com/smalot/pdfparser/blob/master/doc/Usage.md
-	// InfraS change begin
 	$pages = $pdf->getPages();
 	for ($pageNb = 1; $pageNb <= $metaData['Pages']; $pageNb++) {
 		if (!isset($pages[$pageNb])) {
 			continue;
 		}
 		$details = $pages[$pageNb]->getDetails();
-		// InfraS change end
 		// print json_encode($details);
 		$pagewidth = $details['MediaBox'][2];
 		$pageheight = $details['MediaBox'][3];
@@ -836,7 +880,7 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 			$pageheight = 210;
 		}
 
-		$data = $pages[$pageNb]->getDataTm(); // InfraS change
+		$data = $pages[$pageNb]->getDataTm();
 		// print json_encode($pdf->getPages()[0]);
 		foreach ($data as $dataWord) {
 			if (trim($dataWord[1]) == $keyword) {

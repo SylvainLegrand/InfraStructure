@@ -166,6 +166,7 @@ UptoSignFileMissing=Aucun document généré disponible.
 UptoSignInvalidCoordinates=Format des coordonnées de signature invalide (ex: 12,34,56,78)
 SignRequestSuccessful=Demande de signature de document envoyée avec succès.
 SealRequestSuccessful=Demande de scellement de document envoyée avec succès.
+UptoSignDuplicateRequestRedirect=Une procédure identique est déjà en cours pour ce document. Vous avez été redirigé vers la procédure existante.
 UptoSignSignedNoModify=Vous ne pouvez pas modifier un document signé.
 UptoSignSignedNoDelete=Vous ne pouvez pas supprimer un document signé.
 UptoSignSendInitDefaultEnUs=Aucun modèle de demande trouvé pour votre langue, le modèle français est utilisé.

@@ -124,11 +124,12 @@ if (!isset($conf->file->dol_document_root) || !is_array($conf->file->dol_documen
     $conf->file->dol_document_root = array('main' => DOL_DOCUMENT_ROOT);
 }
 
-// Create symlink for case-insensitive module path resolution
+// Create symlink so dol_include_once('/uptosign/...') resolves to this checkout,
+// regardless of the directory name (CI clones into plugin-uptosign/).
 $parentDir = dirname($projectRoot);
-$moduleName = strtolower(basename($projectRoot));
+$moduleName = 'uptosign';
 $symlinkPath = $parentDir . '/' . $moduleName;
-if (!file_exists($symlinkPath) && basename($projectRoot) !== $moduleName) {
+if (basename($projectRoot) !== $moduleName && !file_exists($symlinkPath)) {
     @symlink($projectRoot, $symlinkPath);
     register_shutdown_function(function() use ($symlinkPath) {
         if (is_link($symlinkPath)) {

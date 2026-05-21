@@ -15,25 +15,15 @@
         </testsuite>
     </testsuites>
 
-    <coverage>
-        <include>
-            <directory suffix=".php">class</directory>
-            <directory suffix=".php">lib</directory>
-        </include>
-        <exclude>
-            <directory>vendor</directory>
-            <directory>test</directory>
-        </exclude>
-        <report>
-            <html outputDirectory=".phpunit.cache/coverage-html"/>
-            <text outputFile="php://stdout"/>
-        </report>
-    </coverage>
+    <!--
+        Coverage is intentionally NOT declared here: pcov instrumentation alone
+        adds ~1s to the unit suite for ~300 tests, and coverage is rarely useful
+        in the inner dev loop. Run "composer test:coverage" to opt into a
+        one-shot HTML/text report.
+    -->
 
     <php>
         <ini name="error_reporting" value="E_ALL"/>
         <ini name="display_errors" value="true"/>
-        <ini name="pcov.enabled" value="1"/>
-        <ini name="pcov.enabled" value="1"/>
     </php>
 </phpunit>

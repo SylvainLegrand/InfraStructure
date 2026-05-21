@@ -642,9 +642,7 @@
 			if ($needArray) {
 				$result	= [];
 				while ($obj = $db->fetch_object($resql)) {
-					if (getDolGlobalString('PROPOSAL_FREE_TEXT_'.$obj->code, '') && getDolGlobalString('INVOICE_FREE_TEXT_'.$obj->code, '')) {
-						$result[$obj->code]	= $obj->libelle;
-					}
+					$result[$obj->code]	= $obj->libelle;
 				}
 				return $result;
 			}

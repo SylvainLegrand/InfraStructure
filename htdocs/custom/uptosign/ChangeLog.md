@@ -1,5 +1,18 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.3 -- 2026-05-20
+
+ fix interventions thanks to sylvain (infras)
+ fix php 8+ warnings thanks to sylvain (infras)
+ fix multi docs to sign thanks to sylvain (infras)
+ add dol23 compatibility
+ update langs & translations
+ fix bugs thanks to phpstan
+ update syslogs messages to make it easyer to follow
+ better multidir output tests
+ update mini version of php : 7.4
+ new code to avoid duplicate seal process (F5/ other)
+
 ## 2.4.2 -- 20260226
 
 - fix date_sign into database with real date

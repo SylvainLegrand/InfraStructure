@@ -239,6 +239,20 @@ $arrayofcss =  array(
 	'/uptosign/css/uptosign-wizard.css?ver=' . filemtime('css/uptosign-wizard.css')
 );
 $nomain = "";
+
+// Idempotency guard: an UptoSignList procedure is only allowed when the object is still DRAFT.
+// On F5, back-arrow or double-click after success, the status has already moved away from
+// DRAFT - redirect to the list card instead of re-running sealOrSignInitLight for each member.
+// Placed before llxHeader so header() performs a clean HTTP redirect.
+if ($action == 'uptosign' && $object->id > 0 && (int) $object->status !== (int) UptoSignList::STATUS_DRAFT) {
+	dol_syslog("uptosign: duplicate uptosignlist sign request for id=" . $object->id . " (status=" . $object->status . "), redirect to card", LOG_WARNING);
+	setEventMessages($langs->trans("UptoSignDuplicateRequestRedirect"), [], 'warnings');
+	header('Location: ' . dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . (int) $object->id);
+	exit;
+}
+
+// Buffer page output so the success path can flush it and emit a POST-Redirect-GET header.
+ob_start();
 llxHeader('', 'UptoSign - Choose sign position', '', '', 0, 0, $arrayofjs, $arrayofcss, '', '', $nomain, 0);
 $allreadyUsed = [];
 $x = $y = $p = $s = null;
@@ -362,8 +376,6 @@ if ($action == 'uptosign') {
 	// print "<p>Retour de l'appel du signorseal : $sendRes</p>";
 
 	if ($sendRes >=  0) {
-		print dol_get_fiche_head($head, 'uptosignlisttab', $langs->trans("UptoSign"), -1, $object->picto);
-
 		$object->setStatut(UptoSignList::STATUS_SENTCOMPLETELY);
 
 		if ($action == 'confirm_uptoseal' || $action == 'uptoseal') {
@@ -371,18 +383,15 @@ if ($action == 'uptosign') {
 		} else {
 			$message = "SignRequestSuccessful";
 		}
-		setEventMessages($message, [], 'mesgs');
+		setEventMessages($langs->trans($message), [], 'mesgs');
 
-		if ($modulepart == "societe") {
-			$url = "<a href='" . dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . $uptoSign->id . "'>" . $langs->trans("SignStatus") . "</a>";
-		} else {
-			$url = $object->getNomUrl(1);
+		// POST-Redirect-GET: discard buffered output (llxHeader was emitted into the
+		// ob_start buffer above) and redirect to the list card. Prevents re-running
+		// sealOrSignInitLight on F5 or back/forward navigation.
+		while (ob_get_level() > 0) {
+			ob_end_clean();
 		}
-
-		print "<h2>" . $langs->trans($message) . "</h2>";
-		print "<p>" . $langs->transnoentities('UptoSignDetailsHere', $url) . "</p>";
-
-		llxFooter();
+		header('Location: ' . dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . (int) $object->id);
 		exit;
 	} else {
 		setEventMessages("sealOrSignInitLight errors : " . implode("\n", $uptoSign->errors), [], 'errors');

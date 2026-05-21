@@ -252,6 +252,34 @@ $arrayofcss =  array(
 	'/uptosign/css/uptosign-wizard.css?ver=' . filemtime('css/uptosign-wizard.css')
 );
 $nomain = "";
+
+// Idempotency guard: see uptosign_find_duplicate_inflight() docblock.
+// Placed before llxHeader so header() can emit a clean HTTP redirect.
+if ($action == 'uptosign' || $action == 'uptoseal') {
+	$idemPdfFileName = base64_decode((string) GETPOST('pdfFileName', 'alpha'));
+	if (!empty($idemPdfFileName)) {
+		$idemPdfFileName = dol_sanitizePathName($idemPdfFileName);
+		// Reject paths escaping DOL_DATA_ROOT (defense in depth, same check as the action handler)
+		if (strpos(realpath(dirname($idemPdfFileName)) . '/', realpath(DOL_DATA_ROOT) . '/') === 0) {
+			$idemDup = uptosign_find_duplicate_inflight(
+				$uptoSign,
+				(int) $id,
+				uptosign_unify_object_type($modulepart),
+				$action,
+				$idemPdfFileName
+			);
+			if ($idemDup !== null) {
+				dol_syslog("uptosign: duplicate $action request for fk_object=$id, redirect to existing UptoSign #" . $idemDup->id, LOG_WARNING);
+				setEventMessages($langs->trans("UptoSignDuplicateRequestRedirect"), [], 'warnings');
+				header('Location: ' . dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . (int) $idemDup->id);
+				exit;
+			}
+		} else {
+			dol_syslog("uptosign: idempotency check skipped, pdfFileName outside DOL_DATA_ROOT: $idemPdfFileName", LOG_WARNING);
+		}
+	}
+}
+
 llxHeader('', 'UptoSign - Choose sign position', '', '', 0, 0, $arrayofjs, $arrayofcss, '', '', $nomain, 0);
 $allreadyUsed = [];
 
@@ -455,25 +483,20 @@ if ($action == 'uptosign' || $action == 'uptoseal') {
 	// print "<p>Retour de l'appel du signorseal : $sendRes</p>";
 
 	if ($sendRes ==  0) {
-		print dol_get_fiche_head($head, 'tabUptoSign', $langs->trans("UptoSign"), -1, $object->picto);
-
 		if ($action == 'confirm_uptoseal' || $action == 'uptoseal') {
 			$message = "SealRequestSuccessful";
 		} else {
 			$message = "SignRequestSuccessful";
 		}
-		setEventMessages($message, [], 'mesgs');
+		setEventMessages($langs->trans($message), [], 'mesgs');
 
-		if ($modulepart == "societe") {
-			$url = "<a href='" . dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . $uptoSign->id . "'>" . $langs->trans("SignStatus") . "</a>";
-		} else {
-			$url = $object->getNomUrl(1);
+		// POST-Redirect-GET: discard buffered output (llxHeader was already emitted into the
+		// ob_start buffer above) and redirect to the procedure card. Prevents duplicate
+		// creation on F5 or back/forward navigation.
+		while (ob_get_level() > 0) {
+			ob_end_clean();
 		}
-
-		print "<h2>" . $langs->trans($message) . "</h2>";
-		print "<p>" . $langs->transnoentities('UptoSignDetailsHere', $url) . "</p>";
-
-		llxFooter();
+		header('Location: ' . dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . (int) $uptoSign->id);
 		exit;
 	} else {
 		setEventMessages("sealOrSignInitLight errors : " . implode("\n", $uptoSign->errors), [], 'errors');

@@ -2369,7 +2369,7 @@ class UptoSign extends CommonObject
 			if ($object->element == "uptosignlist") {
 				$this->fk_uptosignlist = $object->id;
 			}
-			$this->sign_link = $resultContent['url'] ?? ''; // InfraS change
+			$this->sign_link = $resultContent['url'] ?? '';
 			$this->disableSms = $this->_searchDisableSMS($fksoc);
 
 			dol_syslog("uptosign sealOrSignInitLight : ============================================= 1", LOG_DEBUG);
@@ -2397,7 +2397,6 @@ class UptoSign extends CommonObject
 			}
 
 			//test rebond automatique
-			// InfraS change begin
 			$resultContentUrl = $resultContent['url'] ?? '';
 			$resultContentRedirect = $resultContent['redirect'] ?? '';
 			dol_syslog("uptosign redirect_sign=" . $this->redirect_sign . ", redirect=" . $resultContentRedirect . ", resultContent url= " . $resultContentUrl);
@@ -2407,7 +2406,6 @@ class UptoSign extends CommonObject
 				ob_flush();
 				exit;
 			}
-			// InfraS change end
 		}
 		return 0;
 	}

@@ -15,21 +15,16 @@
         </testsuite>
     </testsuites>
 
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">./class</directory>
-            <directory suffix=".php">./lib</directory>
-        </include>
-        <report>
-            <html outputDirectory=".phpunit.cache/coverage-integration-html"/>
-            <text outputFile="php://stdout" showOnlySummary="false"/>
-        </report>
-    </coverage>
+    <!--
+        Coverage is intentionally NOT declared here. Run
+        "composer test:integration:coverage" to opt into a one-shot HTML/text
+        report. Previous setup used processUncoveredFiles="true" which parsed
+        the entire class/ and lib/ trees on every run, even when no coverage
+        was needed.
+    -->
 
     <php>
         <ini name="error_reporting" value="-1"/>
         <ini name="display_errors" value="On"/>
-        <ini name="pcov.enabled" value="1"/>
-        <ini name="pcov.directory" value="."/>
     </php>
 </phpunit>
