@@ -36,7 +36,7 @@
 	// Translations *********************************
 	$langs->loadLangs(array('companies', 'commercial', 'infraspackplus@infraspackplus'));
 
-	$id			= GETPOST('id','int');
+	$id			= GETPOSTINT('id');
 	$action		= GETPOST('action','alpha');
 	$cancel		= GETPOST('cancel', 'alpha');
 	$confirm	= GETPOST('confirm','alpha');
@@ -45,8 +45,8 @@
 		$backtopage = dol_sanitizeUrl($backtopage);
 	}
 	$origin		= GETPOST('origin','alpha');
-	$originid	= GETPOST('originid','int');
-	$socid		= $user->socid ? $user->socid : (GETPOST('socid', 'int') ? GETPOST('socid', 'int') : GETPOST('id', 'int'));
+	$originid	= GETPOSTINT('originid');
+	$socid		= $user->socid ? $user->socid : (GETPOSTINT('socid') ? GETPOSTINT('socid') : GETPOSTINT('id'));
 	$societe	= new Societe($db);
 	$societe->fetch($socid);
 
@@ -80,7 +80,7 @@
 		$object->address	= GETPOST('address', 'alphanohtml');
 		$object->zip		= GETPOST('zipcode', 'alphanohtml');
 		$object->town		= GETPOST('town', 'alphanohtml');
-		$object->country_id	= GETPOST('country_id', 'int') ? GETPOST('country_id', 'int') : $mysoc->country_id;
+		$object->country_id	= GETPOSTINT('country_id') ? GETPOSTINT('country_id') : $mysoc->country_id;
 		$object->phone		= GETPOST('phone', 'alpha');
 		$object->fax		= GETPOST('fax', 'alpha');
 		$object->note		= GETPOST('note', 'none');
@@ -180,7 +180,7 @@
 				$object->email		=	GETPOST('email', 'custom', 0, FILTER_SANITIZE_EMAIL);
 				$object->url		=	GETPOST('url', 'custom', 0, FILTER_SANITIZE_URL);
 			}
-			$object->country_id	= (GETPOST('country_id','int') ? GETPOST('country_id','int') : $mysoc->country_id);
+			$object->country_id	= (GETPOSTINT('country_id') ? GETPOSTINT('country_id') : $mysoc->country_id);
 			if (!empty($object->country_id)) {
 				$tmparray				= getCountry($object->country_id,'all');
 				$object->country_code	= $tmparray['code'];
@@ -312,7 +312,7 @@
 				$object->address	=	GETPOST('address', 'alphanohtml');
 				$object->zip		=	GETPOST('zipcode', 'alphanohtml');
 				$object->town		=	GETPOST('town', 'alphanohtml');
-				$object->country_id	=	GETPOST('country_id', 'int') ? GETPOST('country_id', 'int') : $mysoc->country_id;
+				$object->country_id	=	GETPOSTINT('country_id') ? GETPOSTINT('country_id') : $mysoc->country_id;
 				$object->phone		=	GETPOST('phone', 'alpha');
 				$object->fax		=	GETPOST('fax', 'alpha');
 				$object->email		=	GETPOST('email', 'custom', 0, FILTER_SANITIZE_EMAIL);

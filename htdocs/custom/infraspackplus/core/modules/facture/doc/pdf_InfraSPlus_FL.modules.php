@@ -393,7 +393,7 @@
 					$sql	= 'SELECT p.fk_paiement, cp.code, cp.type, pf.amount, pf.multicurrency_amount';
 					$sql	.= ' FROM '.$this->db->prefix().'paiement_facture as pf, '.$this->db->prefix().'paiement as p';
 					$sql	.= ' LEFT JOIN '.$this->db->prefix().'c_paiement as cp ON p.fk_paiement = cp.id';
-					$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.$object->id.' AND cp.entity IN ('.getEntity('c_paiement').')';
+					$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.((int) $object->id).' AND cp.entity IN ('.getEntity('c_paiement').')';
 					$sql	.= ' ORDER BY p.datep';
 					$resql	= $this->db->query($sql);
 					if ($resql) {

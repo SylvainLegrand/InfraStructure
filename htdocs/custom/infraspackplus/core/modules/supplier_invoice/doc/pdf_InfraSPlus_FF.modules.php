@@ -1433,7 +1433,7 @@
 			$sql	.= ' pf.multicurrency_amount, cp.code';
 			$sql	.= ' FROM '.$this->db->prefix().'paiementfourn_facturefourn as pf, '.$this->db->prefix().'paiementfourn as p';
 			$sql	.= ' LEFT JOIN '.$this->db->prefix().'c_paiement as cp ON p.fk_paiement = cp.id AND cp.entity IN ('.getEntity("c_paiement").')';
-			$sql	.= ' WHERE pf.fk_paiementfourn = p.rowid AND pf.fk_facturefourn = '.$object->id;
+			$sql	.= ' WHERE pf.fk_paiementfourn = p.rowid AND pf.fk_facturefourn = '.((int) $object->id);
 			$sql	.= ' ORDER BY p.datep';
 			$resql	= $this->db->query($sql);
 			if ($resql) {

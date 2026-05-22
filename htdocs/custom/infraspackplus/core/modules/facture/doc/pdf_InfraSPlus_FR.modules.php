@@ -544,7 +544,7 @@
 					$sql			= 'SELECT SUM(pf.amount) AS stdpaidamount';
 					$sql			.= ' FROM '.$this->db->prefix().'paiement_facture AS pf, '.$this->db->prefix().'paiement AS p';
 					$sql			.= ' LEFT JOIN '.$this->db->prefix().'c_paiement AS cp ON p.fk_paiement = cp.id';
-					$sql			.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.$object->id.' AND cp.entity IN ('.getEntity('c_paiement').') AND cp.type != 3';
+					$sql			.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.((int) $object->id).' AND cp.entity IN ('.getEntity('c_paiement').') AND cp.type != 3';
 					$resql			= $this->db->query($sql);
 					if ($resql) {
 						$obj			= $this->db->fetch_object($resql);
@@ -577,7 +577,7 @@
 					}
 					// Avoir ou excédent
 					$this->credit_notes	= $object->getSumCreditNotesUsed($this->use_multicurrency ? 1 : 0);	// Warning, this also include excess received
-					$sql				= 'SELECT re.fk_facture_source FROM '.$this->db->prefix().'societe_remise_except as re WHERE fk_facture = '.$object->id;
+					$sql				= 'SELECT re.fk_facture_source FROM '.$this->db->prefix().'societe_remise_except as re WHERE fk_facture = '.((int) $object->id);
 					$resql				= $this->db->query($sql);
 					if ($resql) {
 						$creditNote	= new Facture($this->db);

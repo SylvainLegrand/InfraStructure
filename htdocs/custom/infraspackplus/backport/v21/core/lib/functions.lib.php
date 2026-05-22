@@ -54,4 +54,3 @@
 			return (bool) ($conf->global->$key ?? $default);
 		}
 	}
-

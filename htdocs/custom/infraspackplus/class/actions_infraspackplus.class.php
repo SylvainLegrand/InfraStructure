@@ -294,7 +294,7 @@ EOJS;
 					unset($i);
 					// adresse expéditeur
 					if (!in_array($object->element, ['product', 'mo', 'bom'])) {
-						$adrPost		= GETPOST('adr', 'alpha') == 'none' ? '' : GETPOST('adr', 'int');
+						$adrPost		= GETPOST('adr', 'alpha') == 'none' ? '' : GETPOSTINT('adr');
 						$countryAddr	= getDolGlobalInt('INFRASPLUS_PDF_USE_CUSTOM_COUNTRY_ADDR', 0);
 						$adrtmp			= new Address($db);
 						if (!empty($countryAddr) && !empty($object->thirdparty->country_code)) {
@@ -506,7 +506,7 @@ EOJS;
 					$showadrlivr		= !empty($useDoliAddr) || !empty($object->array_options['options_'.$freeadrlivr]) ? 0 : $showadrlivr;
 					$def_adrlivrfour	= getDolGlobalString('INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', '');
 					$typeadr			= in_array($object->element, ['fichinter']) ? $langs->trans('PDFInfraSPlusAdrInter') : $langs->trans('PDFInfraSPlusAdrLivr');
-					$adrlivrPost		= !empty($res_adrfact) ? $res_adrfact : GETPOST('adrlivr', 'int');	// -1 pour défaut, -2 pour aucune, >0 pour ID
+					$adrlivrPost		= !empty($res_adrfact) ? $res_adrfact : GETPOSTINT('adrlivr');	// -1 pour défaut, -2 pour aucune, >0 pour ID
 					if (!empty($showadrlivr)) {
 						$adrlivrtmp			= new Address($db);
 						$res_adrlivr		= $adrlivrtmp->fetch_lines($object->thirdparty->id);
@@ -527,15 +527,15 @@ EOJS;
 												</tr>';
 					}
 				} else {
-					$this->resprints	.= '<input type = "hidden" name = "adrlivr" value = '.GETPOST('adrlivr', 'int').'>';
+					$this->resprints	.= '<input type = "hidden" name = "adrlivr" value = '.GETPOSTINT('adrlivr').'>';
 				}
 				// Sous-Traitant (lié au client via "CustomLink")
 				if (isModEnabled('customlink') && in_array($object->element, ['commande', 'shipping', 'reception', 'delivery'])) {
 					$showadrSsT	= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 					$typeCtSsT	= getDolGlobalString('INFRASPLUS_PDF_TYPE_SOUS_TRAITANT', '');
-					$doc_id		= GETPOST('id', 'int');
-					$SstPost	= GETPOST('Sst', 'int') ?: '-2';
-					$adrSstPost	= GETPOST('adrSst', 'int') ?: '-2';
+					$doc_id		= GETPOSTINT('id');
+					$SstPost	= GETPOSTINT('Sst') ?: '-2';
+					$adrSstPost	= GETPOSTINT('adrSst') ?: '-2';
 					if (!empty($showadrSsT) && !empty($typeCtSsT)) {
 						$sql_listSsT	= 'SELECT DISTINCT s.rowid, s.nom';
 						$sql_listSsT	.= ' FROM '.$db->prefix().'socpeople AS sp';
@@ -587,8 +587,8 @@ EOJS;
 						unset($i);
 					}
 				} else {
-					$this->resprints	.= '<input type = "hidden" name = "Sst" value = '.GETPOST('Sst', 'int').'>';
-					$this->resprints	.= '<input type = "hidden" name = "adrSst" value = '.GETPOST('adrSst', 'int').'>';
+					$this->resprints	.= '<input type = "hidden" name = "Sst" value = '.GETPOSTINT('Sst').'>';
+					$this->resprints	.= '<input type = "hidden" name = "adrSst" value = '.GETPOSTINT('adrSst').'>';
 				}
 				// Adresse de livraison spéciale fournisseur (interne ou interne + client)
 				if (in_array($object->element, ['supplier_proposal', 'order_supplier'])) {
@@ -598,7 +598,7 @@ EOJS;
 					$showadrlivrfour	= !empty($useDoliAddr) || !empty($object->array_options['options_'.$freeadrlivr]) ? 0 : $showadrlivrfour;
 					$def_adrlivrfour	= getDolGlobalString('INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', '');
 					$adrlivrfourmixte	= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_LIVRAISON_MIXTE', 0);
-					$adrlivrfourPost	= GETPOST('adrlivrfour', 'int');	// -2 pour aucune, >0 pour ID
+					$adrlivrfourPost	= GETPOSTINT('adrlivrfour');	// -2 pour aucune, >0 pour ID
 					$typadrlivrfourPost	= GETPOST('typeadr', 'alpha');	// -2 pour aucune, I, C, S
 					if (!empty($showadrlivrfour)) {
 						if (empty($adrlivrfourmixte)) {
@@ -1209,7 +1209,7 @@ EOJS;
 				// Logo
 				$this->results['logo']					= GETPOST('logo', 'alpha') == 'none' ? '' : GETPOST('logo', 'alpha');
 				// adresse expéditeur
-				$this->results['adr']					= GETPOST('adr', 'alpha') == 'none' ? '' : GETPOST('adr', 'int');
+				$this->results['adr']					= GETPOST('adr', 'alpha') == 'none' ? '' : GETPOSTINT('adr');
 				// adresse destinataire
 				$this->results['customerAddrSelect']	= GETPOST('customerAddrSelect', 'alpha') == 'none' ? '' : GETPOST('customerAddrSelect', 'alpha');
 				// Mentions complémentaires
@@ -1251,14 +1251,14 @@ EOJS;
 				// Adresse de livraison (client)
 				$showadrlivr	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 0);
 				if (!empty($showadrlivr)) {
-					$this->results['adrlivr']	= GETPOST('adrlivr', 'int');
+					$this->results['adrlivr']	= GETPOSTINT('adrlivr');
 				}
 				// Sous-Traitant (lié au client via "CustomLink")
 				if (isModEnabled('customlink')) {
 					$showadrSsT	= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 					if (!empty($showadrSsT)) {
-						$this->results['Sst']		= GETPOST('Sst', 'int');
-						$this->results['adrSst']	= GETPOST('adrSst', 'int');
+						$this->results['Sst']		= GETPOSTINT('Sst');
+						$this->results['adrSst']	= GETPOSTINT('adrSst');
 					}
 				}
 				// Adresse de livraison spéciale fournisseur (interne ou interne + client)
@@ -1267,11 +1267,11 @@ EOJS;
 				$adrlivrfourmixte	= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_LIVRAISON_MIXTE', 0);
 				if (!empty($showadrlivrfour)) {
 					if (empty($adrlivrfourmixte)) {	// only internal
-						$this->results['adrlivrfour']	= GETPOST('adrlivrfour', 'int');
+						$this->results['adrlivrfour']	= GETPOSTINT('adrlivrfour');
 						$this->results['typeadr']		= 'I';
 					} else {
 						if (!preg_match('/\_/', GETPOST('adrlivrfour', 'alpha'))) {	// default => internal
-							$this->results['adrlivrfour']	= GETPOST('adrlivrfour', 'int');
+							$this->results['adrlivrfour']	= GETPOSTINT('adrlivrfour');
 							$this->results['typeadr']		= 'I';
 						} else {
 							$this->results['adrlivrfour']	= substr(GETPOST('adrlivrfour', 'alpha'), 2);
@@ -1343,7 +1343,7 @@ EOJS;
 				$this->results['signvalue']				= GETPOST('signvalue', 'alpha');
 				// Options du module Sous-total
 				if (isModEnabled('subtotal')) {
-					$this->results['hideInnerLines']	= GETPOST('hideInnerLines', 'int');
+					$this->results['hideInnerLines']	= GETPOSTINT('hideInnerLines');
 					if (getDolGlobalString('SUBTOTAL_PROPAL_ADD_RECAP', '') && in_array($object->element, ['propal'])
 						|| getDolGlobalString('SUBTOTAL_COMMANDE_ADD_RECAP', '') && in_array($object->element, ['commande'])
 						|| getDolGlobalString('SUBTOTAL_INVOICE_ADD_RECAP', '') && in_array($object->element, ['facture'])) {

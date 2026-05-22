@@ -471,7 +471,7 @@
 					$sql	= 'SELECT p.fk_paiement, cp.code, cp.type, pf.amount, pf.multicurrency_amount';
 					$sql	.= ' FROM '.$this->db->prefix().'paiement_facture as pf, '.$this->db->prefix().'paiement as p';
 					$sql	.= ' LEFT JOIN '.$this->db->prefix().'c_paiement as cp ON p.fk_paiement = cp.id';
-					$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.$object->id.' AND cp.entity IN ('.getEntity('c_paiement').')';
+					$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.((int) $object->id).' AND cp.entity IN ('.getEntity('c_paiement').')';
 					$sql	.= ' ORDER BY p.datep';
 					$resql	= $this->db->query($sql);
 					if ($resql) {
@@ -3236,7 +3236,7 @@
 			$sql	= 'SELECT re.rowid, re.amount_ht, re.multicurrency_amount_ht, re.amount_tva, re.multicurrency_amount_tva,';
 			$sql	.= ' re.amount_ttc, re.multicurrency_amount_ttc, re.description, re.fk_facture_source, f.type, f.datef';
 			$sql	.= ' FROM '.$this->db->prefix() .'societe_remise_except as re, '.$this->db->prefix() .'facture as f';
-			$sql	.= ' WHERE re.fk_facture_source = f.rowid AND re.fk_facture = '.$object->id;
+			$sql	.= ' WHERE re.fk_facture_source = f.rowid AND re.fk_facture = '.((int) $object->id);
 			$resql	= $this->db->query($sql);
 			if ($resql) {
 				$num		= $this->db->num_rows($resql);
@@ -3273,7 +3273,7 @@
 			$sql	.= ' pf.multicurrency_amount, cp.code, cp.type AS payType';
 			$sql	.= ' FROM '.$this->db->prefix().'paiement_facture AS pf, '.$this->db->prefix().'paiement AS p';
 			$sql	.= ' LEFT JOIN '.$this->db->prefix().'c_paiement AS cp ON p.fk_paiement = cp.id';
-			$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.$object->id.' AND cp.entity IN ('.getEntity('c_paiement').')';
+			$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.((int) $object->id).' AND cp.entity IN ('.getEntity('c_paiement').')';
 			$sql	.= $this->use_Pay_Spec ? ' AND cp.type <> 3' : '';
 			$sql	.= ' ORDER BY p.datep';
 			$resql	= $this->db->query($sql);
@@ -3484,7 +3484,7 @@
 			$posynext		= $posy;
 			$sql			= 'SELECT fk_soc, domiciliation, code_banque, code_guichet, number, cle_rib, proprio, owner_address, default_rib';
 			$sql			.= ' FROM '.$this->db->prefix() .'societe_rib as rib';
-			$sql			.= ' WHERE rib.fk_soc = '.$object->thirdparty->id;
+			$sql			.= ' WHERE rib.fk_soc = '.((int) $object->thirdparty->id);
 			$sql			.= ' AND rib.default_rib = 1';
 			$resql			= $this->db->query($sql);
 			if ($resql) {

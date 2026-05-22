@@ -185,11 +185,11 @@
 				$sql	.= ', address = '.($this->address ? '"'.$this->db->escape($this->address).'"' : 'null');
 				$sql	.= ', zip = '.($this->zip ? '"'.$this->db->escape($this->zip).'"' : 'null');
 				$sql	.= ', town = '.($this->town ? '"'.$this->db->escape($this->town).'"' : 'null');
-				$sql	.= ', fk_pays = "'.($this->country_id > 0 ? $this->country_id : 'NULL').'"';
+				$sql	.= ', fk_pays = '.($this->country_id > 0 ? ((int) $this->country_id) : 'NULL');
 				$sql	.= ', phone = '.($this->phone ? '"'.$this->db->escape($this->phone).'"' : 'null');
 				$sql	.= ', fax = '.($this->fax ? '"'.$this->db->escape($this->fax).'"' : 'null');
 				$sql	.= ', note = '.($this->note ? '"'.$this->db->escape($this->note).'"' : 'null');
-				$sql	.= ', fk_user_modif = '.($user->id > 0 ? '"'.$this->db->escape($user->id).'"' : 'null');
+				$sql	.= ', fk_user_modif = '.($user->id > 0 ? ((int) $user->id) : 'null');
 				$sql	.= ', email = '.($this->email ? '"'.$this->db->escape($this->email).'"' : 'null');
 				$sql	.= ', entity = '.((int) $this->entity);
 				$sql	.= ', url = '.($this->url ? '"'.$this->db->escape($this->url).'"' : 'null');
@@ -430,7 +430,7 @@
 		{
 			$sql	= 'SELECT s.rowid, s.nom AS name, s.datec AS date_creation, s.tms AS date_modification, s.fk_user_creat, s.fk_user_modif';
 			$sql	.= ' FROM '.$this->db->prefix().'societe AS s';
-			$sql	.= ' WHERE s.rowid = '.$id;
+			$sql	.= ' WHERE s.rowid = '.((int) $id);
 			$result	= $this->db->query($sql);
 			if (!empty($result)) {
 				if (!empty($this->db->num_rows($result))) {

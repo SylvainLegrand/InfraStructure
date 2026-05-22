@@ -433,13 +433,14 @@
 			global $conf;
 
 			infraspackplus_bkup_module ($this->name);
-			$sql		= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPLUS\_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPACKPLUS\_PS\_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "MAIN\_MODULE\_INFRASPACKPLUS\_%" AND entity = "'.$conf->entity.'"',	// purge orphan module_parts constants (e.g. keys removed from descriptor between versions)
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_ADDON\_PDF" AND value like "InfraSPlus_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_FREE\_TEXT\_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_PUBLIC\_NOTE%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'document_model WHERE nom like "InfraSPlus\_%" AND entity = "'.$conf->entity.'"',
+			$entity		= (int) $conf->entity;
+			$sql		= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPLUS\_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPACKPLUS\_PS\_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "MAIN\_MODULE\_INFRASPACKPLUS\_%" AND entity = '.$entity,	// purge orphan module_parts constants (e.g. keys removed from descriptor between versions)
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_ADDON\_PDF" AND value like "InfraSPlus_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_FREE\_TEXT\_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_PUBLIC\_NOTE%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'document_model WHERE nom like "InfraSPlus\_%" AND entity = '.$entity,
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'infraspackplus_societe_address',
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'c_infraspackplus_mention',
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'c_infraspackplus_note');

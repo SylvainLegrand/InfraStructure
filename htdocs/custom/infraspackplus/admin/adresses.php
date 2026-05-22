@@ -130,7 +130,7 @@
 		header('Location: '.$_SERVER['PHP_SELF']);
 	}
 	if ($action == 'edit' && class_exists('Address')) {
-		$address->fetch(GETPOST('id', 'int'));
+		$address->fetch(GETPOSTINT('id'));
 		$btnAction	= 'value = "save" name = "save">'.$langs->trans('Save');
 		print '	<script type = "text/javascript">
 					document.cookie = "tblAexp=tblGA-3; expires=1; path=/";
@@ -151,14 +151,14 @@
 		$address->address		= GETPOST('address', 'alphanohtml');
 		$address->zip			= GETPOST('zipcode', 'alphanohtml');
 		$address->town			= GETPOST('town', 'alphanohtml');
-		$address->country_id	= GETPOST('country_id', 'int') ? GETPOST('country_id', 'int') : $mysoc->country_id;
+		$address->country_id	= GETPOSTINT('country_id') ? GETPOSTINT('country_id') : $mysoc->country_id;
 		$address->phone			= GETPOST('phone', 'alpha');
 		$address->fax			= GETPOST('fax', 'alpha');
 		$address->note			= GETPOST('note', 'none');
 		$address->email			= GETPOST('email', 'custom', 0, FILTER_SANITIZE_EMAIL);
 		$address->url			= GETPOST('url', 'custom', 0, FILTER_SANITIZE_URL);
 		if (GETPOST('save') && $parms_ok) {
-			$result_update	= $address->update(GETPOST('id', 'int'), $user);
+			$result_update	= $address->update(GETPOSTINT('id'), $user);
 			if ($result_update < 0) {
 				setEventMessages($langs->trans('InfraSPlusParamErrorSavingAddress'), $address->error, 'errors');
 			} else {
@@ -184,10 +184,10 @@
 		$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', GETPOST('defaultaddrdeliv'),'chaine',0,'',$conf->entity);
 	}
 	if ($action == 'delete') {
-		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.GETPOST('id', 'int'), $langs->trans('InfraSPlusParamDeleteAddress'), $langs->trans('InfraSPlusParamConfirmDeleteAddress'), 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
+		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.GETPOSTINT('id'), $langs->trans('InfraSPlusParamDeleteAddress'), $langs->trans('InfraSPlusParamConfirmDeleteAddress'), 'delete_ok', '', 1, (int) $conf->use_javascript_ajax);
 	}
 	if ($action == 'delete_ok' && $confirm == 'yes') {
-		$result_supp			= $address->delete(GETPOST('id', 'int'));
+		$result_supp			= $address->delete(GETPOSTINT('id'));
 		if ($result_supp < 0) {
 			setEventMessages($langs->trans('InfraSPlusParamErrorDeletingAddress'), null, 'errors');
 		} else {

@@ -1243,7 +1243,7 @@
 			$sql	= 'SELECT p.datep as date, p.num_payment as num, p.amount as amount, cp.code';
 			$sql	.= ' FROM '.$this->db->prefix().'expensereport as e, '.$this->db->prefix().'payment_expensereport as p';
 			$sql	.= ' LEFT JOIN '.$this->db->prefix().'c_paiement as cp ON p.fk_typepayment = cp.id';
-			$sql	.= ' WHERE e.rowid = "'.$object->id.'" AND p.fk_expensereport = e.rowid AND e.entity IN ('.getEntity('expensereport').')';
+			$sql	.= ' WHERE e.rowid = '.((int) $object->id).' AND p.fk_expensereport = e.rowid AND e.entity IN ('.getEntity('expensereport').')';
 			$sql	.= ' ORDER BY p.datep';
 			$resql	= $this->db->query($sql);
 			if (!empty($resql)) {

@@ -1576,7 +1576,7 @@
 			$sql	= 'SELECT re.rowid, re.amount_ht, re.multicurrency_amount_ht, re.amount_tva, re.multicurrency_amount_tva,';
 			$sql	.= ' re.amount_ttc, re.multicurrency_amount_ttc, re.description, re.fk_facture_source, f.type, f.datef';
 			$sql	.= ' FROM '.$this->db->prefix() .'societe_remise_except as re, '.$this->db->prefix() .'facture as f';
-			$sql	.= ' WHERE re.fk_facture_source = f.rowid AND re.fk_facture = '.$object->id;
+			$sql	.= ' WHERE re.fk_facture_source = f.rowid AND re.fk_facture = '.((int) $object->id);
 			$resql	= $this->db->query($sql);
 			if ($resql) {
 				$num		= $this->db->num_rows($resql);
@@ -1624,7 +1624,7 @@
 			$sql	.= ' pf.multicurrency_amount, cp.code';
 			$sql	.= ' FROM '.$this->db->prefix().'paiement_facture as pf, '.$this->db->prefix().'paiement as p';
 			$sql	.= ' LEFT JOIN '.$this->db->prefix().'c_paiement as cp ON p.fk_paiement = cp.id AND cp.entity IN ('.getEntity("c_paiement").')';
-			$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.$object->id;
+			$sql	.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.((int) $object->id);
 			$sql	.= ' ORDER BY p.datep';
 			$resql	= $this->db->query($sql);
 			if ($resql) {

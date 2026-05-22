@@ -15,7 +15,7 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS
 - Numéro module : `550000`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `18.0.0` à `24.x.x`
+- Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
 - Dernière version locale : `21.1.0` (2026-05)
 - Dépendance obligatoire : `modECM`
@@ -46,6 +46,7 @@ htdocs/custom/infraspackplus/
 │   ├── mentions.php
 │   └── notes.php
 ├── backport/
+│   └── v21/                              # Backport getDolGlobalFloat/Bool pour Dolibarr < 21 (v20 supprimé — natif depuis Dolibarr 20.0.0)
 ├── class/
 │   ├── actions_infraspackplus.class.php
 │   ├── address.class.php
@@ -60,6 +61,9 @@ htdocs/custom/infraspackplus/
 │   ├── modules/
 │   │   └── modinfraspackplus.class.php
 │   ├── tpl/
+│   │   ├── lineviews/                    # Templates de lignes actifs (v21, v22, v22-DolInfraS, v23, v24)
+│   │   │   └── _columns/                 # Partials partagés entre versions (refproject, discount, total_ht)
+│   │   └── objectline_view*.tpl.php      # Anciens tpl (archivés, non utilisés depuis v21.0.0)
 │   └── triggers/
 ├── css/
 │   ├── NeuropolRegular.ttf
@@ -94,7 +98,7 @@ htdocs/custom/infraspackplus/
 Dans `core/modules/modinfraspackplus.class.php` :
 
 - **Module parts** :
-	- `models`, `tpl`, `triggers`
+	- `models`, `triggers` (le `tpl` a été supprimé en v21.0.0 — rendu migré vers le hook `printObjectLine`)
 	- hooks : `main`, `login`, `formfile`, `pdfgeneration`, `thirdpartycard`, `globalcard`, contextes `*note`
 	- CSS : `/infraspackplus/css/infraspackplus.css.php`
 - **Dépendances** : `modECM`
@@ -207,8 +211,8 @@ Voir `docs/changelog.xml` pour l'historique complet des versions.
 Comme InfraSCusPrice, InfraSPackPlus utilise la **substitution de pages** pour certaines pages Dolibarr :
 - **Pages substituées** : `societe/contact.php` (contacts société) et `admin/dict.php` (dictionnaires admin)
 - **Constante d'activation** : générée dynamiquement depuis le chemin (ex. `/societe/contact.php` → `INFRASPACKPLUS_PS_ACTIVE_SOCIETE_CONTACT`)
-- **Branches maintenues** : `dlb180x`, `dlb180x-Easya`, `dlb190x`, `dlb200x`, `dlb210x`, `dlb220x`, `dlb220x-Easya` (7 variantes incluant Easya)
-- **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs Easya)
+- **Branches maintenues** : `dlb210x`, `dlb220x`, `dlb220x-DolInfraS`, `dlb230x`, `dlb240x` (5 branches dont 1 variante DolInfraS)
+- **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs DolInfraS/LTS by InfraS)
 - **Inconvénients** : maintenance d'un fichier par page et par version majeure
 
 ### Flux de redirection (Redirect flow)
@@ -226,7 +230,7 @@ infraspackplus_getSubstitutionRedirectUrl() génère l'URL de redirection :
     ↓
 infraspackplus_get_substitution_url() génère l'URL substituée :
     → Vérifie la constante INFRASPACKPLUS_PS_ACTIVE_<PATH_UPPER>
-    → Construit le chemin : /infraspackplus/substitutionpages/dlb{major}0x{-Easya}/
+    → Construit le chemin : /infraspackplus/substitutionpages/dlb{major}0x{-DolInfraS}/
     → Vérifie l'existence physique du fichier via dol_buildpath()
     ↓
 Redirection header('Location: ...') avec conservation des paramètres GET/POST → exit
@@ -243,7 +247,7 @@ Le module intervient via trois hooks principaux sur le contexte `pdfgeneration` 
 - Contrôle des droits via la permission `paramLastOpt`
 
 **`beforePDFCreation()`** (hook `pdfgeneration`) :
-- Enregistre `$_SESSION['InfraSPackPlus_model'] = true` pour signaler l'utilisation du template InfraSPlus
+- Enregistre `$_SESSION['InfraSPackPlus_model'] = true` pour signaler l'utilisation du template InfraSPlus (utilisé par actions_infrastructure pour déléguer la génération du récap à InfraSPackPlus)
 - Récupère les paramètres par défaut via `infraspackplus_defaultParam($object)`
 - Collecte et sauvegarde les choix dans **4 niveaux de constantes** :
   - `INFRASPLUS_PDF_PARAMS_{element}_USER_{user_id}` — par utilisateur
@@ -260,7 +264,7 @@ Le module intervient via trois hooks principaux sur le contexte `pdfgeneration` 
 |------|----------|------|
 | `formObjectOptions()` | `thirdpartycard` | Gestion du logo émetteur par tiers sur la fiche société |
 | `doActions()` | `globalcard` | Génération semi-automatique des PDF (à la validation, changement de notes, d'extrafields, etc.) |
-| `printObjectLine()` | `formfile` | Affichage personnalisé des lignes de document (remises, descriptions, multilingue). Depuis 21.1.0 : capture du rendu via `ob_start` puis exécution du sous-hook `infrasprojectEnrichObjectLine` pour permettre aux modules tiers (ex. infrastructure pour la colonne « Opt ») d'injecter des cellules dans la ligne via `$hookmanager->resPrint`, puis injection avant `<td class="linecolmove">` via `preg_replace`. Cf. *Sous-hook d'enrichissement des lignes*. |
+| `printObjectLine()` | `thirdpartycard`, `globalcard`, `*card` | Rendu des lignes de document en mode view (depuis v21.0.0 : migration module_parts['tpl'] → hook). Dispatcher versionné : charge `core/tpl/lineviews/v{21,22,22-DolInfraS,23,24}.tpl.php` + partials `_columns/` (refproject, discount, total_ht). Depuis 21.1.0 : buffer ob_start + sous-hook `infrasprojectEnrichObjectLine` pour injection de colonnes tierces. Cf. *Sous-hook d'enrichissement des lignes*. |
 
 ### Sous-hook d'enrichissement des lignes (depuis 21.1.0)
 
@@ -364,7 +368,8 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
 5. Migration de la table `societe_address` si nécessaire
 6. Initialisation de `SOCIETE_ADDRESSES_MANAGEMENT` si non défini
 7. Enregistrement de `INFRASPLUS_DOL_VERSION` et `INFRASPLUS_MAIN_VERSION`
-8. Appel de `$this->_init()` standard
+8. Purge de `MAIN_MODULE_INFRASPACKPLUS_TPL` (constante résiduelle du mécanisme module_parts['tpl'] supprimé en v21.0.0)
+9. Appel de `$this->_init()` standard
 
 **`remove()`** effectue :
 1. Sauvegarde des paramètres (`infraspackplus_bkup_module`)
@@ -411,15 +416,15 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 
 Pour supporter une nouvelle version majeure de Dolibarr (ex. 24.x) :
 
-1. Créer le répertoire : `substitutionpages/dlb240x/`
-2. Copier le contenu du dossier de la version précédente : `cp -r dlb220x/* dlb240x/`
-3. Si la distribution Easya est ciblée : créer aussi `dlb240x-Easya/`
+1. Créer le répertoire : `substitutionpages/dlb250x/`
+2. Copier le contenu du dossier de la version précédente : `cp -r dlb240x/* dlb250x/`
+3. Si la distribution DolInfraS est ciblée : créer aussi `dlb250x-DolInfraS/`
 4. Vérifier et adapter les évolutions des pages core Dolibarr en amont (`societe/contact.php`, `admin/dict.php`)
 5. Mettre à jour `docs/changelog.xml` :
    ```xml
    <Version Number="X.Y.Z" MonthVersion="YYYY-MM">
        <change type='add'>Compatibilité avec Dolibarr v24</change>
    </Version>
-   <Dolibarr minVersion="18.0.0" maxVersion="24.0.x"/>
+   <Dolibarr minVersion="21.0.0" maxVersion="24.0.x"/>
    ```
 6. Tester la redirection des pages de substitution et le fonctionnement de la génération PDF

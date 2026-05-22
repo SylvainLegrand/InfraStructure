@@ -804,7 +804,7 @@
 		$sql				.= ' INNER JOIN '.$db->prefix().'expedition AS e';
 		$sql				.= ' ON ee.fk_source = e.rowid';
 		$sql				.= ' WHERE ee.sourcetype = "shipping"';
-		$sql				.= ' AND ee.fk_target = "'.$object->id.'"';
+		$sql				.= ' AND ee.fk_target = '.((int) $object->id);
 		$resql				= $db->query($sql);
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
@@ -2149,21 +2149,21 @@
 				$sql	.= ' FROM '.$db->prefix().'equipement AS eq, '.$db->prefix().'equipementevt_equipement AS eqevteq, '.$db->prefix().'equipementevt_element AS eqevtel';
 				$sql	.= ' WHERE eqevteq.fk_equipementevt = eqevtel.fk_equipementevt';
 				$sql	.= ' AND eq.rowid = eqevteq.fk_equipement';
-				$sql	.= ' AND eqevtel.fk_element = "'.$object->id.'"';
+				$sql	.= ' AND eqevtel.fk_element = '.((int) $object->id);
 				$sql	.= ' AND eqevtel.elementtype = "shipping"';
-				$sql	.= ' AND eq.fk_product = "'.$idprod.'"';
+				$sql	.= ' AND eq.fk_product = '.((int) $idprod);
 			} elseif ($typedoc == 'facture') {
 				$sql	= 'SELECT eq.ref';
 				$sql	.= ' FROM '.$db->prefix().'equipement AS eq';
-				$sql	.= ' WHERE eq.fk_facture = "'.$object->id.'"';
-				$sql	.= ' AND eq.fk_product = "'.$idprod.'"';
+				$sql	.= ' WHERE eq.fk_facture = '.((int) $object->id);
+				$sql	.= ' AND eq.fk_product = '.((int) $idprod);
 			} elseif ($typedoc == 'intervention') {
 				$sql	= 'SELECT eq.ref, p.ref as refproduct';
 				$sql	.= ' FROM '.$db->prefix().'equipement AS eq, '.$db->prefix().'equipementevt_equipement AS eqevteq, '.$db->prefix().'equipementevt_element AS eqevtel,'.$db->prefix().'product AS p';
 				$sql	.= ' WHERE eqevteq.fk_equipementevt = eqevtel.fk_equipementevt';
 				$sql	.= ' AND eq.rowid = eqevteq.fk_equipement';
 				$sql	.= ' AND p.rowid = eq.fk_product';
-				$sql	.= ' AND eqevtel.fk_element = "'.$object->id.'"';
+				$sql	.= ' AND eqevtel.fk_element = '.((int) $object->id);
 				$sql	.= ' AND eqevtel.elementtype = "fichinter"';
 				$sql	.= ' ORDER BY eq.fk_product';
 			} else {
@@ -2207,7 +2207,7 @@
 		$sql	.= ' fid.product_type, fid.info_bits, fid.buy_price_ht, fid.fk_product_fournisseur_price, p.ref, p.label';
 		$sql	.= ' FROM '.$db->prefix().'fichinterdet AS fid';
 		$sql	.= ' LEFT JOIN '.$db->prefix().'product AS p ON fid.fk_product = p.rowid';
-		$sql	.= ' WHERE fid.fk_fichinter = '.$object->id.' AND fid.rowid = '.$object->lines[$i]->id;
+		$sql	.= ' WHERE fid.fk_fichinter = '.((int) $object->id).' AND fid.rowid = '.((int) $object->lines[$i]->id);
 		$resql	= $db->query($sql);
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
@@ -2405,7 +2405,7 @@
 			$sql	= 'SELECT pfp.ref_fourn ';
 			$sql	.= 'FROM '.$db->prefix().'product AS p ';
 			$sql	.= 'LEFT JOIN '.$db->prefix().'product_fournisseur_price AS pfp ON p.rowid = pfp.fk_product ';
-			$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = "'.$object->thirdparty->id.'"';
+			$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = '.((int) $object->thirdparty->id);
 			$resql	= $db->query($sql);
 			if (!empty($resql)) {
 				$obj	= $db->fetch_object($resql);
@@ -3122,7 +3122,7 @@
 				$sql	= 'SELECT pfp.ref_fourn ';
 				$sql	.= 'FROM '.$db->prefix().'product AS p ';
 				$sql	.= 'LEFT JOIN '.$db->prefix().'product_fournisseur_price AS pfp ON p.rowid = pfp.fk_product ';
-				$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = "'.$object->thirdparty->id.'"';
+				$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = '.((int) $object->thirdparty->id);
 				$resql	= $object->db->query($sql);
 				if (!empty($resql)) {
 					$obj	= $db->fetch_object($resql);
@@ -4110,7 +4110,7 @@
 		$pricefichinter	= array();
 		$sql	= 'SELECT fi.total_ht, fi.total_ttc, fi.total_tva, fi.total_localtax1, fi.total_localtax2';
 		$sql	.= ' FROM '.$db->prefix().'fichinter AS fi';
-		$sql	.= ' WHERE fi.rowid = '.$object->id;
+		$sql	.= ' WHERE fi.rowid = '.((int) $object->id);
 		$resql	= $db->query($sql);
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
@@ -4329,8 +4329,8 @@
 			foreach ($files as $fileID) {
 				$sql	= ' SELECT filename, filepath';
 				$sql	.= ' FROM '.$db->prefix().'ecm_files';
-				$sql	.= ' WHERE rowid = '.$fileID;
-				$sql	.= ' AND entity = '.$conf->entity;
+				$sql	.= ' WHERE rowid = '.((int) $fileID);
+				$sql	.= ' AND entity = '.((int) $conf->entity);
 				$resql	= $db->query($sql);
 				if (!empty($resql)) {
 					$objFile	= $db->fetch_object($resql);
@@ -4984,9 +4984,9 @@
 				return empty($hasTitle) || empty(TSubtotal::titleHasTotalLine($object, $hasTitle, true)) ? 1 : 0;	// Pas de titre au-dessus ou ce titre n'est pas associé à un sous-total
 			}
 		} elseif (isModEnabled('ouvrage') && class_exists('Ouvrage') && $mode >= 0) {
-			$ouvHideMnt		= GETPOST('OUVRAGE_HIDE_MONTANT', 'int');	// Cacher le montant des ouvrages/forfaits
-			$ouvHideDet		= GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL', 'int');	// Afficher uniquement l'ouvrage/forfait
-			$ouvHideDesc	= GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION', 'int');	// Cacher les détails tarifaires des produits/services
+			$ouvHideMnt		= GETPOSTINT('OUVRAGE_HIDE_MONTANT');	// Cacher le montant des ouvrages/forfaits
+			$ouvHideDet		= GETPOSTINT('OUVRAGE_HIDE_PRODUCT_DETAIL');	// Afficher uniquement l'ouvrage/forfait
+			$ouvHideDesc	= GETPOSTINT('OUVRAGE_HIDE_PRODUCT_DESCRIPTION');	// Cacher les détails tarifaires des produits/services
 			$isOuvrage		= Ouvrage::isOuvrage($object->lines[$i]) ? 2 : 0;	// ligne d'ouvrage Inovea
 			if ($isOuvrage == 2 && !empty($ouvHideMnt) && empty($mode)) {
 				return 1;	// ligne d'ouvrage + mode 1 => on cache le montant
@@ -5059,7 +5059,7 @@
 
 		if (isModEnabled('ouvrage') && class_exists('Ouvrage')) {
 			$detailSep_hight	= getDolGlobalInt('INFRASPLUS_PDF_OUVRAGE_DETAILSEP_HIGHT', 0);
-			$ouvHideDet			= GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL', 'int');	// Afficher uniquement l'ouvrage/forfait
+			$ouvHideDet			= GETPOSTINT('OUVRAGE_HIDE_PRODUCT_DETAIL');	// Afficher uniquement l'ouvrage/forfait
 			if (!empty($ouvHideDet)) {
 				return -1;	// each line can be processed as usual because we hide all the details of the works
 			} elseif (Ouvrage::isOuvrage($object->lines[$i])) {

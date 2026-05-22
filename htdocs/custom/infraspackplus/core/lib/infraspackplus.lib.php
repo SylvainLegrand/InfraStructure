@@ -38,10 +38,7 @@
 	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
-	// For retrocompatibility Dolibarr < 20.0
-	if (floatval(DOL_VERSION) < 20.0 && (!function_exists('GETPOSTFLOAT'))) {
-		dol_include_once('/infraspackplus/backport/v20/core/lib/functions.lib.php');
-	}
+
 
 	/**
 	*	Get all files for special head
@@ -578,7 +575,7 @@
 		$logo_emet			= '';
 		$sql_logo_emet		= 'SELECT s.logo_emet';
 		$sql_logo_emet		.= ' FROM '.$db->prefix().'societe AS s';
-		$sql_logo_emet		.= ' WHERE s.rowid = '.$socid;
+		$sql_logo_emet		.= ' WHERE s.rowid = '.((int) $socid);
 		$result_logo_emet	= $db->query($sql_logo_emet);
 		if (!empty($result_logo_emet)) {
 			$obj_logo_emet	= $db->fetch_object($result_logo_emet);
@@ -600,7 +597,7 @@
 
 		$sql_upt	= 'UPDATE '.$db->prefix().'societe';
 		$sql_upt	.= ' SET logo_emet = "'.$logo.'"';
-		$sql_upt	.= ' WHERE rowid = '.$socid;
+		$sql_upt	.= ' WHERE rowid = '.((int) $socid);
 		$result_upt	= $db->query($sql_upt);
 		if (!empty($result_upt)) {
 			$db->free($result_upt);
@@ -631,7 +628,7 @@
 		$result		= '';
 		$sql		= 'SELECT rowid, code, libelle';
 		$sql		.= ' FROM '.$db->prefix().$dict;
-		$sql		.= ' WHERE active = 1 AND entity = "'.$conf->entity.'"';
+		$sql		.= ' WHERE active = 1 AND entity = '.((int) $conf->entity);
 		$sql		.= !empty($filter) ? ' AND '.$filter : '';
 		$sql		.= ' ORDER BY pos ASC';
 		$resql		= $db->query($sql);
@@ -691,7 +688,7 @@
 		dol_syslog('infraspackplus.Lib::infraspackplus_modify_paiement_spec idPaySpec = '.$idPaySpec);
 		if (!empty($idPaySpec)) {
 			$sqldict	= 'UPDATE '.$db->prefix().'c_paiement SET type = 3';
-			$sqldict	.= ' WHERE id = '.$idPaySpec.' AND entity = "'.$conf->entity.'"';
+			$sqldict	.= ' WHERE id = '.((int) $idPaySpec).' AND entity = '.((int) $conf->entity);
 			$resqldict	= $db->query($sqldict);
 			if (!empty($resqldict)) {
 				$result	= dolibarr_del_const($db, 'INFRASPLUS_PDF_PAY_SPEC', $conf->entity);
@@ -857,7 +854,7 @@
 		if ((!empty($tempName) || !empty($constKey)) && !empty($langKey) && !empty($listElem)) {
 			$name	= getDolGlobalString($constKey, $tempName);
 			if (!empty($name)) {
-				$sql		= 'SELECT elementtype FROM '.$db->prefix().'extrafields WHERE name LIKE "'.$name.'" AND entity = '.$conf->entity;
+				$sql		= 'SELECT elementtype FROM '.$db->prefix().'extrafields WHERE name LIKE "'.$db->escapeforlike($name).'" AND entity = '.((int) $conf->entity);
 				$resql		= $db->query($sql);
 				if (!empty($resql)) {
 					$num	= $db->num_rows($resql);
@@ -1353,7 +1350,7 @@
 				$objp	= $db->fetch_object($resql);
 				// Multilangs
 				if (getDolGlobalString('MAIN_MULTILANGS', '')) { // si l'option est active
-					$sqllang	= 'SELECT label FROM '.$db->prefix().'product_lang WHERE fk_product = '.$objp->rowid.' AND lang = "'.$db->escape($langs->getDefaultLang()).'" LIMIT 1';
+					$sqllang	= 'SELECT label FROM '.$db->prefix().'product_lang WHERE fk_product = '.((int) $objp->rowid).' AND lang = "'.$db->escape($langs->getDefaultLang()).'" LIMIT 1';
 					$resqllang	= $db->query($sqllang);
 					if (!empty($resqllang)) {
 						$objplang	= $db->fetch_object($resqllang);

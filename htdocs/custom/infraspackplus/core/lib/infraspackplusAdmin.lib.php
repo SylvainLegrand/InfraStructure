@@ -350,7 +350,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$duplicate_model	= array ('3', 'libelle', 'nom');
 			$sql_model			= 'SELECT '.implode(', ', $cols_model);
 			$sql_model			.= ' FROM '.$db->prefix().'document_model';
-			$sql_model			.= ' WHERE nom LIKE "INFRASPLUS\_%" AND entity = "'.$conf->entity.'"';
+			$sql_model			.= ' WHERE nom LIKE "INFRASPLUS\_%" AND entity = '.((int) $conf->entity);
 			$sql_model			.= ' ORDER BY nom';
 			fwrite($handle, infraspackplus_bkup_table ('document_model', $sql_model, $cols_model, $duplicate_model, 0, ''));
 			$cols_const			= array ('name', 'entity', 'value', 'type', 'visible', 'note');
@@ -358,7 +358,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const			= 'SELECT '.implode(', ', $cols_const);
 			$sql_const			.= ' FROM '.$db->prefix().'const';
 			$sql_const			.= ' WHERE ((name LIKE "INFRASPLUS\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_VALID\_CORE\_CHGT") OR name LIKE "INFRASPACKPLUS\_PS\_%" OR (name LIKE "%\_ADDON\_PDF" AND value LIKE "InfraSPlus\_%") OR name LIKE "%\_FREE\_TEXT%" OR name LIKE "%\_PUBLIC\_NOTE%")';
-			$sql_const			.= ' AND entity = "'.$conf->entity.'"';
+			$sql_const			.= ' AND entity = '.((int) $conf->entity);
 			$sql_const			.= ' ORDER BY name';
 			$autoupdate			= getDolGlobalInt('MAIN_DISABLE_PDF_AUTOUPDATE', 0);
 			$onDuplicate		= $db->type == 'pgsql' ? ' ON CONFLICT (name) DO UPDATE SET ' : ' ON DUPLICATE KEY UPDATE ';
@@ -368,13 +368,13 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$cols_addr			= array ('entity', 'datec', 'tms', 'label', 'fk_soc', 'name', 'address', 'zip', 'town', 'fk_pays', 'phone', 'fax', 'email', 'url', 'note', 'fk_user_creat', 'fk_user_modif');
 			$sql_addr			= 'SELECT '.implode(', ', $cols_addr);
 			$sql_addr			.= ' FROM '.$db->prefix().'infraspackplus_societe_address';
-			$sql_addr			.= ' WHERE entity = "'.$conf->entity.'"';
+			$sql_addr			.= ' WHERE entity = '.((int) $conf->entity);
 			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_societe_address', $sql_addr, $cols_addr, array(), 0, ''));
 			$cols_dict			= array ('code', 'entity', 'pos', 'libelle', 'active');
 			$duplicate_dict		= array ('3', 'libelle', 'code');
 			$sql_dict_1			= 'SELECT '.implode(', ', $cols_dict);
 			$sql_dict_mention	= ' FROM '.$db->prefix().'c_infraspackplus_mention';
-			$sql_dict_2			= ' WHERE entity = "'.$conf->entity.'" ORDER BY pos';
+			$sql_dict_2			= ' WHERE entity = '.((int) $conf->entity).' ORDER BY pos';
 			fwrite($handle, infraspackplus_bkup_table ('c_infraspackplus_mention', $sql_dict_1.$sql_dict_mention.$sql_dict_2, $cols_dict, $duplicate_dict, 1, ''));
 			$sql_dict_note		= ' FROM '.$db->prefix().'c_infraspackplus_note';
 			fwrite($handle, infraspackplus_bkup_table ('c_infraspackplus_note', $sql_dict_1.$sql_dict_note.$sql_dict_2, $cols_dict, $duplicate_dict, 1, ''));
@@ -493,42 +493,42 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	{
 		global $db, $conf;
 
-		$array_sql	= array('INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BL", "'.$conf->entity.'", "shipping", "InfraSPlus_BL") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BL"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BR", "'.$conf->entity.'", "delivery", "InfraSPlus_BR") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BR"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_Bom", "'.$conf->entity.'", "bom", "InfraSPlus_BOM") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_Bom"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_C", "'.$conf->entity.'", "order", "InfraSPlus_C") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_C"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CF", "'.$conf->entity.'", "order_supplier", "InfraSPlus_CF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CT", "'.$conf->entity.'", "contract", "InfraSPlus_CT") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CT"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_D", "'.$conf->entity.'", "propal", "InfraSPlus_D") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_D"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_DF", "'.$conf->entity.'", "supplier_proposal", "InfraSPlus_DF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_DF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_F", "'.$conf->entity.'", "invoice", "InfraSPlus_F") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_F"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FF", "'.$conf->entity.'", "invoice_supplier", "InfraSPlus_FF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FI", "'.$conf->entity.'", "ficheinter", "InfraSPlus_FI") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FI"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_MRP", "'.$conf->entity.'", "mrp", "InfraSPlus_MRP") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_MRP"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_NDF", "'.$conf->entity.'", "expensereport", "InfraSPlus_NDF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_NDF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_P", "'.$conf->entity.'", "product", "InfraSPlus_P") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_P"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_PJ", "'.$conf->entity.'", "project", "InfraSPlus_PJ") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_PJ"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_RE", "'.$conf->entity.'", "reception", "InfraSPlus_RE") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_RE"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_ST", "'.$conf->entity.'", "stock", "InfraSPlus_ST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_ST"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_UST", "'.$conf->entity.'", "user", "InfraSPlus_UST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_UST"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("BOM_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_Bom", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_Bom"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_C", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_C"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_SUPPLIER_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_CF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("CONTRACT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_CT", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CT"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPEDITION_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_BL", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BL"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPENSEREPORT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_NDF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_NDF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FACTURE_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_F", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_F"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FICHEINTER_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_FI", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FI"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("INVOICE_SUPPLIER_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_FF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("LIVRAISON_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_BR", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BR"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("MRP_MO_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_MRP", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_MRP"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PRODUCT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_P", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_P"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROJECT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_PJ", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_PJ"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROPALE_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_D", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_D"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("RECEPTION_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_RE", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_RE"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("STOCK_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_ST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_ST"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("SUPPLIER_PROPOSAL_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_DF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_DF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("USER_ADDON_PDF_ODT", "'.$conf->entity.'", "InfraSPlus_UST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_UST"'
+		$array_sql	= array('INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BL", '.((int) $conf->entity).', "shipping", "InfraSPlus_BL") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BL"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BR", '.((int) $conf->entity).', "delivery", "InfraSPlus_BR") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BR"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_Bom", '.((int) $conf->entity).', "bom", "InfraSPlus_BOM") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_Bom"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_C", '.((int) $conf->entity).', "order", "InfraSPlus_C") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_C"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CF", '.((int) $conf->entity).', "order_supplier", "InfraSPlus_CF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CT", '.((int) $conf->entity).', "contract", "InfraSPlus_CT") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CT"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_D", '.((int) $conf->entity).', "propal", "InfraSPlus_D") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_D"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_DF", '.((int) $conf->entity).', "supplier_proposal", "InfraSPlus_DF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_DF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_F", '.((int) $conf->entity).', "invoice", "InfraSPlus_F") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_F"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FF", '.((int) $conf->entity).', "invoice_supplier", "InfraSPlus_FF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FI", '.((int) $conf->entity).', "ficheinter", "InfraSPlus_FI") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FI"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_MRP", '.((int) $conf->entity).', "mrp", "InfraSPlus_MRP") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_MRP"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_NDF", '.((int) $conf->entity).', "expensereport", "InfraSPlus_NDF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_NDF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_P", '.((int) $conf->entity).', "product", "InfraSPlus_P") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_P"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_PJ", '.((int) $conf->entity).', "project", "InfraSPlus_PJ") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_PJ"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_RE", '.((int) $conf->entity).', "reception", "InfraSPlus_RE") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_RE"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_ST", '.((int) $conf->entity).', "stock", "InfraSPlus_ST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_ST"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_UST", '.((int) $conf->entity).', "user", "InfraSPlus_UST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_UST"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("BOM_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_Bom", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_Bom"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_C", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_C"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_SUPPLIER_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_CF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("CONTRACT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_CT", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CT"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPEDITION_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_BL", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BL"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPENSEREPORT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_NDF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_NDF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FACTURE_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_F", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_F"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FICHEINTER_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_FI", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FI"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("INVOICE_SUPPLIER_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_FF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("LIVRAISON_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_BR", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BR"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("MRP_MO_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_MRP", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_MRP"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PRODUCT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_P", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_P"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROJECT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_PJ", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_PJ"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROPALE_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_D", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_D"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("RECEPTION_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_RE", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_RE"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("STOCK_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_ST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_ST"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("SUPPLIER_PROPOSAL_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_DF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_DF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("USER_ADDON_PDF_ODT", '.((int) $conf->entity).', "InfraSPlus_UST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_UST"'
 							);
 		$err		= 0;
 		$num		= count($array_sql);
