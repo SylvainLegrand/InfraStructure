@@ -1694,79 +1694,117 @@ EOJS;
 			$buyer					= !empty($parameters['buyer']) ? $parameters['buyer'] : '';
 			$selected				= !empty($parameters['selected']) ? $parameters['selected'] : '';
 			$extrafields			= !empty($parameters['extrafieldsline']) ? $parameters['extrafieldsline'] : '';
-			$defaulttpldir			= '/core/tpl';
 			$object_rights			= $object->getRights();
 			$element				= $object->element;
 			$text					= '';
 			$description			= '';
-			$TContext				= explode(':', $parameters['context']);
-			$isOuvrageLine			= infraspackplus_isLineFromExternalModule($line, $element, 'modOuvrage');
-			$isOuvrage				= isModEnabled('ouvrage') && !empty($isOuvrageLine) ? true : false;
-			$isSubTotalLine			= infraspackplus_isLineFromExternalModule($line, $element, 'modSubtotal');
-			$isATMLine				= isModEnabled('subtotal') && !empty($isSubTotalLine) ? true : false;
-			$isInfraSLine			= infraspackplus_isInfrastructureLine($line);
-			$isShipment				= in_array('ordershipmentcard', $TContext) || in_array('expeditioncard', $TContext) ? 1 : 0;
-			if (in_array($object->element, ['propal', 'commande', 'facture', 'fichinter']) && getDolGlobalString('INFRASPLUS_PDF_SHOW_DISCOUNT_OPT', '') && empty($isShipment) && empty($isATMLine) && empty($isOuvrage) && empty($isInfraSLine)) {
-				if ($action != 'editline' || $selected != $line->id) {	// Line in view mode
-					if ($line->fk_product > 0) {	// Product
-						$product_static			= new Product($db);
-						$product_static->fetch($line->fk_product);
-						$product_static->ref	= $line->ref; //can change ref in hook
-						$product_static->label	= !empty($line->label) ? $line->label : ''; //can change label in hook
-						$text					= $product_static->getNomUrl(1);
-						if (getDolGlobalString('MAIN_MULTILANGS', '')) {	// Define output language and label
-							if (property_exists($object, 'socid') && !is_object($object->thirdparty)) {
-								dol_print_error(null, 'Error: Method printObjectLine was called on an object and object->fetch_thirdparty was not done before');
-								return 0;
-							}
-							$prod			= new Product($db);
-							$prod->fetch($line->fk_product);
-							$outputlangs	= $langs;
-							$newlang		= '';
-							if (empty($newlang) && GETPOST('lang_id', 'aZ09')) {
-								$newlang	= GETPOST('lang_id', 'aZ09');
-							}
-							if (getDolGlobalString('PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE', '') && empty($newlang) && is_object($object->thirdparty)) {
-								$newlang	= $object->thirdparty->default_lang; // To use language of customer
-							}
-							if (!empty($newlang)) {
-								$outputlangs	= new Translate('', $conf);
-								$outputlangs->setDefaultLang($newlang);
-							}
-							$label	= !empty($prod->multilangs[$outputlangs->defaultlang]['label']) ? $prod->multilangs[$outputlangs->defaultlang]['label'] : $line->product_label;
-						} else {
-							$label	= $line->product_label;
-						}
-						$text			.= ' - '.(!empty($line->label) ? $line->label : $label);
-						$description	.= (getDolGlobalString('PRODUIT_DESC_IN_FORM', '') ? '' : (!empty($line->description) ? dol_htmlentitiesbr($line->description) : '')); // Description is what to show on popup. We shown nothing if already into desc.
-					}
-					$line->pu_ttc	= price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + (!empty($line->tva_tx) ? $line->tva_tx : 0) / 100), 'MU');
-					// Output template part (modules that overwrite templates must declare this into descriptor)
-					// Use global variables + $dateSelector + $seller and $buyer
-					$dolibranch		= explode('.', DOL_VERSION);
-					$dolinfras		= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
-					$coreVersion	= 'dlb'.$dolibranch[0].'0x'.($dolinfras ? '-DolInfraS' : '');
-					$tpl			= dol_buildpath('infraspackplus/substitutionpages/'.$coreVersion.'/core/tpl/objectline_view.tpl.php', 0);
-					$res			= empty($conf->file->strict_mode) ? @include $tpl : include $tpl;	// for debug
-					if (!empty($res)) {
-						return 1;
-					}
-				}
-				if ($object->statut == 0 && $action == 'editline' && $selected == $line->id) {	// Line in update mode
-					$label			= !empty($line->label) ? $line->label : ($line->fk_product > 0 ? $line->product_label : '');
-					$line->pu_ttc	= price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + (!empty($line->tva_tx) ? $line->tva_tx : 0) / 100), 'MU');
-					// Output template part (modules that overwrite templates must declare this into descriptor)
-					// Use global variables + $dateSelector + $seller and $buyer
-					$dirtpls		= array_merge($conf->modules_parts['tpl'], [$defaulttpldir]);
-					foreach ($dirtpls as $module => $reldir) {
-						$tpl	= !empty($module) ? dol_buildpath($reldir.'/objectline_edit.tpl.php') : DOL_DOCUMENT_ROOT.$reldir.'/objectline_edit.tpl.php';
-						$res	= empty($conf->file->strict_mode) ? @include $tpl : include $tpl;	// for debug
-						if (!empty($res)) {
-							return 1;
-						}
-					}
-				}
+
+			// HRM evaluations have their own native template — leave to Dolibarr
+			if ($element == 'evaluation') {
 				return 0;
+			}
+
+			// External module lines (Infrastructure titles/subtotals/freetext, Subtotal ATM, Ouvrage Inovea)
+			// are rendered by their own printObjectLine hook — we must not render them too, otherwise
+			// executeHooks() accumulates both outputs and the line ends up doubled / mismatched.
+			$isOuvrageLine	= isModEnabled('ouvrage') && !empty(infraspackplus_isLineFromExternalModule($line, $element, 'modOuvrage'));
+			$isATMLine		= isModEnabled('subtotal') && !empty(infraspackplus_isLineFromExternalModule($line, $element, 'modSubtotal'));
+			$isInfraSLine	= infraspackplus_isInfrastructureLine($line);
+			if ($isOuvrageLine || $isATMLine || $isInfraSLine) {
+				return 0;
+			}
+
+			// View mode : versioned dispatcher (replaces former module_parts['tpl'] override)
+			// Edit mode : no override in infraspackplus, let Dolibarr load native objectline_edit.tpl.php
+			if ($action != 'editline' || $selected != $line->id) {
+				// Pre-process line data — required by lineviews templates (replicates CommonObject::printObjectLine
+				// behavior that we are bypassing by returning 1). Without this, $text / $label / $description
+				// remain empty and the line label disappears from the rendered table.
+				if (!empty($line->fk_product) && $line->fk_product > 0) {
+					$product_static			= new Product($db);
+					$product_static->fetch($line->fk_product);
+					$product_static->ref	= $line->ref;
+					$product_static->label	= !empty($line->label) ? $line->label : '';
+					$text					= $product_static->getNomUrl(1);
+					if (getDolGlobalInt('MAIN_MULTILANGS')) {
+						if (property_exists($object, 'socid') && !empty($object->socid) && !is_object($object->thirdparty)) {
+							dol_print_error(null, 'Error: Method printObjectLine was called on an object and object->fetch_thirdparty was not done before');
+							return 0;
+						}
+						$prod			= new Product($db);
+						$prod->fetch($line->fk_product);
+						$outputlangs	= $langs;
+						$newlang		= '';
+						if (empty($newlang) && GETPOST('lang_id', 'aZ09')) {
+							$newlang	= GETPOST('lang_id', 'aZ09');
+						}
+						if (getDolGlobalString('PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE') && empty($newlang) && is_object($object->thirdparty)) {
+							$newlang	= $object->thirdparty->default_lang;
+						}
+						if (!empty($newlang)) {
+							$outputlangs	= new Translate('', $conf);
+							$outputlangs->setDefaultLang($newlang);
+						}
+						$label	= !empty($prod->multilangs[$outputlangs->defaultlang]['label']) ? $prod->multilangs[$outputlangs->defaultlang]['label'] : $line->product_label;
+					} else {
+						$label	= $line->product_label;
+					}
+					$text			.= ' - '.(!empty($line->label) ? $line->label : $label);
+					$description	.= getDolGlobalInt('PRODUIT_DESC_IN_FORM_ACCORDING_TO_DEVICE') ? '' : (!empty($line->description) ? dol_htmlentitiesbr($line->description) : '');
+				}
+				if (empty($line->subprice_ttc) && $line->qty) {
+					$line->subprice_ttc	= (float) price2num($line->total_ttc / $line->qty, 'MU');
+				}
+				$line->pu_ttc	= $line->subprice_ttc;
+
+				$major		= (int) DOL_VERSION;
+				$dolinfras	= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
+
+				if ($major >= 24) {
+					$tplname	= 'v24.tpl.php';
+				} elseif ($major == 23) {
+					$tplname	= 'v23.tpl.php';
+				} elseif ($major == 22) {
+					$tplname	= $dolinfras ? 'v22-DolInfraS.tpl.php' : 'v22.tpl.php';
+				} elseif ($major == 21) {
+					$tplname	= 'v21.tpl.php';
+				} else {
+					return 0;	// Dolibarr < 21 not supported, fallback to native template
+				}
+
+				$tpl	= dol_buildpath('/infraspackplus/core/tpl/lineviews/'.$tplname, 0);
+				if (!file_exists($tpl)) {
+					return 0;
+				}
+				// Capture du rendu pour permettre l'enrichissement par d'autres modules avant émission.
+				// Pattern « buffer + sous-hook » identique à celui d'InfraSProject : les modules tiers
+				// (ex. infrastructure pour la colonne « Opt ») retournent une cellule <td>…</td> via
+				// $hookmanager->resPrint dans le hook 'infrasprojectEnrichObjectLine', cellule injectée
+				// ensuite juste avant la cellule .linecolmove via preg_replace. Évite la double émission
+				// de <tr> lorsque plusieurs modules implémentent printObjectLine.
+				ob_start();
+				$res	= empty($conf->file->strict_mode) ? @include $tpl : include $tpl;
+				$content	= ob_get_clean();
+				if (empty($res)) {
+					if (!empty($content)) {
+						print $content;
+					}
+					return 0;
+				}
+				$savedResPrint			= $hookmanager->resPrint;
+				$hookmanager->resPrint	= '';
+				$enrichParams			= $parameters;
+				$hookmanager->executeHooks('infrasprojectEnrichObjectLine', $enrichParams, $object, $action);
+				$enrichHtml				= (string) $hookmanager->resPrint;
+				$hookmanager->resPrint	= $savedResPrint;
+				if (!empty($enrichHtml)) {
+					$injected	= preg_replace('/(<td\b[^>]*\bclass="[^"]*\blinecolmove\b[^"]*"[^>]*>)/i', $enrichHtml.'$1', $content, 1);
+					if ($injected !== null && $injected !== $content) {
+						$content	= $injected;
+					}
+				}
+				print $content;
+				return 1;
 			}
 			return 0;
 		}

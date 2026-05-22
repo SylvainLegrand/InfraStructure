@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.15.7` (2026-04)
+- Dernière version locale : `21.1.0` (2026-05)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -260,7 +260,24 @@ Le module intervient via trois hooks principaux sur le contexte `pdfgeneration` 
 |------|----------|------|
 | `formObjectOptions()` | `thirdpartycard` | Gestion du logo émetteur par tiers sur la fiche société |
 | `doActions()` | `globalcard` | Génération semi-automatique des PDF (à la validation, changement de notes, d'extrafields, etc.) |
-| `printObjectLine()` | `formfile` | Affichage personnalisé des lignes de document (remises, descriptions, multilingue) |
+| `printObjectLine()` | `formfile` | Affichage personnalisé des lignes de document (remises, descriptions, multilingue). Depuis 21.1.0 : capture du rendu via `ob_start` puis exécution du sous-hook `infrasprojectEnrichObjectLine` pour permettre aux modules tiers (ex. infrastructure pour la colonne « Opt ») d'injecter des cellules dans la ligne via `$hookmanager->resPrint`, puis injection avant `<td class="linecolmove">` via `preg_replace`. Cf. *Sous-hook d'enrichissement des lignes*. |
+
+### Sous-hook d'enrichissement des lignes (depuis 21.1.0)
+
+Pour permettre à d'autres modules d'ajouter des colonnes au tableau de lignes sans entrer en concurrence sur `printObjectLine` (le HookManager Dolibarr ne s'arrête pas au 1er retour positif et appelle séquentiellement tous les modules qui implémentent un même hook, produisant des `<tr>` en doublon), InfraSPackPlus capture le rendu de son template versionné via `ob_start`, exécute le sous-hook `infrasprojectEnrichObjectLine` après l'include, collecte le HTML retourné par les modules tiers via `$hookmanager->resPrint` et l'injecte juste avant la cellule `.linecolmove` via `preg_replace`.
+
+Le nom du sous-hook (`infrasprojectEnrichObjectLine`) a été introduit par InfraSProject 21.1.0 puis adopté tel quel par InfraSPackPlus 21.1.0 — la convention est partagée entre les deux modules pour que les modules tiers (ex. infrastructure pour la colonne « Opt ») fonctionnent indifféremment derrière InfraSProject ou InfraSPackPlus :
+
+- En **mode view** sur tous les documents : InfraSProject cède la main à InfraSPackPlus via `if ($isView && isModEnabled('infraspackplus')) return 0;` → c'est donc InfraSPackPlus qui rend la ligne et qui appelle le sous-hook.
+- En **mode edit** : InfraSPackPlus ne surcharge pas (return 0 par défaut), InfraSProject reprend la main et c'est lui qui appelle le sous-hook depuis ses propres lineedits.
+
+**Filtrage des lignes spéciales d'autres modules** : InfraSPackPlus filtre déjà les lignes Infrastructure, Subtotal ATM et Ouvrage via `infraspackplus_isInfrastructureLine($line) || $isATMLine || $isOuvrageLine → return 0`. Les modules propriétaires de ces lignes (notamment infrastructure pour ses titres/sous-totaux/textes libres) sont responsables du rendu et de leur propre cellule Opt — le sous-hook d'enrichissement n'est pas appelé pour ces lignes côté InfraSPackPlus.
+
+**Pattern d'implémentation côté module tiers** : voir CLAUDE.md d'InfraSProject section *Sous-hooks d'enrichissement* pour le code de référence.
+
+**Cas particulier** : InfraSPackPlus ne surcharge pas `printObjectLineTitle` (rendu de l'en-tête `<thead>`). Pour la colonne « Opt », deux scénarios :
+- **InfraSProject actif** : c'est InfraSProject qui rend le `<thead>` via son hook `printObjectLineTitle` + sous-hook `infrasprojectEnrichObjectLineTitle`. Le rendu est entièrement serveur.
+- **InfraSProject inactif** : depuis infrastructure `21.0.2`, un fallback JavaScript côté infrastructure injecte le `<th>Opt</th>` manquant au DOMReady (les `<td>` standards restent rendus côté serveur via le sous-hook `infrasprojectEnrichObjectLine` qu'IPP appelle déjà). InfraSPackPlus n'a donc plus besoin d'être co-activé avec InfraSProject pour afficher la colonne Opt.
 
 ### Détection des lignes de modules externes (External module line detection)
 
@@ -308,7 +325,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="18.15.7" MonthVersion="2026-04">
+  <Version Number="18.15.2" MonthVersion="2026-04">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -327,7 +344,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.15.7",          // Version courante
+    0 => "18.15.2",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)

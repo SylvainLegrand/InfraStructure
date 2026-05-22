@@ -81,7 +81,6 @@
 																 'invoicesuppliernote',
 																 'expensereportnote'
 																 ),
-											'tpl'		=> 1,
 											'triggers'	=> 1,
 											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php')
 											);
@@ -95,6 +94,14 @@
 			// Dependencies
 			$this->hidden			= false;											// A condition to hide module
 			$this->depends			= array('modECM');									// List of modules id that must be enabled if this module is enabled
+			// Soft dependency (not enforced by Dolibarr) : InfraSProject
+			// - core/tpl/lineviews/_columns/refproject.tpl.php calls infrasproject_printprj()
+			//   via dol_include_once('/infrasproject/core/lib/infrasproject.lib.php')
+			//   when isModEnabled('infrasproject') is true (invoice_supplier context only).
+			// - Reciprocal guard: actions_infrasproject.class.php yields printObjectLine
+			//   view rendering to IPP when isModEnabled('infraspackplus') is true.
+			// Graceful degradation: if InfraSProject is disabled, the supplier-invoice
+			// "project" column is simply not rendered, no fatal error.
 			$this->requiredby		= array();											// List of modules id to disable if this one is disabled
 			$this->conflictwith		= array();											// List of modules id this module is in conflict with
 			$this->langfiles		= array($this->name.'@'.$this->name);
