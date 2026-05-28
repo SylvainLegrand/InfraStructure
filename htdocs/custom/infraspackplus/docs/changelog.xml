@@ -1846,7 +1846,10 @@
 	<Version Number="21.1.1" MonthVersion="2026-05">
 		<change type='fix'>Hook printObjectLine : extension de la garde expeditioncard à tous les modes (create et view). Seul le create était exclu ; en mode vue l'expédition appelle aussi printObjectLine avec son propre layout de colonnes (Produits / Qté commandée / Qté dans les autres expéditions / Qté à expédier / Entrepôt source / Poids calculé / Volume calculé) incompatible avec le rendu commande-style d'infraspackplus, produisant des colonnes en trop. Retourner 0 pour tout contexte expeditioncard laisse expedition/card.php gérer le rendu nativement.</change>
 	</Version>
-	<InfraS Downloaded="20260526"/>
+	<Version Number="21.1.2" MonthVersion="2026-05">
+		<change type='fix'>Hook printObjectLine : exclusion des objets BOM (Bill of Materials) et MO (Manufacturing Order) du dispatcher de rendu de lignes. Les templates lineviews/v{XX}.tpl.php sont conçus pour les documents commerciaux (colonnes vat / uht / qty / discount / ht) ; appliqués sur une fiche BOM dont les lignes ont une structure manufacturing (qty / qty_frozen / disable_stock_change / efficiency / cost — rendue par /bom/tpl/objectline_title.tpl.php), ils produisent un &lt;tbody&gt; aux colonnes décalées par rapport au &lt;thead&gt; natif, avec disparition des cellules .linecoledit / .linecoldelete / .linecolmove (boutons modifier / supprimer / déplacer absents) sur bom/bom_card.php. Correctif : ajout d'un return 0 sur $element == 'bom' ou 'mo' juste après l'exclusion existante de 'evaluation', laissant les templates natifs /bom/tpl/objectline_view.tpl.php et /mrp/tpl/ reprendre la main. MO inclus par précaution même si les pages MO actuelles ne passent pas par printObjectLines (rendu manuel des lignes de production / consommation).</change>
+	</Version>
+	<InfraS Downloaded="20260528"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

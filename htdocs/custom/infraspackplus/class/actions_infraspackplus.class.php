@@ -1708,6 +1708,12 @@ EOJS;
 			if ($element == 'evaluation') {
 				return 0;
 			}
+			// BOM / MO : lignes manufacturing (qty, qty_frozen, disable_stock_change, efficiency, cost)
+			// incompatibles avec les colonnes commerciales (vat, uht, discount, ht) des templates lineviews.
+			// Les templates natifs /bom/tpl/ et /mrp/tpl/ doivent rester en place.
+			if ($element == 'bom' || $element == 'mo') {
+				return 0;
+			}
 			// Expedition card: both create form (source Commande object) and view mode (Expedition object)
 			// ordershipmentcard: shipment tab on order (shipment.php) — table has only 5-6 columns, no financial columns
 			if (in_array('expeditioncard', $hookmanager->contextarray) || in_array('ordershipmentcard', $hookmanager->contextarray)) {
