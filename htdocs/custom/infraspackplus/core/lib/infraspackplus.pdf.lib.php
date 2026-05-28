@@ -75,10 +75,10 @@
 			$template->emetteur->country_code	= substr($langs->defaultlang, -2);
 		}
 		$template->atleastonediscount		= 0;
-		$template->tva						= array();
-		$template->tva_array				= array();
-		$template->localtax1				= array();
-		$template->localtax2				= array();
+		$template->tva						= [];
+		$template->tva_array				= [];
+		$template->localtax1				= [];
+		$template->localtax2				= [];
 		$template->credit_note				= getDolGlobalInt('INVOICE_POSITIVE_CREDIT_NOTE', 0);
 		$template->atleastoneratenotnull	= 0;
 		$template->situationinvoice			= False;
@@ -267,7 +267,7 @@
 	*	@param	boolean									$onlyConf	true, only for defining constants || false, to also create the PDF object
 	*	@return	TCPDF|TCPDI|int										PDF object or 1 if we just need to define constants
 	**/
-	function pdf_InfraSPlus_getInstance($format = array(), $metric = 'mm', $pagetype = 'P', $onlyConf = false)
+	function pdf_InfraSPlus_getInstance($format = [], $metric = 'mm', $pagetype = 'P', $onlyConf = false)
 	{
 		global $conf;
 
@@ -523,7 +523,7 @@
 	*	@param		boolean		$multicurrency	use multicurrency values
 	*	@return		string						Return the difference between standart price and discounted one
 	**/
-	function pdf_InfraSPlus_getTotRem($object, $i, $only_ht = 0, $pricesObjProd = array(), $multicurrency = 0)
+	function pdf_InfraSPlus_getTotRem($object, $i, $only_ht = 0, $pricesObjProd = [], $multicurrency = 0)
 	{
 		global $conf;
 
@@ -697,7 +697,7 @@
 		$fichinterlinked	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_REF_FICHINTER', 0);
 		$projectlinked		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_REF_PROJECT', 0);
 		$projectdesc		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_DESC_PROJECT', 0);
-		$linkedobjects		= array();
+		$linkedobjects		= [];
 		$object->fetchObjectLinked();
 		foreach($object->linkedObjects as $objecttype => $objects) {
 			if ($objecttype == 'facture') {
@@ -798,7 +798,7 @@
 	{
 		global $conf, $db;
 
-		$linkedshippings	= array();
+		$linkedshippings	= [];
 		$sql				= 'SELECT *';
 		$sql				.= ' FROM '.$db->prefix().'element_element AS ee';
 		$sql				.= ' INNER JOIN '.$db->prefix().'expedition AS e';
@@ -1134,7 +1134,7 @@
 					}
 				}
 				if ($profids > 0) {
-					$reg	= array();
+					$reg	= [];
 					if ((!empty($tvaInSourceAddr) || !empty($ticket)) && !empty($sourcecompany->tva_intra)) {
 						$tmpID			= pdf_InfraSPlus_build_IDs('TVA', $outputlangs->convToOutputCharset($sourcecompany->tva_intra), $sourcecompany->country_code);
 						$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('VATIntraShort').' : '.$tmpID;
@@ -1402,7 +1402,7 @@
 	**/
 	function pdf_InfraSPlus_Build_Third_party_Name($thirdparty, $outputlangs, $includealias = 0, $contact = '', $customerAddr = '')
 	{
-		$useContactName	= !empty($contact) && in_array($customerAddr, array('C', 'B', 'A')) ? 1 : 0;
+		$contactname	= '';
 		$statusWithName	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_STATUS_WITH_CLIENT_NAME', 0);
 		$statusWithName	= !empty($statusWithName) && $thirdparty->forme_juridique_code ? ' '.$outputlangs->convToOutputCharset(getFormeJuridiqueLabel($thirdparty->forme_juridique_code)) : '';
 		if ($thirdparty instanceof Societe) {
@@ -1642,7 +1642,7 @@
 	{
 		global $db;
 
-		$result				= array();
+		$result				= [];
 		$use_doli_addr_livr	= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		// ----- Seller status -----
 		$franchise			= ((is_numeric($seller->tva_assuj) && empty($seller->tva_assuj)) || (!is_numeric($seller->tva_assuj) && $seller->tva_assuj == 'franchise')) ? 1 : 0;
@@ -1924,7 +1924,7 @@
 		$height_note	= 0;
 		$salesrep		= !empty($show_sales_rep_in_notes) && $typeNotes > -1 ? pdf_InfraSPlus_SalesRepInNotes($object, $outputlangs) : '';
 		if ($listnotep != 'None' && is_array($listnotep) && count($listnotep) > 0) {
-			$notesptoshow	= array();
+			$notesptoshow	= [];
 			foreach ($listnotep as $noteP) {
 				$notePub	= getDolGlobalString($noteP, '');
 				if (!empty($notePub)) {
@@ -2050,7 +2050,7 @@
 		// Cache du substitutionarray et de urlwithroot par (object, outputlangs).
 		// pdf_getSubstitutionArray + complete_substitutions_array sont coûteuses et indépendantes de $notes ;
 		// elles étaient recalculées à chaque ligne (228 fois) lors d'une génération PDF (gain mesuré ~25s / 228 lignes).
-		static $__ipp_fn_cache	= array();
+		static $__ipp_fn_cache	= [];
 		$__ipp_cacheKey			= (is_object($object) ? spl_object_hash($object) : 'no_obj').'|'.(is_object($outputlangs) ? spl_object_hash($outputlangs) : 'no_lg');
 		if (!isset($__ipp_fn_cache[$__ipp_cacheKey])) {
 			$__sa								= pdf_getSubstitutionArray($outputlangs, null, $object);
@@ -2064,7 +2064,7 @@
 		$urlwithroot		= $__ipp_fn_cache[$__ipp_cacheKey]['urlwithroot'];
 		$html				= make_substitutions($notes, $substitutionarray, $outputlangs);
 		// Clean variables not found
-		$reg				= array();
+		$reg				= [];
 		while (preg_match('/__(.+)_(.+)__/', $html, $reg)) {
 			$html	= str_replace($reg[0], '', $html);
 		}
@@ -2092,7 +2092,7 @@
 		$efDeposit		= explode(',', preg_replace('/\s+/', '', $efDeposit));	// string without any space to array
 		$ef				= array_merge($efPaySpec, $efDeposit);
 		$free_addr_livr	= getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', '');
-		$listEF			= array();
+		$listEF			= [];
 		$extraDet		= '';
 		$extrafields	= new ExtraFields($db);
 		$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
@@ -2201,7 +2201,7 @@
 	{
 		global $db;
 
-		$prodfichinter	= array();
+		$prodfichinter	= [];
 		$sql	= 'SELECT fid.total_ht, fid.subprice, fid.fk_product, fid.tva_tx, fid.localtax1_tx, fid.localtax1_type, fid.localtax2_tx, fid.localtax2_type, fid.qty,';
 		$sql	.= ' fid.remise_percent, fid.remise, fid.fk_remise_except, fid.price, fid.total_tva, fid.total_localtax1, fid.total_localtax2, fid.total_ttc,';
 		$sql	.= ' fid.product_type, fid.info_bits, fid.buy_price_ht, fid.fk_product_fournisseur_price, p.ref, p.label';
@@ -2283,7 +2283,7 @@
 			}
 			return array('width' => $width, 'height' => $height);
 		}
-		return array();
+		return [];
 	}
 
 	/**
@@ -2313,7 +2313,7 @@
 	*	@param	int			$hidedetails		Hide details (0=no, 1=yes, 2=just special lines)
 	*	@return	string
 	**/
-	function pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = array())
+	function pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = [])
 	{
 		global $db, $hookmanager;
 
@@ -2777,7 +2777,7 @@
 	*	@param	string			$exfEcoTax			extrafield used for product ecotax
 	*	@return	string
 	**/
-	function pdf_InfraSPlus_writelinedesc(&$pdf, $object, $i, $outputlangs, $formatpage, $LineStyle, $w, $h, $posx, $posy, $hideref = 0, $hidedesc = 0, $issupplierline = 0, $extraDet = '', $prodfichinter = null, $desc_full_line = 0, $isRecap = 0, $with_picture = 0, $realpatharray = array(), $imglinesize = array(), $linkpictureurl = '', $tab_hl = 4, $ht_url = 4, $picture_padding = 0, $exfEcoTax = '')
+	function pdf_InfraSPlus_writelinedesc(&$pdf, $object, $i, $outputlangs, $formatpage, $LineStyle, $w, $h, $posx, $posy, $hideref = 0, $hidedesc = 0, $issupplierline = 0, $extraDet = '', $prodfichinter = null, $desc_full_line = 0, $isRecap = 0, $with_picture = 0, $realpatharray = [], $imglinesize = [], $linkpictureurl = '', $tab_hl = 4, $ht_url = 4, $picture_padding = 0, $exfEcoTax = '')
 	{
 		global $db, $hookmanager;
 
@@ -3361,7 +3361,7 @@
 				if (empty($detail->qty) || $detail->qty == 0) {
 					continue;
 				}
-				$dte=array();
+				$dte=[];
 				if (!empty($detail->eatby)) {
 					$dte[]	= $outputlangs->transnoentitiesnoconv('printEatby', dol_print_date($detail->eatby, 'day', false, $outputlangs));
 				}
@@ -3402,7 +3402,7 @@
 		if ($w - 2 < $wpicture) {
 			$wpicture	= $w - 2;	// corrige la largeur maximal de l'image pour être au plus égale à la largeur colonne
 		}
-		$imglinesize	= array();
+		$imglinesize	= [];
 		if (!empty($realpath)) {
 			$imglinesize	= pdf_InfraSPlus_getSizeForImage($realpath, $wpicture, $hpicture);
 		}
@@ -3565,7 +3565,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string
 	**/
-	function pdf_InfraSPlus_getlineremisepercent($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
+	function pdf_InfraSPlus_getlineremisepercent($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
 	{
 		global $conf, $hookmanager;
 
@@ -3634,7 +3634,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price excluding tax
 	**/
-	function pdf_InfraSPlus_getlineupexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
+	function pdf_InfraSPlus_getlineupexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
 	{
 		global $hookmanager;
 
@@ -3687,7 +3687,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price including tax
 	**/
-	function pdf_InfraSPlus_getlineupincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
+	function pdf_InfraSPlus_getlineupincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
 	{
 		global $hookmanager;
 
@@ -3741,7 +3741,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price with discount and excluding tax
 	**/
-	function pdf_InfraSPlus_getlineincldiscountexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
+	function pdf_InfraSPlus_getlineincldiscountexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
 	{
 		global $hookmanager;
 
@@ -3818,7 +3818,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price with discount and including tax
 	**/
-	function pdf_InfraSPlus_getlineincldiscountincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
+	function pdf_InfraSPlus_getlineincldiscountincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
 	{
 		global $hookmanager;
 
@@ -3946,7 +3946,7 @@
 	*	@param	array			$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string								Total of line excluding tax
 	**/
-	function pdf_InfraSPlus_getlinetotalexcltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
+	function pdf_InfraSPlus_getlinetotalexcltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
 	{
 		global $db, $hookmanager;
 
@@ -4032,7 +4032,7 @@
 	*	@param	array			$prodfichinter		intervention Line
 	*	@return	string								Total of line including tax
 	**/
-	function pdf_InfraSPlus_getlinetotalincltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
+	function pdf_InfraSPlus_getlinetotalincltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
 	{
 		global $hookmanager;
 
@@ -4107,7 +4107,7 @@
 	{
 		global $db;
 
-		$pricefichinter	= array();
+		$pricefichinter	= [];
 		$sql	= 'SELECT fi.total_ht, fi.total_ttc, fi.total_tva, fi.total_localtax1, fi.total_localtax2';
 		$sql	.= ' FROM '.$db->prefix().'fichinter AS fi';
 		$sql	.= ' WHERE fi.rowid = '.((int) $object->id);
@@ -4265,7 +4265,7 @@
 	{
 		global $db, $conf;
 
-		$list			= array();
+		$list			= [];
 		$efPaySpec		= getDolGlobalString('INFRASPLUS_PDF_EXF_PAY_SPEC', '');
 		$efDeposit		= getDolGlobalString('INFRASPLUS_PDF_EXF_DEPOSIT', '');
 		$ef				= explode(',', preg_replace('/\s+/', '', $deposit ? $efDeposit : $efPaySpec));	// string without any space to array
@@ -4522,7 +4522,7 @@
 		$fileSign	= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/tmp/tmp.png';
 		file_put_contents($fileSign, base64_decode($imgSign64));
 		if (!empty($fileSign) && is_readable($fileSign)) {
-			$imgsize	= array();
+			$imgsize	= [];
 			$imgsize	= pdf_InfraSPlus_getSizeForImage($fileSign, $larg_signarea, $ht_signarea);
 			if (isset($imgsize['width']) && isset($imgsize['height'])) {
 				$posxSign	= ($larg_signarea - $imgsize['width']) / 2;	// centre l'image dans la zone
@@ -4592,7 +4592,7 @@
 				$htLine1		= $y_after - $y_before;
 			} else {
 				// The virtual write triggered a page break: fallback to text-based estimate
-				$htLine1		= $pdf->getStringHeight($largeurLine1, $htmlLine1, true, false, array(), 0);
+				$htLine1		= $pdf->getStringHeight($largeurLine1, $htmlLine1, true, false, [], 0);
 			}
 			// rollbackTransaction(true) restores the current object in place (no reassignment needed)
 			$pdf->rollbackTransaction(true);

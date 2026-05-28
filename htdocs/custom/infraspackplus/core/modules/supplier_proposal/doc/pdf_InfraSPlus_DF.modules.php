@@ -233,16 +233,16 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $only_ht;
 		public $use_multicurrency;
 		public $larg_util_cadre;
@@ -269,7 +269,7 @@
 		public $largcol8;
 		public $largcol9;
 		public $largcol10;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $larg_tabtotal;
 		public $larg_tabinfo;
 		public $posxtabtotal;
@@ -873,7 +873,7 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												$this->header_after_addr, $this->title_size, $this->titlekey, $this->ref_from_cust, $this->datesbold, $this->dates_br, $this->show_num_cli, $this->num_cli_frm,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, $this->add_creator_in_header, $this->use_iso_location, $this->adr, $this->typeadr, $this->adrlivr, $this->Rounded_rect,
-												$this->customerAddrSelect, -2, -2, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
+												$this->customerAddrSelect, -2, -2, '', 0, [], '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
@@ -934,9 +934,9 @@
 				$arrayidcontact	= array('I'	=> $object->getIdContact('internal', 'SALESREPFOLL'),
 										'LI'=> $object->getIdContact('internal', 'SHIPPING'),
 										'E'	=> $object->getIdContact('external', (!empty($this->doli_addr_livr_recep) ? 'SHIPPING' : 'SERVICE')),
-										'L'	=> (empty($this->doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : array())
+										'L'	=> (empty($this->doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : [])
 										);
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, $this->typeadr, null, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}

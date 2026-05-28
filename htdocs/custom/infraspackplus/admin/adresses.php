@@ -452,16 +452,16 @@
 	if (!empty($accessright)) {
 		$num	= 1;
 		infraspackplus_print_btn_action('Opt', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 3);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_CUSTOM_COUNTRY_ADDR', 'on_off', $langs->trans('InfraSPlusParamUseCustomCountryAddr'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_COUNTRY', 'on_off', $langs->trans('InfraSPlusParamWithCountry'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_CUSTOM_COUNTRY_ADDR', 'on_off', $langs->trans('InfraSPlusParamUseCustomCountryAddr'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_COUNTRY', 'on_off', $langs->trans('InfraSPlusParamWithCountry'), '', [], 1, 1, '', $num);
 		// $num = 3
 		if (empty(getDolGlobalString('INFRASPLUS_PDF_HIDE_RECEP_FRAME', '')) || !empty($specialHead['frameinfos'])) {
 			infraspackplus_print_hr(3);
 			if (empty(getDolGlobalString('MAIN_PDF_DISABLESOURCEDETAILS', ''))) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_STATUS_WITH_SENDER_NAME', 'on_off', $langs->trans('InfraSPlusParamshowStatusWithSenderName'), '', array(), 1, 1, '', $num);
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_EMET_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowEmetFDetails'), '', array(), 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_STATUS_WITH_SENDER_NAME', 'on_off', $langs->trans('InfraSPlusParamshowStatusWithSenderName'), '', [], 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_EMET_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowEmetFDetails'), '', [], 1, 1, '', $num);
 				if (!empty(getDolGlobalString('INFRASPLUS_PDF_SHOW_EMET_DETAILS', ''))) {
-					$metas		= array();
+					$metas		= [];
 					$metas[0]	= array($langs->trans('Phone'), $langs->trans('Fax'), $langs->trans('Email'), $langs->trans('WebSite'));
 					$metas[1]	= array('INFRASPLUS_PDF_SOURCE_DETAIL_PHONE'	=> '',
 										'INFRASPLUS_PDF_SOURCE_DETAIL_FAX'		=> '',
@@ -474,29 +474,29 @@
 			} else {
 				$num	+= 3;
 			}
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TVAINTRA_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowTvaIntraInSourceAddress'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TVAINTRA_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowTvaIntraInSourceAddress'), '', [], 1, 1, '', $num);
 			if (!empty($pid1)) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID1_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid1, '', array(), 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID1_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid1, '', [], 1, 1, '', $num);
 			} else {
 				$num++;
 			}
 			if (!empty($pid2)) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID2_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid2, '', array(), 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID2_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid2, '', [], 1, 1, '', $num);
 			} else {
 				$num++;
 			}
 			if (!empty($pid3)) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID3_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid3, '', array(), 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID3_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid3, '', [], 1, 1, '', $num);
 			} else {
 				$num++;
 			}
 			if (!empty($pid4)) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID4_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid4, '', array(), 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID4_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid4, '', [], 1, 1, '', $num);
 			} else {
 				$num++;
 			}
 			if (!empty($pid5)) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID5_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid5, '', array(), 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROFID5_IN_SOURCE_ADDRESS', 'on_off', $langs->trans('ShowProfIdInSourceAddress').' - '.$pid5, '', [], 1, 1, '', $num);
 			} else {
 				$num++;
 			}
@@ -505,30 +505,30 @@
 			$num	+= 9;
 		}
 		// $num = 12
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_STATUS_WITH_CLIENT_NAME', 'on_off', $langs->trans('InfraSPlusParamshowStatusWithClientName'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_PARENT_ADDR_FACT', 'on_off', $langs->trans('InfraSPlusParamFactureParentAddrFact'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SENDER_ALIAS', 'on_off', $langs->trans('InfraSPlusParamShowSenderAlias').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_STATUS_WITH_CLIENT_NAME', 'on_off', $langs->trans('InfraSPlusParamshowStatusWithClientName'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_PARENT_ADDR_FACT', 'on_off', $langs->trans('InfraSPlusParamFactureParentAddrFact'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SENDER_ALIAS', 'on_off', $langs->trans('InfraSPlusParamShowSenderAlias').' '.$langs->trans('InfraSPlusGenModif'), '', [], 1, 1, '', $num);
 		$metas	= $form->selectarray('INFRASPLUS_PDF_CUSTOMER_ADDR_SELECT', array('T' => 'InfraSPlusParamThirdpartyAddr', 'C' => 'InfraSPlusParamContactAddr', 'B' => 'InfraSPlusParamThirdpartyBothAddr', 'A' => 'InfraSPlusParamContactBothAddr'), $customerAddrSelect, 0, 0, 0, '', 1, 0, 0, '', 'quatrevingtpercent');
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamCustomerAddrSelect'), '', $metas, 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_CODE_ADDR_FACT', 'input', $langs->trans('InfraSPlusParamCodeAddrFact1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCodeAddrFact2'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SYST', 'on_off', $langs->trans('InfraSPlusParamAddrLivrSyst'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_CODE_ADDR_FACT', 'input', $langs->trans('InfraSPlusParamCodeAddrFact1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCodeAddrFact2'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SYST', 'on_off', $langs->trans('InfraSPlusParamAddrLivrSyst'), '', [], 1, 1, '', $num);
 		// $num = 18
 		if (!getDolGlobalString('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SYST', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SI_FACT', 'on_off', $langs->trans('InfraSPlusParamAddrLivrSiFact'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_ADDR_LIVR_SI_FACT', 'on_off', $langs->trans('InfraSPlusParamAddrLivrSiFact'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 19
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADRESSE_LIVRAISON', 'on_off', $langs->trans('InfraSPlusParamShowAdrLivr'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 'on_off', $langs->trans('InfraSPlusParamShowAdrRecep'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADRESSE_LIVRAISON', 'on_off', $langs->trans('InfraSPlusParamShowAdrLivr'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 'on_off', $langs->trans('InfraSPlusParamShowAdrRecep'), '', [], 1, 1, '', $num);
 		// $num = 21
 		if (getDolGlobalString('MAIN_PDF_ADDALSOTARGETDETAILS', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_LIVR_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowLivrFDetails'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_LIVR_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowLivrFDetails'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (getDolGlobalString('MAIN_PDF_ADDALSOTARGETDETAILS', '') && (getDolGlobalString('INFRASPLUS_PDF_SHOW_LIVR_DETAILS', ''))) {
-			$metas		= array();
+			$metas		= [];
 			$metas[0]	= array($langs->trans('Phone'), $langs->trans('Fax'), $langs->trans('Email'), $langs->trans('WebSite'));
 			$metas[1]	= array('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_PHONE'	=> '',
 								'INFRASPLUS_PDF_TARGET_LIVR_DETAIL_FAX'		=> '',
@@ -539,28 +539,28 @@
 			$num++;
 		}
 		if (getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_LIVRAISON') || getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 'on_off', $langs->trans('InfraSPlusParamUseDoliAdrLivr'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 'on_off', $langs->trans('InfraSPlusParamUseDoliAdrLivr'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 24
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREE_LIVR_EXF', 'input', $descFreeLivr, '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREE_LIVR_EXF', 'input', $descFreeLivr, '', [], 1, 1, '', $num);
 		if (!getDolGlobalString('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADRESSE_LIVRAISON_MIXTE', 'on_off', $langs->trans('InfraSPlusParamAdrLivrMixte'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADRESSE_LIVRAISON_MIXTE', 'on_off', $langs->trans('InfraSPlusParamAdrLivrMixte'), '', [], 1, 1, '', $num);
 			$num++;
 		} else {
 			$num++;
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 'on_off', $langs->trans('InfraSPlusParamDoliAdrLivrRecep'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 'on_off', $langs->trans('InfraSPlusParamDoliAdrLivrRecep'), '', [], 1, 1, '', $num);
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 'on_off', $langs->trans('InfraSPlusParamUseDoliAdrFact'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 'on_off', $langs->trans('InfraSPlusParamUseDoliAdrFact'), '', [], 1, 1, '', $num);
 		// $num = 28
 		if (getDolGlobalString('MAIN_PDF_ADDALSOTARGETDETAILS', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_RECEP_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowRecepFDetails'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_RECEP_DETAILS', 'on_off', $langs->trans('InfraSPlusParamshowRecepFDetails'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (getDolGlobalString('MAIN_PDF_ADDALSOTARGETDETAILS', '') && getDolGlobalString('INFRASPLUS_PDF_SHOW_RECEP_DETAILS', '')) {
-			$metas		= array();
+			$metas		= [];
 			$metas[0]	= array($langs->trans('Phone'), $langs->trans('Fax'), $langs->trans('Email'), $langs->trans('WebSite'));
 			$metas[1]	= array('INFRASPLUS_PDF_TARGET_DETAIL_PHONE'	=> '',
 								'INFRASPLUS_PDF_TARGET_DETAIL_FAX'		=> '',
@@ -573,7 +573,7 @@
 		// $num = 30
 		if (isModEnabled('customlink')) {
 			infraspackplus_print_hr(3);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 'on_off', $langs->trans('InfraSPlusParamAdrTiersSsT'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 'on_off', $langs->trans('InfraSPlusParamAdrTiersSsT'), '', [], 1, 1, '', $num);
 			if (!empty(getDolGlobalString('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', ''))) {
 				$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_SOUS_TRAITANT', 'selectTypeContact', $langs->trans('InfraSPlusParamTypeContactSsT'), '', array($object, $typeSsT, 'external', 'position', 1, 'minwidth100imp'), 1, 1, '', $num);
 			} else {

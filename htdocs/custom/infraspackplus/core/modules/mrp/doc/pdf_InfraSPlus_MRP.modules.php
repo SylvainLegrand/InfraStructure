@@ -214,18 +214,18 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
@@ -243,7 +243,7 @@
 		public $largcol4;
 		public $largcol5;
 		public $largcol6;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $larg_tabtotal;
 		public $larg_tabinfo;
 		public $posxtabtotal;
@@ -331,7 +331,7 @@
 			$nblines	= count($object->lines);
 			$hidetop	= getDolGlobalString('MAIN_PDF_DISABLE_COL_HEAD_TITLE', '0');
 			// Loop on each lines to detect if there is at least one image to show
-			$realpatharray	= array();
+			$realpatharray	= [];
 			if (!empty($baseDir)) {
 				$object->fetch_thirdparty();
 				// Definition of $dir and $file
@@ -367,7 +367,7 @@
 					$this->pied					= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
 					$this->files				= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
 					if (!isset($object->lines) || !is_array($object->lines)) {
-						$object->lines	= array();
+						$object->lines	= [];
 						$bom			= new BOM($this->db);
 						$bom->fetch($object->fk_bom);
 						$nblignes		= count($bom->lines);
@@ -376,7 +376,7 @@
 						// First loop on each lines to prepare calculs and variables
 						$nblignes		= count($object->lines);	// Set nblignes with the new object lines content after hook
 						$frombom		= 0;
-						$linesToUse		= array();
+						$linesToUse		= [];
 						for ($i = 0 ; $i < $nblignes ; $i++) {
 							if (empty($frombom) && (($object->status >= 3 && $object->lines[$i]->role != 'consumed') || ($object->status < 3 && $object->lines[$i]->role != 'toconsume'))) {
 								continue;
@@ -529,7 +529,7 @@
 						// Reference
 						$pdf->startTransaction();
 						$startline							= $pdf->GetY();
-						$ref								= $prod->ref.' '.$nblignes2;
+						$ref								= $prod->ref.' '.$nblignes;
 						$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $startline, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 						$endline							= $pdf->GetY();
 						$heightRef							= (ceil($endline) - ceil($startline)) > $this->tab_hl ? (ceil($endline) - ceil($startline)) : $this->tab_hl;

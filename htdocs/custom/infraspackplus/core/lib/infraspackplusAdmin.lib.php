@@ -43,7 +43,7 @@
 		global $langs, $conf, $user;
 
 		$h		= 0;
-		$head	= array();
+		$head	= [];
 		if (!empty($user->admin) || !empty($user->hasRight('infraspackplus', 'paramDolibarr'))) {
 			$head[$h][0]	= dol_buildpath('/infraspackplus/admin/generalpdf.php', 1);
 			$head[$h][1]	= $langs->trans('InfraSPlusParamsGeneralPDF');
@@ -138,7 +138,7 @@
 			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	1, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 		} else {
 			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	-1, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
-			setEventMessages('<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCautionMess').'</span>'.$langs->trans('InfraSXMLextError'), array(), 'warnings');
+			setEventMessages('<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCautionMess').'</span>'.$langs->trans('InfraSXMLextError'), [], 'warnings');
 		}
 	}
 
@@ -159,7 +159,7 @@
 	{
 		global $langs;
 
-		$currentversion	= array();
+		$currentversion	= [];
 		$sxe			= infraspackplus_getChangelogFile($appliname);
 		if (is_object($sxe)) {
 			$currentversion[0]	= (string) $sxe->Version[count($sxe->Version) - 1]->attributes()->Number;
@@ -220,7 +220,7 @@
 		if (getDolGlobalString('INFRAS_PHP_EXT_XML', '') == -1) {
 			return -1;
 		}
-		$newVersion	= getURLContent('https://infras.fr/jdownloads/Modules_Dolibarr/'.$appliname.'/changelog.xml', 'GET', '', 1, array(), array('http', 'https'), 0);
+		$newVersion	= getURLContent('https://infras.fr/jdownloads/Modules_Dolibarr/'.$appliname.'/changelog.xml', 'GET', '', 1, [], array('http', 'https'), 0);
 		if (!isset($newVersion['content'])) {	// not connected
 			return -1;
 		} else {
@@ -262,7 +262,7 @@
 		}
 		$columnsToMigrate	= array('rowid', 'datec', 'tms', 'label', 'fk_soc', 'name', 'address', 'zip', 'town', 'fk_pays', 'phone', 'fax', 'note', 'fk_user_creat', 'fk_user_modif');
 		$columns			= array('entity', 'email', 'url');
-		$columnsExists		= array();
+		$columnsExists		= [];
 		foreach ($columns as $column) {	// Check the existence of required columns
 			$sql	= 'SHOW COLUMNS FROM '.$db->prefix().'societe_address LIKE "'.$db->escape($column).'"';
 			$resql	= $db->query($sql);
@@ -369,7 +369,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_addr			= 'SELECT '.implode(', ', $cols_addr);
 			$sql_addr			.= ' FROM '.$db->prefix().'infraspackplus_societe_address';
 			$sql_addr			.= ' WHERE entity = '.((int) $conf->entity);
-			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_societe_address', $sql_addr, $cols_addr, array(), 0, ''));
+			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_societe_address', $sql_addr, $cols_addr, [], 0, ''));
 			$cols_dict			= array ('code', 'entity', 'pos', 'libelle', 'active');
 			$duplicate_dict		= array ('3', 'libelle', 'code');
 			$sql_dict_1			= 'SELECT '.implode(', ', $cols_dict);
@@ -669,7 +669,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	*	@param		array		$metas	list of col value
 	*	@return		void
 	**/
-	function infraspackplus_print_colgroup($metas = array())
+	function infraspackplus_print_colgroup($metas = [])
 	{
 		print '	<tr>';
 		foreach ($metas as $values)	{
@@ -684,7 +684,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	*	@param		array		$metas	list of col value
 	*	@return		void
 	**/
-	function infraspackplus_print_liste_titre($metas = array())
+	function infraspackplus_print_liste_titre($metas = [])
 	{
 		global $langs;
 
@@ -777,7 +777,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$formother		= new FormOther($db);
 		$formcompany	= new FormCompany($db);
 		$formactions	= new FormActions($db);
-		print '	<tr class = "oddeven">';
+		print '	<tr id = "row_'.$confkey.'" class = "oddeven">';
 		if (!empty($num)) {
 			print '	<td class = "center bold">'.$num.'</td>';
 			$num++;
@@ -786,7 +786,6 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			print '	<td colspan = "'.$cs1.'">';
 			if (!empty($help))	{
 				print $form->textwithtooltip(($desc ? $desc : $langs->trans($confkey)), $langs->trans($help), 2, 1, img_help(1, ''));
-
 			} else {
 				print $desc ? $desc : $langs->trans($confkey);
 			}
@@ -799,11 +798,11 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			}
 		}
 		if ($tag == 'on_off') {
-			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'#row_'.$confkey.'">';
 			print ajax_constantonoff($confkey);
 			print '		</a>';
 		} elseif ($tag == 'on_off2') {
-			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'#row_'.$confkey.'">
 							'.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? img_picto($langs->trans('Activated'), 'switch_on') : img_picto($langs->trans('Disabled'), 'switch_off')).'
 						</a>';
 		} elseif ($tag == 'input') {
@@ -859,7 +858,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 				print $doleditor->Create();
 			}
 		} elseif ($tag == 'color') {
-			print $formother->selectColor($metas, $confkey, '', 1, array(), 'right hideifnotset');
+			print $formother->selectColor($metas, $confkey, '', 1, [], 'right hideifnotset');
 		} elseif ($tag == 'select') {
 			print $metas;
 		} elseif ($tag == 'select_produits') {
@@ -894,7 +893,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	*	@param		int			$num		Add a numbering column first with this number
 	*	@return		int						line number for next option
 	**/
-	function infraspackplus_print_line_inputs($type = '', $desc = '', $metas = array(), $cs1 = 2, $w = 0, $end = '', $num = 0)
+	function infraspackplus_print_line_inputs($type = '', $desc = '', $metas = [], $cs1 = 2, $w = 0, $end = '', $num = 0)
 	{
 		print '	<tr class = "oddeven">';
 		if (!empty($num)) {
@@ -916,7 +915,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
-				print '				<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+				print '				<a id = "row_'.$confkey.'" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'#row_'.$confkey.'">';
 				print ajax_constantonoff($confkey);
 				print '				</a>'.($type == 'tests' ? '' : $value);
 			}
@@ -1007,7 +1006,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$ret					.= load_fiche_titre('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamHistoryUpdates').'</span>', '', $listUpD, 1);
 		$sxe					= infraspackplus_getChangelogFile($appliname);
 		$sxelast				= infraspackplus_getChangelogFile($appliname, 'dwn');
-		$tblversionslast		= is_object($sxelast) ? $sxelast->Version : array();
+		$tblversionslast		= is_object($sxelast) ? $sxelast->Version : [];
 		if ($resVersion == -1) {
 			foreach ($tblversions as $error) {
 				$ret	.= $error->message;

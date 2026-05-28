@@ -47,7 +47,7 @@
 	*	@param	string				$modelfile		suffix used to apply a special head only for certain models, among all those intended for the same type of document
 	*	@return	integer | string					0 if Ko or no special header wanted, otherwise the name used for the special header
 	**/
-	function infraspackplus_fetchAllSpecialHeads($modelslist = array(), $modelfile = '')
+	function infraspackplus_fetchAllSpecialHeads($modelslist = [], $modelfile = '')
 	{
 		global $conf, $db, $langs;
 
@@ -153,7 +153,7 @@
 	*	@param	string				$modelfile		suffix used to apply a special Foot only for certain models, among all those intended for the same type of document
 	*	@return	integer | string					0 if Ko or no special Footer wanted, otherwise the name used for the special Footer
 	**/
-	function infraspackplus_fetchAllSpecialFooters($modelslist = array(), $modelfile = '')
+	function infraspackplus_fetchAllSpecialFooters($modelslist = [], $modelfile = '')
 	{
 		global $conf, $db, $langs;
 
@@ -456,13 +456,13 @@
 		$CGFromPro		= getDolGlobalString('INFRASPLUS_PDF_CGV_FROM_PRO', '') ? 1 : 0;
 		$labelFromPro	= empty($CGFromPro) ? '' : getDolGlobalString('INFRASPLUS_PDF_CGV_FROM_PRO_LABEL', '');
 		$myCompDir		= !empty($conf->mycompany->multidir_output[$entity]) ? $conf->mycompany->multidir_output[$entity] : $conf->mycompany->dir_output;
-		$CGs			= array();
+		$CGs			= [];
 		$labelToSearch	= !empty($labelFromPro) && is_object($object) ? ($object->thirdparty->typent_code == $labelFromPro ? $labelFromPro : '') : '';
 		if (glob($myCompDir.'/'.$type.'_*.pdf')) {
 			foreach (glob($myCompDir.'/'.$type.'_*'.$labelToSearch.'*.pdf') as $file)	$CGs[]	= dol_basename($file);
 		}
 		if (!empty($CGFromPro) && empty($labelToSearch) && !empty($labelFromPro) && !empty($CGs)) {
-			$exclude	= array();
+			$exclude	= [];
 			foreach (glob($myCompDir.'/'.$type.'_*'.$labelFromPro.'*.pdf') as $file)	$exclude[]	= dol_basename($file);
 			$CGs		= array_diff($CGs, $exclude);
 		}
@@ -540,7 +540,7 @@
 		}
 		include_once TCPDF_PATH.'tcpdf.php';
 		include_once TCPDF_PATH.'include/tcpdf_fonts.php';
-		$options	= array();
+		$options	= [];
 		$typefont	= array('TrueTypeUnicode', 'TrueType', 'Type1', 'CID0JP', 'CID0KR', 'CID0CS', 'CID0CT');
 		if (in_array($type, $typefont)) {
 			$options['type']	= $type;
@@ -846,7 +846,7 @@
 	*										-1	= not enough parameters
 	*										-2	= on error
 	**/
-	function infraspackplus_search_extf ($set = 0, $tempName = '', $constKey = '', $langKey = '', $listElem = array(), $listParams = array())
+	function infraspackplus_search_extf ($set = 0, $tempName = '', $constKey = '', $langKey = '', $listElem = [], $listParams = [])
 	{
 		global $db, $conf;
 
@@ -869,7 +869,7 @@
 						}
 						return $results;
 					}
-					$arr	= array();
+					$arr	= [];
 					while ($obj = $db->fetch_object($resql)) {
 						$arr[]	= $obj->elementtype;
 					}
@@ -1183,14 +1183,14 @@
 	/**
 	*	get the Qty already received by order lines
 	*
-	*	@param	int			$origin_id		Object Origin ID
-	*	@return	array|int					Array of order lines with qty already received or 0 if no order lines found
+	*	@param	int		$origin_id		Object Origin ID
+	*	@return	array					Array of order lines with qty already received or [] if no order lines found
 	**/
 	function infraspackplus_get_alreadyreceived($origin_id)
 	{
 		global $db;
 
-		$alreadyreceived	= array();
+		$alreadyreceived	= [];
 		if ($origin_id > 0) {
 			$sql	= 'SELECT det.rowid, SUM(disp.qty) AS qty';
 			$sql	.= ' FROM '.$db->prefix().'commande_fournisseur_dispatch AS disp';
@@ -1211,7 +1211,7 @@
 				return $alreadyreceived;
 			}
 		}
-		return 0;
+		return [];
 	}
 
 	/**
@@ -1225,7 +1225,7 @@
 	{
 		global $db;
 
-		$serialreceived	= array();
+		$serialreceived	= [];
 		if ($origin_id > 0 && $object_id > 0) {
 			$sql	= 'SELECT det.rowid, disp.batch, disp.qty';
 			$sql	.= ' FROM '.$db->prefix().'commande_fournisseur_dispatch AS disp';
@@ -1335,7 +1335,7 @@
 	{
 		global $db, $conf, $langs;
 
-		$Lines	= array();
+		$Lines	= [];
 		$sql	= 'SELECT p.rowid AS rowid, p.ref AS product_ref, p.label AS produit, p.tobatch, p.fk_product_type AS type, p.pmp AS ppmp, p.price, p.price_ttc, p.entity,';
 		$sql	.= ' ps.reel AS qty';
 		$sql	.= ' FROM '.$db->prefix().'product_stock AS ps, '.$db->prefix().'product AS p';
@@ -1521,10 +1521,10 @@
 		$txtParamsType	= getDolGlobalString($paramsKeyType, '');
 		$txtParamsCust	= getDolGlobalString($paramsKeyCust, '');
 		// liste de contrôle des paramètres enregistrés (utilisateur, document, type de document ou client)
-		$listParamUser	= array();
-		$listParamDoc	= array();
-		$listParamType	= array();
-		$listParamCust	= array();
+		$listParamUser	= [];
+		$listParamDoc	= [];
+		$listParamType	= [];
+		$listParamCust	= [];
 		// On parcourt les paramètres utilisateurs
 		if (!empty($txtParamsUser)) {
 			$userParams	= explode ('&', $txtParamsUser);
@@ -1987,7 +1987,7 @@
 					$deposit_percent_from_payment_terms	= (float) getDictionaryValue($db->prefix().'c_payment_term', 'deposit_percent', $object->cond_reglement_id);
 					if (GETPOST('generate_deposit', 'alpha') == 'on' && !empty($deposit_percent_from_payment_terms) && isModEnabled((!$isV20p ? 'facture' : 'invoice')) && !empty($user->hasRight('facture', 'creer'))) {
 						$date			= dol_mktime(0, 0, 0, GETPOSTINT('datefmonth'), GETPOSTINT('datefday'), GETPOSTINT('datefyear'));
-						$forceFields	= array();
+						$forceFields	= [];
 						if (GETPOSTISSET('date_pointoftax')) {
 							$forceFields['date_pointoftax']	= dol_mktime(0, 0, 0, GETPOSTINT('date_pointoftaxmonth'), GETPOSTINT('date_pointoftaxday'), GETPOSTINT('date_pointoftaxyear'));
 						}
@@ -2207,9 +2207,9 @@
 		while ($obj	= $db->fetch_object($resql2)) {
 			unset($obj->rowid);
 			$obj->entity	= (int) $toEntity;
-			$fields 		= array();
-			$values 		= array();
-			$updates 		= array();
+			$fields 		= [];
+			$values 		= [];
+			$updates 		= [];
 			foreach ($obj as $key => $value) {
 				$fields[]	= $key;
 				if ($value == null) {

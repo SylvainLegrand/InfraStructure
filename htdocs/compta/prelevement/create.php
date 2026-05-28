@@ -257,19 +257,19 @@ if (empty($reshook)) {
 			$action = '';
 			$error++;
 		}
-
+		// InfraS add begin
 		if (empty($toselect)) {
 			$errormessage = $langs->trans('ErrorBankTransferNoPaymentRequestSelected');
 			setEventMessages($errormessage, null, 'errors');
 			$action = '';
 			$error++;
 		}
-
+		// InfraS add end
 		$bprev = new BonPrelevement($db);
 
 		if (!$error) {
 			// getDolGlobalString('PRELEVEMENT_CODE_BANQUE') and getDolGlobalString('PRELEVEMENT_CODE_GUICHET') should be empty (we don't use them anymore)
-			$result = $bprev->create(getDolGlobalString('PRELEVEMENT_CODE_BANQUE'), getDolGlobalString('PRELEVEMENT_CODE_GUICHET'), $mode, $format, $executiondate, 0, $type, $toselect, 0, $sourcetype);
+			$result = $bprev->create(getDolGlobalString('PRELEVEMENT_CODE_BANQUE'), getDolGlobalString('PRELEVEMENT_CODE_GUICHET'), $mode, $format, $executiondate, 0, $type, $toselect, 0, $sourcetype);	// InfraS change
 			if ($result < 0) {
 				$mesg = '';
 
@@ -349,7 +349,7 @@ if ($type != 'bank-transfer') {
 $bprev = new BonPrelevement($db);
 $arrayofselected = is_array($toselect) ? $toselect : array();
 // List of mass actions available
-$arrayofmassactions = array();
+$arrayofmassactions = array();	// InfraS change
 if (GETPOSTINT('nomassaction') || in_array($massaction, array('presend', 'predelete'))) {
 	$arrayofmassactions = array();
 }
@@ -426,7 +426,7 @@ print dol_get_fiche_end();
 
 print '<div class="tabsAction">'."\n";
 
-print '<form id="createBankTransfer" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
+print '<form id="createBankTransfer" action="'.$_SERVER['PHP_SELF'].'" method="POST">';	// InfraS change
 print '<input type="hidden" name="action" value="create">';
 print '<input type="hidden" name="token" value="'.newToken().'">';
 print '<input type="hidden" name="type" value="'.$type.'">';

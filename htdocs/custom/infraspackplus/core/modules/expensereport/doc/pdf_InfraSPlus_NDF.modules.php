@@ -207,18 +207,18 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
@@ -238,7 +238,7 @@
 		public $largcol5;
 		public $largcol6;
 		public $largcol7;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $larg_tabtotal;
 		public $larg_tabinfo;
 		public $posxtabtotal;
@@ -368,7 +368,7 @@
 					$this->listfreet			= !empty($hookmanager->resArray['listfreet']) ? $hookmanager->resArray['listfreet'] : '';
 					$this->listnotep			= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied					= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
-					$this->files				= is_array($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : array();
+					$this->files				= is_array($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : [];
 					$this->expensereportFiles	= !empty($hookmanager->resArray['expensereportfiles']) ? $hookmanager->resArray['expensereportfiles'] : '';
 					$nblignes					= count($object->lines);	// Set nblignes with the new facture lines content after hook
 					// Create pdf instance
@@ -416,7 +416,7 @@
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
 					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
-					$this->listFees			= array();
+					$this->listFees			= [];
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Link with InfraSTime => collect special counter like ticket restaurant, housework, ...
 						if (isModEnabled('infrastime')) {
@@ -864,7 +864,7 @@
 				$arrayidcontact		= array('U' => $receiver,
 											'B'	=> $receiver_account
 											);
-				$addresses			= array();
+				$addresses			= [];
 				$addresses			= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, 0, $this->emetteur);
 				$hauteurcadre		= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect, true);
 			}

@@ -102,12 +102,12 @@
 			//   view rendering to IPP when isModEnabled('infraspackplus') is true.
 			// Graceful degradation: if InfraSProject is disabled, the supplier-invoice
 			// "project" column is simply not rendered, no fatal error.
-			$this->requiredby		= array();											// List of modules id to disable if this one is disabled
-			$this->conflictwith		= array();											// List of modules id this module is in conflict with
+			$this->requiredby		= [];											// List of modules id to disable if this one is disabled
+			$this->conflictwith		= [];											// List of modules id this module is in conflict with
 			$this->langfiles		= array($this->name.'@'.$this->name);
 			// Constants
-			$this->const			= array();											// List of particular constants to add when module is enabled
-			$this->tabs				= array();
+			$this->const			= [];											// List of particular constants to add when module is enabled
+			$this->tabs				= [];
 			if (!isModEnabled('infraspackplus')) {
 				$conf->infraspackplus			= new stdClass();
 				$conf->infraspackplus->enabled	= 0;
@@ -146,9 +146,9 @@
 																				  'pos'		=> $langs->trans('PositionIntoComboList'))
 																		)
 											);	// Dictionaries
-			$this->boxes			= array();										// List of boxes
-			$this->cronjobs			= array();										// List of cron jobs entries to add
-			$this->rights			= array();										// Permission array used by this module
+			$this->boxes			= [];										// List of boxes
+			$this->cronjobs			= [];										// List of cron jobs entries to add
+			$this->rights			= [];										// Permission array used by this module
 			$r						= 0;
 			$this->rights[$r][0]	= $this->numero.$r;								// id de la permission
 			$this->rights[$r][1]	= $langs->trans('InfraSPlusPermMenu');			// libelle de la permission
@@ -214,7 +214,7 @@
 			$this->rights[$r][1]	= $langs->trans('InfraSPlusPermCGV');			// libelle de la permission
 			$this->rights[$r][3]	= 1;											// La permission est-elle une permission par defaut (0/1)
 			$this->rights[$r][4]	= 'paramCGV';									// action for php test if ($user->hasRight('permkey', 'level1', 'level2'))
-			$this->menu				= array();										// List of menus to add
+			$this->menu				= [];										// List of menus to add
 			$caret					= '&nbsp;&nbsp;<span class = "caret	caret--left"></span>&nbsp;';
 			$r						= 0;
 			if (!empty(infraspackplus_no_topmenu())) {
@@ -399,7 +399,7 @@
 		{
 			global $conf, $db, $langs;
 
-			$sql		= array();
+			$sql		= [];
 			$path		= dol_buildpath($this->name, 0);
 			$pathfonts	= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').$this->name.'/fonts';
 			$resultCopy	= dolCopyDir(DOL_DOCUMENT_ROOT.'/includes/tecnickcom/tcpdf/fonts', $pathfonts, 0, 0);	// sync fonts from core to documents
@@ -461,7 +461,7 @@
 			if (getDolGlobalString('INFRAS_PHP_EXT_XML', '') == -1) {
 				return $langs->trans('InfraSPlusChangelogXMLError');
 			}
-			$currentversion					= array();
+			$currentversion					= [];
 			$currentversion					= infraspackplus_getLocalVersionMinDoli($this->name);
 			$this->need_dolibarr_version	= explode('.', $currentversion[1]);	// Minimum version of Dolibarr required by module
 			$this->phpmin					= explode('.', $currentversion[5]);	// Minimum version of PHP required by module

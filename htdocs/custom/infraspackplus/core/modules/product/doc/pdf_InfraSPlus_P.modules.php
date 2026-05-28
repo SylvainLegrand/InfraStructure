@@ -201,20 +201,20 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $horLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
 		public $posx_G_txt;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $tab_hl = 4;
 		public $decal_round = 0;
 		public $ht_top_table;
@@ -331,7 +331,7 @@
 					$this->listfreet		= !empty($hookmanager->resArray['listfreet']) ? $hookmanager->resArray['listfreet'] : '';
 					$this->listnotep		= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied				= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
-					$hookmanager->resArray	= array();
+					$hookmanager->resArray	= [];
 					// Create pdf instance
 					$pdf					= pdf_InfraSPlus_getInstance($this->format);
 					$default_font_size		= pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
@@ -349,7 +349,7 @@
 					$pdf->SetSubject($outputlangs->transnoentities("Product"));
 					$pdf->SetCreator("Dolibarr ".DOL_VERSION);
 					$pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
-					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("Product")." ".$outputlangs->convToOutputCharset($object->thirdparty->name));
+					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("Product")." ".(!empty($object->thirdparty->name) ? $outputlangs->convToOutputCharset($object->thirdparty->name) : ''));
 					$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 					$pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);	// Left, Top, Right
 					// New page
@@ -441,7 +441,7 @@
 								$filearray	= dol_sort_array($filearray, $sortfield, $sortorder);
 							}
 							$this->wpicture					= ($this->larg_util_txt - ((count($filearray) - 1) * 5)) / count($filearray);	// corrige la largeur maximal des images pour être au plus égale à la largeur disponible / nombre de vignette à afficher
-							$imglinesize					= array();
+							$imglinesize					= [];
 							foreach ($filearray as $key => $val) {
 								$photo	= $val['name'];
 								if (image_format_supported($photo) >= 0) {
@@ -569,6 +569,7 @@
 			$posy			= pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, $w, $this->tab_hl, 'R', $default_font_size);
 			$posy			+= 1;
 			$posycadre		= $heightLogo > $posy + $this->tab_hl ? $heightLogo : $posy + $this->tab_hl;
+			$hauteurcadre	= 0;
 			if (!empty($showaddress)) {
 				// Sender properties
 				$carac_emetteur	= '';
@@ -602,7 +603,7 @@
 				$pdf->SetFont('', '', $default_font_size - 1);
 				$pdf->MultiCell($largeurcadreS - 4, $this->tab_hl, $carac_emetteur, '', 'L', 0, 1, $posxcadreS + 2, $posy, true, 0, 0, false, 0, 'M', false);
 				$posyendsender	= $pdf->getY();
-				}
+			}
 			$this->hauteurhead = array('totalhead'=>$posycadre + $hauteurcadre, 'hauteurcadre'=>$hauteurcadre);
 			return $this->hauteurhead;
 		}

@@ -48,9 +48,12 @@
 		public $email;
 		public $entity;
 		public $url;
-		public $lines	= array();	// @var array Adresses liees a la societe
+		public $lines	= [];	// @var array Adresses liees a la societe
+		public $ref;				// @var string Reference (company name, populated by info())
+		public $user_creation;		// @var User User who created the linked company (populated by info())
+		public $user_modification;	// @var User User who last modified the linked company (populated by info())
 		public $error;	// @var string Error string
-		public $errors	= array();	// @var array Errors
+		public $errors	= [];	// @var array Errors
 
 		/**
 		*	Constructor.

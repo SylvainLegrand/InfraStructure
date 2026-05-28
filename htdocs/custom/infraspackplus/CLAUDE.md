@@ -63,7 +63,6 @@ htdocs/custom/infraspackplus/
 │   ├── tpl/
 │   │   ├── lineviews/                    # Templates de lignes actifs (v21, v22, v22-DolInfraS, v23, v24)
 │   │   │   └── _columns/                 # Partials partagés entre versions (refproject, discount, total_ht)
-│   │   └── objectline_view*.tpl.php      # Anciens tpl (archivés, non utilisés depuis v21.0.0)
 │   └── triggers/
 ├── css/
 │   ├── NeuropolRegular.ttf

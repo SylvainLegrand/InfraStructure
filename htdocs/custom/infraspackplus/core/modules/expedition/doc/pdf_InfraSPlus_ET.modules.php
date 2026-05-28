@@ -190,11 +190,11 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
-		public $horLineStyle = array();
+		public $stdLineStyle = [];
+		public $horLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $tab_hl = 4;
 		public $decal_round = 0;
 		public $ht_top_table;

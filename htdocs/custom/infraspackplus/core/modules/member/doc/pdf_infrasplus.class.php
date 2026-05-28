@@ -176,7 +176,7 @@
 					$filigrane	= get_exdir(0, 0, 0, 0, $object->thirdparty, 'thirdparty').'filigrane.png';
 					$filigrane	= $societedir.'/'.$filigrane;
 					if (!empty($filigrane) && is_readable($filigrane)) {
-						$imgsize	= array();
+						$imgsize	= [];
 						$imgsize	= pdf_InfraSPlus_getSizeForImage($filigrane, $this->_Width, $this->_Height);
 						if (isset($imgsize['width']) && isset($imgsize['height'])) {
 							$pdf->SetAlpha($this->watermark_i_opacity / 100);

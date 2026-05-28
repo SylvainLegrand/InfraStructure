@@ -227,9 +227,9 @@
 		public $exftxtcolor;
 		public $exfltxtcolor;
 		public $files;
-		public $horLineStyle = array();
+		public $horLineStyle = [];
 		public $only_ht;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
@@ -311,7 +311,7 @@
 					global $action;
 					$reshook				= $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);	// Note that $action and $object may have been modified by some hooks
 					$this->files			= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
-					$hookmanager->resArray	= array();
+					$hookmanager->resArray	= [];
 					// Create pdf instance
 					$pdf					= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');
 					$default_font_size		= pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
@@ -336,29 +336,29 @@
 					if (is_array($this->files) && count($this->files) > 0) {
 						pdf_InfraSPlus_files($pdf, $this->files, 1, $object, $outputlangs, $this->formatpage);
 					} else {
-						$paramspecialfiles	= !empty($conf->global->INFRASPLUS_PDF_SPECIAL_FILES) ? $conf->global->INFRASPLUS_PDF_SPECIAL_FILES : '';
+						$paramspecialfiles	= getDolGlobalString('INFRASPLUS_PDF_SPECIAL_FILES', '');
 						if (!empty($paramspecialfiles)) {
 							$paramspecialfiles	= explode(',', $paramspecialfiles);
 							$dirpdfs			= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles';
 							$listpdfs			= dol_dir_list($dirpdfs, 'files', 0, '\.pdf$', null, 'name', SORT_ASC, 0, 1, '', 0);
 							$listspecialfiles	= dol_dir_list(dol_buildpath('/infraspackplus/core/modules/specialfiles', 0), 'files', 0, '\.php$', null, 'name', SORT_ASC, 0, 0, '', 0);
 							$listspecialfiles	= array_column($listspecialfiles, 'name');
-							$filesArray			= array();
+							$filesArray			= [];
 							foreach ($listpdfs as $pdfFile) {
 								if (empty($pdfFile['name'])) {
 									continue;
 								}
 								$pdfname	= pathinfo($pdfFile['name'], PATHINFO_FILENAME);
 								if (in_array($pdfname, $paramspecialfiles)) {
-									$key																	= 'INFRASPLUS_PDF_SPECIAL_FILE_'.(strtoupper($object->element)).'_'.(strtoupper($pdfname)).'_AUTO';
-									$showfile																= !empty($conf->global->$key)	? $conf->global->$key	: 0;
+									$key		= 'INFRASPLUS_PDF_SPECIAL_FILE_'.(strtoupper($object->element)).'_'.(strtoupper($pdfname)).'_AUTO';
+									$showfile	= getDolGlobalInt($key, 0);
 									if (!empty($showfile) && in_array($pdfname.'.php', $listspecialfiles)) {
 										$filesArray[]	= $pdfFile;
 									}
 								}
 							}
 							completeFileArrayWithDatabaseInfo($filesArray, 'infraspackplus/specialfiles');
-							$arrayFilesID	= array();
+							$arrayFilesID	= [];
 							if (is_array($filesArray) && count($filesArray) > 0) {
 								foreach($filesArray as $file)	$arrayFilesID[] = $file['rowid'];
 								pdf_InfraSPlus_files($pdf, $arrayFilesID, 1, $object, $outputlangs, $this->formatpage);

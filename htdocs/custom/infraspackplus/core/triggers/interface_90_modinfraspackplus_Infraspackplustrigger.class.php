@@ -35,7 +35,7 @@
 		public $version				= self::VERSION_DEVELOPMENT;	// Version of the trigger @var string
 		public $picto				= 'technic';	// Image of the trigger @var string
 		public $family				= '';	// Category of the trigger @var string
-		public $errors				= array();	// Errors reported by the trigger @var array
+		public $errors				= [];	// Errors reported by the trigger @var array
 		const VERSION_DEVELOPMENT	= 'development';	// @var string module is in development
 		const VERSION_EXPERIMENTAL	= 'experimental';	// @var string module is experimental
 		const VERSION_DOLIBARR		= 'dolibarr';	// @var string module is dolibarr ready

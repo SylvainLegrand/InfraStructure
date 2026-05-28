@@ -74,7 +74,7 @@
 	**/
 	function pdf_interne_pagehead(&$pdf, $object, $showaddress, $outputlangs, $headertxtcolor, $header_align_left, $decal_round, $formatpage, $logo, $emetteur, $tab_hl, $header_after_addr, $title_size, $titlekey,
 									$ref_from_cust, $datesbold, $dates_br, $show_num_cli, $num_cli_frm, $show_code_cli_compt, $code_cli_compt_frm, $add_creator_in_header, $use_iso_location, $adr, $typeadr, $adrlivr, $Rounded_rect,
-									$customerAddrSelect, $Sst = -2, $adrSst = -2, $qrcodestring = '', $deposits = 0, $lines_deposits = array(), $title_if_deposit = '', $adrfact = '', $includealias = 0, $left_recep_corner = 92, $top_recep_corner = 40,
+									$customerAddrSelect, $Sst = -2, $adrSst = -2, $qrcodestring = '', $deposits = 0, $lines_deposits = [], $title_if_deposit = '', $adrfact = '', $includealias = 0, $left_recep_corner = 92, $top_recep_corner = 40,
 									$cf_show_creation_date = 0)
 	{
 
@@ -131,15 +131,15 @@
 				$typeadr		= 'accountStatus';
 			} elseif (in_array($object->element, array('propal', 'supplier_proposal'))) {
 				$arrayidcontact	= array('I'  => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'LI' => $object->element == 'supplier_proposal' ? $object->getIdContact('internal', 'SHIPPING') : array(),
+										'LI' => $object->element == 'supplier_proposal' ? $object->getIdContact('internal', 'SHIPPING') : [],
 										'E'  => $object->getIdContact('external', 'CUSTOMER'),
 										'L'  => $object->getIdContact('external', 'SHIPPING')
 										);
 			} elseif (in_array($object->element, array('commande', 'order_supplier'))) {
 				$arrayidcontact	= array('I'  => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'LI' => $object->element == 'order_supplier' ? $object->getIdContact('internal', 'SHIPPING') : array(),
+										'LI' => $object->element == 'order_supplier' ? $object->getIdContact('internal', 'SHIPPING') : [],
 										'E'  => $object->getIdContact('external', (!empty($doli_addr_livr_recep) ? 'SHIPPING' : 'CUSTOMER')),
-										'L'  => (empty($doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : array())
+										'L'  => (empty($doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : [])
 										);
 			} elseif (in_array($object->element, array('facture'))) {
 				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
@@ -151,7 +151,7 @@
 										'E' => $object->getIdContact('external', 'CUSTOMER'),
 										);
 			}
-			$addresses			= array();
+			$addresses			= [];
 			$dimCadres['yR']	= $use_iso_location && $posy <= $top_recep_corner ? $top_recep_corner : ($heightLogo > $posy + $tab_hl ? $heightLogo : $posy + $tab_hl);
 			$dimCadres['yS']	= $heightLogo + $tab_hl <= $dimCadres['yR'] ? $dimCadres['yR'] : $heightLogo;
 			$dimCadres['Y']		= $dimCadres['yR'] > $dimCadres['yS'] ? $dimCadres['yR'] : $dimCadres['yS'];
@@ -413,21 +413,21 @@
 	{
 		global $conf;
 
-		$invert_sender_recipient	= !empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)		? $conf->global->MAIN_INVERT_SENDER_RECIPIENT		: 0;
-		$frmeLineW					= !empty($conf->global->INFRASPLUS_PDF_FRM_E_LINE_WIDTH)	? $conf->global->INFRASPLUS_PDF_FRM_E_LINE_WIDTH	: 0.2;
-		$frmeLineDash				= !empty($conf->global->INFRASPLUS_PDF_FRM_E_LINE_DASH)		? $conf->global->INFRASPLUS_PDF_FRM_E_LINE_DASH		: '0';
-		$frmeLineColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_E_LINE_COLOR)	? $conf->global->INFRASPLUS_PDF_FRM_E_LINE_COLOR	: '';
+		$invert_sender_recipient	= getDolGlobalInt('MAIN_INVERT_SENDER_RECIPIENT', 0);
+		$frmeLineW					= getDolGlobalFloat('INFRASPLUS_PDF_FRM_E_LINE_WIDTH', 0.2);
+		$frmeLineDash				= getDolGlobalInt('INFRASPLUS_PDF_FRM_E_LINE_DASH', 0);
+		$frmeLineColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_E_LINE_COLOR', '128,128,128');
 		$frmeLineColor				= explode(',', $frmeLineColor);
-		$frmeBgColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_E_BG_COLOR)		? $conf->global->INFRASPLUS_PDF_FRM_E_BG_COLOR		: '';
+		$frmeBgColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_E_BG_COLOR', '109,70,140');
 		$frmeBgColor				= explode(',', $frmeBgColor);
-		$frmeAlpha					= !empty($conf->global->INFRASPLUS_PDF_FRM_E_OPACITY)		? $conf->global->INFRASPLUS_PDF_FRM_E_OPACITY		: 30;
-		$frmrLineW					= !empty($conf->global->INFRASPLUS_PDF_FRM_R_LINE_WIDTH)	? $conf->global->INFRASPLUS_PDF_FRM_R_LINE_WIDTH	: 0.2;
-		$frmrLineDash				= !empty($conf->global->INFRASPLUS_PDF_FRM_R_LINE_DASH)		? $conf->global->INFRASPLUS_PDF_FRM_R_LINE_DASH		: '0';
-		$frmrLineColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_R_LINE_COLOR)	? $conf->global->INFRASPLUS_PDF_FRM_R_LINE_COLOR	: '';
+		$frmeAlpha					= getDolGlobalInt('INFRASPLUS_PDF_FRM_E_OPACITY', 30);
+		$frmrLineW					= getDolGlobalFloat('INFRASPLUS_PDF_FRM_R_LINE_WIDTH', 0.2);
+		$frmrLineDash				= getDolGlobalInt('INFRASPLUS_PDF_FRM_R_LINE_DASH', 0);
+		$frmrLineColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_R_LINE_COLOR', '128,128,128');
 		$frmrLineColor				= explode(',', $frmrLineColor);
-		$frmrBgColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_R_BG_COLOR)		? $conf->global->INFRASPLUS_PDF_FRM_R_BG_COLOR		: '';
+		$frmrBgColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_R_BG_COLOR', '109,70,140');
 		$frmrBgColor				= explode(',', $frmrBgColor);
-		$frmrAlpha					= !empty($conf->global->INFRASPLUS_PDF_FRM_R_OPACITY)		? $conf->global->INFRASPLUS_PDF_FRM_R_OPACITY		: 30;
+		$frmrAlpha					= getDolGlobalInt('INFRASPLUS_PDF_FRM_R_OPACITY', 30);
 		$frmeLineCap				= 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		$frmeLineStyle				= array('width'=>$frmeLineW, 'dash'=>$frmeLineDash, 'cap'=>$frmeLineCap, 'color'=>$frmeLineColor);
 		$frmrLineCap				= 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
@@ -492,11 +492,11 @@
 	{
 		global $conf;
 
-		$frmeTxtColor		= !empty($conf->global->INFRASPLUS_PDF_FRM_E_TEXT_COLOR) ? $conf->global->INFRASPLUS_PDF_FRM_E_TEXT_COLOR : '';
+		$frmeTxtColor		= getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '0,0,0');
 		$frmeTxtColor		= explode(',', $frmeTxtColor);
-		$frmrTxtColor		= !empty($conf->global->INFRASPLUS_PDF_FRM_R_TEXT_COLOR) ? $conf->global->INFRASPLUS_PDF_FRM_R_TEXT_COLOR : '';
+		$frmrTxtColor		= getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '0,0,0');
 		$frmrTxtColor		= explode(',', $frmrTxtColor);
-		$dateduetxtcolor	= !empty($conf->global->INFRASPLUS_PDF_FACT_DATEDUE_COLOR) ? $conf->global->INFRASPLUS_PDF_FACT_DATEDUE_COLOR : 0;
+		$dateduetxtcolor	= getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '0,0,0');
 		$dateduetxtcolor	= explode(',', $dateduetxtcolor);
 		$w					= $dimCadres['S'];
 		$posx				= $formatpage['mgauche'];

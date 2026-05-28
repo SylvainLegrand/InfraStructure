@@ -174,7 +174,7 @@
 	if (preg_match('/update_(.*)/', $action, $reg)) {
 		$list		= array('manage'	=> array('INFRASPLUS_PDF_ROUNDING_UP',				'INFRASPLUS_PDF_ROUNDING_TOT'),
 							'Gen'		=> array('INFRASPLUS_PDF_ROUNDED_REC',				'INFRASPLUS_PDF_FACTURE_PAID_WATERMARK',	'INFRASPLUS_PDF_ENABLE_TEST_WATERMARK', 'INFRASPLUS_PDF_PROPAL_PROV_WATERMARK'),
-							'Template'	=> array(),
+							'Template'	=> [],
 							'Head'		=> array('INFRASPLUS_PDF_SPE_HEAD',					'INFRASPLUS_PDF_INVOICE_TITLE_IF_DEPOSIT',	'INFRASPLUS_PDF_TITLE_SIZE', 			'INFRASPLUS_PDF_FRM_E_LINE_WIDTH',
 												'INFRASPLUS_PDF_FRM_E_LINE_DASH',			'INFRASPLUS_PDF_FRM_E_LINE_OPACITY',		'INFRASPLUS_PDF_FRM_E_OPACITY',			'INFRASPLUS_PDF_FRM_R_LINE_WIDTH',
 												'INFRASPLUS_PDF_FRM_R_LINE_DASH',			'INFRASPLUS_PDF_FRM_R_LINE_OPACITY',		'INFRASPLUS_PDF_FRM_R_OPACITY',			'INFRASPLUS_PDF_FOLD_MARK',
@@ -213,9 +213,9 @@
 							'FootP'		=> array('INFRASPLUS_PDF_FOOTER_FREETEXT',			'INFRASPLUS_PDF_SPE_FOOT',					'INFRASPLUS_PDF_X_PAGE_NUM',			'INFRASPLUS_PDF_Y_PAGE_NUM'),
 							'CGx'		=> array('INFRASPLUS_PDF_CGV_FROM_PRO_LABEL',		'INFRASPLUS_PDF_CGV',						'INFRASPLUS_PDF_CGI',					'INFRASPLUS_PDF_CGA')
 							);
-		$listcolor	= array('manage'	=> array(),
+		$listcolor	= array('manage'	=> [],
 							'Gen'		=> array('INFRASPLUS_PDF_BODY_TEXT_COLOR'),
-							'Template'	=> array(),
+							'Template'	=> [],
 							'Head'		=> array('INFRASPLUS_PDF_HEADER_TEXT_COLOR',		'INFRASPLUS_PDF_FACT_DATEDUE_COLOR',		'INFRASPLUS_PDF_FRM_E_LINE_COLOR',		'INFRASPLUS_PDF_FRM_E_BG_COLOR',
 												'INFRASPLUS_PDF_FRM_E_TEXT_COLOR',			'INFRASPLUS_PDF_FRM_R_LINE_COLOR',			'INFRASPLUS_PDF_FRM_R_BG_COLOR',		'INFRASPLUS_PDF_FRM_R_TEXT_COLOR'),
 							'Body'		=> array('INFRASPLUS_PDF_BACKGROUND_COLOR',			'INFRASPLUS_PDF_TEXT_COLOR',
@@ -224,8 +224,8 @@
 												'INFRASPLUS_PDF_BODY_SUBTO_COLOR',
 												'INFRASPLUS_PDF_BODY_OUV_COLOR',			'INFRASPLUS_PDF_TEXT_OUV_COLOR',			'INFRASPLUS_PDF_DESC_FULL_LINE_COLOR',	'INFRASPLUS_PDF_DESC_PERIOD_COLOR'),
 							'Foot'		=> array('INFRASPLUS_PDF_SIGN_LINE_COLOR', 			'INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR'),
-							'FootP'		=> array(),
-							'CGx'		=> array()
+							'FootP'		=> [],
+							'CGx'		=> []
 							);
 		$confkey	= $reg[1];
 		$error		= 0;
@@ -260,7 +260,7 @@
 			$result		= dolibarr_set_const($db, 'INFRASPLUS_PDF_FONT', GETPOST('defaultfont'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			$resultTest	= infraspackplus_test_font();
 			if (empty($resultTest)) {
-				setEventMessages($langs->trans('InfraSPlusParamTestFondKO'), array(), 'errors');
+				setEventMessages($langs->trans('InfraSPlusParamTestFondKO'), [], 'errors');
 			}
 		}
 		if ($confkey == 'Template') {
@@ -281,17 +281,17 @@
 				$outpath	= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/tmp/';
 				$fontname	= infraspackplus_Add_TCPDF_Font ('TrueTypeUnicode', '', 32, $outpath, 3, 1, true, false, $pathTTFs.$dest_file);
 				if ($fontname === false) {
-					setEventMessages($langs->trans('InfraSPlusParamAddFontKo', $fontname), array(), 'errors');
+					setEventMessages($langs->trans('InfraSPlusParamAddFontKo', $fontname), [], 'errors');
 				} else {
 					dolCopyDir($outpath, $pathfonts, 0, 1);
 					array_map('unlink', glob($outpath.'*'));
-					setEventMessages($langs->trans('InfraSPlusParamAddFontOk', $fontname), array(), 'mesgs');
+					setEventMessages($langs->trans('InfraSPlusParamAddFontOk', $fontname), [], 'mesgs');
 				}
 			} else {
-				setEventMessages($langs->trans('InfraSPlusParamAddFontKo', $fontname), array(), 'errors');
+				setEventMessages($langs->trans('InfraSPlusParamAddFontKo', $fontname), [], 'errors');
 			}
 		} else {
-			setEventMessages($langs->trans('InfraSPlusParamAddTTFKo', $_FILES['fontfile']['name']), array(), 'errors');
+			setEventMessages($langs->trans('InfraSPlusParamAddTTFKo', $_FILES['fontfile']['name']), [], 'errors');
 		}
 	}
 	// Haut de page -> cadres, contenu des en-têtes, adresses, note, pliage, filigrame, dommées additionnelles (douanes)
@@ -302,7 +302,7 @@
 	// Pied de document -> encours, total des remises, multi-devises, number-words, zones de signature, mentions complémentaires
 	if (getDolGlobalString('INFRASPLUS_PDF_NUMBER_WORDS', '') && !in_array('numberwords', $conf->modules)) {
 		$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_NUMBER_WORDS', 0, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
-		setEventMessages($langs->trans('InfraSPlusParamErrorNumWords'), array(), 'errors');
+		setEventMessages($langs->trans('InfraSPlusParamErrorNumWords'), [], 'errors');
 	}
 	if ($action == 'modifyPaySpec') {
 		$result	= infraspackplus_modify_paiement_spec ();
@@ -328,12 +328,12 @@
 		$dest_file	= GETPOST('typeCG', 'alpha').'_'.GETPOST('CGVName', 'alpha').'.'.$extension;
 		$moved		= dol_move_uploaded_file($_FILES['CGVFile']['tmp_name'], $cgxdir.'/'.$dest_file, 1, 0, $_FILES['CGVFile']['error']);
 		if ($moved > 0) {
-			setEventMessages($dest_file.' : '.$langs->trans('FileSaved'), array(), 'mesgs');
+			setEventMessages($dest_file.' : '.$langs->trans('FileSaved'), [], 'mesgs');
 		} else if ($moved !== 1) {	// errors
 			if ($moved < 0) {
-				setEventMessages('UknownFileUploadError', array(), 'errors');	// API documented error
+				setEventMessages('UknownFileUploadError', [], 'errors');	// API documented error
 			} else {
-				setEventMessages($moved, array(), 'errors');	// We got an error string /o\
+				setEventMessages($moved, [], 'errors');	// We got an error string /o\
 			}
 		}
 	}
@@ -345,12 +345,12 @@
 			$dest_file	= $_FILES['pdffile']['name'];
 			$moved		= dol_move_uploaded_file($pdffile, $pdfsdir.'specialfiles/'.$dest_file, 1, 0, $_FILES['pdffile']['error']);
 			if ($moved > 0) {
-				setEventMessages($langs->trans('InfraSPlusParamAddFileOk', $dest_file), array(), 'mesgs');
+				setEventMessages($langs->trans('InfraSPlusParamAddFileOk', $dest_file), [], 'mesgs');
 			} else {
-				setEventMessages($langs->trans('InfraSPlusParamAddFileKo', $dest_file), array(), 'errors');
+				setEventMessages($langs->trans('InfraSPlusParamAddFileKo', $dest_file), [], 'errors');
 			}
 		} else {
-			setEventMessages($langs->trans('InfraSPlusParamAddPDFKo', $_FILES['pdffile']['name']), array(), 'errors');
+			setEventMessages($langs->trans('InfraSPlusParamAddPDFKo', $_FILES['pdffile']['name']), [], 'errors');
 		}
 	}
 	if ($action == 'setphp') {
@@ -360,12 +360,12 @@
 			$dest_file	= $_FILES['phpfile']['name'];
 			$moved		= dol_move_uploaded_file($phpfile, $phpsdir.'/'.$dest_file, 1, 0, $_FILES['phpfile']['error']);
 			if ($moved > 0) {
-				setEventMessages($langs->trans('InfraSPlusParamAddFileOk', $dest_file), array(), 'mesgs');
+				setEventMessages($langs->trans('InfraSPlusParamAddFileOk', $dest_file), [], 'mesgs');
 			} else {
-				setEventMessages($langs->trans('InfraSPlusParamAddFileKo', $dest_file), array(), 'errors');
+				setEventMessages($langs->trans('InfraSPlusParamAddFileKo', $dest_file), [], 'errors');
 			}
 		} else {
-			setEventMessages($langs->trans('InfraSPlusParamAddPHPKo', $_FILES['phpfile']['name']), array(), 'errors');
+			setEventMessages($langs->trans('InfraSPlusParamAddPHPKo', $_FILES['phpfile']['name']), [], 'errors');
 		}
 	}
 	// Suppression CGV && Fichiers spéciaux
@@ -378,19 +378,19 @@
 		$urlfile_ext		= pathinfo($urlfile, PATHINFO_EXTENSION);
 		$a					= dol_delete_file(($typefile == 'cgv' ? $cgxdir : ($typefile == 'pdf' ? $pdfsdir : $phpsdir)).$urlfile, 1);
 		if (!empty($a)) {
-			setEventMessages($langs->trans('InfraSPlusParamFileDeleted', $urlfile_filename.'.'.$urlfile_ext), array(), 'mesgs');
+			setEventMessages($langs->trans('InfraSPlusParamFileDeleted', $urlfile_filename.'.'.$urlfile_ext), [], 'mesgs');
 		} else {
-			setEventMessages($langs->trans('ErrorFailToDeleteFile', $urlfile), array(), 'errors');
+			setEventMessages($langs->trans('ErrorFailToDeleteFile', $urlfile), [], 'errors');
 		}
 	}
 	// Retour => message Ok ou Ko
 	if ($result == 1) {
-		setEventMessages($langs->trans('SetupSaved'), array(), 'mesgs');
+		setEventMessages($langs->trans('SetupSaved'), [], 'mesgs');
 		header('Location: '.$_SERVER['PHP_SELF']);
 		exit;
 	}
 	if ($result == -1) {
-		setEventMessages($langs->trans('Error'), array(), 'errors');
+		setEventMessages($langs->trans('Error'), [], 'errors');
 		header('Location: '.$_SERVER['PHP_SELF']);
 		exit;
 	}
@@ -402,7 +402,7 @@
 	$selected_font	= getDolGlobalString('INFRASPLUS_PDF_FONT', 'centurygothic');
 	$dirfonts		= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/fonts';
 	$listfonts		= dol_dir_list($dirfonts, 'files', 0, '\.php$', null, 'name', SORT_ASC, 0, 0, '', 0);
-	$listfonttouse	= array();
+	$listfonttouse	= [];
 	$name			= '';
 	foreach ($listfonts as $font) {
 		if (empty($font['name'])) {
@@ -506,7 +506,7 @@
     }
 	if (getDolGlobalString('INFRASPLUS_PDF_HIDE_DISCOUNT', '')) {
 		if (getDolGlobalString('INFRASPLUS_PDF_SHOW_UP_DISCOUNTED', '')) {
-			setEventMessages($langs->trans('InfraSPlusParamShowUPDiscountedKo1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamShowUPDiscountedKo2').'</span> '.$langs->trans('InfraSPlusParamShowUPDiscountedKo3').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamShowUPDiscountedKo4').'</span> !', array(), 'warnings');
+			setEventMessages($langs->trans('InfraSPlusParamShowUPDiscountedKo1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamShowUPDiscountedKo2').'</span> '.$langs->trans('InfraSPlusParamShowUPDiscountedKo3').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamShowUPDiscountedKo4').'</span> !', [], 'warnings');
 		}
 		$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_SHOW_UP_DISCOUNTED', 0, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
@@ -780,7 +780,7 @@
 	$selected_cga	= getDolGlobalString('INFRASPLUS_PDF_CGA', '');
 	// Fichiers spéciaux
 	$listpdfs			= dol_dir_list($pdfsdir.'specialfiles', 'files', 0, '\.pdf$', null, 'name', SORT_ASC, 1, 0, '', 0);
-	$listpdftouse		= array();
+	$listpdftouse		= [];
 	$listphps			= dol_dir_list($phpsdir, 'files', 0, '\.php$', null, 'name', SORT_ASC, 1, 0, '', 0);
 	$listspecialfiles	= array_column($listphps, 'name');
 	foreach ($listpdfs as $pdf) {
@@ -868,44 +868,44 @@
 		$num	= 2;
 		infraspackplus_print_btn_action('manage', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 3);
 		infraspackplus_print_btn_action('Template', $langs->trans('InfraSPlusParamChangeTemplate'), 2, 'left', 'InfraSPlusParamChange', true);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SEMIAUTOUPDATE', 'on_off', $langs->trans('InfraSPlusParamSemiAutoUpdate'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SEMIAUTOUPDATE', 'on_off', $langs->trans('InfraSPlusParamSemiAutoUpdate'), '', [], 1, 1, '', $num);
 		if (getDolGlobalInt('INFRASPLUS_PDF_SEMIAUTOUPDATE', 0)) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_UPDATE_ON_NOTES_CHANGE', 'on_off', $langs->trans('InfraSPlusParamUpdateOnNotesChange'), '', array(), 1, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_UPDATE_ON_EXF_CHANGE', 'on_off', $langs->trans('InfraSPlusParamUpdateOnExfChange'), '', array(), 1, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_UPDATE_ON_FIELDS_CHANGE', 'on_off', $langs->trans('InfraSPlusParamUpdateOnFieldsChange'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_UPDATE_ON_NOTES_CHANGE', 'on_off', $langs->trans('InfraSPlusParamUpdateOnNotesChange'), '', [], 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_UPDATE_ON_EXF_CHANGE', 'on_off', $langs->trans('InfraSPlusParamUpdateOnExfChange'), '', [], 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_UPDATE_ON_FIELDS_CHANGE', 'on_off', $langs->trans('InfraSPlusParamUpdateOnFieldsChange'), '', [], 1, 1, '', $num);
 		} else {
 			$num	+= 3;
 		}
-		$num	= infraspackplus_print_input('MAIN_DISABLE_PDF_AUTOUPDATE', 'on_off', $langs->trans('InfraSPlusParamAutoUpdate'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_MULTI_FILES', 'on_off', $langs->trans('InfraSPlusParamMultiFiles'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('MAIN_DISABLE_PDF_AUTOUPDATE', 'on_off', $langs->trans('InfraSPlusParamAutoUpdate'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_MULTI_FILES', 'on_off', $langs->trans('InfraSPlusParamMultiFiles'), '', [], 1, 1, '', $num);
 		// $num = 8
 		if (getDolGlobalString('INFRASPLUS_PDF_MULTI_FILES', '')) {
 			print '		<tr><td colspan = "2" class = "center">'.$langs->trans('InfraSPlusParamMultiFilesText').'</td><td>&nbsp;</td></tr>';
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROJECT_TIMESTAMP', 'on_off', $langs->trans('InfraSPlusParamProjectTimeStamp'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROJECT_TIMESTAMP', 'on_off', $langs->trans('InfraSPlusParamProjectTimeStamp'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_PROJECT', 'on_off', $langs->trans('InfraSPlusParamFilesFromProject'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_PROJECT', 'on_off', $langs->trans('InfraSPlusParamFilesFromProject'), '', [], 1, 1, '', $num);
 		if (isModEnabled('mrp')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_BOM', 'on_off', $langs->trans('InfraSPlusParamFilesFromBom'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_BOM', 'on_off', $langs->trans('InfraSPlusParamFilesFromBom'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 11
 		if (isModEnabled('expensereport')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_EXPENSEREPORT', 'on_off', $langs->trans('InfraSPlusParamFilesFromExpensereport').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_EXPENSEREPORT', 'on_off', $langs->trans('InfraSPlusParamFilesFromExpensereport').' '.$langs->trans('InfraSPlusGenModif'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_WITH_RAW_PRICES', 'on_off', $langs->trans('InfraSPlusParamPropalWithRawPrices'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_WITH_RAW_PRICES', 'on_off', $langs->trans('InfraSPlusParamPropalWithRawPrices'), '', [], 1, 1, '', $num);
 		if (getDolGlobalString('PRODUIT_PDF_MERGE_PROPAL', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PRODUIT_MERGE_PROPAL', 'on_off', $langs->trans('InfraSPlusParamProduitMergePropal') , '', array(), 1, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2', 'on_off', $langs->trans('InfraSPlusParamCheckProduitMergePropalX2'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PRODUIT_MERGE_PROPAL', 'on_off', $langs->trans('InfraSPlusParamProduitMergePropal') , '', [], 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2', 'on_off', $langs->trans('InfraSPlusParamCheckProduitMergePropalX2'), '', [], 1, 1, '', $num);
 		} else {
 			$num	+= 2;
 		}
 		if (isModEnabled('attestationtva')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_ATTESTATIONTVA', 'on_off', $langs->trans('InfraSPlusParamFilesFromAttestationTVA'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_ATTESTATIONTVA', 'on_off', $langs->trans('InfraSPlusParamFilesFromAttestationTVA'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
@@ -938,26 +938,26 @@
 		$metas	= '<a class = "pictopreview documentpreview paddingright" href = "/document.php?modulepart=ecm&attachment=0&file=temp/TEST.pdf&entity='.$conf->entity.'" mime = "application/pdf" target = "_blank" ><span class = "fa fa-search-plus" style = "color: gray"></span></a>
 					'.$form->selectarray('defaultfont', $selectOptions, $selected_font, 0, 0, 0, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFont'), '', $metas, 1, 2, '', $num);
-		$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '')) : array());
+		$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '')) : []);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BODY_TEXT_COLOR', 'color', $langs->trans('InfraSPlusParamBodyTextColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '')), '', $metas, 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_REFDATE_MERGE', 'on_off', $langs->trans('InfraSPlusParamRefDateMerge'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_REFDATE_MERGE', 'on_off', $langs->trans('InfraSPlusParamRefDateMerge'), '', [], 2, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '5', 'step' => '0.001');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ROUNDED_REC', 'input', $langs->trans('InfraSPlusParamRoundedRec'), '', $metas, 2, 1, '&nbsp;mm', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_PAID_WATERMARK', 'input', $langs->trans('InfraSPlusParamInvoicePaidMark'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTURE_PAID_WATERMARK', 'input', $langs->trans('InfraSPlusParamInvoicePaidMark'), '', [], 2, 1, '', $num);
 		// $num = 7
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ENABLE_TEST_WATERMARK', 'input', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamEnableTestMark').'</span>', '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ENABLE_TEST_WATERMARK', 'input', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamEnableTestMark').'</span>', '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_EXF_PROPALPROV', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_PROV_WATERMARK', 'input', $langs->trans('InfraSPlusParamProvisionalWatermark'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_PROV_WATERMARK', 'input', $langs->trans('InfraSPlusParamProvisionalWatermark'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_CUR_SYMB', 'on_off', $langs->trans('InfraSPlusParamCurSymb'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_CUR_SYMB', 'on_off', $langs->trans('InfraSPlusParamCurSymb'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_SHOW_CUR_SYMB', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_INFO_CUR', 'on_off', $langs->trans('InfraSPlusParamInfoCur'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_INFO_CUR', 'on_off', $langs->trans('InfraSPlusParamInfoCur'), '', [], 2, 1, '', $num);
 			$num++;
 		} else {
 			$num++;
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_CUR_SYMB_ON_TABLEAU_TOT', 'on_off', $langs->trans('InfraSPlusParamCurSymbOnTableauTot'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_CUR_SYMB_ON_TABLEAU_TOT', 'on_off', $langs->trans('InfraSPlusParamCurSymbOnTableauTot'), '', [], 2, 1, '', $num);
 		}
 		// $num = 12
 	}
@@ -975,22 +975,22 @@
 		$num	= 1;
 		infraspackplus_print_btn_action('Head', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 4);
 		if (getDolGlobalString('INFRASPLUS_PDF_NT_USED_AS_COVER', '') == -1) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FIRST_PAGE_EMPTY', 'on_off', $langs->trans('InfraSPlusParamFirstPageEmpty'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FIRST_PAGE_EMPTY', 'on_off', $langs->trans('InfraSPlusParamFirstPageEmpty'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SPE_HEAD', 'input', $langs->trans('InfraSPlusParamSpecialHead'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SMALL_HEAD_2', 'on_off', $langs->trans('InfraSPlusParamSmallHead2').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').' '.$langs->trans('InfraSPlusParamSmallHead2Forced').'</span>', '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVOICE_TITLE_IF_DEPOSIT', 'input', $langs->trans('InfraSPlusParamInvoiceTitleIfDeposit'), '', array(), 2, 1, '', $num);
-		$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '')) : array());
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SPE_HEAD', 'input', $langs->trans('InfraSPlusParamSpecialHead'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SMALL_HEAD_2', 'on_off', $langs->trans('InfraSPlusParamSmallHead2').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').' '.$langs->trans('InfraSPlusParamSmallHead2Forced').'</span>', '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVOICE_TITLE_IF_DEPOSIT', 'input', $langs->trans('InfraSPlusParamInvoiceTitleIfDeposit'), '', [], 2, 1, '', $num);
+		$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '')) : []);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HEADER_TEXT_COLOR', 'color', $langs->trans('InfraSPlusParamHeaderTextColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '')), '', $metas, 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HEADER_AFTER_ADDR', 'on_off', $langs->trans('InfraSPlusParamHeaderAfterAddr'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HEADER_AFTER_ADDR', 'on_off', $langs->trans('InfraSPlusParamHeaderAfterAddr'), '', [], 2, 1, '', $num);
 		// $num = 7
 		if (!getDolGlobalString('INFRASPLUS_PDF_HEADER_AFTER_ADDR', '')) {
 			$metas	= array('type' => 'number', 'class' => 'flat quatrevingtpercent right', 'dir' => 'rtl', 'min' => '0.1', 'max' => '3', 'step' => '0.1');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TITLE_SIZE', 'input', $langs->trans('InfraSPlusParamTitleSize').$langs->trans('InfraSPlusParamFontSize'), '', $metas, 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HEADER_ALIGN_LEFT', 'on_off', $langs->trans('InfraSPlusParamHeaderAlignLeft'), '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CREATOR_IN_HEADER', 'on_off', $langs->trans('InfraSPlusParamCreatorHeader'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HEADER_ALIGN_LEFT', 'on_off', $langs->trans('InfraSPlusParamHeaderAlignLeft'), '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CREATOR_IN_HEADER', 'on_off', $langs->trans('InfraSPlusParamCreatorHeader'), '', [], 2, 1, '', $num);
 			$num++;
 		} else {
 			$num	+= 3;
@@ -998,28 +998,28 @@
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SPACE_HEADERAFTER', 'input', $langs->trans('InfraSPlusParamSpaceBeforeHeaderAfter'), '', $metas, 2, 1, '&nbsp;mm', $num);
 		}
 		// $num = 11
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DATES_BR', 'on_off', $langs->trans('InfraSPlusParamDatesBR'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DATES_BOLD', 'on_off', $langs->trans('InfraSPlusParamDatesBold'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DATES_BR', 'on_off', $langs->trans('InfraSPlusParamDatesBR'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DATES_BOLD', 'on_off', $langs->trans('InfraSPlusParamDatesBold'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_DATES_BR', '')) {
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', 'color', $langs->trans('InfraSPlusParamFactDateDueColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '')), '', $metas, 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_CF_SHOW_CREATION_DATE', 'on_off', $langs->trans('InfraSPlusParamCFshowCreationDate'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_REFD_FROM_CUSTOMER', 'on_off', $langs->trans('InfraSPlusParamRefDFromCustomer'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_CF_SHOW_CREATION_DATE', 'on_off', $langs->trans('InfraSPlusParamCFshowCreationDate'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_REFD_FROM_CUSTOMER', 'on_off', $langs->trans('InfraSPlusParamRefDFromCustomer'), '', [], 2, 1, '', $num);
 		// $num = 16
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_NO_DATE_LINKED', 'on_off', $langs->trans('InfraSPlusParamNoDateLinked'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_NO_DATE_LINKED', 'on_off', $langs->trans('InfraSPlusParamNoDateLinked'), '', [], 2, 1, '', $num);
 		if (isModEnabled('propal')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_PROPAL', 'on_off', $langs->trans('InfraSPlusParamShowRefPropal'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_PROPAL', 'on_off', $langs->trans('InfraSPlusParamShowRefPropal'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('commande')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_ORDER', 'on_off', $langs->trans('InfraSPlusParamShowRefOrder'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_ORDER', 'on_off', $langs->trans('InfraSPlusParamShowRefOrder'), '', [], 2, 1, '', $num);
 			if (getDolGlobalString('INFRASPLUS_PDF_SHOW_REF_ORDER', '')) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_CUST_ON_ORDER', 'on_off', $langs->trans('InfraSPlusParamShowRefCustOnOrder'), '', array(), 2, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_CUST_ON_ORDER', 'on_off', $langs->trans('InfraSPlusParamShowRefCustOnOrder'), '', [], 2, 1, '', $num);
 			} else {
 				$num++;
 			}
@@ -1028,24 +1028,24 @@
 		}
 		// $num = 20
 		if (isModEnabled('expedition')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_SHIPPING', 'on_off', $langs->trans('InfraSPlusParamShowRefShipping'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_SHIPPING', 'on_off', $langs->trans('InfraSPlusParamShowRefShipping'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('contrat')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_CONTRACT', 'on_off', $langs->trans('InfraSPlusParamShowRefContract'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_CONTRACT', 'on_off', $langs->trans('InfraSPlusParamShowRefContract'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('ficheinter')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_FICHINTER', 'on_off', $langs->trans('InfraSPlusParamShowRefFichinter'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_FICHINTER', 'on_off', $langs->trans('InfraSPlusParamShowRefFichinter'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('projet')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_PROJECT', 'on_off', $langs->trans('InfraSPlusParamShowRefProject'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_REF_PROJECT', 'on_off', $langs->trans('InfraSPlusParamShowRefProject'), '', [], 2, 1, '', $num);
 			if (getDolGlobalString('INFRASPLUS_PDF_SHOW_REF_PROJECT', '')) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DESC_PROJECT', 'on_off', $langs->trans('InfraSPlusParamShowDescProject'), '', array(), 2, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DESC_PROJECT', 'on_off', $langs->trans('InfraSPlusParamShowDescProject'), '', [], 2, 1, '', $num);
 			} else {
 				$num++;
 			}
@@ -1054,14 +1054,14 @@
 		}
 		// $num = 25
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_LABELS_FRAMES', 'on_off', $langs->trans('InfraSPlusParamHideLabelsFrames', $langs->transnoentities('BillFrom'), $langs->transnoentities('BillTo')), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_RECEP_FRAME', 'on_off', $langs->trans('InfraSPlusParamHideRecepFrame'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_LABELS_FRAMES', 'on_off', $langs->trans('InfraSPlusParamHideLabelsFrames', $langs->transnoentities('BillFrom'), $langs->transnoentities('BillTo')), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_RECEP_FRAME', 'on_off', $langs->trans('InfraSPlusParamHideRecepFrame'), '', [], 2, 1, '', $num);
 		if (!getDolGlobalString('INFRASPLUS_PDF_HIDE_RECEP_FRAME', '') || !empty($specialHead['frameinfos'])) {
 			// $num = 27
 			infraspackplus_print_hr(4);
 			$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0.1', 'max' => '5', 'step' => '0.1');
 			$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_E_LINE_WIDTH', 'input', $langs->trans('InfraSPlusParamFrmELineW').$langs->trans('InfraSPlusParamLineW'), '', $metas, 2, 1, '&nbsp;mm', $num);
-			$metas		= array();
+			$metas		= [];
 			$metas[0]	= array($langs->trans('InfraSPlusParamLineDash0'), $langs->trans('InfraSPlusParamLineDash1'), $langs->trans('InfraSPlusParamLineDash2'), $langs->trans('InfraSPlusParamLineDash4'));
 			$metas[1]	= array('INFRASPLUS_PDF_FRM_E_LINE_DASH_0' => '&nbsp;&nbsp;'.img_picto('Ligne continue',		'Dash0.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
 								'INFRASPLUS_PDF_FRM_E_LINE_DASH_1' => '&nbsp;&nbsp;'.img_picto('Pointillés égaux',		'Dash1.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
@@ -1069,15 +1069,15 @@
 								'INFRASPLUS_PDF_FRM_E_LINE_DASH_4' => '&nbsp;&nbsp;'.img_picto('Ligne discontinue',		'Dash4.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'));
 			$end		= '<input type = "text" class = "flat quatrevingtpercent right infrasplusfontsizeinherit infrasplusnopadding" id = "INFRASPLUS_PDF_FRM_E_LINE_DASH" name = "INFRASPLUS_PDF_FRM_E_LINE_DASH" '.$inputFrmLineDash.'>';
 			$num		= infraspackplus_print_line_inputs('', $langs->trans('InfraSPlusParamFrmELineDash'), $metas, 2, 200, $end, $num);
-			$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_E_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_E_LINE_COLOR', '')) : array());
+			$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_E_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_E_LINE_COLOR', '')) : []);
 			$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_E_LINE_COLOR', 'color', $langs->trans('InfraSPlusParamFrmELineColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_FRM_E_LINE_COLOR', '')), '', $metas, 2, 1, '', $num);
 			$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100');
 			$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_E_LINE_OPACITY', 'input', $langs->trans('InfraSPlusParamFrmELineOpacity'), '', $metas, 2, 1, '&nbsp;%', $num);
-			$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_E_BG_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_E_BG_COLOR', '')) : array());
+			$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_E_BG_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_E_BG_COLOR', '')) : []);
 			$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_E_BG_COLOR', 'color', $langs->trans('InfraSPlusParamFrmEBgColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_FRM_E_BG_COLOR', '')), '', $metas, 2, 1, '', $num);
 			$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100');
 			$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_E_OPACITY', 'input', $langs->trans('InfraSPlusParamFrmEOpacity'), '', $metas, 2, 1, '&nbsp;%', $num);
-			$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '')) : array());
+			$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '')) : []);
 			$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', 'color', $langs->trans('InfraSPlusParamFrmETextColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '')), '', $metas, 2, 1, '', $num);
 		} else {
 			$num	+= 7;
@@ -1086,7 +1086,7 @@
 		infraspackplus_print_hr(4);
 		$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0.1', 'max' => '5', 'step' => '0.1');
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_R_LINE_WIDTH', 'input', $langs->trans('InfraSPlusParamFrmRLineW').$langs->trans('InfraSPlusParamLineW'), '', $metas, 2, 1, '&nbsp;mm', $num);
-		$metas		= array();
+		$metas		= [];
 		$metas[0]	= array($langs->trans('InfraSPlusParamLineDash0'), $langs->trans('InfraSPlusParamLineDash1'), $langs->trans('InfraSPlusParamLineDash2'), $langs->trans('InfraSPlusParamLineDash4'));
 		$metas[1]	= array('INFRASPLUS_PDF_FRM_R_LINE_DASH_0' => '&nbsp;&nbsp;'.img_picto('Ligne continue',		'Dash0.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
 							'INFRASPLUS_PDF_FRM_R_LINE_DASH_1' => '&nbsp;&nbsp;'.img_picto('Pointillés égaux',		'Dash1.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
@@ -1094,48 +1094,48 @@
 							'INFRASPLUS_PDF_FRM_R_LINE_DASH_4' => '&nbsp;&nbsp;'.img_picto('Ligne discontinue',		'Dash4.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'));
 		$end		= '<input type = "text" class = "flat quatrevingtpercent right infrasplusfontsizeinherit infrasplusnopadding" id = "INFRASPLUS_PDF_FRM_R_LINE_DASH" name = "INFRASPLUS_PDF_FRM_R_LINE_DASH" '.$inputFrmRLineDash.'>';
 		$num		= infraspackplus_print_line_inputs('', $langs->trans('InfraSPlusParamFrmRLineDash'), $metas, 2, 200, $end, $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_R_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_R_LINE_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_R_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_R_LINE_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_R_LINE_COLOR', 'color', $langs->trans('InfraSPlusParamFrmRLineColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_FRM_R_LINE_COLOR', '')), '', $metas, 2, 1, '', $num);
 		$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100');
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_R_LINE_OPACITY', 'input', $langs->trans('InfraSPlusParamFrmRLineOpacity'), '', $metas, 2, 1, '&nbsp;%', $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_R_BG_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_R_BG_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_R_BG_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_R_BG_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_R_BG_COLOR', 'color', $langs->trans('InfraSPlusParamFrmRBgColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_FRM_R_BG_COLOR', '')), '', $metas, 2, 1, '', $num);
 		$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100');
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_R_OPACITY', 'input', $langs->trans('InfraSPlusParamFrmROpacity'), '', $metas, 2, 1, '&nbsp;%', $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', 'color', $langs->trans('InfraSPlusParamFrmRTextColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '')), '', $metas, 2, 1, '', $num);
 		// $num = 41
 		infraspackplus_print_hr(4);
 		if (isModEnabled('product')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADR_PROD', 'on_off', $langs->trans('InfraSPlusParamshowAdrProd'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_ADR_PROD', 'on_off', $langs->trans('InfraSPlusParamshowAdrProd'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_NUM_CLI', 'on_off', $langs->trans('InfraSPlusParamshowNumCli'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_NUM_CLI', 'on_off', $langs->trans('InfraSPlusParamshowNumCli'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_SHOW_NUM_CLI', '') && !getDolGlobalString('INFRASPLUS_PDF_HEADER_AFTER_ADDR', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_NUM_CLI_FRM', 'on_off', $langs->trans('InfraSPlusParamNumCliFrm'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_NUM_CLI_FRM', 'on_off', $langs->trans('InfraSPlusParamNumCliFrm'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 44
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_CODE_CLI_COMPT', 'on_off', $langs->trans('InfraSPlusParamshowCodeCliComp'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_CODE_CLI_COMPT', 'on_off', $langs->trans('InfraSPlusParamshowCodeCliComp'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_SHOW_CODE_CLI_COMPT', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CODE_CLI_COMPT_FRM', 'on_off', $langs->trans('InfraSPlusParamCodeCliCompFrm'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CODE_CLI_COMPT_FRM', 'on_off', $langs->trans('InfraSPlusParamCodeCliCompFrm'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 46
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PRJ_DATEO_IN_NOTE', 'on_off', $langs->trans('InfraSPlusParamPrjDateoNote'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FIRST_SALES_REP_IN_NOTE', 'on_off', $langs->trans('InfraSPlusParam1SalesRepNote'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PRJ_DATEO_IN_NOTE', 'on_off', $langs->trans('InfraSPlusParamPrjDateoNote'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FIRST_SALES_REP_IN_NOTE', 'on_off', $langs->trans('InfraSPlusParam1SalesRepNote'), '', [], 2, 1, '', $num);
 		// $num = 48
 		if (getDolGlobalInt('INFRASPLUS_PDF_FIRST_SALES_REP_IN_NOTE', 0)) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FIRST_SALES_REP_BOLD', 'on_off', $langs->trans('InfraSPlusParam1SalesRepBold'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FIRST_SALES_REP_BOLD', 'on_off', $langs->trans('InfraSPlusParam1SalesRepBold'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_LAST_NOTE_AS_TABLE', 'on_off', $langs->trans('InfraSPlusParam1LastNoteAsTable'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_LAST_NOTE_AS_TABLE', 'on_off', $langs->trans('InfraSPlusParam1LastNoteAsTable'), '', [], 2, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '10');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FOLD_MARK', 'input', $langs->trans('InfraSPlusParamFoldMark'), '', $metas, 2, 1, '&nbsp;mm', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '60', 'max' => '100');
@@ -1159,22 +1159,22 @@
 	if (!empty($accessright)) {
 		$num		= 1;
 		infraspackplus_print_btn_action('Body', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 4);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BACKGROUND_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BACKGROUND_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BACKGROUND_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BACKGROUND_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_BACKGROUND_COLOR', 'color', $langs->trans('InfraSPlusParamBackgroundColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_BACKGROUND_COLOR', '')), '', $metas, 2, 1, '', $num);
-		$num		= infraspackplus_print_input('INFRASPLUS_PDF_TITLE_BG', 'on_off', $langs->trans('InfraSPlusParamtTitleBackground'), '', array(), 2, 1, '', $num);
-		$num		= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_COLOR_AUTO', 'on_off', $langs->trans('InfraSPlusParamTextColorAuto'), '', array(), 2, 1, '', $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_COLOR', '')) : array());
+		$num		= infraspackplus_print_input('INFRASPLUS_PDF_TITLE_BG', 'on_off', $langs->trans('InfraSPlusParamtTitleBackground'), '', [], 2, 1, '', $num);
+		$num		= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_COLOR_AUTO', 'on_off', $langs->trans('InfraSPlusParamTextColorAuto'), '', [], 2, 1, '', $num);
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_COLOR', 'color', $langs->trans('InfraSPlusParamTextColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_TEXT_COLOR', '')), '', $metas, 2, 1, '', $num);
 		// $num = 5
 		infraspackplus_print_hr(4);
 		$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '4', 'max' => '20', 'step' => '0.1');
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_HEIGHT_TOP_TABLE', 'input', $langs->trans('InfraSPlusParamHeightTopTable1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamHeightTopTable2'), '', $metas, 2, 1, '&nbsp;mm', $num);
-		$num		= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_TOP_TABLE', 'on_off', $langs->trans('InfraSPlusParamhidetoptable'), '', array(), 2, 1, '', $num);
+		$num		= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_TOP_TABLE', 'on_off', $langs->trans('InfraSPlusParamhidetoptable'), '', [], 2, 1, '', $num);
 		// $num = 7
 		infraspackplus_print_hr(4);
 		$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0.1', 'max' => '5', 'step' => '0.1');
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_TBL_LINE_WIDTH', 'input', $langs->trans('InfraSPlusParamTblLineW').$langs->trans('InfraSPlusParamLineW'), '', $metas, 2, 1, '&nbsp;mm', $num);
-		$metas		= array();
+		$metas		= [];
 		$metas[0]	= array($langs->trans('InfraSPlusParamLineDash0'), $langs->trans('InfraSPlusParamLineDash1'), $langs->trans('InfraSPlusParamLineDash2'), $langs->trans('InfraSPlusParamLineDash4'));
 		$metas[1]	= array('INFRASPLUS_PDF_TBL_LINE_DASH_0' => '&nbsp;&nbsp;'.img_picto('Ligne continue',		'Dash0.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
 							'INFRASPLUS_PDF_TBL_LINE_DASH_1' => '&nbsp;&nbsp;'.img_picto('Pointillés égaux',	'Dash1.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
@@ -1182,11 +1182,11 @@
 							'INFRASPLUS_PDF_TBL_LINE_DASH_4' => '&nbsp;&nbsp;'.img_picto('Ligne discontinue',	'Dash4.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'));
 		$end		= '<input type = "text" class = "flat quatrevingtpercent right infrasplusfontsizeinherit infrasplusnopadding" id = "INFRASPLUS_PDF_TBL_LINE_DASH" name = "INFRASPLUS_PDF_TBL_LINE_DASH" '.$inputTblLineDash.'>';
 		$num		= infraspackplus_print_line_inputs('', $langs->trans('InfraSPlusParamTblLineDash'), $metas, 2, 200, $end, $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TBL_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TBL_LINE_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TBL_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TBL_LINE_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_TBL_LINE_COLOR', 'color', $langs->trans('InfraSPlusParamTblLineColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_TBL_LINE_COLOR', '')), '', $metas, 2, 1, '', $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_VER_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_VER_LINE_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_VER_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_VER_LINE_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_VER_LINE_COLOR', 'color', $langs->trans('InfraSPlusParamVerLineColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_VER_LINE_COLOR', '')), '', $metas, 2, 1, '', $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_HOR_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_HOR_LINE_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_HOR_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_HOR_LINE_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_HOR_LINE_COLOR', 'color', $langs->trans('InfraSPlusParamHorLineColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_HOR_LINE_COLOR', '')), '', $metas, 2, 1, '', $num);
 		if (!getDolGlobalString('MAIN_PDF_DASH_BETWEEN_LINES', '')) {
 			$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '10');
@@ -1197,26 +1197,26 @@
 		if (isModEnabled('subtotal')) {
 			// $num = 13
 			infraspackplus_print_hr(4);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BODY_SUBTI_COLOR', 'color', $langs->trans('InfraSPlusParamBodySubTiColor').$txtSubtoColorSubti.' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '')), '', $metas, 2, 1, '', $num);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', 'color', $langs->trans('InfraSPlusParamTextSubTiColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '')), '', $metas, 2, 1, '', $num);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', 'color', $langs->trans('InfraSPlusParamTextSubToColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '')), '', $metas, 2, 1, '', $num);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_DESC_SUBTO_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_DESC_SUBTO_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_DESC_SUBTO_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_DESC_SUBTO_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_SUBTO_COLOR', 'color', $langs->trans('InfraSPlusParamDescSubToColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_DESC_SUBTO_COLOR', '')), '', $metas, 2, 1, '', $num);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTO_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTO_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTO_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTO_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BODY_SUBTO_COLOR', 'color', $langs->trans('InfraSPlusParamBodySubToColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTO_COLOR', '')), '', $metas, 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_BODY_SUBTO', 'on_off', $langs->trans('InfraSPlusParamHideBodySubTo'), '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BODY_SUBTO_COLOR_SUBTI', 'on_off', $langs->trans('InfraSPlusParamBodySubToColorSubTi'), '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SUBTI_WITH_SUBTO', 'on_off', $langs->trans('InfraSPlusParamSubTiWithSubTo'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_BODY_SUBTO', 'on_off', $langs->trans('InfraSPlusParamHideBodySubTo'), '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BODY_SUBTO_COLOR_SUBTI', 'on_off', $langs->trans('InfraSPlusParamBodySubToColorSubTi'), '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SUBTI_WITH_SUBTO', 'on_off', $langs->trans('InfraSPlusParamSubTiWithSubTo'), '', [], 2, 1, '', $num);
 		} else {
 			$num	+= 8;
 		}
 		if (isModEnabled('milestone')) {
 			// $num = 21
 			infraspackplus_print_hr(4);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', 'color', $langs->trans('InfraSPlusParamTextJalonColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '')), '', $metas, 2, 1, '', $num);
 		} else {
 			$num++;
@@ -1224,17 +1224,17 @@
 		if (isModEnabled('ouvrage')) {
 			// $num = 22
 			infraspackplus_print_hr(4);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_OUV_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_OUV_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_OUV_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_OUV_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BODY_OUV_COLOR', 'color', $langs->trans('InfraSPlusParamBodyOuvColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_BODY_OUV_COLOR', '')), '', $metas, 2, 1, '', $num);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_OUV_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_OUV_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_TEXT_OUV_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_TEXT_OUV_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_OUV_COLOR', 'color', $langs->trans('InfraSPlusParamTextOuvColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_TEXT_OUV_COLOR', '')), '', $metas, 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_OUV_STYLE', 'input', $langs->trans('InfraSPlusParamTextOuvStyle'), '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_OUV_STYLE_STD', 'on_off', $langs->trans('InfraSPlusParamDescOuvStyleStd'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TEXT_OUV_STYLE', 'input', $langs->trans('InfraSPlusParamTextOuvStyle'), '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_OUV_STYLE_STD', 'on_off', $langs->trans('InfraSPlusParamDescOuvStyleStd'), '', [], 2, 1, '', $num);
 			$metas	= $form->selectarray('INFRASPLUS_PDF_OUVRAGE_BULLET', array('>>' => '>>', '>' => '>', '=>' => '=>', '¤' => '¤'), $workBullet, 1, 0, 0, '', 1, 0, 0, '', 'quatrevingtpercent');
 			$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamOuvrageBullet'), '', $metas, 2, 1, '', $num);
 			$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '10');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_OUVRAGE_DETAILSEP_HIGHT', 'input', $langs->trans('InfraSPlusParamOuvrageDetailSepHight'), '', $metas, 2, 1, '&nbsp;mm', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDDEN_OUV', 'on_off', $langs->trans('InfraSPlusParamHiddenOuv'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDDEN_OUV', 'on_off', $langs->trans('InfraSPlusParamHiddenOuv'), '', [], 2, 1, '', $num);
 		} else {
 			$num	+= 7;
 		}
@@ -1252,24 +1252,24 @@
 			$num	+= 3;
 		}
 		// $num = 32
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_NUM_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowNumCol'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_REF_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowRefCol').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_NUM_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowNumCol'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_REF_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowRefCol').' '.$langs->trans('InfraSPlusGenModif'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_WITH_REF_COLUMN', '') && isModEnabled('barcode')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_REF_WITH_GENCODE', 'on_off', $langs->trans('InfraSPlusParamRefColumnWithGencode'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_REF_WITH_GENCODE', 'on_off', $langs->trans('InfraSPlusParamRefColumnWithGencode'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (getDolGlobalString('INFRASPLUS_PDF_WITH_NUM_COLUMN', '') || getDolGlobalString('INFRASPLUS_PDF_WITH_REF_COLUMN', '')) {
 			$metas	= $form->selectarray('INFRASPLUS_PDF_FORCE_ALIGN_LEFT_REF', array('L' => 'Left', 'C' => 'Center', 'R' => 'Right'), $alignLeftRef, 0, 0, 0, '', 1, 0, 0, '', 'quatrevingtpercent');
 			$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamForceAlignLeftRefColumn'), '', $metas, 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BOLD_REF', 'on_off', $langs->trans('InfraSPlusParamBoldRefColumn'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BOLD_REF', 'on_off', $langs->trans('InfraSPlusParamBoldRefColumn'), '', [], 2, 1, '', $num);
 		} else {
 			$num	+= 2;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_SUPPLIER_REF_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowSupRefCol'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_SUPPLIER_REF_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowSupRefCol'), '', [], 2, 1, '', $num);
 		// $num = 38
 		if (getDolGlobalString('INFRASPLUS_PDF_EXF_ECOTAX', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_ECOTAX_ON_SUPPLIER_ORDER', 'on_off', $langs->trans('InfraSPlusParamEXFecoTaxOnSupplierOrder'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_ECOTAX_ON_SUPPLIER_ORDER', 'on_off', $langs->trans('InfraSPlusParamEXFecoTaxOnSupplierOrder'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
@@ -1282,11 +1282,11 @@
 		}
 		// $num = 40
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_FULL_LINE', 'on_off', $langs->trans('InfraSPlusParamDescriptionFullLine'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_FULL_LINE', 'on_off', $langs->trans('InfraSPlusParamDescriptionFullLine'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_DESC_FULL_LINE', '')) {
 			$metas = array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100', 'step' => '1');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_FULL_LINE_WIDTH', 'input', $langs->trans('InfraSPlusParamDescFullLineWidth'), '', $metas, 2, 1, '&nbsp;&percnt;', $num);
-			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_DESC_FULL_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_DESC_FULL_LINE_COLOR', '')) : array());
+			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_DESC_FULL_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_DESC_FULL_LINE_COLOR', '')) : []);
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_FULL_LINE_COLOR', 'color', $langs->trans('InfraSPlusParamDescFullLineColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_DESC_FULL_LINE_COLOR', '')), '', $metas, 2, 1, '', $num);
 			infraspackplus_print_hr(4);
 		} else {
@@ -1295,76 +1295,76 @@
 		// $num = 43
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '20', 'step' => '1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_PERIOD_FONT_SIZE','input', $langs->trans('InfraSPlusParamDescPeriodFontSize'),'', $metas, 2, 1, '&nbsp;pt', $num);
-		$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_DESC_PERIOD_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_DESC_PERIOD_COLOR', '')) : array());
+		$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_DESC_PERIOD_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_DESC_PERIOD_COLOR', '')) : []);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_PERIOD_COLOR','color',$langs->trans('InfraSPlusParamDescPeriodColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_DESC_PERIOD_COLOR', '')),'', $metas, 2, 1, '', $num);
 		// $num = 45
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_CLEAN_FONT', 'on_off', $langs->trans('InfraSPlusParamDescriptionCleanFont'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_LABEL', 'on_off', $langs->trans('InfraSPlusParamHideLabel'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DESC_CLEAN_FONT', 'on_off', $langs->trans('InfraSPlusParamDescriptionCleanFont'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_LABEL', 'on_off', $langs->trans('InfraSPlusParamHideLabel'), '', [], 2, 1, '', $num);
 		if (!getDolGlobalString('INFRASPLUS_PDF_HIDE_LABEL', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DESC_DEV', 'on_off', $langs->trans('InfraSPlusParamShowDescDev'), '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_ONE_DESC', 'on_off', $langs->trans('InfraSPlusParamOnlyOneDesc1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamOnlyOneDesc2').'</span> '.$langs->trans('InfraSPlusParamOnlyOneDesc3'), '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LABEL_BOLD', 'on_off', $langs->trans('InfraSPlusParamLabelBold1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamLabelBold2'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DESC_DEV', 'on_off', $langs->trans('InfraSPlusParamShowDescDev'), '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_ONE_DESC', 'on_off', $langs->trans('InfraSPlusParamOnlyOneDesc1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamOnlyOneDesc2').'</span> '.$langs->trans('InfraSPlusParamOnlyOneDesc3'), '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LABEL_BOLD', 'on_off', $langs->trans('InfraSPlusParamLabelBold1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamLabelBold2'), '', [], 2, 1, '', $num);
 		} else {
 			$num += 3;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXTRADET_SECOND', 'on_off', $langs->trans('InfraSPlusParamExtraDetSecond'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_SERVICE_DATES', 'on_off', $langs->trans('InfraSPlusParamServiceDates'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXTRADET_SECOND', 'on_off', $langs->trans('InfraSPlusParamExtraDetSecond'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_SERVICE_DATES', 'on_off', $langs->trans('InfraSPlusParamServiceDates'), '', [], 2, 1, '', $num);
 		// $num = 52
 		if (isModEnabled('ficheinter')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_TIME_SPENT_FI', 'on_off', $langs->trans('InfraSPlusParamTimeSpentFI').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_TIME_SPENT_FI', 'on_off', $langs->trans('InfraSPlusParamTimeSpentFI').' '.$langs->trans('InfraSPlusGenModif'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('management')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DATES_HOURS_FI', 'on_off', $langs->trans('InfraSPlusParamDatesHoursFI'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DATES_HOURS_FI', 'on_off', $langs->trans('InfraSPlusParamDatesHoursFI'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_QTY', 'on_off', $langs->trans('InfraSPlusParamHideQty'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_UP', 'on_off', $langs->trans('InfraSPlusParamHideUP').$infoDiscountAuto, '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_DISCOUNT', 'on_off', $langs->trans('InfraSPlusParamHideDiscount').' '.$langs->trans('InfraSPlusGenModif').$infoDiscountAuto, '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_QTY', 'on_off', $langs->trans('InfraSPlusParamHideQty'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_UP', 'on_off', $langs->trans('InfraSPlusParamHideUP').$infoDiscountAuto, '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_DISCOUNT', 'on_off', $langs->trans('InfraSPlusParamHideDiscount').' '.$langs->trans('InfraSPlusGenModif').$infoDiscountAuto, '', [], 2, 1, '', $num);
 		// $num = 57
 		if (!getDolGlobalString('INFRASPLUS_PDF_HIDE_DISCOUNT', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DISCOUNT_OPT', 'on_off', $langs->trans('InfraSPlusParamShowDiscountOpt'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DISCOUNT_OPT', 'on_off', $langs->trans('InfraSPlusParamShowDiscountOpt'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_UP_DISCOUNTED', 'on_off', $langs->trans('InfraSPlusParamShowUPDiscounted').$infoDiscountAuto, '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_UP_DISCOUNTED', 'on_off', $langs->trans('InfraSPlusParamShowUPDiscounted').$infoDiscountAuto, '', [], 2, 1, '', $num);
 		if (getDolGlobalString('PRODUIT_CUSTOMER_PRICES', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DISCOUNT_AUTO', 'on_off', $langs->trans('InfraSPlusParamDiscountAuto'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DISCOUNT_AUTO', 'on_off', $langs->trans('InfraSPlusParamDiscountAuto'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (getDolGlobalString('INVOICE_USE_SITUATION', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SITFAC_TOTLINE_AVT', 'on_off', $langs->trans('InfraSPlusParamSitFacTotLineAvt'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SITFAC_TOTLINE_AVT', 'on_off', $langs->trans('InfraSPlusParamSitFacTotLineAvt'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 61
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_TTC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowTTCColumn'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITHOUT_VAT_COLUMN', 'on_off', $langs->trans('InfraSPlusParamHideVATColumn1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamHideVATColumn2'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TTC_WITH_VAT_TOT', 'on_off', $langs->trans('InfraSPlusParamTTCWithVATTotal1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamTTCWithVATTotal2').'</span> '.$langs->trans('InfraSPlusParamTTCWithVATTotal3'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_TTC', 'on_off', $langs->trans('InfraSPlusParamHideAnyVATInformation'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_HT', 'on_off', $langs->trans('InfraSPlusParamShowOlnyHT'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_TTC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowTTCColumn'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITHOUT_VAT_COLUMN', 'on_off', $langs->trans('InfraSPlusParamHideVATColumn1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamHideVATColumn2'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TTC_WITH_VAT_TOT', 'on_off', $langs->trans('InfraSPlusParamTTCWithVATTotal1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamTTCWithVATTotal2').'</span> '.$langs->trans('InfraSPlusParamTTCWithVATTotal3'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_TTC', 'on_off', $langs->trans('InfraSPlusParamHideAnyVATInformation'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_HT', 'on_off', $langs->trans('InfraSPlusParamShowOlnyHT'), '', [], 2, 1, '', $num);
 		// $num = 66
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_COLS', 'on_off', $langs->trans('InfraSPlusParamHideCols'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_PRICES_COL_DEVST', 'on_off', $langs->trans('InfraSPlusParamHidePricesColDevSt'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_COLS', 'on_off', $langs->trans('InfraSPlusParamHideCols'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_PRICES_COL_DEVST', 'on_off', $langs->trans('InfraSPlusParamHidePricesColDevSt'), '', [], 2, 1, '', $num);
 		if (!getDolGlobalInt('INFRASPLUS_PDF_HIDE_PRICES_COL_DEVST', 0)) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_TOT_COL_DEVST', 'on_off', $langs->trans('InfraSPlusParamHideTotColDevSt'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_TOT_COL_DEVST', 'on_off', $langs->trans('InfraSPlusParamHideTotColDevSt'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 69
 		if ($wvccopt > 0) {
 			infraspackplus_print_hr(4);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_WVCC', 'on_off', $langs->trans('InfraSPlusParamShowWVCC1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamShowWVCC2'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_WVCC', 'on_off', $langs->trans('InfraSPlusParamShowWVCC1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamShowWVCC2'), '', [], 2, 1, '', $num);
 			if (getDolGlobalString('INFRASPLUS_PDF_SHOW_WVCC', '')) {
-				$num		= infraspackplus_print_input('INFRASPLUS_PDF_NO_SHOW_WVCC_SAME_COUNTRY', 'on_off', $langs->trans('InfraSPlusParamNoShowWVCCsameCountry'), '', array(), 2, 1, '', $num);
-				$num		= infraspackplus_print_input('INFRASPLUS_PDF_WVCC_NO_HR', 'on_off', $langs->trans('InfraSPlusParamWVCCnoHR'), '', array(), 2, 1, '', $num);
-				$metas		= array();
+				$num		= infraspackplus_print_input('INFRASPLUS_PDF_NO_SHOW_WVCC_SAME_COUNTRY', 'on_off', $langs->trans('InfraSPlusParamNoShowWVCCsameCountry'), '', [], 2, 1, '', $num);
+				$num		= infraspackplus_print_input('INFRASPLUS_PDF_WVCC_NO_HR', 'on_off', $langs->trans('InfraSPlusParamWVCCnoHR'), '', [], 2, 1, '', $num);
+				$metas		= [];
 				$metas[0]	= array('MAIN_MODULE_PROPALE'		=> $langs->trans('Proposals'),
 									'MAIN_MODULE_COMMANDE'		=> $langs->trans('Orders'),
 									'MAIN_MODULE_EXPEDITION'	=> $langs->trans('SendingCard'),
@@ -1381,7 +1381,7 @@
 			$num	+= 4;
 		}
 		if (isModEnabled('productbatch')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SERIAL_ON_INVOICE', 'on_off', $langs->trans('InfraSPlusParamShowSerialOnInvoice'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SERIAL_ON_INVOICE', 'on_off', $langs->trans('InfraSPlusParamShowSerialOnInvoice'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
@@ -1460,17 +1460,17 @@
 		$num++;
 		// $num = 75
 		infraspackplus_print_subTitle(4, 'InfraSPlusParamShipping');
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_BC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLBCCol'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_POS_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLposCol'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_BC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLBCCol'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_POS_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLposCol'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_BL_WITH_POS_COLUMN', '')) {
 			$metas = array('size' => '6');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_PROD_POS', 'input', $descProdPos,'', $metas, 2, 1, '&nbsp;', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_ORDERED', 'on_off', $langs->trans('InfraSPlusParamHideOrdered'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_REL_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLrelCol'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_PRICE', 'on_off', $langs->trans('InfraSPlusParamShowBLwithPrice').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_ORDERED', 'on_off', $langs->trans('InfraSPlusParamHideOrdered'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_REL_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBLrelCol'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BL_WITH_PRICE', 'on_off', $langs->trans('InfraSPlusParamShowBLwithPrice').' '.$langs->trans('InfraSPlusGenModif'), '', [], 2, 1, '', $num);
 		// $num = 81
 		infraspackplus_print_hr(4);
 		print '			<tr class = "oddeven">
@@ -1535,10 +1535,10 @@
 		$num++;
 		// $num = 82
 		infraspackplus_print_subTitle(4, 'InfraSPlusParamReceipt');
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_BC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRBCCol'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_COMM_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRcommCol'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_HIDE_ORDERED', 'on_off', $langs->trans('InfraSPlusParamHideOrderedBR'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_REL_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRrelCol'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_BC_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRBCCol'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_COMM_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRcommCol'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_HIDE_ORDERED', 'on_off', $langs->trans('InfraSPlusParamHideOrderedBR'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BR_WITH_REL_COLUMN', 'on_off', $langs->trans('InfraSPlusParamShowBRrelCol'), '', [], 2, 1, '', $num);
 		// $num = 85
 		infraspackplus_print_hr(4);
 		print '			<tr class = "oddeven">
@@ -1600,7 +1600,7 @@
 		// $num = 87
 		if (isModEnabled('stock')) {
 			infraspackplus_print_subTitle(4, 'InfraSPlusParamStock');
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_STOCK_VAL_COLUMNS', 'on_off', $langs->trans('InfraSPlusParamWithStockValColumns'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_STOCK_VAL_COLUMNS', 'on_off', $langs->trans('InfraSPlusParamWithStockValColumns'), '', [], 2, 1, '', $num);
 			// $num = 87
 			infraspackplus_print_hr(4);
 			print '		<tr class = "oddeven">
@@ -1665,14 +1665,14 @@
 							<td colspan = "4" class = "center"><span class = "infrasplussubtitleparam">'.$langs->trans('InfraSPlusParamMRP').'</span></td>
 						</tr>';
 			if (isModEnabled('productbatch')) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SERIAL_ON_MRP', 'on_off', $langs->trans('InfraSPlusParamShowSerialOnMRP'), '', array(), 2, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SERIAL_ON_MRP', 'on_off', $langs->trans('InfraSPlusParamShowSerialOnMRP'), '', [], 2, 1, '', $num);
 			} else {
 				$num++;
 			}
 			$metas = array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '20', 'max' => '90', 'step' => '1');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_HEIGHT_MRP_CONTROL_TABLE','input', $langs->trans('InfraSPlusParamHeightMrpControlTable'),'', $metas, 2, 1, '&nbsp;pt', $num);
 			// $num = 91
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_MRP_WITH_DIM_COLUMNS', 'on_off', $langs->trans('InfraSPlusParamMrpWithDimColumns'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_MRP_WITH_DIM_COLUMNS', 'on_off', $langs->trans('InfraSPlusParamMrpWithDimColumns'), '', [], 2, 1, '', $num);
 			print '		<tr class = "oddeven">
 							<td class = "center bold">'.$num.'</td>
 							<td colspan = "3">
@@ -1730,12 +1730,12 @@
 		infraspackplus_print_subTitle(4, 'InfraSPlusParamUserSticker');
 		$metas	= $formadmin->select_paper_format($selectedUserStickerFormat, 'INFRASPLUS_PDF_USER_STICKER_FORMAT');
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamUserStickerFormat'), '', $metas, 1, 2, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_TITLE', 'input', $langs->trans('InfraSPlusParamUserStickerTitle'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_PHOTO', 'on_off', $langs->trans('InfraSPlusParamUserStickerPhoto'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_JOB', 'on_off', $langs->trans('InfraSPlusParamUserStickerJob'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_SOC_TEL', 'on_off', $langs->trans('InfraSPlusParamUserStickerSocTel'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_SOC_MAIL', 'on_off', $langs->trans('InfraSPlusParamUserStickerSocMail'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_LOGO', 'on_off', $langs->trans('InfraSPlusParamUserStickerLogo'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_TITLE', 'input', $langs->trans('InfraSPlusParamUserStickerTitle'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_PHOTO', 'on_off', $langs->trans('InfraSPlusParamUserStickerPhoto'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_JOB', 'on_off', $langs->trans('InfraSPlusParamUserStickerJob'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_SOC_TEL', 'on_off', $langs->trans('InfraSPlusParamUserStickerSocTel'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_SOC_MAIL', 'on_off', $langs->trans('InfraSPlusParamUserStickerSocMail'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USER_STICKER_LOGO', 'on_off', $langs->trans('InfraSPlusParamUserStickerLogo'), '', [], 2, 1, '', $num);
 		// $num = 100
 	}
 	print '			</table>
@@ -1756,36 +1756,36 @@
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SPACE_TOT', 'input', $langs->trans('InfraSPlusParamSpaceBeforeTot'), '', $metas, 2, 1, '&nbsp;mm', $num);
 		// $num = 3
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_MENTION_TVA_MODE','on_off',$langs->trans('InfraSPlusParamMentionTvaMode', $langs->trans((getDolGlobalInt('TAX_MODE', 0) ? 'InfraSPlusParamMentionTvaDebits' : 'InfraSPlusParamMentionTvaEncaissement'))), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_MENTION_TVA_MODE','on_off',$langs->trans('InfraSPlusParamMentionTvaMode', $langs->trans((getDolGlobalInt('TAX_MODE', 0) ? 'InfraSPlusParamMentionTvaDebits' : 'InfraSPlusParamMentionTvaEncaissement'))), '', [], 2, 1, '', $num);
 		if (!getDolGlobalString('PROPALE_PDF_HIDE_PAYMENTTERMCOND', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_PAYMENTTERMCOND_2L', 'on_off', $langs->trans('InfraSPlusParamShowPaymentTermCond2L'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_PAYMENTTERMCOND_2L', 'on_off', $langs->trans('InfraSPlusParamShowPaymentTermCond2L'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (!empty($mysoc->country_code) && $mysoc->country_code == 'BE') {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVOICE_ADD_BELGIAN_STRUCTURED_CODE', 'on_off', $langs->trans('InfraSPlusParamInvoiceAddBelgianStructuredCode'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVOICE_ADD_BELGIAN_STRUCTURED_CODE', 'on_off', $langs->trans('InfraSPlusParamInvoiceAddBelgianStructuredCode'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_QTY_PROD_TOT', 'on_off', $langs->trans('InfraSPlusParamShowQtyProdTot'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_TOT_DISCOUNT', 'on_off', $langs->trans('InfraSPlusParamShowTotDisc').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT', 'on_off', $langs->trans('InfraSPlusParamShowDiscTot'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_QTY_PROD_TOT', 'on_off', $langs->trans('InfraSPlusParamShowQtyProdTot'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_TOT_DISCOUNT', 'on_off', $langs->trans('InfraSPlusParamShowTotDisc').' '.$langs->trans('InfraSPlusGenModif'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT', 'on_off', $langs->trans('InfraSPlusParamShowDiscTot'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DISCOUNT_TTC', 'on_off', $langs->trans('InfraSPlusParamShowDiscTTC'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DISCOUNT_TTC', 'on_off', $langs->trans('InfraSPlusParamShowDiscTTC'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_OUTSTDBILL', 'on_off', $langs->trans('InfraSPlusParamShowOutStdBill'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVERT_BG_HT_TTC', 'on_off', $langs->trans('InfraSPlusParamInvertBgHtTtc'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HT_BY_VAT_P_OR_S', 'on_off', $langs->trans('InfraSPlusParamHTbyTvaPorS'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_OUTSTDBILL', 'on_off', $langs->trans('InfraSPlusParamShowOutStdBill'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVERT_BG_HT_TTC', 'on_off', $langs->trans('InfraSPlusParamInvertBgHtTtc'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HT_BY_VAT_P_OR_S', 'on_off', $langs->trans('InfraSPlusParamHTbyTvaPorS'), '', [], 2, 1, '', $num);
 		// $num = 13
 		if (getDolGlobalString('INVOICE_USE_SITUATION', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_SITU_TOTAL_2', 'on_off', $langs->trans('InfraSPlusParamUseSituTotal2'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_SITU_TOTAL_2', 'on_off', $langs->trans('InfraSPlusParamUseSituTotal2'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (!empty($TVAforfaitaire)) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_TVA_FORFAIT', 'on_off', $langs->trans('InfraSPlusParamUseTVAforfaitaire'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_TVA_FORFAIT', 'on_off', $langs->trans('InfraSPlusParamUseTVAforfaitaire'), '', [], 2, 1, '', $num);
 			if (getDolGlobalString('INFRASPLUS_PDF_USE_TVA_FORFAIT', '')) {
 				$metas = array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '100', 'step' => '0.1');
 				$num	= infraspackplus_print_input('INFRASPLUS_PDF_TVA_FORFAIT', 'input', $langs->trans('InfraSPlusParamTVAforfaitaire'), '', $metas, 2, 1, '&nbsp;&percnt;', $num);
@@ -1797,23 +1797,23 @@
 		}
 		// $num = 16
 		if (isModEnabled('multicurrency')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_TOTAL_LOCAL_CUR', 'on_off', $langs->trans('InfraSPlusParamShowTotLocCur'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_TOTAL_LOCAL_CUR', 'on_off', $langs->trans('InfraSPlusParamShowTotLocCur'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('numberwords')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_NUMBER_WORDS', 'on_off', $langs->trans('InfraSPlusParamNumWords1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamNumWords2').' <a href="'.$langs->trans('InfraSPlusParamNumWordsLink').'" target="_blank">'.$langs->trans('InfraSPlusParamNumWordsLinkText').'</a>', '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_NUMBER_WORDS', 'on_off', $langs->trans('InfraSPlusParamNumWords1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamNumWords2').' <a href="'.$langs->trans('InfraSPlusParamNumWordsLink').'" target="_blank">'.$langs->trans('InfraSPlusParamNumWordsLinkText').'</a>', '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (!empty($mysoc->country_code) && in_array($mysoc->country_code, array('BE', 'NL', 'DE', 'AT', 'FI'))) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVOICE_ADD_BELGIAN_QR_CODE', 'on_off', $langs->trans('InfraSPlusParamInvoiceAddBelgianQRcode'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_INVOICE_ADD_BELGIAN_QR_CODE', 'on_off', $langs->trans('InfraSPlusParamInvoiceAddBelgianQRcode'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PAY_INLINE', 'select_types_paiements', $langs->trans('InfraSPlusParamPayInLine'), '', array('CRDT', 2, 1, 1, 20), 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_PAY_INLINE', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PAY_INLINE_QR_CODE', 'on_off', $langs->trans('InfraSPlusParamPayInLineQRcode'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PAY_INLINE_QR_CODE', 'on_off', $langs->trans('InfraSPlusParamPayInLineQRcode'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
@@ -1826,17 +1826,17 @@
 			$descBridgePaymentQRCode	= $langs->trans('InfraSPlusParamBridgeDisplayPaymentQRCode');
 		}
 		if (isModEnabled('infras2bridge')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK', 'on_off', $descBridgePayementLink, '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_QR_CODE', 'on_off', $descBridgePaymentQRCode, '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK', 'on_off', $descBridgePayementLink, '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_QR_CODE', 'on_off', $descBridgePaymentQRCode, '', [], 2, 1, '', $num);
 		} else {
 			$num	+=2;
 		}
 		if (!getDolGlobalString('FACTURE_DEPOSITS_ARE_JUST_PAYMENTS', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DEPOSITS_AT_END', 'on_off', $langs->trans('InfraSPlusParamDepositsAtEnd'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_DEPOSITS_AT_END', 'on_off', $langs->trans('InfraSPlusParamDepositsAtEnd'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_PAY_SPEC', 'on_off', $langs->trans('InfraSPlusParamUsePaySpec'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_PAY_SPEC', 'on_off', $langs->trans('InfraSPlusParamUsePaySpec'), '', [], 2, 1, '', $num);
 		// $num = 25
 		if (getDolGlobalString('INFRASPLUS_PDF_USE_PAY_SPEC', '') && getDolGlobalString('INFRASPLUS_PDF_PAY_SPEC', '')) {
 			print '		<tr class = "oddeven">
@@ -1848,17 +1848,17 @@
 						</tr>';
 		}
 		$num++;
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BANK_ONLY_NUMBER', 'on_off', $langs->trans('InfraSPlusParamBankOnlyNumber'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_NO_IBAN', 'on_off', $langs->trans('InfraSPlusParamNoIBAN').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_BANK_ONLY_NUMBER', 'on_off', $langs->trans('InfraSPlusParamBankOnlyNumber'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_NO_IBAN', 'on_off', $langs->trans('InfraSPlusParamNoIBAN').' '.$langs->trans('InfraSPlusGenModif'), '', [], 2, 1, '', $num);
 		if (!getDolGlobalString('INFRASPLUS_PDF_NO_IBAN', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_IBAN_WITH_CB', 'on_off', $langs->trans('InfraSPlusParamIBANwithCB'), '', array(), 2, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_IBAN_ALL', 'on_off', $langs->trans('InfraSPlusParamIBANAll'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_IBAN_WITH_CB', 'on_off', $langs->trans('InfraSPlusParamIBANwithCB'), '', [], 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_IBAN_ALL', 'on_off', $langs->trans('InfraSPlusParamIBANAll'), '', [], 2, 1, '', $num);
 		} else {
 			$num	+= 2;
 		}
 		// $num = 30
 		if (isModEnabled('uptosign')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_MAGICKSTAMPWORD_ON_INVOICE', 'on_off', $langs->trans('InfraSPlusParamUseMagickStampWordOnInvoice'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_USE_MAGICKSTAMPWORD_ON_INVOICE', 'on_off', $langs->trans('InfraSPlusParamUseMagickStampWordOnInvoice'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
@@ -1868,7 +1868,7 @@
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_HT_SIGN_AREA', 'input', $langs->trans('InfraSPlusParamHtSignArea'), '', $metas, 2, 1, '&nbsp;mm', $num);
 		$metas		= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0.1', 'max' => '5', 'step' => '0.1');
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_SIGN_LINE_WIDTH', 'input', $langs->trans('InfraSPlusParamSignLineW').$langs->trans('InfraSPlusParamLineW'), '', $metas, 2, 1, '&nbsp;mm', $num);
-		$metas		= array();
+		$metas		= [];
 		$metas[0]	= array($langs->trans('InfraSPlusParamLineDash0'), $langs->trans('InfraSPlusParamLineDash1'), $langs->trans('InfraSPlusParamLineDash2'), $langs->trans('InfraSPlusParamLineDash4'));
 		$metas[1]	= array('INFRASPLUS_PDF_SIGN_LINE_DASH_0' => '&nbsp;&nbsp;'.img_picto('Ligne continue',		'Dash0.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
 							'INFRASPLUS_PDF_SIGN_LINE_DASH_1' => '&nbsp;&nbsp;'.img_picto('Pointillés égaux',	'Dash1.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'),
@@ -1876,42 +1876,42 @@
 							'INFRASPLUS_PDF_SIGN_LINE_DASH_4' => '&nbsp;&nbsp;'.img_picto('Ligne discontinue',	'Dash4.png@infraspackplus', 'class = "valignbottom infrasplusheight20"'));
 		$end		= '<input type = "text" class = "flat quatrevingtpercent right infrasplusfontsizeinherit infrasplusnopadding" id = "INFRASPLUS_PDF_SIGN_LINE_DASH" name = "INFRASPLUS_PDF_SIGN_LINE_DASH" '.$inputSignLineDash.'>';
 		$num		= infraspackplus_print_line_inputs('', $langs->trans('InfraSPlusParamSignLineDash'), $metas, 2, 200, $end, $num);
-		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_SIGN_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_SIGN_LINE_COLOR', '')) : array());
+		$metas		= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_SIGN_LINE_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_SIGN_LINE_COLOR', '')) : []);
 		$num		= infraspackplus_print_input('INFRASPLUS_PDF_SIGN_LINE_COLOR', 'color', $langs->trans('InfraSPlusParamSignLineColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_SIGN_LINE_COLOR', '')), '', $metas, 2, 1, '', $num);
-		$num		= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_E_SIGNING', 'on_off', $langs->trans('InfraSPlusParamShowESigning'), '', array(), 2, 1, '', $num);
-		$num		= infraspackplus_print_input('INFRASPLUS_PDF_GET_CUSTOMER_SIGNING', 'on_off', $langs->trans('InfraSPlusParamGetCustomerSign'), '', array(), 2, 1, '', $num);
+		$num		= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_E_SIGNING', 'on_off', $langs->trans('InfraSPlusParamShowESigning'), '', [], 2, 1, '', $num);
+		$num		= infraspackplus_print_input('INFRASPLUS_PDF_GET_CUSTOMER_SIGNING', 'on_off', $langs->trans('InfraSPlusParamGetCustomerSign'), '', [], 2, 1, '', $num);
 		// $num = 37
 		if (getDolGlobalString('INFRASPLUS_PDF_GET_CUSTOMER_SIGNING', '')) {
 			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', '0,0,0')) : array('0', '0', '0'));
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', 'color', $langs->trans('InfraSPlusParamCustomerSignColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', '')), '', $metas, 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', 'color', $langs->trans('InfraSPlusParamCustomerSigncolor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', '')), '', $metas, 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignature'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignature'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE_EMET', 'on_off', $langs->trans('InfraSPlusParamShowSignatureEmet'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE_EMET', 'on_off', $langs->trans('InfraSPlusParamShowSignatureEmet'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_ST_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureSt'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_ST_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureSt'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE', '') || getDolGlobalString('INFRASPLUS_PDF_PROPAL_ST_SHOW_SIGNATURE', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE_NAME_FUNCTION', 'on_off', $langs->trans('InfraSPlusParamShowSignatureNameFunction'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROPAL_SHOW_SIGNATURE_NAME_FUNCTION', 'on_off', $langs->trans('InfraSPlusParamShowSignatureNameFunction'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 42
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_COMMANDE_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureCom'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_COMMANDE_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureCom'), '', [], 2, 1, '', $num);
 		if (isModEnabled('customlink')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_COMMANDE_OF_SHOW_2_SIGNATURES', 'on_off', $langs->trans('InfraSPlusParamShow2SignaturesCom'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_COMMANDE_OF_SHOW_2_SIGNATURES', 'on_off', $langs->trans('InfraSPlusParamShow2SignaturesCom'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_CONTRACT_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureCtr'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXPEDITION_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureExp'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureFi'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SHOW_SIGNATURE_EMET', 'on_off', $langs->trans('InfraSPlusParamShowSignatureFiEmet'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_CONTRACT_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureCtr'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXPEDITION_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureExp'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureFi'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SHOW_SIGNATURE_EMET', 'on_off', $langs->trans('InfraSPlusParamShowSignatureFiEmet'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_INTERVENTION_SHOW_SIGNATURE_EMET', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SIGNATURE_FULL', 'on_off', $langs->trans('InfraSPlusParamSignatureFiFull'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SIGNATURE_FULL', 'on_off', $langs->trans('InfraSPlusParamSignatureFiFull'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
@@ -1930,36 +1930,36 @@
 	if (!empty($accessright)) {
 		$num	= 1;
 		infraspackplus_print_btn_action('FootP', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_ADDRESS', 'on_off', $langs->trans('InfraSPlusParamFooterAdress').(!getDolGlobalString('INFRASPLUS_PDF_HIDE_RECEP_FRAME', '') ? '' : ' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').' '.$langs->trans('InfraSPlusParamFooterAdressForced').'</span>'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_ADDRESS', 'on_off', $langs->trans('InfraSPlusParamFooterAdress').(!getDolGlobalString('INFRASPLUS_PDF_HIDE_RECEP_FRAME', '') ? '' : ' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').' '.$langs->trans('InfraSPlusParamFooterAdressForced').'</span>'), '', [], 2, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_TYPE_FOOT_ADDRESS', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_ADDRESS2', 'on_off', $langs->trans('InfraSPlusParamFooterAdress2'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_ADDRESS2', 'on_off', $langs->trans('InfraSPlusParamFooterAdress2'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_CONTACTS', 'on_off', $langs->trans('InfraSPlusParamFooterContacts'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_MANAGER', 'on_off', $langs->trans('InfraSPlusParamFooterManager'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_TYPESOC', 'on_off', $langs->trans('InfraSPlusParamFooterTypeSoc'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_IDS', 'on_off', $langs->trans('InfraSPlusParamFooterIds'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FOOTER_BOLD', 'on_off', $langs->trans('InfraSPlusParamFooterBold'), '', array(), 2, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_NO_LINE_FOOTER', 'on_off', $langs->trans('InfraSPlusParamNoLineFooter'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_CONTACTS', 'on_off', $langs->trans('InfraSPlusParamFooterContacts'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_MANAGER', 'on_off', $langs->trans('InfraSPlusParamFooterManager'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_TYPESOC', 'on_off', $langs->trans('InfraSPlusParamFooterTypeSoc'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_TYPE_FOOT_IDS', 'on_off', $langs->trans('InfraSPlusParamFooterIds'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FOOTER_BOLD', 'on_off', $langs->trans('InfraSPlusParamFooterBold'), '', [], 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_NO_LINE_FOOTER', 'on_off', $langs->trans('InfraSPlusParamNoLineFooter'), '', [], 2, 1, '', $num);
 		// $num = 9
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SPE_FOOT', 'input', $langs->trans('InfraSPlusParamSpecialFoot'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SPE_FOOT', 'input', $langs->trans('InfraSPlusParamSpecialFoot'), '', [], 2, 1, '', $num);
 		if (!getDolGlobalString('INFRASPLUS_PDF_SPE_FOOT', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FOOTER_FREETEXT', 'textarea', $langs->trans('InfraSPlusParamFooterFreeText'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FOOTER_FREETEXT', 'textarea', $langs->trans('InfraSPlusParamFooterFreeText'), '', [], 2, 1, '', $num);
 		} else {
 			$num++;
 		}
 		// $num = 11
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_PAGE_NUM', 'on_off', $langs->trans('InfraSPlusParamHidePageNum'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_HIDE_PAGE_NUM', 'on_off', $langs->trans('InfraSPlusParamHidePageNum'), '', [], 2, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '10', 'max' => '267', 'step' => '0.1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_X_PAGE_NUM', 'input', $langs->trans('InfraSPlusParamPosXPageNum'), '', $metas, 2, 1, '&nbsp;mm', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '10', 'max' => '285', 'step' => '0.1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_Y_PAGE_NUM', 'input', $langs->trans('InfraSPlusParamPosYPageNum'), '', $metas, 2, 1, '&nbsp;mm', $num);
 		// $num = 14
 		infraspackplus_print_hr(4);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_LCR', 'on_off', $langs->trans('InfraSPlusParamShowLCR'), '', array(), 2, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_LCR', 'on_off', $langs->trans('InfraSPlusParamShowLCR'), '', [], 2, 1, '', $num);
 		// $num = 15
 	}
 	print '			</table>
@@ -2004,7 +2004,7 @@
 			$metas	= array(array(1, 2, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
 			infraspackplus_print_liste_titre($metas);
 			infraspackplus_print_btn_action('CGx', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 4);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CGV_FROM_PRO', 'on_off', $langs->trans('InfraSPlusParamCGVFromPro'), '', array(), 2, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CGV_FROM_PRO', 'on_off', $langs->trans('InfraSPlusParamCGVFromPro'), '', [], 2, 1, '', $num);
 			if (getDolGlobalString('INFRASPLUS_PDF_CGV_FROM_PRO', '')) {
 				$sortparam	= getDolGlobalString('SOCIETE_SORT_ON_TYPEENT', 'ASC'); // NONE means we keep sort of original array, so we sort on position. ASC, means next function will sort on label.
 				$metas		= $form->selectarray('INFRASPLUS_PDF_CGV_FROM_PRO_LABEL', $formcompany->typent_array(1), getDolGlobalString('INFRASPLUS_PDF_CGV_FROM_PRO_LABEL', ''), 0, 0, 0, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"', 0, 0, 0, $sortparam, '', 1).' '.info_admin($langs->trans('YouCanChangeValuesForThisListFromDictionarySetup'), 1);
@@ -2013,14 +2013,14 @@
 				$num++;
 			}
 			if (getDolGlobalString('MAIN_MULTILANGS', '')) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_CGV_FROM_LANG', 'on_off', $langs->trans('InfraSPlusParamCGVFromLang1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCGVFromLang2').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamCGVFromLang3').'</span> '.$langs->trans('InfraSPlusParamCGVFromLang4').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamCGVFromLang5').'</span> '.$langs->trans('InfraSPlusParamCGVFromLang6'), '', array(), 2, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_CGV_FROM_LANG', 'on_off', $langs->trans('InfraSPlusParamCGVFromLang1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCGVFromLang2').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamCGVFromLang3').'</span> '.$langs->trans('InfraSPlusParamCGVFromLang4').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamCGVFromLang5').'</span> '.$langs->trans('InfraSPlusParamCGVFromLang6'), '', [], 2, 1, '', $num);
 			} else {
 				$num++;
 			}
 			// $num = 4
 			$desc		= $form->selectarray('INFRASPLUS_PDF_CGV', $CGVs, $selected_cgv, $langs->trans('InfraSPlusParamNoCGV'), 0, 1, 'class = "infrasplusfontsizeinherit infrasplusnopadding cursorpointer"');
 			$desc		.= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$langs->trans('InfraSPlusParamTypeDoc');
-			$metas		= array();
+			$metas		= [];
 			$metas[0]	= array('MAIN_MODULE_PROPALE'	=> $langs->trans('Proposals'),
 								'MAIN_MODULE_COMMANDE'	=> $langs->trans('Orders'),
 								'MAIN_MODULE_CONTRAT'	=> $langs->trans('Contracts'),
@@ -2053,7 +2053,7 @@
 			$num		= infraspackplus_print_line_inputs('tests', $langs->trans('InfraSPlusParamDefaultCGA').'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$desc, $metas, 3, 120, '', $num);
 			// $num = 6
 			if (getDolGlobalString('PRODUIT_PDF_MERGE_PROPAL', '')) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_CGV_AT_VERY_END', 'on_off', $langs->trans('InfraSPlusParamCGVAtVeryEnd'), '', array(), 2, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_CGV_AT_VERY_END', 'on_off', $langs->trans('InfraSPlusParamCGVAtVeryEnd'), '', [], 2, 1, '', $num);
 			} else {
 				$num++;
 			}
@@ -2103,7 +2103,7 @@
 				print '	<tr class = "oddeven">
 							<td colspan = "5">
 								<table class = "centpercent">';
-				$metas		= array();
+				$metas		= [];
 				$metas[0]	= array('MAIN_MODULE_PROPALE'		=> $langs->trans('Proposals'),
 									'MAIN_MODULE_COMMANDE'		=> $langs->trans('Orders'),
 									'MAIN_MODULE_FICHEINTER'	=> $langs->trans('Interventions'),

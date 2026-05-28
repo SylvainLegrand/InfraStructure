@@ -89,11 +89,11 @@
 		public $localtax1;
 		public $localtax2;
 		public $credit_note;
-		public $listPaySpec	= array();
+		public $listPaySpec	= [];
 		public $atleastoneratenotnull;
 		public $situationinvoice;
-		public $previnvoices = array();
-		public $lines_deposits = array();
+		public $previnvoices = [];
+		public $lines_deposits = [];
 		public $use_fpdf;
 		public $main_umask;
 		public $page_largeur;
@@ -252,24 +252,24 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $TotRem = array('HT' => 0, 'TTC' => 0, 'multicurrency_HT' => 0, 'multicurrency_TTC' => 0);
 		public $hasService = 0;
 		public $hasProduct = 0;
 		public $nbrProdTot = 0;
-		public $nbrProdDif = array();
-		public $ecoTaxes = array();
+		public $nbrProdDif = [];
+		public $ecoTaxes = [];
 		public $hasEcoTaxes = 0;
 		public $only_ht;
 		public $use_multicurrency;
@@ -299,7 +299,7 @@
 		public $largcol9;
 		public $largcol10;
 		public $largcol11;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $larg_tabtotal;
 		public $larg_tabinfo;
 		public $posxtabtotal;
@@ -399,7 +399,7 @@
 					if ($resql) {
 						$num				= $this->db->num_rows($resql);
 						$nbPaySpec			= 0;
-						$this->listPaySpec	= array();
+						$this->listPaySpec	= [];
 						for ($i = 0 ; $i < $num ; $i++) {
 							$row	= $this->db->fetch_object($resql);
 							if ($row->type == 3) {
@@ -464,7 +464,7 @@
 					$this->show_tva_btp			= !empty($hookmanager->resArray['showtvabtp']) ? $hookmanager->resArray['showtvabtp'] : '';
 					$this->hideInnerLines		= !empty($hookmanager->resArray['hideInnerLines']) ? $hookmanager->resArray['hideInnerLines'] : '';
 					$this->add_recap			= !empty($hookmanager->resArray['subtotal_add_recap']) ? $hookmanager->resArray['subtotal_add_recap'] : (!empty($hookmanager->resArray['infrastructure_add_recap']) ? $hookmanager->resArray['infrastructure_add_recap'] : '');
-					$hookmanager->resArray		= array();
+					$hookmanager->resArray		= [];
 					// Si on affiche une colonne 'Référence' on s'assure de ne pas répéter l'information Sauf si on utilise les prix par client et que l'otion d'affichage des références client est sur 1
 					$hideref					= empty($this->refcol) || (getDolGlobalInt('PRODUIT_CUSTOMER_PRICES', 0) && getDolGlobalInt('PRODUIT_CUSTOMER_PRICES_PDF_REF_MODE', 0) == 1) ? 0 : 1;
 					$nblignes					= count($object->lines);	// Set nblignes with the new facture lines content after hook
@@ -516,19 +516,19 @@
 					// Use of multicurrency for this document
 					$this->use_multicurrency	= (isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? 1 : 0;
 					// First loop on each lines to prepare calculs and variables
-					$realpatharray				= array();
-					$pricesObjProd				= array();
-					$listObjBib					= array();
-					$listDescBib				= array();
-					$this->lines_deposits		= array();
+					$realpatharray				= [];
+					$pricesObjProd				= [];
+					$listObjBib					= [];
+					$listDescBib				= [];
+					$this->lines_deposits		= [];
 					$objproduct					= new Product($this->db);
 					$discount					= new DiscountAbsolute($this->db);
 					$this->TotRem				= 0;
 					$this->hasService			= 0;
 					$this->hasProduct			= 0;
 					$this->nbrProdTot			= 0;
-					$this->nbrProdDif			= array();
-					$this->ecoTaxes				= array();
+					$this->nbrProdDif			= [];
+					$this->ecoTaxes				= [];
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// deposits
 						$isDiscount	= 0;
@@ -569,7 +569,7 @@
 								$this->TotRem	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, $pricesObjProd[$i]);
 							}
 						} else {
-							$pricesObjProd[$i]	= array();
+							$pricesObjProd[$i]	= [];
 						}
 						// Collecte des totaux par valeur de tva
 						if (empty($isDiscount) && empty($isOuvrage) && empty($isSubTotalLine)) {
@@ -963,7 +963,7 @@
 					$tab_top		+= 	$height_note > 0 ? $height_note : $this->tab_hl * 0.5;
 					$nexY			= $tab_top + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
 					// Loop on each lines
-					$subtotalRecap	= array();
+					$subtotalRecap	= [];
 					// Préparation ajout du numéro de série depuis le module natif, s'il existe...
 					if (!empty( isModEnabled('productbatch')) && !empty($this->show_serial_from_shipping))
 						$object->fetchObjectLinked(null, '', null, '', 'OR', 1, 'sourcetype', 1);
@@ -993,7 +993,7 @@
 						$isSubTitle													= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
 						$isSubTotal													= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
 						if (!empty($isSubTitle)) {
-							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : array();	// Define size of image if we need it
+							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : [];	// Define size of image if we need it
 							if (empty($this->picture_under) && empty($this->picture_after) && isset($nextimglinesize['height'])) {
 								$nextlinehight	= $nextimglinesize['height'] + ($this->linkpictureurl ? $this->tab_hl * 2 : $this->tab_hl);
 							} else {
@@ -1015,7 +1015,7 @@
 							}
 						}
 						$colPicture		= $this->tableau['ref']['larg'] > 0 && $this->picture_in_ref ? 'ref' : 'desc';
-						$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : array();	// Define size of image if we need it
+						$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : [];	// Define size of image if we need it
 						$ht_url			= 0;
 						if (!empty($imglinesize['width']) && !empty($imglinesize['height']) && $this->linkpictureurl) {
 							$txturl	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
@@ -1397,7 +1397,7 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												$this->header_after_addr, $this->title_size, $this->titlekey, $this->ref_from_cust, $this->datesbold, $this->dates_br, $this->show_num_cli, $this->num_cli_frm,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, $this->add_creator_in_header, $this->use_iso_location, $this->adr, $this->typeadr, $this->adrlivr, $this->Rounded_rect,
-												$this->customerAddrSelect, -2, -2, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
+												$this->customerAddrSelect, -2, -2, '', 0, [], '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
@@ -1417,7 +1417,7 @@
 				$pdf->MultiCell($w, $this->tab_hl * $this->title_size, $title, '', 'R', 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 				$pdf->SetFont('', 'B', $default_font_size - 1);
 				$posy				= $pdf->getY();
-				$this->shippings	= array();
+				$this->shippings	= [];
 				$this->shippings	= pdf_InfraSPlus_getLinkedshippings($object, $outputlangs);
 				$txtref				= $outputlangs->transnoentities('RefSending').' : '.$this->shippings['ref'];
 				if ($object->statut == Facture::STATUS_DRAFT) {
@@ -1462,7 +1462,7 @@
 											'E' => $object->getIdContact('external', 'SHIPPING')
 											);
 			if (!empty($showaddress)) {
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $this->arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 1, '', $this->adrfact, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}

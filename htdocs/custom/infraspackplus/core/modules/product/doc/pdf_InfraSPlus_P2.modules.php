@@ -201,20 +201,20 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $horLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
 		public $posx_G_txt;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $tab_hl = 4;
 		public $decal_round = 0;
 		public $ht_top_table;
@@ -330,7 +330,7 @@
 					$this->listfreet		= !empty($hookmanager->resArray['listfreet']) ? $hookmanager->resArray['listfreet'] : '';
 					$this->listnotep		= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied				= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
-					$hookmanager->resArray	= array();
+					$hookmanager->resArray	= [];
 					// Create pdf instance
 					$pdf					= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');
 					$default_font_size		= pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
@@ -426,7 +426,7 @@
 							$filearray	= dol_sort_array($filearray, $sortfield, $sortorder);
 						}
 						$this->wpicture					= ($this->larg_util_txt - ((count($filearray) - 1) * 5)) / count($filearray);	// corrige la largeur maximal des images pour être au plus égale à la largeur disponible / nombre de vignette à afficher
-						$imglinesize					= array();
+						$imglinesize					= [];
 						$nbimg							= 0;
 						foreach ($filearray as $key => $val) {
 							$photo	= $val['name'];
@@ -461,7 +461,7 @@
 									}
 									if ($logo) {
 										if (is_file($logo) && is_readable($logo)) {
-											$logosize	= array();
+											$logosize	= [];
 											$logosize	= pdf_InfraSPlus_getSizeForImage($logo, $imglinesize['width'] / 4, $imglinesize['height'] / 4, 1);
 											$pdf->Image($logo, $posxpicture + $imglinesize['width'] - $logosize['width'], $imglinesize['height'] - $logosize['height'], $logosize['width'], $logosize['height']);
 										}

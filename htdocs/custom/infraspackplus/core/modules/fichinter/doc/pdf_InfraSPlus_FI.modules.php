@@ -219,22 +219,22 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $TotRem = array('HT' => 0, 'TTC' => 0, 'multicurrency_HT' => 0, 'multicurrency_TTC' => 0);
 		public $nbrProdTot = 0;
-		public $nbrProdDif = array();
-		public $ecoTaxes = array();
+		public $nbrProdDif = [];
+		public $ecoTaxes = [];
 		public $hasEcoTaxes = 0;
 		public $only_ht;
 		public $use_multicurrency;
@@ -265,7 +265,7 @@
 		public $largcol9;
 		public $largcol10;
 		public $largcol11;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $heightforfooter;
 		public $larg_tabtotal;
 		public $larg_tabinfo;
@@ -284,7 +284,7 @@
 		public $pageEndProd;
 		public $pageEndReport;
 		public $posxdesc;
-		public $pricefichinter = array();
+		public $pricefichinter = [];
 		public $prodfichinter;
 		public $show_sign_area_cli;
 		public $show_sign_area_emet;
@@ -463,25 +463,26 @@
 					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// First loop on each lines to prepare calculs and variables
-					$realpatharray			= array();
-					$discount				= array();
-					$isProd					= array();
-					$pricesObjProd			= array();
-					$listObjBib				= array();
-					$listDescBib			= array();
+					$realpatharray			= [];
+					$discount				= [];
+					$isProd					= [];
+					$pricesObjProd			= [];
+					$listObjBib				= [];
+					$listDescBib			= [];
 					$objproduct				= new Product($this->db);
 					$this->nbrProdTot		= 0;
-					$this->nbrProdDif		= array();
-					$this->ecoTaxes			= array();
+					$this->nbrProdDif		= [];
+					$this->ecoTaxes			= [];
 					// Module management associé
 					if (!empty( isModEnabled('management'))) {
-						$this->pricefichinter	= array();
+						$this->pricefichinter	= [];
 						$this->pricefichinter	= pdf_infrasplus_getpricefichinter($object);
 					}
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Module management associé
+						$this->prodfichinter[$i]	= [];
+						$isProd[$i]					= 0;
 						if (!empty( isModEnabled('management'))) {
-							$this->prodfichinter[$i]	= array();
 							$this->prodfichinter[$i]	= pdf_infrasplus_getlinefichinter($object, $i);
 						}
 						$discount[$i]		= !empty($this->prodfichinter[$i]) ? $this->prodfichinter[$i]['remise_percent']	: $object->lines[$i]->remise_percent;
@@ -511,7 +512,7 @@
 								$this->TotRem	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, $pricesObjProd[$i]);
 							}
 						} else {
-							$pricesObjProd[$i]	= array();
+							$pricesObjProd[$i]	= [];
 						}
 						// Collecte des totaux par valeur de tva dans $this->tva['taux'] = total_tva
 						$tvaligne			= $this->prodfichinter[$i]	? $this->prodfichinter[$i]['total_tva']			: $object->lines[$i]->total_tva;
@@ -1015,7 +1016,7 @@
 						$isSubTitle					= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
 						$isSubTotal					= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
 						if (!empty($isSubTitle)) {
-							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : array();	// Define size of image if we need it
+							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : [];	// Define size of image if we need it
 							if (empty($this->picture_under) && empty($this->picture_after) && isset($nextimglinesize['height'])) {
 								$nextlinehight	= $nextimglinesize['height'] + (!empty($this->linkpictureurl) ? $this->tab_hl * 2 : $this->tab_hl);
 							} else {
@@ -1040,7 +1041,7 @@
 						$valide	= empty($object->lines[$i]->id) ? 0 : $object->lines[$i]->fetch($object->lines[$i]->id);
 						if ($valide > 0 || $object->specimen) {
 							$colPicture		= $this->tableau['ref']['larg'] > 0 && $this->picture_in_ref ? 'ref' : 'desc';
-							$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : array();	// Define size of image if we need it
+							$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : [];	// Define size of image if we need it
 							$ht_url			= 0;
 							if (!empty($imglinesize['width']) && !empty($imglinesize['height']) && $this->linkpictureurl) {
 								$txturl	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
@@ -1608,7 +1609,7 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												$this->header_after_addr, $this->title_size, $this->titlekey, $this->ref_from_cust, $this->datesbold, $this->dates_br, $this->show_num_cli, $this->num_cli_frm,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, $this->add_creator_in_header, $this->use_iso_location, $this->adr, $this->typeadr, $this->adrlivr, $this->Rounded_rect,
-												$this->customerAddrSelect, -2, -2, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
+												$this->customerAddrSelect, -2, -2, '', 0, [], '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
@@ -1666,7 +1667,7 @@
 				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'INTERREPFOLL'),
 										'E' => $object->getIdContact('external', 'CUSTOMER')
 										);
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', null, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}
@@ -2119,6 +2120,8 @@
 		{
 			$pdf->startTransaction();
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
+			$signarea_hl_cli	= 0;
+			$signarea_hl_full	= 0;
 			$signarea_top		= $posy + 1 + (!empty($this->show_sign_area_emet) && !empty($this->e_signing) && isModEnabled('uptosign') ? 10 : 0);	// si UpToSign et 2 cadres on décale les cadres vers le bas pour le STAMP
 			$posxsignarea1		= $this->marge_gauche;
 			$posxsignarea2		= $this->posxtabtotal;

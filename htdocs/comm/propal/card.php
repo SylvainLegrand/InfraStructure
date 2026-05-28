@@ -2543,9 +2543,11 @@ if ($action == 'create') {
 		}
 
 		// Other attributes
+		// Osden add begin
 		if (getDolGlobalInt('THIRDPARTY_PROPAGATE_EXTRAFIELDS_TO_PROPAL') && $socid > 0) {
 			$thirdpartytopropagateextrafieldsfrom = $soc;
 		}
+		// Osden add end
 		include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_add.tpl.php';
 
 		// Lines from source

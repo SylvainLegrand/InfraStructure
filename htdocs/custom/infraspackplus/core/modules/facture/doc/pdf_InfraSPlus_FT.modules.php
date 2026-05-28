@@ -63,14 +63,14 @@
 		public $credit_notes;
 		public $deposits;
 		public $atleastonediscount;
-		public $tvaProd = array();
-		public $localtax1Prod = array();
-		public $localtax2Prod = array();
-		public $htProd = array();
-		public $tvaServ = array();
-		public $localtax1Serv = array();
-		public $localtax2Serv = array();
-		public $htServ = array();
+		public $tvaProd = [];
+		public $localtax1Prod = [];
+		public $localtax2Prod = [];
+		public $htProd = [];
+		public $tvaServ = [];
+		public $localtax1Serv = [];
+		public $localtax2Serv = [];
+		public $htServ = [];
 		public $show_pointoftax_date;
 		public $deposits_at_end;
 		public $tva;
@@ -80,7 +80,7 @@
 		public $credit_note;
 		public $atleastoneratenotnull;
 		public $situationinvoice;
-		public $lines_deposits = array();
+		public $lines_deposits = [];
 		public $use_fpdf;
 		public $main_umask;
 		public $page_largeur;
@@ -236,17 +236,17 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
-		public $bgLineStyle = array();
-		public $tblLineStyle = array();
-		public $horLineStyle = array();
-		public $signLineStyle = array();
+		public $bgLineStyle = [];
+		public $tblLineStyle = [];
+		public $horLineStyle = [];
+		public $signLineStyle = [];
 		public $TotRem = array('HT' => 0, 'TTC' => 0, 'multicurrency_HT' => 0, 'multicurrency_TTC' => 0);
 		public $hasService = 0;
 		public $hasProduct = 0;
 		public $nbrProdTot = 0;
-		public $nbrProdDif = array();
+		public $nbrProdDif = [];
 		public $hasEcoTaxes = 0;
 		public $only_ht;
 		public $use_multicurrency;
@@ -266,7 +266,7 @@
 		public $largcol4;
 		public $largcol5;
 		public $largcol6;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $larg_tabtotal;
 		public $larg_tabinfo;
 		public $posxtabtotal;
@@ -292,14 +292,14 @@
 			$this->db							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusInvoiceTicketName');
 			$this->description					= $langs->trans('PDFInfraSPlusInvoiceTicketDescription');
-			$this->tvaProd						= array();
-			$this->localtax1Prod				= array();
-			$this->localtax2Prod				= array();
-			$this->htProd						= array();
-			$this->tvaServ						= array();
-			$this->localtax1Serv				= array();
-			$this->localtax2Serv				= array();
-			$this->htServ						= array();
+			$this->tvaProd						= [];
+			$this->localtax1Prod				= [];
+			$this->localtax2Prod				= [];
+			$this->htProd						= [];
+			$this->tvaServ						= [];
+			$this->localtax1Serv				= [];
+			$this->localtax2Serv				= [];
+			$this->htServ						= [];
 			$this->defaulttemplate				= getDolGlobalString('FACTURE_ADDON_PDF', '');
 			$formatarray						= array('width'=>100, 'height'=>141, 'unit'=>'mm');	// pdf_InfraSPlus_getFormat();
 			$this->page_largeur					= $formatarray['width'];
@@ -440,7 +440,7 @@
 					$this->show_vir						= !empty($hookmanager->resArray['showvir']) ? $hookmanager->resArray['showvir'] : '';
 					$this->show_tva_btp					= !empty($hookmanager->resArray['showtvabtp']) ? $hookmanager->resArray['showtvabtp'] : '';
 					$this->hideInnerLines				= !empty($hookmanager->resArray['hideInnerLines']) ? $hookmanager->resArray['hideInnerLines'] : '';
-					$hookmanager->resArray				= array();
+					$hookmanager->resArray				= [];
 					// Si on affiche une colonne 'Référence' on s'assure de ne pas répéter l'information Sauf si on utilise les prix par client et que l'otion d'affichage des références client est sur 1
 					$hideref							= empty($this->refcol) || (getDolGlobalInt('PRODUIT_CUSTOMER_PRICES', 0) && getDolGlobalInt('PRODUIT_CUSTOMER_PRICES_PDF_REF_MODE', 0) == 1) ? 0 : 1;
 					$nblignes							= count($object->lines);	// Set nblignes with the new facture lines content after hook
@@ -488,7 +488,7 @@
 					$this->hasService	= 0;
 					$this->hasProduct	= 0;
 					$this->nbrProdTot	= 0;
-					$this->nbrProdDif	= array();
+					$this->nbrProdDif	= [];
 					$objproduct			= new Product($this->db);
 					$discount			= new DiscountAbsolute($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
@@ -554,7 +554,7 @@
 								$this->TotRem['TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, $pricesObjProd[$i]);
 							}
 						} else {
-							$pricesObjProd[$i]	= array();
+							$pricesObjProd[$i]	= [];
 						}
 						// Collecte des totaux par valeur de tva
 						if (empty($isDiscount) && empty($isOuvrage) && empty($isSubTotalLine)) {
@@ -988,7 +988,7 @@
 											'L' => $object->getIdContact('external', 'SHIPPING')
 											);
 			if (!empty($showaddress)) {
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $this->arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', $this->adrfact, 1, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$dimCadres['xS']	= $this->formatpage['mgauche'];
 				$dimCadres['xR']	= $this->formatpage['mgauche'];

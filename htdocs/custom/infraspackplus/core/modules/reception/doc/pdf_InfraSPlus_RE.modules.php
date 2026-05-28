@@ -218,18 +218,18 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
@@ -249,7 +249,7 @@
 		public $largcol5;
 		public $largcol6;
 		public $largcol7;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $larg_tabtotal;
 		public $larg_tabinfo;
 		public $posxtabtotal;
@@ -263,6 +263,7 @@
 		public $exf_prod_pos;
 		public $hBC;
 		public $hide_ordered;
+		public $hide_wv;
 		public $larg_comm;
 		public $larg_ordered;
 		public $larg_rel;
@@ -302,6 +303,7 @@
 			$this->show_rel_col					= getDolGlobalInt('INFRASPLUS_PDF_BR_WITH_REL_COLUMN', 0);
 			$this->exf_prod_pos					= getDolGlobalString('INFRASPLUS_PDF_EXF_PROD_POS', '');
 			$this->hide_ordered					= getDolGlobalInt('INFRASPLUS_PDF_BR_HIDE_ORDERED', 0);
+			$this->hide_wv						= getDolGlobalInt('RECEPTION_PDF_HIDE_WEIGHT_AND_VOLUME', 0);
 			$this->larg_ref						= getDolGlobalInt('INFRASPLUS_PDF_LARGCOLBR_REF', 28);
 			$this->larg_comm					= getDolGlobalInt('INFRASPLUS_PDF_LARGCOLBR_COMM', 50);
 			$this->larg_unit					= getDolGlobalInt('INFRASPLUS_PDF_LARGCOLBR_UNIT', 10);
@@ -458,18 +460,18 @@
 					// First loop on each lines to prepare calculs and variables
 					$fk_commandefourndet	= 0;
 					$nbLineEscape			= 0;
-					$this->totaux			= array();
-					$qty_rel				= array();
-					$qty_received			= array();
-					$realpatharray			= array();
-					$prod_pos				= array();
-					$listObjBib				= array();
+					$this->totaux			= ['asked' => 0, 'shipped' => 0, 'rel' => 0];
+					$qty_rel				= [];
+					$qty_received			= [];
+					$realpatharray			= [];
+					$prod_pos				= [];
+					$listObjBib				= [];
 					$objproduct				= new Product($this->db);
 					$alreadyreceived		= infraspackplus_get_alreadyreceived($object->origin_id);
 					$serialreceived			= infraspackplus_get_serialreceived($object->origin_id, $object->id);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						$this->totaux['shipped']												+= $object->lines[$i]->qty;
-						$qty_received[$object->lines[$i]->fk_commandefourndet]					+= $object->lines[$i]->qty;
+						$this->totaux['shipped']								+= $object->lines[$i]->qty;
+						$qty_received[$object->lines[$i]->fk_commandefourndet]	= isset($qty_received[$object->lines[$i]->fk_commandefourndet]) ? $qty_received[$object->lines[$i]->fk_commandefourndet] + $object->lines[$i]->qty : $object->lines[$i]->qty;
 						if ($object->lines[$i]->fk_commandefourndet == $fk_commandefourndet) {
 							$nbLineEscape++;
 						} else {
@@ -657,6 +659,7 @@
 					$tab_top	+= $height_incoterms;
 					// Livraison
 					$height_livr	= 0;
+					$height_SsT		= 0;
 					$larg_livrshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? ($this->larg_util_txt / 2) - 2 : $this->larg_util_txt;
 					$larg_SsTshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? ($this->larg_util_txt / 2) - 2 : $this->larg_util_txt;
 					$posx_SsTshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? $this->posx_G_txt + $larg_livrshow + 4 : $this->posx_G_txt;
@@ -684,7 +687,7 @@
 						$nexY_livrshow			= $pdf->GetY();
 						$height_livr			= $this->Rounded_rect * 2 > $nexY_livrshow - $tab_top ? $this->Rounded_rect * 2 : $nexY_livrshow - $tab_top;
 					}
-					if ($head['SsTshow']) {
+					if (!empty($head['SsTshow'])) {
 						$pdf->SetFont('', 'B', $default_font_size + 2);
 						$pdf->writeHTMLCell($larg_SsTshow, $this->tab_hl, $posx_SsTshow, $tab_top, dol_htmlentitiesbr($outputlangs->transnoentities('PDFInfraSPlusSsT')), 0, 1);
 						$xSsT	= $posx_SsTshow + $pdf->GetStringWidth($outputlangs->transnoentities('PDFInfraSPlusSsT'), '', 'B', $default_font_size + 2) + 5;
@@ -760,8 +763,8 @@
 						if ($object->lines[$i]->fk_commandefourndet == $fk_commandefourndet) {
 							continue;
 						}
-						$fk_commandefourndet													= $object->lines[$i]->fk_commandefourndet;
-						$curY																	= $nexY;
+						$fk_commandefourndet			= $object->lines[$i]->fk_commandefourndet;
+						$curY							= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
 						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						if (empty($this->hide_top_table)) {
@@ -770,13 +773,14 @@
 							$pdf->setTopMargin($tab_top_newpage);
 						}
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
-						$pageposbefore															= $pdf->getPage();
-						$showpricebeforepagebreak												= 1;
-						$colPicture																= $this->tableau['ref']['larg'] > 0 && $this->picture_in_ref ? 'ref' : 'desc';
-						$imglinesize															= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : array();	// Define size of image if we need it
+						$pageposbefore					= $pdf->getPage();
+						$showpricebeforepagebreak		= 1;
+						$larg_ref						= isset($this->tableau['ref']['larg']) ? $this->tableau['ref']['larg'] : 0;
+						$colPicture						= $larg_ref > 0 && $this->picture_in_ref ? 'ref' : 'desc';
+						$imglinesize					= !empty($this->with_picture) && !empty($realpatharray[$i]) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : [];	// Define size of image if we need it
 						if (!empty($imglinesize['width']) && !empty($imglinesize['height']) && $this->linkpictureurl) {
-							$txturl	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
-							$ht_url	= $pdf->getStringHeight($this->tableau[$colPicture]['larg'], $txturl);
+							$txturl						= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
+							$ht_url						= $pdf->getStringHeight($this->tableau[$colPicture]['larg'], $txturl);
 						}
 						// Hauteur de ligne
 						$this->heightline	= $this->tab_hl;
@@ -1072,7 +1076,7 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												$this->header_after_addr, $this->title_size, $this->titlekey, $this->ref_from_cust, $this->datesbold, $this->dates_br, $this->show_num_cli, $this->num_cli_frm,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, $this->add_creator_in_header, $this->use_iso_location, $this->adr, $this->typeadr, $this->adrlivr, $this->Rounded_rect,
-												$this->customerAddrSelect, $this->Sst, $this->adrSst, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
+												$this->customerAddrSelect, $this->Sst, $this->adrSst, '', 0, [], '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
@@ -1125,7 +1129,7 @@
 				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
 										'E' => $object->getIdContact('external', 'SHIPPING')
 										);
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', null, 0, $this->Sst, $this->adrSst, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}
@@ -1364,15 +1368,14 @@
 			$pdf->startTransaction();
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$posytabtot			= $posy + $this->ht_space_tot;
-			$tabtot_hl			= $this->tab_hl;
 			$pdf->SetFont('', '', $default_font_size - 1);
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			// Tableau total
 			$larg_tabtotal		= $this->larg_tabtotal;
-			$larg_col2total		= $this->tableau['wv']['larg'];
+			$larg_col2total		= isset($this->tableau['wv']['larg']) ? $this->tableau['wv']['larg'] : 0;
 			$larg_col1total		= $larg_tabtotal - $larg_col2total;
 			$posxtabtotal		= $this->posxtabtotal;
-			$posxcol2total		= $this->tableau['wv']['posx'];
+			$posxcol2total		= isset($this->tableau['wv']['posx']) ? $this->tableau['wv']['posx'] : 0;
 			$index				= 0;
 			$totalWeighttoshow	= '';
 			$totalVolumetoshow	= '';
@@ -1397,9 +1400,28 @@
 			if ($object->trueVolume) {
 				$totalVolumetoshow	= showDimensionInBestUnit($object->trueVolume, $object->volume_units, "volume", $outputlangs);
 			}
+			$tabtot_hl	= $this->tab_hl;
 			// Totaux
 			$pdf->SetFont('', '', $default_font_size - 1);
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			if (empty($this->hide_wv)) {
+				if ($totalWeighttoshow) {
+					$pdf->RoundedRect($posxtabtotal, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), $larg_tabtotal, $tabtot_hl, $this->Rounded_rect > $tabtot_hl / 2 ? $tabtot_hl / 2 : $this->Rounded_rect, '1111', 'DF', $this->bgLineStyle, $this->bg_color);
+					$pdf->SetFont('', 'B', $default_font_size - 1);
+					!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					$pdf->MultiCell($larg_tabtotal, $tabtot_hl, $totalWeighttoshow, '', 'C', 0, 1, $posxtabtotal, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
+					$index++;
+				}
+				if ($totalVolumetoshow) {
+					$pdf->RoundedRect($posxtabtotal, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), $larg_tabtotal, $tabtot_hl, $this->Rounded_rect > $tabtot_hl / 2 ? $tabtot_hl / 2 : $this->Rounded_rect, '1111', 'DF', $this->bgLineStyle, $this->bg_color);
+					$pdf->SetFont('', 'B', $default_font_size - 1);
+					!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					$pdf->MultiCell($larg_tabtotal, $tabtot_hl, $totalVolumetoshow, '', 'C', 0, 1, $posxtabtotal, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
+					$index++;
+				}
+			} else {
+				$pdf->MultiCell($larg_col1total, $tabtot_hl, ' ', '', 'L', 0, 1, $posxtabtotal, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);
+			}
 			$posytabtot	= $pdf->GetY() + 1;
 			if (!empty($calculseul)) {
 				$heightfortot	= $posytabtot - $posy;

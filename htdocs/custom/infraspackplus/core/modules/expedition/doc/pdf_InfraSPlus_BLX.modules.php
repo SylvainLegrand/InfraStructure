@@ -191,10 +191,10 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
-		public $horLineStyle = array();
+		public $stdLineStyle = [];
+		public $horLineStyle = [];
 		public $only_ht;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
@@ -361,7 +361,7 @@
 						$resultat_adrlivr	= $this->db->query($sql_adrlivr);
 						if ($resultat_adrlivr) {
 							// shipping address
-							$obj_adrlivr	= array();
+							$obj_adrlivr	= [];
 							$nbAdrLivr		= $this->db->num_rows($resultat_adrlivr);
 							// linked orders and invoices
 							$object->fetchObjectLinked();
@@ -444,7 +444,7 @@
 											$pdf->MultiCell(0, $this->heightline, $obj_adrlivr->zip,	0, 'L', 0, 1, 25, 107.5,	true, 0, 0, false, 0, 'M', false);	// zip
 											$pdf->MultiCell(0, $this->heightline, $obj_adrlivr->town,	0, 'L', 0, 1, 19, 114,		true, 0, 0, false, 0, 'M', false);	// town
 											$pdf->MultiCell(0, $this->heightline, $qtyByAdr,			0, 'L', 0, 1, 53, 140,		true, 0, 0, false, 0, 'M', false);	// product Qty
-											pdf_InfraSPlus_writelinedesc($pdf, $object, $j, $outputlangs, $this->formatpage, array(), 0, $this->heightline, 29, 159.3, 1, 1, 0, '');	// Product label
+											pdf_InfraSPlus_writelinedesc($pdf, $object, $j, $outputlangs, $this->formatpage, [], 0, $this->heightline, 29, 159.3, 1, 1, 0, '');	// Product label
 											$pdf->MultiCell(0, $this->heightline, $ref,					0, 'L', 0, 1, 24, 197.7,	true, 0, 0, false, 0, 'M', false);	// product Ref
 										}
 										$pdf->MultiCell(0, $this->heightline, $this->nameCli, 0, 'L', 0, 1, 8, 286.5, true, 0, 0, false, 0, 'M', false);	// Custommer Social name

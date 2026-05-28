@@ -128,10 +128,10 @@
 		}
 	}
 	if ($result == 1) {
-		setEventMessages($langs->trans('SetupSaved'), array(), 'mesgs');
+		setEventMessages($langs->trans('SetupSaved'), [], 'mesgs');
 	}
 	if ($result == -1) {
-		setEventMessages($langs->trans('Error'), array(), 'errors');
+		setEventMessages($langs->trans('Error'), [], 'errors');
 	}
 
 	// init variables *******************************

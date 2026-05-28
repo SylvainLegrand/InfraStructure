@@ -515,7 +515,7 @@
 		}
 		// Action button
 		print '				<div class = "tabsAction">';
-		$parameters	= array();
+		$parameters	= [];
 		$reshook	= $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action); // Note that $action and $object may have been modified by hook+
 		if (empty($reshook) && $action != 'presend') {
 			if (!empty($user->hasRight('societe', 'creer'))) {

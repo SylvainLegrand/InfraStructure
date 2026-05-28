@@ -201,18 +201,18 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
@@ -232,7 +232,7 @@
 		public $largcol5;
 		public $largcol6;
 		public $largcol7;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $tab_hl = 4;
 		public $decal_round = 0;
 		public $ht_top_table;
@@ -384,11 +384,10 @@
 					$valpmpproducts			= 0;
 					$valsellproducts		= 0;
 					$valbuyproducts			= 0;
-					$valbuyproduct			= array();
+					$valbuyproduct			= [];
 					$product_fourn			= new ProductFournisseur($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						$valpmpproducts	+= price2num($object->lines[$i]->ppmp * $object->lines[$i]->qty, 'MT');
-					//	if (empty($conf->global->PRODUIT_MULTIPRICES))	$valsellproducts	+= price2num($object->lines[$i]->price * $object->lines[$i]->qty, 'MT');
 						if ($product_fourn->find_min_price_product_fournisseur($object->lines[$i]->rowid) > 0) {
 							if ($product_fourn->product_fourn_price_id > 0) {
 								$valbuyproduct[$i]	= $product_fourn->fourn_unitprice * (1 - $product_fourn->fourn_remise_percent / 100) + $product_fourn->fourn_remise;
@@ -488,10 +487,6 @@
 					$pdf->writeHTMLCell($this->larg_util_txt / 2, $this->tab_hl, $this->posx_G_txt + ($this->larg_util_txt / 2), $tab_top, $txtvalpmpproducts, 0, 1, false, true, 'R', true);
 					$txtvalbuyproducts	= '<b>'.$outputlangs->transnoentities('PDFInfraSPlusEstimatedStockValue').' : </b>'.pdf_InfraSPlus_price($object, (empty($valbuyproducts) ? '0' : price2num($valbuyproducts, 'MT')), $outputlangs, 1, 0, 'U');
 					$pdf->writeHTMLCell($this->larg_util_txt / 2, $this->tab_hl, $this->posx_G_txt + ($this->larg_util_txt / 2), $tab_top + $this->tab_hl, $txtvalbuyproducts, 0, 1, false, true, 'R', true);
-				//	if (empty($conf->global->PRODUIT_MULTIPRICES)) {
-				//		$txtvalsellproducts		= '<b>'.$outputlangs->transnoentities('EstimatedStockValueSellShort').' : </b>'.pdf_InfraSPlus_price($object, (empty($valsellproducts) ? '0' : price2num($valsellproducts, 'MT')), $outputlangs, 1, 0, 'U');
-				//		$pdf->writeHTMLCell($this->larg_util_txt / 2, $this->tab_hl, $this->posx_G_txt + ($this->larg_util_txt / 2), $tab_top + $this->tab_hl * 2, $txtvalsellproducts, 0, 1, false, true, 'R', true);
-				//	}
 					$tab_top			+= $this->tab_hl * 3;
 					$nexY				= $tab_top + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
@@ -558,12 +553,6 @@
 						// Quantity
 						$qty	= price2num(pdf_getlineqty($object, $i, $outputlangs, $hidedetails), 'MS');
 						$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $qty, '', 'R', 0, 1, $this->tableau['qty']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
-					//	if (empty($conf->global->PRODUIT_MULTIPRICES)) {
-					//		// Price sell min
-					//		$up_line	= pdf_InfraSPlus_price($object, $object->lines[$i]->price, $outputlangs, 0, 0, 'U');
-					//		$pdf->MultiCell($this->tableau['up']['larg'], $this->heightline, $up_line, '', 'R', 0, 1, $this->tableau['up']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
-					//	}
-
 						// Best buy price
 						if (!empty($valbuyproduct[$i])) {
 							$up_line	= pdf_InfraSPlus_price($object, $valbuyproduct[$i], $outputlangs, 0, 0, 'U');
@@ -577,12 +566,6 @@
 							// PMP total
 							$pmpt_line	= pdf_InfraSPlus_price($object, $object->lines[$i]->ppmp * $object->lines[$i]->qty, $outputlangs, 0, 0, 'U');
 							$pdf->MultiCell($this->tableau['pmpt']['larg'], $this->heightline, $pmpt_line, '', 'R', 0, 1, $this->tableau['pmpt']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
-					//		if (empty($conf->global->PRODUIT_MULTIPRICES)) {
-					//			// Total sell min
-					//			$total_line	= pdf_InfraSPlus_price($object, $object->lines[$i]->price * $object->lines[$i]->qty, $outputlangs, 0, 0, 'U');
-					//			$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
-					//		}
-
 							// Total Best buy price
 							if (!empty($valbuyproduct[$i])) {
 								$total_line	= pdf_InfraSPlus_price($object, $valbuyproduct[$i] * $object->lines[$i]->qty, $outputlangs, 0, 0, 'U');
@@ -702,7 +685,7 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												$this->header_after_addr, $this->title_size, $this->titlekey, $this->ref_from_cust, $this->datesbold, $this->dates_br, $this->show_num_cli, $this->num_cli_frm,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, $this->add_creator_in_header, $this->use_iso_location, $this->adr, $this->typeadr, $this->adrlivr, $this->Rounded_rect,
-												$this->customerAddrSelect, -2, -2, '', 0, array(), '', -2, 0, $this->left_recep_corner, $this->top_recep_corner, 0);
+												$this->customerAddrSelect, -2, -2, '', 0, [], '', -2, 0, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);

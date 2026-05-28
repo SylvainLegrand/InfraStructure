@@ -192,9 +192,9 @@
 		public $alpha;
 		public $exftxtcolor;
 		public $exfltxtcolor;
-		public $horLineStyle = array();
+		public $horLineStyle = [];
 		public $only_ht;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;

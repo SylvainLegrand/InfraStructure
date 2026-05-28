@@ -186,12 +186,12 @@
 		public $exftxtcolor;
 		public $exfltxtcolor;
 		public $logo;
-		public $horLineStyle = array();
+		public $horLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
 		public $posx_G_txt;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $tab_hl = 4;
 		public $decal_round = 0;
 		public $ht_top_table;

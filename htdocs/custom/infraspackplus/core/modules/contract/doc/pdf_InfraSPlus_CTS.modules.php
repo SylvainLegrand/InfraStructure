@@ -177,9 +177,9 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 		public $exftxtcolor;
 		public $exfltxtcolor;
 		public $files;
-		public $horLineStyle = array();
+		public $horLineStyle = [];
 		public $only_ht;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
@@ -259,8 +259,8 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 		$parameters				= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
 		global $action;
 		$hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);
-		$this->files			= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : array();
-		$hookmanager->resArray	= array();
+		$this->files			= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : [];
+		$hookmanager->resArray	= [];
 		// Instance PDF
 		$pdf					= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');
 		$default_font_size		= pdf_getPDFFontSize($outputlangs);
@@ -285,7 +285,7 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 		}
 		// 2) Recherche des specialfiles configurés
 		else {
-			$paramspecialfiles		= !empty($conf->global->INFRASPLUS_PDF_SPECIAL_FILES) ? $conf->global->INFRASPLUS_PDF_SPECIAL_FILES : '';
+			$paramspecialfiles		= getDolGlobalString('INFRASPLUS_PDF_SPECIAL_FILES', '');
 			if (!empty($paramspecialfiles)) {
 				$paramspecialfiles	= array_map('trim', explode(',', $paramspecialfiles));
 
@@ -296,7 +296,7 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 				// Liste des scripts (ABE.php, Contrat_GAZ.php, etc.)
 				$listspecialfiles	= dol_dir_list(dol_buildpath('/infraspackplus/core/modules/specialfiles', 0), 'files', 0, '\.php$', null, 'name', SORT_ASC, 0, 0, '', 0);
 				$listspecialfiles	= array_column($listspecialfiles, 'name');
-				$filesArray			= array();
+				$filesArray			= [];
 				foreach ($listpdfs as $pdfFile) {
 					if (empty($pdfFile['name'])) {
 						continue;
@@ -307,8 +307,9 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 					}
 					// Clé d'activation harmonisée avec le module Projet
 					// INFRASPLUS_PDF_SPECIAL_FILE_CONTRAT_CONTRAT_GAZ_AUTO (object->element = 'contrat')
-					$key			= 'INFRASPLUS_PDF_SPECIAL_FILE_'.strtoupper($object->element).'_'.strtoupper($pdfname).'_AUTO';
-					$enabled		= !empty($conf->global->$key) ? (int)$conf->global->$key : 0;
+					$key		= 'INFRASPLUS_PDF_SPECIAL_FILE_'.strtoupper($object->element).'_'.strtoupper($pdfname).'_AUTO';
+					$enabled	= getDolGlobalInt($key, 0);
+
 					if (empty($enabled)) {
 						continue;
 					}
@@ -321,7 +322,7 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 				if (!empty($filesArray)) {
 					completeFileArrayWithDatabaseInfo($filesArray, 'infraspackplus/specialfiles');
 
-					$arrayFilesID	= array();
+					$arrayFilesID	= [];
 					foreach ($filesArray as $row) {
 						if (!empty($row['rowid'])) {
 							$arrayFilesID[] = $row['rowid'];
@@ -331,7 +332,7 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 						pdf_InfraSPlus_files($pdf, $arrayFilesID, 1, $object, $outputlangs, $this->formatpage);
 					}
 					$pdf_files_after	= glob($dir.'/*.pdf');
-					$pdf_files_after	= is_array($pdf_files_after) ? $pdf_files_after : array();
+					$pdf_files_after	= is_array($pdf_files_after) ? $pdf_files_after : [];
 					if (empty(array_diff($pdf_files_after, $pdf_files_before))) {
 						dol_syslog('InfraSPlus_CTS: Aucun specialfile n\'a généré de PDF pour '.$objectref, LOG_WARNING);
 						setEventMessages($outputlangs->transnoentities('WarningNoSpecialFilePDFGenerated', $objectref), null, 'warnings');

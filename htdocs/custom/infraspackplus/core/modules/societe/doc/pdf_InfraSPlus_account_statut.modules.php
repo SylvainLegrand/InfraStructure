@@ -206,18 +206,18 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $only_ht;
 		public $larg_util_cadre;
 		public $larg_util_txt;
@@ -235,7 +235,7 @@
 		public $largcol4;
 		public $largcol5;
 		public $largcol6;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $heightforfooter;
 		public $larg_tabtotal;
 		public $posxtabtotal;
@@ -395,7 +395,7 @@
 					$add_product_tags				= !empty($this->exportparameters['add_product_tags']);
 					$show_thirdparty_ref			= !empty($this->exportparameters['show_thirdparty_ref']);
 					$this->add_multicurrency		= !empty($conf->multicurrency->enabled) && !empty($this->exportparameters['add_multicurrency']);
-					$idssubsidiaries				= array();
+					$idssubsidiaries				= [];
 					if (!empty($show_subsidiaries)) {
 						$sql	= 'SELECT s.rowid, s.client, s.fournisseur, s.nom AS name, s.name_alias, s.email, s.address, s.zip, s.town, s.code_client,';
 						$sql	.= ' s.code_fournisseur, s.code_compta, s.code_compta_fournisseur, s.canvas';
@@ -731,7 +731,7 @@
 						$line					= $this->db->fetch_object($resql);
 						$invoice_ref			= $line->label;
 						$nblignes_d				= 0;	// Payment details
-						$paiement_detail_list	= array();	// paiement detail list
+						$paiement_detail_list	= [];	// paiement detail list
 						if (!empty($show_payment_details)) {
 							$datepayment	= '';
 							$payment_label	= '';
@@ -772,7 +772,7 @@
 						}
 						$line->label						.= !empty($add_product_tags) && !empty($line->product_tags) ? ' - ['.$line->product_tags.']' : '';
 						$line->label						.= !empty($line->extrafield_invoice) ? ' - ('.$line->extrafield_invoice.')' : '';
-						$paiement_detail_list[$invoice_ref]	= array();
+						$paiement_detail_list[$invoice_ref]	= [];
 						if (!empty($show_payment_details)) {
 							for ($j = 0; $j < $nblignes_d; $j++) {
 								$line_d	= $this->db->fetch_object($resql_d);
@@ -1077,7 +1077,7 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												0, $this->title_size, $this->titlekey, 0, $this->datesbold, 0, 1, 1,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, 0, $this->use_iso_location, '', $this->typeadr, '', $this->Rounded_rect,
-												'', -2, -2, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
+												'', -2, -2, '', 0, [], '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
@@ -1123,7 +1123,7 @@
 										'E' => '',
 										'L' => ''
 										);
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, '', 0, $this->emetteur, 0, 'accountStatus', 0, 0, -2, -2, '', 0);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}

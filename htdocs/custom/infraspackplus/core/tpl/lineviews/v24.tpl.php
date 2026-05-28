@@ -247,7 +247,7 @@ if (($line->info_bits & 2) == 2) {
 			// show warning under line
 			// we need to fetch product associated to line for some test
 			if ($object->element == 'propal' || $object->element == 'order' || $object->element == 'facture' || $object->element == 'propal_supplier' || $object->element == 'supplier_proposal' || $object->element == 'commande') {
-				$res = $line->fetch_product();
+				$res = method_exists($line, 'fetch_product') ? $line->fetch_product() : 0;
 				if ($res  > 0) {
 					if ($line->product->isService() && $line->product->isMandatoryPeriod()) {
 						print '<div><span class="clearboth nowraponall warning">'.$langs->trans("mandatoryPeriodNeedTobeSet").'</span></div>';
@@ -283,7 +283,7 @@ if (($line->info_bits & 2) == 2) {
 	print $hookmanager->resPrint;
 	// Line extrafield
 	if (!empty($extrafields) && empty($reshook)) {
-		$temps = $line->showOptionals($extrafields, 'view', array(), '', '', '1', 'line');
+		$temps = $line->showOptionals($extrafields, 'view', [], '', '', '1', 'line');
 		if (!empty($temps)) {
 			print '<div style="padding-top: 10px" id="extrafield_lines_area_'.$line->id.'" name="extrafield_lines_area_'.$line->id.'">';
 			print $temps;
@@ -471,7 +471,7 @@ if ($object->element == 'commande' && isModEnabled('stock') && isModEnabled('shi
 
 
 	if ($line->fk_product > 0 && $line->product_type == 0) {
-		static $productstatcache = array();
+		static $productstatcache = [];
 
 		if (empty($productstatcache[$line->fk_product])) {
 			$prod = new Product($db);
@@ -580,7 +580,7 @@ if ($object->status == 0 && $tmppermtoedit && $action != 'selectlines') {	// Inf
 			)
 		) {
 			$accountancy_category_asset = getDolGlobalString('ASSET_ACCOUNTANCY_CATEGORY');
-			$filters = array();
+			$filters = [];
 			if (!empty($product_static->accountancy_code_buy)) {
 				$filters[] = "account_number = '" . $db->escape($product_static->accountancy_code_buy) . "'";	// InfraS change
 			}
@@ -592,7 +592,7 @@ if ($object->status == 0 && $tmppermtoedit && $action != 'selectlines') {	// Inf
 			}
 			$sql = "SELECT COUNT(*) AS found";
 			$sql .= " FROM " . MAIN_DB_PREFIX . "accounting_account";
-			$sql .= " WHERE pcg_type = '" . $db->escape($conf->global->ASSET_ACCOUNTANCY_CATEGORY) . "'";	// InfraS change
+			$sql .= " WHERE pcg_type = '" . $db->escape($accountancy_category_asset) . "'";	// InfraS change
 			$sql .= " AND (" . implode(' OR ', $filters). ")";
 			$resql_asset = $db->query($sql);	// InfraS change
 			if (!$resql_asset) {

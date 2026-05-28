@@ -82,14 +82,14 @@
 		public $deposits;
 		public $deposits_loc_cur;
 		public $atleastonediscount;
-		public $tvaProd = array();
-		public $localtax1Prod = array();
-		public $localtax2Prod = array();
-		public $htProd = array();
-		public $tvaServ = array();
-		public $localtax1Serv = array();
-		public $localtax2Serv = array();
-		public $htServ = array();
+		public $tvaProd = [];
+		public $localtax1Prod = [];
+		public $localtax2Prod = [];
+		public $htProd = [];
+		public $tvaServ = [];
+		public $localtax1Serv = [];
+		public $localtax2Serv = [];
+		public $htServ = [];
 		public $no_payment_table;
 		public $positive_credit_note;
 		public $show_pointoftax_date;
@@ -120,13 +120,13 @@
 		public $localtax1;
 		public $localtax2;
 		public $credit_note;
-		public $listPaySpec	= array();
+		public $listPaySpec	= [];
 		public $atleastoneratenotnull;
 		public $situationinvoice;
 		public $prev_ht = 0;
 		public $prev_ttc = 0;
-		public $previnvoices = array();
-		public $lines_deposits = array();
+		public $previnvoices = [];
+		public $lines_deposits = [];
 		public $use_fpdf;
 		public $main_umask;
 		public $page_largeur;
@@ -287,24 +287,24 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $TotRem = array('HT' => 0, 'TTC' => 0, 'multicurrency_HT' => 0, 'multicurrency_TTC' => 0);
 		public $hasService = 0;
 		public $hasProduct = 0;
 		public $nbrProdTot = 0;
-		public $nbrProdDif = array();
-		public $ecoTaxes = array();
+		public $nbrProdDif = [];
+		public $ecoTaxes = [];
 		public $hasEcoTaxes = 0;
 		public $only_ht;
 		public $use_multicurrency;
@@ -335,7 +335,7 @@
 		public $largcol9;
 		public $largcol10;
 		public $largcol11;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $tableHeaderBefore;
 		public $heightforfooter;
 		public $larg_tabtotal;
@@ -350,7 +350,7 @@
 		public $qrcodestring;
 		public $adrfact;
 		public $sizeBC = 25;
-		public $styleBC = array();
+		public $styleBC = [];
 		public $resteapayer;
 		public $resteapayer_loc_cur;
 		public $raw_prices;
@@ -378,7 +378,7 @@
 			$this->zatca_qr_code				= getDolGlobalInt('INVOICE_ADD_ZATCA_QR_CODE', 0);
 			$this->swiss_qr_code				= getDolGlobalInt('INVOICE_ADD_SWISS_QR_CODE', 0);
 			$this->draft_watermark				= getDolGlobalString('FACTURE_DRAFT_WATERMARK', '');
-			$this->dateduetxtcolor				= getDolGlobalInt('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', 0);
+			$this->dateduetxtcolor				= getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '0,0,0');
 			$this->dateduetxtcolor				= explode(',', $this->dateduetxtcolor);
 			$this->title_if_deposit				= getDolGlobalString('INFRASPLUS_PDF_INVOICE_TITLE_IF_DEPOSIT', '');
 			$this->ht_by_vat_p_s				= getDolGlobalInt('INFRASPLUS_PDF_HT_BY_VAT_P_OR_S', 0);
@@ -542,7 +542,7 @@
 					$this->show_tva_btp			= !empty($hookmanager->resArray['showtvabtp']) ? $hookmanager->resArray['showtvabtp'] : '';
 					$this->hideInnerLines		= !empty($hookmanager->resArray['hideInnerLines']) ? $hookmanager->resArray['hideInnerLines'] : '';
 					$this->add_recap			= !empty($hookmanager->resArray['subtotal_add_recap']) ? $hookmanager->resArray['subtotal_add_recap'] : (!empty($hookmanager->resArray['infrastructure_add_recap']) ? $hookmanager->resArray['infrastructure_add_recap'] : '');
-					$hookmanager->resArray		= array();
+					$hookmanager->resArray		= [];
 					if (!empty($this->usentascover)) {
 						$this->first_page_empty	= 1;	// Comme on veut une page de garde on créé une page vide en premier puis on insère la note prévue sur celle-ci
 					}
@@ -556,7 +556,7 @@
 							$account		= new Account($this->db);
 							$account->fetch($bankid);
 							$factorFreeT	= 'INVOICE_FREE_TEXT_'.$this->factor_pre.$account->ref;
-							if (!empty($conf->global->$factorFreeT)) {
+							if (getDolGlobalString($factorFreeT, '')) {
 								$this->listfreet[]	= $factorFreeT;
 							}
 					}
@@ -620,7 +620,7 @@
 						$this->situationinvoice	= True;
 						$this->prev_ht			= 0;
 						$this->prev_ttc			= 0;
-						$this->previnvoices		= count($object->tab_previous_situation_invoice) ? $object->tab_previous_situation_invoice : array();
+						$this->previnvoices		= count($object->tab_previous_situation_invoice) ? $object->tab_previous_situation_invoice : [];
 						if (count($this->previnvoices)) {
 							foreach ($this->previnvoices as $invoice) {
 								$invoice_ht		= $this->use_multicurrency ? $invoice->multicurrency_total_ht : $invoice->total_ht;
@@ -633,13 +633,13 @@
 					// First loop on each lines to prepare calculs and variables
 					$isTitleToList			= 0;
 					$isTitleToCondense		= 0;
-					$subtotalRecap			= array();
-					$descWorksHidden		= array();
-					$lineToHide				= array();
-					$realpatharray			= array();
-					$pricesObjProd			= array();
-					$listObjBib				= array();
-					$listDescBib			= array();
+					$subtotalRecap			= [];
+					$descWorksHidden		= [];
+					$lineToHide				= [];
+					$realpatharray			= [];
+					$pricesObjProd			= [];
+					$listObjBib				= [];
+					$listDescBib			= [];
 					$objproduct				= new Product($this->db);
 					$discount				= new DiscountAbsolute($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
@@ -784,15 +784,15 @@
 							$this->atleastonediscount++;
 							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc)) {
 								$this->TotRem['TTC']				+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht);
-								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, array(), 1);
+								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, [], 1);
 							}
 							if (!empty($this->show_disc_tot)) {
 								$this->TotRem['HT']					+= pdf_InfraSPlus_getTotRem($object, $i, 1);
-								$this->TotRem['multicurrency_HT']	+= pdf_InfraSPlus_getTotRem($object, $i, 1, array(), 1);
+								$this->TotRem['multicurrency_HT']	+= pdf_InfraSPlus_getTotRem($object, $i, 1, [], 1);
 							}
 							if (!empty($this->show_disc_ttc)) {
 								$this->TotRem['TTC']				+= pdf_InfraSPlus_getTotRem($object, $i, 0);
-								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, array(), 1);
+								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, [], 1);
 							}
 						}
 						// global calculated discount (type InfraSDiscount)
@@ -835,7 +835,7 @@
 								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, $pricesObjProd[$i], 1);
 							}
 						} else {
-							$pricesObjProd[$i]	= array();
+							$pricesObjProd[$i]	= [];
 						}
 						// Collection of totals by VAT value
 						if (empty($isDiscount) && empty($isOuvrage) && empty($isSubTotalLine)) {
@@ -1008,7 +1008,7 @@
 							foreach ($pdir as $midir) {
 								if (!$arephoto && !$onlyOne) {
 									$dir		= ($objproduct->entity != $conf->entity ? $conf->product->multidir_output[$objproduct->entity] : $conf->product->dir_output).'/'.$midir;
-									$listPhotos	= array();
+									$listPhotos	= [];
 									// We recover all the photos attached to the product and we find their position in the ECM
 									foreach ($objproduct->liste_photos($dir, 0) as $key => $obj) {
 										$relpath	= ($objproduct->entity == 1 ? '' : $objproduct->entity.'/').'produit/'.$midir.$obj['photo'];
@@ -1426,7 +1426,7 @@
 						}
 						// We don't want a title line alone at the end of the page (just before a page break)
 						if (!empty($isSubTitle)) {
-							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : array();	// Define size of image if we need it
+							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : [];	// Define size of image if we need it
 							if (empty($this->picture_under) && empty($this->picture_after) && isset($nextimglinesize['height'])) {
 								$nextlinehight	= $nextimglinesize['height'] + ($this->linkpictureurl ? $this->tab_hl * 2 : $this->tab_hl);
 							} else {
@@ -1448,7 +1448,7 @@
 							}
 						}
 						$colPicture		= $this->tableau['ref']['larg'] > 0 && $this->picture_in_ref ? 'ref' : 'desc';
-						$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : array();	// Define size of image if we need it
+						$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : [];	// Define size of image if we need it
 						$ht_url			= 0;
 						if (!empty($imglinesize['width']) && !empty($imglinesize['height']) && $this->linkpictureurl) {
 							$txturl	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
@@ -1660,15 +1660,15 @@
 							$keyForIdSubtotal	= array_search($object->lines[$i]->rang, array_column($subtotalRecap, 'rang'));
 							$IdSubtotal			= $subtotalRecap[$keyForIdSubtotal]['line'];
 							if (empty($this->hide_vat)) {
-								$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, array());
+								$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, []);
 							} else {
-								$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, array());
+								$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, []);
 							}
 						} else {	// Standard
 							if (empty($this->hide_vat)) {
-								$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : array()));
+								$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : []));
 							} else {
-								$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : array()));
+								$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : []));
 							}
 						}
 						$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
@@ -1677,9 +1677,9 @@
 							if (!empty($this->subti_with_subto) && count($subtotalRecap) > 0 && array_search($object->lines[$i]->rang, array_column($subtotalRecap, 'rang')) !== false && array_search($object->lines[$i]->qty, array_column($subtotalRecap, 'level')) !== false) {
 								$keyForIdSubtotal	= array_search($object->lines[$i]->rang, array_column($subtotalRecap, 'rang'));
 								$IdSubtotal			= $subtotalRecap[$keyForIdSubtotal]['line'];
-								$totalTTC_line		= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, array());
+								$totalTTC_line		= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, []);
 							} else {
-								$totalTTC_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : array()));	// Standard
+								$totalTTC_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : []));	// Standard
 							}
 							$pdf->MultiCell($this->tableau['totalttc']['larg'], $this->heightline, $totalTTC_line, '', 'R', 0, 1, $this->tableau['totalttc']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 						}
@@ -1984,7 +1984,7 @@
 											'L' => $object->getIdContact('external', 'SHIPPING')
 											);
 			if (!empty($showaddress)) {
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $this->arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', $this->adrfact, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}

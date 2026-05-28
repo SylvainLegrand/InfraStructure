@@ -72,7 +72,7 @@
 		/**
 		* After login (../main.inc.php)
 		*
-		* @param	array()			$parameters		empty array
+		* @param	[]			$parameters		empty array
 		* @param	CommonObject	$user			The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			$action			Current action (if set). Generally create or edit or null
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
@@ -92,7 +92,7 @@
 		/**
 		* When login (../main.inc.php)
 		*
-		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	[]			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			&$action		Current action (if set). Generally create or edit or null
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
@@ -122,7 +122,7 @@
 		/**
 		* Table build to generate new document and to show linked objects (../core/class/html.formfile.class.php)
 		*
-		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	[]			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			&$action		Current action (if set). Generally create or edit or null
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
@@ -775,7 +775,7 @@ EOJS;
 							$system_upload_dir	= !empty($conf->fournisseur->commande->multidir_output[$conf->entity]) ? $conf->fournisseur->commande->multidir_output[$conf->entity] : $conf->fournisseur->commande->dir_output;
 							break;
 						case 'supplier_proposal':
-							$system_upload_dir	= !empty($conf->supplierproposal->multidir_output[$conf->entity]) ? $conf->supplierproposal->multidir_output[$conf->entity] : $conf->supplierproposal->dir_output;
+							$system_upload_dir	= !empty($conf->supplier_proposal->multidir_output[$conf->entity]) ? $conf->supplier_proposal->multidir_output[$conf->entity] : $conf->supplier_proposal->dir_output;
 							break;
 						case 'project':
 							$system_upload_dir	= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
@@ -1180,7 +1180,7 @@ EOJS;
 		/**
 		* When we ask to generate a PDF document (../modules/type of element/doc/pdf_ModelName.modules.php)
 		*
-		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	[]			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			&$action		Current action (if set). Generally create or edit or null
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
@@ -1397,7 +1397,12 @@ EOJS;
 				dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_TYPE',	$txtResultsParamsType, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
 				$txtResultsParamsCust	= http_build_query ($paramsResultsCust, '');	// écriture de la chaine
 				dol_syslog('actions_infraspackplus.class::beforePDFCreation txtResultsParamsCust = '.$txtResultsParamsCust);
-				dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_CUST_'.$object->thirdparty->id,	$txtResultsParamsCust, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
+				if (! is_object($object->thirdparty) || empty($object->thirdparty->id)) {
+					$object->fetch_thirdparty();
+				}
+				if (is_object($object->thirdparty) && !empty($object->thirdparty->id)) {
+					dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_CUST_'.$object->thirdparty->id,	$txtResultsParamsCust, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
+				}
 			}
 			return 0;
 		}
@@ -1405,7 +1410,7 @@ EOJS;
 		/**
 		* When we finish to generate a PDF document (../modules/type of element/doc/pdf_ModelName.modules.php)
 		*
-		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	[]			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			&$action		Current action (if set). Generally create or edit or null
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
@@ -1420,7 +1425,7 @@ EOJS;
 		/**
 		* When we show or edit object extrafields on main card (../core/tpl/extrafields_add+_edit+_view.tpl.php)
 		*
-		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	[]			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			&$action		Current action (if set). Generally create or edit or null
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
@@ -1476,7 +1481,7 @@ EOJS;
 		/**
 		* When we ask for an action (../element/card.php)
 		*
-		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	[]			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			&$action		Current action (if set). Generally create or edit or null
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
@@ -1673,7 +1678,7 @@ EOJS;
 		/**
 		* When we show a line
 		*
-		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	[]			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	$object			The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 		* @param	string			$action			Current action (if set). Generally create or edit or null
 		* @return	int								< 0 on error, 0 on success, 1 to replace standard code
@@ -1701,6 +1706,11 @@ EOJS;
 
 			// HRM evaluations have their own native template — leave to Dolibarr
 			if ($element == 'evaluation') {
+				return 0;
+			}
+			// Expedition card: both create form (source Commande object) and view mode (Expedition object)
+			// ordershipmentcard: shipment tab on order (shipment.php) — table has only 5-6 columns, no financial columns
+			if (in_array('expeditioncard', $hookmanager->contextarray) || in_array('ordershipmentcard', $hookmanager->contextarray)) {
 				return 0;
 			}
 
@@ -1752,14 +1762,12 @@ EOJS;
 					$text			.= ' - '.(!empty($line->label) ? $line->label : $label);
 					$description	.= getDolGlobalInt('PRODUIT_DESC_IN_FORM_ACCORDING_TO_DEVICE') ? '' : (!empty($line->description) ? dol_htmlentitiesbr($line->description) : '');
 				}
-				if (empty($line->subprice_ttc) && $line->qty) {
+				if (empty($line->subprice_ttc) && $line->qty && isset($line->total_ttc)) {
 					$line->subprice_ttc	= (float) price2num($line->total_ttc / $line->qty, 'MU');
 				}
-				$line->pu_ttc	= $line->subprice_ttc;
-
-				$major		= (int) DOL_VERSION;
-				$dolinfras	= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
-
+				$line->pu_ttc	= $line->subprice_ttc ?? 0;
+				$major			= (int) DOL_VERSION;
+				$dolinfras		= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
 				if ($major >= 24) {
 					$tplname	= 'v24.tpl.php';
 				} elseif ($major == 23) {

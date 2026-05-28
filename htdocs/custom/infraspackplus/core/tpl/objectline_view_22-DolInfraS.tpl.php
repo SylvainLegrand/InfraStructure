@@ -280,7 +280,7 @@ if (($line->info_bits & 2) == 2) {
 	print $hookmanager->resPrint;
 	// Line extrafield
 	if (!empty($extrafields) && empty($reshook)) {
-		$temps = $line->showOptionals($extrafields, 'view', array(), '', '', '1', 'line');
+		$temps = $line->showOptionals($extrafields, 'view', [], '', '', '1', 'line');
 		if (!empty($temps)) {
 			print '<div style="padding-top: 10px" id="extrafield_lines_area_'.$line->id.'" name="extrafield_lines_area_'.$line->id.'">';
 			print $temps;
@@ -581,7 +581,7 @@ if ($object->status == 0 && $tmppermtoedit && $action != 'selectlines') {	// Inf
 			)
 		) {
 			$accountancy_category_asset = getDolGlobalString('ASSET_ACCOUNTANCY_CATEGORY');
-			$filters = array();
+			$filters = [];
 			if (!empty($product_static->accountancy_code_buy)) {
 				$filters[] = "account_number = '" . $db->escape($product_static->accountancy_code_buy) . "'";	// InfraS change
 			}

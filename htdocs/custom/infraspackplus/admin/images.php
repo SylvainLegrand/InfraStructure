@@ -122,12 +122,12 @@
 				$imgThumbSmall	= vignette($dest_path.$dest_file, $maxwidthsmall, $maxheightsmall, '_mini', $quality);
 				$imgThumbSmall	= vignette($dest_path.$dest_file, $maxwidthsmall, $maxheightsmall, '_small', $quality);
 			}
-			setEventMessages($dest_file.' : '.$langs->trans('FileSaved'), array(), 'mesgs');
+			setEventMessages($dest_file.' : '.$langs->trans('FileSaved'), [], 'mesgs');
 		} else if ($moved !== 1) {	// errors
 			if ($moved < 0) {
-				setEventMessages('UknownFileUploadError', array(), 'errors');	// API documented error
+				setEventMessages('UknownFileUploadError', [], 'errors');	// API documented error
 			} else {
-				setEventMessages($moved, array(), 'errors');	// We got an error string /o\
+				setEventMessages($moved, [], 'errors');	// We got an error string /o\
 			}
 		}
 	}
@@ -159,21 +159,21 @@
 		$b					= dol_delete_file($logodir.'/logos/thumbs/'.$urlfile_small, 1);
 		$c					= dol_delete_file($logodir.'/logos/thumbs/'.$urlfile_mini, 1);
 		if (!empty($a) && !empty($b) && !empty($c)) {
-			setEventMessages($urlfile_filename.'.'.$urlfile_ext.' '.$langs->trans('Deleted'), array(), 'mesgs');
+			setEventMessages($urlfile_filename.'.'.$urlfile_ext.' '.$langs->trans('Deleted'), [], 'mesgs');
 		} else {
-			setEventMessages($langs->trans('ErrorFailToDeleteFile', $urlfile), array(), 'errors');
+			setEventMessages($langs->trans('ErrorFailToDeleteFile', $urlfile), [], 'errors');
 		}
 	}
 
 	if ($result == 1) {
-		setEventMessages($langs->trans('SetupSaved'), array(), 'mesgs');
+		setEventMessages($langs->trans('SetupSaved'), [], 'mesgs');
 	}
 	if ($result == -1) {
-		setEventMessages($langs->trans('Error'), array(), 'errors');
+		setEventMessages($langs->trans('Error'), [], 'errors');
 	}
 
 	// init variables *******************************
-	$logos				= array();
+	$logos				= [];
 	foreach (glob($logodir.'/logos/*.jpg') as $file) {
 		$logos[]	= dol_basename($file);
 	}
@@ -340,7 +340,7 @@
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '5', 'max' => $maxhlogo, $disabledLogoHeight => 'true');
 		$num	= infraspackplus_print_input('MAIN_DOCUMENTS_LOGO_HEIGHT', 'input', $langs->trans('InfraSPlusParamLogoHeight', $maxhlogo), '', $metas, 1, 1, '&nbsp;mm', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_SMALL_HEAD_2', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LOGO_SECONDARY_SMALL_HEAD', 'on_off', $langs->trans('InfraSPlusParamLogoSecondarySmallHead'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LOGO_SECONDARY_SMALL_HEAD', 'on_off', $langs->trans('InfraSPlusParamLogoSecondarySmallHead'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
@@ -351,14 +351,14 @@
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_FOOT_WIDTH', 'input', $langs->trans('InfraSPlusParamPictureFootWidth'), '', $metas, 1, 1, '&nbsp;mm', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '4', 'max' => '30');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_FOOT_HEIGHT', 'input', $langs->trans('InfraSPlusParamPictureFootHeight'), '', $metas, 1, 1, '&nbsp;mm', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SET_LOGO_EMET_TIERS', 'on_off', $langs->trans('InfraSPlusParamSetLogoEmetTiers'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SET_LOGO_EMET_TIERS', 'on_off', $langs->trans('InfraSPlusParamSetLogoEmetTiers'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', [], 1, 1, '', $num);
 		// $num = 7
 		if (getDolGlobalString('INFRASPLUS_PDF_WITH_PICTURE', '')) {
 			if (getDolGlobalString('INFRASPLUS_PDF_WITH_REF_COLUMN', '') || getDolGlobalString('INFRASPLUS_PDF_WITH_NUM_COLUMN', '')) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_IN_REF', 'on_off', $langs->trans('InfraSPlusParamPictureInRef'), '', array(), 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_IN_REF', 'on_off', $langs->trans('InfraSPlusParamPictureInRef'), '', [], 1, 1, '', $num);
 				if (getDolGlobalString('INFRASPLUS_PDF_PICTURE_IN_REF', '')) {
-					$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_REPLACE_REF', 'on_off', $langs->trans('InfraSPlusParamPictureReplaceRef'), '', array(), 1, 1, '', $num);
+					$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_REPLACE_REF', 'on_off', $langs->trans('InfraSPlusParamPictureReplaceRef'), '', [], 1, 1, '', $num);
 				} else {
 					$num++;
 				}
@@ -366,23 +366,23 @@
 				$num	+= 2;
 			}
 		// $num = 9
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_ONE_PICTURE', 'on_off', $langs->trans('InfraSPlusParamOnlyOnePicture1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamOnlyOnePicture2').'</span> '.$langs->trans('InfraSPlusParamOnlyOnePicture3'), '', array(), 1, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_AFTER', 'on_off', $langs->trans('InfraSPlusParamPictureAfter1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureAfter2').'</span> '.$langs->trans('InfraSPlusParamPictureAfter3'), '', array(), 1, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_UNDER', 'on_off', $langs->trans('InfraSPlusParamPictureUnder1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureUnder2').'</span> '.$langs->trans('InfraSPlusParamPictureUnder3'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_ONE_PICTURE', 'on_off', $langs->trans('InfraSPlusParamOnlyOnePicture1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamOnlyOnePicture2').'</span> '.$langs->trans('InfraSPlusParamOnlyOnePicture3'), '', [], 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_AFTER', 'on_off', $langs->trans('InfraSPlusParamPictureAfter1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureAfter2').'</span> '.$langs->trans('InfraSPlusParamPictureAfter3'), '', [], 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_UNDER', 'on_off', $langs->trans('InfraSPlusParamPictureUnder1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureUnder2').'</span> '.$langs->trans('InfraSPlusParamPictureUnder3'), '', [], 1, 1, '', $num);
 			$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '15');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_PADDING', 'input', $langs->trans('InfraSPlusParamPicturePadding'), '', $metas, 1, 1, '&nbsp;mm', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LINK_PICTURE_URL', 'input', $langs->trans('InfraSPlusParamLinkPictureUrl'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LINK_PICTURE_URL', 'input', $langs->trans('InfraSPlusParamLinkPictureUrl'), '', [], 1, 1, '', $num);
 		} else {
 			$num	+= 7;
 		}
 		// $num = 14
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SUPPLIER_ORDER_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamSupplierOrderWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SUPPLIER_ORDER_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamSupplierOrderWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', [], 1, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '16', 'max' => '160');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_WIDTH', 'input', $langs->trans('InfraSPlusParamPictureWidth').$modifWidth, '', $metas, 1, 1, '&nbsp;mm', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '16', 'max' => '160');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_HEIGHT', 'input', $langs->trans('InfraSPlusParamPictureHeight'), '', $metas, 1, 1, '&nbsp;mm', $num);
-		$num	= infraspackplus_print_input('PRODUCT_USE_OLD_PATH_FOR_PHOTO', 'on_off', $langs->trans('InfraSPlusParamOldPathPhoto'), '', array(), 1, 1, '', $num);
-		$num	= infraspackplus_print_input('CAT_HIGH_QUALITY_IMAGES', 'on_off', $langs->trans('InfraSPlusParamHQPicture'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('PRODUCT_USE_OLD_PATH_FOR_PHOTO', 'on_off', $langs->trans('InfraSPlusParamOldPathPhoto'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('CAT_HIGH_QUALITY_IMAGES', 'on_off', $langs->trans('InfraSPlusParamHQPicture'), '', [], 1, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '100');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_T_WATERMARK_OPACITY', 'input', $langs->trans('InfraSPlusParamWatermarkTOpacity'), '', $metas, 1, 1, '&nbsp;%', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '100');

@@ -74,7 +74,7 @@
 		public $credit_note;
 		public $atleastoneratenotnull;
 		public $situationinvoice;
-		public $lines_deposits = array();
+		public $lines_deposits = [];
 		public $use_fpdf;
 		public $main_umask;
 		public $page_largeur;
@@ -223,15 +223,15 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $horLineStyle = [];
 		public $only_ht;
 		public $use_multicurrency;
 		public $larg_util_cadre;
@@ -248,7 +248,7 @@
 		public $largcol3;
 		public $largcol4;
 		public $largcol5;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $tab_hl = 4;
 		public $decal_round = 0;
 		public $ht_top_table;
@@ -342,11 +342,11 @@
 					$this->adrlivr				= !empty($hookmanager->resArray['adrlivr']) ? $hookmanager->resArray['adrlivr'] : '';
 					$this->listnotep			= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied					= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
-					$this->files				= is_array($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : array();
+					$this->files				= is_array($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : [];
 					$this->include_alias		= !empty($hookmanager->resArray['includealias']) ? $hookmanager->resArray['includealias'] : '';
 					$this->adrfact				= !empty($hookmanager->resArray['adrfact']) ? $hookmanager->resArray['adrfact'] : '';
 					$nblignes					= count($object->lines);	// Set nblignes with the new facture lines content after hook
-					$hookmanager->resArray		= array();
+					$hookmanager->resArray		= [];
 					// Create pdf instance
 					$pdf						= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');
 					$default_font_size			= pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
@@ -479,7 +479,7 @@
 					// Récap
 					$discount				= new DiscountAbsolute($this->db);
 					$tmpInvoice				= new Facture($this->db);
-					$listFacturesSources	= array();
+					$listFacturesSources	= [];
 					$totaux					= array('ttc' => 0, 'remaintopay' => 0);
 					// Loop on each line
 					for ($i = 0 ; $i < $nblignes ; $i++) {
@@ -746,7 +746,7 @@
 										'E' => $object->getIdContact('external', 'BILLING'),
 										'L' => $object->getIdContact('external', 'SHIPPING')
 										);
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', $this->adrfact, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}
