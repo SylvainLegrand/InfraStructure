@@ -4003,6 +4003,7 @@ abstract class CommonObject
 		// Osden change end
 		if ($this->table_element_line == 'facturedet') {
 			$sql .= ', situation_percent';
+			$sql .= ', fk_remise_except'; // infras add - récupérer le lien vers la remise/acompte pour préserver ses totaux
 		}
 		$sql .= ', multicurrency_total_ht, multicurrency_total_tva, multicurrency_total_ttc';
 		$sql .= " FROM ".$this->db->prefix().$this->table_element_line;
@@ -4045,7 +4046,14 @@ abstract class CommonObject
 				$parameters = array('fk_element' => $obj->rowid);
 				$reshook = $hookmanager->executeHooks('changeRoundingMode', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
 
-				if (empty($reshook) && $forcedroundingmode == '0') {	// Check if data on line are consistent. This may solve lines that were not consistent because set with $forcedroundingmode='auto'
+				// infras add begin - Ne jamais recalculer/réécrire les totaux d'une ligne issue d'une DiscountAbsolute (acompte ou remise globale).
+				// Les totaux de ces lignes proviennent de la remise source (table societe_remise_except) qui reflète exactement
+				// le montant payé par le client (cas des factures d'acompte). Tout recalcul ligne-à-ligne peut introduire un
+				// écart d'arrondi de 0.01€ entre la facture d'acompte d'origine (souvent calculée en "total of round") et la
+				// déduction sur la facture finale (calculée en "round of total"), provoquant un reste à payer fantôme.
+				$isDiscountLine = (!empty($obj->fk_remise_except) && $this->table_element_line == 'facturedet');
+				// infras add end
+				if (empty($reshook) && $forcedroundingmode == '0' && empty($isDiscountLine)) {	// infras modif - skip recalcul si ligne d'acompte/remise // Check if data on line are consistent. This may solve lines that were not consistent because set with $forcedroundingmode='auto'
 					// This part of code is to fix data. We should not call it too often.
 					$localtax_array = array($obj->localtax1_type, $obj->localtax1_tx, $obj->localtax2_type, $obj->localtax2_tx);
 					$tmpcal = calcul_price_total($obj->qty, $obj->up, $obj->remise_percent, $obj->vatrate, $obj->localtax1_tx, $obj->localtax2_tx, 0, $base_price_type, $obj->info_bits, $obj->product_type, $seller, $localtax_array, (isset($obj->situation_percent) ? $obj->situation_percent : 100), $multicurrency_tx);
