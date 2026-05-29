@@ -1757,7 +1757,29 @@ if (empty($reshook)) {
 								}
 							} else {
 								if ($typeamount == 'amount') {
-									$amountdeposit[0] = $valuedeposit;
+									// InfraS change begin : récupérer le taux TVA dominant du devis source au lieu de forcer 0 %
+									// Corrige l'asymétrie avec la branche 'variable' quand MAIN_DEPOSIT_MULTI_TVA est désactivé.
+									// $valuedeposit est interprété comme TTC (cohérent avec la branche MAIN_DEPOSIT_MULTI_TVA ci-dessus).
+									$tva_tx_main = 0;
+									if (!empty($srcobject->lines)) {
+										$tot_ttc_by_tva = array();
+										foreach ($srcobject->lines as $line_src) {
+											if (empty($line_src->qty) || !empty($line_src->special_code)) {
+												continue;
+											}
+											$tva_key = $line_src->tva_tx;
+											if (empty($tot_ttc_by_tva[$tva_key])) {
+												$tot_ttc_by_tva[$tva_key] = 0;
+											}
+											$tot_ttc_by_tva[$tva_key] += $line_src->total_ttc;
+										}
+										if (!empty($tot_ttc_by_tva)) {
+											arsort($tot_ttc_by_tva);
+											$tva_tx_main = key($tot_ttc_by_tva);
+										}
+									}
+									$amountdeposit[$tva_tx_main] = (float) $valuedeposit / (1 + (float) $tva_tx_main / 100);
+									// InfraS change end
 								} elseif ($typeamount == 'variable') {
 									if ($result > 0) {
 										$totalamount = 0;
