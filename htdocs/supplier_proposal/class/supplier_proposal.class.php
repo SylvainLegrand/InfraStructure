@@ -3355,14 +3355,14 @@ class SupplierProposalLine extends CommonObjectLine
 		$sql .= " ".price2num($this->localtax2_tx).",";
 		$sql .= " '".$this->db->escape($this->localtax1_type)."',";
 		$sql .= " '".$this->db->escape($this->localtax2_type)."',";
-		$sql .= " ".price2num($this->subprice, 'MU') .",";
+		$sql .= " ".price2num($this->subprice, 8) .","; // InfraS change Arrondis
 		$sql .= " ".((float) $this->remise_percent).",";
 		$sql .= " ".(isset($this->info_bits) ? ((int) $this->info_bits) : "null").",";
-		$sql .= " ".price2num($this->total_ht, 'MT').",";
-		$sql .= " ".price2num($this->total_tva, 'MT').",";
-		$sql .= " ".price2num($this->total_localtax1, 'MT').",";
-		$sql .= " ".price2num($this->total_localtax2, 'MT').",";
-		$sql .= " ".price2num($this->total_ttc, 'MT').",";
+		$sql .= " ".price2num($this->total_ht, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_tva, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_localtax1, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_localtax2, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_ttc, 8).","; // InfraS change Arrondis
 		$sql .= " ".(!empty($this->fk_fournprice) ? ((int) $this->fk_fournprice) : "null").",";
 		$sql .= " ".(isset($this->pa_ht) ? price2num($this->pa_ht, 'MU') : "null").",";
 		$sql .= ' '.((int) $this->special_code).',';
@@ -3370,10 +3370,10 @@ class SupplierProposalLine extends CommonObjectLine
 		$sql .= " '".$this->db->escape($this->ref_fourn)."'";
 		$sql .= ", ".($this->fk_multicurrency > 0 ? ((int) $this->fk_multicurrency) : 'null');
 		$sql .= ", '".$this->db->escape($this->multicurrency_code)."'";
-		$sql .= ", ".price2num($this->multicurrency_subprice, 'CU');
-		$sql .= ", ".price2num($this->multicurrency_total_ht, 'CT');
-		$sql .= ", ".price2num($this->multicurrency_total_tva, 'CT');
-		$sql .= ", ".price2num($this->multicurrency_total_ttc, 'CT');
+		$sql .= ", ".price2num($this->multicurrency_subprice, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_ht, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_tva, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_ttc, 8); // InfraS change Arrondis
 		$sql .= ", ".($this->fk_unit ? ((int) $this->fk_unit) : 'null');
 		$sql .= ')';
 
@@ -3613,9 +3613,9 @@ class SupplierProposalLine extends CommonObjectLine
 
 		// Mise a jour ligne en base
 		$sql = "UPDATE ".MAIN_DB_PREFIX."supplier_proposaldet SET";
-		$sql .= " total_ht=".price2num($this->total_ht, 'MT');
-		$sql .= ",total_tva=".price2num($this->total_tva, 'MT');
-		$sql .= ",total_ttc=".price2num($this->total_ttc, 'MT');
+		$sql .= " total_ht=".price2num($this->total_ht, 8); // InfraS change Arrondis
+		$sql .= ",total_tva=".price2num($this->total_tva, 8); // InfraS change Arrondis
+		$sql .= ",total_ttc=".price2num($this->total_ttc, 8); // InfraS change Arrondis
 		$sql .= " WHERE rowid = ".((int) $this->id);
 
 		dol_syslog("SupplierProposalLine::update_total", LOG_DEBUG);

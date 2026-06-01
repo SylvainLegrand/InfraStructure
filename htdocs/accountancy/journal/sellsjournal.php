@@ -432,6 +432,95 @@ if ($result) {
 	dol_print_error($db);
 }
 
+// InfraS add begin Arrondis - Normalisation des montants a 2 decimales avec equilibre garanti par piece.
+// Les montants des factures sont stockes en pleine precision (DOUBLE(24,8)) ; la compta doit etre a 2 decimales.
+// Regle : tiers = arrondi(TTC paye), HT/localtax/timbre/garantie arrondis, et la TVA est DERIVEE pour
+// absorber l'ecart d'arrondi (equilibre exact). Le residu est reparti, <= 0.02 EUR par ligne de TVA.
+foreach (array_keys($tabfac) as $rndkey) {
+	$rnd_tiers = 0.0;
+	if (isset($tabttc[$rndkey]) && is_array($tabttc[$rndkey])) {
+		foreach ($tabttc[$rndkey] as $rndk => $rndval) {
+			$tabttc[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_tiers += $tabttc[$rndkey][$rndk];
+		}
+	}
+	$rnd_ht = 0.0;
+	if (isset($tabht[$rndkey]) && is_array($tabht[$rndkey])) {
+		foreach ($tabht[$rndkey] as $rndk => $rndval) {
+			$tabht[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_ht += $tabht[$rndkey][$rndk];
+		}
+	}
+	$rnd_warranty = 0.0;
+	if (isset($tabwarranty[$rndkey]) && is_array($tabwarranty[$rndkey])) {
+		foreach ($tabwarranty[$rndkey] as $rndk => $rndval) {
+			$tabwarranty[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_warranty += $tabwarranty[$rndkey][$rndk];
+		}
+	}
+	$rnd_stamp = 0.0;
+	if (isset($tabrevenuestamp[$rndkey]) && is_array($tabrevenuestamp[$rndkey])) {
+		foreach ($tabrevenuestamp[$rndkey] as $rndk => $rndval) {
+			$tabrevenuestamp[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_stamp += $tabrevenuestamp[$rndkey][$rndk];
+		}
+	}
+	$rnd_localtax = 0.0;
+	if (isset($tablocaltax1[$rndkey]) && is_array($tablocaltax1[$rndkey])) {
+		foreach ($tablocaltax1[$rndkey] as $rndk => $rndval) {
+			$tablocaltax1[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_localtax += $tablocaltax1[$rndkey][$rndk];
+		}
+	}
+	if (isset($tablocaltax2[$rndkey]) && is_array($tablocaltax2[$rndkey])) {
+		foreach ($tablocaltax2[$rndkey] as $rndk => $rndval) {
+			$tablocaltax2[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_localtax += $tablocaltax2[$rndkey][$rndk];
+		}
+	}
+	// TVA cible derivee pour equilibre : debit (tiers + garantie) = credit (HT + TVA + localtax + timbre)
+	$rnd_tvatarget = (float) price2num($rnd_tiers + $rnd_warranty - $rnd_ht - $rnd_localtax - $rnd_stamp, 'MT');
+	if (isset($tabtva[$rndkey]) && is_array($tabtva[$rndkey]) && count($tabtva[$rndkey]) > 0) {
+		$rnd_sumtva = 0.0;
+		foreach ($tabtva[$rndkey] as $rndk => $rndval) {
+			$tabtva[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_sumtva += $tabtva[$rndkey][$rndk];
+		}
+		// Residu d'equilibre a repartir (en centimes)
+		$rnd_residcents = (int) round(($rnd_tvatarget - $rnd_sumtva) * 100);
+		if ($rnd_residcents != 0) {
+			$rnd_tvakeys = array_keys($tabtva[$rndkey]);
+			usort($rnd_tvakeys, function ($a, $b) use (&$tabtva, $rndkey) {
+				return abs($tabtva[$rndkey][$b]) <=> abs($tabtva[$rndkey][$a]);
+			});
+			$rnd_step = ($rnd_residcents > 0) ? 1 : -1;
+			// On distribue au plus 2 centimes (0.02 EUR) par ligne de TVA
+			for ($rnd_pass = 0; $rnd_pass < 2 && $rnd_residcents != 0; $rnd_pass++) {
+				foreach ($rnd_tvakeys as $rndk) {
+					if ($rnd_residcents == 0) {
+						break;
+					}
+					$tabtva[$rndkey][$rndk] = (float) price2num($tabtva[$rndkey][$rndk] + ($rnd_step * 0.01), 'MT');
+					$rnd_residcents -= $rnd_step;
+				}
+			}
+			// Garde-fou : residu anormalement eleve, on l'impute sur la plus grosse ligne et on alerte
+			if ($rnd_residcents != 0) {
+				dol_syslog('InfraS sellsjournal: residu d arrondi TVA anormal ('.($rnd_residcents * 0.01).' EUR) pour facture rowid='.$rndkey.', impute sur le compte '.$rnd_tvakeys[0], LOG_WARNING);
+				$tabtva[$rndkey][$rnd_tvakeys[0]] = (float) price2num($tabtva[$rndkey][$rnd_tvakeys[0]] + ($rnd_residcents * 0.01), 'MT');
+				$rnd_residcents = 0;
+			}
+		}
+	} elseif (abs($rnd_tvatarget) >= 0.005) {
+		// Aucune ligne de TVA mais un ecart existe : on l'impute sur le compte de TVA collectee par defaut
+		if (!isset($tabtva[$rndkey]) || !is_array($tabtva[$rndkey])) {
+			$tabtva[$rndkey] = array();
+		}
+		$tabtva[$rndkey][$cpttva] = (isset($tabtva[$rndkey][$cpttva]) ? $tabtva[$rndkey][$cpttva] : 0) + $rnd_tvatarget;
+	}
+}
+// InfraS add end Arrondis
+
 
 $errorforinvoice = array();
 

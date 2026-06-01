@@ -104,7 +104,7 @@ if ($action == 'update' && !$cancel) {
 		setEventMessages($langs->trans("ErrorValueCantBeNull", dol_trunc(dol_string_nohtmltag($langs->transnoentitiesnoconv("MAIN_MAX_DECIMALS_SHOWN")), 40)), null, 'errors');
 		$action = 'edit';
 	}
-	if (! $error && ((float) $valmainmaxdecimalsshown < $valmainmaxdecimalsunit || (float) $valmainmaxdecimalsshown < $valmainmaxdecimalstot)) {
+	if (! $error && ((float) $valmainmaxdecimalsshown < $valmainmaxdecimalstot)) { // InfraS change Arrondis : autoriser un affichage à moins de décimales que les prix unitaires (SHOWN < UNIT)
 		$langs->load("errors");
 		$error++;
 		setEventMessages($langs->trans("ErrorValueForTooLow", dol_trunc(dol_string_nohtmltag($langs->transnoentitiesnoconv("MAIN_MAX_DECIMALS_SHOWN")), 40)), null, 'errors');

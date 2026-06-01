@@ -486,20 +486,20 @@ class OrderLine extends CommonOrderLine
 		$sql .= ' '.(!empty($this->fk_fournprice) ? $this->fk_fournprice : "null").',';
 		$sql .= ' '.price2num($this->pa_ht).',';
 		$sql .= " ".((int) $this->info_bits).",";
-		$sql .= " ".price2num($this->total_ht, 'MT').",";
-		$sql .= " ".price2num($this->total_tva, 'MT').",";
-		$sql .= " ".price2num($this->total_localtax1, 'MT').",";
-		$sql .= " ".price2num($this->total_localtax2, 'MT').",";
-		$sql .= " ".price2num($this->total_ttc, 'MT').",";
+		$sql .= " ".price2num($this->total_ht, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_tva, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_localtax1, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_localtax2, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_ttc, 8).","; // InfraS change Arrondis
 		$sql .= " ".(!empty($this->date_start) ? "'".$this->db->idate($this->date_start)."'" : "null").',';
 		$sql .= " ".(!empty($this->date_end) ? "'".$this->db->idate($this->date_end)."'" : "null").',';
 		$sql .= ' '.(!$this->fk_unit ? 'NULL' : ((int) $this->fk_unit));
 		$sql .= ", ".(!empty($this->fk_multicurrency) ? ((int) $this->fk_multicurrency) : 'NULL');
 		$sql .= ", '".$this->db->escape($this->multicurrency_code)."'";
-		$sql .= ", ".price2num($this->multicurrency_subprice, 'CU');
-		$sql .= ", ".price2num($this->multicurrency_total_ht, 'CT');
-		$sql .= ", ".price2num($this->multicurrency_total_tva, 'CT');
-		$sql .= ", ".price2num($this->multicurrency_total_ttc, 'CT');
+		$sql .= ", ".price2num($this->multicurrency_subprice, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_ht, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_tva, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_ttc, 8); // InfraS change Arrondis
 		$sql .= ')';
 
 		dol_syslog(get_class($this)."::insert", LOG_DEBUG);

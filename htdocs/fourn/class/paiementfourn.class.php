@@ -217,9 +217,9 @@ class PaiementFourn extends Paiement
 			}
 
 			$totalamount_converted += $value_converted;
-			$amounts_to_update[$key] = price2num($value_converted, 'MT');
+			$amounts_to_update[$key] = price2num($value_converted, 8); // InfraS change Arrondis
 
-			$newvalue = price2num($value, 'MT');
+			$newvalue = price2num($value, 8); // InfraS change Arrondis
 			$amounts[$key] = $newvalue;
 			$totalamount += $newvalue;
 			if (!empty($newvalue)) {

@@ -564,14 +564,14 @@ class PropaleLigne extends CommonObjectLine
 		$sql .= " ".price2num($this->localtax2_tx).",";
 		$sql .= " '".$this->db->escape($this->localtax1_type)."',";
 		$sql .= " '".$this->db->escape($this->localtax2_type)."',";
-		$sql .= " ".(price2num($this->subprice) !== '' ? price2num($this->subprice, 'MU') : "null").",";
+		$sql .= " ".(price2num($this->subprice) !== '' ? price2num($this->subprice, 8) : "null").","; // InfraS change Arrondis
 		$sql .= " ".price2num($this->remise_percent).",";
 		$sql .= " ".(isset($this->info_bits) ? ((int) $this->info_bits) : "null").",";
-		$sql .= " ".price2num($this->total_ht, 'MT').",";
-		$sql .= " ".price2num($this->total_tva, 'MT').",";
-		$sql .= " ".price2num($this->total_localtax1, 'MT').",";
-		$sql .= " ".price2num($this->total_localtax2, 'MT').",";
-		$sql .= " ".price2num($this->total_ttc, 'MT').",";
+		$sql .= " ".price2num($this->total_ht, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_tva, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_localtax1, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_localtax2, 8).","; // InfraS change Arrondis
+		$sql .= " ".price2num($this->total_ttc, 8).","; // InfraS change Arrondis
 		$sql .= " ".(!empty($this->fk_fournprice) ? "'".$this->db->escape((string) $this->fk_fournprice)."'" : "null").",";
 		$sql .= " ".(isset($this->pa_ht) ? "'".price2num($this->pa_ht)."'" : "null").",";
 		$sql .= ' '.((int) $this->special_code).',';
@@ -581,10 +581,10 @@ class PropaleLigne extends CommonObjectLine
 		$sql .= " ".(!empty($this->date_end) ? "'".$this->db->idate($this->date_end)."'" : "null");
 		$sql .= ", ".($this->fk_multicurrency > 0 ? ((int) $this->fk_multicurrency) : 'null');
 		$sql .= ", '".$this->db->escape($this->multicurrency_code)."'";
-		$sql .= ", ".price2num($this->multicurrency_subprice, 'CU');
-		$sql .= ", ".price2num($this->multicurrency_total_ht, 'CT');
-		$sql .= ", ".price2num($this->multicurrency_total_tva, 'CT');
-		$sql .= ", ".price2num($this->multicurrency_total_ttc, 'CT');
+		$sql .= ", ".price2num($this->multicurrency_subprice, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_ht, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_tva, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->multicurrency_total_ttc, 8); // InfraS change Arrondis
 		$sql .= ')';
 
 		dol_syslog(get_class($this).'::insert', LOG_DEBUG);
@@ -853,9 +853,9 @@ class PropaleLigne extends CommonObjectLine
 
 		// Mise a jour ligne en base
 		$sql = "UPDATE ".MAIN_DB_PREFIX."propaldet SET";
-		$sql .= " total_ht=".price2num($this->total_ht, 'MT');
-		$sql .= ",total_tva=".price2num($this->total_tva, 'MT');
-		$sql .= ",total_ttc=".price2num($this->total_ttc, 'MT');
+		$sql .= " total_ht=".price2num($this->total_ht, 8); // InfraS change Arrondis
+		$sql .= ",total_tva=".price2num($this->total_tva, 8); // InfraS change Arrondis
+		$sql .= ",total_ttc=".price2num($this->total_ttc, 8); // InfraS change Arrondis
 		$sql .= " WHERE rowid = ".((int) $this->rowid);
 
 		dol_syslog("PropaleLigne::update_total", LOG_DEBUG);

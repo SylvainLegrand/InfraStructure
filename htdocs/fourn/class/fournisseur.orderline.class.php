@@ -368,7 +368,7 @@ class CommandeFournisseurLigne extends CommonOrderLine
 		$sql .= " ".price2num($this->localtax2_tx).",";
 		$sql .= " '".$this->db->escape($this->localtax1_type)."',";
 		$sql .= " '".$this->db->escape($this->localtax2_type)."',";
-		$sql .= " ".((float) $this->remise_percent).", ".price2num($this->subprice, 'MU').", '".$this->db->escape($this->ref_supplier)."',";
+		$sql .= " ".((float) $this->remise_percent).", ".price2num($this->subprice, 8).", '".$this->db->escape($this->ref_supplier)."',"; // InfraS change Arrondis
 		$sql .= " ".price2num($this->total_ht).",";
 		$sql .= " ".price2num($this->total_tva).",";
 		$sql .= " ".price2num($this->total_localtax1).",";

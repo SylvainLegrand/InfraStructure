@@ -244,11 +244,11 @@ class Loan extends CommonObject
 		$now = dol_now();
 
 		// clean parameters
-		$newcapital = price2num($this->capital, 'MT');
+		$newcapital = price2num($this->capital, 8); // InfraS change Arrondis
 		if (empty($this->insurance_amount)) {
 			$this->insurance_amount = 0;
 		}
-		$newinsuranceamount = price2num($this->insurance_amount, 'MT');
+		$newinsuranceamount = price2num($this->insurance_amount, 8); // InfraS change Arrondis
 		if (isset($this->note_private)) {
 			$this->note_private = trim($this->note_private);
 		}

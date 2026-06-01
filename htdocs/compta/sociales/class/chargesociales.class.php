@@ -261,7 +261,7 @@ class ChargeSociales extends CommonObject
 	 */
 	public function check()
 	{
-		$newamount = price2num($this->amount, 'MT');
+		$newamount = price2num($this->amount, 8); // InfraS change Arrondis
 
 		// Validation of parameters
 		if ($newamount == 0 || empty($this->date_ech) || (empty($this->period) && empty($this->periode))) {
@@ -285,7 +285,7 @@ class ChargeSociales extends CommonObject
 		$now = dol_now();
 
 		// Nettoyage parameters
-		$newamount = price2num($this->amount, 'MT');
+		$newamount = price2num($this->amount, 8); // InfraS change Arrondis
 
 		if (!$this->check()) {
 			$this->error = "ErrorBadParameter";
@@ -411,7 +411,7 @@ class ChargeSociales extends CommonObject
 		$sql .= " SET libelle = '".$this->db->escape($this->label ? $this->label : $this->lib)."'";
 		$sql .= ", date_ech = '".$this->db->idate($this->date_ech)."'";
 		$sql .= ", periode = '".$this->db->idate($this->period ? $this->period : $this->periode)."'";
-		$sql .= ", amount = ".((float) price2num($this->amount, 'MT'));
+		$sql .= ", amount = ".((float) price2num($this->amount, 8)); // InfraS change Arrondis
 		$sql .= ", fk_projet=".($this->fk_project > 0 ? ((int) $this->fk_project) : "NULL");
 		$sql .= ", fk_user=".($this->fk_user > 0 ? ((int) $this->fk_user) : "NULL");
 		$sql .= ", fk_user_modif=".((int) $user->id);

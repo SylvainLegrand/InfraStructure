@@ -254,13 +254,13 @@ class PaymentSalary extends CommonObject
 
 		$totalamount = 0;
 		foreach ($this->amounts as $key => $value) {  // How payment is dispatch
-			$newvalue = (float) price2num($value, 'MT');
+			$newvalue = (float) price2num($value, 8); // InfraS change Arrondis
 			$this->amounts[$key] = $newvalue;
 			$totalamount += $newvalue;
 		}
 
 		// Check parameters
-		$totalamount = (float) price2num($totalamount, 'MT'); // this is to ensure the following test is no biaised by a potential float equal to 0.0000000000001
+		$totalamount = (float) price2num($totalamount, 8); // this is to ensure the following test is no biaised by a potential float equal to 0.0000000000001 // InfraS change Arrondis
 		if ($totalamount == 0) {
 			return -1;
 		} // On accepte les montants negatifs pour les rejets de prelevement mais pas null

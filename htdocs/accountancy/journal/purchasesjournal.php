@@ -378,6 +378,98 @@ if ($result) {
 	dol_print_error($db);
 }
 
+// InfraS add begin Arrondis - Normalisation 2 decimales avec equilibre garanti par piece (achats).
+// Tiers (fournisseur) = arrondi(TTC), charges (HT) arrondies, TVA deductible DERIVEE pour l'equilibre
+// (TVA = tiers - HT - localtax). En reverse-charge / NPR / mode "no dispatch", on se limite a arrondir
+// chaque ligne (leurs equilibres propres sont preserves), sans deriver. Residu reparti, <= 0.02 EUR par ligne.
+foreach (array_keys($tabfac) as $rndkey) {
+	$rnd_tiers = 0.0;
+	if (isset($tabttc[$rndkey]) && is_array($tabttc[$rndkey])) {
+		foreach ($tabttc[$rndkey] as $rndk => $rndval) {
+			$tabttc[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_tiers += $tabttc[$rndkey][$rndk];
+		}
+	}
+	$rnd_ht = 0.0;
+	if (isset($tabht[$rndkey]) && is_array($tabht[$rndkey])) {
+		foreach ($tabht[$rndkey] as $rndk => $rndval) {
+			$tabht[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_ht += $tabht[$rndkey][$rndk];
+		}
+	}
+	$rnd_localtax = 0.0;
+	if (isset($tablocaltax1[$rndkey]) && is_array($tablocaltax1[$rndkey])) {
+		foreach ($tablocaltax1[$rndkey] as $rndk => $rndval) {
+			$tablocaltax1[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_localtax += $tablocaltax1[$rndkey][$rndk];
+		}
+	}
+	if (isset($tablocaltax2[$rndkey]) && is_array($tablocaltax2[$rndkey])) {
+		foreach ($tablocaltax2[$rndkey] as $rndk => $rndval) {
+			$tablocaltax2[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_localtax += $tablocaltax2[$rndkey][$rndk];
+		}
+	}
+	$rnd_sumtva = 0.0;
+	if (isset($tabtva[$rndkey]) && is_array($tabtva[$rndkey])) {
+		foreach ($tabtva[$rndkey] as $rndk => $rndval) {
+			$tabtva[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+			$rnd_sumtva += $tabtva[$rndkey][$rndk];
+		}
+	}
+	// Arrondi simple des contreparties NPR / reverse-charge (deja a 2 dec, on securise ; hors derivation)
+	if (isset($tabother[$rndkey]) && is_array($tabother[$rndkey])) {
+		foreach ($tabother[$rndkey] as $rndk => $rndval) {
+			$tabother[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+		}
+	}
+	if (isset($tabrctva[$rndkey]) && is_array($tabrctva[$rndkey])) {
+		foreach ($tabrctva[$rndkey] as $rndk => $rndval) {
+			$tabrctva[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+		}
+	}
+	if (isset($tabrclocaltax1[$rndkey]) && is_array($tabrclocaltax1[$rndkey])) {
+		foreach ($tabrclocaltax1[$rndkey] as $rndk => $rndval) {
+			$tabrclocaltax1[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+		}
+	}
+	if (isset($tabrclocaltax2[$rndkey]) && is_array($tabrclocaltax2[$rndkey])) {
+		foreach ($tabrclocaltax2[$rndkey] as $rndk => $rndval) {
+			$tabrclocaltax2[$rndkey][$rndk] = (float) price2num($rndval, 'MT');
+		}
+	}
+	// Derivation de la TVA deductible uniquement en cas standard (ni no-dispatch, ni reverse-charge, ni NPR)
+	$rnd_iscomplex = (!empty($noTaxDispatchingKeepWithLines)
+		|| (isset($tabrctva[$rndkey]) && !empty($tabrctva[$rndkey]))
+		|| (isset($tabother[$rndkey]) && !empty($tabother[$rndkey])));
+	if (!$rnd_iscomplex && isset($tabtva[$rndkey]) && is_array($tabtva[$rndkey]) && count($tabtva[$rndkey]) > 0) {
+		$rnd_tvatarget = (float) price2num($rnd_tiers - $rnd_ht - $rnd_localtax, 'MT');
+		$rnd_residcents = (int) round(($rnd_tvatarget - $rnd_sumtva) * 100);
+		if ($rnd_residcents != 0) {
+			$rnd_tvakeys = array_keys($tabtva[$rndkey]);
+			usort($rnd_tvakeys, function ($a, $b) use (&$tabtva, $rndkey) {
+				return abs($tabtva[$rndkey][$b]) <=> abs($tabtva[$rndkey][$a]);
+			});
+			$rnd_step = ($rnd_residcents > 0) ? 1 : -1;
+			for ($rnd_pass = 0; $rnd_pass < 2 && $rnd_residcents != 0; $rnd_pass++) {
+				foreach ($rnd_tvakeys as $rndk) {
+					if ($rnd_residcents == 0) {
+						break;
+					}
+					$tabtva[$rndkey][$rndk] = (float) price2num($tabtva[$rndkey][$rndk] + ($rnd_step * 0.01), 'MT');
+					$rnd_residcents -= $rnd_step;
+				}
+			}
+			if ($rnd_residcents != 0) {
+				dol_syslog('InfraS purchasesjournal: residu d arrondi TVA anormal ('.($rnd_residcents * 0.01).' EUR) pour facture rowid='.$rndkey.', impute sur le compte '.$rnd_tvakeys[0], LOG_WARNING);
+				$tabtva[$rndkey][$rnd_tvakeys[0]] = (float) price2num($tabtva[$rndkey][$rnd_tvakeys[0]] + ($rnd_residcents * 0.01), 'MT');
+				$rnd_residcents = 0;
+			}
+		}
+	}
+}
+// InfraS add end Arrondis
+
 $errorforinvoice = array();
 
 /*
