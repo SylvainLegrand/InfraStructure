@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.1.2` (2026-05)
+- Dernière version locale : `21.1.4` (2026-06)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -262,8 +262,46 @@ Le module intervient via trois hooks principaux sur le contexte `pdfgeneration` 
 | Hook | Contexte | Rôle |
 |------|----------|------|
 | `formObjectOptions()` | `thirdpartycard` | Gestion du logo émetteur par tiers sur la fiche société |
-| `doActions()` | `globalcard` | Génération semi-automatique des PDF (à la validation, changement de notes, d'extrafields, etc.) |
+| `doActions()` | `globalcard` | Génération semi-automatique des PDF quand `INFRASPLUS_PDF_SEMIAUTOUPDATE=1` (à la validation, changement de notes, d'extrafields, etc.). Voir *Hook doActions — génération semi-automatique PDF* ci-dessous. |
 | `printObjectLine()` | `thirdpartycard`, `globalcard`, `*card` | Rendu des lignes de document en mode view (depuis v21.0.0 : migration module_parts['tpl'] → hook). Dispatcher versionné : charge `core/tpl/lineviews/v{21,22,22-DolInfraS,23,24}.tpl.php` + partials `_columns/` (refproject, discount, total_ht). Depuis 21.1.0 : buffer ob_start + sous-hook `infrasprojectEnrichObjectLine` pour injection de colonnes tierces. Cf. *Sous-hook d'enrichissement des lignes*. **Exclusions** (depuis 21.1.2) : `evaluation` (HRM, template natif), `bom` / `mo` (structure manufacturing — colonnes qty_frozen / disable_stock_change / efficiency / cost incompatibles avec les colonnes commerciales vat / uht / discount / ht des templates lineviews), contextes `expeditioncard` / `ordershipmentcard` (depuis 21.1.1, layout colonnes propre à expedition). Retour anticipé `return 0` pour laisser les templates natifs reprendre la main. |
+
+### Hook doActions — génération semi-automatique PDF (depuis v21.0.0, fix v21.1.3)
+
+#### Constantes liées
+
+| Constante | Rôle |
+|-----------|------|
+| `INFRASPLUS_PDF_SEMIAUTOUPDATE` | Active l'interception de la validation par infraspackplus (`1` = actif) |
+| `MAIN_DISABLE_PDF_AUTOUPDATE` | Désactive la génération PDF automatique standard de Dolibarr après action |
+| `INFRASPLUS_PDF_UPDATE_ON_NOTES_CHANGE` | Regénère le PDF quand les notes publiques changent (nécessite SEMIAUTOUPDATE) |
+| `INFRASPLUS_PDF_UPDATE_ON_EXF_CHANGE` | Regénère le PDF quand un extrafield change (nécessite SEMIAUTOUPDATE) |
+| `INFRASPLUS_PDF_UPDATE_ON_FIELDS_CHANGE` | Regénère le PDF quand certains champs changent (nécessite SEMIAUTOUPDATE) |
+
+**Règle d'usage** : ces deux constantes doivent être cohérentes. L'admin infraspackplus (`infrasplussetup.php`) maintient cette cohérence automatiquement :
+- Activer `INFRASPLUS_PDF_SEMIAUTOUPDATE` → positionne `MAIN_DISABLE_PDF_AUTOUPDATE = 1`
+- Désactiver `MAIN_DISABLE_PDF_AUTOUPDATE` → positionne `INFRASPLUS_PDF_SEMIAUTOUPDATE = 0`
+
+Ne jamais modifier `MAIN_DISABLE_PDF_AUTOUPDATE` directement via l'admin Dolibarr standard ; passer toujours par la page de configuration d'infraspackplus.
+
+#### Fonctionnement quand INFRASPLUS_PDF_SEMIAUTOUPDATE = 1
+
+Le hook `doActions` intercepte les actions de validation (`confirm_validate`, `confirm_valid`) et les actions de modification déclenchant une regénération (`setnote_public`, `update_extras`, `setecheance`, `setconditions`, `setmode`, `setbankaccount`, `setdate_livraison`, `setavailability`).
+
+Pour chaque type d'objet (`Propal`, `Commande`, `Facture`, `Contrat`, `Fichinter`, `SupplierProposal`, `CommandeFournisseur`), le hook :
+1. Exécute l'action métier (`$object->valid()`, `$object->update_note()`, etc.)
+2. Recharge l'objet via `$object->fetch()` pour synchroniser tous les champs
+3. Génère le PDF via `$object->generateDocument()` ou équivalent
+4. **Retourne 1** → le code standard de `card.php` est sauté
+
+#### Bug statut brouillon après validation (corrigé en v21.1.3)
+
+**Symptôme** : avec `INFRASPLUS_PDF_SEMIAUTOUPDATE=0` et `MAIN_DISABLE_PDF_AUTOUPDATE=1`, valider un devis changeait la référence (PROV→PR) mais le statut restait affiché en brouillon ; une deuxième validation était nécessaire.
+
+**Cause** : `Propal::valid()` met à jour `$this->statut` (champ déprécié) mais **pas** `$this->status`. Dans `card.php`, le `$object->fetch()` qui synchronise les deux est dans le bloc conditionnel `if (!MAIN_DISABLE_PDF_AUTOUPDATE)` — ce bloc était sauté. `$object->status` restait donc à `0` en affichage → bouton « Valider » affiché de nouveau.
+
+**Correctif** (v21.1.3, `doActions()`) : quand `INFRASPLUS_PDF_SEMIAUTOUPDATE=0` mais `MAIN_DISABLE_PDF_AUTOUPDATE=1`, le hook intercepte `confirm_validate` pour les objets `Propal`, exécute `valid()` + `fetch()` + `fetch_thirdparty()` sans génération de PDF, et retourne 1 pour sauter le code standard (qui aurait fait le `valid()` sans le `fetch()`).
+
+**Invariant à maintenir** : si d'autres types d'objets présentent le même symptôme dans cette configuration, appliquer le même pattern dans le bloc `if (!SEMIAUTOUPDATE && MAIN_DISABLE_PDF_AUTOUPDATE)` de `doActions()`.
 
 ### Sous-hook d'enrichissement des lignes (depuis 21.1.0)
 
@@ -328,7 +366,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="18.15.2" MonthVersion="2026-04">
+  <Version Number="21.1.4" MonthVersion="2026-04">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -347,7 +385,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.15.2",          // Version courante
+    0 => "21.1.4",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)

@@ -1791,6 +1791,10 @@
 						$this->_lcr($pdf, $object, $tab_top_newpage, $outputlangs);
 						$this->_pagefoot($pdf, $object, $outputlangs, 0);
 					}
+					// Cas INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL : les sous-totaux ont été retirés de $object->lines par Infrastructure — reconstruction depuis le contexte
+					if (!empty($this->add_recap)) {
+						pdf_InfraSPlus_subtotal_getrecap_from_context($object, $subtotalRecap);
+					}
 					if (!empty($this->add_recap) && count($subtotalRecap) > 0) {	// SubTotal module with recap option
 						$subtotalRecap	= pdf_InfraSPlus_compare($subtotalRecap, 'rang');
 						$pdf->AddPage();	// New page for review

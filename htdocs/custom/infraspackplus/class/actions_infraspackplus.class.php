@@ -1672,6 +1672,39 @@ EOJS;
 					}
 				}
 			}
+			// Quand INFRASPLUS_PDF_SEMIAUTOUPDATE=0 mais MAIN_DISABLE_PDF_AUTOUPDATE=1 :
+			// valid() met à jour $this->statut mais pas $this->status. Le $object->fetch()
+			// qui synchronise les deux est dans le bloc conditionnel !MAIN_DISABLE_PDF_AUTOUPDATE
+			// de card.php — il est donc sauté. Résultat : $object->status reste à 0 en affichage
+			// → le devis semble toujours en brouillon malgré une validation réussie en base.
+			// On intercepte confirm_validate pour exécuter valid() + fetch() sans générer de PDF.
+			if (!getDolGlobalInt('INFRASPLUS_PDF_SEMIAUTOUPDATE', 0) && getDolGlobalString('MAIN_DISABLE_PDF_AUTOUPDATE', '')) {
+				$confirm	= GETPOST('confirm', 'alpha');
+				if ($object instanceof Propal && $action == 'confirm_validate' && $confirm == 'yes') {
+					$langs->load('errors');
+					$usercanvalidate	= !getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'creer')
+									|| getDolGlobalString('MAIN_USE_ADVANCED_PERMS', '') && $user->hasRight('propal', 'propal_advance', 'validate');
+					if ($usercanvalidate) {
+						$result	= $object->valid($user);
+						if ($result > 0 && getDolGlobalString('PROPAL_SKIP_ACCEPT_REFUSE', '')) {
+							$result	= $object->closeProposal($user, $object::STATUS_SIGNED);
+						}
+						if ($result >= 0) {
+							$ret	= $object->fetch($object->id);
+							if ($ret > 0) {
+								$object->fetch_thirdparty();
+							}
+						} else {
+							if (count($object->errors) > 0) {
+								setEventMessages($object->error, $object->errors, 'errors');
+							} else {
+								setEventMessages($langs->trans($object->error), null, 'errors');
+							}
+						}
+						return 1;
+					}
+				}
+			}
 			return 0;
 		}
 

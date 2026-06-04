@@ -4857,6 +4857,39 @@
 	}
 
 	/**
+	*	Reconstruit $subtotalRecap depuis les sous-totaux Infrastructure retirés par infrastructure_applyTitleWithTotal
+	*	(option INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL active). Appelé après la boucle de préparation dans write_file()
+	*	quand $subtotalRecap est encore vide et que le contexte contient des totaux sauvegardés par infrastructure.
+	*
+	*	@param		object		$object			Object shown in PDF
+	*	@param		array		$subtotalRecap	list of subtotal lines (modifié par référence)
+	*	@return		void
+	**/
+	function pdf_InfraSPlus_subtotal_getrecap_from_context ($object, &$subtotalRecap)
+	{
+		if (!empty($subtotalRecap) || empty($object->context['infrastructureCache']['removedTotals'])) {
+			return;
+		}
+		if (!class_exists('TInfrastructure')) {
+			dol_include_once('/infrastructure/class/infrastructure.class.php');
+		}
+		foreach ($object->context['infrastructureCache']['removedTotals'] as $removedItem) {
+			$level				= (int) $removedItem['level'];
+			$parentTitleRang	= (int) $removedItem['parentTitleRang'];
+			$titleLine			= 0;
+			// Trouver le titre parent dans $object->lines courant (toujours présent après applyTitleWithTotal)
+			foreach ($object->lines as $k => $candidate) {
+				if ($candidate->rang == $parentTitleRang && class_exists('TInfrastructure') && TInfrastructure::isTitle($candidate)) {
+					$titleLine	= $k;
+					break;
+				}
+			}
+			// 'line' pointe sur le titre qui porte infrastructure_title_total_ht — géré dans pdf_InfraSPlus_subtotal_recap
+			$subtotalRecap[]	= ['line' => $titleLine, 'titleLine' => $titleLine, 'type' => 'subtotal', 'rang' => $parentTitleRang, 'level' => $level];
+		}
+	}
+
+	/**
 	*	Sort an array by values using a key (for multi-dimensional array)
 	*
 	*	@param		array		$array	Array to sort
@@ -4899,28 +4932,52 @@
 		$posy				= $tab_top + 30;
 		$nblignes			= count($subtotalRecap);
 		for ($i = 0 ; $i < $nblignes ; $i++) {
-			$pageposbefore	= $pdf->getPage();
-			$posx			= $template->tableau['desc']['posx'] + ($subtotalRecap[$i]['level'] > 1 ? $subtotalRecap[$i]['level'] * 4 : 0);
-			$titleLine		= isset($subtotalRecap[$i]['titleLine']) ? $subtotalRecap[$i]['titleLine'] : $subtotalRecap[$i]['line'];	// Libellé du titre parent (et non du sous-total qui peut être vide ou générique)
+			$pageposbefore		= $pdf->getPage();
+			$posx				= $template->tableau['desc']['posx'] + ($subtotalRecap[$i]['level'] > 1 ? $subtotalRecap[$i]['level'] * 4 : 0);
+			$titleLine			= isset($subtotalRecap[$i]['titleLine']) ? $subtotalRecap[$i]['titleLine'] : $subtotalRecap[$i]['line'];	// Libellé du titre parent (et non du sous-total qui peut être vide ou générique)
 			// Rendu direct du libellé : on évite pdf_InfraSPlus_writelinedesc qui appliquerait les options de la ligne titre (saut de page via info_bits, print_as_list, hideblock, ...) au récap
-			$titleObj		= !empty($object->lines[$titleLine]) ? $object->lines[$titleLine] : null;
-			$titleLabel		= $titleObj && !empty($titleObj->label) ? $titleObj->label : ($titleObj && !empty($titleObj->desc) ? $titleObj->desc : ($titleObj && !empty($titleObj->description) ? $titleObj->description : ''));
-			$titleLabel		= pdf_InfraSPlus_formatNotes($object, $outputlangs, $titleLabel);
-			// Applique le style sous-total Infrastructure avant le libellé pour rester cohérent avec les colonnes totaux rendues plus loin (le hook pdf_getlinetotalexcltax d'infrastructure les force déjà à ce style).
-			if (isModEnabled('infrastructure') && function_exists('infrastructure_setPdfTextColor')) {
+			$titleObj			= !empty($object->lines[$titleLine]) ? $object->lines[$titleLine] : null;
+			$titleLabel			= $titleObj && !empty($titleObj->label) ? $titleObj->label : ($titleObj && !empty($titleObj->desc) ? $titleObj->desc : ($titleObj && !empty($titleObj->description) ? $titleObj->description : ''));
+			$titleLabel			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $titleLabel);
+			// Cas INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL : le sous-total a été retiré de $object->lines, le montant est porté par le titre via infrastructure_title_total_ht.
+			$recapLineObj		= !empty($object->lines[$subtotalRecap[$i]['line']]) ? $object->lines[$subtotalRecap[$i]['line']] : null;
+			$isRecapFromTitle	= $recapLineObj && class_exists('TInfrastructure') && TInfrastructure::isTitle($recapLineObj) && isset($recapLineObj->infrastructure_title_total_ht);
+			// Applique le style + fond sous-total Infrastructure.
+			$infraRecapFill		= false;
+			$infraRecapBg		= [];
+			if (isModEnabled('infrastructure') && function_exists('infrastructure_getPdfBackgroundStyle') && function_exists('infrastructure_setPdfTextColor')) {
+				$infraRecapLine	= !$isRecapFromTitle && $recapLineObj ? $recapLineObj : null;
+				$bgStyle		= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TOTAL_BACKGROUND_COLOR', '', '', $infraRecapLine);
+				$infraRecapFill	= !empty($bgStyle['fill']);
+				$infraRecapBg	= !empty($bgStyle['color']) ? $bgStyle['color'] : [];
 				$pdf->SetFont('', getDolGlobalString('INFRASTRUCTURE_PDF_TOTAL_STYLE', ''), $default_font_size - 1);
+				infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
+			}
+			if ($infraRecapFill && !empty($infraRecapBg)) {
+				$pdf->SetFillColor((int) $infraRecapBg[0], (int) $infraRecapBg[1], (int) $infraRecapBg[2]);
+				$pdfMarginsForBg	= $pdf->getMargins();
+				$bgStartX			= isset($pdfMarginsForBg['left']) ? $pdfMarginsForBg['left'] : $posx;
+				$bgRight			= isset($pdfMarginsForBg['right']) ? $pdfMarginsForBg['right'] : 0;
+				$bgWidth			= $pdf->getPageWidth() - $bgStartX - $bgRight;
+				$pdf->SetXY($bgStartX, $posy);
+				$pdf->MultiCell($bgWidth, $template->heightline, '', 0, '', 1);
+				// Rétablit la couleur de texte après le fond (le MultiCell fill peut réinitialiser l'état graphique)
 				infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
 			}
 			$pdf->writeHTMLCell($template->tableau['desc']['larg'], $template->heightline, $posx, $posy, $outputlangs->convToOutputCharset($titleLabel), 0, 1, false, true, 'L', true);
 			// Total line
-			if (empty($template->hide_vat)) {
+			if ($isRecapFromTitle) {
+				$total_line	= price($recapLineObj->infrastructure_title_total_ht, 0, $outputlangs, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_UNIT'), -1, $object->multicurrency_code);
+			} elseif (empty($template->hide_vat)) {
 				$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
 			} else {
 				$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
 			}
 			$pdf->MultiCell($template->tableau['totalht']['larg'], $template->heightline, $total_line, '', 'R', 0, 1, $template->tableau['totalht']['posx'], $posy, true, 0, 0, false, 0, 'M', false);
 			if ($template->show_ttc_col) {
-				$totalTTC_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
+				$totalTTC_line	= $isRecapFromTitle
+					? price(!empty($recapLineObj->infrastructure_title_total_ttc) ? $recapLineObj->infrastructure_title_total_ttc : 0, 0, $outputlangs, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_UNIT'), -1, $object->multicurrency_code)
+					: pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
 				$pdf->MultiCell($template->tableau['totalttc']['larg'], $template->heightline, $totalTTC_line, '', 'R', 0, 1, $template->tableau['totalttc']['posx'], $posy, true, 0, 0, false, 0, 'M', false);
 			}
 			$pageposafter	= $pdf->getPage();
