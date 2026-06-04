@@ -386,9 +386,9 @@ class Paiement extends CommonObject
 			}
 
 			$totalamount_converted += $value_converted;	// Total in currency of the invoice
-			$amounts_to_update[$key] = price2num($value_converted, 'MT');
+			$amounts_to_update[$key] = price2num($value_converted, 8); // InfraS change Arrondis
 
-			$newvalue = price2num($value, 'MT');
+			$newvalue = price2num($value, 8); // InfraS change Arrondis
 			$amounts[$key] = $newvalue;
 			$totalamount += $newvalue;
 			if (!empty($newvalue)) {
@@ -427,8 +427,8 @@ class Paiement extends CommonObject
 			}
 		}
 
-		$totalamount = (float) price2num($totalamount, 'MT');
-		$totalamount_converted = (float) price2num($totalamount_converted, 'MT');
+		$totalamount = (float) price2num($totalamount, 8); // InfraS change Arrondis
+		$totalamount_converted = (float) price2num($totalamount_converted, 8); // InfraS change Arrondis
 
 		// Check parameters
 		if (empty($totalamount) && empty($atleastonepaymentnotnull)) {	 // We accept negative amounts for withdraw reject but not empty arrays

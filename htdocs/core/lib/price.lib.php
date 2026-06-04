@@ -216,22 +216,22 @@ function calcul_price_total($qty, $pu, $remise_percent_ligne, $txtva, $uselocalt
 
 	// if input unit price is 'HT', we need to have the totals with main VAT for a correct calculation
 	if ($price_base_type != 'TTC') {
-		$tot_sans_remise_withvat = price2num($tot_sans_remise * (1 + ($txtva / 100)), 'MU');
-		$tot_avec_remise_withvat = price2num($tot_avec_remise * (1 + ($txtva / 100)), 'MU');
+		$tot_sans_remise_withvat = price2num($tot_sans_remise * (1 + ($txtva / 100)), 8); // InfraS change Arrondis
+		$tot_avec_remise_withvat = price2num($tot_avec_remise * (1 + ($txtva / 100)), 8); // InfraS change Arrondis
 
 		$tot_sans_remise_withoutvat = $tot_sans_remise;
 		$tot_avec_remise_withoutvat = $tot_avec_remise;
 
 		$pu_withouttax = $pu;
-		$pu_withmainvat = price2num($pu * (1 + ($txtva / 100)), 'MU');
+		$pu_withmainvat = price2num($pu * (1 + ($txtva / 100)), 8); // InfraS change Arrondis
 	} else {
 		$tot_sans_remise_withvat = $tot_sans_remise;
 		$tot_avec_remise_withvat = $tot_avec_remise;
 
-		$tot_sans_remise_withoutvat = price2num($tot_sans_remise / (1 + ($txtva / 100)), 'MU');
-		$tot_avec_remise_withoutvat = price2num($tot_avec_remise / (1 + ($txtva / 100)), 'MU');
+		$tot_sans_remise_withoutvat = price2num($tot_sans_remise / (1 + ($txtva / 100)), 8); // InfraS change Arrondis
+		$tot_avec_remise_withoutvat = price2num($tot_avec_remise / (1 + ($txtva / 100)), 8); // InfraS change ArrondisF
 
-		$pu_withouttax = price2num($pu / (1 + ($txtva / 100)), 'MU');
+		$pu_withouttax = price2num($pu / (1 + ($txtva / 100)), 8); // InfraS change Arrondis
 		$pu_withmainvat = $pu;
 	}
 
@@ -256,13 +256,13 @@ function calcul_price_total($qty, $pu, $remise_percent_ligne, $txtva, $uselocalt
 	}
 
 	if ($uselocaltax1_rate && $apply_tax) {
-		$result[14] = price2num(($tot_sans_remise_withvat * (1 + ($localtax1_rate / 100))) - $tot_sans_remise_withvat, 'MT');
+		$result[14] = price2num(($tot_sans_remise_withvat * (1 + ($localtax1_rate / 100))) - $tot_sans_remise_withvat, 8); // InfraS change Arrondis
 		$localtaxes[0] += $result[14];
 
-		$result[9] = price2num(($tot_avec_remise_withvat * (1 + ($localtax1_rate / 100))) - $tot_avec_remise_withvat, 'MT');
+		$result[9] = price2num(($tot_avec_remise_withvat * (1 + ($localtax1_rate / 100))) - $tot_avec_remise_withvat, 8); // InfraS change Arrondis
 		$localtaxes[1] += $result[9];
 
-		$result[11] = price2num(($pu_withmainvat * (1 + ($localtax1_rate / 100))) - $pu_withmainvat, 'MU');
+		$result[11] = price2num(($pu_withmainvat * (1 + ($localtax1_rate / 100))) - $pu_withmainvat, 8); // InfraS change Arrondis
 		$localtaxes[2] += $result[11];
 	}
 
@@ -283,49 +283,49 @@ function calcul_price_total($qty, $pu, $remise_percent_ligne, $txtva, $uselocalt
 			break;
 	}
 	if ($uselocaltax2_rate && $apply_tax) {
-		$result[15] = price2num(($tot_sans_remise_withvat * (1 + ($localtax2_rate / 100))) - $tot_sans_remise_withvat, 'MT');
+		$result[15] = price2num(($tot_sans_remise_withvat * (1 + ($localtax2_rate / 100))) - $tot_sans_remise_withvat, 8); // InfraS change Arrondis
 		$localtaxes[0] += $result[15];
 
-		$result[10] = price2num(($tot_avec_remise_withvat * (1 + ($localtax2_rate / 100))) - $tot_avec_remise_withvat, 'MT');
+		$result[10] = price2num(($tot_avec_remise_withvat * (1 + ($localtax2_rate / 100))) - $tot_avec_remise_withvat, 8); // InfraS change Arrondis
 		$localtaxes[1] += $result[10];
 
-		$result[12] = price2num(($pu_withmainvat * (1 + ($localtax2_rate / 100))) - $pu_withmainvat, 'MU');
+		$result[12] = price2num(($pu_withmainvat * (1 + ($localtax2_rate / 100))) - $pu_withmainvat, 8); // InfraS change Arrondis
 		$localtaxes[2] += $result[12];
 	}
 
 	//dol_syslog("price.lib::calcul_price_total $qty, $pu, $remise_percent_ligne, $txtva, $price_base_type $info_bits");
 	if ($price_base_type != 'TTC') {
 		// We work to define prices using the price without tax
-		$result[6] = price2num($tot_sans_remise, 'MT');
-		$result[8] = price2num($tot_sans_remise * (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)) + $localtaxes[0], 'MT'); // Selon TVA NPR ou non
-		$result8bis = price2num($tot_sans_remise * (1 + ($txtva / 100)) + $localtaxes[0], 'MT'); // Si TVA consideree normal (non NPR)
-		$result[7] = price2num((float) $result8bis - ((float) $result[6] + $localtaxes[0]), 'MT');
+		$result[6] = price2num($tot_sans_remise, 8); // InfraS change Arrondis
+		$result[8] = price2num($tot_sans_remise * (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)) + $localtaxes[0], 8); // Selon TVA NPR ou non // InfraS change Arrondis
+		$result8bis = price2num($tot_sans_remise * (1 + ($txtva / 100)) + $localtaxes[0], 8); // Si TVA consideree normal (non NPR) // InfraS change Arrondis
+		$result[7] = price2num((float) $result8bis - ((float) $result[6] + $localtaxes[0]), 8); // InfraS change Arrondis
 
-		$result[0] = price2num($tot_avec_remise, 'MT');
-		$result[2] = price2num($tot_avec_remise * (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)) + $localtaxes[1], 'MT'); // Selon TVA NPR ou non
-		$result2bis = price2num($tot_avec_remise * (1 + ($txtva / 100)) + $localtaxes[1], 'MT'); // Si TVA consideree normal (non NPR)
-		$result[1] = price2num((float) $result2bis - ((float) $result[0] + $localtaxes[1]), 'MT'); // Total VAT = TTC - (HT + localtax)
+		$result[0] = price2num($tot_avec_remise, 8); // InfraS change Arrondis
+		$result[2] = price2num($tot_avec_remise * (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)) + $localtaxes[1], 8); // Selon TVA NPR ou non // InfraS change Arrondis
+		$result2bis = price2num($tot_avec_remise * (1 + ($txtva / 100)) + $localtaxes[1], 8); // Si TVA consideree normal (non NPR) // InfraS change Arrondis
+		$result[1] = price2num((float) $result2bis - ((float) $result[0] + $localtaxes[1]), 8); // Total VAT = TTC - (HT + localtax) // InfraS change Arrondis
 
-		$result[3] = price2num($pu, 'MU');
-		$result[5] = price2num($pu * (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)) + $localtaxes[2], 'MU'); // Selon TVA NPR ou non
-		$result5bis = price2num($pu * (1 + ($txtva / 100)) + $localtaxes[2], 'MU'); // Si TVA consideree normal (non NPR)
-		$result[4] = price2num((float) $result5bis - ((float) $result[3] + $localtaxes[2]), 'MU');
+		$result[3] = price2num($pu, 8); // InfraS change Arrondis
+		$result[5] = price2num($pu * (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)) + $localtaxes[2], 8); // Selon TVA NPR ou non // InfraS change Arrondis
+		$result5bis = price2num($pu * (1 + ($txtva / 100)) + $localtaxes[2], 8); // Si TVA consideree normal (non NPR) // InfraS change Arrondis
+		$result[4] = price2num((float) $result5bis - ((float) $result[3] + $localtaxes[2]), 8); // InfraS change Arrondis
 	} else {
 		// We work to define prices using the price with tax
-		$result[8] = price2num($tot_sans_remise + $localtaxes[0], 'MT');
-		$result[6] = price2num($tot_sans_remise / (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)), 'MT'); // Selon TVA NPR ou non
-		$result6bis = price2num($tot_sans_remise / (1 + ($txtva / 100)), 'MT'); // Si TVA consideree normal (non NPR)
-		$result[7] = price2num((float) $result[8] - ((float) $result6bis + $localtaxes[0]), 'MT');
+		$result[8] = price2num($tot_sans_remise + $localtaxes[0], 8); // InfraS change Arrondis
+		$result[6] = price2num($tot_sans_remise / (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)), 8); // Selon TVA NPR ou non // InfraS change Arrondis
+		$result6bis = price2num($tot_sans_remise / (1 + ($txtva / 100)), 8); // Si TVA consideree normal (non NPR) // InfraS change Arrondis
+		$result[7] = price2num((float) $result[8] - ((float) $result6bis + $localtaxes[0]), 8); // InfraS change Arrondis
 
-		$result[2] = price2num((float) $tot_avec_remise + (float) $localtaxes[1], 'MT');
-		$result[0] = price2num((float) $tot_avec_remise / (1 + ((($info_bits & 1) ? 0 : (float) $txtva) / 100)), 'MT'); // Selon TVA NPR ou non
-		$result0bis = price2num((float) $tot_avec_remise / (1 + ((float) $txtva / 100)), 'MT'); // Si TVA consideree normal (non NPR)
-		$result[1] = price2num((float) $result[2] - ((float) $result0bis + (float) $localtaxes[1]), 'MT'); // Total VAT = TTC - (HT + localtax)
+		$result[2] = price2num((float) $tot_avec_remise + (float) $localtaxes[1], 8); // InfraS change Arrondis
+		$result[0] = price2num((float) $tot_avec_remise / (1 + ((($info_bits & 1) ? 0 : (float) $txtva) / 100)), 8); // Selon TVA NPR ou non // InfraS change Arrondis
+		$result0bis = price2num((float) $tot_avec_remise / (1 + ((float) $txtva / 100)), 8); // Si TVA consideree normal (non NPR) // InfraS change Arrondis
+		$result[1] = price2num((float) $result[2] - ((float) $result0bis + (float) $localtaxes[1]), 8); // Total VAT = TTC - (HT + localtax) // InfraS change Arrondis
 
-		$result[5] = price2num($pu + $localtaxes[2], 'MU');
-		$result[3] = price2num($pu / (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)), 'MU'); // Selon TVA NPR ou non
-		$result3bis = price2num($pu / (1 + ($txtva / 100)), 'MU'); // Si TVA consideree normal (non NPR)
-		$result[4] = price2num((float) $result[5] - ((float) $result3bis + (float) $localtaxes[2]), 'MU');
+		$result[5] = price2num($pu + $localtaxes[2], 8); // InfraS change Arrondis
+		$result[3] = price2num($pu / (1 + ((($info_bits & 1) ? 0 : $txtva) / 100)), 8); // Selon TVA NPR ou non // InfraS change Arrondis
+		$result3bis = price2num($pu / (1 + ($txtva / 100)), 8); // Si TVA consideree normal (non NPR) // InfraS change Arrondis
+		$result[4] = price2num((float) $result[5] - ((float) $result3bis + (float) $localtaxes[2]), 8); // InfraS change Arrondis
 	}
 
 	// if there's some localtax without vat, we calculate localtaxes (we will add them at end)
@@ -347,13 +347,13 @@ function calcul_price_total($qty, $pu, $remise_percent_ligne, $txtva, $uselocalt
 			break;
 	}
 	if ($uselocaltax1_rate && $apply_tax) {
-		$result[14] = price2num(($tot_sans_remise_withoutvat * (1 + ($localtax1_rate / 100))) - $tot_sans_remise_withoutvat, 'MT'); // amount tax1 for total_ht_without_discount
+		$result[14] = price2num(($tot_sans_remise_withoutvat * (1 + ($localtax1_rate / 100))) - $tot_sans_remise_withoutvat, 8); // amount tax1 for total_ht_without_discount // InfraS change Arrondis
 		$result[8] += $result[14]; // total_ttc_without_discount + tax1
 
-		$result[9] = price2num(($tot_avec_remise_withoutvat * (1 + ($localtax1_rate / 100))) - $tot_avec_remise_withoutvat, 'MT'); // amount tax1 for total_ht
+		$result[9] = price2num(($tot_avec_remise_withoutvat * (1 + ($localtax1_rate / 100))) - $tot_avec_remise_withoutvat, 8); // amount tax1 for total_ht // InfraS change Arrondis
 		$result[2] += $result[9]; // total_ttc + tax1
 
-		$result[11] = price2num(($pu_withouttax * (1 + ($localtax1_rate / 100))) - $pu_withouttax, 'MU'); // amount tax1 for pu_ht
+		$result[11] = price2num(($pu_withouttax * (1 + ($localtax1_rate / 100))) - $pu_withouttax, 8); // amount tax1 for pu_ht // InfraS change Arrondis
 		$result[5] += $result[11]; // pu_ht + tax1
 	}
 
@@ -374,31 +374,33 @@ function calcul_price_total($qty, $pu, $remise_percent_ligne, $txtva, $uselocalt
 			break;
 	}
 	if ($uselocaltax2_rate && $apply_tax) {
-		$result[15] = price2num(($tot_sans_remise_withoutvat * (1 + ($localtax2_rate / 100))) - $tot_sans_remise_withoutvat, 'MT'); // amount tax2 for total_ht_without_discount
+		$result[15] = price2num(($tot_sans_remise_withoutvat * (1 + ($localtax2_rate / 100))) - $tot_sans_remise_withoutvat, 8); // amount tax2 for total_ht_without_discount // InfraS change Arrondis
 		$result[8] += $result[15]; // total_ttc_without_discount + tax2
 
-		$result[10] = price2num(($tot_avec_remise_withoutvat * (1 + ($localtax2_rate / 100))) - $tot_avec_remise_withoutvat, 'MT'); // amount tax2 for total_ht
+		$result[10] = price2num(($tot_avec_remise_withoutvat * (1 + ($localtax2_rate / 100))) - $tot_avec_remise_withoutvat, 8); // amount tax2 for total_ht // InfraS change Arrondis
 		$result[2] += $result[10]; // total_ttc + tax2
 
-		$result[12] = price2num(($pu_withouttax * (1 + ($localtax2_rate / 100))) - $pu_withouttax, 'MU'); // amount tax2 for pu_ht
+		$result[12] = price2num(($pu_withouttax * (1 + ($localtax2_rate / 100))) - $pu_withouttax, 8); // amount tax2 for pu_ht // InfraS change Arrondis
 		$result[5] += $result[12]; // pu_ht + tax2
 	}
 
 	// If rounding is not using base 10 (rare)
 	if (getDolGlobalString('MAIN_ROUNDING_RULE_TOT')) {
+		// InfraS change begin Arrondis
 		if ($price_base_type != 'TTC') {
-			$result[0] = price2num(round((float) $result[0] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[1] = price2num(round((float) $result[1] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[9] = price2num(round((float) $result[9] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[10] = price2num(round((float) $result[10] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[2] = price2num((float) $result[0] + (float) $result[1] + (float) $result[9] + (float) $result[10], 'MT');
+			$result[0] = price2num(round((float) $result[0] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[1] = price2num(round((float) $result[1] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[9] = price2num(round((float) $result[9] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[10] = price2num(round((float) $result[10] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[2] = price2num((float) $result[0] + (float) $result[1] + (float) $result[9] + (float) $result[10], 8);
 		} else {
-			$result[1] = price2num(round((float) $result[1] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[2] = price2num(round((float) $result[2] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[9] = price2num(round((float) $result[9] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[10] = price2num(round((float) $result[10] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 'MT');
-			$result[0] = price2num((float) $result[2] - (float) $result[1] - (float) $result[9] - (float) $result[10], 'MT');
+			$result[1] = price2num(round((float) $result[1] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[2] = price2num(round((float) $result[2] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[9] = price2num(round((float) $result[9] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[10] = price2num(round((float) $result[10] / (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * (float) $conf->global->MAIN_ROUNDING_RULE_TOT, 8);
+			$result[0] = price2num((float) $result[2] - (float) $result[1] - (float) $result[9] - (float) $result[10], 8);
 		}
+		// InfraS change end Arrondis
 	}
 
 	// Multicurrency

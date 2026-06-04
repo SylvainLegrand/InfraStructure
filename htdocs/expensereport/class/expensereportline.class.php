@@ -478,11 +478,11 @@ class ExpenseReportLine extends CommonObjectLine
 		$sql .= ", value_unit = ".((float) $this->value_unit);
 		$sql .= ", qty=".((float) $this->qty);
 		$sql .= ", date='".$this->db->idate($this->date)."'";
-		$sql .= ", total_ht=".((float) price2num($this->total_ht, 'MT'));
-		$sql .= ", total_tva=".((float) price2num($this->total_tva, 'MT'));
-		$sql .= ", total_ttc=".((float) price2num($this->total_ttc, 'MT'));
-		$sql .= ", total_localtax1=".((float) price2num($this->total_localtax1, 'MT'));
-		$sql .= ", total_localtax2=".((float) price2num($this->total_localtax2, 'MT'));
+		$sql .= ", total_ht=".((float) price2num($this->total_ht, 8)); // InfraS change Arrondis
+		$sql .= ", total_tva=".((float) price2num($this->total_tva, 8)); // InfraS change Arrondis
+		$sql .= ", total_ttc=".((float) price2num($this->total_ttc, 8)); // InfraS change Arrondis
+		$sql .= ", total_localtax1=".((float) price2num($this->total_localtax1, 8)); // InfraS change Arrondis
+		$sql .= ", total_localtax2=".((float) price2num($this->total_localtax2, 8)); // InfraS change Arrondis
 		$sql .= ", tva_tx=".((float) $this->vatrate);
 		$sql .= ", vat_src_code='".$this->db->escape($this->vat_src_code)."'";
 		$sql .= ", localtax1_tx=".((float) $this->localtax1_tx);

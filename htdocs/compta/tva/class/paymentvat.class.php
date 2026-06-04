@@ -219,7 +219,7 @@ class PaymentVAT extends CommonObject
 
 		$totalamount = 0;
 		foreach ($this->amounts as $key => $value) {  // How payment is dispatch
-			$newvalue = (float) price2num($value, 'MT');
+			$newvalue = (float) price2num($value, 8); // InfraS change Arrondis
 			$this->amounts[$key] = $newvalue;
 			$totalamount += $newvalue;
 		}

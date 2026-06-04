@@ -792,11 +792,11 @@ class ContratLigne extends CommonObjectLine
 
 		// Mise a jour ligne en base
 		$sql = "UPDATE ".MAIN_DB_PREFIX."contratdet SET";
-		$sql .= " total_ht=".price2num($this->total_ht, 'MT');
-		$sql .= ",total_tva=".price2num($this->total_tva, 'MT');
-		$sql .= ",total_localtax1=".price2num($this->total_localtax1, 'MT');
-		$sql .= ",total_localtax2=".price2num($this->total_localtax2, 'MT');
-		$sql .= ",total_ttc=".price2num($this->total_ttc, 'MT');
+		$sql .= " total_ht=".price2num($this->total_ht, 8); // InfraS change Arrondis
+		$sql .= ",total_tva=".price2num($this->total_tva, 8); // InfraS change Arrondis
+		$sql .= ",total_localtax1=".price2num($this->total_localtax1, 8); // InfraS change Arrondis
+		$sql .= ",total_localtax2=".price2num($this->total_localtax2, 8); // InfraS change Arrondis
+		$sql .= ",total_ttc=".price2num($this->total_ttc, 8); // InfraS change Arrondis
 		$sql .= " WHERE rowid = ".((int) $this->id);
 
 		dol_syslog(get_class($this)."::update_total", LOG_DEBUG);
