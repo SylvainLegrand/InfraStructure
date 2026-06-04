@@ -410,9 +410,9 @@ class ExpenseReport extends CommonObject
 		$sql .= ",entity";
 		$sql .= ") VALUES(";
 		$sql .= "'(PROV)'";
-		$sql .= ", ".price2num($this->total_ht, 'MT');
-		$sql .= ", ".price2num($this->total_ttc, 'MT');
-		$sql .= ", ".price2num($this->total_tva, 'MT');
+		$sql .= ", ".price2num($this->total_ht, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->total_ttc, 8); // InfraS change Arrondis
+		$sql .= ", ".price2num($this->total_tva, 8); // InfraS change Arrondis
 		$sql .= ", '".$this->db->idate($this->date_debut)."'";
 		$sql .= ", '".$this->db->idate($this->date_fin)."'";
 		$sql .= ", '".$this->db->idate($now)."'";

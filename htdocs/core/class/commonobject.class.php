@@ -3965,6 +3965,14 @@ abstract class CommonObject
 			$forcedroundingmode = '0';
 		}
 
+		// InfraS change begin Arrondis - suppression des arrondis monétaires : on force le mode "total of round" (0).
+		// Le mode "round of total" (1) ajuste la TVA de la dernière ligne pour coller à un total arrondi ; cet ajustement
+		// devient sans objet (et parasite) quand les lignes ne sont plus arrondies. Le forçage ne réécrit pas les données
+		// existantes : le bloc de recalcul (forcedroundingmode == '0') ne corrige une ligne que si le HT recalculé est
+		// strictement égal au HT stocké, ce qui n'est jamais le cas entre une ancienne valeur arrondie et un recalcul non arrondi.
+		$forcedroundingmode = '0';
+		// InfraS change end Arrondis
+
 		$error = 0;
 
 		$multicurrency_tx = !empty($this->multicurrency_tx) ? $this->multicurrency_tx : 1;
@@ -4229,14 +4237,16 @@ abstract class CommonObject
 
 			if (!$error && empty($nodatabaseupdate)) {
 				$sql = "UPDATE ".$this->db->prefix().$this->table_element.' SET';
-				$sql .= " ".$this->db->sanitize($fieldht)." = ".((float) price2num($this->total_ht, 'MT', 1)).",";
-				$sql .= " ".$this->db->sanitize($fieldtva)." = ".((float) price2num($this->total_tva, 'MT', 1)).",";
-				$sql .= " ".$this->db->sanitize($fieldlocaltax1)." = ".((float) price2num($this->total_localtax1, 'MT', 1)).",";
-				$sql .= " ".$this->db->sanitize($fieldlocaltax2)." = ".((float) price2num($this->total_localtax2, 'MT', 1)).",";
-				$sql .= " ".$this->db->sanitize($fieldttc)." = ".((float) price2num($this->total_ttc, 'MT', 1));
-				$sql .= ", multicurrency_total_ht = ".((float) price2num($this->multicurrency_total_ht, 'MT', 1));
-				$sql .= ", multicurrency_total_tva = ".((float) price2num($this->multicurrency_total_tva, 'MT', 1));
-				$sql .= ", multicurrency_total_ttc = ".((float) price2num($this->multicurrency_total_ttc, 'MT', 1));
+				// InfraS change begin Arrondis - suppression des arrondis monétaires : stockage des totaux document en pleine précision (échelle DOUBLE(24,8))
+				$sql .= " ".$this->db->sanitize($fieldht)." = ".((float) price2num($this->total_ht, 8, 1)).",";
+				$sql .= " ".$this->db->sanitize($fieldtva)." = ".((float) price2num($this->total_tva, 8, 1)).",";
+				$sql .= " ".$this->db->sanitize($fieldlocaltax1)." = ".((float) price2num($this->total_localtax1, 8, 1)).",";
+				$sql .= " ".$this->db->sanitize($fieldlocaltax2)." = ".((float) price2num($this->total_localtax2, 8, 1)).",";
+				$sql .= " ".$this->db->sanitize($fieldttc)." = ".((float) price2num($this->total_ttc, 8, 1));
+				$sql .= ", multicurrency_total_ht = ".((float) price2num($this->multicurrency_total_ht, 8, 1));
+				$sql .= ", multicurrency_total_tva = ".((float) price2num($this->multicurrency_total_tva, 8, 1));
+				$sql .= ", multicurrency_total_ttc = ".((float) price2num($this->multicurrency_total_ttc, 8, 1));
+				// InfraS change end Arrondis
 				$sql .= " WHERE rowid = ".((int) $this->id);
 
 				dol_syslog(get_class($this)."::update_price", LOG_DEBUG);
