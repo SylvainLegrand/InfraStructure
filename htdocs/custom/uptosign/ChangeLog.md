@@ -1,5 +1,9 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.4 -- 2026-06-02
+
+ try to fix sign position on some race conditions
+
 ## 2.4.3 -- 2026-05-20
 
  fix interventions thanks to sylvain (infras)

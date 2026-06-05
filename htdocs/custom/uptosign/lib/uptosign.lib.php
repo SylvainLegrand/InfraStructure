@@ -848,46 +848,118 @@ function uptosign_make_document_title($ref, $customer_ref, $typeOfObject)
 }
 
 /**
- * cherche la position d'un mot dans une page pdf et retourne la position
- *  x / y / num page
+ * Resolve the MediaBox to use for coordinate conversion.
  *
- * @param   Document|Smalot\PdfParser\Document  $pdf	  [$pdf description]
- * @param   string   $keyword  [$keyword description]
+ * MediaBox is an INHERITABLE PDF attribute: a document may declare it only on
+ * the parent /Pages node and omit it from each individual /Page. Smalot does
+ * NOT resolve that inheritance, so $page->getDetails()['MediaBox'] is then
+ * absent. In production this raised "Undefined array key 3" on every page and
+ * left the page height null, which silently broke (or garbled) the magic
+ * keyword positioning on those files.
  *
- * @return  bool			[return description]
+ * Resolution order:
+ *   1. the page's own MediaBox (passed in $pageDetails) when valid,
+ *   2. the MediaBox inherited from any /Pages node of the document,
+ *   3. A4 in points (595.276 x 841.890) as a last resort, with a log.
+ *
+ * @param   Smalot\PdfParser\Document  $pdf          parsed PDF document
+ * @param   array                      $pageDetails  current page getDetails()
+ *
+ * @return  float[]  MediaBox [llx, lly, urx, ury] in points (always 4 floats)
+ */
+function uptosign_resolveMediaBox($pdf, $pageDetails)
+{
+	// 1. page-level MediaBox.
+	if (!empty($pageDetails['MediaBox']) && is_array($pageDetails['MediaBox']) && count($pageDetails['MediaBox']) >= 4) {
+		return $pageDetails['MediaBox'];
+	}
+
+	// 2. MediaBox inherited from the parent /Pages node(s).
+	try {
+		foreach ($pdf->getObjectsByType('Pages') as $pagesNode) {
+			$d = $pagesNode->getDetails();
+			if (!empty($d['MediaBox']) && is_array($d['MediaBox']) && count($d['MediaBox']) >= 4) {
+				dol_syslog("uptosign: uptosign_resolveMediaBox using MediaBox inherited from /Pages node", LOG_DEBUG);
+				return $d['MediaBox'];
+			}
+		}
+	} catch (\Throwable $e) {
+		dol_syslog("uptosign: uptosign_resolveMediaBox failed to read /Pages node: " . $e->getMessage(), LOG_WARNING);
+	}
+
+	// 3. A4 default (595.276 x 841.890 pt). Logged so we know the PDF lacked a
+	//    usable MediaBox entirely.
+	dol_syslog("uptosign: uptosign_resolveMediaBox no MediaBox at page nor /Pages level, defaulting to A4", LOG_WARNING);
+	return [0.0, 0.0, 595.276, 841.890];
+}
+
+/**
+ * Search for a keyword inside every page of a PDF and return its position(s).
+ *
+ * TOOL A = Smalot\PdfParser (pure PHP).
+ *
+ * Coordinate system of this tool:
+ *   - getDataTm() returns the text matrix Tm, with X at index [4] and Y at
+ *     index [5], expressed in PDF user-space units = POINTS (1/72 inch).
+ *   - The PDF native origin is the BOTTOM-LEFT corner of the page, Y growing
+ *     upwards.
+ *
+ * Target coordinate system expected by the remote API (signArray/stampArray):
+ *   - MILLIMETERS, origin TOP-LEFT corner, Y growing downwards.
+ *
+ * So the conversion is: points -> mm (divide by PT_PER_MM) AND flip Y
+ * (Y_top = pageHeight - Y_bottom). This is the only difference with TOOL B
+ * (pdftotext, see uptosign_autoFindWordPositionInPagepdftotext) whose
+ * coordinates are already top-left, hence no flip there.
+ *
+ * @param   Smalot\PdfParser\Document  $pdf      parsed PDF document
+ * @param   string                     $keyword  exact word to look for
+ * @param   array                      $result   appended with [X_mm, Y_mm, humanPage]
+ *
+ * @return  bool   true if at least one match was found, false otherwise
  */
 function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 {
 	dol_syslog("uptosign: uptosign_autoFindWordPositionInPage keyword=$keyword");
 	$return = false;
-	$metaData = $pdf->getDetails();
-	//TODO : maybe a bug with smalot / other pdf pdf parser
-	//smalot : first page is 0 https://github.com/smalot/pdfparser/blob/master/doc/Usage.md
-	$pages = $pdf->getPages();
-	for ($pageNb = 1; $pageNb <= $metaData['Pages']; $pageNb++) {
-		if (!isset($pages[$pageNb])) {
-			continue;
-		}
-		$details = $pages[$pageNb]->getDetails();
-		// print json_encode($details);
-		$pagewidth = $details['MediaBox'][2];
-		$pageheight = $details['MediaBox'][3];
-		if (round($pagewidth) == 595 && round($pageheight) == 842) {
-			$pagewidth = 210;
-			$pageheight = 297;
-		} elseif (round($pagewidth) == 842 && round($pageheight) == 595) {
-			$pagewidth = 297;
-			$pageheight = 210;
-		}
 
-		$data = $pages[$pageNb]->getDataTm();
-		// print json_encode($pdf->getPages()[0]);
+	// 1 mm = 72/25.4 = 2.8346 pt. The historical code uses 2.83; we keep the
+	// same value so the smalot path (TOOL A) and the pdftotext path (TOOL B)
+	// stay perfectly consistent (sub-mm difference otherwise).
+	$ptPerMm = 2.83;
+
+	// Smalot's getPages() returns a 0-indexed sequential array (built with
+	// array_values()/array_merge()), so $pages[0] is the FIRST physical page.
+	// The previous loop iterated $pages[1..N] which (a) silently skipped the
+	// real first page and (b) reported every match one page too early.
+	// We iterate the array directly and compute a 1-based human page number.
+	$humanPage = 0;
+	foreach ($pdf->getPages() as $page) {
+		$humanPage++;
+		$details = $page->getDetails();
+
+		// MediaBox = [llx, lly, urx, ury] in POINTS. Origin is usually (0,0)
+		// but not always, so we use the box span instead of urx/ury directly.
+		// MediaBox may be inherited from /Pages (not present on the page), so
+		// we resolve it instead of reading $details['MediaBox'] blindly.
+		$mediaBox = uptosign_resolveMediaBox($pdf, $details);
+		$originX  = (float) $mediaBox[0];
+		$originY  = (float) $mediaBox[1];
+		$pageHeightPt = (float) $mediaBox[3] - $originY;
+
+		$data = $page->getDataTm();
 		foreach ($data as $dataWord) {
 			if (trim($dataWord[1]) == $keyword) {
-				$X = round(($dataWord[0][4] / 2.83) - 2);
-				$Y = round($pageheight - ($dataWord[0][5] / 2.83) - 2);
-				//$Page = $pageNb + 1;
-				$result[] = [$X, $Y, $pageNb];
+				// X: pt -> mm, relative to the page left edge, minus a 2 mm
+				//    offset so the stamp/signature box starts on the word, not
+				//    just after it.
+				$X = round((($dataWord[0][4] - $originX) / $ptPerMm) - 2);
+				// Y: flip from bottom-left to top-left, then pt -> mm.
+				//    This now works for ANY page size (A4, Letter, landscape,
+				//    custom) because we convert the real page height in points
+				//    instead of special-casing the A4 dimensions.
+				$Y = round(($pageHeightPt - ($dataWord[0][5] - $originY)) / $ptPerMm - 2);
+				$result[] = [$X, $Y, $humanPage];
 				$return = true;
 				//stop a la 1ere position trouvée ... plus maintenant
 				//break;
@@ -1138,19 +1210,39 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 }
 
 /**
- * search for each line into text
+ * Search a keyword inside the XHTML produced by `pdftotext -bbox`.
  *
- * @param   array   $text     text from pdf file
+ * TOOL B = pdftotext / Poppler (external command).
+ *
+ * Coordinate system of this tool:
+ *   - The -bbox output gives xMin/yMin/xMax/yMax in POINTS (1/72 inch).
+ *   - The origin is the TOP-LEFT corner of the page, Y growing downwards
+ *     (HTML/screen convention), which is ALREADY the orientation the remote
+ *     API expects.
+ *
+ * Consequence vs TOOL A (Smalot, see uptosign_autoFindWordPositionInPage):
+ *   - Both convert points -> mm (divide by the same PT_PER_MM constant).
+ *   - TOOL A must FLIP the Y axis (PDF native is bottom-left); TOOL B must NOT
+ *     (it is already top-left). That single flip is the whole reason the two
+ *     functions compute Y differently.
+ *
+ * Pages are counted from the `<page ...>` tags, giving a 1-based human page
+ * number consistent with TOOL A.
+ *
+ * @param   array   $text     pdftotext -bbox output, one entry per line
  * @param   string  $keyword  string / keyword to search
- * @param   array   $result   result
+ * @param   array   $result   appended with [X_mm, Y_mm, humanPage]
  *
- * @return  bool    true on success, false on error
+ * @return  bool    true if at least one match was found, false otherwise
  */
 function uptosign_autoFindWordPositionInPagepdftotext($text, $keyword, &$result)
 {
 	dol_syslog("uptosign: uptosign_autoFindWordPositionInPagepdftotext text is " . count($text) . " of lines");
 	$return = false;
 	$pageNb = 0;
+
+	// Same constant as TOOL A so both engines yield identical coordinates.
+	$ptPerMm = 2.83;
 
 	$regexNumPage = '/<page.*width.*>/i';
 	$regex = '/<.*xMin=\"(?P<x>([0-9,\.]+))\".*yMin=\"(?P<y>([0-9,\.]+))\" .*>(?P<word>' . preg_quote($keyword, '/') . ')/i';
@@ -1160,8 +1252,10 @@ function uptosign_autoFindWordPositionInPagepdftotext($text, $keyword, &$result)
 		}
 		$matches = [];
 		if (preg_match_all($regex, $line, $matches)) {
-			$X = number_format(($matches['x'][0] / 2.83) - 2);
-			$Y = number_format(($matches['y'][0] / 2.83) - 2);
+			// pt -> mm, minus a 2 mm offset. No Y flip: coordinates are
+			// already top-left (see the doc block above).
+			$X = number_format(($matches['x'][0] / $ptPerMm) - 2);
+			$Y = number_format(($matches['y'][0] / $ptPerMm) - 2);
 			$result[] = [$X, $Y, $pageNb];
 			$return = true;
 			//stop a la 1ere position trouvée ... plus maintenant
