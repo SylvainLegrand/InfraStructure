@@ -2446,7 +2446,7 @@
 						$titre			= $outputlangs->transnoentities('PDFInfraSPlusURLPayment').' : ';
 						$pdf->MultiCell($larg_col1info, $tabinfo_hl, $titre, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
 						$pdf->SetFont('', '', $default_font_size - 2);
-						$paiement_url	= getOnlinePaymentUrl(0, 'invoice', $object->ref, 0, '', '');
+						$paiement_url	= getOnlinePaymentUrl(0, 'invoice', $object->ref, 0, '', 1);
 						$linktopay		= '<a href = "'.$paiement_url.'" title = "'.$outputlangs->transnoentities('ClickHere').'">'.$outputlangs->transnoentities('PDFInfraSPlusURLlink').'</a>';
 						$pdf->writeHTMLCell($larg_col2info, $tabinfo_hl, $posxcol2info, $posytabinfo, dol_htmlentitiesbr($linktopay), 0, 1);
 						if (!empty($this->Pay_inLine_QR)) {

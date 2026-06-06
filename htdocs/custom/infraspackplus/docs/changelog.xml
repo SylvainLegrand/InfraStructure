@@ -1856,7 +1856,11 @@
 	<Version Number="21.1.4" MonthVersion="2026-06">
 		<change type='fix'>Hook doActions : correction d'un statut de devis affiché en brouillon après validation quand MAIN_DISABLE_PDF_AUTOUPDATE=1 et INFRASPLUS_PDF_SEMIAUTOUPDATE=0. La méthode Propal::valid() ne met à jour que $this->statut (champ déprécié) mais pas $this->status. Le rechargement via $object->fetch() qui synchronise les deux est conditionné à !MAIN_DISABLE_PDF_AUTOUPDATE dans card.php — il était donc sauté. Le hook intercepte désormais confirm_validate dans cette configuration pour exécuter valid() + fetch_thirdparty() sans générer de PDF, assurant que $object->status reflète l'état validé avant le rendu de la page.</change>
 	</Version>
-	<InfraS Downloaded="20260604"/>
+	<Version Number="21.1.5" MonthVersion="2026-06">
+		<change type='fix'>Lien et QR code de paiement en ligne du PDF facture : correction de l'URL générée qui était relative (sans nom de domaine) et donc inexploitable au scan — passage du paramètre localorexternal de getOnlinePaymentUrl() à 1 pour forcer l'URL absolue basée sur dolibarr_main_url_root.</change>
+	</Version>
+
+	<InfraS Downloaded="20260605"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
