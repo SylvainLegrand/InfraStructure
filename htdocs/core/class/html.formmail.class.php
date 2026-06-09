@@ -157,13 +157,13 @@ class FormMail extends Form
 	 * @var int<0,1>
 	 */
 	public $witherrorsto;
-
+	// Osden add begin
 	/**
-	 * @var string|array 		email address (string) used as pre selected destination or list of destination (array)
-	 * @see findToDefaultDestination()
-	 */
+	* @var string|array 		email address (string) used as pre selected destination or list of destination (array)
+	* @see findToDefaultDestination()
+	*/
 	public $withtopreselected;
-
+	// Osden add end
 	/**
 	 * @var int<0,2>|string 		0=No attaches files, 1=Show attached files, 2=Can add new attached files, 'text'=Show attached files and the text
 	 */
@@ -1047,7 +1047,7 @@ class FormMail extends Form
 				$defaultlines = $arraydefaultmessage->content_lines;
 				if (isset($defaultlines)) {
 					foreach ($this->substit_lines as $lineid => $substit_line) {
-						$lines .= make_substitutions($defaultlines, $substit_line)."\n";
+						$lines .= make_substitutions($defaultlines, $substit_line, $outputlangs)."\n";
 					}
 				}
 				$this->substit['__LINES__'] = $lines;
@@ -1092,7 +1092,10 @@ class FormMail extends Form
 				if (GETPOSTISSET("message") && !GETPOST('modelselected')) {
 					$defaultmessage = GETPOST("message", "restricthtml");
 				} else {
-					$defaultmessage = make_substitutions($defaultmessage, $this->substit);
+					// Pass $outputlangs so __(TranslationKey)__ in the template body is resolved
+					// in the language of the selected email template, not the operator's language
+					// (see issue #34540).
+					$defaultmessage = make_substitutions($defaultmessage, $this->substit, $outputlangs);
 					// Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
 					$defaultmessage = preg_replace("/^(<br>)+/", "", $defaultmessage);
 					$defaultmessage = preg_replace("/^\n+/", "", $defaultmessage);
@@ -1265,12 +1268,13 @@ class FormMail extends Form
 					if (empty($withtoselected) && count($tmparray) == 1 && GETPOST('action', 'aZ09') == 'presend') {
 						$withtoselected = array_keys($tmparray);
 					}
-
+					// Osden add begin
 					//if empty, search if one of them is default contact for that type of document ?
 					//first step: default role on object, then if empty switch back on default role on thirdpart
 					if (empty($withtoselected)) {
 						$withtoselected = $this->withtopreselected;
 					}
+					// Osden add end
 				}
 
 				$out .= $form->multiselectarray("receiver", $tmparray, $withtoselected, 0, 0, 'inline-block minwidth500', 0, 0);
@@ -1479,7 +1483,7 @@ class FormMail extends Form
 	 */
 	public function getHtmlForTopic($arraydefaultmessage, $helpforsubstitution)
 	{
-		global $langs, $form;
+		global $conf, $langs, $form;
 
 		$defaulttopic = GETPOST('subject', 'restricthtml');
 
@@ -1491,7 +1495,17 @@ class FormMail extends Form
 			}
 		}
 
-		$defaulttopic = make_substitutions($defaulttopic, $this->substit);
+		// Resolve __(TranslationKey)__ in the language of the selected template
+		// (see issue #34540). Falls back to the caller's language when the template
+		// has no explicit language pinned.
+		$outputlangs = $langs;
+		if (is_object($arraydefaultmessage) && !empty($arraydefaultmessage->lang)) {
+			$outputlangs = new Translate("", $conf);
+			$outputlangs->setDefaultLang($arraydefaultmessage->lang);
+			$outputlangs->load('other');
+		}
+
+		$defaulttopic = make_substitutions($defaulttopic, $this->substit, $outputlangs);
 
 		$out = '<tr>';
 		$out .= '<td class="fieldrequired">';
@@ -2126,7 +2140,7 @@ class FormMail extends Form
 
 		return $tmparray;
 	}
-
+	// Osden add begin
 	/**
 	 * Get list of substitution keys available for emails. This is used for tooltips help.
 	 * This include the complete_substitutions_array.
@@ -2158,6 +2172,7 @@ class FormMail extends Form
 			}
 		}
 	}
+	// Osden add end
 }
 
 

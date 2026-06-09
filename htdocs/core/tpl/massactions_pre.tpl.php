@@ -378,7 +378,7 @@ if ($massaction == 'presend') {
 	// Tableau des parameters complementaires du post
 	$formmail->param['action'] = $action;
 	$formmail->param['models'] = $modelmail;	// the filter to know which kind of template emails to show. 'none' means no template suggested.
-	$formmail->param['models_id'] = GETPOSTINT('modelmailselected') ? GETPOSTINT('modelmailselected') : '-1';
+	$formmail->param['models_id'] = GETPOSTINT('modelmailselected') ? GETPOSTINT('modelmailselected') : '';
 	$formmail->param['id'] = implode(',', $arrayofselected);
 	// $formmail->param['returnurl']=$_SERVER["PHP_SELF"].'?id='.$object->id;
 	if (getDolGlobalString('MAILING_LIMIT_SENDBYWEB') && count($listofselectedrecipientobjid) > $conf->global->MAILING_LIMIT_SENDBYWEB) {
@@ -388,7 +388,7 @@ if ($massaction == 'presend') {
 		print ' - <a href="javascript: window.history.go(-1)">'.$langs->trans("GoBack").'</a>';
 		$arrayofmassactions = array();
 	} else {
-		$formmail->findToDefaultDestination($object);
+		$formmail->findToDefaultDestination($object);	// Osden add
 		print $formmail->get_form();
 	}
 
