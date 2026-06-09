@@ -2402,7 +2402,7 @@
 					$links			= $paymentLink->get_status_from_ref(dol_sanitizeFileName($object->ref));
 					if (is_array($links)) {
 						foreach ($links as $link) {
-							if (in_array($link['status'], array('valid','completed'))) {
+							if ($link['status'] == 'valid') {
 								if (getDolGlobalString('INFRASPLUS_PDF_BRIDGE_DISPLAY_PAYMENT_LINK')) {
 									$pdf->SetFont('', 'B', $default_font_size - 2);
 									$titre	= $outputlangs->transnoentities('PDFInfraSPlusTransferCreationLink').' : ';

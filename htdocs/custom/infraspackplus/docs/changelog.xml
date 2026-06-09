@@ -1859,8 +1859,11 @@
 	<Version Number="21.1.5" MonthVersion="2026-06">
 		<change type='fix'>Lien et QR code de paiement en ligne du PDF facture : correction de l'URL générée qui était relative (sans nom de domaine) et donc inexploitable au scan — passage du paramètre localorexternal de getOnlinePaymentUrl() à 1 pour forcer l'URL absolue basée sur dolibarr_main_url_root.</change>
 	</Version>
+	<Version Number="21.1.6" MonthVersion="2026-06">
+		<change type='chg'>Modèle PDF facture pdf_InfraSPlus_F : le lien de paiement et le QR code Bridge ne sont plus affichés lorsque le lien est au statut "completed" (part client déjà réglée). Seuls les liens "valid" sont rendus dans le PDF. Cohérent avec infras2bridge : une fois la part client payée (total TTC − primes État), le bloc de paiement Bridge disparaît du PDF, même si la part de l'État reste impayée.</change>
+	</Version>
 
-	<InfraS Downloaded="20260605"/>
+	<InfraS Downloaded="20260608"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
