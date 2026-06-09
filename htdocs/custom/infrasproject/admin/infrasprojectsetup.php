@@ -200,7 +200,7 @@
 			$num++;
 		}
 		$metas	= array($selectedTypeFees, 0, 0, 'centpercent', 0, 0, '', '', '', -1);
-		$num	= infrasproject_print_input('INFRASPROJECT_TYPE_FEES_NOT_INCLUDED_IN_MARGIN', 'multiselect_type_fees', $langs->trans('InfraSProjectTypeFeesNotIncludedInMargin1').' <span class = "infraspluscaution">'.$langs->trans('InfraSProjectTypeFeesNotIncludedInMargin2').'</span> '.$langs->trans('InfraSProjectTypeFeesNotIncludedInMargin3'), '', $metas, 1, 2, '', $num);
+		$num	= infrasproject_print_input('INFRASPROJECT_TYPE_FEES_NOT_INCLUDED_IN_MARGIN', 'multiselect_type_fees', $langs->trans('InfraSProjectTypeFeesNotIncludedInMargin1').' <span class = "infrasprojectcaution">'.$langs->trans('InfraSProjectTypeFeesNotIncludedInMargin2').'</span> '.$langs->trans('InfraSProjectTypeFeesNotIncludedInMargin3'), '', $metas, 1, 2, '', $num);
 		$num	= infrasproject_print_input('INFRASPROJECT_HIDE_EMPTY_LIST', 'on_off', $langs->trans('InfraSProjectHideEmptyList'), '', array(), 2, 1, '', $num);
 		// $num = 20
 		if (isModEnabled('order')) {

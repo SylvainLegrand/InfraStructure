@@ -62,8 +62,7 @@
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);										// llx_const table to save module status enabled/disabled
 			$this->special			= 0;																					// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
 			$this->picto			= $this->name.'@'.$this->name;															// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
-			$this->module_parts		= array('hooks'		=> array('main', 'login', 'projectOverview', 'projectcard', 'invoicesuppliercard'),
-											'tpl'		=> 1,
+			$this->module_parts		= array('hooks'		=> array('main', 'login', 'projectOverview', 'projectcard', 'invoicesuppliercard', 'globalcard'),
 											'triggers'	=> 1,
 											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php')
 											);

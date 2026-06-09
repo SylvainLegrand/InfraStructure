@@ -281,4 +281,245 @@
 			}
 			return 0;
 		}
+
+		/**
+		* Pick the versioned template suffix matching the current Dolibarr version
+		*
+		* @param	string		$mode	view|title|edit|create
+		* @return	string				Absolute path to the template, or '' if not supported
+		**/
+		protected function infrasproject_pickLineTpl($mode)
+		{
+			$modeDir	= array('view' => 'lineviews', 'title' => 'linetitles', 'edit' => 'lineedits', 'create' => 'linecreates');
+			if (!isset($modeDir[$mode])) {
+				return '';
+			}
+			$major		= (int) DOL_VERSION;
+			$dolinfras	= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
+			if ($major >= 24) {
+				$tplname	= 'v24.tpl.php';
+			} elseif ($major == 23) {
+				$tplname	= 'v23.tpl.php';
+			} elseif ($major == 22) {
+				$tplname	= $dolinfras ? 'v22-DolInfraS.tpl.php' : 'v22.tpl.php';
+			} elseif ($major == 21) {
+				$tplname	= 'v21.tpl.php';
+			} else {
+				return '';
+			}
+			$tpl		= dol_buildpath('/infrasproject/core/tpl/'.$modeDir[$mode].'/'.$tplname, 0);
+			return file_exists($tpl) ? $tpl : '';
+		}
+
+		/**
+		* When the form to add a new line is rendered (create mode)
+		* Replaces Dolibarr's native objectline_create.tpl.php with our versioned variant.
+		* Trampoline pattern: we call CommonObject::formAddObjectLine() with $defaulttpldir
+		* pointing to our module so the native dispatcher loads our tpl with the proper scope.
+		*
+		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	CommonObject	$object			The object to process
+		* @param	string			$action			Current action
+		* @return	int								< 0 on error, 0 to continue with native tpl, 1 to replace standard code
+		**/
+		public function formAddObjectLine($parameters, &$object, &$action)
+		{
+			global $mysoc;
+
+			if (empty($this->infrasproject_pickLineTpl('create'))) {
+				return 0;
+			}
+
+			// Supplier-side objects flip the seller/buyer direction (mirrors core card.php logic)
+			$isSupplier	= in_array($object->element, array('order_supplier', 'invoice_supplier', 'invoice_supplier_rec', 'supplier_proposal'), true);
+			if ($isSupplier) {
+				$seller	= is_object($object->thirdparty) ? $object->thirdparty : new Societe($this->db);
+				$buyer	= $mysoc;
+			} else {
+				$seller	= $mysoc;
+				$buyer	= is_object($object->thirdparty) ? $object->thirdparty : new Societe($this->db);
+			}
+
+			$object->formAddObjectLine(1, $seller, $buyer, '/infrasproject/core/tpl');
+			return 1;
+		}
+
+		/**
+		* When we show a line (view or edit mode for existing lines)
+		*
+		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	CommonObject	$object			The object to process
+		* @param	string			$action			Current action
+		* @return	int								< 0 on error, 0 to continue, 1 to replace standard code
+		**/
+		public function printObjectLine($parameters, &$object, &$action)
+		{
+			global $conf, $db, $langs, $user, $hookmanager;
+			global $form;
+			global $object_rights, $disableedit, $disablemove, $disableremove;
+
+			$line			= !empty($parameters['line'])			? $parameters['line']			: null;
+			if (!is_object($line)) {
+				return 0;
+			}
+			$num			= !empty($parameters['num'])			? $parameters['num']			: 0;
+			$i				= isset($parameters['i'])				? $parameters['i']				: 0;
+			$dateSelector	= !empty($parameters['dateSelector'])	? $parameters['dateSelector']	: 0;
+			$seller			= !empty($parameters['seller'])			? $parameters['seller']			: null;
+			$buyer			= !empty($parameters['buyer'])			? $parameters['buyer']			: null;
+			$selected		= isset($parameters['selected'])		? $parameters['selected']		: 0;
+			$extrafields	= !empty($parameters['extrafieldsline'])? $parameters['extrafieldsline']: null;
+			$object_rights	= $object->getRights();
+
+			// If infraspackplus is active, leave the whole view-mode rendering to it
+			// (it includes the refproject column via its own partial). We only handle edit mode here.
+			$isView			= ($action != 'editline' || $selected != $line->id);
+			if ($isView && isModEnabled('infraspackplus')) {
+				return 0;
+			}
+			// Special lines from other modules (infrastructure titles/sub-totals/free texts,
+			// infrasdiscount lines, etc.) have their own dedicated rendering hook. Skip them
+			// here to avoid emitting a duplicate <tr> alongside the module that owns the line.
+			// Dolibarr convention: native special_codes are 0-3; > 3 means a module-owned line.
+			if (!empty($line->special_code) && (int) $line->special_code > 3) {
+				return 0;
+			}
+
+			$text			= '';
+			$description	= '';
+			if ($isView) {
+				if (!empty($line->fk_product) && $line->fk_product > 0) {
+					$product_static			= new Product($db);
+					$product_static->fetch($line->fk_product);
+					$product_static->ref	= $line->ref;
+					$product_static->label	= !empty($line->label) ? $line->label : '';
+					$text					= $product_static->getNomUrl(1);
+					if (getDolGlobalInt('MAIN_MULTILANGS')) {
+						if (property_exists($object, 'socid') && !empty($object->socid) && !is_object($object->thirdparty)) {
+							dol_print_error(null, 'Error: Method printObjectLine was called on an object and object->fetch_thirdparty was not done before');
+							return 0;
+						}
+						$prod			= new Product($db);
+						$prod->fetch($line->fk_product);
+						$outputlangs	= $langs;
+						$newlang		= '';
+						if (empty($newlang) && GETPOST('lang_id', 'aZ09')) {
+							$newlang	= GETPOST('lang_id', 'aZ09');
+						}
+						if (getDolGlobalString('PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE') && empty($newlang) && is_object($object->thirdparty)) {
+							$newlang	= $object->thirdparty->default_lang;
+						}
+						if (!empty($newlang)) {
+							$outputlangs	= new Translate('', $conf);
+							$outputlangs->setDefaultLang($newlang);
+						}
+						$label	= !empty($prod->multilangs[$outputlangs->defaultlang]['label']) ? $prod->multilangs[$outputlangs->defaultlang]['label'] : $line->product_label;
+					} else {
+						$label	= $line->product_label;
+					}
+					$text			.= ' - '.(!empty($line->label) ? $line->label : $label);
+					$description	.= getDolGlobalInt('PRODUIT_DESC_IN_FORM_ACCORDING_TO_DEVICE') ? '' : (!empty($line->description) ? dol_htmlentitiesbr($line->description) : '');
+				}
+				if (empty($line->subprice_ttc) && $line->qty) {
+					$line->subprice_ttc	= (float) price2num($line->total_ttc / $line->qty, 'MU');
+				}
+				$line->pu_ttc	= $line->subprice_ttc;
+			} else {
+				$label			= (!empty($line->label) ? $line->label : (($line->fk_product > 0) ? $line->product_label : ''));
+				$line->pu_ttc	= price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU');
+			}
+
+			$tpl	= $this->infrasproject_pickLineTpl($isView ? 'view' : 'edit');
+			if (empty($tpl)) {
+				return 0;
+			}
+			// Capture du rendu pour permettre l'enrichissement par d'autres modules avant émission.
+			// Pattern « buffer + sous-hook » : les modules tiers (ex. infrastructure pour la colonne
+			// « Opt ») retournent une cellule <td>…</td> via $hookmanager->resPrint dans le hook
+			// dédié 'infrasprojectEnrichObjectLine', cellule qui est ensuite injectée juste avant
+			// la cellule .linecolmove. Évite la double émission de <tr> lorsque plusieurs modules
+			// implémentent printObjectLine — le HookManager ne s'arrête pas sur le 1er return 1.
+			ob_start();
+			$res	= empty($conf->file->strict_mode) ? @include $tpl : include $tpl;
+			$content	= ob_get_clean();
+			if (empty($res)) {
+				if (!empty($content)) {
+					print $content;
+				}
+				return 0;
+			}
+			$savedResPrint			= $hookmanager->resPrint;
+			$hookmanager->resPrint	= '';
+			$enrichParams			= $parameters;
+			$hookmanager->executeHooks('infrasprojectEnrichObjectLine', $enrichParams, $object, $action);
+			$enrichHtml				= (string) $hookmanager->resPrint;
+			$hookmanager->resPrint	= $savedResPrint;
+			if (!empty($enrichHtml)) {
+				$injected	= preg_replace('/(<td\b[^>]*\bclass="[^"]*\blinecolmove\b[^"]*"[^>]*>)/i', $enrichHtml.'$1', $content, 1);
+				if ($injected !== null && $injected !== $content) {
+					$content	= $injected;
+				}
+			}
+			print $content;
+			return 1;
+		}
+
+		/**
+		* When we show the title (header) row of the object lines table
+		*
+		* @param	array()			$parameters		Hook metadatas (context, etc...)
+		* @param	CommonObject	$object			The object to process
+		* @param	string			$action			Current action
+		* @return	int								< 0 on error, 0 to continue, 1 to replace standard code
+		**/
+		public function printObjectLineTitle($parameters, &$object, &$action)
+		{
+			global $conf, $langs, $user, $hookmanager;
+			global $form;
+			global $disableedit;
+
+			$num					= !empty($parameters['num'])			? $parameters['num']			: 0;
+			$dateSelector			= !empty($parameters['dateSelector'])	? $parameters['dateSelector']	: 0;
+			$seller					= !empty($parameters['seller'])			? $parameters['seller']			: null;
+			$buyer					= !empty($parameters['buyer'])			? $parameters['buyer']			: null;
+			$selected				= isset($parameters['selected'])		? $parameters['selected']		: 0;
+			$inputalsopricewithtax	= !empty($GLOBALS['inputalsopricewithtax'])			? $GLOBALS['inputalsopricewithtax']			: 0;
+			$outputalsopricetotalwithtax	= !empty($GLOBALS['outputalsopricetotalwithtax'])	? $GLOBALS['outputalsopricetotalwithtax']	: 0;
+			$usemargins				= !empty($GLOBALS['usemargins'])				? $GLOBALS['usemargins']				: 0;
+
+			$tpl	= $this->infrasproject_pickLineTpl('title');
+			if (empty($tpl)) {
+				return 0;
+			}
+			// Capture du rendu pour permettre l'enrichissement par d'autres modules avant émission.
+			// Pattern « buffer + sous-hook » : les modules tiers (ex. infrastructure pour la colonne
+			// « Opt ») retournent une cellule <th>…</th> via $hookmanager->resPrint dans le hook
+			// dédié 'infrasprojectEnrichObjectLineTitle', cellule qui est ensuite injectée juste
+			// avant la cellule .linecolmove. Évite la double émission de <thead> lorsque plusieurs
+			// modules implémentent printObjectLineTitle — le HookManager ne s'arrête pas sur le
+			// 1er return 1.
+			ob_start();
+			$res	= empty($conf->file->strict_mode) ? @include $tpl : include $tpl;
+			$content	= ob_get_clean();
+			if (empty($res)) {
+				if (!empty($content)) {
+					print $content;
+				}
+				return 0;
+			}
+			$savedResPrint			= $hookmanager->resPrint;
+			$hookmanager->resPrint	= '';
+			$enrichParams			= $parameters;
+			$hookmanager->executeHooks('infrasprojectEnrichObjectLineTitle', $enrichParams, $object, $action);
+			$enrichHtml				= (string) $hookmanager->resPrint;
+			$hookmanager->resPrint	= $savedResPrint;
+			if (!empty($enrichHtml)) {
+				$injected	= preg_replace('/(<th\b[^>]*\bclass="[^"]*\blinecolmove\b[^"]*"[^>]*>)/i', $enrichHtml.'$1', $content, 1);
+				if ($injected !== null && $injected !== $content) {
+					$content	= $injected;
+				}
+			}
+			print $content;
+			return 1;
+		}
 	}

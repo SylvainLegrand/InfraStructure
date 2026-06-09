@@ -15,9 +15,9 @@ Informations module (issues du code et du changelog local) :
 - Éditeur : InfraS
 - Numéro module : `500055`
 - Licence : GPL v3+
-- Compatibilité Dolibarr : `18.0.0` à `24.x.x`
+- Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.8.8` (2026-04)
+- Dernière version locale : `21.1.1` (2026-05)
 - Dépendances obligatoires : `modProjet`, `modStock`
 - Emplacement : `htdocs/custom/infrasproject/`
 
@@ -50,11 +50,24 @@ htdocs/custom/infrasproject/
 │   │   └── infrasprojectAdmin.lib.php
 │   ├── modules/
 │   │   └── modinfrasproject.class.php
-│   ├── tpl/              (templates versionnés : *_18, *_19, *_20, *_21, *_22, *_22-Easya)
-│   │   ├── objectline_create*.tpl.php
-│   │   ├── objectline_edit*.tpl.php
-│   │   ├── objectline_title*.tpl.php
-│   │   └── objectline_view*.tpl.php
+│   ├── tpl/
+│   │   ├── objectline_create.tpl.php   (dispatcher v21-v24, route vers linecreates/v*.tpl.php)
+│   │   ├── lineviews/                  (mode view, chargé par hook printObjectLine)
+│   │   │   ├── v21.tpl.php
+│   │   │   ├── v22.tpl.php
+│   │   │   ├── v22-DolInfraS.tpl.php
+│   │   │   ├── v23.tpl.php
+│   │   │   ├── v24.tpl.php
+│   │   │   └── _columns/refproject.tpl.php
+│   │   ├── linetitles/                 (mode title, chargé par hook printObjectLineTitle)
+│   │   │   ├── v21.tpl.php ... v24.tpl.php
+│   │   │   └── _columns/refproject.tpl.php
+│   │   ├── lineedits/                  (mode edit, chargé par hook printObjectLine action=editline)
+│   │   │   ├── v21.tpl.php ... v24.tpl.php
+│   │   │   └── _columns/refproject.tpl.php
+│   │   └── linecreates/                (mode create, chargé par hook formAddObjectLine via dispatcher objectline_create.tpl.php)
+│   │       ├── v21.tpl.php ... v24.tpl.php
+│   │       └── _columns/refproject_header.tpl.php + refproject_input.tpl.php
 │   └── triggers/
 │       └── interface_98_modinfrasproject_infrasprojecttrigger.class.php
 ├── css/
@@ -71,13 +84,9 @@ htdocs/custom/infrasproject/
 │   ├── data.sql
 │   └── update.sql
 └── substitutionpages/
-    ├── dlb180x/
-    ├── dlb180x-Easya/
-    ├── dlb190x/
-    ├── dlb200x/
     ├── dlb210x/
-    └── dlb220x/
-    ├── dlb220x-Easya/
+    ├── dlb220x/
+    ├── dlb220x-DolInfraS/
     ├── dlb230x/
     └── dlb240x/
 ```
@@ -87,8 +96,8 @@ htdocs/custom/infrasproject/
 Dans `core/modules/modinfrasproject.class.php` :
 
 - **Module parts** :
-	- `tpl`, `triggers`
-	- hooks : `main`, `login`, `projectOverview`, `projectcard`, `invoicesuppliercard`
+	- `triggers` (tous les modes de templates de ligne — view, title, edit, create — sont désormais routés via hooks ; aucune déclaration `tpl` dans `module_parts`)
+	- hooks : `main`, `login`, `projectOverview`, `projectcard`, `invoicesuppliercard`, `globalcard`
 	- CSS : `/infrasproject/css/infrasproject.css.php`
 - **Dépendances** : `modProjet`, `modStock`
 - **Onglet additionnel** : onglet « Consommation Stock » sur la fiche projet
@@ -125,7 +134,7 @@ Le module s'appuie sur :
 - `infrasprojectAdmin.lib.php` pour l'administration (onglets, changelog, backup/restore, vérification de mise à jour),
 - le trigger `interface_98_modinfrasproject_infrasprojecttrigger.class.php` (création automatique de projet à la signature de devis),
 - `infrasproject_tab.php` pour l'onglet de consommation stock sur la fiche projet,
-- les templates `core/tpl/` versionnés par version Dolibarr (18, 19, 20, 21, 22, 22-Easya).
+- les templates `core/tpl/` versionnés par version Dolibarr (21, 22, 22-DolInfraS, 23, 24).
 
 ## Hooks et comportement (Hook behavior)
 
@@ -221,6 +230,9 @@ Si modification SQL / descripteur / permissions / hooks / templates / trigger :
 - Chaque version Dolibarr a son propre répertoire de substitution et ses propres TPL — maintenir toutes les versions indépendamment
 - Le module auto-désactive si la version Dolibarr est inférieure au minimum requis
 - L'intégration ContactTracking est optionnelle et dégradée gracieusement si le module est désactivé
+- **Co-activation avec InfraSPackPlus** : le hook `printObjectLine` d'infrasproject teste `isModEnabled('infraspackplus')` en mode view et retourne 0 (laisse IPP gérer). Si la stratégie est inversée par erreur (les deux modules rendent la ligne), l'affichage est dupliqué. Garder cet ordre de priorité IPP > infrasproject en mode view.
+- **Co-activation avec infrastructure et autres modules à lignes spéciales** : `printObjectLine` filtre `$line->special_code > 3` et retourne 0 — ne pas tenter de rendre les lignes spéciales infrastructure (titres / sous-totaux / textes libres, special_code = 550090), infrasdiscount, etc. Sans ce filtre, ces lignes seraient rendues deux fois dans le DOM (notre tpl `lineviews/v*.tpl.php` + le tpl propriétaire du module). Cf. section *Sous-hooks d'enrichissement* pour le mécanisme propre permettant à ces modules d'ajouter des colonnes.
+- **Ne pas implémenter `printObjectLineTitle` / `printObjectLine` dans un autre module** quand infrasproject est actif : préférer les sous-hooks `infrasprojectEnrichObjectLineTitle` / `infrasprojectEnrichObjectLine` qui s'agrègent proprement via `resprints`. Implémenter `printObjectLineTitle` côté tiers émet un second `<thead>` (le HookManager n'arrête pas l'exécution sur retour positif).
 
 ## Dernières mises à jour (Recent updates)
 
@@ -234,7 +246,7 @@ Comme InfraSPackPlus et InfraSCusPrice, InfraSProject utilise la **substitution 
 
 - **Pages substituables** : `projet/overview.php`, `projet/tasks.php`, `projet/tasks/list.php`, etc.
 - **Constantes d'activation** : générées dynamiquement depuis le chemin (ex. `/projet/overview.php` → `INFRASPROJECT_SUBSTITUTE_PROJECT_OVERVIEW`)
-- **Branches maintenues** : `dlb180x`, `dlb180x-Easya`, `dlb190x`, `dlb200x`, `dlb210x`, `dlb220x`, `dlb220x-Easya`, `dlb230x`, `dlb240x` (9 variantes incluant Easya)
+- **Branches maintenues** : `dlb210x`, `dlb220x`, `dlb220x-DolInfraS`, `dlb230x`, `dlb240x` (5 variantes, Dolibarr 21–24)
 - **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs Easya)
 - **Inconvénients** : maintenance d'un fichier par page et par version majeure
 
@@ -257,35 +269,42 @@ Pour chaque constante INFRASPROJECT_SUBSTITUTE_* activée :
 Redirection header('Location: ...') avec conservation des paramètres GET filtrés → exit
 ```
 
-**Détection de version** : La redirection choisit automatiquement le répertoire de substitution selon la version Dolibarr détectée via `DOL_VERSION` (ex. `20.0.3` → `dlb200x`).
+**Détection de version** : La redirection choisit automatiquement le répertoire de substitution selon la version Dolibarr détectée via `DOL_VERSION` (ex. `21.0.3` → `dlb210x`).
 
 **Protection Easya** : Si la distribution Easya est détectée via présence de fichiers spécifiques, le suffixe `-Easya` est ajouté au chemin.
 
-### Templates versionnés (Versioned TPL)
+### Templates versionnés (Versioned TPL) — v21.0.0+
 
-Le répertoire `core/tpl/` contient des templates versionnés pour les lignes de documents (devis, commandes, factures, etc.) :
+Depuis la version `21.0.0` du module, les templates de lignes sont restructurés en 4 dossiers (un par mode), avec un fichier par version Dolibarr et des partials communs sous `_columns/` :
 
-| Template | Versions disponibles | Rôle |
-|----------|---------------------|------|
-| `objectline_create*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | Formulaire de création de ligne |
-| `objectline_edit*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | Formulaire d'édition de ligne |
-| `objectline_title*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | En-têtes de tableau |
-| `objectline_view*.tpl.php` | `_18`, `_19`, `_20`, `_21`, `_22`, `_22-Easya` | Affichage en lecture seule |
+| Dossier | Mode | Chargé par | Versions disponibles |
+|---------|------|-----------|----------------------|
+| `core/tpl/lineviews/` | view (ligne existante en lecture) | hook `printObjectLine` (Actionsinfrasproject) | `v21`, `v22`, `v22-DolInfraS`, `v23`, `v24` |
+| `core/tpl/linetitles/` | title (en-tête du tableau) | hook `printObjectLineTitle` | idem |
+| `core/tpl/lineedits/` | edit (ligne existante en édition) | hook `printObjectLine` quand `$action == 'editline'` | idem |
+| `core/tpl/linecreates/` | create (formulaire ajout nouvelle ligne) | hook `formAddObjectLine` (trampoline `CommonObject::formAddObjectLine` avec `$defaulttpldir='/infrasproject/core/tpl'` → dispatcher `objectline_create.tpl.php`) | idem |
 
-**Routage automatique** : Les pages de substitution incluent le bon template selon la version Dolibarr détectée :
+**Partials communs** : chaque dossier contient un sous-dossier `_columns/` avec les fragments réutilisables :
+
+- `lineviews/_columns/refproject.tpl.php` — cellule `<td>` affichant le projet lié à une ligne de facture fournisseur (lecture)
+- `linetitles/_columns/refproject.tpl.php` — cellule `<th>` du header
+- `lineedits/_columns/refproject.tpl.php` — sélecteur projet (édition)
+- `linecreates/_columns/refproject_header.tpl.php` — cellule header du mini titre du create form
+- `linecreates/_columns/refproject_input.tpl.php` — cellule sélecteur projet du create form
+
+**Routage** (`actions_infrasproject.class.php::infrasproject_pickLineTpl()`) :
 
 ```php
-// Exemple : détection version Dolibarr
-$dolversion = DOL_VERSION; // ex. "20.0.3"
-$tpl_suffix = '_20'; // Pour Dolibarr 20.x
-
-if (strpos($dolversion, '18.') === 0) $tpl_suffix = '_18';
-elseif (strpos($dolversion, '19.') === 0) $tpl_suffix = '_19';
-elseif (strpos($dolversion, '20.') === 0) $tpl_suffix = '_20';
-// etc.
-
-include DOL_DOCUMENT_ROOT.'/custom/infrasproject/core/tpl/objectline_view'.$tpl_suffix.'.tpl.php';
+$major = (int) DOL_VERSION;
+$dolinfras = getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
+if ($major >= 24) $tplname = 'v24.tpl.php';
+elseif ($major == 23) $tplname = 'v23.tpl.php';
+elseif ($major == 22) $tplname = $dolinfras ? 'v22-DolInfraS.tpl.php' : 'v22.tpl.php';
+elseif ($major == 21) $tplname = 'v21.tpl.php';
+else return ''; // Dolibarr < 21 plus supporté
 ```
+
+**Compatibilité InfraSPackPlus** : si `infraspackplus` est activé en même temps qu'infrasproject, le hook `printObjectLine` d'infrasproject **laisse la main à infraspackplus** en mode view (return 0). InfraSPackPlus inclut déjà la colonne « Projet » via son propre partial `core/tpl/lineviews/_columns/refproject.tpl.php` qui appelle `infrasproject_printprj()`. Les modes title/edit/create restent gérés par infrasproject puisque InfraSPackPlus ne les surcharge pas (IPP n'implémente ni `printObjectLineTitle`, ni `formAddObjectLine`, ni la branche `editline` de `printObjectLine`).
 
 ### Hooks — récapitulatif des comportements
 
@@ -298,6 +317,50 @@ include DOL_DOCUMENT_ROOT.'/custom/infrasproject/core/tpl/objectline_view'.$tpl_
 | `printFieldListValue1/2` | `projectOverview` | 0 | Injection des valeurs (CA, marge HT/TTC, taux) dans l'overview |
 | `completeListOfReferent` | `projectOverview` | 0 | Ajout de `invoice_supplier_det` (lignes factures fournisseur) dans les éléments liés |
 | `formObjectOptions` | `invoicesuppliercard` | 0 | Affichage du sélecteur de projet par ligne de facture fournisseur |
+| `printObjectLine` | `globalcard` | 0 ou 1 | Surcharge du rendu d'une ligne (mode view ou edit). Retourne 1 et inclut `lineviews/v{XX}.tpl.php` ou `lineedits/v{XX}.tpl.php`. Retourne 0 quand infraspackplus est actif en mode view (laisse IPP gérer), ou quand la ligne a `special_code > 3` (ligne d'un autre module — infrastructure, infrasdiscount, etc.). Depuis 21.1.0 : capture du rendu via `ob_start` puis exécution du sous-hook `infrasprojectEnrichObjectLine` pour permettre à d'autres modules d'enrichir la ligne (cf. *Sous-hooks d'enrichissement* dans les notes techniques). |
+| `printObjectLineTitle` | `globalcard` | 1 | Surcharge du rendu du header de tableau de lignes. Inclut `linetitles/v{XX}.tpl.php`. Depuis 21.1.0 : capture du rendu via `ob_start` puis exécution du sous-hook `infrasprojectEnrichObjectLineTitle`. |
+| `formAddObjectLine` | `globalcard` | 0 ou 1 | Surcharge du formulaire d'ajout de ligne (mode create). Reconstruit `seller`/`buyer` selon le type d'objet (achat vs vente) puis trampoline vers `CommonObject::formAddObjectLine()` avec `$defaulttpldir='/infrasproject/core/tpl'` qui charge le dispatcher → `linecreates/v{XX}.tpl.php`. Retourne 0 si la version Dolibarr n'a pas de tpl versionné (fallback natif). |
+
+### Sous-hooks d'enrichissement — colonnes additionnelles dans le tableau de lignes (depuis 21.1.0)
+
+Pour permettre à d'autres modules d'ajouter des colonnes au tableau de lignes sans dupliquer le `<thead>` / `<tr>` (le HookManager Dolibarr ne s'arrête pas au 1er retour positif d'un hook `printObjectLineTitle` / `printObjectLine` — chaque module qui implémente ces hooks émet son propre rendu, ce qui produit des doublons quand plusieurs modules surchargent le même hook), InfraSProject expose deux sous-hooks d'enrichissement appelés depuis ses propres méthodes après capture du rendu via `ob_start`.
+
+**InfraSPackPlus partage la convention** : depuis InfraSPackPlus `21.1.0`, son `printObjectLine` applique le même pattern et appelle le sous-hook `infrasprojectEnrichObjectLine` (nom historique conservé pour interopérabilité). Cela résout le cas critique : InfraSProject cède la main à InfraSPackPlus en mode view via `if ($isView && isModEnabled('infraspackplus')) return 0;` — sans le pattern partagé, les modules tiers (ex. infrastructure pour la colonne « Opt ») perdent leur enrichissement dès qu'InfraSPackPlus est actif.
+
+**Hooks exposés** :
+
+| Sous-hook | Appelé par | Rôle |
+|-----------|------------|------|
+| `infrasprojectEnrichObjectLineTitle` | `printObjectLineTitle` après include `linetitles/v{XX}.tpl.php` | Les modules tiers retournent une cellule `<th>...</th>` via `$this->resprints`. Les contributions sont agrégées par le HookManager dans `$hookmanager->resPrint`, puis InfraSProject les injecte avant `<th class="linecolmove">` via `preg_replace`. |
+| `infrasprojectEnrichObjectLine` | `printObjectLine` après include `lineviews/v{XX}.tpl.php` ou `lineedits/v{XX}.tpl.php` | Idem pour les cellules `<td>...</td>`, injectées avant `<td class="linecolmove">`. |
+
+**Pattern d'implémentation côté module tiers** :
+
+```php
+public function infrasprojectEnrichObjectLineTitle($parameters, &$object, &$action, HookManager $hookmanager)
+{
+    // 1. Vérifier que l'enrichissement s'applique (contextes, statut, constantes, etc.)
+    if (! $this->shouldEnrich($object, $action, $parameters)) {
+        return 0;
+    }
+    // 2. Produire le HTML de la cellule
+    ob_start();
+    include dol_buildpath('/monmodule/core/tpl/maboitepartial.tpl.php', 0);
+    $this->resprints = ob_get_clean();
+    // 3. Retour 0 : non bloquant, l'enrichissement n'empêche pas d'autres modules de contribuer
+    return 0;
+}
+```
+
+**Premier consommateur** : le module `infrastructure` (depuis sa version 21.0.1) implémente les deux sous-hooks pour injecter la colonne « Opt » (`<th class="infrastructure_ol">Opt</th>` + `<td class="infrastructure_ol"><input checkbox></td>`) quand `INFRASTRUCTURE_MANAGE_OL` est actif sur un document en brouillon. La cellule sur les lignes spéciales `infrastructure` (titres / sous-totaux / textes libres) est rendue directement par le tpl `infrastructureline_row_document.tpl.php` du module — le sous-hook `infrasprojectEnrichObjectLine` retourne donc une chaîne vide pour ces lignes (et InfraSProject lui-même les ignore via le filtre `special_code > 3`).
+
+**Convention de nommage** : le préfixe `infrasproject` dans le nom du sous-hook reflète son origine historique (introduit par ce module en 21.1.0). InfraSPackPlus 21.1.0 a adopté le même nom pour qu'un module qui implémente le sous-hook fonctionne indifféremment derrière les deux modules hôtes. Renommer le hook impliquerait une coordination cross-modules — à éviter sauf nécessité.
+
+**Compatibilité ascendante** : si aucun module tiers n'implémente les sous-hooks, `$hookmanager->resPrint` reste vide, aucun `preg_replace` n'est effectué et le rendu est strictement identique aux versions antérieures.
+
+**Réinitialisation du buffer** : avant l'appel à `executeHooks`, InfraSProject sauvegarde la valeur courante de `$hookmanager->resPrint` puis la vide, et la restaure après la récupération du HTML enrichi. Évite de polluer le `resPrint` global avec le HTML enrichi (qui pourrait être lu par d'autres hooks plus loin dans le cycle).
+
+**Filtrage des lignes spéciales d'autres modules** : `printObjectLine` retourne 0 (laisse au module propriétaire le soin de rendre) dès que `$line->special_code > 3` (convention Dolibarr : les codes 0–3 sont les types natifs, > 3 indique une ligne d'un module externe). Sans ce filtre, InfraSProject émettrait son propre `<tr>` standard pour des lignes spéciales infrastructure / infrasdiscount / etc., produisant une doublure dans le DOM.
 
 ### Consommation de stock (`correct_stock()`)
 
@@ -418,8 +481,8 @@ La génération de la référence projet utilise le modèle de numérotation con
 La fonction `infrasproject_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.8.7",          // Version courante
-    1 => "18.0.0",          // Version min Dolibarr
+    0 => "21.0.0",          // Version courante
+    1 => "21.0.0",          // Version min Dolibarr
     2 => 0,                 // Flag erreur (-1 = KO, 0 = OK)
     3 => "24.x.x",          // Version max Dolibarr
     4 => "NOT_RETRIEVED",   // Réservé
