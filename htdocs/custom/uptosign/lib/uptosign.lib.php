@@ -43,7 +43,19 @@ dol_include_once('/uptosign/class/uptosignconfig.class.php');
 dol_include_once('/contact/class/contact.class.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 // dol_include_once('/archivespdf/class/ecmfilesextended.class.php');
-
+// InfraS add begin
+// Force le chargement des classes Smalot\PdfParser embarquées par uptosign
+// avant qu'un autre module livrant sa propre copie de smalot/pdfparser
+// (ex. dalfred) n'enregistre son autoloader composer : composer s'enregistre
+// en "prepend", donc le dernier autoloader enregistré gagne et sa version de
+// PDFObject/FilterHelper peut retourner des coordonnées de mots-clés erronées
+// sur les PDF générés via FPDI (sceau et signature mal positionnés ou perdus).
+dol_include_once('/uptosign/vendor/autoload.php');
+class_exists('Smalot\PdfParser\Parser');
+class_exists('Smalot\PdfParser\Page');
+class_exists('Smalot\PdfParser\PDFObject');
+class_exists('Smalot\PdfParser\RawData\FilterHelper');
+// InfraS add end
 /**
  *  Prepare array of tabs for UptoSign
  *
