@@ -1862,8 +1862,11 @@
 	<Version Number="21.1.6" MonthVersion="2026-06">
 		<change type='chg'>Modèle PDF facture pdf_InfraSPlus_F : le lien de paiement et le QR code Bridge ne sont plus affichés lorsque le lien est au statut "completed" (part client déjà réglée). Seuls les liens "valid" sont rendus dans le PDF. Cohérent avec infras2bridge : une fois la part client payée (total TTC − primes État), le bloc de paiement Bridge disparaît du PDF, même si la part de l'État reste impayée.</change>
 	</Version>
-
-	<InfraS Downloaded="20260608"/>
+	<Version Number="21.2.0" MonthVersion="2026-06">
+		<change type='add'>Bordereau de remise de chèques : nouveau modèle PDF « InfraSPlus_BC » au standard InfraS, sélectionnable depuis la fiche du bordereau (Banque/Caisse &gt; Chèques à encaisser). En-tête avec logo, titre et bloc Référence / Date / Propriétaire / Compte bancaire, cadre récapitulatif Nombre de chèques / Total, tableau des chèques (n°, banque, émetteur, montant) et zone de signature en bas de page.</change>
+		<change type='add'>Bordereau de remise de chèques : le modèle reprend les réglages d'apparence du module (police, couleurs de texte d'en-tête et de corps, bordures, coins arrondis et hauteur d'en-tête du tableau, filigrane, image de pied de page) ainsi que les options du chapitre « Corps / colonnage ». Le symbole de la devise est affiché après chaque montant et le cadre du tableau s'ajuste au nombre de chèques.</change>
+	</Version>
+	<InfraS Downloaded="20260611"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

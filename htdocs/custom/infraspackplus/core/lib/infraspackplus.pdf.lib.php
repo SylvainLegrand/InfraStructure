@@ -5017,7 +5017,7 @@
 	{
 		global $db;
 
-		if (isModEnabled('subtotal') && $mode < 0) {
+		if (isModEnabled('subtotal') && $mode < 0 && class_exists('TSubtotal')) {
 			$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal') ? 1 : 0;
 			if (empty($isSubTotalLine)) {	// not a title nor a subtotal
 				//	Check if a title exist for this line && if this title has subtotal

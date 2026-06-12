@@ -529,7 +529,7 @@
 						// Reference
 						$pdf->startTransaction();
 						$startline							= $pdf->GetY();
-						$ref								= $prod->ref.' '.$nblignes;
+						$ref								= $prod->ref;
 						$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $startline, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 						$endline							= $pdf->GetY();
 						$heightRef							= (ceil($endline) - ceil($startline)) > $this->tab_hl ? (ceil($endline) - ceil($startline)) : $this->tab_hl;

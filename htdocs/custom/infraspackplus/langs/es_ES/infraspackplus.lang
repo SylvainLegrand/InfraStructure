@@ -1054,6 +1054,10 @@ PDFInfraSPlusSocieteDescription = Hoja de empresa modelo infras. Modelo de hoja 
 PDFInfraSPlusExpenseName        = InfraSPlus_NDF
 PDFInfraSPlusExpenseDescription = nota de gastos modelo infras. Modelo de nota de gastos completo (logotipo, …)
 
+### pdf_InfraS_chequereceipt ###
+PDFInfraSPlusChequeReceiptName        = InfraSPlus_BC
+PDFInfraSPlusChequeReceiptDescription = Comprobante de remesa de cheques PDF modelo InfraS. Modelo completo (logotipo, marca de agua, firma, pie de página InfraS, …)
+
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT
 PDFInfraSPlusUserContratDescription = Contrato de empleado modelo InfraS, ¡Uso de archivos especiales necesarios (Asociación de un PDF con un archivo PHP de relleno)!

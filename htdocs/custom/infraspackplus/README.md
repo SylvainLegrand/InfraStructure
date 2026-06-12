@@ -4,7 +4,7 @@
 
 ## ***InfraSPackPlus***
 #### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
-* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 37 modèles pour 20 types de documents différents et 709 options (32 options sont modifiables directement sur la fiche du document) dont
+* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 38 modèles pour 21 types de documents différents et 709 options (32 options sont modifiables directement sur la fiche du document) dont
 	 * Les cadres arrondis, l’organisation des colonnes (ordre, affichage, largeur, …)
 	 * Le choix des couleurs de texte, de fond, des images, des filigranes, des types épaisseur et couleurs des lignes, …
 	 * L’affichage 'full' TTC
@@ -59,6 +59,9 @@ Utilise jSignature de Brinley Ang sous licence MIT pour la gestion des signature
 * Documents administratifs
 	 * Notes de frais
 	 * Utilisateurs
+* Trésorerie / Banque
+	 * Bordereaux de remise de chèques
+
 
 
 

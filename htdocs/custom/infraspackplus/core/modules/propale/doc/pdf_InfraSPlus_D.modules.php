@@ -2143,7 +2143,7 @@
 					}
 				}
 				// If payment mode forced to VIR, show payment with QR code and/or Link
-				if (isModEnabled('infras2bridge') && getDolGlobalInt('INFRAS2BRIDGE_ENABLE_PROPAL_PAYMENT_LINK', 0)) {
+				if (isModEnabled('infras2bridge') && getDolGlobalInt('INFRAS2BRIDGE_ENABLE_PROPAL_PAYMENT_LINK', 0) && class_exists('infras2bridge_paymentlinks')) {
 					$objectRef		= isModEnabled('propalehistory') && !empty($object->ref_old) ? $object->ref_old : $object->ref;
 					$paymentLink	= new infras2bridge_paymentlinks($this->db);
 					$links			= $paymentLink->get_status_from_ref(dol_sanitizeFileName($objectRef));

@@ -1054,6 +1054,10 @@ PDFInfraSPlusSocieteDescription = PDF company card from InfraS. Complete PDF com
 PDFInfraSPlusExpenseName        = InfraSPlus_NDF
 PDFInfraSPlusExpenseDescription = PDF expense report from InfraS. Complete PDF expense report model (logo, …)
 
+### pdf_InfraS_chequereceipt ###
+PDFInfraSPlusChequeReceiptName        = InfraSPlus_BC
+PDFInfraSPlusChequeReceiptDescription = InfraS PDF cheque deposit slip. Complete model (logo, watermark, signature, InfraS footer, …)
+
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT
 PDFInfraSPlusUserContratDescription = InfraS model employee contract, Use of special files necessary (Association of a PDF with a filling PHP file)!

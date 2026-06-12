@@ -1054,6 +1054,10 @@ PDFInfraSPlusSocieteDescription = Fiche société PDF modèle InfraS. Modèle de
 PDFInfraSPlusExpenseName        = InfraSPlus_NDF
 PDFInfraSPlusExpenseDescription = Note de frais PDF modèle InfraS. Modèle de note de frais PDF complet (logo, …)
 
+### pdf_InfraS_chequereceipt ###
+PDFInfraSPlusChequeReceiptName        = InfraSPlus_BC
+PDFInfraSPlusChequeReceiptDescription = Bordereau de remise de chèques PDF modèle InfraS. Modèle complet (logo, filigrane, signature, pied de page InfraS, …)
+
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT
 PDFInfraSPlusUserContratDescription = Contrat employé modèle InfraS, Utilisation des fichiers spéciaux nécessaire (Association d'un PDF avec un fichier PHP de remplissage) !
