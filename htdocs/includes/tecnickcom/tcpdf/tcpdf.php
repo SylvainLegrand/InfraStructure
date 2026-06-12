@@ -22008,6 +22008,7 @@ class TCPDF {
 			foreach ($objvars as $key => $value) {
 				$this->$key = $value;
 			}
+			unset($this->objcopy);	// InfraS add - avoid restoring a destroyed copy on nested transactions (writeHTML nobr/thead)
 			$objcopy->_destroy(true, true);
 			unset($objcopy);
 			return $this;
