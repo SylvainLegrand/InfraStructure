@@ -448,3 +448,4 @@ EmptyMessageNotAllowedError=Empty message is not allowed
 SomeShipmentExists=Error, there is some shipment linked to the order. Deletion refused.
 ErrorBadParametersForDirectDebitFileCreate=Can't create bank transfer file: expected format parameter is not provided.
 ErrorBadParametersForDirectDebitFileCreateDids=Can't create bank transfer file: IDs of existing payment requests are not provided.
+ErrorTooManyLinksIntoHTMLString=The HTML content contains too many links or images. Reduce the number or raise MAIN_SECURITY_MAX_IMG_IN_HTML_CONTENT.
