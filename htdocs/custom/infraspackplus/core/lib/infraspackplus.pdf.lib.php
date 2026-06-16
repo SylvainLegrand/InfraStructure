@@ -2068,8 +2068,10 @@
 		while (preg_match('/__(.+)_(.+)__/', $html, $reg)) {
 			$html	= str_replace($reg[0], '', $html);
 		}
-		// the code below came from a Dolibarr v10 native function (convertBackOfficeMediasLinksToPublicLinks()) on functions2.lib.php
-		$html				= preg_replace('/src="[a-zA-Z0-9_\/\-\.]*(viewimage\.php\?modulepart=medias[^"]*)"/', 'src="'.$urlwithroot.'/\1"', preg_replace('#amp;#', '', $html));
+		// Convert medias images to a local file path instead of an absolute HTTP URL.
+		// A remote fetch of viewimage.php is blocked by the security layer, so the image would not appear in the PDF.
+		// <img ... src=".../viewimage.php?modulepart=medias&file=image/foo.png" ...>  =>  src="file:/DOL_DATA_ROOT/medias/image/foo.png"
+		$html				= preg_replace('/(<img[^>]*src=")[^"]*viewimage\.php[^"]*modulepart=medias[^"]*file=([^"]*)(")/', '\1file:/'.DOL_DATA_ROOT.'/medias/\2\3', preg_replace('#amp;#', '', $html));
 		return $html;
 	}
 

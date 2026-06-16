@@ -135,13 +135,15 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		RemiseCheque	$object			Object RemiseCheque
-		*	@param		string			$_dir			Directory
-		*	@param		string			$number			Number (ref of the bordereau)
-		*	@param		Translate		$outputlangs	Lang output object
+		*	@param		RemiseCheque	$object				Object RemiseCheque
+		*	@param		Translate		$outputlangs		Lang output object
+		*	@param		string			$srctemplatepath	Path to the template
+		*	@param		int				$hidedetails		Flag to hide details
+		*	@param		int				$hidedesc			Flag to hide description
+		*	@param		int				$hideref			Flag to hide reference
 		*	@return		int<-1,1>						1 if OK, <=0 if KO
 		**/
-		public function write_file($object, $_dir, $number, $outputlangs)
+		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
 			global $user, $conf, $langs, $hookmanager, $action;
 
@@ -154,13 +156,23 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'compta', 'bills', 'banks', 'companies', 'infraspackplus@infraspackplus'));
-			$dir	= $_dir.'/'.get_exdir($number, 0, 1, 0, $object, 'checkdeposits');
+			$number		= $object->ref;
+			$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BC') ? '' : '_BC';
+			$entity		= !empty($object->entity) ? $object->entity : $conf->entity;
+			$baseDir	= (!empty($conf->bank->multidir_output[$entity]) ? $conf->bank->multidir_output[$entity] : $conf->bank->dir_output).'/checkdeposits';
+			// Definition of $dir and $file
+			if (!empty($object->specimen)) {
+				$dir	= $baseDir;
+				$file	= $dir.'/SPECIMEN'.$filesufixe.'.pdf';
+			} else {
+				$objectref	= dol_sanitizeFileName($object->ref);
+				$dir		= $baseDir.'/'.$objectref;
+				$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+			}
 			if (!is_dir($dir) && dol_mkdir($dir) < 0) {
 				$this->error	= $outputlangs->transnoentities('ErrorCanNotCreateDir', $dir);
 				return -1;
 			}
-			$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BC') ? '' : '_BC';
-			$file		= $dir.'/'.$number.$filesufixe.'.pdf';
 			// Add pdfgeneration hook
 			if (! is_object($hookmanager)) {
 				include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
@@ -196,7 +208,6 @@
 			$this->stdLineStyle		= array('width' => 0.2, 'dash' => '0', 'cap' => 'butt', 'color' => array(128, 128, 128));
 			$this->horLineStyle		= array('width' => $this->tblLineW, 'dash' => '0', 'cap' => 'butt', 'color' => $this->horLineColor);
 			$this->signLineStyle	= array('width' => $this->signLineW, 'dash' => $this->signLineDash, 'cap' => 'butt', 'color' => $this->signLineColor);
-			// Table styles (borders / column separators) from infraspackplus constants
 			$this->tblLineStyle		= array('width' => $this->tblLineW, 'dash' => $this->tblLineDash, 'cap' => 'butt', 'color' => (!empty($this->title_bg) && empty($this->showtblline) ? $this->bg_color : $this->tblLineColor));
 			$this->verLineStyle		= array('width' => $this->tblLineW, 'dash' => $this->tblLineDash, 'cap' => 'butt', 'color' => $this->verLineColor);
 			$this->colpad			= ($this->Rounded_rect > 0.001 ? $this->Rounded_rect : 0) + 1;	// horizontal padding (tied to border-radius)
@@ -216,7 +227,6 @@
 			$this->posx_bank		= $this->posx_num + $this->larg_num;
 			$this->posx_emet		= $this->posx_bank + $this->larg_bank;
 			$this->posx_amount		= $right - $this->larg_amount;
-
 			// New page
 			$pdf->AddPage();
 			pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
@@ -232,12 +242,12 @@
 			// Body : loop on cheque lines (table dressing drawn per page by _tableau() once the used height is known)
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 1);
-			$nboflines		= count($this->lines);
+			$nboflines		= count($object->lines);
 			$curY			= $datatop;
 			for ($j = 0; $j < $nboflines; $j++) {
 				// Dynamic line height computation (bank / transmitter may wrap)
-				$h_bank		= $pdf->getStringHeight($this->larg_bank - $this->colpad, $outputlangs->convToOutputCharset($this->lines[$j]->bank_chq));
-				$h_emet		= $pdf->getStringHeight($this->larg_emet - $this->colpad, $outputlangs->convToOutputCharset($this->lines[$j]->emetteur_chq));
+				$h_bank		= $pdf->getStringHeight($this->larg_bank - $this->colpad, $outputlangs->convToOutputCharset($object->lines[$j]->bank_chq));
+				$h_emet		= $pdf->getStringHeight($this->larg_emet - $this->colpad, $outputlangs->convToOutputCharset($object->lines[$j]->emetteur_chq));
 				$max_h		= max($h_bank, $h_emet, $this->line_height);
 				$nb_lines	= $max_h > $this->line_height ? ((int) floor($max_h / $this->line_height) + 1) : 1;
 				$rowh		= $this->line_height * $nb_lines;
@@ -257,10 +267,10 @@
 				}
 				// Body cells : text color from bodytxtcolor, horizontal padding from colpad
 				$pdf->MultiCell($this->larg_idx, $this->line_height, (string) ($j + 1), '', 'C', 0, 1, $this->posx_idx, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_num - $this->colpad, $this->line_height, !empty($this->lines[$j]->num_chq) ? $this->lines[$j]->num_chq : '', '', 'L', 0, 1, $this->posx_num + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_bank - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($this->lines[$j]->bank_chq), '', 'L', 0, 1, $this->posx_bank + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_emet - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($this->lines[$j]->emetteur_chq), '', 'L', 0, 1, $this->posx_emet + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_amount - $this->colpad, $this->line_height, price($this->lines[$j]->amount_chq, 0, $outputlangs, 1, -1, -1, $conf->currency), '', 'R', 0, 1, $this->posx_amount, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_num - $this->colpad, $this->line_height, !empty($object->lines[$j]->num_chq) ? $object->lines[$j]->num_chq : '', '', 'L', 0, 1, $this->posx_num + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_bank - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($object->lines[$j]->bank_chq), '', 'L', 0, 1, $this->posx_bank + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_emet - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($object->lines[$j]->emetteur_chq), '', 'L', 0, 1, $this->posx_emet + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_amount - $this->colpad, $this->line_height, price($object->lines[$j]->amount_chq, 0, $outputlangs, 1, -1, -1, $conf->currency), '', 'R', 0, 1, $this->posx_amount, $curY, true, 0, 0, false, 0, 'M', false);
 				$curY	+= $rowh;
 				// Row separator (body border) when dash between lines is enabled (MAIN_PDF_DASH_BETWEEN_LINES)
 				if (!empty($this->dash_between_line) && $j < ($nboflines - 1)) {
@@ -325,22 +335,22 @@
 			// Deposit info stacked just below the title (MRP style : "Label : value", right-aligned, no frame)
 			$pdf->SetFont('', '', $default_font_size - 1);
 			$infoy	= $titlebottom;
-			$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Ref').' : '.$outputlangs->convToOutputCharset($this->ref.(!empty($this->ref_ext) ? ' - '.$this->ref_ext : '')), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Ref').' : '.$outputlangs->convToOutputCharset($object->ref.(!empty($object->ref_ext) ? ' - '.$object->ref_ext : '')), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
 			$infoy	+= $this->tab_hl;
 			$pdf->SetFont('', 'B', $default_font_size - 2);
-			$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Date').' : '.dol_print_date($this->date, 'day', false, $outputlangs), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Date').' : '.dol_print_date($object->date_bordereau, 'day', false, $outputlangs), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
 			$infoy	+= $this->tab_hl;
 			$pdf->SetFont('', '', $default_font_size - 1);
-			if (!empty($this->account->owner_name)) {
+			if (!empty($object->account->owner_name)) {
 				$pdf->SetFont('', '', $default_font_size - 1);
-				$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Owner').' : '.$outputlangs->convToOutputCharset($this->account->owner_name), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Owner').' : '.$outputlangs->convToOutputCharset($object->account->owner_name), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
 				$infoy	+= $this->tab_hl;
 			}
-			$bankval	= !empty($this->account->label) ? $this->account->label : '';
-			if (!empty($this->account->iban)) {
-				$bankval	.= (!empty($bankval) ? ' - ' : '').$this->account->iban;
-			} elseif (!empty($this->account->number)) {
-				$bankval	.= (!empty($bankval) ? ' - ' : '').$this->account->number;
+			$bankval	= !empty($object->account->label) ? $object->account->label : '';
+			if (!empty($object->account->iban)) {
+				$bankval	.= (!empty($bankval) ? ' - ' : '').$object->account->iban;
+			} elseif (!empty($object->account->number)) {
+				$bankval	.= (!empty($bankval) ? ' - ' : '').$object->account->number;
 			}
 			$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('BankAccount').' : '.$outputlangs->convToOutputCharset($bankval), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
 			$infoy	+= $this->tab_hl;
@@ -355,11 +365,11 @@
 			$pdf->SetFont('', '', $default_font_size);
 			$pdf->MultiCell($totx - $ml - 40, 5, $outputlangs->transnoentities('NumberOfCheques'), '', 'L', 0, 1, $ml + 2, $cntop + 1, true, 0, 0, false, 0, 'M', false);
 			$pdf->SetFont('', 'B', $default_font_size);
-			$pdf->MultiCell(35, 5, (string) $this->nbcheque, '', 'L', 0, 1, $totx - 40, $cntop + 1, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell(35, 5, (string) $object->nbcheque, '', 'L', 0, 1, $totx - 40, $cntop + 1, true, 0, 0, false, 0, 'M', false);
 			$pdf->SetFont('', '', $default_font_size);
 			$pdf->MultiCell(25, 5, $outputlangs->transnoentities('Total'), '', 'L', 0, 1, $totx + 2, $cntop + 1, true, 0, 0, false, 0, 'M', false);
 			$pdf->SetFont('', 'B', $default_font_size);
-			$pdf->MultiCell($right - ($totx + 27) - 1, 5, price($this->amount, 0, $outputlangs, 1, -1, -1, $conf->currency), '', 'R', 0, 1, $totx + 27, $cntop + 1, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell($right - ($totx + 27) - 1, 5, price($object->amount, 0, $outputlangs, 1, -1, -1, $conf->currency), '', 'R', 0, 1, $totx + 27, $cntop + 1, true, 0, 0, false, 0, 'M', false);
 			// Top of the cheques table (dressing drawn by _tableau() once the page height is known)
 			$tab_top	= $cntop + $cnth + 4;
 			return $tab_top;

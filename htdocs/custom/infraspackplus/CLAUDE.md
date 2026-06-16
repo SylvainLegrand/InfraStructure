@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.2.0` (2026-06)
+- Dernière version locale : `21.2.1` (2026-06)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -208,7 +208,7 @@ Voir `docs/changelog.xml` pour l'historique complet des versions.
 ### Substitution de pages vs hooks
 
 Comme InfraSCusPrice, InfraSPackPlus utilise la **substitution de pages** pour certaines pages Dolibarr :
-- **Pages substituées** : `societe/contact.php` (contacts société) et `admin/dict.php` (dictionnaires admin)
+- **Pages substituées** : `societe/contact.php` (contacts société), `admin/dict.php` (dictionnaires admin) et `compta/paiement/cheque/card.php` (fiche bordereau de remise de chèques)
 - **Constante d'activation** : générée dynamiquement depuis le chemin (ex. `/societe/contact.php` → `INFRASPACKPLUS_PS_ACTIVE_SOCIETE_CONTACT`)
 - **Branches maintenues** : `dlb210x`, `dlb220x`, `dlb220x-DolInfraS`, `dlb230x`, `dlb240x` (5 branches dont 1 variante DolInfraS)
 - **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs DolInfraS/LTS by InfraS)
@@ -234,6 +234,23 @@ infraspackplus_get_substitution_url() génère l'URL substituée :
     ↓
 Redirection header('Location: ...') avec conservation des paramètres GET/POST → exit
 ```
+
+### Modèle de bordereau de remise de chèques (InfraSPlus_BC)
+
+Modèle PDF `core/modules/cheque/doc/pdf_InfraSPlus_BC.modules.php` (classe `pdf_InfraSPlus_BC` extends `ModeleChequeReceipts`) au standard InfraS (logo, en-tête avec bloc Réf/Date/Propriétaire/Compte à droite sous le titre, tableau des chèques, zone de signature, pied de page). Réutilise les réglages du module (police, couleurs, bordures `tblLineStyle`/`verLineStyle`, coins arrondis, `ht_top_table`, filigrane, image de pied, options « Corps / colonnage »). Devise affichée après chaque montant ; cadre du tableau ajusté au contenu (méthode `_tableau()` appelée par page, comme les modèles commerciaux).
+
+**Particularité** : le sous-système chèque du core Dolibarr est non standard, ce qui neutralise les mécanismes habituels :
+- `ModeleChequeReceipts::liste_modeles()` renvoie `array('blochet')` en dur (ignore la table `llx_document_model`) ;
+- `RemiseCheque::generatePdf()` charge en dur `/core/modules/cheque/doc/pdf_<model>.class.php` (classe `BordereauCheque<Model>`), sans `dol_buildpath` ni `commonGenerateDocument()` ;
+- `compta/paiement/cheque/card.php` n'initialise **aucun hook** (ni `doActions`, ni `formObjectOptions`), et `showdocuments()` n'expose pas de point d'injection de la liste des modèles.
+
+**Solution retenue (no-core)** : **substitution** de `compta/paiement/cheque/card.php` (dossiers `substitutionpages/dlb{XX}0x{-DolInfraS}/compta/paiement/cheque/card.php`). La page substituée :
+1. injecte l'option `InfraSPlus_BC` dans le `<select name="model">` (post-traitement de la sortie de `showdocuments()`, avec garde anti-doublon `strpos(..., '>InfraSPlus_BC<')`) ;
+2. génère le PDF via un helper local `infraspackplus_bc_generatePdf()` qui charge le modèle custom (`dol_buildpath` + `write_file`) et délègue au natif `$object->generatePdf()` pour `blochet`.
+
+**Constante d'activation** : `INFRASPACKPLUS_PS_ACTIVE_COMPTA_PAIEMENT_CHEQUE_CARD` (posée dans `data.sql`).
+
+Le modèle suit pourtant la convention générique `pdf_<model>.modules.php` / classe `pdf_<model>` (comme tous les modèles InfraS) ; c'est uniquement le chargeur core non standard qui impose la substitution au lieu du mécanisme générique `commonGenerateDocument()`.
 
 ### Mécanisme de génération PDF (PDF generation mechanism)
 
@@ -385,7 +402,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.2.0",          // Version courante
+    0 => "21.2.1",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
@@ -394,6 +411,14 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
     6 => "8.4"               // Version max PHP
 ]
 ```
+
+### Images médias dans les notes PDF (Media images in PDF notes, fix v21.2.1)
+
+`pdf_InfraSPlus_formatNotes()` (`core/lib/infraspackplus.pdf.lib.php`) convertit les images médias intégrées dans les notes (gestionnaire de médias Dolibarr) en **chemin de fichier local** plutôt qu'en URL HTTP absolue.
+
+- **Symptôme (avant 21.2.1)** : les `<img src="…/viewimage.php?modulepart=medias&file=image/foo.png">` n'apparaissaient pas dans le PDF. La couche de sécurité de Dolibarr bloque la récupération distante de `viewimage.php`, donc TCPDF ne pouvait pas charger l'image.
+- **Correctif** : un `preg_replace` réécrit le `src` de chaque balise `<img>` ciblant `viewimage.php?...modulepart=medias...file=…` en `file:/DOL_DATA_ROOT/medias/<fichier>`, ce qui pointe directement sur le fichier disque lisible par TCPDF.
+- **Remplace** l'ancienne réécriture (issue de la fonction native Dolibarr v10 `convertBackOfficeMediasLinksToPublicLinks()`) qui produisait une URL absolue `src="<urlwithroot>/viewimage.php?…"`.
 
 ### Cycle de vie du module (Module lifecycle)
 
