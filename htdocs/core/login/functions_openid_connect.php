@@ -75,7 +75,7 @@ function check_user_password_openid_connect($usertotest, $passwordtotest, $entit
 		return false;
 	}
 
-	$auth_code = GETPOST('code', 'aZ09');
+	$auth_code = GETPOST('code', 'password'); // InfraS change (issue #33374 / PR #35066 : le code OIDC peut contenir des caractères spéciaux rejetés par 'aZ09')
 	$state = GETPOST('state', 'aZ09');
 	dol_syslog('functions_openid_connect::check_user_password_openid_connect code='.$auth_code.' state='.$state);
 
