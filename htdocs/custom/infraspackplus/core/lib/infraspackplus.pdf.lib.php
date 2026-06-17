@@ -2045,7 +2045,7 @@
 	**/
 	function pdf_InfraSPlus_formatNotes($object, $outputlangs, $notes)
 	{
-		global $dolibarr_main_url_root;
+		global $dolibarr_main_url_root, $conf;
 
 		// Cache du substitutionarray et de urlwithroot par (object, outputlangs).
 		// pdf_getSubstitutionArray + complete_substitutions_array sont coûteuses et indépendantes de $notes ;
@@ -2071,8 +2071,149 @@
 		// Convert medias images to a local file path instead of an absolute HTTP URL.
 		// A remote fetch of viewimage.php is blocked by the security layer, so the image would not appear in the PDF.
 		// <img ... src=".../viewimage.php?modulepart=medias&file=image/foo.png" ...>  =>  src="file:/DOL_DATA_ROOT/medias/image/foo.png"
-		$html				= preg_replace('/(<img[^>]*src=")[^"]*viewimage\.php[^"]*modulepart=medias[^"]*file=([^"]*)(")/', '\1file:/'.DOL_DATA_ROOT.'/medias/\2\3', preg_replace('#amp;#', '', $html));
+		//$html				= preg_replace('/(<img[^>]*src=")[^"]*viewimage\.php[^"]*modulepart=medias[^"]*file=([^"]*)(")/', '\1file:/'.DOL_DATA_ROOT.'/medias/\2\3', preg_replace('#amp;#', '', $html));
+		$html				= preg_replace_callback('/<img\b[^>]*\bsrc="([^"]*viewimage\.php[^"]*)"[^>]*>/i', function ($m) {
+			global $conf;
+			$tag	= $m[0];
+			// CKEditor HTML-entity-encodes the '&' separators (&amp;) and typographic chars in the src
+			// (e.g. &rsquo; for the macOS screenshot apostrophe, &eacute; ...). Decode first, otherwise a
+			// stray '&' coming from an entity would truncate the file= parameter at parse time.
+			$src	= html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			if (strpos($src, 'modulepart=medias') === false) {
+				return $tag;
+			}
+			$qs		= parse_url($src, PHP_URL_QUERY);
+			$params	= [];
+			parse_str(!empty($qs) ? $qs : $src, $params);	// parse_str url-decodes file= (e.g. accented names)
+			$file	= !empty($params['file']) ? $params['file'] : '';
+			if (empty($file) || strpos($file, '..') !== false) {	// guard against path traversal
+				return $tag;
+			}
+			$entity		= !empty($params['entity']) ? (int) $params['entity'] : (int) $conf->entity;
+			$basedir	= !empty($conf->medias->multidir_output[$entity]) ? $conf->medias->multidir_output[$entity] : (!empty($conf->medias->dir_output) ? $conf->medias->dir_output : DOL_DATA_ROOT.'/medias');
+			// The medias folder may mix UTF-8 and ISO-8859-1 file names (legacy uploads via the file manager),
+			// while the src stored by CKEditor is URL-encoded in a single charset. Resolve tolerantly so an
+			// encoding mismatch on accented names does not silently drop the image from the PDF.
+			$fullpath	= pdf_InfraSPlus_resolveMediaPath($basedir, $file);
+			if ($fullpath === false) {
+				dol_syslog('pdf_InfraSPlus_formatNotes: media image not found on disk for file='.$file, LOG_WARNING);
+				return $tag;
+			}
+			$data	= file_get_contents($fullpath);
+			if ($data === false) {
+				return $tag;
+			}
+			$imgsize	= @getimagesize($fullpath);
+			$mime		= !empty($imgsize['mime']) ? $imgsize['mime'] : dol_mimetype($fullpath, 'image/png', 0);
+			return str_replace('"'.$m[1].'"', '"data:'.$mime.';base64,'.base64_encode($data).'"', $tag);
+		}, $html);
 		return $html;
+	}
+
+	/**
+	*	Resolve a medias-relative file path to a real, readable absolute path, tolerant to the
+	*	inconsistent encodings found in legacy medias folders. Over the years the file manager stored
+	*	the same names under different forms (UTF-8, ISO-8859-1, untranslatable chars replaced by '?',
+	*	literal '%20' baked into directory names, Unicode NFD vs NFC), and the src kept by CKEditor may
+	*	be partially double-url-encoded. A plain exact match (what dol_check_secure_access_document does)
+	*	therefore fails, so we walk the path one segment at a time: exact match first, then a fuzzy match
+	*	by encoding/accent-insensitive signature among the entries of the current directory.
+	*
+	*	@param		string			$basedir	Absolute medias base directory (no trailing slash)
+	*	@param		string			$file		Medias-relative file path (already url-decoded once)
+	*	@return		string|false				Absolute path if found and readable, false otherwise
+	**/
+	function pdf_InfraSPlus_resolveMediaPath($basedir, $file)
+	{
+		$file	= ltrim($file, '/');
+		if (strpos($file, '..') !== false) {	// guard against path traversal
+			return false;
+		}
+		$current	= $basedir;
+		foreach (explode('/', $file) as $segment) {
+			if ($segment === '') {
+				continue;
+			}
+			// Exact segment first (clean names resolve here with no directory scan).
+			if (file_exists($current.'/'.$segment)) {
+				$current	.= '/'.$segment;
+				continue;
+			}
+			// Fuzzy: find the directory entry whose signature matches this segment.
+			$match	= pdf_InfraSPlus_matchDirEntry($current, $segment);
+			if ($match === false) {
+				return false;
+			}
+			$current	.= '/'.$match;
+		}
+		return (is_file($current) && is_readable($current)) ? $current : false;
+	}
+
+	/**
+	*	Find, inside directory $dir, the entry whose signature matches $segment (encoding/accent
+	*	insensitive). Results are cached per directory so a PDF with many images in the same folder
+	*	only scans it once.
+	*
+	*	@param		string			$dir		Absolute directory to scan
+	*	@param		string			$segment	Wanted path segment (any encoding)
+	*	@return		string|false				Real entry name on disk, or false if none matches
+	**/
+	function pdf_InfraSPlus_matchDirEntry($dir, $segment)
+	{
+		static $cache	= array();	// $dir => array(signature => real entry name)
+		if (!isset($cache[$dir])) {
+			$map	= array();
+			$dh		= @opendir($dir);
+			if ($dh) {
+				while (($e = readdir($dh)) !== false) {
+					if ($e === '.' || $e === '..') {
+						continue;
+					}
+					$sig	= pdf_InfraSPlus_mediaNameSignature($e);
+					if ($sig !== '' && !isset($map[$sig])) {	// first match wins
+						$map[$sig]	= $e;
+					}
+				}
+				closedir($dh);
+			}
+			$cache[$dir]	= $map;
+		}
+		$want	= pdf_InfraSPlus_mediaNameSignature($segment);
+		return ($want !== '' && isset($cache[$dir][$want])) ? $cache[$dir][$want] : false;
+	}
+
+	/**
+	*	Build an encoding/accent-insensitive signature of a path segment for fuzzy comparison.
+	*	Residual url-encoding is decoded ('%20', double-encoded '%2520'...), the value is normalized to
+	*	UTF-8 then to Unicode NFC (so decomposed macOS names match precomposed ones), transliterated to
+	*	ASCII (accents removed) and reduced to its lowercase alphanumeric characters. Thus the same
+	*	logical name stored under different forms ("Axopen%20" vs "Axopen ", "d’écran" UTF-8 vs latin1
+	*	vs "d?e?cran", NFD vs NFC) yields the same signature.
+	*
+	*	@param		string	$name	Path segment (any encoding)
+	*	@return		string			Lowercase alphanumeric signature ('' if it cannot be built)
+	**/
+	function pdf_InfraSPlus_mediaNameSignature($name)
+	{
+		$name	= rawurldecode($name);	// neutralize literal %20 / double-encoded %2520 in names
+		if (function_exists('mb_check_encoding') && !mb_check_encoding($name, 'UTF-8')) {
+			$name	= mb_convert_encoding($name, 'UTF-8', 'ISO-8859-1');	// assume legacy latin1 on disk
+		}
+		if (class_exists('Normalizer')) {
+			$nfc	= Normalizer::normalize($name, Normalizer::FORM_C);	// NFD (e + combining accent) -> NFC
+			if ($nfc !== false) {
+				$name	= $nfc;
+			}
+		}
+		if (function_exists('iconv')) {
+			$ascii	= @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name);
+			if ($ascii !== false) {
+				$name	= $ascii;
+			}
+		}
+		$name	= strtolower($name);
+		$name	= preg_replace('/[^a-z0-9]+/', '', $name);
+		return $name !== null ? $name : '';
 	}
 
 	/**
@@ -2854,10 +2995,14 @@
 					}
 				}
 			}
-			$labelproductservice	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $labelproductservice);	// enable the use of an image in description
 			// Fix bug of some HTML editors that replace links <img src="http://localhostgit/viewimage.php?modulepart=medias&file=image/efd.png" into <img src="http://localhostgit/viewimage.php?modulepart=medias&amp;file=image/efd.png"
 			// We make the reverse, so PDF generation has the real URL.
+			// IMPORTANT: this MUST run before pdf_InfraSPlus_formatNotes(). Once formatNotes() inlines the medias images as
+			// base64 data URIs the img src becomes ~1 MB long; the greedy [^"]* groups below then exhaust the PCRE backtrack
+			// limit, preg_replace() returns null, the whole line label becomes empty and the image silently disappears
+			// (this is why large images were missing from the PDF while small ones rendered fine).
 			$labelproductservice	= preg_replace('/(<img[^>]*src=")([^"]*)(&amp;)([^"]*")/', '\1\2&\4', $labelproductservice, -1, $nbrep);
+			$labelproductservice	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $labelproductservice);	// enable the use of an image in description
 			if (!empty($cleanFont)) {
 				$labelproductservice	= dol_string_neverthesehtmltags($labelproductservice, $disallowed_tags = array('span'));
 			}

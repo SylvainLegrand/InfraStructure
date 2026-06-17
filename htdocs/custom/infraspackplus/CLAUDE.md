@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.2.1` (2026-06)
+- Dernière version locale : `21.2.2` (2026-06)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -412,13 +412,22 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
 ]
 ```
 
-### Images médias dans les notes PDF (Media images in PDF notes, fix v21.2.1)
+### Images médias dans les notes PDF (Media images in PDF notes, fix v21.2.2)
 
-`pdf_InfraSPlus_formatNotes()` (`core/lib/infraspackplus.pdf.lib.php`) convertit les images médias intégrées dans les notes (gestionnaire de médias Dolibarr) en **chemin de fichier local** plutôt qu'en URL HTTP absolue.
+`pdf_InfraSPlus_formatNotes()` (`core/lib/infraspackplus.pdf.lib.php`) embarque les images médias intégrées dans les notes / lignes libres (gestionnaire de médias Dolibarr) directement dans le HTML sous forme de **data-URI base64**, plutôt que de laisser un lien que TCPDF devrait résoudre.
 
-- **Symptôme (avant 21.2.1)** : les `<img src="…/viewimage.php?modulepart=medias&file=image/foo.png">` n'apparaissaient pas dans le PDF. La couche de sécurité de Dolibarr bloque la récupération distante de `viewimage.php`, donc TCPDF ne pouvait pas charger l'image.
-- **Correctif** : un `preg_replace` réécrit le `src` de chaque balise `<img>` ciblant `viewimage.php?...modulepart=medias...file=…` en `file:/DOL_DATA_ROOT/medias/<fichier>`, ce qui pointe directement sur le fichier disque lisible par TCPDF.
-- **Remplace** l'ancienne réécriture (issue de la fonction native Dolibarr v10 `convertBackOfficeMediasLinksToPublicLinks()`) qui produisait une URL absolue `src="<urlwithroot>/viewimage.php?…"`.
+- **Symptôme** : les `<img src="…/viewimage.php?modulepart=medias…file=image/foo.png">` n'apparaissaient pas dans le PDF sur les instances à sécurité renforcée.
+- **Pourquoi les approches "chemin" échouent** (toutes testées et écartées) :
+  - **URL HTTP** (code d'origine, `convertBackOfficeMediasLinksToPublicLinks()`) : TCPDF doit faire une requête HTTP vers le serveur → **bloquée** par la couche de sécurité.
+  - **`file://`** : TCPDF n'accepte un chemin `file://` dans une balise `<img>` HTML que si `setAllowLocalFiles(true)` a été appelé sur l'objet PDF — **jamais le cas** dans le module (`tcpdf.php`, branche `allowLocalFiles && substr($imgsrc,0,7)==='file://'`).
+  - **Chemin absolu nu** (`src="/mnt/data/.../medias/foo.jpg"`) : en requête web, le parseur HTML de TCPDF **préfixe `$_SERVER['DOCUMENT_ROOT']`** devant tout chemin commençant par `/` → chemin inexistant ; et le nom de fichier reste **URL-encodé** (ex. `t%C3%A9l%C3%A9chargement.jpg`).
+- **Correctif (base64 data-URI)** : un `preg_replace_callback` sur chaque `<img>` ciblant `viewimage.php?...modulepart=medias...` :
+  1. extrait le paramètre `file` via `parse_str` (qui **décode l'URL** — gère accents/espaces) ;
+  2. résout le répertoire disque via `$conf->medias->multidir_output[$entity]` (multi-entité, comme le core dans `files.lib.php`), repli `DOL_DATA_ROOT/medias` ;
+  3. garde anti-path-traversal (refus si `..`) ;
+  4. lit le fichier, détermine le MIME via `getimagesize()` (repli `dol_mimetype()`), et remplace le `src` par `data:<mime>;base64,<contenu>`.
+  TCPDF traite le data-URI **en amont** de toute logique de chemin/protocole (`tcpdf.php`, branche `^data:image/...;base64,`) → l'image s'affiche **quel que soit le niveau de sécurité** (aucune requête HTTP, aucun `file://`, aucune réécriture de chemin). Dégradation propre : balise laissée inchangée si le fichier est absent/illisible.
+- **Différence avec les photos produit natives** : le core insère les photos produit via `$pdf->Image($realpath, x, y, …)` (méthode directe, chemin disque + position fixe), qui contourne nativement ces problèmes. Cette voie est **inutilisable ici** car l'image est noyée dans du HTML libre rendu par `writeHTMLCell()`, à une position dépendant du flux du texte. Le data-URI est l'adaptation du même principe (« donner le fichier disque à TCPDF, pas une URL ») au contexte HTML.
 
 ### Cycle de vie du module (Module lifecycle)
 

@@ -1871,6 +1871,9 @@
 		<change type='fix'>Correction d'une erreur concernant l'affichage de la mention d'autoliquidation en sous-traitance de BTP</change>
 		<change type='chg'>Convertissez les images multimédias en un chemin de fichier local au lieu d'une URL HTTP absolue. Une récupération à distance de viewimage.php est bloquée par la couche de sécurité, donc l'image n'apparaîtra pas dans le PDF.</change>
 	</Version>
+	<Version Number="21.2.2" MonthVersion="2026-06">
+		<change type='fix'>Images médias intégrées dans les notes et lignes libres : les images insérées via le gestionnaire de médias (balises &lt;img src="...viewimage.php?modulepart=medias..."&gt;) n'apparaissaient pas dans le PDF sur les instances à sécurité renforcée. Les approches précédentes échouaient : l'URL HTTP est bloquée par la couche de sécurité ; un chemin file:// exige setAllowLocalFiles(true) sur l'objet TCPDF (jamais activé) ; un chemin absolu nu se voit préfixer $_SERVER['DOCUMENT_ROOT'] par le parseur HTML de TCPDF en requête web (chemin introuvable) et le nom de fichier reste URL-encodé. Correctif : pdf_InfraSPlus_formatNotes() lit désormais le fichier directement sur le disque (répertoire résolu via $conf-&gt;medias-&gt;multidir_output[entity], multi-entité) et l'inline dans le HTML sous forme de data-URI base64 (data:image/...;base64,...), que TCPDF traite en amont de toute logique de chemin/protocole. L'image s'affiche quel que soit le niveau de sécurité de l'instance (aucune requête HTTP, aucun file://, aucune réécriture de chemin). Garde anti-path-traversal et dégradation propre (balise inchangée) si le fichier est absent ou illisible.</change>
+	</Version>
 	<InfraS Downloaded="20260616"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
