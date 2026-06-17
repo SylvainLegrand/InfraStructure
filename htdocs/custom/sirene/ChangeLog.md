@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.3.15] - 17-06-2026
+- FIX : Erreur si aucun tiers trouvé via l'API lors de la verification avec la tache CRON
+
 ## [10.3.14] - 16-04-2026
 - FIX : Cancel sirene search (by ATM-Lucas)
 
@@ -393,7 +396,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initiale.
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.14...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.15...HEAD
+[10.3.15]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.15
 [10.3.14]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.14
 [10.3.13]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.13
 [10.3.12]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.12

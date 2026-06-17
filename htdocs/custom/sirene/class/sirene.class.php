@@ -172,7 +172,7 @@ class Sirene
 						dol_syslog(__METHOD__ . " " . $msg, LOG_ERR);
 						$errors_msg .= '<li>' . $msg . '</li>';
 						$error++;
-					} elseif (!empty($companies_results)) {
+					} elseif (is_array($companies_results)) {
 						$now = dol_now();
 
 						// Process companies found

@@ -604,6 +604,7 @@ function formSeal()
 	let input = $("<input>").attr("type", "hidden")
 		.attr("name", "action").val("uptoseal");
 	$('#leform').append(input);
+	$('#pdfData')[0].value = '';  // InfraS add
 	leform.submit();
 }
 
@@ -623,5 +624,6 @@ function formSign()
 function pdfFileChange()
 {
 	$("input[name=action]").val("pdffilechoose");
+	$('#pdfData')[0].value = '';  // InfraS add
 	leform.submit();
 }
