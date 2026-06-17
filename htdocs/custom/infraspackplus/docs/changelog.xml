@@ -1868,7 +1868,8 @@
 		<change type='add'>Bordereau de remise de chèques : le modèle « InfraSPlus_BC » est désormais proposé dans la liste de sélection des modèles de document et généré sans modifier le cœur de Dolibarr, via la substitution de la page compta/paiement/cheque/card.php (mécanisme de substitution InfraS). L'option est injectée dans la liste et la génération du PDF est prise en charge par le module.</change>
 	</Version>
 	<Version Number="21.2.1" MonthVersion="2026-06">
-		<change type='fix'> Convertissez les images multimédias en un chemin de fichier local au lieu d'une URL HTTP absolue. Une récupération à distance de viewimage.php est bloquée par la couche de sécurité, donc l'image n'apparaîtra pas dans le PDF.</change>
+		<change type='fix'>Correction d'une erreur concernant l'affichage de la mention d'autoliquidation en sous-traitance de BTP</change>
+		<change type='chg'>Convertissez les images multimédias en un chemin de fichier local au lieu d'une URL HTTP absolue. Une récupération à distance de viewimage.php est bloquée par la couche de sécurité, donc l'image n'apparaîtra pas dans le PDF.</change>
 	</Version>
 	<InfraS Downloaded="20260616"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>

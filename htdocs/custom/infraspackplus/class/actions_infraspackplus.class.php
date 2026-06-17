@@ -1080,7 +1080,7 @@ EOJS;
 				}
 				// Affichage de la mention d'autoliquidation BTP
 				if (in_array($object->element, ['propal', 'commande', 'facture', 'order_supplier'])) {
-					$hastxttvabtp	= getDolGlobalInt('INFRASPLUS_PDF_FREETEXT_TVA_6', 0);
+					$hastxttvabtp	= getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_6', '');
 					if (!empty($hastxttvabtp)) {
 						$showtvabtpPost		= empty(GETPOST('showtvabtp', 'alpha')) || GETPOST('showtvabtp', 'alpha') == 'none'	? 0	: 1;
 						$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
