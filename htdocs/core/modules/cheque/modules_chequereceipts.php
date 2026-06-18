@@ -107,7 +107,7 @@ abstract class ModeleChequeReceipts extends CommonDocGenerator
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 		$list = getListOfModels($db, $type, $maxfilenamelength);
 		// TODO Remove this to use getListOfModels only
-		$list = array('blochet' => 'blochet');
+		// $list['blochet'] = 'blochet'; Infras change
 
 		return $list;
 	}
@@ -117,13 +117,15 @@ abstract class ModeleChequeReceipts extends CommonDocGenerator
 	/**
 	 *	Fonction to generate document on disk
 	 *
-	 *	@param	RemiseCheque	$object			Object RemiseCheque
-	 *	@param	string			$_dir			Directory
-	 *	@param	string			$number			Number
-	 *	@param	Translate		$outputlangs	Lang output object
+	 *	@param	RemiseCheque	$object				Object RemiseCheque
+	 *	@param	Translate		$outputlangs		Lang output object
+	 *	@param	string			$srctemplatepath	Not used
+	 *	@param	int<0,1>		$hidedetails		Not used
+	 *	@param	int<0,1>		$hidedesc			Not used
+	 *	@param	int<0,1>		$hideref			Not used
 	 *	@return	int<-1,1>  						1=ok, 0=ko
 	 */
-	abstract public function write_file($object, $_dir, $number, $outputlangs);
+	abstract public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0); // InfraS change
 	// phpcs:enable
 }
 
