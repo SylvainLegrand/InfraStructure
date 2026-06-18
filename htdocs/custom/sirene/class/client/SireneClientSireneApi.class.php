@@ -155,18 +155,21 @@ class SireneClientSireneApi extends SireneClientApi
 		if (!empty($only_company_siege)) $filter[] = 'etablissementSiege:T';
 		if (!empty($rna)) $filter[] = 'identifiantAssociationUniteLegale:' . $rna;
 
+		$status_code = '';
 		$result = $this->sendToApi(self::METHOD_POST, 'siret', [
 			GuzzleHttp\RequestOptions::FORM_PARAMS => ['q' => implode(' AND ', $filter), 'nombre' => $nombre, 'date' => dol_print_date(dol_now(), "%Y-%m-%d")],
-		]);
-		if (!isset($result['etablissements'])) {
+		], false, $status_code);
+		if (!isset($result['etablissements']) && $status_code != 404) {
 			$this->errors = array_merge([$langs->trans('SireneErrorWhenSearchCompanies')], $this->errors);
 			dol_syslog(__METHOD__ . ': Error:' . $this->errorsToString(), LOG_ERR);
 			return null;
 		}
 
 		$companies_infos = [];
-		foreach ($result['etablissements'] as $info) {
-			$companies_infos[] = $this->convertSireneCompanyInfo($info);
+		if (isset($result['etablissements'])) {
+			foreach ($result['etablissements'] as $info) {
+				$companies_infos[] = $this->convertSireneCompanyInfo($info);
+			}
 		}
 
 		return $companies_infos;

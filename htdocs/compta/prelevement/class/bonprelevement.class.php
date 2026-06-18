@@ -109,6 +109,11 @@ class BonPrelevement extends CommonObject
 	public $emetteur_ics;
 
 	/**
+	 * @var string
+	 */
+	public $emetteur_ctgypurp; // InfraS add
+
+	/**
 	 * @var int
 	 */
 	public $user_trans;
@@ -1131,7 +1136,7 @@ class BonPrelevement extends CommonObject
 				return -1;
 			}
 			// InfraS change begin
-			while($obj = $this->db->fetch_object($resql)) {
+			while ($obj = $this->db->fetch_object($resql)) {
 				$thirdpartyBANIds[] = (int) $obj->fk_societe_rib;
 
 				dol_syslog(__METHOD__ . " Found BAN ID to use: ".$obj->fk_societe_rib);
@@ -1825,6 +1830,15 @@ class BonPrelevement extends CommonObject
 			$fk_bank_account = ($type == 'bank-transfer' ? getDolGlobalInt('PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT') : getDolGlobalInt('PRELEVEMENT_ID_BANKACCOUNT'));
 		}
 
+		// Load ctgypurp early so EnregDestinataireSEPA can use it (called before EnregEmetteurSEPA) // InfraS add begin
+		$accountForCtgy = new Account($this->db);
+		if ($accountForCtgy->fetch($fk_bank_account) > 0) {
+			$this->emetteur_ctgypurp = !empty($accountForCtgy->ctgypurp) ? $accountForCtgy->ctgypurp : 'CORE';
+		} else {
+			$this->emetteur_ctgypurp = 'CORE';
+		}
+		// InfraS add end
+
 		$result = 0;
 
 		dol_syslog(get_class($this) . "::generate build file=" . $this->filename . " type=" . $type);
@@ -2431,7 +2445,7 @@ class BonPrelevement extends CommonObject
 					}
 
 					// Set $categoryPurpose: CORE, TREA, SUPP, ...
-					$categoryPurpose = getDolGlobalString('PAYMENTBYBANKTRANSFER_CUSTOM_CATEGORY_PURPOSE', 'CORE');
+					$categoryPurpose = !empty($this->emetteur_ctgypurp) ? $this->emetteur_ctgypurp : 'CORE'; // InfraS change
 
 					$XML_CREDITOR .= '					<InstrPrty>' . $instrprty . '</InstrPrty>' . $CrLf;
 					$XML_CREDITOR .= '					<SvcLvl>' . $CrLf;
@@ -2609,6 +2623,7 @@ class BonPrelevement extends CommonObject
 			$this->emetteur_bic = $account->bic;
 
 			$this->emetteur_ics = (($type == 'bank-transfer' && getDolGlobalString("SEPA_USE_IDS")) ? $account->ics_transfer : $account->ics);  // Ex: PRELEVEMENT_ICS = "FR78ZZZ123456";
+			$this->emetteur_ctgypurp = !empty($account->ctgypurp) ? $account->ctgypurp : 'CORE'; // InfraS add
 
 			$this->raison_sociale = $account->owner_name;
 		}
@@ -2625,7 +2640,7 @@ class BonPrelevement extends CommonObject
 			$country = explode(':', $configuration->global->MAIN_INFO_SOCIETE_COUNTRY);
 			$IdBon  = sprintf("%05d", $obj->rowid);
 			$RefBon = $obj->ref;
-			$localInstrument = getDolGlobalString('PAYMENTBYBANKTRANSFER_CUSTOM_LOCAL_INSTRUMENT', 'CORE');
+			$localInstrument = !empty($account->lclinstrm) ? $account->lclinstrm : 'CORE';	// InfraS change
 
 			if (!empty($configuration->global->SEPA_FORCE_TWO_DECIMAL)) {
 				$total = number_format((float) price2num($total, 'MT'), 2, ".", "");
