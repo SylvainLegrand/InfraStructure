@@ -48,15 +48,14 @@
 			$this->name				= preg_replace('/^mod/i', '', get_class($this));	// Module label (no space allowed), auto-derived from class name
 			$this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
 			$this->editor_email		= 'support@infras.fr';
-			$editor_web				= 'https://www.infras.fr/';
-			$this->editor_url		= $editor_web;
-			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
+			$this->editor_url		= 'https://www.infras.fr/';
+			$this->url_last_version	= 'https://raw.githubusercontent.com/InfraS-SARL/modules-versions/main/'.$this->name.'/'.$this->name.'.txt';
 			$this->rights_class		= $this->name;																			// Key text used to identify module (for permissions, menus, etc...)
 			$family					= '<span class = "dolinfraspuentedolibarr">Dolibarr</span> LTS by <span class = "dolinfrasneuropolinfras"> InfraS</span>';
 			$this->family			= $family;																				// Used to group modules in module setup page
 			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
 			$this->module_position	= 100001;
-			$this->description		= $langs->trans('Module500100Desc');												// Module description
+			$this->description		= $langs->trans('Module500100Desc');													// Module description
 			$this->version			= $this->getLocalVersion();																// Version read from docs/changelog.xml
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);
 			$this->special			= 0;																					// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
