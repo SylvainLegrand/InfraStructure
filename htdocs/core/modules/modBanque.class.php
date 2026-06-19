@@ -74,7 +74,16 @@ class modBanque extends DolibarrModules
 
 		// Constants
 		$this->const = array();
+		// InfraS add begin
+		$r = 0;
 
+		$this->const[$r][0] = "CHEQUERECEIPT_ADDON_PDF";
+		$this->const[$r][1] = "chaine";
+		$this->const[$r][2] = "blochet";
+		$this->const[$r][3] = 'Name of the cheque receipt generation manager in PDF format';
+		$this->const[$r][4] = 0;
+		$r++;
+		// InfraS add end
 		// Boxes
 		$this->boxes = array(0=>array('file'=>'box_comptes.php', 'enabledbydefaulton'=>'Home'));
 
@@ -253,9 +262,12 @@ class modBanque extends DolibarrModules
 
 		// Permissions
 		$this->remove($options);
-
-		$sql = array();
-
+		
+		// InfraS change begin
+		$sql	= array("DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = '".$this->db->escape($this->const[0][2])."' AND type = 'chequereceipt' AND entity = ".((int) $conf->entity),
+						"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('".$this->db->escape($this->const[0][2])."','chequereceipt',".((int) $conf->entity).")",
+				);
+		// InfraS change end
 		return $this->_init($sql, $options);
 	}
 }
