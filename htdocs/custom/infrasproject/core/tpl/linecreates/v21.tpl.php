@@ -138,8 +138,8 @@ if ($nolinesbefore) {
 			?>
 			<td class="linecolrefsupplier"><span id="title_fourn_ref"><?php echo $langs->trans('SupplierRef'); ?></span></td>
 			<?php
-		}
-		include __DIR__.'/_columns/refproject_header.tpl.php';
+		} // InfraS change
+		include __DIR__.'/_columns/refproject_header.tpl.php'; // InfraS add
 		?>
 		<td class="linecolvat right"><span id="title_vat"><?php echo $langs->trans('VAT'); ?></span></td>
 		<td class="linecoluht right"><span id="title_up_ht"><?php echo $langs->trans('PriceUHT'); ?></span></td>
@@ -481,7 +481,7 @@ if ($nolinesbefore) {
 	<td class="nobottom linecolrefsupplier"><input id="fourn_ref" name="fourn_ref" class="flat minwidth50 maxwidth100 maxwidth125onsmartphone" value="<?php echo(GETPOSTISSET("fourn_ref") ? GETPOST("fourn_ref", 'alpha', 2) : ''); ?>"></td>
 					<?php
 		}
-		include __DIR__.'/_columns/refproject_input.tpl.php';
+		include __DIR__.'/_columns/refproject_input.tpl.php'; // InfraS add
 		print '<td class="nobottom linecolvat right">';
 		$coldisplay++;
 		if ($object->element == 'propal' || $object->element == 'commande' || $object->element == 'facture' || $object->element == 'facturerec') {
@@ -954,6 +954,14 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 							$('#tva_tx option').removeAttr('selected');
 							console.log("stringforvatrateselection="+stringforvatrateselection+" -> value of option label for this key="+$('#tva_tx option[value="'+stringforvatrateselection+'"]').val());
 							$('#tva_tx option[value="'+stringforvatrateselection+'"]').prop('selected', true);
+
+							// Sync the measuring unit dropdown with the product's default fk_unit
+							// (issue #34610). Without this the dropdown keeps the static initial
+							// value (the first c_units row, typically "Kg") regardless of what
+							// the selected product is configured with.
+							if (typeof data.fk_unit != 'undefined' && data.fk_unit != null && $("#units").length) {
+								$("#units").val(data.fk_unit).trigger('change');
+							}
 
 								<?php
 								if (getDolGlobalInt('PRODUIT_AUTOFILL_DESC') == 1) {

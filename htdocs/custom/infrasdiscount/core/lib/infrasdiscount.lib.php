@@ -42,8 +42,8 @@
 		$totalHT	= 0;
 		dol_syslog('infrasdiscount.lib::infrasdiscount_currentTotalPriceLines $object->id = '.$object->id.' $only_product = '.$only_product.' $only_service = '.$only_service.' $exceptIds = '.implode(',', $exceptIds));
 		foreach ($object->lines as $line) {
-			// Ignorer les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
-			if (infrasdiscount_isSubtotalLine($line)) {
+			// Ignorer les lignes du module subtotal ATM et infrastructure (titres, sous-totaux, textes libres)
+			if (infrasdiscount_isSubtotalLine($line) || infrasdiscount_isInfrastructureLine($line)) {
 				continue;
 			}
 			if ((empty($line->special_code) || in_array($line->special_code, array(7, 8))) && (empty($exceptIds) || !in_array($line->id, $exceptIds))) {
@@ -192,7 +192,7 @@
 	/**
 	*	Trouve le numéro du module
 	*
-	*	@param		string		$searchName		nom du module que nous recherchons
+	*	@param		string		$modName		nom du module que nous recherchons
 	*	@return		integer						-1 si KO, 0 non trouvé ou numéro de module si Ok
 	**/
 	function infrasdiscount_get_mod_number ($modName)
@@ -252,6 +252,23 @@
 	{
 		$subtotalModuleNumber = 104777;
 		return !empty($line->special_code) && $line->special_code == $subtotalModuleNumber && $line->product_type == 9 && $line->qty >= 90;
+	}
+
+	/**
+	* Vérifie si une ligne appartient au module infrastructure (titre, sous-total ou texte libre)
+	*
+	* @param	object	$line	Ligne à vérifier
+	* @return	bool			true si c'est une ligne du module infrastructure, false sinon
+	**/
+	function infrasdiscount_isInfrastructureLine($line)
+	{
+		if (!isModEnabled('infrastructure')) {
+			return false;
+		}
+		if (!class_exists('TInfrastructure')) {
+			dol_include_once('/infrastructure/class/infrastructure.class.php');
+		}
+		return class_exists('TInfrastructure') && TInfrastructure::isModInfrastructureLine($line);
 	}
 
 	/**
@@ -521,8 +538,8 @@
 		for ($i = 0; $i < $position; $i++) {
 			$line	= $object->lines[$i];
 
-			// Ignorer les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
-			if (infrasdiscount_isSubtotalLine($line)) {
+			// Ignorer les lignes du module subtotal ATM et infrastructure (titres, sous-totaux, textes libres)
+			if (infrasdiscount_isSubtotalLine($line) || infrasdiscount_isInfrastructureLine($line)) {
 				continue;
 			}
 
@@ -928,8 +945,8 @@
 		$groups				= array();
 
 		foreach ($object->lines as $line) {
-			// Ignorer les lignes subtotal ATM
-			if (infrasdiscount_isSubtotalLine($line)) {
+			// Ignorer les lignes subtotal ATM et infrastructure
+			if (infrasdiscount_isSubtotalLine($line) || infrasdiscount_isInfrastructureLine($line)) {
 				continue;
 			}
 
@@ -1148,8 +1165,8 @@
 			// Calcule les montants de base à partir des lignes AU-DESSUS de cette paire prorata (cascade)
 			for ($i = 0; $i < $prorataPosition; $i++) {
 				$line			= $object->lines[$i];
-				// Ignore les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
-				if (infrasdiscount_isSubtotalLine($line)) {
+				// Ignore les lignes du module subtotal ATM et infrastructure (titres, sous-totaux, textes libres)
+				if (infrasdiscount_isSubtotalLine($line) || infrasdiscount_isInfrastructureLine($line)) {
 					continue;
 				}
 				// Ignore les lignes des modules externes

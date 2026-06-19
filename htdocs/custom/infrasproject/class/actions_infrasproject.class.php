@@ -44,7 +44,7 @@
 		/**
 		* Constructor
 		*
-		* @param	DATABASE	$db		db object
+		* @param	DoliDB	$db		db object
 		* @return	void
 		**/
 		public function __construct($db)
@@ -61,7 +61,7 @@
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error
 		**/
-		function updateSession($parameters, $user, $action)
+		public function updateSession($parameters, $user, $action, $hookmanager)
 		{
 			$redirect_url	= infrasproject_getSubstitutionRedirectUrl();
 			if (!empty($redirect_url)) {
@@ -340,7 +340,7 @@
 				$buyer	= is_object($object->thirdparty) ? $object->thirdparty : new Societe($this->db);
 			}
 
-			$object->formAddObjectLine(1, $seller, $buyer, '/infrasproject/core/tpl');
+			$object->formAddObjectLine(1, $seller, $buyer, '/custom/infrasproject/core/tpl');
 			return 1;
 		}
 

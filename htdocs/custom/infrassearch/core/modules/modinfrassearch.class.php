@@ -45,12 +45,11 @@
 
 			$this->db				= $db;
 			$this->numero			= 550080;																				// Unique Id for module
-			$this->name				= preg_replace('/^mod/i', '', get_class($this));	// Module label (no space allowed)
+			$this->name				= preg_replace('/^mod/i', '', get_class($this));										// Module label (no space allowed)
 			$this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
 			$this->editor_email		= 'support@infras.fr';
-			$editor_web				= 'https://www.infras.fr/';
-			$this->editor_url		= $editor_web;
-			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
+			$this->editor_url		= 'https://www.infras.fr/';
+			$this->url_last_version	= 'https://raw.githubusercontent.com/InfraS-SARL/modules-versions/main/'.$this->name.'/'.$this->name.'.txt';
 			$this->rights_class		= $this->name;																			// Key text used to identify module (for permissions, menus, etc...)
 			$isDolinfras			= isModEnabled('dolinfras');
 			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameSearch');

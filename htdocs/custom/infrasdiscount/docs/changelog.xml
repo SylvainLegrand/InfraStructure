@@ -152,7 +152,13 @@
 		<change type='fix'>Calcul des remises : correction de l'exclusion des lignes libres (sans produit lié) dans infrasdiscount_calculateCascadeBase() => comparaison lâche PHP (null == '') remplacée par empty() + comparaison stricte (!==), compatible toutes versions Dolibarr (V15 à V23)</change>
 		<change type='fix'>Hooks : ajout de isset() avant chaque accès à options_specialtype dans actions_infrasdiscount.class.php pour éviter les warnings PHP "Undefined array key" sur les lignes sans extrafield</change>
 	</Version>
-	<InfraS Downloaded="20260401"/>
+	<Version Number="15.3.6" MonthVersion="2026-06">
+		<change type='chg'>Compatibilité avec le module Infrastructure : exclusion des lignes de titres, sous-totaux et textes libres de tous les calculs de remise</change>
+	</Version>
+	<Version Number="15.3.7" MonthVersion="2026-06">
+		<change type='chg'>Changement de la source de téléchargement du changelog : infras.fr remplacé par le dépôt GitHub (InfraS-SARL/modules-versions)</change>
+	</Version>
+	<InfraS Downloaded="20260619"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="23.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

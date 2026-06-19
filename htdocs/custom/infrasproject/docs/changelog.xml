@@ -254,7 +254,16 @@
 	<Version Number="21.1.1" MonthVersion="2026-05">
 		<change type='fix'>Templates linecreates/v21.tpl.php à v24.tpl.php (y compris v22-DolInfraS) : prise en compte de la colonne « Opt » (option de ligne) du module infrastructure dans le calcul du $colspan de la cellule .linecoledit. Sans le fix, le formulaire d'ajout de ligne (mini-en-tête + ligne d'inputs) affichait un colspan trop court d'une unité (par exemple 4 au lieu de 5 sur propalcard / invoicesuppliercard avec infrastructure ≥ 21.0.1 et INFRASTRUCTURE_MANAGE_OL actif), produisant un décalage visuel d'une colonne entre la ligne d'ajout et le tableau de lignes au-dessus (où la cellule Opt est rendue côté serveur via les sous-hooks infrasprojectEnrichObjectLine*). Condition d'ajustement : isModEnabled('infrastructure') &amp;&amp; getDolGlobalString('INFRASTRUCTURE_MANAGE_OL') &amp;&amp; $object-&gt;statut == 0 — alignée sur celle utilisée par infrastructure pour décider d'émettre la cellule Opt.</change>
 	</Version>
-	<InfraS Downloaded="20260521"/>
+	<Version Number="21.1.2" MonthVersion="2026-06">
+		<change type='chg'>Compatibilité avec Dolibarr 21.x - 24.x : ajustements mineurs pour assurer le bon fonctionnement des templates avec les dernières mises à jour Dolibarr.</change>
+	</Version>
+	<Version Number="21.1.3" MonthVersion="2026-06">
+		<change type='fix'>Compatibilité avec le module Infrastructure</change>
+	</Version>
+	<Version Number="21.1.4" MonthVersion="2026-06">
+		<change type='chg'>Changement de la source de téléchargement du changelog : infras.fr remplacé par le dépôt GitHub (InfraS-SARL/modules-versions)</change>
+	</Version>
+	<InfraS Downloaded="20260619"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

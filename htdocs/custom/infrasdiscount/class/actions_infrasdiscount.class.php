@@ -715,7 +715,7 @@
 			$totalProductPrice	= $totalServicePrice	= 0;
 
 			foreach ($object->lines as $l) {
-				if (infrasdiscount_isSubtotalLine($l)) {
+				if (infrasdiscount_isSubtotalLine($l) || infrasdiscount_isInfrastructureLine($l)) {
 					continue;
 				}
 

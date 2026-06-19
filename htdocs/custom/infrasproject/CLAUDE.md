@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.1.1` (2026-05)
+- Dernière version locale : `21.1.4` (2026-06)
 - Dépendances obligatoires : `modProjet`, `modStock`
 - Emplacement : `htdocs/custom/infrasproject/`
 
@@ -462,12 +462,12 @@ La génération de la référence projet utilise le modèle de numérotation con
 
 ```xml
 <changelog>
-  <Version Number="18.8.7" MonthVersion="2026-03">
+  <Version Number="21.1.4" MonthVersion="2026-06">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
   </Version>
-  <InfraS Downloaded="20260301"/>
+  <InfraS Downloaded="20260619"/>
   <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
   <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
@@ -481,7 +481,7 @@ La génération de la référence projet utilise le modèle de numérotation con
 La fonction `infrasproject_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.0.0",          // Version courante
+    0 => "21.1.4",          // Version courante
     1 => "21.0.0",          // Version min Dolibarr
     2 => 0,                 // Flag erreur (-1 = KO, 0 = OK)
     3 => "24.x.x",          // Version max Dolibarr

@@ -176,7 +176,7 @@
 		if (getDolGlobalString('INFRAS_PHP_EXT_XML', '') == -1) {
 			return -1;
 		}
-		$newVersion	= getURLContent('https://infras.fr/jdownloads/Modules_Dolibarr/'.$appliname.'/changelog.xml', 'GET', '', 1, array(), array('http', 'https'), 0);
+		$newVersion	= getURLContent('https://raw.githubusercontent.com/InfraS-SARL/modules-versions/main/'.$appliname.'/changelog.xml', 'GET', '', 1, array(), array('http', 'https'), 0);
 		if (!isset($newVersion['content'])) {	// not connected
 			return -1;
 		} else {

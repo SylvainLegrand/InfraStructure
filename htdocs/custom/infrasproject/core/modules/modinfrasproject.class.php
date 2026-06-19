@@ -45,12 +45,11 @@
 
 			$this->db				= $db;
 			$this->numero			= 500055;																				// Unique Id for module
-			$this->name				= preg_replace('/^mod/i', '', get_class($this));	// Module label (no space allowed)
+			$this->name				= preg_replace('/^mod/i', '', get_class($this));										// Module label (no space allowed)
 			$this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
 			$this->editor_email		= 'support@infras.fr';
-			$editor_web				= 'https://www.infras.fr/';
-			$this->editor_url		= $editor_web;
-			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
+			$this->editor_url		= 'https://www.infras.fr/';
+			$this->url_last_version	= 'https://raw.githubusercontent.com/InfraS-SARL/modules-versions/main/'.$this->name.'/'.$this->name.'.txt';
 			$this->rights_class		= $this->name;																			// Key text used to identify module (for permissions, menus, etc...)
 			$isDolinfras			= isModEnabled('dolinfras');
 			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameInfraSProject');
@@ -59,7 +58,7 @@
 			$this->module_position	= 100005;
 			$this->description		= $langs->trans('Module500055Desc');													// Module description
 			$this->version			= $this->getLocalVersion();																// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
-			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);										// llx_const table to save module status enabled/disabled
+			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);												// llx_const table to save module status enabled/disabled
 			$this->special			= 0;																					// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
 			$this->picto			= $this->name.'@'.$this->name;															// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
 			$this->module_parts		= array('hooks'		=> array('main', 'login', 'projectOverview', 'projectcard', 'invoicesuppliercard', 'globalcard'),
@@ -101,7 +100,7 @@
 			$this->rights[$r][4]	= 'paramMenu';																			// action for php test if ($user->rights->permkey->level1->level2)
 			$r++;
 			$this->rights[$r][0]	= $this->numero.$r;																		// id de la permission
-			$this->rights[$r][1]	= $langs->trans('InfraSProjetcPermDol');											// libelle de la permission
+			$this->rights[$r][1]	= $langs->trans('InfraSProjetcPermDol');												// libelle de la permission
 			$this->rights[$r][3]	= 0;																					// La permission est-elle une permission par defaut (0/1)
 			$this->rights[$r][4]	= 'paramDolibarr';																		// action for php test if ($user->hasRight('permkey', 'level1', 'level2'))
 			$r++;

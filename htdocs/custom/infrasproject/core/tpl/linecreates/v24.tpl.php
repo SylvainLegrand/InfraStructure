@@ -151,8 +151,8 @@ if ($nolinesbefore) {
 			?>
 			<td class="linecolrefsupplier"><span id="title_fourn_ref"><?php echo $langs->trans('SupplierRef'); ?></span></td>
 			<?php
-		}
-		include __DIR__.'/_columns/refproject_header.tpl.php';
+		} // InfraS change
+		include __DIR__.'/_columns/refproject_header.tpl.php'; // InfraS add
 		?>
 		<td class="linecolvat right"><span id="title_vat"><?php echo $langs->trans('VAT'); ?></span></td>
 		<td class="linecoluht right"><span id="title_up_ht"><?php echo $langs->trans('PriceUHT'); ?></span></td>
@@ -510,7 +510,7 @@ if ($nolinesbefore) {
 	<td class="nobottom linecolrefsupplier"><input id="fourn_ref" name="fourn_ref" class="flat minwidth50 maxwidth100 maxwidth125onsmartphone" value="<?php echo(GETPOSTISSET("fourn_ref") ? GETPOST("fourn_ref", 'alpha', 2) : ''); ?>"></td>
 					<?php
 		}
-		include __DIR__.'/_columns/refproject_input.tpl.php';
+		include __DIR__.'/_columns/refproject_input.tpl.php'; // InfraS add
 		print '<td class="nobottom linecolvat right">';
 		$coldisplay++;
 		$type_tva = 0;
@@ -1086,6 +1086,20 @@ if (!empty($object->thirdparty)) {
 								jQuery("#price_ht").val(data.price_ht);
 							}
 
+							// useful to retrieve percent from customer specific price
+							if (typeof data.discount !== 'undefined' && data.discount !== null && data.discount !== '') {
+								var remisePercentInput = jQuery('#remise_percent');
+								if (remisePercentInput.length > 0) {
+									console.log("Remise spécifique client trouvée : " + data.discount + "%");
+									remisePercentInput
+									.val(data.discount)
+									.trigger('input')
+									.trigger('change');
+								} else {
+									console.warn("Champ #remise_percent introuvable, remise non appliquée");
+								}
+							}
+
 							// Set values for any fields in the form options_SOMETHING
 							for (var key in data.array_options) {
 								if (data.array_options.hasOwnProperty(key)) {
@@ -1145,19 +1159,27 @@ if (!empty($object->thirdparty)) {
 								$('#tva_tx').val(tva_tx);
 							}
 
-							if(jsConf.conf.PRODUIT_AUTOFILL_DESC == 1) {
+							// Sync the measuring unit dropdown with the product's default fk_unit
+							// (issue #34610). Without this, the dropdown keeps the static initial
+							// value (the first c_units row, typically "Kg") regardless of what
+							// the selected product is configured with.
+							if (typeof data.fk_unit != 'undefined' && data.fk_unit != null && $("#units").length) {
+								$("#units").val(data.fk_unit).trigger('change');
+							} else if (typeof data.default_unit != 'undefined' && data.default_unit != null && $("#units").length) {
+								$("#units").val(data.default_unit).trigger('change');
+							}
+
+							if (jsConf.conf.PRODUIT_AUTOFILL_DESC == 1) {
 								if(jsConf.conf.MAIN_MULTILANGS && jsConf.conf.PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE) {
 									var proddesc = data.desc_trans;
-								}
-								else {
+								} else {
 									var proddesc = data.desc;
 								}
 
 								console.log("objectline_create.tpl Load description into text area : "+proddesc);
 
-								if(jsConf.conf.FCKEDITOR_ENABLE_DETAILS) {
-									if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined")
-									{
+								if (jsConf.conf.FCKEDITOR_ENABLE_DETAILS) {
+									if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined") {
 										var editor = CKEDITOR.instances['dp_desc'];
 										if (editor) {
 											editor.setData(proddesc);
@@ -1331,7 +1353,8 @@ if (!empty($object->thirdparty)) {
 			}
 
 			// Deal with supplier ref price (idprodfournprice = int)
-			if (jQuery('#idprodfournprice').val() > 0)
+			var supplierVal = jQuery('#idprodfournprice').val();
+			if (supplierVal && supplierVal !== '-1' && (supplierVal > 0 || supplierVal.indexOf('idprod_') === 0))
 			{
 				console.log("objectline_create.tpl #idprodfournprice is an ID > 0, so we set some properties into page");
 

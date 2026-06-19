@@ -16,7 +16,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.4` (2026-03)
+- Dernière version locale : `18.1.5` (2026-06)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrascusprice/`
 
@@ -249,12 +249,12 @@ Redirection header('Location: ...') → exit
 
 ```xml
 <changelog>
-    <Version Number="18.1.4" MonthVersion="2026-03">
+    <Version Number="18.1.5" MonthVersion="2026-06">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
     </Version>
-    <InfraS Downloaded="20260301"/>
+    <InfraS Downloaded="20260619"/>
     <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
@@ -263,7 +263,7 @@ Redirection header('Location: ...') → exit
 La fonction `infrascusp_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.1.4",           // Version courante du module
+    0 => "18.1.5",           // Version courante du module
     1 => "18.0.0",           // Version min Dolibarr
     2 => "20260301",         // Date de téléchargement InfraS
     3 => "",                 // Erreur (vide si ok)

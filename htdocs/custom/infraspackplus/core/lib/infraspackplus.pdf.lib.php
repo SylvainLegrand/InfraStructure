@@ -1225,7 +1225,6 @@
 							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
 								if (!empty($targetcontact->fax)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcontact->fax)));
-									dol_syslog('ici stringaddress = '.$stringaddress.' mode = '.$mode.' targetDetFax = '.$targetDetFax.' targetLivrDetFax = '.$targetLivrDetFax.' targetcontact->fax = '.$targetcontact->fax, LOG_DEBUG);
 								}
 							}
 							// EMail

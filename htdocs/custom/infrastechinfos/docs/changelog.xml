@@ -97,7 +97,10 @@
 	<Version Number="15.2.2" MonthVersion="2026-03">
 		<change type='chg'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
 	</Version>
-	<InfraS Downloaded="20260301"/>
+	<Version Number="15.2.3" MonthVersion="2026-06">
+		<change type='chg'>Changement de la source de téléchargement du changelog : infras.fr remplacé par le dépôt GitHub (InfraS-SARL/modules-versions)</change>
+	</Version>
+	<InfraS Downloaded="20260619"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

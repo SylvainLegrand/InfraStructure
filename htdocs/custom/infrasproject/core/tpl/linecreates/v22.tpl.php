@@ -148,8 +148,8 @@ if ($nolinesbefore) {
 			?>
 			<td class="linecolrefsupplier"><span id="title_fourn_ref"><?php echo $langs->trans('SupplierRef'); ?></span></td>
 			<?php
-		}
-		include __DIR__.'/_columns/refproject_header.tpl.php';
+		} // InfraS change
+		include __DIR__.'/_columns/refproject_header.tpl.php'; // InfraS add
 		?>
 		<td class="linecolvat right"><span id="title_vat"><?php echo $langs->trans('VAT'); ?></span></td>
 		<td class="linecoluht right"><span id="title_up_ht"><?php echo $langs->trans('PriceUHT'); ?></span></td>
@@ -501,7 +501,7 @@ if ($nolinesbefore) {
 	<td class="nobottom linecolrefsupplier"><input id="fourn_ref" name="fourn_ref" class="flat minwidth50 maxwidth100 maxwidth125onsmartphone" value="<?php echo(GETPOSTISSET("fourn_ref") ? GETPOST("fourn_ref", 'alpha', 2) : ''); ?>"></td>
 					<?php
 		}
-		include __DIR__.'/_columns/refproject_input.tpl.php';
+		include __DIR__.'/_columns/refproject_input.tpl.php'; // InfraS add
 		print '<td class="nobottom linecolvat right">';
 		$coldisplay++;
 		$type_tva = 0;
@@ -999,6 +999,16 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 								$('#tva_tx').val(tva_tx);
 							}
 
+							// Sync the measuring unit dropdown with the product's default fk_unit
+							// (issue #34610). Without this, the dropdown keeps the static initial
+							// value (the first c_units row, typically "Kg") regardless of what
+							// the selected product is configured with.
+							if (typeof data.fk_unit != 'undefined' && data.fk_unit != null && $("#units").length) {
+								$("#units").val(data.fk_unit).trigger('change');
+							} else if (typeof data.default_unit != 'undefined' && data.default_unit != null && $("#units").length) {
+								$("#units").val(data.default_unit).trigger('change');
+							}
+
 								<?php
 								if (getDolGlobalInt('PRODUIT_AUTOFILL_DESC') == 1) {
 									if (getDolGlobalInt('MAIN_MULTILANGS') && getDolGlobalString('PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE')) { ?>
@@ -1186,7 +1196,8 @@ if (!empty($usemargins) && $user->hasRight('margins', 'creer')) {
 
 
 			// Deal with supplier ref price (idprodfournprice = int)
-			if (jQuery('#idprodfournprice').val() > 0)
+			var supplierVal = jQuery('#idprodfournprice').val();
+			if (supplierVal && supplierVal !== '-1' && (supplierVal > 0 || supplierVal.indexOf('idprod_') === 0))
 			{
 				console.log("objectline_create.tpl #idprodfournprice is an ID > 0, so we set some properties into page");
 
