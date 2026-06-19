@@ -470,7 +470,6 @@ print '</div>';
 print '<br>';
 // InfraS add end
 
-
 /*
  * Other options
  */

@@ -667,7 +667,7 @@ class RemiseCheque extends CommonObject
 		}
 	}
 
-
+	// InfraS change begin
 	/**
 	 *	Build document
 	 *
@@ -679,7 +679,7 @@ class RemiseCheque extends CommonObject
 	 *  @param      ?array<string,mixed>	$moreparams     Array to provide more information
 	 *  @return int        					Return integer <0 if KO, >0 if OK
 	 */
-	public function generatePdf($model, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)	// InfraS change begin
+	public function generatePdf($model, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
 	{
 		$outputlangs->loadLangs(array("banks", "products"));
 
