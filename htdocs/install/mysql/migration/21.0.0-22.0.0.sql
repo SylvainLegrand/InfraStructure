@@ -332,10 +332,6 @@ ALTER TABLE llx_webhook_history MODIFY COLUMN url varchar(255);
 
 UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 'mastodon';
 
--- default deposit % if payment term needs it on supplier
-ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
-ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
-
 -- InfraS add begin
 -- Add category purpose and community specific instrument to bank account (used to build SEPA files)
 ALTER TABLE llx_bank_account ADD COLUMN ctgypurp varchar(14) DEFAULT 'CORE' AFTER pti_in_ctti;
@@ -379,5 +375,10 @@ UPDATE llx_c_socialnetworks SET icon = 'fa-mastodon' WHERE icon = '' AND code = 
 -- ---------------
 -- AJOUTS OSDEN
 -- ---------------
+-- default deposit % if payment term needs it on supplier
+ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
+ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
 
 UPDATE llx_const SET name = 'MAIL_MASS_ACTION_SEARCH_MOST_RECENT_FILE_IF_NOT_FOUND' WHERE name = 'ESAYA_SEND_EMAIL_IN_MASS_MOST_RECENT_FILE_IF_NOT_FOUND';
+
+ALTER TABLE llx_adherent MODIFY COLUMN societe VARCHAR(128);
