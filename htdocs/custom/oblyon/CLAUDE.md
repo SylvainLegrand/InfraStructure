@@ -21,7 +21,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `23.0.x`
 - Compatibilité PHP : `7.1` à `8.4`
-- Dernière version locale : `3.1.0` (2025-11)
+- Dernière version locale : `3.2.0` (2026-06)
 - Dépendances obligatoires : aucune
 - Conflits : `modQuickUX`
 - Emplacement : `htdocs/custom/oblyon/`
@@ -71,7 +71,7 @@ htdocs/custom/oblyon/
 ├── includes/
 │   └── parsedown/             # Bibliothèque Parsedown (Markdown → HTML)
 ├── js/
-│   ├── oblyon.js              # JS module
+│   ├── oblyon.js              # JS module (mode tactile des menus : tap-to-toggle)
 │   ├── pushy.js               # Effet push menu latéral
 │   ├── jscolor.js             # Sélecteur de couleurs
 │   └── range-slider.js        # Curseur de plage
@@ -96,6 +96,7 @@ htdocs/custom/oblyon/
     ├── badges.inc.php         # Styles badges
     ├── btn.inc.php            # Styles boutons
     ├── dropdown.inc.php       # Styles dropdown
+    ├── touchmenu.inc.php      # Styles mode tactile des menus (classe .is-touch-open)
     ├── info-box.inc.php       # Styles infobox dashboard
     ├── login.inc.php          # Styles page de connexion
     ├── main_menu_fa_icons.inc.php  # Icônes FA menus
@@ -118,7 +119,7 @@ Dans `core/modules/modOblyon.class.php` :
 - **Module parts** :
 	- `menus` : gestionnaire de menus Oblyon
 	- `hooks` : contexte `main` (entité `0`, toutes les pages)
-	- JS : `/oblyon/js/pushy.js`
+	- JS : `/oblyon/js/pushy.js`, `/oblyon/js/oblyon.js` (mode tactile)
 	- CSS : `/oblyon/css/oblyon.css`, `/theme/oblyon/custom.css.php`, `/oblyon/css/font.css`
 - **Dépendances** : aucune
 - **Conflits** : `modQuickUX`
@@ -221,6 +222,7 @@ Le module utilise un grand nombre de constantes (~120) organisées par catégori
 | `OBLYON_HIDE_LEFTICONS` | Masquer les icônes du menu gauche | `0` |
 | `OBLYON_REDUCE_LEFTMENU` | Réduire le menu gauche | `0` |
 | `OBLYON_EFFECT_REDUCE_LEFTMENU` | Effet du menu réduit (`only`/`hover`) | `only` |
+| `OBLYON_TOUCH_MENU` | Forcer le mode tactile des menus (tap-to-toggle) | `0` |
 
 ### Couleurs — Menus
 
@@ -349,6 +351,7 @@ Si modification SQL / descripteur / thème CSS / menus / constantes :
 
 ## Dernières mises à jour (Recent updates)
 
+- `3.2.0` (2026-06) : mode tactile des menus (tap-to-toggle) — corrige le repli incontrôlé des dropdowns sur écran tactile (dépendance au `:hover`). Auto-détection + option `OBLYON_TOUCH_MENU` ; nouveaux fichiers `themeoblyon/touchmenu.inc.php` et `js/oblyon.js`
 - `3.1.0` (2025-11) : compatibilité Dolibarr v21/v22/v23
 - `3.1.0` (2025-11) : ajout de l'onglet « Icons » pour sélection du pack FontAwesome
 - `3.1.0` (2025-11) : option de changement de famille de police (`OBLYON_FONT_FAMILY`)

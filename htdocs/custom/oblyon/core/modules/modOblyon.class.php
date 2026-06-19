@@ -65,7 +65,7 @@
 			$this->special					= 0;																					// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
 			$this->picto					= 'inovea@'.$this->name;																// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
 			$this->module_parts				= array('menus'	=> 1,
-													'js'	=> array('js'	=> '/'.$this->name.'/js/pushy.js'),
+													'js'	=> array('/'.$this->name.'/js/pushy.js', '/'.$this->name.'/js/oblyon.js'), // InfraS change
 													'css'	=> array('css'	=> ('/'.$this->name.'/css/'.$this->name.'.css'), ('/theme/'.$this->name.'/custom.css.php'), ('/'.$this->name.'/css/font.css')),
 													'tpl'	=> 0,
 													'hooks' => array('data' => array('main'), 'entity' => '0')
