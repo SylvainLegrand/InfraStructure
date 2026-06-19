@@ -52,7 +52,11 @@ class modScrollTo extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "ATM Consulting";
+		$isDolinfras	= isModEnabled('dolinfras');
+		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'ATM Consulting';
+		$this->family = $family;
+		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
+		$this->module_position	= 100023;
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i', '', get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
