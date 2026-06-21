@@ -1,5 +1,17 @@
 # CHANGELOG SCANINVOICES FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 1.4.84 - 20260616
+
+ * fix for some race conditions on import thanks to Hans B.
+
+## 1.4.82 - 20260605
+
+* fix manual import
+* update translations
+* update doc
+* handle memcached setup
+* fix bad / missing dol include uses
+
 ## 1.4.80 - 20260506
 
 * fix pdf upload storm / delay and handle server throttle

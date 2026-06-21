@@ -53,7 +53,6 @@ if ($fournID !== null) {
 		if ($fournName == "") {
 			$fournName = $societe->nom;
 		}
-		$inputReadOnly = " readonly";
 
 		$resultSettings = $objectSettings->fetchAll('', '', 0, 0, array('customsql' => "t.fk_soc=$fournID"));
 		if ($resultSettings) {
@@ -89,6 +88,15 @@ if ($fournID !== null) {
 			} else {
 				dol_syslog("No data for that supplier");
 			}
+		}
+
+		// Ne verrouiller les champs que si on a réellement des zones d'extraction
+		// enregistrées pour ce fournisseur (modèle déjà entraîné). Sinon, laisser
+		// les champs éditables pour permettre le calibrage manuel et l'exécution de l'OCR.
+		if ($totalttcRectSaved != "") {
+			$inputReadOnly = " readonly";
+		} else {
+			dol_syslog("ScanInvoices step2: supplier $fournID known but no extraction zones, fields stay editable for manual OCR calibration");
 		}
 	}
 }

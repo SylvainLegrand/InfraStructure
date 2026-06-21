@@ -412,14 +412,17 @@ function runOCR()
 			console.log("Le champ " + field.name + " est en lecture seule, on zappe");
 			//nothing
 		} else {
-			// #20 multicut only if zone id diff. than previous call
-			if (field.haschanged) {
-				console.log("Le champ " + field.name + " a été modifié ... lancement OCR");
+			// #20 multicut only if zone changed since previous call OR field still empty.
+			// An empty field with a known zone (saved supplier model) must be OCR'd
+			// even when the user did not move the label.
+			let fieldEmpty = (($('#' + field.name).val() || '').trim() == '');
+			if (field.haschanged || fieldEmpty) {
+				console.log("Le champ " + field.name + " a été modifié ou est vide ... lancement OCR");
 				$('#' + field.name + 'Rect').val(field.x + ':' + field.y + ':' + field.w + ':' + field.h);
 				//remise à zéro du flag -> a faire au retour de l'ocr
 				//field.haschanged = false;
 			} else {
-				console.log("Le champ " + field.name + " n'a pas été modifié on zappe l'OCR");
+				console.log("Le champ " + field.name + " déjà rempli et inchangé, on zappe l'OCR");
 				$('#' + field.name + 'Rect').val('');
 			}
 		}
@@ -1004,7 +1007,13 @@ CanvasState.prototype.removeShape = function (shape) {
 
 
 CanvasState.prototype.clear = function () {
-	this.ctx.clearRect(-100, -100, this.width + 200, this.height + 200);
+	// Clear in the untransformed coordinate space so the whole visible canvas is
+	// wiped even after translate()/scale() (pan/zoom). Clearing in the current
+	// transformed space left stale pixels (color trails) outside the cleared box.
+	this.ctx.save();
+	this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	this.ctx.restore();
 }
 
 // While draw is called as often as the INTERVAL variable demands,
@@ -1024,10 +1033,12 @@ CanvasState.prototype.draw = function () {
 		// ctx.fillRect(0, 0, lecanvas.width, lecanvas.height);
 
 		if (!this.validBack) {
-			// kill my cpu :-)
-			// ctxBack.clearRect(0, 0, lecanvas.width, lecanvas.height);
-			//-500 -> end glitches redraw (could be better but it just works)
-			ctxBack.clearRect(-500, -500, lecanvas.width + 1000, lecanvas.height + 1000);
+			// Clear the whole back canvas in untransformed space (avoids image
+			// ghosting at pan/zoom), then redraw the image in the current transform.
+			ctxBack.save();
+			ctxBack.setTransform(1, 0, 0, 1, 0, 0);
+			ctxBack.clearRect(0, 0, this.canvasBack.width, this.canvasBack.height);
+			ctxBack.restore();
 
 			// ctxBack.fillStyle = "#ffffff";
 			// ctxBack.fillRect(0, 0, lecanvas.width, lecanvas.height);

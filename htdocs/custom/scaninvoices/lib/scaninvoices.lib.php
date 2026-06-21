@@ -351,6 +351,11 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 		$object->date_ocr_send = dol_now();
 	}
 
+	if (empty($completefilename) || !is_readable($completefilename)) {
+		dol_syslog('ScanInvoices ERROR: file not found or not readable: ' . $completefilename, LOG_ERR);
+		$retour['error'] = 'File not found or not readable: ' . $completefilename;
+		return $retour;
+	}
 	$finfo = finfo_open(FILEINFO_MIME_TYPE);
 	$mimeType = finfo_file($finfo, $completefilename);
 	$path_parts = pathinfo($completefilename);

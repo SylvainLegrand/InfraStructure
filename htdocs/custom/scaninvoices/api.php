@@ -182,7 +182,10 @@ router('POST', 'runocr', function ($params) {
 	$keys = ['fournisseurRect','fournisseurTvaRect','ladateRect','factureRect','totalhtRect','totalttcRect'];
 	$jsonRect = [];
 	foreach ($keys as $key) {
-		$val = GETPOST($key, 'array');
+		// The frontend (canvascode.js) sends each zone as a "x:y:w:h" string,
+		// not an array, so read it as a string. GETPOST(..., 'array') silently
+		// drops a scalar and leaves jsonRect empty (false "no new zone" case).
+		$val = GETPOST($key, 'alphanohtml');
 		if (!empty($val)) {
 			$jsonRect[$key] = $val;
 		}
@@ -193,6 +196,7 @@ router('POST', 'runocr', function ($params) {
 		$mesg = '<div class="message">'.$langs->trans('runocrInfoThereIsNoNewZone') . '</div>';
 		$output['error'] = $mesg;
 		json([$output]);
+		return;
 	}
 
 	$url = $scaninvoices_endpoint . '/api/ocrcuts';
@@ -299,13 +303,14 @@ router('POST', 'importInvoice', function ($params) {
 	//Confirm/Correct OCR server of "good" values
 	$url = $scaninvoices_endpoint . '/api/ocrcuts';
 	// dol_syslog('ScanInvoices internal API::RECT Try to get ocr data from rect with ' . $url . ' ...');
+	// Zones are sent by the frontend as "x:y:w:h" strings, not arrays.
 	$jsonRect = [
-		'fournisseurRect' => GETPOST('fournisseurRect', 'array'),
-		'fournisseurTvaRect' => GETPOST('fournisseurTvaRect', 'array'),
-		'ladateRect' => GETPOST('ladateRect', 'array'),
-		'factureRect' => GETPOST('factureRect', 'array'),
-		'totalhtRect' => GETPOST('totalhtRect', 'array'),
-		'totalttcRect' => GETPOST('totalttcRect', 'array'),
+		'fournisseurRect' => GETPOST('fournisseurRect', 'alphanohtml'),
+		'fournisseurTvaRect' => GETPOST('fournisseurTvaRect', 'alphanohtml'),
+		'ladateRect' => GETPOST('ladateRect', 'alphanohtml'),
+		'factureRect' => GETPOST('factureRect', 'alphanohtml'),
+		'totalhtRect' => GETPOST('totalhtRect', 'alphanohtml'),
+		'totalttcRect' => GETPOST('totalttcRect', 'alphanohtml'),
 	];
 	$jsonConfirmValues = [
 		'fournisseur' => GETPOST('fournisseur', 'alphanohtml'),
