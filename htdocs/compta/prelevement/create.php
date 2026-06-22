@@ -83,10 +83,16 @@ $contextpage = GETPOST('contextpage', 'aZ') ?: ($sourcetype == 'salary' ? 'direc
 $search_all = trim((GETPOST('search_all', 'alphanohtml') != '') ? GETPOST('search_all', 'alphanohtml') : GETPOST('sall', 'alphanohtml'));
 $search_ref = GETPOST('search_ref', 'alpha');
 $search_ref_supplier = GETPOST('search_ref_supplier', 'alpha');
-$search_datef_day = GETPOSTINT('search_datef_day');
-$search_datef_month = GETPOSTINT('search_datef_month');
-$search_datef_year = GETPOSTINT('search_datef_year');
-$search_datef = dol_mktime(0, 0, 0, $search_datef_month, $search_datef_day, $search_datef_year);
+// InfraS change begin
+$search_datef_startday   = GETPOSTINT('search_datef_startday');
+$search_datef_startmonth = GETPOSTINT('search_datef_startmonth');
+$search_datef_startyear  = GETPOSTINT('search_datef_startyear');
+$search_datef_endday     = GETPOSTINT('search_datef_endday');
+$search_datef_endmonth   = GETPOSTINT('search_datef_endmonth');
+$search_datef_endyear    = GETPOSTINT('search_datef_endyear');
+$search_datef_start = dol_mktime(0, 0, 0, $search_datef_startmonth, $search_datef_startday, $search_datef_startyear);
+$search_datef_end   = dol_mktime(23, 59, 59, $search_datef_endmonth, $search_datef_endday, $search_datef_endyear);
+// InfraS change end
 $search_datelimit_startday = GETPOSTINT('search_datelimit_startday');
 $search_datelimit_startmonth = GETPOSTINT('search_datelimit_startmonth');
 $search_datelimit_startyear = GETPOSTINT('search_datelimit_startyear');
@@ -129,11 +135,13 @@ $arrayfields = array(
 	'f.ref' => array('label' => ($type == 'bank-transfer' ? 'SupplierInvoice' : 'Invoice'), 'checked' => '1'),
 	'f.datef' => array('label' => 'InvoiceDate',   'checked' => '1'), // Infras add
 );
+// InfraS add begin
+$arrayfields['f.date_lim_reglement'] = array('label' => 'DateDue',      'checked' => '1');
+// InfraS add end
 if ($type == 'bank-transfer') {
 	$arrayfields['f.ref_supplier'] = array('label' => 'RefSupplier', 'checked' => '1');
 }
 // InfraS add begin
-$arrayfields['f.date_lim_reglement'] = array('label' => 'DateDue',      'checked' => '1');
 $arrayfields['s.nom']                = array('label' => 'ThirdParty',   'checked' => '1');
 $arrayfields['f.fk_account']         = array('label' => 'BankAccount',  'checked' => '1');
 $arrayfields['pfd.fk_soc_rib']       = array('label' => 'SupplierIBAN', 'checked' => '1');
@@ -205,10 +213,16 @@ if (empty($reshook)) {
 			$search_all = "";
 			$search_ref = "";
 			$search_ref_supplier = "";
-			$search_datef_day = '';
-			$search_datef_month = '';
-			$search_datef_year = '';
-			$search_datef = '';
+			// InfraS change begin
+			$search_datef_startday   = '';
+			$search_datef_startmonth = '';
+			$search_datef_startyear  = '';
+			$search_datef_endday     = '';
+			$search_datef_endmonth   = '';
+			$search_datef_endyear    = '';
+			$search_datef_start = '';
+			$search_datef_end   = '';
+			// InfraS change end
 			$search_company = "";
 			$search_account = "";
 			// InfraS add begin
@@ -616,9 +630,14 @@ if ($sourcetype != 'salary') {
 		if ($search_account) {
 			$searchsql .= natural_search(array('ba.ref', 'ba.label', 'ba.bank'), $search_account);
 		}
-		if ($search_datef) {
-			$searchsql .= " AND f.datef <= '".$db->idate($search_datef)."'";
+		// InfraS change begin
+		if ($search_datef_start) {
+			$searchsql .= " AND f.datef >= '".$db->idate($search_datef_start)."'";
 		}
+		if ($search_datef_end) {
+			$searchsql .= " AND f.datef <= '".$db->idate($search_datef_end)."'";
+		}
+		// InfraS change end
 		if ($option == 'late') {
 			$searchsql .= " AND f.datef < '".$db->idate(dol_now() - $conf->facture->fournisseur->warning_delay)."'";
 		}
@@ -760,15 +779,26 @@ if ($resql) {
 			$param .= '&search_dateep_year='.urlencode((string) $search_dateep_year);
 		}
 		// InfraS add end
-		if ($search_datef_day) {
-			$param .= '&search_datef_day='.urlencode((string)$search_datef_day);
+		// InfraS change begin
+		if ($search_datef_startday) {
+			$param .= '&search_datef_startday='.urlencode((string)$search_datef_startday);
 		}
-		if ($search_datef_month) {
-			$param .= '&search_datef_month='.urlencode((string)$search_datef_month);
+		if ($search_datef_startmonth) {
+			$param .= '&search_datef_startmonth='.urlencode((string)$search_datef_startmonth);
 		}
-		if ($search_datef_year) {
-			$param .= '&search_datef_year='.urlencode((string)$search_datef_year);
+		if ($search_datef_startyear) {
+			$param .= '&search_datef_startyear='.urlencode((string)$search_datef_startyear);
 		}
+		if ($search_datef_endday) {
+			$param .= '&search_datef_endday='.urlencode((string)$search_datef_endday);
+		}
+		if ($search_datef_endmonth) {
+			$param .= '&search_datef_endmonth='.urlencode((string)$search_datef_endmonth);
+		}
+		if ($search_datef_endyear) {
+			$param .= '&search_datef_endyear='.urlencode((string)$search_datef_endyear);
+		}
+		// InfraS change end
 		if ($search_datelimit_startday) {
 			$param .= '&search_datelimit_startday='.urlencode((string)$search_datelimit_startday);
 		}
@@ -876,20 +906,18 @@ if ($resql) {
 			print '</td>';
 		}
 		// Datef
+		// InfraS change begin
 		if (!empty($arrayfields['f.datef']['checked'])) {
 			print '<td class="liste_titre center">';
-			print '<div class="nowrap">';
-			print $form->selectDate($search_datef ? $search_datef : -1, 'search_datef', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans("Before"));
-			print '<br><input type="checkbox" name="search_option" value="late"'.($option == 'late' ? ' checked' : '').'> '.$langs->trans("Alert");
+			print '<div class="nowrapfordate">';
+			print $form->selectDate($search_datef_start ? $search_datef_start : -1, 'search_datef_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
+			print '</div>';
+			print '<div class="nowrapfordate">';
+			print $form->selectDate($search_datef_end ? $search_datef_end : -1, 'search_datef_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
 			print '</div>';
 			print '</td>';
 		}
-		// Ref supplier
-		if ($type == 'bank-transfer' && !empty($arrayfields['f.ref_supplier']['checked'])) {
-			print '<td class="liste_titre left">';
-			print '<input class="flat maxwidth50" type="text" name="search_ref_supplier" value="'.dol_escape_htmltag($search_ref_supplier).'">';
-			print '</td>';
-		}
+		// InfraS change end
 		// Date due
 		if (!empty($arrayfields['f.date_lim_reglement']['checked'])) {
 			print '<td class="liste_titre center">';
@@ -899,6 +927,14 @@ if ($resql) {
 			print '</div>';
 			print '</td>';
 		}
+		// Ref supplier
+		// InfraS change begin: moved after "Date due" column
+		if ($type == 'bank-transfer' && !empty($arrayfields['f.ref_supplier']['checked'])) {
+			print '<td class="liste_titre left">';
+			print '<input class="flat maxwidth50" type="text" name="search_ref_supplier" value="'.dol_escape_htmltag($search_ref_supplier).'">';
+			print '</td>';
+		}
+		// InfraS change end
 		// InfraS add begin
 		// Salary label (salary)
 		if (!empty($arrayfields['s.label']['checked'])) {
@@ -967,12 +1003,14 @@ if ($resql) {
 		if (!empty($arrayfields['f.datef']['checked'])) {
 			print_liste_field_titre($arrayfields['f.datef']['label'], $_SERVER['PHP_SELF'], 'f.datef', '', $param, '', $sortfield, $sortorder, 'center ');
 		}
-		if ($type == 'bank-transfer' && !empty($arrayfields['f.ref_supplier']['checked'])) {
-			print_liste_field_titre($arrayfields['f.ref_supplier']['label'], $_SERVER['PHP_SELF'], 'f.ref_supplier,f.rowid', '', $param, '', $sortfield, $sortorder);
-		}
+		// InfraS change begin: "Date due" header moved before "Ref supplier" header
 		if (!empty($arrayfields['f.date_lim_reglement']['checked'])) {
 			print_liste_field_titre($arrayfields['f.date_lim_reglement']['label'], $_SERVER['PHP_SELF'], 'f.date_lim_reglement', '', $param, '', $sortfield, $sortorder, 'center ');
 		}
+		if ($type == 'bank-transfer' && !empty($arrayfields['f.ref_supplier']['checked'])) {
+			print_liste_field_titre($arrayfields['f.ref_supplier']['label'], $_SERVER['PHP_SELF'], 'f.ref_supplier,f.rowid', '', $param, '', $sortfield, $sortorder);
+		}
+		// InfraS change end
 		// InfraS add begin
 		if (!empty($arrayfields['s.label']['checked'])) {
 			print_liste_field_titre($arrayfields['s.label']['label'], $_SERVER['PHP_SELF'], 's.label', '', $param, '', $sortfield, $sortorder);
@@ -1156,15 +1194,6 @@ if ($resql) {
 						$totalarray['nbfield']++;
 					}
 				}
-				// Ref supplier
-				if ($type == 'bank-transfer' && $sourcetype != 'salary' && !empty($arrayfields['f.ref_supplier']['checked'])) { // InfraS change
-					print '<td class="tdoverflowmax100" title="'.dol_escape_htmltag($invoicestatic->ref_supplier).'">';
-					print dol_escape_htmltag($invoicestatic->ref_supplier);
-					print "</td>\n";
-					if (!$i) {
-						$totalarray['nbfield']++;
-					}
-				}
 				// Date limit
 				if ($sourcetype != 'salary' && !empty($arrayfields['f.date_lim_reglement']['checked'])) { // InfraS change
 					print '<td class="center nowraponall">'.dol_print_date($datelimit, 'day');
@@ -1172,6 +1201,15 @@ if ($resql) {
 						print img_warning($langs->trans('Alert').' - '.$langs->trans('Late'));
 					}
 					print '</td>';
+					if (!$i) {
+						$totalarray['nbfield']++;
+					}
+				}
+				// Ref supplier
+				if ($type == 'bank-transfer' && $sourcetype != 'salary' && !empty($arrayfields['f.ref_supplier']['checked'])) { // InfraS change
+					print '<td class="tdoverflowmax100" title="'.dol_escape_htmltag($invoicestatic->ref_supplier).'">';
+					print dol_escape_htmltag($invoicestatic->ref_supplier);
+					print "</td>\n";
 					if (!$i) {
 						$totalarray['nbfield']++;
 					}
