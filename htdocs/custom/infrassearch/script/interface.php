@@ -118,6 +118,7 @@
 		global $db, $conf, $langs;
 
 		$beforeV19			= version_compare(DOL_VERSION, '19.0.0') < 0;
+		$beforeV20			= version_compare(DOL_VERSION, '20.0.0') < 0;
 		$InfraSPlusV1561	= isModEnabled('infraspackplus') && version_compare(getDolGlobalString('INFRASPLUS_MAIN_VERSION', ''), '15.6.1') >= 0;
 		$onlyInEntity		= getDolGlobalInt('INFRASSEARCH_ONLY_IN_ENTITY', 0);
 		$show_find_field	= getDolGlobalString('INFRASSEARCH_SHOW_FIND_FIELD', '');
@@ -242,7 +243,7 @@
 				$sql_join		= 'LEFT JOIN '.$db->prefix().'expedition_extrafields ON ('.$db->prefix().'expedition.rowid = '.$db->prefix().'expedition_extrafields.fk_object)';
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'expeditiondet ON ('.$db->prefix().'expedition.rowid = '.$db->prefix().'expeditiondet.fk_expedition)';
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'expeditiondet_extrafields ON ('.$db->prefix().'expeditiondet.rowid = '.$db->prefix().'expeditiondet_extrafields.fk_object)';
-				$sql_join		.= ' LEFT JOIN '.$db->prefix().'commandedet ON ('.$db->prefix().'expeditiondet.fk_origin_line = '.$db->prefix().'commandedet.rowid)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'commandedet ON ('.$db->prefix().'expeditiondet.'.($beforeV20 ? 'fk_origin_line' : 'fk_elementdet').' = '.$db->prefix().'commandedet.rowid)';
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'product ON ('.$db->prefix().'commandedet.fk_product = '.$db->prefix().'product.rowid)';
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'societe ON ('.$db->prefix().'expedition.fk_soc = '.$db->prefix().'societe.rowid)';
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'c_type_contact ON ('.$db->prefix().'c_type_contact.element = "expedition")';
