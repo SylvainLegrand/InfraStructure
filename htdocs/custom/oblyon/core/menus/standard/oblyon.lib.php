@@ -686,7 +686,7 @@ function print_left_oblyon_menu($db, $menu_array_before, $menu_array_after, &$ta
 
 	$newmenu = $menu;
 
-	$mainmenu = ($forcemainmenu ? $forcemainmenu : $_SESSION["mainmenu"]);
+	$mainmenu = ($forcemainmenu ? $forcemainmenu : (!empty($_SESSION["mainmenu"]) ? $_SESSION["mainmenu"] : GETPOST('mainmenu', 'aZ09')));
 	$leftmenu = ($forceleftmenu ? '' : (empty($_SESSION["leftmenu"]) ? 'none' : $_SESSION["leftmenu"]));
 
 	$menu_invert = getDolGlobalInt('MAIN_MENU_INVERT');
