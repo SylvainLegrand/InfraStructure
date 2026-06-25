@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.2.3` (2026-06)
+- Dernière version locale : `21.2.4` (2026-06)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -383,12 +383,12 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="21.2.3" MonthVersion="2026-06">
+  <Version Number="21.2.4" MonthVersion="2026-06">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
   </Version>
-  <InfraS Downloaded="20260619"/>
+  <InfraS Downloaded="20260625"/>
   <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
   <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
@@ -402,7 +402,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.2.3",          // Version courante
+    0 => "21.2.4",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
@@ -428,6 +428,15 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
   4. lit le fichier, détermine le MIME via `getimagesize()` (repli `dol_mimetype()`), et remplace le `src` par `data:<mime>;base64,<contenu>`.
   TCPDF traite le data-URI **en amont** de toute logique de chemin/protocole (`tcpdf.php`, branche `^data:image/...;base64,`) → l'image s'affiche **quel que soit le niveau de sécurité** (aucune requête HTTP, aucun `file://`, aucune réécriture de chemin). Dégradation propre : balise laissée inchangée si le fichier est absent/illisible.
 - **Différence avec les photos produit natives** : le core insère les photos produit via `$pdf->Image($realpath, x, y, …)` (méthode directe, chemin disque + position fixe), qui contourne nativement ces problèmes. Cette voie est **inutilisable ici** car l'image est noyée dans du HTML libre rendu par `writeHTMLCell()`, à une position dépendant du flux du texte. Le data-URI est l'adaptation du même principe (« donner le fichier disque à TCPDF, pas une URL ») au contexte HTML.
+
+### Affichage conditionnel des extrafields sur PDF (Conditional extrafield rendering, fix v21.2.4)
+
+`pdf_InfraSPlus_ExtraFieldsLines()` et `pdf_InfraSPlus_ExtraFieldsProd()` (`core/lib/infraspackplus.pdf.lib.php`) respectent l'attribut `printable` des extrafields : `0` = jamais ; `1`/`3` = toujours ; `4` (lignes) / `2` (produits) = uniquement si non vide.
+
+- **Symptôme** : un extrafield de **type `text`** réglé sur « si non vide » s'affichait sur **toutes** les lignes du document, y compris les lignes où la valeur était vide (label imprimé avec valeur en gras vide).
+- **Cause** : le test de non-vacuité portait sur `$value`, la **sortie HTML rendue** par `showOutputField()`. Pour un extrafield de type `text`, cette sortie est **toujours** enveloppée dans `<div class="shortmessagecut">…</div>` — donc jamais vide au sens de `empty()`. La condition `!empty($value) && $printable == 4` se comportait comme `printable == 1` (toujours afficher).
+- **Correctif** : le test porte désormais sur la **valeur brute stockée** `$options_key` (`$line->array_options['options_'.$key]`) au lieu de la sortie formatée : `!empty($options_key) && $printable == 4` (resp. `== 2` pour les produits).
+- **Règle à retenir** : pour décider d'afficher ou non un extrafield, tester la **donnée source** (`array_options['options_*']`), jamais le HTML renvoyé par `showOutputField()` (qui peut être non vide alors que la valeur l'est, selon le type d'extrafield).
 
 ### Cycle de vie du module (Module lifecycle)
 

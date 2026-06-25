@@ -2739,7 +2739,7 @@
 			if (preg_match('#<img.*src=.*\/>#', $value)) {
 				$value	= preg_replace('#src=\"\/viewimage.*modulepart=#', 'src="'.DOL_DATA_ROOT.'/', preg_replace('#&amp;entity=[0-9]*&amp;file=#', '/', $value));
 			}
-			if (in_array($printable, array(1, 3)) || !empty($value) && $printable == 4) {	// check if something is writting for this extrafield according to the extrafield management
+			if (in_array($printable, array(1, 3)) || (!empty($options_key) && $printable == 4)) {	// check if something is writting for this extrafield according to the extrafield management
 				$value		= '<span style = "color: rgb('.$exfltxtcolor[0].', '.$exfltxtcolor[1].', '.$exfltxtcolor[2].')">'.$value.'</span>';
 				$extraDet	.= (empty($extraDet) ? '' : '<br/>').$outputlangs->trans($label).' : <b>'.$value.'</b>';
 			}
@@ -2777,7 +2777,7 @@
 			if (preg_match('#<img.*src=.*\/>#', $value)) {
 				$value	= preg_replace('#src=\"\/viewimage.*modulepart=#', 'src="'.DOL_DATA_ROOT.'/', preg_replace('#&amp;entity=[0-9]*&amp;file=#', '/', $value));
 			}
-			if ($printable == 1 || !empty($value) && $printable == 2) {	// check if something is writting for this extrafield according to the extrafield management
+			if ($printable == 1 || (!empty($options_key) && $printable == 2)) {	// check if something is writting for this extrafield according to the extrafield management
 				$value		= '<span style = "color: rgb('.$exfltxtcolor[0].', '.$exfltxtcolor[1].', '.$exfltxtcolor[2].')">'.$value.'</span>';
 				$extraProd	.= (empty($extraProd) ? '' : '<br/>').$outputlangs->trans($label).' : <b>'.$value.'</b>';
 			}
