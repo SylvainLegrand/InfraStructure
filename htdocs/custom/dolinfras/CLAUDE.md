@@ -18,7 +18,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.1` (2026-06)
+- Dernière version locale : `18.1.2` (2026-06)
 - Emplacement : `htdocs/custom/dolinfras/`
 
 Convention de lecture du descripteur :
@@ -286,8 +286,8 @@ Toutes les constantes utilisent `INSERT IGNORE` — idempotentes, sans écraseme
     <Version Number="18.0.0" MonthVersion="2026-03">
         <change type='add'>Initiale release.</change>
     </Version>
-    <Version Number="18.1.1" MonthVersion="2026-06">
-        <change type='add'>Changement de la source de téléchargement du changelog : infras.fr remplacé par le dépôt GitHub (InfraS-SARL/modules-versions)</change>
+    <Version Number="18.1.2" MonthVersion="2026-06">
+        <change type='chg'>Mise à jour des valeurs par défaut de MAIN_UPLOAD_DOC et MAIN_SECURITY_MAXFILESIZE_DOWNLOADED à 65536Ko (64Mo)</change>
     </Version>
     <InfraS Downloaded="20260619"/>
     <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
@@ -300,7 +300,7 @@ Types de changement supportés : `add` (ajout), `chg` (modification), `fix` (cor
 La fonction `dolinfras_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.1.1",           // Version courante du module
+    0 => "18.1.2",           // Version courante du module
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (0 = OK, -1 = KO)
     3 => SimpleXMLElement[], // Tableau des versions
