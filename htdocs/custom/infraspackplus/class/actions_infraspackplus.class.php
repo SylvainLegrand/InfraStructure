@@ -1718,7 +1718,7 @@ EOJS;
 		**/
 		public function printObjectLine(array $parameters, CommonObject &$object, string &$action)
 		{
-			global $db, $conf, $langs, $user, $object, $hookmanager;
+			global $db, $conf, $langs, $user, $object, $hookmanager, $extrafields;
 			global $form;
 			global $object_rights, $disableedit, $disablemove, $disableremove; // TODO We should not use global var for this !
 
@@ -1731,7 +1731,16 @@ EOJS;
 			$seller					= !empty($parameters['seller']) ? $parameters['seller'] : '';
 			$buyer					= !empty($parameters['buyer']) ? $parameters['buyer'] : '';
 			$selected				= !empty($parameters['selected']) ? $parameters['selected'] : '';
-			$extrafields			= !empty($parameters['extrafieldsline']) ? $parameters['extrafieldsline'] : '';
+			// Le hook core printObjectLine ne transmet pas les extrafields dans $parameters : on reprend le global
+			// $extrafields peuplé par CommonObject::printObjectLines() (comme le template natif objectline_view.tpl.php),
+			// avec repli sur un fetch sur la table de lignes si le global n'est pas disponible.
+			if (!empty($parameters['extrafieldsline']) && is_object($parameters['extrafieldsline'])) {
+				$extrafields	= $parameters['extrafieldsline'];
+			} elseif (!is_object($extrafields)) {
+				require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+				$extrafields	= new ExtraFields($db);
+				$extrafields->fetch_name_optionals_label($line->table_element);
+			}
 			$object_rights			= $object->getRights();
 			$element				= $object->element;
 			$text					= '';

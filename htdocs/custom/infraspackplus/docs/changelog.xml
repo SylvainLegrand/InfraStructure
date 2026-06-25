@@ -1878,7 +1878,8 @@
 		<change type='chg'>Changement de la source de téléchargement du changelog : infras.fr remplacé par le dépôt GitHub (InfraS-SARL/modules-versions)</change>
 	</Version>
 	<Version Number="21.2.4" MonthVersion="2026-06">
-		<change type='fix'>Correction d'une erreur d'affichage pour les attributs supplémentaires de type HTML vide</change>
+		<change type='fix'>Correction d'une erreur d'affichage PDF pour les attributs supplémentaires de ligne de type HTML vide</change>
+		<change type='fix'>Correction d'une erreur d'affichage pour les attributs supplémentaires de ligne en mode visu</change>
 	</Version>
 	<InfraS Downloaded="20260625"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
