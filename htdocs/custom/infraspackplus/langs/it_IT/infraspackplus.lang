@@ -633,6 +633,8 @@ InfraSPlusTxtTvaVPI                          = Esenzione IVA, articolo 262 ter I
 InfraSPlusTxtTvaVSE                          = IVA non applicabile — art. 259-1° del codice fiscale francese (CGI)
 InfraSPlusTxtTvaVSI                          = Autoliquidazione — art. 196 direttiva 2006/112/CE
 InfraSPlusTxtTvaBTP                          = Autoliquidazione
+InfraSPlusTxtTvaDOM                          = Esenzione IVA, articolo 294, 2 del codice fiscale francese (CGI)
+InfraSPlusTxtTvaDOMS                         = Inversione contabile — IVA dovuta dal committente (art. 259-1 CGI)
 InfraSPlusParamConfirmSetTVAauto             = Confermate l'attivazione della gestione automatica delle menzioni IVA?
 InfraSPlusParamGestionMentions               = <b>Gestire gli avalli aggiuntivi nelle edizioni dei pacchetti</b>
 InfraSPlusParamNewMention                    = Aggiungere/modificare una menzione complementare alle edizioni di InfraS Pack
@@ -660,6 +662,8 @@ InfraSPlusParamFreeTextFactorAuto            = Gestione automatizzata delle menz
 InfraSPlusParamFactorPrefix                  = Prefisso dei codici dei tipi di menzioni relative alle banche (dizionario dei tipi di menzioni supplementari). Questi codici devono essere composti dal prefisso qui definito e dal codice bancario associato.
 InfraSPlusParamFreeTextTVAauto               = Gestione automatizzata delle informazioni obbligatorie relative all'IVA (esenzione IVA di base, reverse charge, esportazione) 
 InfraSPlusParamFreeTextTVAautoHelp           = Nel dizionario dei tipi di informazioni supplementari, i codici riguardanti l'IVA devono avere la maschera 'VAT_XX' o 'XX' è lasciato alla vostra discrezione 
+InfraSPlusParamShowDomMentions               = Gestire le diciture IVA per i dipartimenti d'oltremare (DOM)
+InfraSPlusParamShowDomMentionsHelp           = Attiva il rilevamento delle vendite verso i DOM e rende disponibili le diciture TVA_DOM / TVA_DOMS nella corrispondenza sopra
 InfraSPlusParamFreeTextTVA_1                 = Menzione complementare utilizzata per l'"esenzione IVA di base" (microimpresa)
 InfraSPlusParamFreeTextTVA_2                 = Dichiarazione supplementare utilizzata per la vendita di servizi intracomunitari (reverse charge)
 InfraSPlusParamFreeTextTVA_3                 = Menzione aggiuntiva usata per la vendita di servizi di esportazione
@@ -684,6 +688,7 @@ InfraSPlusParamBkpPerDocument  = Registrazione<br>per documento
 InfraSPlusParamBkpPerType      = Registrazione<br>per tipologia<br>(preventivo, ordine, ...)
 InfraSPlusParamBkpPerCustomer  = Registrazione<br>per cliente
 InfraSPlusParamBkpNone         = Nessuna registrazione
+InfraSPlusParamPinVisible      = Sempre<br>visibile
 
 ### About page ###
 

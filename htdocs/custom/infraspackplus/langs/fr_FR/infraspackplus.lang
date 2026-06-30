@@ -633,6 +633,8 @@ InfraSPlusTxtTvaVPI                          = Exonération de TVA, article 262 
 InfraSPlusTxtTvaVSE                          = TVA non applicable — art. 259-1° du CGI
 InfraSPlusTxtTvaVSI                          = Autoliquidation — art. 196 directive 2006/112/CE
 InfraSPlusTxtTvaBTP                          = Autoliquidation
+InfraSPlusTxtTvaDOM                          = Exonération de TVA, article 294, 2 du CGI
+InfraSPlusTxtTvaDOMS                         = Autoliquidation — TVA due par le preneur (art. 259-1 du CGI)
 InfraSPlusParamConfirmSetTVAauto             = Confirmez-vous l'activation de la gestion automatique des mentions relatives à la TVA ?
 InfraSPlusParamGestionMentions               = <b>Gestion des mentions complémentaires supplémentaires dans les éditions du pack</b>
 InfraSPlusParamNewMention                    = Ajouter / Modifier une mention complémentaire aux éditions du Pack InfraS
@@ -660,6 +662,8 @@ InfraSPlusParamFreeTextFactorAuto            = Gestion automatisée des mentions
 InfraSPlusParamFactorPrefix                  = Préfixe des codes des types de mentions liées aux banques (dictionnaire des types de mentions complémentaires). Ces codes doivent être composés du préfixe défini ici et du code de la banque associé
 InfraSPlusParamFreeTextTVAauto               = Gestion automatisée des mentions obligatoires relatives à la TVA (franchise en base de TVA, autoliquidation, export) 
 InfraSPlusParamFreeTextTVAautoHelp           = Dans le dictionnaire des types de mentions complémentaires les codes concernant la TVA doivent avoir comme masque 'TVA_XX' ou 'XX' est laissé à votre discrétion 
+InfraSPlusParamShowDomMentions               = Gérer les mentions de TVA pour les départements d'outre-mer (DOM)
+InfraSPlusParamShowDomMentionsHelp           = Active la détection des ventes vers les DOM (La Réunion, Guadeloupe...) et rend disponibles les mentions TVA_DOM / TVA_DOMS dans la correspondance ci-dessus
 InfraSPlusParamFreeTextTVA_1                 = Mention complémentaire utilisé pour la "franchise en base de TVA" (micro-entreprise)
 InfraSPlusParamFreeTextTVA_2                 = Mention complémentaire utilisé pour la vente de service intra-communautaire (autoliquidation)
 InfraSPlusParamFreeTextTVA_3                 = Mention complémentaire utilisé pour la vente de service à l'export
@@ -684,6 +688,7 @@ InfraSPlusParamBkpPerDocument  = Enregistrement<br>par Document<br>(Référence)
 InfraSPlusParamBkpPerType      = Enregistrement<br>par type<br>(devis, commande, ...)
 InfraSPlusParamBkpPerCustomer  = Enregistrement<br>par client
 InfraSPlusParamBkpNone         = Aucun<br>enregistrement
+InfraSPlusParamPinVisible      = Toujours<br>visible
 
 ### About page ###
 

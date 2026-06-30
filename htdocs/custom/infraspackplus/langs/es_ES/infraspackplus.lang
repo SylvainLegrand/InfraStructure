@@ -633,6 +633,8 @@ InfraSPlusTxtTvaVPI                          = Exención del IVA, artículo 262 
 InfraSPlusTxtTvaVSE                          = IVA no aplicable — art. 259-1° del código fiscal francés (CGI)
 InfraSPlusTxtTvaVSI                          = Autoliquidación — art. 196 directiva 2006/112/CE
 InfraSPlusTxtTvaBTP                          = Autoliquidación
+InfraSPlusTxtTvaDOM                          = Exención del IVA, artículo 294, 2 del código fiscal francés (CGI)
+InfraSPlusTxtTvaDOMS                         = Autoliquidación — IVA adeudado por el destinatario (art. 259-1 CGI)
 InfraSPlusParamConfirmSetTVAauto             = ¿Confirmas la activación de la gestión automática de la información relativa al IVA?
 InfraSPlusParamGestionMentions               = <b>Opciones concerniendo para la utilización de Información adicional en las ediciones del pack</b>
 InfraSPlusParamNewMention                    = Agregar / Editar una mención adicional a las ediciones de InfraS Pack
@@ -660,6 +662,8 @@ InfraSPlusParamFreeTextFactorAuto            = Gestión automatizada de mencione
 InfraSPlusParamFactorPrefix                  = Prefijo de código para los tipos de menciones vinculadas a los bancos (diccionario de tipos de información adicional). Estos códigos deben estar compuestos por el prefijo definido aquí y el código bancario asociado
 InfraSPlusParamFreeTextTVAauto               = Gestión automatizada de la información obligatoria relacionada con el IVA (exención del IVA, recargo, exportación)
 InfraSPlusParamFreeTextTVAautoHelp           = En el diccionario de tipos de menciones adicionales, los códigos referentes al IVA deben tener como máscara 'TVA_XX' o 'XX' queda a su criterio
+InfraSPlusParamShowDomMentions               = Gestionar las menciones de IVA para los departamentos de ultramar (DOM)
+InfraSPlusParamShowDomMentionsHelp           = Activa la detección de ventas a los DOM y permite las menciones TVA_DOM / TVA_DOMS en la correspondencia anterior
 InfraSPlusParamFreeTextTVA_1                 = Mención adicional utilizado para el "deducible basado en el IVA" (microempresa)
 InfraSPlusParamFreeTextTVA_2                 = Mención adicional utilizado para la venta del servicio intracomunitario (recargo)
 InfraSPlusParamFreeTextTVA_3                 = Mención adicional utilizada para la venta del servicio de exportación
@@ -684,6 +688,7 @@ InfraSPlusParamBkpPerDocument  = Registro<br>por documento
 InfraSPlusParamBkpPerType      = Registro<br>por tipo<br>(presupuesto, pedido, ...)
 InfraSPlusParamBkpPerCustomer  = Registro<br>por cliente
 InfraSPlusParamBkpNone         = Sin grabación
+InfraSPlusParamPinVisible      = Siempre<br>visible
 
 ### About page ###
 

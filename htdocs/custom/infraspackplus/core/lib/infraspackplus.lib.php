@@ -1842,8 +1842,10 @@
 					$listOptions[$key]['value']	= getDolGlobalString($listOptions[$key]['defaultconst'], 'none');
 				}
 				// Affichage de la mention d'autoliquidation BTP
+				// Case d'option par document (opt-in) : décochée par défaut tant qu'aucun choix n'est mémorisé.
+				// Le 'defaultconst' (INFRASPLUS_PDF_FREETEXT_TVA_6) sert uniquement à AFFICHER la case, pas à la cocher.
 				if ($key == 'showtvabtp') {
-					$listOptions[$key]['value']	= getDolGlobalString($listOptions[$key]['defaultconst'], 'none');
+					$listOptions[$key]['value']	= 0;
 				}
 				// Affichage des totaux en pied de document sur les fiches d'intervention
 				if ($key == 'showtot') {

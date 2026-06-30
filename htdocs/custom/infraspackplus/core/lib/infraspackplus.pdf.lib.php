@@ -1653,24 +1653,38 @@
 		// B2B requires a non-empty intra-community VAT number.
 		// Ideally this number should have been validated against VIES beforehand.
 		$buyerIsB2B			= !empty(trim((string) ($buyer->tva_intra ?? ''))) ? 1 : 0;
-		// ----- Delivery country for goods -----
+		// Country prefix of the intra-community VAT number actually provided by the buyer (e.g. 'FR', 'DE').
+		// Used so an intra-community supply is only claimed when this number belongs to the delivery country.
+		$buyerVatCC			= strtoupper(substr(trim((string) ($buyer->tva_intra ?? '')), 0, 2));
+		// ----- Delivery country and postal code for goods/services -----
 		// Priority: explicit shipping address on the document, else buyer's country.
 		$deliveryCC			= $buyerCC;
+		$deliveryZip		= isset($buyer->zip) ? $buyer->zip : '';
 		$adrlivr			= (int) $adrlivr;
 		// Use of a Dolibarr delivery address (if the flag is activated): we first look to see if a delivery contact is attached to the document, then we use the country code of this contact if it exists and is provided.
 		if (!empty($use_doli_addr_livr) && isset($arrayidcontact['L']) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
 			$res	= $object->fetch_contact($arrayidcontact['L'][0]);
 			if ($res > 0 && is_object($object->contact)) {
-				$deliveryCC	= $object->contact->country_code;
+				$deliveryCC		= $object->contact->country_code;
+				$deliveryZip	= isset($object->contact->zip) ? $object->contact->zip : '';
 			}
 		} elseif ($adrlivr > 0) {	// fallback to direct use of delivery address ID if provided (InfraSPackPlus standard field on order, proposal, invoice...)
 			$addresslivrstatic	= new Address($db);
 			$addresslivrfound	= $addresslivrstatic->fetch($adrlivr, 0, '');
 			if ($addresslivrfound == 1) {
-				$deliveryCC	= $addresslivrstatic->country_code;
+				$deliveryCC		= $addresslivrstatic->country_code;
+				$deliveryZip	= isset($addresslivrstatic->zip) ? $addresslivrstatic->zip : '';
 			}
 		}
 		$deliveryInEEC	= pdf_InfraSPlus_isInEECByCountryCode($deliveryCC); // helper; see note below
+		// ----- French overseas departments (DOM) -----
+		// La Réunion, Guadeloupe, Martinique... keep country_code 'FR' but are export territories for VAT (art. 294 CGI).
+		// A sale dispatched from metropolitan France to a DOM must not be treated as a domestic metropolitan sale.
+		// DOM handling is opt-in: it is only active when INFRASPLUS_PDF_SHOW_DOM_MENTIONS is enabled.
+		$domEnabled			= getDolGlobalInt('INFRASPLUS_PDF_SHOW_DOM_MENTIONS', 0);
+		$sellerIsDOM		= pdf_InfraSPlus_isDOM($sellerCC, isset($seller->zip) ? $seller->zip : '');
+		$deliveryIsDOM		= pdf_InfraSPlus_isDOM($deliveryCC, $deliveryZip);
+		$toDOMfromMetropole	= (!empty($domEnabled) && !empty($sellerInEEC) && $sellerCC == 'FR' && empty($sellerIsDOM) && !empty($deliveryIsDOM)) ? 1 : 0;
 		// =========================================================
 		// RULE 1 — Seller under French VAT franchise (art. 293 B CGI)
 		// =========================================================
@@ -1683,26 +1697,35 @@
 			return count($result) > 0 ? $result : 0;
 		}
 		// =========================================================
-		// SERVICES — rule based on buyer's country (art. 259-1° CGI)
+		// SERVICES — rule based on the place of delivery/performance (delivery address)
 		// =========================================================
 		if (!empty($hasService)) {
-			if (!empty($sellerInEEC) && !empty($buyerInEEC) && $sellerCC != $buyerCC && $buyerIsB2B) {
+			if (!empty($toDOMfromMetropole) && $buyerIsB2B) {
+				// Service B2B performed in a French overseas department => reverse charge by the customer (art. 259-1 CGI)
+				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_8');
+			} elseif (!empty($sellerInEEC) && !empty($deliveryInEEC) && $sellerCC != $deliveryCC && $buyerIsB2B) {
 				// Service B2B intra-UE => reverse charge
 				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_2');
-			} elseif (!empty($sellerInEEC) && empty($buyerInEEC)) {
-				// Service to a buyer outside the EU (B2B or B2C of "immaterial" services)
+			} elseif (!empty($sellerInEEC) && empty($deliveryInEEC)) {
+				// Service performed outside the EU (B2B or B2C of "immaterial" services)
 				// => not taxable in France
 				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_3');
 			}
-			// Other service cases (domestic, or B2C intra-UE below OSS threshold)
+			// Other service cases (performed in metropolitan France, or B2C intra-UE below OSS threshold)
 			// => standard VAT of the seller, no special mention.
 		}
 		// =========================================================
 		// GOODS — rule based on DELIVERY country, not buyer's siège
 		// =========================================================
 		if (!empty($hasProduct)) {
-			if (!empty($sellerInEEC) && !empty($deliveryInEEC) && $sellerCC != $deliveryCC && $buyerIsB2B) {
-				// Intra-community supply of goods B2B => exemption art. 262 ter I CGI
+			if (!empty($toDOMfromMetropole)) {
+				// Goods dispatched from metropolitan France to a French overseas department
+				// => assimilated to an export, exemption art. 294, 2 CGI
+				$result['P'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_7');
+			} elseif (!empty($sellerInEEC) && !empty($deliveryInEEC) && $sellerCC != $deliveryCC && $buyerIsB2B && $buyerVatCC == $deliveryCC) {
+				// Intra-community supply of goods B2B => exemption art. 262 ter I CGI.
+				// Only when the VAT number provided belongs to the delivery country (a FR VAT number
+				// shipped to another EU country is NOT an intra-community supply => standard French VAT).
 				$result['P'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_4');
 			} elseif (!empty($sellerInEEC) && empty($deliveryInEEC)) {
 				// Export outside the EU => exemption art. 262-I CGI
@@ -1732,6 +1755,29 @@
 		$fake				= new stdClass();
 		$fake->country_code	= $country_code;
 		return isInEEC($fake);
+	}
+
+	/**
+	 *  Helper: check whether an address belongs to a French overseas department (DOM).
+	 *  DOM keep the country code 'FR' in Dolibarr, so detection mainly relies on the postal code (97xxx).
+	 *  Explicit overseas country codes are also accepted in case the instance uses them.
+	 *
+	 *  @param	string	$country_code	Country code (e.g. 'FR', 'RE')
+	 *  @param	string	$zip			Postal code (e.g. '97400')
+	 *  @return	int						1 if the address is in a DOM, 0 otherwise
+	 */
+	function pdf_InfraSPlus_isDOM($country_code, $zip = '')
+	{
+		// Explicit overseas country codes (rarely used; Dolibarr usually keeps 'FR' + a 97xxx postal code).
+		$domcc	= array('RE', 'GP', 'MQ', 'GF', 'YT');
+		if (!empty($country_code) && in_array($country_code, $domcc)) {
+			return 1;
+		}
+		// France with an overseas postal code: 971 Guadeloupe, 972 Martinique, 973 Guyane, 974 Réunion, 976 Mayotte.
+		if ($country_code == 'FR' && !empty($zip) && preg_match('/^97[1-46]/', (string) $zip)) {
+			return 1;
+		}
+		return 0;
 	}
 
 	/**
@@ -4718,7 +4764,10 @@
 		$footer_bold	= getDolGlobalInt('INFRASPLUS_PDF_REFD_FROM_CUSTOMER', 0);
 		$noendline		= !empty($noendline) || getDolGlobalInt('INFRASPLUS_PDF_NO_LINE_FOOTER') ? 1 : 0;
 		$pdf->SetFont('', $footer_bold ? 'B' : '', 7);
-		$alignL1		= 'C';
+		// Sauvegarde des cell-paddings courants puis remise à zéro.
+		$savedFootPaddings	= $pdf->getCellPaddings();
+		$pdf->setCellPaddings(0, 0, 0, 0);
+		$alignL1			= 'C';
 		// Line 1 content: either a custom HTML free text (INFRASPLUS_PDF_FOOTER_FREETEXT) or built from company data (below)
 		if (getDolGlobalString('INFRASPLUS_PDF_FOOTER_FREETEXT', '')) {
 			$footer_freeText	= getDolGlobalString('INFRASPLUS_PDF_FOOTER_FREETEXT', '');
@@ -4877,6 +4926,7 @@
 		$marginwithfooter	= ($nopage == $nbpage && empty($hidesupline) ? 1 : 0) + (!empty($line1) ? $htLine1 : 0) + (!empty($line2) ? 3 : 0) + (!empty($line3) ? 3 : 0) + (!empty($line4) ? 3 : 0) + $line5 + $formatpage['mbasse'];
 		// Compute-only mode: caller just wants to know the footer height to reserve space above
 		if ($calculseul == 1) {
+			$pdf->setCellPaddings($savedFootPaddings['L'], $savedFootPaddings['T'], $savedFootPaddings['R'], $savedFootPaddings['B']);
 			return $marginwithfooter;
 		}
 		// Drawing phase: position cursor at the top of the footer block
@@ -4925,6 +4975,7 @@
 			}
 			$pdf->SetFont($prevFont);
 		}
+		$pdf->setCellPaddings($savedFootPaddings['L'], $savedFootPaddings['T'], $savedFootPaddings['R'], $savedFootPaddings['B']);
 		return $marginwithfooter;
 	}
 

@@ -113,6 +113,11 @@
 		$confkey	= $reg[1];
 		$error		= 0;
 		foreach ($list[$confkey] as $constname) {
+			// Ne pas écraser un emplacement non affiché (donc non posté) : en mode non-franchise TVA_1
+			// n'est pas rendu, en mode franchise TVA_2..6 ne le sont pas, FACTOR_PRE seulement si actif.
+			if (!GETPOSTISSET($constname)) {
+				continue;
+			}
 			$constvalue	= GETPOST($constname, 'alpha');
 			$result		= dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 		}
@@ -177,6 +182,8 @@
 	if (!empty($franchise) && !getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', '')) {
 		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']), $langs->trans('InfraSPlusParamTVAauto'), $langs->trans('InfraSPlusParamConfirmSetTVAauto'), 'confirm_TVAauto', '', 'yes', 1);
 	}
+	// Les mentions DOM (TVA_DOM / TVA_DOMS) ne sont proposées dans le mapping que si l'option est activée
+	$domSqlFilter	= getDolGlobalString('INFRASPLUS_PDF_SHOW_DOM_MENTIONS', '') ? '' : ' AND code NOT IN ("TVA_DOM", "TVA_DOMS")';
 
 	// View *****************************************
 	$page_name	= $langs->trans('infrasplussetup') .' - '. $langs->trans('InfraSPlusParamsMentions');
@@ -288,6 +295,7 @@
 		} else {
 			$num++;
 		}
+		// $num = 5
 		if (isModEnabled('livraison')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_REC', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_SUBMODULE_LIVRAISON')), '', [], 1, 1, '', $num);
 		} else {
@@ -313,6 +321,7 @@
 		} else {
 			$num++;
 		}
+		// $num = 10
 		if (isModEnabled('product')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_PROD', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_PRODUCT')), '', [], 1, 1, '', $num);
 		} else {
@@ -333,6 +342,7 @@
 		} else {
 			$num++;
 		}
+		// $num = 14
 		infraspackplus_print_hr(3);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXTEND', 'on_off', $langs->trans('InfraSPlusParamFreeTextEnd'), '', [], 1, 1, '', $num);
 		infraspackplus_print_hr(3);
@@ -342,29 +352,34 @@
 		} else {
 			$num++;
 		}
+		// $num = 17
 		infraspackplus_print_hr(3);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', 'on_off', $langs->trans('InfraSPlusParamFreeTextTVAauto'), ' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamFreeTextTVAautoHelp'), [], 1, 1, '', $num);
+		// Option d'activation des mentions de TVA pour les départements d'outre-mer (DOM)
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DOM_MENTIONS', 'on_off', $langs->trans('InfraSPlusParamShowDomMentions'), $langs->trans('InfraSPlusParamShowDomMentionsHelp'), [], 1, 1, '', $num);
+		// $num = 19
 		if (getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', '')) {
 			if (!empty($franchise)) {
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_1', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_1', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_1', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_1', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_1'), '', $metas, '1', '1');
 				$num	+= 5;
 			} else {
 				$num++;
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_2', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_2', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_2', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_2', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_2'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_3', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_3', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_3', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_3', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_3'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_4', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_4', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_4', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_4', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_4'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_5', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_5', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_5', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_5', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_5'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_6', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_6', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_6', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_6', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_6'), '', $metas, 1, 1, '', $num);
 			}
 		} else {
 			$num	+= 6;
 		}
+		// $num = 25
 	}
 	print '			</table>
 				</form>

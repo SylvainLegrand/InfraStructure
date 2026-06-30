@@ -169,9 +169,28 @@
 					$ht_signarea		= getDolGlobalInt('INFRASPLUS_PDF_HT_SIGN_AREA', 24) * 7.5;
 					$signColor			= getDolGlobalString('INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR', '0,0,0');
 					$signColor			= '#'.colorArrayToHex(colorStringToArray($signColor, [0, 0, 0]));
+					// Récupération anticipée des paramètres sauvegardés (nécessaire pour connaître les lignes épinglées avant la construction du JS)
+					$defaultParams		= infraspackplus_defaultParam($object);
+					$listOptions		= $defaultParams['listOptions'];
+					$listModulesFreeT	= $defaultParams['listModulesFreeT'];	// liste nécessaire à la gestion des mentions complémentaires
+					$listModulesNoteP	= $defaultParams['listModulesNoteP'];	// liste nécessaire à la gestion des notes publiques
+					// Application des paramètres
+					foreach ($listOptions as $key => $option) {
+						$_POST[$key]	= $listOptions[$key]['value'];
+					}
+					// Lignes d'options à garder toujours visibles, même quand le bloc "Options InfraSPack" est replié (case "Toujours visible" de l'admin)
+					$pinnedKeys			= array();
+					foreach ($listOptions as $key => $option) {
+						$defaultPin	= in_array($key, array('adrlivr', 'adrSst', 'adrlivrfour')) ? '1' : '0';
+						if (getDolGlobalString('INFRASPLUS_PDF_OPTION_PIN_'.$key, $defaultPin) == '1') {
+							$pinnedKeys[]	= $key;
+						}
+					}
+					$pinnedJson			= json_encode($pinnedKeys);
 					// Page JS to toggle some parameters
 					$permHide			= !empty($InfraSPermLastOpt) ? '.infrasfoldable' : '.InfraSPermLastOpt';
-					$permFoldFunction	= !empty($InfraSPermLastOpt) ? '$(".infrasfoldable").toggle();' : '';
+					$permFoldFunction	= !empty($InfraSPermLastOpt) ? '$(".infrasfoldable").not(".infraspin").toggle();' : '';
+					$pinExclude			= !empty($InfraSPermLastOpt) ? '.not(".infraspin")' : '';
 					$js					= <<< EOJS
 					function funcListSsT(id, val)
 					{
@@ -179,7 +198,15 @@
 						window.location.href = window.location.protocol + '//' + window.location.host + '/' + window.location.pathname + listSsT;
 					}
 					$(document).ready(function(){
-						$('{$permHide}').hide();
+						var infrasPinned = {$pinnedJson};
+						var infrasPinAlias = {'Sst':'adrSst'};	// le sélecteur sous-traitant suit l'option adrSst
+						$.each(infrasPinned, function(i, k){
+							$('[name="' + k + '"],[name="' + k + '[]"],[id="' + k + '"]').closest('tr').addClass('infraspin');
+						});
+						$.each(infrasPinAlias, function(ctrl, k){
+							if ($.inArray(k, infrasPinned) >= 0) { $('[name="' + ctrl + '"]').closest('tr').addClass('infraspin'); }
+						});
+						$('{$permHide}'){$pinExclude}.hide();
 					});
 					$(function ()
 					{
@@ -226,15 +253,6 @@
 						});
 					});
 EOJS;
-					// Récupération des paramètres sauvegardés (Liés à l'utilisateur, au document ou par défaut => configuration module)
-					$defaultParams		= infraspackplus_defaultParam($object);
-					$listOptions		= $defaultParams['listOptions'];
-					$listModulesFreeT	= $defaultParams['listModulesFreeT'];	// liste nécessaire à la gestion des mentions complémentaires
-					$listModulesNoteP	= $defaultParams['listModulesNoteP'];	// liste nécessaire à la gestion des notes publiques
-					// Application des paramètres
-					foreach ($listOptions as $key => $option) {
-						$_POST[$key]	= $listOptions[$key]['value'];
-					}
 					// Titre des options InfraSPackPlus
 					$titleOptions		= $langs->trans('PDFInfraSPlusOptions').'&nbsp;&nbsp;&nbsp;'.img_picto($langs->trans('Setup'), 'setup', 'style="vertical-align: bottom; height: 20px;"');
 					$titleStyle			= 'background-color: rgba(148, 148, 148, .065) !important;';
@@ -510,7 +528,7 @@ EOJS;
 					if (!empty($showadrlivr)) {
 						$adrlivrtmp			= new Address($db);
 						$res_adrlivr		= $adrlivrtmp->fetch_lines($object->thirdparty->id);
-						$this->resprints	.= '<tr class = "oddeven InfraSPermLastOpt">
+						$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 													<td colspan = "'.$colspan.'" align = "right">
 														<label for = "adrlivr">'.$typeadr.'</label>&nbsp;
 														<select class = "flat cursorpointer width200" id = "selectadrlivr" name = "adrlivr">
@@ -547,7 +565,7 @@ EOJS;
 						$ar_listSsT		= [];
 						$num_SsT		= $db->num_rows($res_listSsT);
 						if (!empty($res_listSsT) && $num_SsT > 0) {
-							$this->resprints	.= '<tr class = "oddeven InfraSPermLastOpt">
+							$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 														<td colspan = "'.$colspan.'" align = "right">
 															<label for = "Sst">'.$langs->trans('PDFInfraSPlusListSsT').'</label>&nbsp;
 															<select class = "flat cursorpointer width200" id = "selectSst" name = "Sst" onchange="funcListSsT('.$doc_id.', this.value)">
@@ -564,7 +582,7 @@ EOJS;
 								$idCustomer			= $num_SsT > 1 ? $SstPost : $ar_listSsT['rowid'];
 								$adrSsttmp			= new Address($db);
 								$res_adrSst			= $adrSsttmp->fetch_lines($idCustomer);
-								$this->resprints	.= '<tr class = "oddeven InfraSPermLastOpt">
+								$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 															<td colspan = "'.$colspan.'" align = "right">
 																<label for = "adrSst">'.$langs->trans('PDFInfraSPlusAdrSsT').'</label>&nbsp;
 																<select class = "flat cursorpointer width200" id = "selectadrSst" name = "adrSst">
@@ -604,7 +622,7 @@ EOJS;
 						if (empty($adrlivrfourmixte)) {
 							$adrlivrfourtmp		= new Address($db);
 							$res_adrlivrfour	= $adrlivrfourtmp->fetch_lines(0, -1);
-							$this->resprints	.= '<tr class = "oddeven InfraSPermLastOpt">
+							$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 														<td colspan = "'.$colspan.'" class = "right">
 															<label for = "adrlivrfour">'.$langs->trans('PDFInfraSPlusAdrLivr').'</label>&nbsp;
 															<select class = "flat cursorpointer width200" id = "selectadrlivrfour" name = "adrlivrfour">
@@ -625,7 +643,7 @@ EOJS;
 						} else {
 							$adrlivrfourtmp	= new Address($db);
 							$res_adrlivrfour	= $adrlivrfourtmp->fetch_lines(0, 2);
-							$this->resprints	.= '<tr class = "oddeven InfraSPermLastOpt">
+							$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 														<td colspan = "'.$colspan.'" class = "right">
 															<label for = "adrlivrfour">'.$langs->trans('PDFInfraSPlusAdrLivr').'</label>&nbsp;
 															<select class = "flat cursorpointer width200" id = "selectadrlivrfour" name = "adrlivrfour">

@@ -4,7 +4,7 @@
 
 ## ***InfraSPackPlus***
 #### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
-* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 38 modèles pour 21 types de documents différents et 709 options (32 options sont modifiables directement sur la fiche du document) dont
+* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 38 modèles pour 21 types de documents différents et 744 options (32 options sont modifiables directement sur la fiche du document) dont
 	 * Les cadres arrondis, l’organisation des colonnes (ordre, affichage, largeur, …)
 	 * Le choix des couleurs de texte, de fond, des images, des filigranes, des types épaisseur et couleurs des lignes, …
 	 * L’affichage 'full' TTC
@@ -463,11 +463,12 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* Créer plusieurs types de mentions complémentaire distincts pour chaque type de document
 		* Gérer les mentions complémentaires des différents types de documents (devis, commandes, contrats, expéditions, réceptions, fiches d’intervention, factures, Ordres de fabrication, Nomenclatures, demandes de prix, commandes fournisseur, fiche produit et notes de frais) d'une même page de paramètres
 	* OPTIONS CONCERNANT L'UTILISATION DES MENTIONS COMPLÉMENTAIRES DANS LES ÉDITIONS DU PACK
-		* ***1-11*** Intégrer systématiquement les mentions complémentaires de base (le choix se fait pour chaque type de document indépendemment les uns des autres)
-		* ***12*** Afficher les mentions complémentaires en dernier et sur la largeur de la page
-		* ***13-14*** Automatiser l'utilisation d'une mention liée à une banque (Factor)
-		* ***15*** Gérer automatiquement les mentions obligatoires relatives à la TVA (franchise en base de TVA, autoliquidation, export)
-		* ***16-21*** Enregistrer la mention obligatoire à utiliser pour les différentes situations possibles (Micro-entreprise, autoliquidation, exonération, Sous-traitance BTP)
+		* ***1-13*** Intégrer systématiquement les mentions complémentaires de base (le choix se fait pour chaque type de document indépendemment les uns des autres)
+		* ***14*** Afficher les mentions complémentaires en dernier et sur la largeur de la page
+		* ***15-16*** Automatiser l'utilisation d'une mention liée à une banque (Factor)
+		* ***17*** Gérer automatiquement les mentions obligatoires relatives à la TVA (franchise en base de TVA, autoliquidation, export)
+		* ***18*** Gérer automatiquement les mentions obligatoires relatives à la TVA (franchise en base de TVA, autoliquidation, export)
+		* ***19-24*** Enregistrer la mention obligatoire à utiliser pour les différentes situations possibles (Micro-entreprise, autoliquidation, exonération, Sous-traitance BTP)
 * Onglet Notes publiques
 	* Ajouter des notes publiques standards sur les fiches produits (actif dès l'activation du module)
 	* GESTION DES NOTES PUBLIQUES STANDARDS DANS LES ÉDITIONS DU PACK
@@ -478,6 +479,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***2-13*** Intégrer systématiquement les notes publiques standards de base (le choix se fait pour chaque type de document indépendemment les uns des autres)
 * Onglet Options avant génération
 	* ***1-30*** Pour chaque option disponible avant la génération du document choisir le type d'enregistrement du réglage (par utilisateur, par document (référence), par type (devis, commande, ...), par client ou non enregistré) 
+	* ***Toujours visible*** Pour chaque option, cocher cette case (colonne à droite de « Aucun enregistrement ») pour épingler la ligne : sur le document (devis, facture, ...), elle reste affichée même lorsque le bloc « Options pour le module d'impression InfraSPack » est replié. Décochée, la ligne se replie / se déplie avec les autres. Les lignes d'adresses (livraison, sous-traitant, livraison fournisseur) sont cochées par défaut.
 
 
 

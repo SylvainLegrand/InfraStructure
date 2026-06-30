@@ -182,11 +182,14 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_FACTOR_AUTO',						'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_1',							'__ENTITY__', 'TVA_MICRO',						'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_2',							'__ENTITY__', 'TVA_VSI',						'chaine', '0', 'InfraSPackPlus module');
-INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_3',							'__ENTITY__', 'TVA_VPI',						'chaine', '0', 'InfraSPackPlus module');
-INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_4',							'__ENTITY__', 'TVA_VSE',						'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_3',							'__ENTITY__', 'TVA_VSE',						'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_4',							'__ENTITY__', 'TVA_VPI',						'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_5',							'__ENTITY__', 'TVA_VPE',						'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_6',							'__ENTITY__', 'TVA_BTP',						'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_7', '__ENTITY__', 'TVA_DOM', 'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_8', '__ENTITY__', 'TVA_DOMS', 'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXT_TVA_AUTO',						'__ENTITY__', '1',								'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_SHOW_DOM_MENTIONS', '__ENTITY__', '0', 'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FREETEXTEND',								'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FRM_E_BG_COLOR',							'__ENTITY__', '109,70,140',						'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_FRM_E_LINE_COLOR',							'__ENTITY__', '128,128,128',					'chaine', '0', 'InfraSPackPlus module');
@@ -558,12 +561,18 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_X_PAGE_NUM',								'__ENTITY__', '10',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPLUS_PDF_Y_PAGE_NUM',								'__ENTITY__', '285',							'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INVOICE_FREE_TEXT_TVA_MICRO',								'__ENTITY__', '__(VATIsNotUsedForInvoice)__',	'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INVOICE_FREE_TEXT_TVA_DOM', '__ENTITY__', '__(InfraSPlusTxtTvaDOM)__', 'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INVOICE_FREE_TEXT_TVA_DOMS', '__ENTITY__', '__(InfraSPlusTxtTvaDOMS)__', 'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('MAIN_DISABLE_PDF_AUTOUPDATE',								'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('MAIN_DOCUMENT_IS_OUTSIDE_WEBROOT_SO_NOEXE_NOT_REQUIRED',	'__ENTITY__', '1',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('MAIN_DOCUMENTS_LOGO_HEIGHT',								'__ENTITY__', '20',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('MAIN_PDF_FORCE_FONT_SIZE',								'__ENTITY__', '10',								'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('ORDER_FREE_TEXT_TVA_MICRO',								'__ENTITY__', '__(VATIsNotUsedForInvoice)__',	'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('ORDER_FREE_TEXT_TVA_DOM', '__ENTITY__', '__(InfraSPlusTxtTvaDOM)__', 'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('ORDER_FREE_TEXT_TVA_DOMS', '__ENTITY__', '__(InfraSPlusTxtTvaDOMS)__', 'chaine', '0', 'InfraSPackPlus module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('PROPOSAL_FREE_TEXT_TVA_MICRO',							'__ENTITY__', '__(VATIsNotUsedForInvoice)__',	'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('PROPOSAL_FREE_TEXT_TVA_DOM', '__ENTITY__', '__(InfraSPlusTxtTvaDOM)__', 'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('PROPOSAL_FREE_TEXT_TVA_DOMS', '__ENTITY__', '__(InfraSPlusTxtTvaDOMS)__', 'chaine', '0', 'InfraSPackPlus module');
 
 -- Data for table llx_c_infraspackplus_mention
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('BASE',		'__ENTITY__', '10', 'Mention de base',								1);
@@ -572,12 +581,14 @@ INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VA
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('TVA_VPI',		'__ENTITY__', '13', 'vente de produit intra-communautaire',			1);
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('TVA_VPE',		'__ENTITY__', '14', 'vente de produit à l\'export',					1);
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('TVA_BTP',		'__ENTITY__', '15', 'autoliquidation de TVA en sous-traitance BTP',	1);
+INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('TVA_DOM',		'__ENTITY__', '18', 'vente de produit en outre-mer (DOM)',			1);
+INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('TVA_DOMS',	'__ENTITY__', '19', 'service en outre-mer (DOM)',					1);
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('TVA_MICRO',	'__ENTITY__', '16', 'Régime de la micro-entreprise',				0);
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('ASSDEC',		'__ENTITY__', '20', 'Assurance decennale',							1);
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('LIMPROP',		'__ENTITY__', '30', 'Limite de propriété',							1);
 INSERT INTO llx_c_infraspackplus_mention (code, entity, pos, libelle, active) VALUES('OTHER',		'__ENTITY__', '40', 'Autre',										1);
 
 -- Data for table llx_c_infraspackplus_note
-INSERT INTO llx_c_infraspackplus_note (code, entity, pos, libelle, active) VALUES('BASE', '__ENTITY__', '10', 'Notes de base', 1);
+INSERT INTO llx_c_infraspackplus_note (code, entity, pos, libelle, active) VALUES('BASE',			'__ENTITY__', '10', 'Notes de base',								1);
 
 SET FOREIGN_KEY_CHECKS = 1;

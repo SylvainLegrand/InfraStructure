@@ -79,20 +79,21 @@
 		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
 	// Update buttons management
+	// 3rd value = default state of the "always visible" (pin) checkbox: 1 = checked by default, absent/0 = unchecked
 	$listOptions	= array('logo'					=> array('PDFInfraSPlusLogo',						1),	// $num = 1
 							'adr'					=> array('PDFInfraSPlusAddress',					1),	// $num = 2
 							'customerAddrSelect'	=> array('PDFInfraSPlusCustomerAddress',			1),	// $num = 3
 							'listfreet'				=> array('PDFInfraSPlusMentions',					1),	// $num = 4
 							'listnotep'				=> array('PDFInfraSPlusNotes',						1),	// $num = 5
 							'pied'					=> array('PDFInfraSPlusPied',						1),	// $num = 6
-							'adrlivr'				=> array('PDFInfraSPlusAdrLivr',					1),	// $num = 7
-							'adrSst'				=> array('PDFInfraSPlusListSsT',					1),	// $num = 8
-							'adrlivrfour'			=> array('PDFInfraSPlusAdrLivrFour',				1),	// $num = 9
+							'adrlivr'				=> array('PDFInfraSPlusAdrLivr',					1,	1),	// $num = 7
+							'adrSst'				=> array('PDFInfraSPlusListSsT',					1,	1),	// $num = 8
+							'adrlivrfour'				=> array('PDFInfraSPlusAdrLivrFour',					1,	1),	// $num = 9
 							'cgv'					=> array('PDFInfraSPlusCGVchk',						1),	// $num = 10
 							'cgi'					=> array('PDFInfraSPlusCGIchk',						1),	// $num = 11
 							'cga'					=> array('PDFInfraSPlusCGAchk',						1),	// $num = 12
-							'filesArray'			=> array('PDFInfraSPlusFiles',						1),	// $num = 13
-							'expensereportfiles'	=> array('InfraSPlusParamFilesFromExpensereport',	1),	// $num = 14
+							'filesArray'				=> array('PDFInfraSPlusFiles',						1),	// $num = 13
+							'expensereportfiles'		=> array('InfraSPlusParamFilesFromExpensereport',	1),	// $num = 14
 							'includealias'			=> array('PDFParamAliasIn3rdName',					1),	// $num = 15
 							'mergeproduct'			=> array('PDFInfraSPlusMergeProduct',				1),	// $num = 16
 							'usentascover'			=> array('PDFInfraSPlusUseNtAsCover',				1),	// $num = 17
@@ -116,6 +117,8 @@
 		foreach ($listOptions as $option => $transKey) {
 			$constname	= 'INFRASPLUS_PDF_OPTION_'.$option;
 			$result		= dolibarr_set_const($db, $constname, GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+			$pinname	= 'INFRASPLUS_PDF_OPTION_PIN_'.$option;
+			$result		= dolibarr_set_const($db, $pinname, GETPOST($pinname, 'int') ? '1' : '0', 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			if ($option == 'adrSst') {
 				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_Sst', GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			}
@@ -198,17 +201,19 @@
 	print '			<div class = "NOfoldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGenerationSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title');
 	print '				<table name = "tblGen" class = "noborder NOtoggle_bloc centpercent">';
-	$metas	= array('30px', '*', '150px', '150px', '150px', '150px', '150px', '120px');
+	$metas	= array('30px', '*', '150px', '150px', '150px', '150px', '150px', '150px', '120px');
 	infraspackplus_print_colgroup($metas);
-	$metas	= array(array(1, 1, 1, 1, 1, 1, 1 ,1), 'NumberingShort', 'Description', 'InfraSPlusParamBkpPerUser', 'InfraSPlusParamBkpPerDocument', 'InfraSPlusParamBkpPerType', 'InfraSPlusParamBkpPerCustomer', 'InfraSPlusParamBkpNone', '&nbsp;');
+	$metas	= array(array(1, 1, 1, 1, 1, 1, 1, 1, 1), 'NumberingShort', 'Description', 'InfraSPlusParamBkpPerUser', 'InfraSPlusParamBkpPerDocument', 'InfraSPlusParamBkpPerType', 'InfraSPlusParamBkpPerCustomer', 'InfraSPlusParamBkpNone', 'InfraSPlusParamPinVisible', '&nbsp;');
 	infraspackplus_print_liste_titre($metas);
 	if (!empty($accessright)) {
 		$num	= 1;
-		infraspackplus_print_btn_action('Gen', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave').'<br/><span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamAvertissementCalculImage'), 7);
+		infraspackplus_print_btn_action('Gen', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave').'<br/><span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamAvertissementCalculImage'), 8);
 		foreach ($listOptions as $option => $transKey) {
 			if (!empty($transKey[1])) {
 				$confkey		= 'INFRASPLUS_PDF_OPTION_'.$option;
 				$option_value	= getDolGlobalString($confkey, 'none');
+				$pinkey			= 'INFRASPLUS_PDF_OPTION_PIN_'.$option;
+				$pin_checked	= getDolGlobalString($pinkey, !empty($transKey[2]) ? '1' : '0') == '1';
 				print '			<tr class = "oddeven">
 									<td class = "center bold">'.$num.'</td>
 									<td>'.$langs->trans($transKey[0]).'</td>
@@ -217,6 +222,7 @@
 									<td class = "center"><input type = "radio" name = "'.$confkey.'" value = "type"'.($option_value == 'type' ? ' checked' : '').'/></td>
 									<td class = "center"><input type = "radio" name = "'.$confkey.'" value = "cust"'.($option_value == 'cust' ? ' checked' : '').'/></td>
 									<td class = "center"><input type = "radio" name = "'.$confkey.'" value = "none"'.($option_value == 'none' ? ' checked' : '').'/></td>
+									<td class = "center"><input type = "checkbox" name = "'.$pinkey.'" value = "1"'.($pin_checked ? ' checked' : '').'/></td>
 								</tr>';
 			}
 			$num++;

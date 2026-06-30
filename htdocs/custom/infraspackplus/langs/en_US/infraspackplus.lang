@@ -633,6 +633,8 @@ InfraSPlusTxtTvaVPI                          = VAT exemption, article 262 ter I 
 InfraSPlusTxtTvaVSE                          = VAT not applicable — art. 259-1° of the French tax code (CGI)
 InfraSPlusTxtTvaVSI                          = Reverse charge — art. 196 directive 2006/112/EC
 InfraSPlusTxtTvaBTP                          = Reverse charge
+InfraSPlusTxtTvaDOM                          = VAT exemption, article 294, 2 of the French tax code (CGI)
+InfraSPlusTxtTvaDOMS                         = Reverse charge — VAT due by the customer (art. 259-1 CGI)
 InfraSPlusParamConfirmSetTVAauto             = Do you confirm the activation of the automatic management of the information relating to VAT?
 InfraSPlusParamGestionMentions               = <b>Management of Additional informations usable in the different editions of the InfraS Pack</b>
 InfraSPlusParamNewMention                    = Add / Edit an additional mention to the InfraS Pack editions
@@ -660,6 +662,8 @@ InfraSPlusParamFreeTextFactorAuto            = Automated management of mentions 
 InfraSPlusParamFactorPrefix                  = Code prefix for the types of mentions linked to banks (additional information types dictionary). These codes must be composed of the prefix defined here and the associated bank code.
 InfraSPlusParamFreeTextTVAauto               = Automated management of mandatory information relating to VAT (exemption from VAT, reverse charge, export)
 InfraSPlusParamFreeTextTVAautoHelp           = In the additional mentions types dictionary the codes concerning VAT must have a mask 'TVA_XX' where 'XX' is left to your discretion
+InfraSPlusParamShowDomMentions               = Manage VAT statements for French overseas departments (DOM)
+InfraSPlusParamShowDomMentionsHelp           = Enables detection of sales to overseas departments and makes the TVA_DOM / TVA_DOMS statements available in the mapping above
 InfraSPlusParamFreeTextTVA_1                 = Additional statement used for the "VAT-based deductible" (micro-enterprise)
 InfraSPlusParamFreeTextTVA_2                 = Additional statement used for the sale of intra-community service (reverse charge)
 InfraSPlusParamFreeTextTVA_3                 = Additional statement used for the sale of export service
@@ -684,6 +688,7 @@ InfraSPlusParamBkpPerDocument  = Registration<br>by Document
 InfraSPlusParamBkpPerType      = Registration<br>by type<br>(proposal, order, ...)
 InfraSPlusParamBkpPerCustomer  = Registration<br>by customer
 InfraSPlusParamBkpNone         = No recording
+InfraSPlusParamPinVisible      = Always<br>visible
 
 ### About page ###
 
