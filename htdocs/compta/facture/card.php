@@ -6402,7 +6402,7 @@ if ($action == 'create') {
 				$ventilExportCompta = $object->getVentilExportCompta();
 
 				if ($ventilExportCompta == 0) {
-					if (getDolGlobalString('INVOICE_CAN_BE_EDITED_EVEN_IF_PAYMENT_DONE') || ($resteapayer == price2num($object->total_ttc, 'MT', 1) && empty($object->paye))) {
+					if (getDolGlobalString('INVOICE_CAN_BE_EDITED_EVEN_IF_PAYMENT_DONE') || (price2num($resteapayer, 'MT') == price2num($object->total_ttc, 'MT', 1) && empty($object->paye))) { // InfraS change Arrondis
 						if (!$objectidnext && $object->is_last_in_cycle()) {
 							if ($usercanunvalidate) {
 								unset($params['attr']['title']);

@@ -2013,7 +2013,7 @@ if (empty($reshook)) {
 
 		if (!$ventilExportCompta) {
 			// We verify that no payment was done
-			if ($resteapayer == price2num($object->total_ttc, 'MT', 1) && $object->status == FactureFournisseur::STATUS_VALIDATED) {
+			if (price2num($resteapayer, 'MT') == price2num($object->total_ttc, 'MT', 1) && $object->status == FactureFournisseur::STATUS_VALIDATED) { // InfraS change Arrondis
 				$idwarehouse = GETPOST('idwarehouse');
 
 				$object->fetch_thirdparty();
