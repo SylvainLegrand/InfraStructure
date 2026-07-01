@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.4.0` (2026-06)
+- Dernière version locale : `21.4.1` (2026-06)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -383,7 +383,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="21.4.0" MonthVersion="2026-06">
+  <Version Number="21.4.1" MonthVersion="2026-06">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
@@ -402,7 +402,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.4.0",          // Version courante
+    0 => "21.4.1",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
@@ -437,6 +437,15 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
 - **Cause** : le test de non-vacuité portait sur `$value`, la **sortie HTML rendue** par `showOutputField()`. Pour un extrafield de type `text`, cette sortie est **toujours** enveloppée dans `<div class="shortmessagecut">…</div>` — donc jamais vide au sens de `empty()`. La condition `!empty($value) && $printable == 4` se comportait comme `printable == 1` (toujours afficher).
 - **Correctif** : le test porte désormais sur la **valeur brute stockée** `$options_key` (`$line->array_options['options_'.$key]`) au lieu de la sortie formatée : `!empty($options_key) && $printable == 4` (resp. `== 2` pour les produits).
 - **Règle à retenir** : pour décider d'afficher ou non un extrafield, tester la **donnée source** (`array_options['options_*']`), jamais le HTML renvoyé par `showOutputField()` (qui peut être non vide alors que la valeur l'est, selon le type d'extrafield).
+
+### Libellé des lignes d'acompte/avoir sur PDF (Deposit/credit-note placeholder label, fix v21.4.1)
+
+`pdf_InfraSPlus_getlinedesc()` (`core/lib/infraspackplus.pdf.lib.php`) reconnaît les placeholders internes du core Dolibarr sur les lignes de remise (`(DEPOSIT)`, `(CREDIT_NOTE)`, `(EXCESS RECEIVED)`, `(EXCESS PAID)`, portés par `desc` quand `info_bits & 2`) pour les remplacer par le texte traduit ("Acomptes issus de la facture X", etc.).
+
+- **Symptôme** : sur une facture avec des lignes d'acompte issues d'une autre facture, le PDF affichait le libellé brut `(DEPOSIT)` au lieu de "Acomptes issus de la facture X".
+- **Cause** : une règle générique du module (« pour les lignes de remise sans `label` propre, réutiliser `desc` comme `label` et vider `desc` ») s'exécutait **avant** la reconnaissance des placeholders. `desc` étant vidé, la condition `!empty($desc)` qui déclenche la traduction n'était plus vraie, donc le libellé restait la chaîne brute `(DEPOSIT)`.
+- **Correctif** : la règle générique exclut désormais explicitement les 4 placeholders spéciaux du core, qui continuent leur chemin normal jusqu'au bloc de traduction dédié.
+- **Règle à retenir** : toute nouvelle règle générique touchant `desc`/`label` des lignes de remise (`info_bits & 2`) doit exclure ces placeholders core, sous peine de casser leur traduction.
 
 ### Cycle de vie du module (Module lifecycle)
 

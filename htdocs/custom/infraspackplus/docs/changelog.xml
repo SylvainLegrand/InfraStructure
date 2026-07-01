@@ -1897,7 +1897,10 @@
 	<Version Number="21.4.0" MonthVersion="2026-06">
 		<change type='add'>Options avant génération — nouvelle colonne « Toujours visible » (case à cocher par ligne) : quand elle est cochée, la ligne d'option correspondante reste affichée sur le document (devis, facture, etc.) même lorsque le bloc « Options pour le module d'impression InfraSPack » est replié. Les lignes d'adresses (livraison, sous-traitant, livraison fournisseur) sont cochées par défaut afin de conserver leur comportement actuel.</change>
 	</Version>
-	<InfraS Downloaded="20260630"/>
+	<Version Number="21.4.1" MonthVersion="2026-07">
+		<change type='fix'>Lignes d'acompte (facture) — le libellé "(DEPOSIT)" (placeholder interne du core pour les lignes d'acompte issues d'une autre facture) s'affichait tel quel dans le PDF au lieu du texte traduit "Acomptes issus de la facture X". La logique qui reprend la description comme libellé pour les lignes de remise sans label propre (info_bits &amp; 2) écrasait ce placeholder avant qu'il ne soit reconnu et traduit plus loin. Les placeholders spéciaux du core ((DEPOSIT), (CREDIT_NOTE), (EXCESS RECEIVED), (EXCESS PAID)) sont désormais exclus de cette reprise.</change>
+	</Version>
+	<InfraS Downloaded="20260701"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

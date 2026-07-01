@@ -3257,7 +3257,8 @@
 		dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_getlinedesc $object->lines[$i]->label = '.$object->lines[$i]->label.' $object->lines[$i]->product_label = '.$object->lines[$i]->product_label);
 		$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 		// For discount lines (info_bits & 2), when line's own label is empty, use line description as label instead of product label
-		if (!empty($object->lines[$i]->info_bits) && ($object->lines[$i]->info_bits & 2) && empty($object->lines[$i]->label)) {
+		// Exclude core special placeholders ((DEPOSIT), (CREDIT_NOTE), ...) so they keep going through their dedicated translation below
+		if (!empty($object->lines[$i]->info_bits) && ($object->lines[$i]->info_bits & 2) && empty($object->lines[$i]->label) && !in_array($desc, array('(DEPOSIT)', '(CREDIT_NOTE)', '(EXCESS RECEIVED)', '(EXCESS PAID)'))) {
 			$label		= $desc;
 			$desc		= '';
 		}
