@@ -88,6 +88,13 @@ if ($action == 'update') {
 	if (GETPOSTISSET('PROPOSAL_PDF_HIDE_PAYMENTMODE')) {
 		dolibarr_set_const($db, "PROPOSAL_PDF_HIDE_PAYMENTMODE", GETPOST("PROPOSAL_PDF_HIDE_PAYMENTMODE"), 'chaine', 0, '', $conf->entity);
 	}
+	if (GETPOSTISSET('PROPOSAL_SHOW_SHIPPING_ADDRESS')) {
+		dolibarr_set_const($db, "PROPOSAL_SHOW_SHIPPING_ADDRESS", GETPOSTINT("PROPOSAL_SHOW_SHIPPING_ADDRESS"), 'chaine', 0, '', $conf->entity);
+	}
+	if (GETPOSTISSET('SALES_ORDER_SHOW_SHIPPING_ADDRESS')) {
+		dolibarr_set_const($db, "SALES_ORDER_SHOW_SHIPPING_ADDRESS", GETPOSTINT("SALES_ORDER_SHOW_SHIPPING_ADDRESS"), 'chaine', 0, '', $conf->entity);
+		dolibarr_del_const($db, "SALES_ORDER_SHOW_SHIPPING_ADDRESS", $conf->entity);
+	}
 	if (GETPOSTISSET('MAIN_GENERATE_PROPOSALS_WITH_PICTURE')) {
 		dolibarr_set_const($db, "MAIN_GENERATE_PROPOSALS_WITH_PICTURE", GETPOST("MAIN_GENERATE_PROPOSALS_WITH_PICTURE"), 'chaine', 0, '', $conf->entity);
 	}
@@ -312,6 +319,16 @@ if (isModEnabled('propal')) {
 		print '</div>';
 	}
 
+	// Add delivery address option for proposals
+	print '<tr class="oddeven"><td>';
+	print $form->textwithpicto($langs->trans("PROPOSAL_SHOW_SHIPPING_ADDRESS"), $langs->trans("PROPOSAL_SHOW_SHIPPING_ADDRESSMore"));
+	print '</td><td>';
+	if ($conf->use_javascript_ajax) {
+		print ajax_constantonoff('PROPOSAL_SHOW_SHIPPING_ADDRESS');
+	} else {
+		$arrval = array('0' => $langs->trans("No"), '1' => $langs->trans("Yes"));
+		print $form->selectarray("PROPOSAL_SHOW_SHIPPING_ADDRESS", $arrval, getDolGlobalString('PROPOSAL_SHOW_SHIPPING_ADDRESS'));
+	}
 	print '</td></tr>';
 
 	print '</table>';
@@ -396,6 +413,27 @@ if (isModEnabled('order')) {
 	print '</div>';
 
 	print '<br>';
+}
+
+if (isModEnabled('order')) {
+	$langs->load("orders");
+	print load_fiche_titre($langs->trans('CustomersOrders'), '', 'order');
+
+	print '<div class="div-table-responsive-no-min">';
+	print '<table summary="more" class="noborder centpercent">';
+
+	print '<tr class="liste_titre"><td class="titlefieldmiddle">'.$langs->trans("Parameters").'</td><td width="200px"></td></tr>';
+
+	print '<tr class="oddeven"><td>';
+	print $form->textwithpicto($langs->trans("SALES_ORDER_SHOW_SHIPPING_ADDRESS"), $langs->trans("SALES_ORDER_SHOW_SHIPPING_ADDRESSMore"));
+	print '</td><td>';
+	if ($conf->use_javascript_ajax) {
+		print ajax_constantonoff('SALES_ORDER_SHOW_SHIPPING_ADDRESS');
+	} else {
+		$arrval = array('0' => $langs->trans("No"), '1' => $langs->trans("Yes"));
+		print $form->selectarray("SALES_ORDER_SHOW_SHIPPING_ADDRESS", $arrval, getDolGlobalString('SALES_ORDER_SHOW_SHIPPING_ADDRESS'));
+	}
+	print '</td></tr>';
 }
 
 

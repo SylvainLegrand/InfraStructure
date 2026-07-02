@@ -1379,3 +1379,9 @@ Approval=Approval
 Validation=Validation
 DeletionNotPossibleWhenAPaymentExists=Deletion is not possible when there is attached payments
 Why=Why
+# Specific Osden
+Osden=Osden
+StarsFieldValue=%s star(s)
+RequireMaxValue=Value cannot exceed %s
+RequireMinValue=Value must be at least %s
+AIAssistant=AI Assistant
