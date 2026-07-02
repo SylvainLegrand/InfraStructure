@@ -164,6 +164,13 @@ if ($id > 0) {
 	$permissiontoeditpasswordandsend = ((($user->id == $id) && $user->hasRight("user", "self", "password")) || (($user->id != $id) && $user->hasRight("user", "user", "password")))&& (empty($user->socid) || $user->socid == $object->socid);
 }
 
+// Permission to read salary and hourly rate
+$permissiontoseesalary = (empty($user->socid) && (
+	(isModEnabled('salaries') && $user->hasRight("salaries", "read") && ($id == 0 || in_array($id, $childids)))		// If user is a manager of employee
+	|| (isModEnabled('salaries') && $user->hasRight("salaries", "readall"))
+	|| (isModEnabled('hrm') && $user->hasRight("hrm", "employee", "read")))
+	|| (!isModEnabled('salaries') && !isModEnabled('hrm') && ($id == 0 || in_array($id, $childids))));
+
 $passwordismodified = false;
 $ldap = null;
 
@@ -336,14 +343,17 @@ if (empty($reshook)) {
 			$object->fk_user_holiday_validator = GETPOSTINT("fk_user_holiday_validator") > 0 ? GETPOSTINT("fk_user_holiday_validator") : 0;
 			$object->employee = GETPOSTINT('employee');
 
-			$object->thm = GETPOST("thm", 'alphanohtml') != '' ? GETPOST("thm", 'alphanohtml') : '';
-			$object->thm = price2num($object->thm);
-			$object->tjm = GETPOST("tjm", 'alphanohtml') != '' ? GETPOST("tjm", 'alphanohtml') : '';
-			$object->tjm = price2num($object->tjm);
-			$object->salary = GETPOST("salary", 'alphanohtml') != '' ? GETPOST("salary", 'alphanohtml') : '';
-			$object->salary = price2num($object->salary);
-			$object->salaryextra = GETPOST("salaryextra", 'alphanohtml') != '' ? GETPOST("salaryextra", 'alphanohtml') : '';
-			$object->weeklyhours = GETPOST("weeklyhours", 'alphanohtml') != '' ? GETPOST("weeklyhours", 'alphanohtml') : '';
+			// Only users allowed to see salary/HR fields can modify them (issue #32909)
+			if ($permissiontoseesalary) {
+				$object->thm = GETPOST("thm", 'alphanohtml') != '' ? GETPOST("thm", 'alphanohtml') : '';
+				$object->thm = price2num($object->thm);
+				$object->tjm = GETPOST("tjm", 'alphanohtml') != '' ? GETPOST("tjm", 'alphanohtml') : '';
+				$object->tjm = price2num($object->tjm);
+				$object->salary = GETPOST("salary", 'alphanohtml') != '' ? GETPOST("salary", 'alphanohtml') : '';
+				$object->salary = price2num($object->salary);
+				$object->salaryextra = GETPOST("salaryextra", 'alphanohtml') != '' ? GETPOST("salaryextra", 'alphanohtml') : '';
+				$object->weeklyhours = GETPOST("weeklyhours", 'alphanohtml') != '' ? GETPOST("weeklyhours", 'alphanohtml') : '';
+			}
 
 			$object->color = GETPOST("color", 'alphanohtml') != '' ? GETPOST("color", 'alphanohtml') : '';
 
@@ -527,16 +537,19 @@ if (empty($reshook)) {
 				$object->fk_user_holiday_validator = GETPOSTINT("fk_user_holiday_validator") > 0 ? GETPOSTINT("fk_user_holiday_validator") : 0;
 				$object->employee = GETPOSTINT('employee');
 
-				$object->thm = GETPOST("thm", 'alphanohtml') != '' ? GETPOST("thm", 'alphanohtml') : '';
-				$object->thm = price2num($object->thm);
-				$object->tjm = GETPOST("tjm", 'alphanohtml') != '' ? GETPOST("tjm", 'alphanohtml') : '';
-				$object->tjm = price2num($object->tjm);
-				$object->salary = GETPOST("salary", 'alphanohtml') != '' ? GETPOST("salary", 'alphanohtml') : '';
-				$object->salary = price2num($object->salary);
-				$object->salaryextra = GETPOST("salaryextra", 'alphanohtml') != '' ? GETPOST("salaryextra", 'alphanohtml') : '';
-				$object->salaryextra = price2num($object->salaryextra);
-				$object->weeklyhours = GETPOST("weeklyhours", 'alphanohtml') != '' ? GETPOST("weeklyhours", 'alphanohtml') : '';
-				$object->weeklyhours = price2num($object->weeklyhours);
+				// Only users allowed to see salary/HR fields can modify them (issue #32909)
+				if ($permissiontoseesalary) {
+					$object->thm = GETPOST("thm", 'alphanohtml') != '' ? GETPOST("thm", 'alphanohtml') : '';
+					$object->thm = price2num($object->thm);
+					$object->tjm = GETPOST("tjm", 'alphanohtml') != '' ? GETPOST("tjm", 'alphanohtml') : '';
+					$object->tjm = price2num($object->tjm);
+					$object->salary = GETPOST("salary", 'alphanohtml') != '' ? GETPOST("salary", 'alphanohtml') : '';
+					$object->salary = price2num($object->salary);
+					$object->salaryextra = GETPOST("salaryextra", 'alphanohtml') != '' ? GETPOST("salaryextra", 'alphanohtml') : '';
+					$object->salaryextra = price2num($object->salaryextra);
+					$object->weeklyhours = GETPOST("weeklyhours", 'alphanohtml') != '' ? GETPOST("weeklyhours", 'alphanohtml') : '';
+					$object->weeklyhours = price2num($object->weeklyhours);
+				}
 
 				$object->color = GETPOST("color", 'alphanohtml') != '' ? GETPOST("color", 'alphanohtml') : '';
 				$object->dateemployment = $dateemployment;
@@ -1481,9 +1494,7 @@ if ($action == 'create' || $action == 'adduserldap') {
 	print '<input class="maxwidth200 maxwidth150onsmartphone" type="text" name="job" value="'.dol_escape_htmltag(GETPOST('job', 'alphanohtml')).'">';
 	print '</td></tr>';
 
-	if ((isModEnabled('salaries') && $user->hasRight("salaries", "read") && in_array($id, $childids))
-		|| (isModEnabled('salaries') && $user->hasRight("salaries", "readall"))
-		|| (isModEnabled('hrm') && $user->hasRight("hrm", "employee", "read"))) {
+	if ($permissiontoseesalary) {
 		$langs->load("salaries");
 
 		// THM
@@ -1795,9 +1806,7 @@ if ($action == 'create' || $action == 'adduserldap') {
 			print "</tr>\n";
 
 			// Sensitive salary/value information
-			if ((empty($user->socid) && in_array($id, $childids))	// A user can always see salary/value information for its subordinates
-				|| (isModEnabled('salaries') && $user->hasRight("salaries", "readall"))
-				|| (isModEnabled('hrm') && $user->hasRight("hrm", "employee", "read"))) {
+			if ($permissiontoseesalary) {
 				$langs->load("salaries");
 
 				// Salary
@@ -3016,9 +3025,7 @@ if ($action == 'create' || $action == 'adduserldap') {
 			print "</tr>\n";
 
 			// Sensitive salary/value information
-			if ((empty($user->socid) && in_array($id, $childids))	// A user can always see salary/value information for its subordinates
-				|| (isModEnabled('salaries') && $user->hasRight("salaries", "readall"))
-				|| (isModEnabled('hrm') && $user->hasRight("hrm", "employee", "read"))) {
+			if ($permissiontoseesalary) {
 				$langs->load("salaries");
 
 				// Salary

@@ -201,7 +201,7 @@ if ($ok) {
 	dolibarr_install_syslog("repair: ".$langs->transnoentities("ServerVersion").": ".$version);
 	//print '<td class="right">'.join('.',$versionarray).'</td></tr>';
 }
-
+// Osden add begin
 print '</table>';
 
 
@@ -339,7 +339,7 @@ print '</table>';
 print '<br id="sectionresult">';
 
 print '<table cellspacing="0" cellpadding="1" class="centpercent">';
-
+// Osden add end
 
 $conf->setValues($db);
 // Reset forced setup after the setValues
@@ -356,7 +356,7 @@ $oneoptionset = (GETPOST('standard', 'alpha') || GETPOST('restore_thirdparties_l
 	|| GETPOST('clean_perm_table', 'alpha') || GETPOST('clean_ecm_files_table', 'alpha')
 	|| GETPOST('force_disable_of_modules_not_found', 'alpha')
 	|| GETPOST('force_utf8_on_tables', 'alpha') || GETPOST('force_utf8mb4_on_tables', 'alpha') || GETPOST('force_collation_from_conf_on_tables', 'alpha')
-	|| GETPOST('rebuild_sequences', 'alpha') || GETPOST('recalculateinvoicetotal', 'alpha')) || GETPOST('repair_mailing_path', 'alpha');
+	|| GETPOST('rebuild_sequences', 'alpha') || GETPOST('recalculateinvoicetotal', 'alpha')) || GETPOST('repair_mailing_path', 'alpha');	// Osden change
 
 if ($ok && $oneoptionset) {
 	// Show wait message
@@ -2086,7 +2086,7 @@ if ($ok && GETPOST('recalculateinvoicetotal') == 'confirmed') {
 	}
 }
 
-// Repair mailing path
+// Repair mailing path	// Osden add begin
 if ($ok && GETPOST('repair_mailing_path')) {
 	global $user;
 	$sav_user = is_object($user) ? clone $user : $user;
@@ -2163,7 +2163,7 @@ if ($ok && GETPOST('repair_mailing_path')) {
 
 	print '</td></tr>';
 }
-
+// Osden add end
 print '</table>';
 
 if (empty($actiondone)) {

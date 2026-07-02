@@ -219,12 +219,12 @@ if ($action == "set" || empty($action) || preg_match('/upgrade/i', $action)) {
 	$conf->db->dolibarr_main_db_cryptkey = isset($dolibarr_main_db_cryptkey) ? $dolibarr_main_db_cryptkey : '';
 
 	$db = getDoliDBInstance($conf->db->type, $conf->db->host, $conf->db->user, $conf->db->pass, $conf->db->name, (int) $conf->db->port);
-
+// Osden add begin
 	$osden_version = trim(file_get_contents(__DIR__.'/../VERSION'));
 	if ($osden_version) {
 		dolibarr_set_const($db, "OSDEN_VERSION", $osden_version, 'chaine', 0, '', $conf->entity);
 	}
-
+// Osden add end
 	// Create the global $hookmanager object
 	include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
 	$hookmanager = new HookManager($db);
