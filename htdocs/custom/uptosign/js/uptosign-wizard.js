@@ -604,7 +604,7 @@ function formSeal()
 	let input = $("<input>").attr("type", "hidden")
 		.attr("name", "action").val("uptoseal");
 	$('#leform').append(input);
-	$('#pdfData')[0].value = '';  // InfraS add
+	$('#pdfData')[0].value = '';
 	leform.submit();
 }
 
@@ -613,17 +613,13 @@ function formSign()
 	let input = $("<input>").attr("type", "hidden")
 		.attr("name", "action").val("uptosign");
 	$('#leform').append(input);
-	//debug time
-	$('#pdfData')[0].value = '';  // InfraS change
-	// uposignDebugJs("Debug pour Eric:");
-	// uposignDebugJs($('#leform').serialize());
-	// return false;
+	$('#pdfData')[0].value = '';
 	leform.submit();
 }
 
 function pdfFileChange()
 {
 	$("input[name=action]").val("pdffilechoose");
-	$('#pdfData')[0].value = '';  // InfraS add
+	$('#pdfData')[0].value = '';
 	leform.submit();
 }

@@ -43,6 +43,7 @@ dol_include_once('/uptosign/class/uptosignconfig.class.php');
 dol_include_once('/contact/class/contact.class.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 // dol_include_once('/archivespdf/class/ecmfilesextended.class.php');
+
 // InfraS add begin
 // Force le chargement des classes Smalot\PdfParser embarquées par uptosign
 // avant qu'un autre module livrant sa propre copie de smalot/pdfparser
@@ -56,6 +57,7 @@ class_exists('Smalot\PdfParser\Page');
 class_exists('Smalot\PdfParser\PDFObject');
 class_exists('Smalot\PdfParser\RawData\FilterHelper');
 // InfraS add end
+
 /**
  *  Prepare array of tabs for UptoSign
  *
@@ -925,7 +927,7 @@ function uptosign_resolveMediaBox($pdf, $pageDetails)
  * coordinates are already top-left, hence no flip there.
  *
  * @param   Smalot\PdfParser\Document  $pdf      parsed PDF document
- * @param   string                     $keyword  exact word to look for
+ * @param   string                     $keyword  word to look for (matched even if split across several consecutive text-show tokens) // InfraS change
  * @param   array                      $result   appended with [X_mm, Y_mm, humanPage]
  *
  * @return  bool   true if at least one match was found, false otherwise
@@ -960,23 +962,50 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 		$pageHeightPt = (float) $mediaBox[3] - $originY;
 
 		$data = $page->getDataTm();
-		foreach ($data as $dataWord) {
-			if (trim($dataWord[1]) == $keyword) {
-				// X: pt -> mm, relative to the page left edge, minus a 2 mm
-				//    offset so the stamp/signature box starts on the word, not
-				//    just after it.
-				$X = round((($dataWord[0][4] - $originX) / $ptPerMm) - 2);
-				// Y: flip from bottom-left to top-left, then pt -> mm.
-				//    This now works for ANY page size (A4, Letter, landscape,
-				//    custom) because we convert the real page height in points
-				//    instead of special-casing the A4 dimensions.
-				$Y = round(($pageHeightPt - ($dataWord[0][5] - $originY)) / $ptPerMm - 2);
-				$result[] = [$X, $Y, $humanPage];
-				$return = true;
-				//stop a la 1ere position trouvée ... plus maintenant
-				//break;
+		// InfraS change begin
+		// Some PDFs (e.g. Word/LibreOffice exports where kerning forces extra
+		// positioning operators) split one visual word across several separate
+		// text-show tokens, e.g. UPTOSIGN_STAMP_SIGN_HERE -> [UPTOSIGN][_][ST][AM][P]...
+		// getText() silently reassembles those, but getDataTm() does not, so the
+		// previous strict per-token equality test missed the keyword even though
+		// it visually exists. We now also try concatenating consecutive tokens
+		// starting at each position until they match the keyword (or stop being
+		// a valid prefix of it), so fragmented keywords are found too.
+		$nbTokens = count($data);
+		for ($idx = 0; $idx < $nbTokens; $idx++) {
+			$acc		= '';
+			$consumed	= 0;
+			for ($j = $idx; $j < $nbTokens; $j++) {
+				$acc		.= trim($data[$j][1]);
+				$consumed++;
+				if ($acc === $keyword) {
+					$dataWord = $data[$idx];
+					// X: pt -> mm, relative to the page left edge, minus a 2 mm
+					//    offset so the stamp/signature box starts on the word, not
+					//    just after it.
+					$X = round((($dataWord[0][4] - $originX) / $ptPerMm) - 2);
+					// Y: flip from bottom-left to top-left, then pt -> mm.
+					//    This now works for ANY page size (A4, Letter, landscape,
+					//    custom) because we convert the real page height in points
+					//    instead of special-casing the A4 dimensions.
+					$Y = round(($pageHeightPt - ($dataWord[0][5] - $originY)) / $ptPerMm - 2);
+					$result[] = [$X, $Y, $humanPage];
+					$return = true;
+					//stop a la 1ere position trouvée ... plus maintenant
+					//break;
+					break;
+				}
+				if (strpos($keyword, $acc) !== 0) {
+					// $acc is no longer a prefix of $keyword: abandon this start point
+					break;
+				}
+			}
+			if ($acc === $keyword) {
+				// skip the tokens just consumed so they are not reused as a new start point
+				$idx += $consumed - 1;
 			}
 		}
+		// InfraS change end
 	}
 	dol_syslog("uptosign: uptosign_autoFindWordPositionInPage result is " . $return . " then resut is " .  json_encode($result));
 	return $return;
@@ -2188,7 +2217,7 @@ function uptosign_render_pdf_selector($uploadDir, $pdfFileChoosed, &$pdfFileChoo
 			print "<option value=''></option>";
 			print "</select>";
 		}
-		print '	  <input type="hidden" id="pdfData" name="pdfData" value="' . base64_encode(file_get_contents($pdfFileChoosedFullPath)) . '">' . "\n";
+		print '	  <input type="hidden" id="pdfData" value="' . base64_encode(file_get_contents($pdfFileChoosedFullPath)) . '">' . "\n";	// InfraS change : retrait de name="pdfData" pour ne pas POSTer le PDF entier (cause du 413 Request Entity Too Large) ; le champ reste lu côté client par le viewer PDF.js via son id, et le serveur relit le fichier sur disque
 		print '	  <input type="hidden" id="pdfFileName" name="pdfFileName" value="' . base64_encode($pdfFileChoosedFullPath) . '">' . "\n";
 	} else {
 		print "<p style='color: #f00;font-weight: bold;'>" . $langs->trans('UptoSignNoPdfFilesAssociated') . "</p>";
