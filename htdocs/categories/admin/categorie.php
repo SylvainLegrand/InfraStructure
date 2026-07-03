@@ -117,6 +117,24 @@ if ($conf->use_javascript_ajax) {
 }
 print '</td></tr>';
 
+// InfraS add begin
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans("CategoryShowDescriptionInLabel").'</td>';
+print '<td align="center" width="20">'.$form->textwithpicto('', $langs->trans("CategoryShowDescriptionInLabelHelp"), 1, 'help').'</td>';
+
+print '<td align="center" width="100">';
+if ($conf->use_javascript_ajax) {
+	print ajax_constantonoff('CATEGORY_SHOW_DESCRIPTION_IN_LABEL');
+} else {
+	if (!getDolGlobalString('CATEGORY_SHOW_DESCRIPTION_IN_LABEL')) {
+		print '<a href="'.$_SERVER['PHP_SELF'].'?action=set_CATEGORY_SHOW_DESCRIPTION_IN_LABEL&token='.newToken().'">'.img_picto($langs->trans("Disabled"), 'off').'</a>';
+	} else {
+		print '<a href="'.$_SERVER['PHP_SELF'].'?action=del_CATEGORY_SHOW_DESCRIPTION_IN_LABEL&token='.newToken().'">'.img_picto($langs->trans("Enabled"), 'on').'</a>';
+	}
+}
+print '</td></tr>';
+// InfraS add end
+
 print '</table>';
 
 // End of page

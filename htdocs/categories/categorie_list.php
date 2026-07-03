@@ -410,6 +410,14 @@ if ($mode == 'hierarchy') {
 		$object->color = $val['color'];
 		$object->type = $type;
 		$desc = dol_htmlcleanlastbr($val['description']);
+		// InfraS add begin
+		if (getDolGlobalString('CATEGORY_SHOW_DESCRIPTION_IN_LABEL')) {
+			$labeldesc = dol_string_nohtmltag($val['description'], 1);
+			if ($labeldesc !== '') {
+				$object->ref .= ' ('.dol_escape_htmltag($labeldesc).')';
+			}
+		}
+		// InfraS add end
 
 		$counter = '';
 		if (getDolGlobalString('CATEGORY_SHOW_COUNTS')) {
@@ -871,6 +879,14 @@ if ($mode == 'hierarchy') {
 					if ($key == 'label') {
 						$color = $object->color ? ' style="background: #'.sprintf("%06s", $object->color).';"' : ' style="background: #bbb"';
 						$object->ref = $object->label;
+						// InfraS add begin
+						if (getDolGlobalString('CATEGORY_SHOW_DESCRIPTION_IN_LABEL')) {
+							$labeldesc = dol_string_nohtmltag($object->description, 1);
+							if ($labeldesc !== '') {
+								$object->ref .= ' ('.dol_escape_htmltag($labeldesc).')';
+							}
+						}
+						// InfraS add end
 						$li = $object->getNomUrl(1, '', 60, '&backtolist='.urlencode($_SERVER["PHP_SELF"].'?type='.$type.$param));
 
 						print '<span class="noborderoncategories" '.$color.'>'.$li.'</span>';

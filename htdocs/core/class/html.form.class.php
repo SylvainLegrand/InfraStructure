@@ -5909,6 +5909,14 @@ class Form
 
 					$labeltoshow = img_picto('', 'category', 'class="pictofixedwidth"'.(empty($cate_arbo[$key]['color']) ? '' : ' style="color: #' . $cate_arbo[$key]['color'] . '"'));
 					$labeltoshow .= dol_trunc($cate_arbo[$key]['fulllabel'], $maxlength, 'middle');
+					// InfraS add begin
+					if (getDolGlobalString('CATEGORY_SHOW_DESCRIPTION_IN_LABEL')) {
+						$categdesc = dol_string_nohtmltag($cate_arbo[$key]['description'], 1);
+						if ($categdesc !== '') {
+							$labeltoshow .= ' (' . dol_escape_htmltag(dol_trunc($categdesc, 40)) . ')';
+						}
+					}
+					// InfraS add end
 
 					$outarray[$cate_arbo[$key]['id']] = $cate_arbo[$key]['fulllabel'];
 
@@ -10011,6 +10019,14 @@ class Form
 					$color = $c->color;
 					$sfortag = '<li class="select2-search-choice-dolibarr noborderoncategories"' . ($color ? ' style="background: #' . $color . ';"' : ' style="background: #bbb"') . '>';
 					$sfortag .= $way;
+					// InfraS add begin
+					if (getDolGlobalString('CATEGORY_SHOW_DESCRIPTION_IN_LABEL')) {
+						$categdesc = dol_string_nohtmltag($c->description, 1);
+						if ($categdesc !== '') {
+							$sfortag .= ' (' . dol_escape_htmltag(dol_trunc($categdesc, 40)) . ')';
+						}
+					}
+					// InfraS add end
 					$sfortag .= '</li>';
 					$toprint[] = $sfortag;
 				}
