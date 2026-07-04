@@ -364,6 +364,7 @@ create table if not exists llx_ai_request_log
   security_hash				varchar(80),
   raw_request_payload		MEDIUMTEXT,
   raw_response_payload		MEDIUMTEXT
+)ENGINE=innodb;
 
 -- InfraS add begin
 -- Add category purpose and community specific instrument to bank account (used to build SEPA files)
@@ -377,6 +378,7 @@ CREATE TABLE llx_c_sepa_category_purpose
   label 	   		varchar(255),
   position			integer NOT NULL DEFAULT 0,
   active     		tinyint DEFAULT 1  NOT NULL
+)ENGINE=innodb;
 
 ALTER TABLE llx_c_sepa_category_purpose ADD INDEX idx_c_sepa_category_purpose_code(code);
 
@@ -394,12 +396,11 @@ CREATE TABLE llx_c_sepa_community_instrument
   label	    		varchar(255),
   position			integer NOT NULL DEFAULT 0,
   active     		tinyint DEFAULT 1  NOT NULL
+)ENGINE=innodb;
 
 ALTER TABLE llx_c_sepa_community_instrument ADD INDEX idx_c_sepa_community_instrument_code(code);
 
 INSERT INTO llx_c_sepa_community_instrument (code, label, position, active) VALUES ('CORE', 'c_sepa_community_instrumentCORE', 0, 1);
 INSERT INTO llx_c_sepa_community_instrument (code, label, position, active) VALUES ('INST', 'c_sepa_community_instrumentINST', 1, 1);
 -- InfraS add end
-
-)ENGINE=innodb;
 
