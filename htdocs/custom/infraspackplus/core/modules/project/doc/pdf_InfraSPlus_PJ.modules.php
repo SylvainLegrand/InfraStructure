@@ -229,6 +229,7 @@
 		public $logo;
 		public $adr;
 		public $customerAddrSelect;
+		public $include_alias;
 		public $adrlivr;
 		public $listnotep;
 		public $pied;
@@ -357,6 +358,7 @@
 					$this->listnotep		= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied				= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
 					$this->files			= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
+					$this->include_alias	= !empty($hookmanager->resArray['includealias']) ? $hookmanager->resArray['includealias'] : '';
 					$task					= new Task($this->db);
 					$tasksarray				= [];
 					$tasksarray				= $task->getTasksArray(null, null, $object->id);
@@ -1077,7 +1079,7 @@
 			$pdf->SetFont('', '', $default_font_size - 2);
 			if (is_object($object->thirdparty)) {
 				$posy	+= $this->tab_hl;
-				$pdf->MultiCell($w, $this->tab_hl, $outputlangs->transnoentities("ThirdParty").' : '.$object->thirdparty->getFullName($outputlangs), '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($w, $this->tab_hl, $outputlangs->transnoentities("ThirdParty").' : '.pdf_InfraSPlus_Build_Third_party_Name($object->thirdparty, $outputlangs, $this->include_alias), '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			}
 			$posy	+= $this->tab_hl;
 			$pdf->SetFont('', 'B', $default_font_size * $this->title_size);

@@ -908,7 +908,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "expensereportfiles" value = '.GETPOST('expensereportfiles', 'alpha').'>';
 				}
 				// Alias
-				if (!in_array($object->element, ['product', 'mo', 'bom'])) {
+				if (!in_array($object->element, ['product', 'mo', 'bom', 'chequereceipt'])) {
 					$includealiasPost	= empty(GETPOST('includealias', 'alpha')) || GETPOST('includealias', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">

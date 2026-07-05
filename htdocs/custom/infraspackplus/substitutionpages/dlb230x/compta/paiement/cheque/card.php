@@ -160,7 +160,7 @@ if ($action == 'create' && GETPOSTINT("accountid") > 0 && $user->hasRight('banqu
 
 		$result = $object->create($user, GETPOSTINT("accountid"), 0, $arrayofid);
 		if ($result > 0) {
-			if ($object->statut == 1) {     // If statut is validated, we build doc
+			if ($object->statut == 1 && getDolGlobalInt('INFRASPLUS_PDF_SEMIAUTOUPDATE', 0)) {     // If statut is validated and semi-auto generation is enabled, we build doc
 				$object->fetch($object->id); // To force to reload all properties in correct property name
 				// Define output language
 				$outputlangs = $langs;
@@ -212,20 +212,50 @@ if ($action == 'confirm_delete' && $confirm == 'yes' && $user->hasRight('banque'
 
 if ($action == 'confirm_validate' && $confirm == 'yes' && $user->hasRight('banque', 'cheque')) {
 	$result = $object->fetch($id);
+	// InfraS add : mémorise la référence provisoire avant validate() - nécessaire pour migrer le dossier de documents
+	// (le core RemiseCheque::validate() ne renomme pas le dossier, contrairement à Facture/Commande/Propal ; on peut
+	// désormais générer des documents dès le brouillon, cf. bloc "Documents" plus bas)
+	$oldref = dol_sanitizeFileName($object->ref);
 	$result = $object->validate($user);
 	if ($result >= 0) {
-		// Define output language
-		$outputlangs = $langs;
-		$newlang = '';
-		if (getDolGlobalInt('MAIN_MULTILANGS') /* && empty($newlang) */ && GETPOST('lang_id', 'aZ09')) {
-			$newlang = GETPOST('lang_id', 'aZ09');
+		// InfraS add begin : migre le dossier + les fichiers du brouillon (PROVxxx) vers la référence définitive
+		$newref = dol_sanitizeFileName($object->ref);
+		if ($oldref !== $newref) {
+			$dirsource = $upload_dir.'/'.$oldref;
+			$dirdest   = $upload_dir.'/'.$newref;
+			if (file_exists($dirsource) && !file_exists($dirdest)) {
+				dol_syslog("card.php (chequereceipts) rename dir ".$dirsource." into ".$dirdest);
+				if (@rename($dirsource, $dirdest)) {
+					include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+					$listoffiles = dol_dir_list($dirdest, 'files', 1, '^'.preg_quote($oldref, '/'));
+					foreach ($listoffiles as $fileentry) {
+						$filesource = $fileentry['path'].'/'.$fileentry['name'];
+						$filedest   = $fileentry['path'].'/'.preg_replace('/^'.preg_quote($oldref, '/').'/', $newref, $fileentry['name']);
+						@rename($filesource, $filedest);
+					}
+				}
+			}
 		}
-		//if (getDolGlobalInt('MAIN_MULTILANGS') && empty($newlang)) $newlang=$object->client->default_lang;
-		if (!empty($newlang)) {
-			$outputlangs = new Translate("", $conf);
-			$outputlangs->setDefaultLang($newlang);
+		// InfraS add end
+
+		// InfraS change begin : ne générer automatiquement le document que si l'option "Génération semi-automatique"
+		// du module infraspackplus est activée ; sinon laisser l'utilisateur générer manuellement depuis le bloc
+		// "Documents" (désormais visible dès le brouillon), comme pour les autres types de documents Dolibarr
+		if (getDolGlobalInt('INFRASPLUS_PDF_SEMIAUTOUPDATE', 0)) {
+			// Define output language
+			$outputlangs = $langs;
+			$newlang = '';
+			if (getDolGlobalInt('MAIN_MULTILANGS') /* && empty($newlang) */ && GETPOST('lang_id', 'aZ09')) {
+				$newlang = GETPOST('lang_id', 'aZ09');
+			}
+			//if (getDolGlobalInt('MAIN_MULTILANGS') && empty($newlang)) $newlang=$object->client->default_lang;
+			if (!empty($newlang)) {
+				$outputlangs = new Translate("", $conf);
+				$outputlangs->setDefaultLang($newlang);
+			}
+			$result = infraspackplus_bc_generatePdf($object, GETPOST('model'), $outputlangs);
 		}
-		$result = infraspackplus_bc_generatePdf($object, GETPOST('model'), $outputlangs);	// InfraS change
+		// InfraS change end
 
 		header("Location: ".$_SERVER["PHP_SELF"]."?id=".$object->id);
 		exit;
@@ -834,17 +864,44 @@ print '</div>';
 
 
 if ($action != 'new') {
-	if ($object->statut == 1) {
+	// InfraS change : le core n'affiche ce bloc que si $object->statut == 1 (validé) ; on l'autorise aussi en brouillon
+	// (comme la plupart des autres documents Dolibarr - devis, commandes, factures) pour permettre un aperçu avant validation
+	{
 		// Documents
 		$objref = dol_sanitizeFileName($object->ref);
 		$filedir = $upload_dir.'/'.$objref;
 		$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 		$genallowed = $usercancreate;
 		$delallowed = $usercandelete;
-		// InfraS change begin : injecter le modèle InfraSPlus_BC dans la liste de sélection (no-core)
-		$infrasdoc = $formfile->showdocuments('remisecheque', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
-		if (isModEnabled('infraspackplus') && file_exists(dol_buildpath('/infraspackplus/core/modules/cheque/doc/pdf_InfraSPlus_BC.modules.php', 0)) && strpos($infrasdoc, '>InfraSPlus_BC<') === false) {
+		// InfraS change begin : n'offrir que les modèles activés (Statut) et pré-sélectionner le modèle par défaut, dans admin/chequereceipts.php (no-core)
+		$defaultchequemodel = getDolGlobalString('CHEQUERECEIPT_ADDON_PDF', '');
+		$infrasdoc = $formfile->showdocuments('remisecheque', $objref, $filedir, $urlsource, $genallowed, $delallowed, $defaultchequemodel, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
+
+		// Models explicitly enabled via admin/chequereceipts.php ("Status" column)
+		$enabledchequemodels = array();
+		$sql = "SELECT nom FROM ".MAIN_DB_PREFIX."document_model WHERE type = 'chequereceipt' AND entity = ".((int) $conf->entity);
+		$resql = $db->query($sql);
+		if ($resql) {
+			while ($objp = $db->fetch_object($resql)) {
+				$enabledchequemodels[] = $objp->nom;
+			}
+			$db->free($resql);
+		}
+
+		if (!empty($enabledchequemodels)) {
+			// At least one model has been explicitly configured : hide "blochet" if it was disabled
+			if (!in_array('blochet', $enabledchequemodels)) {
+				$infrasdoc = preg_replace('/<option\b[^>]*\bvalue="blochet"[^>]*>.*?<\/option>\s*/i', '', $infrasdoc, 1);
+			}
+		}
+		if ((empty($enabledchequemodels) || in_array('InfraSPlus_BC', $enabledchequemodels)) && isModEnabled('infraspackplus') && file_exists(dol_buildpath('/infraspackplus/core/modules/cheque/doc/pdf_InfraSPlus_BC.modules.php', 0)) && strpos($infrasdoc, '>InfraSPlus_BC<') === false) {
 			$infrasdoc = preg_replace('/(<select\\b[^>]*\\bname="model"[^>]*>)/', '$1<option value="InfraSPlus_BC">InfraSPlus_BC</option>', $infrasdoc, 1);
+		}
+		// Normalize "selected" : the core marks its sole native option (blochet) selected on its own regardless of $modelselected ;
+		// strip every "selected" then reapply it only on the model actually configured as default
+		$infrasdoc = preg_replace('/(<option\b[^>]*)\s+selected(\s*>)/i', '$1$2', $infrasdoc);
+		if ($defaultchequemodel !== '') {
+			$infrasdoc = preg_replace('/(<option\b[^>]*\bvalue="'.preg_quote($defaultchequemodel, '/').'"[^>]*)>/i', '$1 selected>', $infrasdoc, 1);
 		}
 		print $infrasdoc;
 		// InfraS change end

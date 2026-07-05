@@ -107,6 +107,8 @@
 		public $larg_bank;
 		public $larg_emet;
 		public $larg_amount;
+		public $account;	// Bank account object, loaded in write_file() for document generation
+		public $lines = array();	// Cheque lines (stdClass: bank_chq, emetteur_chq, amount_chq, num_chq), loaded in write_file()
 
 		/**
 		*	Constructor
@@ -135,15 +137,13 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		RemiseCheque	$object				Object RemiseCheque
-		*	@param		Translate		$outputlangs		Lang output object
-		*	@param		string			$srctemplatepath	Path to the template
-		*	@param		int				$hidedetails		Flag to hide details
-		*	@param		int				$hidedesc			Flag to hide description
-		*	@param		int				$hideref			Flag to hide reference
+		*	@param		RemiseCheque	$object			Object RemiseCheque
+		*	@param		string			$_dir			Directory (unused, path is computed from $object)
+		*	@param		string			$number			Number (unused, path is computed from $object)
+		*	@param		Translate		$outputlangs	Lang output object
 		*	@return		int<-1,1>						1 if OK, <=0 if KO
 		**/
-		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
+		public function write_file($object, $_dir, $number, $outputlangs)
 		{
 			global $user, $conf, $langs, $hookmanager, $action;
 
@@ -156,6 +156,47 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'compta', 'bills', 'banks', 'companies', 'infraspackplus@infraspackplus'));
+			$this->account	= new Account($this->db);
+			if (!empty($object->account_id)) {
+				$this->account->fetch($object->account_id);
+			}
+			// Cheque lines : specimen uses fixed demo data, real records are read from llx_bank
+			$this->lines	= array();
+			if (!empty($object->specimen)) {
+				$line1					= new stdClass();
+				$line1->bank_chq		= 'Banque Exemple';
+				$line1->emetteur_chq	= 'Jean Dupont';
+				$line1->amount_chq		= 150.00;
+				$line1->num_chq			= '1234567';
+				$line2					= new stdClass();
+				$line2->bank_chq		= 'Crédit Agricole';
+				$line2->emetteur_chq	= 'Marie Martin';
+				$line2->amount_chq		= 250.00;
+				$line2->num_chq			= '7654321';
+				$this->lines			= array($line1, $line2);
+				$object->nbcheque		= count($this->lines);
+				$object->amount			= $line1->amount_chq + $line2->amount_chq;
+			} elseif (!empty($object->id)) {
+				$sql = "SELECT b.banque, b.emetteur, b.amount, b.num_chq";
+				$sql .= " FROM ".MAIN_DB_PREFIX."bank as b";
+				$sql .= " INNER JOIN ".MAIN_DB_PREFIX."bank_account as ba ON b.fk_account = ba.rowid";
+				$sql .= " INNER JOIN ".MAIN_DB_PREFIX."bordereau_cheque as bc ON b.fk_bordereau = bc.rowid";
+				$sql .= " WHERE bc.rowid = ".((int) $object->id);
+				$sql .= " AND bc.entity = ".((int) $conf->entity);
+				$sql .= " ORDER BY b.dateo ASC, b.rowid ASC";
+				$resql = $this->db->query($sql);
+				if ($resql) {
+					while ($objp = $this->db->fetch_object($resql)) {
+						$line				= new stdClass();
+						$line->bank_chq		= $objp->banque;
+						$line->emetteur_chq	= $objp->emetteur;
+						$line->amount_chq	= $objp->amount;
+						$line->num_chq		= $objp->num_chq;
+						$this->lines[]		= $line;
+					}
+					$this->db->free($resql);
+				}
+			}
 			$number		= $object->ref;
 			$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BC') ? '' : '_BC';
 			$entity		= !empty($object->entity) ? $object->entity : $conf->entity;
@@ -242,12 +283,12 @@
 			// Body : loop on cheque lines (table dressing drawn per page by _tableau() once the used height is known)
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 1);
-			$nboflines		= count($object->lines);
+			$nboflines		= count($this->lines);
 			$curY			= $datatop;
 			for ($j = 0; $j < $nboflines; $j++) {
 				// Dynamic line height computation (bank / transmitter may wrap)
-				$h_bank		= $pdf->getStringHeight($this->larg_bank - $this->colpad, $outputlangs->convToOutputCharset($object->lines[$j]->bank_chq));
-				$h_emet		= $pdf->getStringHeight($this->larg_emet - $this->colpad, $outputlangs->convToOutputCharset($object->lines[$j]->emetteur_chq));
+				$h_bank		= $pdf->getStringHeight($this->larg_bank - $this->colpad, $outputlangs->convToOutputCharset($this->lines[$j]->bank_chq));
+				$h_emet		= $pdf->getStringHeight($this->larg_emet - $this->colpad, $outputlangs->convToOutputCharset($this->lines[$j]->emetteur_chq));
 				$max_h		= max($h_bank, $h_emet, $this->line_height);
 				$nb_lines	= $max_h > $this->line_height ? ((int) floor($max_h / $this->line_height) + 1) : 1;
 				$rowh		= $this->line_height * $nb_lines;
@@ -267,10 +308,10 @@
 				}
 				// Body cells : text color from bodytxtcolor, horizontal padding from colpad
 				$pdf->MultiCell($this->larg_idx, $this->line_height, (string) ($j + 1), '', 'C', 0, 1, $this->posx_idx, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_num - $this->colpad, $this->line_height, !empty($object->lines[$j]->num_chq) ? $object->lines[$j]->num_chq : '', '', 'L', 0, 1, $this->posx_num + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_bank - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($object->lines[$j]->bank_chq), '', 'L', 0, 1, $this->posx_bank + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_emet - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($object->lines[$j]->emetteur_chq), '', 'L', 0, 1, $this->posx_emet + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
-				$pdf->MultiCell($this->larg_amount - $this->colpad, $this->line_height, price($object->lines[$j]->amount_chq, 0, $outputlangs, 1, -1, -1, $conf->currency), '', 'R', 0, 1, $this->posx_amount, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_num - $this->colpad, $this->line_height, !empty($this->lines[$j]->num_chq) ? $this->lines[$j]->num_chq : '', '', 'L', 0, 1, $this->posx_num + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_bank - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($this->lines[$j]->bank_chq), '', 'L', 0, 1, $this->posx_bank + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_emet - $this->colpad, $this->line_height, $outputlangs->convToOutputCharset($this->lines[$j]->emetteur_chq), '', 'L', 0, 1, $this->posx_emet + $this->colpad, $curY, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($this->larg_amount - $this->colpad, $this->line_height, price($this->lines[$j]->amount_chq, 0, $outputlangs, 1, -1, -1, $conf->currency), '', 'R', 0, 1, $this->posx_amount, $curY, true, 0, 0, false, 0, 'M', false);
 				$curY	+= $rowh;
 				// Row separator (body border) when dash between lines is enabled (MAIN_PDF_DASH_BETWEEN_LINES)
 				if (!empty($this->dash_between_line) && $j < ($nboflines - 1)) {
@@ -341,16 +382,16 @@
 			$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Date').' : '.dol_print_date($object->date_bordereau, 'day', false, $outputlangs), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
 			$infoy	+= $this->tab_hl;
 			$pdf->SetFont('', '', $default_font_size - 1);
-			if (!empty($object->account->owner_name)) {
+			if (!empty($this->account->owner_name)) {
 				$pdf->SetFont('', '', $default_font_size - 1);
-				$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Owner').' : '.$outputlangs->convToOutputCharset($object->account->owner_name), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('Owner').' : '.$outputlangs->convToOutputCharset($this->account->owner_name), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
 				$infoy	+= $this->tab_hl;
 			}
-			$bankval	= !empty($object->account->label) ? $object->account->label : '';
-			if (!empty($object->account->iban)) {
-				$bankval	.= (!empty($bankval) ? ' - ' : '').$object->account->iban;
-			} elseif (!empty($object->account->number)) {
-				$bankval	.= (!empty($bankval) ? ' - ' : '').$object->account->number;
+			$bankval	= !empty($this->account->label) ? $this->account->label : '';
+			if (!empty($this->account->iban)) {
+				$bankval	.= (!empty($bankval) ? ' - ' : '').$this->account->iban;
+			} elseif (!empty($this->account->number)) {
+				$bankval	.= (!empty($bankval) ? ' - ' : '').$this->account->number;
 			}
 			$pdf->MultiCell($infoboxw, $this->tab_hl, $outputlangs->transnoentities('BankAccount').' : '.$outputlangs->convToOutputCharset($bankval), '', 'R', 0, 1, $infox, $infoy, true, 0, 0, false, 0, 'M', false);
 			$infoy	+= $this->tab_hl;

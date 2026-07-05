@@ -208,9 +208,15 @@ Voir `docs/changelog.xml` pour l'historique complet des versions.
 ### Substitution de pages vs hooks
 
 Comme InfraSCusPrice, InfraSPackPlus utilise la **substitution de pages** pour certaines pages Dolibarr :
-- **Pages substituées** : `societe/contact.php` (contacts société), `admin/dict.php` (dictionnaires admin) et `compta/paiement/cheque/card.php` (fiche bordereau de remise de chèques)
+- **Pages substituées** : `societe/contact.php` (contacts société), `admin/dict.php` (dictionnaires admin), `compta/paiement/cheque/card.php` (fiche bordereau de remise de chèques) et `admin/chequereceipts.php` (gestion des modèles de documents + specimen pour les bordereaux de chèques, cf. ci-dessous)
 - **Constante d'activation** : générée dynamiquement depuis le chemin (ex. `/societe/contact.php` → `INFRASPACKPLUS_PS_ACTIVE_SOCIETE_CONTACT`)
 - **Branches maintenues** : `dlb210x`, `dlb220x`, `dlb220x-DolInfraS`, `dlb230x`, `dlb240x` (5 branches dont 1 variante DolInfraS)
+  - `admin/chequereceipts.php` couvre les 5 branches, chacune construite à partir d'une source Dolibarr stock fournie et vérifiée par diff avant intégration :
+    - v22 standard vs instance de développement (DolInfraS) : **strictement identique**.
+    - v21 standard vs v22 standard : 2 différences cosmétiques/sans impact — plage de dates du copyright, et `$form->textwithpicto('', $htmltooltip, 1, 0)` (v21) au lieu de `... 1, 'info')` (v22) sur l'exemple de numérotation (tableau natif, pas la partie ajoutée par InfraS).
+    - v23 standard vs v22 standard : 2 différences — lien « retour à la liste des modules » modernisé (`dolBuildUrl()` + icône + libellé masqué sur mobile) et lecture `$conf->global->CHEQUERECEIPTS_ADDON` remplacée par `getDolGlobalString('CHEQUERECEIPTS_ADDON')` (l'écriture par défaut en tête de fichier reste `$conf->global->... = ...`, seule la lecture change).
+    - v24 standard vs v23 standard : **strictement identique** (mêmes 2 différences par rapport à v22, aucune nouveauté v24) — `dlb240x` est une copie conforme de `dlb230x`.
+  - Pour toute future montée de version majeure (v25+), reprendre cette même méthode : diff systématique de la source stock fournie contre la version déjà intégrée la plus proche, avant de reporter uniquement les différences réelles sur la variante de substitution — ne jamais supposer l'absence de différence sans vérifier.
 - **Avantages** : contrôle total de la page, adaptation par version Dolibarr et par distribution (Dolibarr standard vs DolInfraS/LTS by InfraS)
 - **Inconvénients** : maintenance d'un fichier par page et par version majeure
 
@@ -242,7 +248,7 @@ Modèle PDF `core/modules/cheque/doc/pdf_InfraSPlus_BC.modules.php` (classe `pdf
 **Particularité** : le sous-système chèque du core Dolibarr est non standard, ce qui neutralise les mécanismes habituels :
 - `ModeleChequeReceipts::liste_modeles()` renvoie `array('blochet')` en dur (ignore la table `llx_document_model`) ;
 - `RemiseCheque::generatePdf()` charge en dur `/core/modules/cheque/doc/pdf_<model>.class.php` (classe `BordereauCheque<Model>`), sans `dol_buildpath` ni `commonGenerateDocument()` ;
-- `compta/paiement/cheque/card.php` n'initialise **aucun hook** (ni `doActions`, ni `formObjectOptions`), et `showdocuments()` n'expose pas de point d'injection de la liste des modèles.
+- `compta/paiement/cheque/card.php` n'initialise **lui-même** aucun hook, et `showdocuments()` n'expose pas de point d'injection de la liste des modèles ; ⚠️ **nuance** : `showdocuments()` (core, `html.formfile.class.php`) initialise en interne le contexte `formfile` (`initHooks(['formfile'])`) et y déclenche bien `formBuilddocOptions`/`showDocuments`/`formattachOptions` — donc le formulaire générique d'options avant génération d'`infraspackplus` **s'affiche** sur cette page (cf. fix ci-dessous). Seul `doActions` (contexte différent, jamais initialisé par cette page) ne se déclenche pas — la conclusion sur `INFRASPLUS_PDF_SEMIAUTOUPDATE` (cf. section dédiée plus bas) reste donc valide.
 
 **Solution retenue (no-core)** : **substitution** de `compta/paiement/cheque/card.php` (dossiers `substitutionpages/dlb{XX}0x{-DolInfraS}/compta/paiement/cheque/card.php`). La page substituée :
 1. injecte l'option `InfraSPlus_BC` dans le `<select name="model">` (post-traitement de la sortie de `showdocuments()`, avec garde anti-doublon `strpos(..., '>InfraSPlus_BC<')`) ;
@@ -251,6 +257,64 @@ Modèle PDF `core/modules/cheque/doc/pdf_InfraSPlus_BC.modules.php` (classe `pdf
 **Constante d'activation** : `INFRASPACKPLUS_PS_ACTIVE_COMPTA_PAIEMENT_CHEQUE_CARD` (posée dans `data.sql`).
 
 Le modèle suit pourtant la convention générique `pdf_<model>.modules.php` / classe `pdf_<model>` (comme tous les modèles InfraS) ; c'est uniquement le chargeur core non standard qui impose la substitution au lieu du mécanisme générique `commonGenerateDocument()`.
+
+### Retrait complet des patches core RemiseCheque + admin/chequereceipts.php + modules_chequereceipts.php (fix v21.4.2)
+
+**Symptôme initial** : erreur SQL fatale `Unknown column 'bc.model_pdf'` (`DB_ERROR_NOSUCHFIELD`) à **chaque** affichage d'une fiche bordereau de remise de chèques, empêchant toute consultation et toute génération de document.
+
+**Cause** : `compta/paiement/cheque/class/remisecheque.class.php` (core) avait été patché avec plusieurs ajouts jamais opérationnels ou devenus incompatibles entre eux :
+- une propriété `$model_pdf` alimentée par `bc.model_pdf`, colonne jamais créée sur `llx_bordereau_cheque` (aucune migration, ni core ni module) — l'écriture correspondante (`setDocModel()`) était d'ailleurs restée commentée dans les 5 pages de substitution, la fonctionnalité n'avait donc jamais fonctionné ;
+- une propriété `$account` (objet `Account` complet), `fetch_lines()`/`$lines`/la classe `RemiseChequeLigne`, et un `generatePdf()` détourné vers `commonGenerateDocument()` — ajoutés pour les besoins d'affichage de `pdf_InfraSPlus_BC` (titulaire/IBAN/compte, détail des chèques, chargement du modèle) ;
+- `core/modules/cheque/modules_chequereceipts.php` (3ᵉ fichier core, non détecté au premier passage) avait sa méthode **abstraite** `ModeleChequeReceipts::write_file()` réécrite à la convention moderne, pour que `pdf_InfraSPlus_BC` satisfasse le contrat abstrait — mais rendant du même coup `BordereauChequeBlochet` (modèle natif `blochet`, convention historique à 4 paramètres) incompatible avec sa propre classe parente, provoquant une erreur fatale PHP (`Declaration of ... must be compatible with ...`) dès que `generatePdf()` la chargeait.
+
+**Correctif** : les trois fichiers (`remisecheque.class.php`, `modules_chequereceipts.php`, et le fichier compagnon core-tree `core/modules/cheque/doc/pdf_blochet.modules.php` créé par InfraS puis supprimé) sont désormais **strictement identiques au core Dolibarr standard**. Toute la logique est reprise de façon autonome côté module, dans `pdf_InfraSPlus_BC::write_file()` :
+```php
+// Compte bancaire, à partir de la propriété native $object->account_id
+$this->account = new Account($this->db);
+if (!empty($object->account_id)) {
+    $this->account->fetch($object->account_id);
+}
+// Détail des chèques, à partir de l'id natif $object->id (ou 2 lignes de démo si $object->specimen)
+// -> $this->lines (array de stdClass, pas de classe dédiée nécessaire)
+// Convention de write_file() alignée sur l'abstrait stock : write_file($object, $_dir, $number, $outputlangs)
+// ($_dir/$number non utilisés, la classe calcule son propre chemin à partir de $object, comme BordereauChequeBlochet)
+```
+Les 2 points d'appel adaptés à cette convention : `infraspackplus_bc_generatePdf()` (`infraspackplus.lib.php`) et l'action `specimen` de la page de substitution admin. Au passage, correction d'un bug latent dans `infraspackplus_bc_generatePdf()` : l'appel `write_file(...)` passait les arguments dans le désordre d'une ancienne convention, faisant que la langue explicitement demandée pour un document multilingue était silencieusement ignorée.
+
+**Leçon** : avant de revenir au core stock sur une méthode qui **implémente une interface/classe abstraite**, vérifier systématiquement l'ensemble de la hiérarchie de classes (parents ET soeurs qui implémentent la même abstraction) — un patch peut être réparti sur plusieurs fichiers co-dépendants sans qu'aucun ne le signale individuellement. `grep -rn "InfraS" <répertoire>` sur tout le sous-arbre concerné (pas seulement le fichier qu'on modifie) révèle ce genre de patch dispersé.
+
+**admin/chequereceipts.php retiré du core** : cette page gère des actions d'administration (enregistrement/désenregistrement de modèles via `addDocumentModel()`/`delDocumentModel()`, choix du modèle par défaut, génération d'un PDF spécimen) sans aucun point d'extension par hook — comme `card.php`, elle ne peut pas être rendue autonome par simple chargement côté module. Retirée du core par **substitution de page** vers `substitutionpages/<branche>/admin/chequereceipts.php`, activée par la nouvelle constante `INFRASPACKPLUS_PS_ACTIVE_ADMIN_CHEQUERECEIPTS` (`data.sql`, active par défaut — même mécanisme que `admin/dict.php`). Le tableau « Modèles de documents » de cette page recense à la fois la convention historique (`pdf_<model>.class.php` / `BordereauCheque<Model>`) et la convention moderne InfraS (`pdf_<model>.modules.php` / `pdf_<model>`) :
+```php
+if (preg_match('/^pdf_.*\.modules\.php$/i', $file)) {
+    $name      = substr($file, 4, strlen($file) - 16);
+    $classname = 'pdf_'.$name;
+} elseif (preg_match('/^pdf_.*\.class\.php$/i', $file)) {
+    $name      = substr($file, 4, strlen($file) - 14);
+    $classname = 'BordereauCheque'.ucfirst($name);
+} else {
+    continue;
+}
+```
+
+**Filtrage et présélection du modèle sur card.php** : le menu de sélection de `compta/paiement/cheque/card.php` respecte désormais l'activation/désactivation choisie dans `admin/chequereceipts.php` (colonne « Status », table `llx_document_model`) et présélectionne correctement le modèle configuré par défaut (colonne « Default », constante `CHEQUERECEIPT_ADDON_PDF`) — le core codant en dur `blochet` dans `ModeleChequeReceipts::liste_modeles()` (`array('blochet' => 'blochet')`, ignore volontairement `llx_document_model`, particularité connue du sous-système chèque) et l'injection d'`InfraSPlus_BC` (mécanisme no-core de `card.php`) ne consultaient ni l'un ni l'autre. Point technique retenu : `Form::selectarray()` (core) marque son unique entrée native comme `selected` par défaut dès qu'aucune correspondance exacte n'est trouvée, indépendamment de la valeur transmise — la présélection ne peut donc pas être pilotée en amont de façon fiable ; `card.php` **normalise après coup** (retire tout `selected` généré, puis le réapplique une seule fois sur l'option correspondant réellement à `CHEQUERECEIPT_ADDON_PDF`). **Repli de compatibilité** : si `llx_document_model` ne contient aucune ligne pour `chequereceipt` (aucun modèle jamais configuré), les deux modèles restent proposés comme avant, pour ne pas rendre la génération soudainement indisponible sur des instances qui n'ont jamais utilisé ce tableau.
+
+**État** : `remisecheque.class.php`, `admin/chequereceipts.php` et `core/modules/cheque/modules_chequereceipts.php` sont 100% stock sur cette instance (`core/modules/cheque/doc/` ne contient plus que le fichier stock `pdf_blochet.class.php`) ; toute la logique InfraS vit dans le module.
+
+### Génération dès le brouillon, réglage semi-automatique, alias, couverture multi-branches (fix/add v21.5.0)
+
+**Affichage dès le brouillon** : le bloc « Fichiers joints / Générer un document » de `card.php` est désormais affiché dès le brouillon ("à valider"), pas seulement une fois le bordereau validé — alignement sur le comportement des devis/commandes/factures (le core réservait ce bloc au statut validé pour ce sous-système uniquement). Guard `if ($object->statut == 1)` remplacé par un bloc toujours actif.
+
+**Effet de bord traité — migration du dossier de documents** : `RemiseCheque::validate()` (core, non touché) change la référence de `(PROVxxx)` vers la référence définitive **sans renommer le dossier de documents**, à la différence de `Facture::validate()`/`Commande::validate()`/`Propal::validate()`. Sans traitement, tout document généré en brouillon serait resté orphelin sous l'ancien dossier `PROVxxx`. L'action `confirm_validate` de `card.php` capture la référence provisoire avant `$object->validate($user)`, puis renomme le dossier `checkdeposits/<oldref>` vers `checkdeposits/<newref>` et les fichiers qu'il contient — même motif que `Facture::validate()`, adapté au dossier `checkdeposits`.
+
+**Réglage « Génération semi-automatique »** : vérification de la compatibilité entre `RemiseCheque` et `INFRASPLUS_PDF_SEMIAUTOUPDATE` (cf. section *Hook doActions*) a révélé une double incompatibilité — `actions_infraspackplus::doActions()` dispatch entièrement par `instanceof` (`Propal`, `Commande`, `Facture`, `Contrat`, `Fichinter`, `Expedition`, `Reception`, `Delivery`, `SupplierProposal`, `CommandeFournisseur`, aucune branche `RemiseCheque`) et `card.php` n'appelle de toute façon jamais `$hookmanager->initHooks()`/`executeHooks('doActions', ...)`. Or `card.php` générait malgré tout un PDF automatiquement à la validation (`confirm_validate`) et à la création directement validée (`create`), **sans jamais consulter** ce réglage — exception à la politique choisie par l'admin sur les autres types de documents. Les deux appels à `infraspackplus_bc_generatePdf()` concernés sont désormais conditionnés à `getDolGlobalInt('INFRASPLUS_PDF_SEMIAUTOUPDATE', 0)`. L'appel de génération manuelle explicite (action `builddoc`, bouton « Générer ») reste inconditionnel, comme pour tous les autres types de documents ; la migration de dossier ci-dessus aussi, puisqu'elle protège des documents pouvant avoir été générés manuellement en brouillon indépendamment du réglage semi-auto.
+
+**Option « Inclure les Alias dans le nom des tiers »** : cette case, affichée pour tous les objets sauf `product`/`mo`/`bom` (`formBuilddocOptions()`, `actions_infraspackplus.class.php`), apparaissait aussi pour les bordereaux de chèques — qui n'ont pas de tiers, l'option n'avait donc aucun effet possible. `chequereceipt` ajouté à l'exclusion. **Point technique retenu** : `showdocuments()` (core, `html.formfile.class.php`) initialise en interne le contexte `formfile` (`initHooks(['formfile'])`) et y déclenche bien `formBuilddocOptions`/`showDocuments`/`formattachOptions`, même quand `card.php` n'appelle lui-même aucun hook — ne pas conclure qu'un hook ne se déclenche jamais sur une page sans vérifier si une fonction **appelée par** cette page n'initialise pas elle-même un autre contexte ; vérifier empiriquement (appel direct en CLI) plutôt que déduire de la seule lecture du code du délégant. (La même option était par ailleurs affichée mais sans effet sur le PDF **projet** — `pdf_InfraSPlus_PJ.modules.php` n'utilisait pas le point d'entrée commun `pdf_InfraSPlus_Build_Third_party_Name()` comme les autres modèles InfraSPlus ; corrigé de la même volée, sans lien avec les bordereaux de chèques.)
+
+**Couverture des 5 branches** : la page de substitution `admin/chequereceipts.php` et l'ensemble des correctifs `card.php` ci-dessus couvrent désormais les 5 branches (`dlb210x`, `dlb220x`, `dlb220x-DolInfraS`, `dlb230x`, `dlb240x`), à partir de sources stock fournies et vérifiées par diff pour chaque version (cf. « Branches maintenues » ci-dessus pour le détail des différences stock relevées par version). Les correctifs `card.php`, développés d'abord uniquement sur `dlb220x-DolInfraS`, ont été reportés sur les 4 autres branches par recherche/remplacement ciblé sur le code pré-correctif, en préservant les différences stock propres à chaque version (classes CSS, `main_checkbox_left_column`, échappement `dolPrintHTML()`, etc. — vérifié par diff après coup : aucun correctif manquant).
+
+**Règle à retenir (pages substituées multi-versions)** : toute correction apportée à une page substituée existant en plusieurs variantes de version (`card.php`, `admin/chequereceipts.php`, `admin/dict.php`, `societe/contact.php`) doit être reportée sur **toutes** les branches concernées dans la foulée, pas seulement sur celle de l'instance de développement — sinon les autres branches accumulent une dette de synchronisation invisible tant que personne ne les compare explicitement.
+
+**Règle à retenir** : pour toute nouvelle propriété/donnée nécessaire à un modèle PDF InfraS sur un objet dont le core ne l'expose pas nativement, préférer un chargement autonome côté modèle PDF (à partir d'un identifiant déjà natif comme `id` ou `account_id`) plutôt qu'un patch de la classe core — évite la dérive silencieuse (colonne DB jamais créée, écriture jamais branchée) et réduit la surface à rebaser lors des montées de version Dolibarr.
 
 ### Mécanisme de génération PDF (PDF generation mechanism)
 
@@ -446,6 +510,26 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
 - **Cause** : une règle générique du module (« pour les lignes de remise sans `label` propre, réutiliser `desc` comme `label` et vider `desc` ») s'exécutait **avant** la reconnaissance des placeholders. `desc` étant vidé, la condition `!empty($desc)` qui déclenche la traduction n'était plus vraie, donc le libellé restait la chaîne brute `(DEPOSIT)`.
 - **Correctif** : la règle générique exclut désormais explicitement les 4 placeholders spéciaux du core, qui continuent leur chemin normal jusqu'au bloc de traduction dédié.
 - **Règle à retenir** : toute nouvelle règle générique touchant `desc`/`label` des lignes de remise (`info_bits & 2`) doit exclure ces placeholders core, sous peine de casser leur traduction.
+
+### Alias du tiers absent du PDF projet (Missing thirdparty alias on project PDF, fix v21.5.0)
+
+- **Symptôme** : l'option avant génération « Inclure les Alias dans le nom des tiers » (`PDF_INCLUDE_ALIAS_IN_THIRDPARTY_NAME`, champ `includealias`) s'affiche dans le formulaire d'options pour tous les types de documents sauf `product`/`mo`/`bom` (`formBuilddocOptions()`, `actions_infraspackplus.class.php:911`) — y compris pour les projets — mais cochée ou non, elle n'avait aucun effet sur le PDF projet.
+- **Cause** : tous les autres modèles InfraSPlus affichent le nom du tiers via le point d'entrée commun `pdf_InfraSPlus_Build_Third_party_Name()` (`infraspackplus.pdf.lib.php`), qui ajoute `$thirdparty->name_alias` quand `$includealias` est vrai. `pdf_InfraSPlus_PJ.modules.php` (projet) affichait le nom directement via `$object->thirdparty->getFullName($outputlangs)`, sans jamais passer par cette fonction ni capturer `$hookmanager->resArray['includealias']` — la donnée existe pourtant bien (`Project::fetch_thirdparty()` peuple `$object->thirdparty` en `Societe`, qui porte `name_alias`), ce n'était pas un cas non applicable.
+- **Correctif** : ajout de la propriété `$include_alias`, capture de `$hookmanager->resArray['includealias']` aux côtés des autres résultats du hook `beforePDFCreation` (`logo`, `pied`, etc.), et remplacement de l'appel `getFullName()` par `pdf_InfraSPlus_Build_Third_party_Name($object->thirdparty, $outputlangs, $this->include_alias)` — même motif que `pdf_InfraSPlus_D.modules.php` (devis).
+- **Règle à retenir** : quand une option avant génération est affichée pour un type de document (`formBuilddocOptions()` ne l'exclut pas), vérifier que le modèle PDF correspondant capture bien la valeur dans `beforePDFCreation` et l'utilise réellement — l'affichage de la case et son application sont deux endroits séparés, qui peuvent diverger silencieusement.
+
+### Case « Alias dans le nom des tiers » affichée à tort sur les bordereaux de chèques (fix v21.5.0)
+
+- **Symptôme** : la case « Inclure les Alias dans le nom des tiers » s'affichait dans le bloc d'options avant génération de `compta/paiement/cheque/card.php`, alors que `RemiseCheque` n'a pas de tiers (`$thirdparty`) — la case n'avait donc jamais aucun effet possible.
+- **Cause** : deux fausses pistes explorées avant la bonne :
+  1. Cru d'abord que le hook `formBuilddocOptions` ne se déclenchait jamais sur cette page (`card.php` n'appelle lui-même aucun `initHooks()`) — **faux**, cf. correction de la « Particularité » ci-dessus : `showdocuments()` (core) initialise en interne le contexte `formfile` et déclenche `formBuilddocOptions`, qui s'exécute donc bel et bien pour `RemiseCheque`.
+  2. Cru ensuite que le filtre par type de document (`in_array($object->element, ['propal', ..., 'expensereport'])`, `actions_infraspackplus.class.php:160`) empêchait tout affichage pour un élément absent de cette liste (`chequereceipt` n'y figure pas) — **faux également** : vérifié empiriquement (`showdocuments()` exécuté en CLI sur un spécimen `RemiseCheque`) que le formulaire s'affiche quand même, et que `$object->element` vaut bien `'chequereceipt'` (pas `'remisecheque'`).
+- **Correctif** : la case spécifique à l'alias (`actions_infraspackplus.class.php:911`) exclut déjà `product`/`mo`/`bom` (objets sans tiers classique) — `chequereceipt` ajouté à cette même exclusion :
+  ```php
+  if (!in_array($object->element, ['product', 'mo', 'bom', 'chequereceipt'])) {
+  ```
+  Comme pour `product`/`mo`/`bom`, un champ caché `includealias` vide est conservé en repli (`else`) pour ne pas casser la persistance du formulaire — vérifié par test direct (`showdocuments()` sur specimen : le libellé/case disparaît, seul le champ caché subsiste).
+- **Règle à retenir** : ne jamais conclure qu'un hook ne se déclenche pas sur une page sans vérifier si une fonction **appelée par** cette page (ici `showdocuments()`) n'initialise pas elle-même un contexte de hook différent de celui de la page. Vérifier empiriquement (appel direct de la fonction en CLI) plutôt que de déduire uniquement de la lecture du code source du delegant.
 
 ### Cycle de vie du module (Module lifecycle)
 

@@ -73,6 +73,7 @@ SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
 -- INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('RECEPTION_ADDON_PDF',									'__ENTITY__', 'InfraSPlus_RE',					'chaine', '0', 'InfraSPackPlus module');
 -- INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('STOCK_ADDON_PDF',										'__ENTITY__', 'InfraSPlus_ST',					'chaine', '0', 'InfraSPackPlus module');
 -- INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('SUPPLIER_PROPOSAL_ADDON_PDF',							'__ENTITY__', 'InfraSPlus_DF',					'chaine', '0', 'InfraSPackPlus module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPACKPLUS_PS_ACTIVE_ADMIN_CHEQUERECEIPTS',			'__ENTITY__', '1',								'chaine', '0', 'InfraSPackPlus module - Page substitution');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPACKPLUS_PS_ACTIVE_ADMIN_DICT',						'__ENTITY__', '1',								'chaine', '0', 'InfraSPackPlus module - Page substitution');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPACKPLUS_PS_ACTIVE_COMPTA_PAIEMENT_CHEQUE_CARD',    '__ENTITY__', '1',                              'chaine', '0', 'InfraSPackPlus module - Page substitution');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASPACKPLUS_PS_ACTIVE_SOCIETE_CONTACT',				'__ENTITY__', '0',								'chaine', '0', 'InfraSPackPlus module - Page substitution');

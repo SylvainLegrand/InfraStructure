@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2016  Juanjo Menent	       <jmenent@2byte.es>
  * Copyright (C) 2013-2018  Philippe Grand             <philippe.grand@atoo-net.com>
  * Copyright (C) 2015       Jean-François Ferry         <jfefe@aternatik.fr>
- * Copyright (C) 2024-2025	MDW							<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024		MDW							<mdeweerd@users.noreply.github.com>
  * Copyright (C) 2024       Frédéric France         <frederic.france@free.fr>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,13 +22,13 @@
 
 
 /**
- *      \file       htdocs/admin/bank.php
+ *      \file       htdocs/admin/chequereceipts.php
  *		\ingroup    bank
  *		\brief      Page to setup the bank module
  */
 
 // Load Dolibarr environment
-require '../main.inc.php';
+require '../../../config.php';	// InfraS change
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/bank.lib.php';
@@ -52,7 +52,9 @@ if (!$user->admin) {
 
 $action = GETPOST('action', 'aZ09');
 $value = GETPOST('value', 'alpha');
-
+$label		= GETPOST('label', 'alpha');
+$scandir	= GETPOST('scan_dir', 'alpha');
+$typedoc	= 'chequereceipt';
 
 if (!getDolGlobalString('CHEQUERECEIPTS_ADDON')) {
 	$conf->global->CHEQUERECEIPTS_ADDON = 'mod_chequereceipts_mint.php';
@@ -84,9 +86,71 @@ if ($action == 'updateMask') {
 	} else {
 		setEventMessages($langs->trans("Error"), null, 'errors');
 	}
+} elseif ($action == 'specimen') {
+	$modele = GETPOST('module', 'alpha');
+
+	$chequereceipt = new RemiseCheque($db);
+	$chequereceipt->initAsSpecimen();
+
+	// Search template files : modern convention (pdf_<model>.modules.php) first, then legacy native convention (pdf_<model>.class.php)
+	$file      = '';
+	$classname = '';
+	$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+	foreach ($dirmodels as $reldir) {
+		$f = dol_buildpath($reldir."core/modules/cheque/doc/pdf_".$modele.".modules.php");
+		if (file_exists($f)) {
+			$file      = $f;
+			$classname = 'pdf_'.$modele;
+			break;
+		}
+		$f = dol_buildpath($reldir."core/modules/cheque/doc/pdf_".$modele.".class.php");
+		if (file_exists($f)) {
+			$file      = $f;
+			$classname = 'BordereauCheque'.ucfirst($modele);
+			break;
+		}
+	}
+	if ($classname !== '') {
+		require_once $file;
+		$module = new $classname($db);
+		'@phan-var-force ModeleChequeReceipts $module';
+
+		// ModeleChequeReceipts::write_file($object, $_dir, $number, $outputlangs), reads from $object
+		$ok = $module->write_file($chequereceipt, $conf->bank->dir_output.'/checkdeposits', $chequereceipt->ref, $langs) > 0;
+		if ($ok) {
+			// Derive relative path from module result to build the document URL
+			$entity      = $conf->entity;
+			$basecheckdir = (!empty($conf->bank->multidir_output[$entity]) ? $conf->bank->multidir_output[$entity] : $conf->bank->dir_output).'/checkdeposits/';
+			$fullpath     = !empty($module->result['fullpath']) ? $module->result['fullpath'] : '';
+			$specimenfile = $fullpath && strpos($fullpath, $basecheckdir) === 0 ? substr($fullpath, strlen($basecheckdir)) : 'SPECIMEN.pdf';
+			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=remisecheque&file=".urlencode($specimenfile));
+			return;
+		} else {
+			setEventMessages($module->error, $module->errors, 'errors');
+			dol_syslog($module->error, LOG_ERR);
+		}
+	} else {
+		setEventMessages($langs->trans("ErrorModuleNotFound"), null, 'errors');
+		dol_syslog($langs->trans("ErrorModuleNotFound"), LOG_ERR);
+	}
 }
 
-if ($action == 'setmod') {
+if ($action == 'set') {
+	$ret = addDocumentModel($value, $typedoc, $label, $scandir);
+} elseif ($action == 'del') {
+	$ret = delDocumentModel($value, $typedoc);
+	if ($ret > 0 && getDolGlobalString('CHEQUERECEIPT_ADDON_PDF') == $value) {
+		dolibarr_del_const($db, 'CHEQUERECEIPT_ADDON_PDF', $conf->entity);
+	}
+} elseif ($action == 'setdoc') {
+	if (dolibarr_set_const($db, 'CHEQUERECEIPT_ADDON_PDF', $value, 'chaine', 0, '', $conf->entity)) {
+		$conf->global->CHEQUERECEIPT_ADDON_PDF = $value;
+	}
+	$ret = delDocumentModel($value, $typedoc);
+	if ($ret > 0) {
+		$ret = addDocumentModel($value, $typedoc, $label, $scandir);
+	}
+} elseif ($action == 'setmod') {
 	dolibarr_set_const($db, "CHEQUERECEIPTS_ADDON", $value, 'chaine', 0, '', $conf->entity);
 }
 
@@ -226,7 +290,7 @@ foreach ($dirmodels as $reldir) {
 							}
 
 							print '<td class="center">';
-							print $form->textwithpicto('', $htmltooltip, 1, 'info');
+							print $form->textwithpicto('', $htmltooltip, 1, 0);
 
 							if (getDolGlobalString('CHEQUERECEIPTS_ADDON').'.php' == $file) {  // If module is the one used, we show existing errors
 								if (!empty($module->error)) {
@@ -251,6 +315,162 @@ print '</div>';
 
 print '<br>';
 
+
+/*
+ * Document model templates for cheque receipts
+ */
+
+// Load active models from llx_document_model
+$def = [];
+$sql = "SELECT nom FROM ".MAIN_DB_PREFIX."document_model";
+$sql .= " WHERE type = '".$db->escape($typedoc)."'";
+$sql .= " AND entity = ".$conf->entity;
+$resql = $db->query($sql);
+if ($resql) {
+	$num_rows = $db->num_rows($resql);
+	for ($i = 0; $i < $num_rows; $i++) {
+		$array = $db->fetch_array($resql);
+		if (is_array($array)) {
+			$def[] = $array[0];
+		}
+	}
+} else {
+	dol_print_error($db);
+}
+
+print load_fiche_titre($langs->trans("CheckReceiptDocumentModels"), '', '');
+
+print '<div class="div-table-responsive-no-min">';
+print '<table class="noborder centpercent">'."\n";
+print '<tr class="liste_titre">'."\n";
+print '<td>'.$langs->trans("Name").'</td>';
+print '<td class="minwidth100">'.$langs->trans("Description").'</td>';
+print '<td class="center" width="60">'.$langs->trans("Status")."</td>\n";
+print '<td class="center" width="60">'.$langs->trans("Default")."</td>\n";
+print '<td class="center" width="38">'.$langs->trans("ShortInfo").'</td>';
+print '<td class="center" width="38">'.$langs->trans("Preview").'</td>';
+print '</tr>'."\n";
+
+clearstatcache();
+
+foreach ($dirmodels as $reldir) {
+	$dir = dol_buildpath($reldir."core/modules/cheque/doc");
+	if (!is_dir($dir)) {
+		continue;
+	}
+	$handle = opendir($dir);
+	if (!is_resource($handle)) {
+		continue;
+	}
+	$filelist = [];
+	while (($file = readdir($handle)) !== false) {
+		$filelist[] = $file;
+	}
+	closedir($handle);
+	arsort($filelist);
+
+	foreach ($filelist as $file) {
+		$filepath = $dir.'/'.$file;
+		if (!file_exists($filepath)) {
+			continue;
+		}
+		if (preg_match('/^pdf_.*\.modules\.php$/i', $file)) {
+			// Modern convention : pdf_<model>.modules.php / class pdf_<model>
+			$name      = substr($file, 4, strlen($file) - 16);
+			$classname = 'pdf_'.$name;
+		} elseif (preg_match('/^pdf_.*\.class\.php$/i', $file)) {
+			// Legacy native convention : pdf_<model>.class.php / class BordereauCheque<Model>
+			$name      = substr($file, 4, strlen($file) - 14);
+			$classname = 'BordereauCheque'.ucfirst($name);
+		} else {
+			continue;
+		}
+
+		if (!class_exists($classname)) {
+			include_once $filepath;
+		}
+		if (!class_exists($classname)) {
+			continue;
+		}
+		$module = new $classname($db);
+
+		// Filter by feature level
+		if (property_exists($module, 'version')) {
+			if ($module->version == 'development' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) {
+				continue;
+			}
+			if ($module->version == 'experimental' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) {
+				continue;
+			}
+		}
+
+		$modulename		= !empty($module->name) ? $module->name : $name;
+		$scandir_module = property_exists($module, 'scandir') ? $module->scandir : '';
+
+		print '<tr class="oddeven"><td width="100">';
+		print dol_escape_htmltag($modulename);
+		print "</td><td>\n";
+		if (!empty($module->description)) {
+			print dol_escape_htmltag($module->description);
+		} else {
+			print dol_escape_htmltag($langs->trans('RemiseChequeDocumentModelDescription', $modulename));
+		}
+		print '</td>';
+
+		// Status (enable / disable)
+		if (in_array($name, $def)) {
+			print '<td class="center">'."\n";
+			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=del&token='.newToken().'&value='.urlencode($name).'">';
+			print img_picto($langs->trans("Enabled"), 'switch_on');
+			print '</a>';
+			print '</td>';
+		} else {
+			print '<td class="center">'."\n";
+			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=set&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($scandir_module).'&label='.urlencode($modulename).'">';
+			print img_picto($langs->trans("Disabled"), 'switch_off');
+			print '</a>';
+			print '</td>';
+		}
+
+		// Default
+		print '<td class="center">';
+		if (getDolGlobalString('CHEQUERECEIPT_ADDON_PDF') == $name) {
+			print img_picto($langs->trans("Default"), 'on');
+		} else {
+			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=setdoc&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($scandir_module).'&label='.urlencode($modulename).'">';
+			print img_picto($langs->trans("Disabled"), 'off');
+			print '</a>';
+		}
+		print '</td>';
+
+		// Info tooltip
+		$htmltooltip = $langs->trans("Name").': '.dol_escape_htmltag($modulename);
+		if (property_exists($module, 'type') && $module->type) {
+			$htmltooltip .= '<br>'.$langs->trans("Type").': '.dol_escape_htmltag($module->type);
+			if ($module->type == 'pdf' && property_exists($module, 'page_largeur')) {
+				$htmltooltip .= '<br>'.$langs->trans("Width").'/'.$langs->trans("Height").': '.(int) $module->page_largeur.'/'.(int) $module->page_hauteur;
+			}
+		}
+		print '<td class="center">';
+		print $form->textwithpicto('', $htmltooltip, 1, 'info');
+		print '</td>';
+
+		// Preview
+		print '<td class="center">';
+		if (property_exists($module, 'type') && $module->type == 'pdf') {
+			print '<a href="'.$_SERVER["PHP_SELF"].'?action=specimen&module='.urlencode($name).'">'.img_object($langs->trans("Preview"), 'pdf').'</a>';
+		} else {
+			print img_object($langs->transnoentitiesnoconv("PreviewNotAvailable"), 'generic');
+		}
+		print '</td>';
+		print "</tr>\n";
+	}
+}
+
+print '</table>';
+print '</div>';
+
+print '<br>';
 
 /*
  * Other options

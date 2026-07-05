@@ -625,34 +625,10 @@
 		if (!file_exists($customfile)) {
 			return $object->generatePdf($model, $outputlangs);	// modèle natif (blochet, ...)
 		}
-		require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
 		require_once $customfile;
 		$classname = 'pdf_'.$model;
 		$docmodel = new $classname($object->db);
-		$sql = "SELECT b.banque, b.emetteur, b.amount, b.num_chq";
-		$sql .= " FROM ".MAIN_DB_PREFIX."bank as b, ".MAIN_DB_PREFIX."bank_account as ba, ".MAIN_DB_PREFIX."bordereau_cheque as bc";
-		$sql .= " WHERE b.fk_account = ba.rowid AND b.fk_bordereau = bc.rowid AND bc.rowid = ".((int) $object->id)." AND bc.entity = ".((int) $conf->entity);
-		$sql .= " ORDER BY b.dateo ASC, b.rowid ASC";
-		$resql = $object->db->query($sql);
-		if ($resql) {
-			$i = 0;
-			while ($objp = $object->db->fetch_object($resql)) {
-				$docmodel->lines[$i] = new stdClass();
-				$docmodel->lines[$i]->bank_chq = $objp->banque;
-				$docmodel->lines[$i]->emetteur_chq = $objp->emetteur;
-				$docmodel->lines[$i]->amount_chq = $objp->amount;
-				$docmodel->lines[$i]->num_chq = $objp->num_chq;
-				$i++;
-			}
-			$object->db->free($resql);
-		}
-		$docmodel->nbcheque = $object->nbcheque;
-		$docmodel->ref = $object->ref;
-		$docmodel->amount = $object->amount;
-		$docmodel->date = $object->date_bordereau;
-		$account = new Account($object->db);
-		$account->fetch($object->account_id);
-		$docmodel->account = $account;
+
 		return $docmodel->write_file($object, $conf->bank->dir_output.'/checkdeposits', $object->ref, $outputlangs);
 	}
 	/**
