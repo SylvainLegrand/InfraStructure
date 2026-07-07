@@ -984,7 +984,11 @@ if (empty($reshook)) {
 	if ($action == "confirm_setdraft" && GETPOST('confirm', 'alpha') == "yes" && $id > 0 && $user->hasRight('expensereport', 'creer')) {
 		$object = new ExpenseReport($db);
 		$object->fetch($id);
-		if ($user->id == $object->fk_user_author || $user->id == $object->fk_user_valid || in_array($object->fk_user_author, $childids)) {
+		// InfraS add begin
+		$authorforvalidator = new User($db);
+		$authorforvalidator->fetch($object->fk_user_author);
+		// InfraS add end
+		if ($user->id == $object->fk_user_author || $user->id == $object->fk_user_valid || in_array($object->fk_user_author, $childids) || $user->id == $authorforvalidator->fk_user_expense_validator) { // InfraS change
 			$result = $object->setStatut(0);
 
 			if ($result > 0) {
