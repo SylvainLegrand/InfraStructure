@@ -1010,6 +1010,17 @@ if (!defined('NOLOGIN')) {
 		$_SESSION["dol_login"] = $user->login;
 		$_SESSION["dol_logindate"] = dol_now('gmt');
 		$_SESSION["dol_authmode"] = isset($dol_authmode) ? $dol_authmode : '';
+		// InfraS add begin
+		// If browser timezone detection failed at login (dst.js not executed, hidden fields empty),
+		// fallback to PHP server timezone (reflects MAIN_SERVER_TZ when set, see conf.class.php) instead of empty values (= UTC)
+		if (empty($dol_tz_string)) {
+			include_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+			$dol_tz_string = getServerTimeZoneString();
+			$dol_tz = getServerTimeZoneInt('winter');
+			$dol_dst = max(0, (int) round(getServerTimeZoneInt('now') - getServerTimeZoneInt('winter')));
+			$dol_dst_observed = (getServerTimeZoneInt('summer') == getServerTimeZoneInt('winter')) ? 0 : 1;
+		}
+		// InfraS add end
 		$_SESSION["dol_tz"] = isset($dol_tz) ? $dol_tz : '';
 		$_SESSION["dol_tz_string"] = isset($dol_tz_string) ? $dol_tz_string : '';
 		$_SESSION["dol_dst"] = isset($dol_dst) ? $dol_dst : '';
