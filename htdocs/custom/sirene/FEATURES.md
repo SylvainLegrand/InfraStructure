@@ -25,6 +25,8 @@ Intégration avec l'API SIRENE v3.11 de l'INSEE pour rechercher et récupérer l
 - Filtre : établissements actifs uniquement
 - Filtre : sièges sociaux uniquement
 
+**Priorité au SIREN/SIRET** : lorsqu'un numéro SIREN ou SIRET exact est renseigné, il est utilisé comme unique critère de recherche ; les autres critères (raison sociale, code NAF, RNA, commune, code postal) sont ignorés côté API et désactivés dans le formulaire de recherche, y compris lorsqu'ils sont pré-remplis automatiquement à partir des données déjà connues du tiers (`sirene_search.tpl.php`).
+
 ### Données récupérées
 
 - Raison sociale et noms alternatifs (enseignes, marques)

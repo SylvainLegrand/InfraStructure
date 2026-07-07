@@ -145,15 +145,18 @@ class SireneClientSireneApi extends SireneClientApi
 
 		// Set filters
 		$filter = array();
-		if (!empty($company_name)) $filter[] = 'raisonSociale:"' . str_replace('"', '\\"', $company_name) . '"';
 		if (!empty($siren)) $filter[] = 'siren:' . $siren;
 		if (!empty($siret)) $filter[] = '(siret:' . implode(' OR siret:', is_array($siret) ? $siret : [ $siret ]) . ')';
-		if (!empty($naf)) $filter[] = 'activitePrincipaleUniteLegale:' . $naf;
-		if (!empty($zipcode)) $filter[] = 'codePostalEtablissement:' . $zipcode;
-		if (!empty($town)) $filter[] = 'libelleCommuneEtablissement:"' . str_replace('"', '\\"', $town) . '"';
+		// An exact identifier (SIREN/SIRET) takes precedence over unreliable identification criteria (name, naf, zipcode, town, rna)
+		if (!empty($siren) || !empty($siret)) {
+			if (!empty($company_name)) $filter[] = 'raisonSociale:"' . str_replace('"', '\\"', $company_name) . '"';
+			if (!empty($naf)) $filter[] = 'activitePrincipaleUniteLegale:' . $naf;
+			if (!empty($zipcode)) $filter[] = 'codePostalEtablissement:' . $zipcode;
+			if (!empty($town)) $filter[] = 'libelleCommuneEtablissement:"' . str_replace('"', '\\"', $town) . '"';
+			if (!empty($rna)) $filter[] = 'identifiantAssociationUniteLegale:' . $rna;
+		}
 		if (!empty($only_open)) $filter[] = 'periode(etatAdministratifEtablissement:A)';
 		if (!empty($only_company_siege)) $filter[] = 'etablissementSiege:T';
-		if (!empty($rna)) $filter[] = 'identifiantAssociationUniteLegale:' . $rna;
 
 		$status_code = '';
 		$result = $this->sendToApi(self::METHOD_POST, 'siret', [

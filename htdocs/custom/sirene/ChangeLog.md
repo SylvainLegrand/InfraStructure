@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.4.0] - 06-07-2026
+- FIX : Recherche SIRENE en échec quand un nom commercial est pré-rempli avec un SIREN/SIRET exact (#10)
+
 ## [10.3.15] - 17-06-2026
 - FIX : Erreur si aucun tiers trouvé via l'API lors de la verification avec la tache CRON
 
@@ -396,7 +399,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initiale.
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.3.15...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.0...HEAD
+[10.4.0]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.0
 [10.3.15]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.15
 [10.3.14]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.14
 [10.3.13]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.13

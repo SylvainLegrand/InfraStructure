@@ -90,6 +90,17 @@ print <<<SCRIPT
 					sirene_second_criteria.show();
 				}
 			});
+
+			// Disable other criteria fields when an exact SIREN/SIRET identifier is provided
+			let sirene_identifier_input = $("#sirene_siren_siret");
+			let sirene_other_criteria_inputs = $("#sirene_company_name, #sirene_naf, #sirene_rna, #sirene_town, #sirene_zipcode");
+
+			function sireneToggleOtherCriteriaFields() {
+				sirene_other_criteria_inputs.prop('disabled', sirene_identifier_input.val().trim().length > 0);
+			}
+
+			sirene_identifier_input.on('input', sireneToggleOtherCriteriaFields);
+			sireneToggleOtherCriteriaFields();
 		});
 	</script>
 SCRIPT;
@@ -128,9 +139,12 @@ print '</tr>' . "\n";
 //-------------------------
 print '<tr class="displaygridonsmartphone">' . "\n";
 
+// An exact identifier (SIREN/SIRET) already known on the object takes precedence: don't prefill the other unreliable criteria
+$sirene_has_known_identifier = !empty($object->idprof1) || !empty($object->idprof2);
+
 // Search : Company name
 $sirene_company_name = GETPOST('sirene_company_name', 'alpha');
-if (empty($sirene_company_name) && !empty($object->name)) $sirene_company_name = $object->name;
+if (empty($sirene_company_name) && !$sirene_has_known_identifier && !empty($object->name)) $sirene_company_name = $object->name;
 $placeholder = dol_escape_js(empty($mysoc->name) ? "ex. Association dolibarr" : "ex. " . $mysoc->name, 2);
 print '<td class="maxwidth400onsmartphone">';
 print '<label for="sirene_company_name">' . $langs->trans("SireneCompanyName") . '</label>';
@@ -151,7 +165,7 @@ print '</td>' . "\n";
 
 // Search : Company code NAF
 $sirene_naf = GETPOST('sirene_naf', 'alpha');
-if (empty($sirene_naf) && !empty($object->idprof3)) $sirene_naf = $object->idprof3;
+if (empty($sirene_naf) && !$sirene_has_known_identifier && !empty($object->idprof3)) $sirene_naf = $object->idprof3;
 $sirene_naf = str_replace(' ', '', $sirene_naf);
 if (!empty($sirene_naf) && stristr($sirene_naf, '.') === false) {
 	$sirene_naf = substr($sirene_naf, 0, 2) . '.' . substr($sirene_naf, 2, 3);
@@ -165,7 +179,7 @@ print '</td>' . "\n";
 
 // Search : Company RNA
 $sirene_rna = GETPOST('sirene_rna', 'alpha');
-if (empty($sirene_rna) && !empty($object->idprof6)) $sirene_rna = $object->idprof6;
+if (empty($sirene_rna) && !$sirene_has_known_identifier && !empty($object->idprof6)) $sirene_rna = $object->idprof6;
 $sirene_rna = str_replace(' ', '', $sirene_rna);
 $idprof6 = trim(str_replace(' ', '', (string) $mysoc->idprof6));
 $placeholder = dol_escape_js(empty($idprof6) ? "ex. rna" : "ex. " . $idprof6, 2);
@@ -183,7 +197,7 @@ print '<tr class="displaygridonsmartphone" id="second_line_inputs_siren" style="
 
 // Search : Company town
 $sirene_town = GETPOST('sirene_town', 'alpha');
-if (empty($sirene_town) && !empty($object->town)) $sirene_town = $object->town;
+if (empty($sirene_town) && !$sirene_has_known_identifier && !empty($object->town)) $sirene_town = $object->town;
 $placeholder = dol_escape_js(empty($mysoc->town) ? "ex. Lyon" : "ex. " . $mysoc->town, 2);
 print '<td class="maxwidth400onsmartphone">';
 print '<label for="sirene_town">' . $langs->trans("Town") . '</label>';
@@ -192,7 +206,7 @@ print '</td>' . "\n";
 
 // Search : Company zip
 $sirene_zipcode = GETPOST('sirene_zipcode', 'alpha');
-if (empty($sirene_zipcode) && !empty($object->zip)) $sirene_zipcode = $object->zip;
+if (empty($sirene_zipcode) && !$sirene_has_known_identifier && !empty($object->zip)) $sirene_zipcode = $object->zip;
 $placeholder = dol_escape_js(empty($mysoc->zip) ? "ex. 45160" : "ex. " . $mysoc->zip, 2);
 print '<td class="maxwidth400onsmartphone">';
 print '<label for="sirene_zipcode">' . $langs->trans("Zip") . '</label>';
