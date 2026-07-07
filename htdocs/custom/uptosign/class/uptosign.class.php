@@ -520,7 +520,9 @@ class UptoSign extends CommonObject
 
 		if ($mustCreate && !empty($signOrSeal)) {
 			dol_syslog("uptosign: Creation d'un evenement", LOG_DEBUG);
-			$evt->type_code   = 'AC_OTH_AUTO'; //
+			// Dedicated agenda type (declared in llx_c_actioncomm by the module init),
+			// so signature/seal events stay filterable instead of falling into 'Other auto'.
+			$evt->type_code   = 'AC_' . strtoupper($signOrSeal); // AC_UPTOSIGN / AC_UPTOSEAL
 			$evt->code        = 'AC_' . strtoupper($signOrSeal);
 			$evt->label = $object->ref . ": " . $title;
 			$evt->datep = $eventDate;
@@ -2689,7 +2691,13 @@ class UptoSign extends CommonObject
 			dol_syslog("uptosign::signInfo get children for $objectId / type $objectType, status=$status");
 
 			//si les 30 jours sont passés
-			if (($child->tms + (30 * 24 * 60 * 60)) < dol_now() && in_array($child->status, [UptoSign::STATUS_NOTHING, UptoSign::STATUS_DRAFT, UptoSign::STATUS_REFUSED, UptoSign::STATUS_ERROR, UptoSign::STATUS_CANCELED, UptoSign::STATUS_WAITING])) {
+			// A launched remote procedure (sign_id present and still WAITING) must have
+			// its fate decided by the server below, not by this local 30-day timer:
+			// otherwise a signature completed late (or a doc still available on the
+			// server) is wrongly expired and, being EXPIRED, never downloaded again.
+			// We only auto-expire local-only stale records (never launched, or drafts).
+			$isLaunchedWaiting = !empty($child->sign_id) && $child->status == UptoSign::STATUS_WAITING;
+			if (($child->tms + (30 * 24 * 60 * 60)) < dol_now() && !$isLaunchedWaiting && in_array($child->status, [UptoSign::STATUS_NOTHING, UptoSign::STATUS_DRAFT, UptoSign::STATUS_REFUSED, UptoSign::STATUS_ERROR, UptoSign::STATUS_CANCELED, UptoSign::STATUS_WAITING])) {
 				$child->status = UptoSign::STATUS_EXPIRED;
 				$child->update($user);
 				$status = $child->status;
@@ -2984,14 +2992,24 @@ class UptoSign extends CommonObject
 			dol_syslog("uptosign signFetch download file $fullSignFile...");
 
 			$resultContent = $result['content'];
+
+			// A JSON body on a 200 means the API returned a message/error, not the
+			// binary PDF (getURLContent decoded it into 'data'). Do not write it as a PDF.
+			if (is_array($response['data'])) {
+				dol_syslog("uptosign: signFetch got a JSON response instead of a PDF (sign_id=" . $child->sign_id . "): " . ($response['data']['message'] ?? ''), LOG_WARNING);
+				array_push($this->errors, $langs->trans('WaitingUptoSign'));
+				$error = -1;
+				continue;
+			}
+
+			// A 200 with a suspiciously small body is almost always transient: the
+			// signed PDF is not fully generated yet server-side, or it is an error page.
+			// Do NOT mark the record EXPIRED (that would permanently block any further
+			// download attempt, see line 2925); keep the status so the next run retries.
 			if (strlen($resultContent) < 1024) {
-				dol_syslog("uptosign: download resultContent is less than 1Ko octets ... error");
-				$child->status = UptoSign::STATUS_EXPIRED;
-				$child->fk_user_modif = $user->id;
-				$res = $child->update($user);
-				if ($res < 0) {
-					dol_syslog("uptosign signFetch file status update to expired error");
-				}
+				dol_syslog("uptosign: signFetch download body is less than 1Ko for sign_id=" . $child->sign_id . ", transient error, will retry later", LOG_WARNING);
+				array_push($this->errors, $langs->trans('WaitingUptoSign'));
+				$error = -1;
 				continue;
 			}
 
@@ -3138,10 +3156,21 @@ class UptoSign extends CommonObject
 
 			$ts = $child->date_sign;
 			$suffix = utsbackports_getDolGlobalString('UPTOSIGN_FILENAME_SUFFIX_PROOF', '');
-			$signfile = uptosign_rename_file_dolibarr_guidelines($this->path_file, $suffix, $ts);
+			// Use the current child path, not $this->path_file: in a multi-child loop
+			// (UPTOSIGNLIST) $this stays the parent and the proof would be written under
+			// the wrong object reference.
+			$signfile = uptosign_rename_file_dolibarr_guidelines($child->path_file, $suffix, $ts);
 			$fullSignFile = uptosign_full_path($signfile);
 
 			dol_syslog("uptosign signFetchProof download file $fullSignFile...");
+
+			// Validate the downloaded proof before writing: a 200 can still carry an
+			// empty body or a JSON error (decoded into 'data'), never a binary file.
+			if (is_array($response['data']) || $response['content'] === '') {
+				dol_syslog("uptosign: signFetchProof got a JSON/empty response instead of a proof file (sign_id=" . $child->sign_id . "): " . ($response['data']['message'] ?? ''), LOG_WARNING);
+				array_push($this->errors, $langs->trans('WaitingUptoSign'));
+				return -1;
+			}
 
 			//in case of mutiple proof files with same base name
 			if (file_exists($fullSignFile)) {
@@ -3251,6 +3280,11 @@ class UptoSign extends CommonObject
 				}
 
 				if (!empty($config->page_sign)) {	// test si la signature n'est pas désactivée pour ce type de document
+					// InfraS add begin
+					if (empty($config->fk_c_type_contact) || !isset($typeContacts[$config->fk_c_type_contact])) {
+						continue;
+					}
+					// InfraS add end
 					$contactCode = $typeContacts[$config->fk_c_type_contact];
 					$contactIds = $object->getIdContact('external', $contactCode['code']);
 					$userIds = $object->getIdContact('internal', $contactCode['code']);

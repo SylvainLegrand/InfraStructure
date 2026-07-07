@@ -103,6 +103,7 @@ class uptosignlist_uts_contacts extends UptosignListTargets
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = c.fk_soc";
 		$sql .= " WHERE c.entity IN (".getEntity('contact').")";
 		$sql .= " AND c.email <> ''"; // Note that null != '' is false
+		$sql .= " AND c.phone_mobile <> ''"; // signing needs an SMS-verifiable mobile
 		$sql .= " AND c.statut = 1";
 
 		// The request must return a field called "nb" to be understandable by parent::getNbOfRecipients
@@ -120,9 +121,36 @@ class uptosignlist_uts_contacts extends UptosignListTargets
 		global $conf,$langs;
 
 		// Load translation files required by the page
-		$langs->loadLangs(array("commercial", "companies", "suppliers", "categories"));
+		$langs->loadLangs(array("commercial", "companies", "suppliers", "categories", "uptosign@uptosign"));
 
 		$s = '';
+
+		// Search a single contact - only contacts having BOTH a mobile and an email are proposed
+		$sql = "SELECT sp.rowid, sp.firstname, sp.lastname, s.nom as company";
+		$sql .= " FROM ".MAIN_DB_PREFIX."socpeople as sp";
+		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = sp.fk_soc";
+		$sql .= " WHERE sp.entity IN (".getEntity('contact').")";
+		$sql .= " AND sp.email <> ''";
+		$sql .= " AND sp.phone_mobile <> ''";
+		$sql .= " AND sp.statut = 1";
+		$sql .= " ORDER BY sp.lastname, sp.firstname";
+		$resql = $this->db->query($sql);
+		$s .= '<select id="filter_contactid_uts_contacts" name="filter_contactid" class="flat maxwidth200">';
+		$s .= '<option value="0">'.dol_escape_htmltag($langs->trans("UptoSignSearchContactWithMobile")).'</option>';
+		if ($resql) {
+			while ($obj = $this->db->fetch_object($resql)) {
+				$label = trim($obj->lastname.' '.$obj->firstname);
+				if (!empty($obj->company)) {
+					$label .= ' ('.$obj->company.')';
+				}
+				$s .= '<option value="'.((int) $obj->rowid).'">'.dol_escape_htmltag($label).'</option>';
+			}
+		} else {
+			dol_print_error($this->db);
+		}
+		$s .= '</select>';
+		$s .= ajax_combobox("filter_contactid_uts_contacts");
+		$s .= '<br>';
 
 		// Add filter on job position
 		$sql = "SELECT sp.poste, count(distinct(sp.email)) AS nb";
@@ -345,6 +373,7 @@ class uptosignlist_uts_contacts extends UptosignListTargets
 		$filter_category_customer = GETPOST('filter_category_customer', 'alpha');
 		$filter_category_supplier = GETPOST('filter_category_supplier', 'alpha');
 		$filter_lang = GETPOST('filter_lang', 'alpha');
+		$filter_contactid = GETPOSTINT('filter_contactid');
 
 		$cibles = array();
 
@@ -367,8 +396,8 @@ class uptosignlist_uts_contacts extends UptosignListTargets
 			dol_print_error($this->db);
 		}
 
-		// Request must return: id, email, fk_contact, lastname, firstname, other
-		$sql = "SELECT sp.rowid as id, sp.email as email, sp.rowid as fk_contact, sp.lastname, sp.firstname, sp.civility as civility_id, sp.poste as jobposition,";
+		// Request must return: id, email, fk_contact, lastname, firstname, mobile, other
+		$sql = "SELECT sp.rowid as id, sp.email as email, sp.rowid as fk_contact, sp.lastname, sp.firstname, sp.phone_mobile as mobile, sp.civility as civility_id, sp.poste as jobposition,";
 		$sql .= " s.nom as companyname";
 		$sql .= " FROM ".MAIN_DB_PREFIX."socpeople as sp";
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = sp.fk_soc";
@@ -386,6 +415,12 @@ class uptosignlist_uts_contacts extends UptosignListTargets
 		}
 		$sql .= " WHERE sp.entity IN (".getEntity('contact').")";
 		$sql .= " AND sp.email <> ''";
+		$sql .= " AND sp.phone_mobile <> ''"; // signing needs an SMS-verifiable mobile
+
+		// Restrict to a single contact when one has been picked in the search selector
+		if ($filter_contactid > 0) {
+			$sql .= " AND sp.rowid = ".((int) $filter_contactid);
+		}
 
 		// Exclude unsubscribed email adresses
 		$sql .= " AND sp.statut = 1";
@@ -453,6 +488,7 @@ class uptosignlist_uts_contacts extends UptosignListTargets
 				if ($old <> $obj->email) {
 					$cibles[$j] = array(
 						'email' => $obj->email,
+						'mobile' => $obj->mobile,
 						'fk_contact' => $obj->fk_contact,
 						'lastname' => $obj->lastname,
 						'firstname' => $obj->firstname,

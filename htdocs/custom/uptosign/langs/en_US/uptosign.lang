@@ -207,7 +207,7 @@ UptoSignProof=proof
 UptoSignProofButtonActions=Proof file linked to the signature of the document, no action is possible on this form
 UptoSignYouDoNotHaveRightsToDo=You do not have the right to launch this action
 UptoSignProcedureCancelled=A cancellation procedure is in progress for this document
-UptoSignXInputUserPlaceholder=Paste from spreadsheet or type one recipient per line: email;lastname;firstname;other
+UptoSignXInputUserPlaceholder=Paste from spreadsheet or type one recipient per line: firstname;lastname;mobile;email
 UptoSignArchiveCron = UptoSign - Automatic archive of signed documents
 UptoSignArchiveCronComments = Daily check that signed/sealed documents are backed up locally with a dedicated archive name
 UPTOSIGN_ARCHIVE_AUTO_CRON = Enable the scheduled archive task for signed documents
@@ -260,6 +260,8 @@ UptoSignProcessTitle=Electronic signature
 UptoSealProcessTitle=Electronic sealing
 UptoSignProcessStarted=Electronic signature process started
 UptoSealProcessStarted=Electronic sealing process started
+ActionAC_UPTOSIGN=Electronic signature
+ActionAC_UPTOSEAL=Electronic seal
 UptoSignProcessing=A procedure is in progress:
 UptoSignProcessAlreadyStarted=An UptoSign process is already in progress for this document
 uptosignStatusError=Error
@@ -582,3 +584,14 @@ uptosignInvoiceExists=A linked invoice already exists
 #
 UptoSignTemplateLongTxt1=Document model configuration (signature positions, etc.) is done in the UptoSign main menu then in the Configuration list submenu
 uptosignThenClickHere=Configure this model and then click the next arrow to move to the next one
+#
+# Recipients (targets tab) - search and mass actions
+#
+UptoSignDeleteRecipients=Delete recipients
+UptoSignConfirmDeleteRecipients=Are you sure you want to delete the %s selected recipients?
+UptoSignRecipientsDeleted=%s recipient(s) deleted
+UptoSignSearchContactWithMobile=Search a contact (with mobile and email)
+UptoSignSearchEmployeeWithMobile=Search an employee (with mobile and email)
+UptoSignFilterEmployeesByGroup=Filter employees by group
+UseFormatInputEmailToTarget=Enter one recipient per line with format <strong>firstname;lastname;mobile;email</strong>
+UseFormatFileEmailToTarget=Imported file must have format <strong>firstname;lastname;mobile;email</strong> (one recipient per line)

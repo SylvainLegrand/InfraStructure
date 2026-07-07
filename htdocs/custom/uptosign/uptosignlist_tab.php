@@ -150,12 +150,10 @@ $model_pdf = uptosignModel($object);
 $ref = $object->ref;
 
 //default file = the first one
-$upload_dir = $pdfFileChoosedFullPath = "";
-if (isset($conf->{$modulepart}->multidir_output[$object->entity])) {
-	$upload_dir = $conf->{$modulepart}->multidir_output[$object->entity].'/'.dol_sanitizeFileName($object->ref);
-} elseif (isset($conf->{$modulepart}->dir_output)) {
-	$upload_dir = $conf->{$modulepart}->dir_output .'/uptosignlist/'.dol_sanitizeFileName($object->ref);
-}
+$pdfFileChoosedFullPath = "";
+// Resolve the upload directory the same way uptosignlist_document.php does, so the
+// position tab always looks where the PDF is actually stored (.../uptosignlist/<ref>).
+$upload_dir = uptosign_uptosignlist_upload_dir($object);
 if (empty($pdfFileChoosed)) {
 	/** @phpstan-ignore-next-line */
 	$filearray = dol_dir_list($upload_dir, "files", 0, '\.pdf$', ['(\.meta|_preview.*\.png)$'], "name", SORT_ASC, 1);

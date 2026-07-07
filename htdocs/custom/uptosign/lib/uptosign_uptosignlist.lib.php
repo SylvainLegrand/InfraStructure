@@ -125,3 +125,37 @@ function uptosignlistPrepareHead($object)
 
 	return $head;
 }
+
+/**
+ * Compute the output directory that stores the PDF files of an UptoSignList.
+ *
+ * Mirrors the path used by uptosignlist_document.php and uptosignlistPrepareHead()
+ * so the signature/seal position tab looks into the same folder where documents
+ * are actually stored. When multidir_output is configured, the '/uptosignlist/'
+ * segment must be part of the path - omitting it (historical bug in the position
+ * tab) made the tab report "no PDF file associated" while a PDF was present.
+ *
+ * @param  object $object  UptoSignList object (needs ->entity and ->ref)
+ * @return string          Absolute upload directory, or '' if not resolvable
+ */
+function uptosign_uptosignlist_upload_dir($object)
+{
+	global $conf;
+
+	if (empty($object) || empty($object->ref)) {
+		dol_syslog("uptosign: uptosign_uptosignlist_upload_dir called without a valid object/ref", LOG_WARNING);
+		return '';
+	}
+
+	$entity = !empty($object->entity) ? $object->entity : $conf->entity;
+
+	if (isset($conf->uptosign->multidir_output[$entity])) {
+		return $conf->uptosign->multidir_output[$entity]."/uptosignlist/".dol_sanitizeFileName($object->ref);
+	}
+	if (isset($conf->uptosign->dir_output)) {
+		return $conf->uptosign->dir_output."/uptosignlist/".dol_sanitizeFileName($object->ref);
+	}
+
+	dol_syslog("uptosign: uptosign_uptosignlist_upload_dir no output dir configured for uptosign module", LOG_ERR);
+	return '';
+}

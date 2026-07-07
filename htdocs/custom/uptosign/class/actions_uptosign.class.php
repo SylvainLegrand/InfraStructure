@@ -657,7 +657,7 @@ class ActionsUptoSign
 			$active = true;
 			$minStatus = Project::STATUS_VALIDATED;
 			$maxStatus = Project::STATUS_CLOSED;
-		} elseif ($parameters['uptosigncustomcard'] == true && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif (! empty($parameters['uptosigncustomcard']) && ! empty($config->fetchListId($model_pdf, $object->element))) {	// InfraS change
 			dol_include_once($parameters['include_class_file']);
 			$class = $parameters['class_name'];
 			$active = true;

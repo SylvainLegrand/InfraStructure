@@ -117,7 +117,10 @@ class uptosignlist_uts_users extends UptosignListTargets
 	{
 		global $langs;
 
-		$langs->load("users");
+		$langs->loadLangs(array("users", "uptosign@uptosign"));
+
+		require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+		$form = new Form($this->db);
 
 		$s = '';
 		$s .= '<select id="filter_uts_users" name="filter" class="flat minwidth100">';
@@ -134,6 +137,18 @@ class uptosignlist_uts_users extends UptosignListTargets
 		$s .= '<option value="0">'.$langs->trans("No").'</option>';
 		$s .= '</select>';
 		$s .= ajax_combobox("filteremployee_uts_users");
+
+		$s .= '<br>';
+
+		// Filter by group: only employees of the chosen group will be added
+		$s .= '<span class="opacitymedium paddingright">'.$langs->trans("UptoSignFilterEmployeesByGroup").'</span>';
+		$s .= $form->select_dolgroups(GETPOSTINT('filterusergroup'), 'filterusergroup', 1, '', 0, '', '', '0', false, 'minwidth200');
+		$s .= ' ';
+
+		// Search a single employee - only employees having BOTH a mobile and an email are proposed
+		$morefilter = "AND u.employee = 1 AND u.email <> '' AND u.user_mobile <> ''";
+		$s .= '<span class="opacitymedium paddingright">'.$langs->trans("UptoSignSearchEmployeeWithMobile").'</span>';
+		$s .= $form->select_dolusers(GETPOSTINT('filteruserid'), 'filteruserid', 1, null, 0, '', '', '0', 0, 0, $morefilter, 0, '', 'minwidth200');
 
 		return $s;
 	}
@@ -170,11 +185,12 @@ class uptosignlist_uts_users extends UptosignListTargets
 
 		// La requete doit retourner: id, email, fk_contact, lastname, firstname, mobile
 		$sql = "SELECT u.rowid as id, u.email as email, null as fk_contact,";
-		$sql .= " u.lastname, u.firstname as firstname, u.civility as civility_id, u.login, u.user_mobile, u.personal_mobile,";
+		$sql .= " u.lastname, u.firstname as firstname, u.civility as civility_id, u.login, u.user_mobile, u.personal_mobile, u.office_phone,";
 		$sql .= " c.code as country_code";
 		$sql .= " FROM ".MAIN_DB_PREFIX."user as u";
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_country as c ON u.fk_country = c.rowid";
 		$sql .= " WHERE u.email <> ''"; // u.email IS NOT NULL est implicite dans ce test
+		$sql .= " AND u.user_mobile <> ''"; // signing needs an SMS-verifiable mobile
 		$sql .= " AND u.entity IN (0,".$conf->entity.")";
 		$sql .= " AND u.email NOT IN (SELECT email FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers WHERE fk_uptosignlist=".((int) $uptosignlist_id).")";
 		if (GETPOSTISSET("filter") && GETPOST("filter") == '1') {
@@ -189,6 +205,14 @@ class uptosignlist_uts_users extends UptosignListTargets
 		if (GETPOSTISSET("filteremployee") && GETPOST("filteremployee") == '0') {
 			$sql .= " AND u.employee=0";
 		}
+		// Restrict to a single employee when one has been picked in the search selector
+		if (GETPOSTINT("filteruserid") > 0) {
+			$sql .= " AND u.rowid = ".GETPOSTINT("filteruserid");
+		}
+		// Restrict to the members of the chosen group
+		if (GETPOSTINT("filterusergroup") > 0) {
+			$sql .= " AND u.rowid IN (SELECT fk_user FROM ".MAIN_DB_PREFIX."usergroup_user WHERE fk_usergroup = ".GETPOSTINT("filterusergroup").")";
+		}
 		$sql .= " ORDER BY u.email";
 		// dol_syslog(get_class($this)."::sql is ".$sql);
 
@@ -202,9 +226,9 @@ class uptosignlist_uts_users extends UptosignListTargets
 
 			while ($i < $num) {
 				$obj = $this->db->fetch_object($result);
-				$mobile = uptoSignFixMobile($obj->personal_mobile, $obj->countrycode);
+				$mobile = uptoSignFixMobile($obj->personal_mobile, $obj->country_code);
 				if (empty($mobile)) {
-					$mobile = uptoSignFixMobile($obj->user_mobile, $obj->countrycode);
+					$mobile = uptoSignFixMobile($obj->user_mobile, $obj->country_code);
 				}
 				if (!empty($mobile)) {
 					dol_syslog("uptosign: " . get_class($this)."::add_to_target mailing obj=".json_encode($obj));

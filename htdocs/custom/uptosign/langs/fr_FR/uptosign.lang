@@ -30,7 +30,7 @@ uptosignEditHelpMessage = Déplacez les étiquettes sur la page ou insérez manu
 ModuleUptoSignName=UptoSign
 # Module description 'ModuleUptoSignDesc'
 ModuleUptoSignDesc=Signez vos documents en ligne, à distance, dans un cloud 100%% français, de manière légale et sécurisée.
-ModuleUptoSignDescLong=Signez seul, à plusieurs ou faites signer d’autres personnes, en ligne. Vérifiez l'identité d'un signataire par SMS. Horodatez et scellez votre document avec les informations des signataires. Ce module est un co-développement: il est fondé sur le code du module docusign/yousign de Net-Logic et adapté par Cap-Rel pour le service uptosign.
+ModuleUptoSignDescLong=Signez seul, à plusieurs ou faites signer d'autres personnes, en ligne. Vérifiez l'identité d'un signataire par SMS. Horodatez et scellez votre document avec les informations des signataires. Ce module est un co-développement: il est fondé sur le code du module docusign/yousign de Net-Logic et adapté par Cap-Rel pour le service uptosign.
 #
 # Admin page
 #
@@ -115,15 +115,15 @@ CheckConnectOK = Connexion avec le serveur uptosign validée
 
 # Emails templates names
 UptoSignInitPropalTemplate=UptoSign: Pour l'envoi d'une proposition pour signature électronique
-UptoSignEndPropalTemplate=UptoSign: Mail de confirmation au signataire d’une proposition
+UptoSignEndPropalTemplate=UptoSign: Mail de confirmation au signataire d'une proposition
 UptoSignInitPropalTemplate=UptoSign: Pour l'envoi d'une commande client pour signature électronique
-UptoSignEndPropalTemplate=UptoSign: Mail de confirmation au signataire d’une commande client
+UptoSignEndPropalTemplate=UptoSign: Mail de confirmation au signataire d'une commande client
 UptoSignInitInterventionTemplate=UptoSign: Pour l'envoi d'une intervention pour signature électronique
-UptoSignEndInterventionTemplate=UptoSign: Mail de confirmation au signataire d’une intervention
+UptoSignEndInterventionTemplate=UptoSign: Mail de confirmation au signataire d'une intervention
 UptoSignInitContractTemplate=UptoSign: Pour l'envoi d'un contrat pour signature électronique
-UptoSignEndContratTemplate=UptoSign: Mail de confirmation au signataire d’un contrat
+UptoSignEndContratTemplate=UptoSign: Mail de confirmation au signataire d'un contrat
 UptoSignInitExpeditionTemplate=UptoSign: Pour l'envoi d'un bon de livraison pour signature électronique
-UptoSignEndExpeditionTemplate=UptoSign: Mail de confirmation au signataire d’un bon de livraison
+UptoSignEndExpeditionTemplate=UptoSign: Mail de confirmation au signataire d'un bon de livraison
 UptoSignReminders=UptoSign: Mail de rappel
 UptoSignRefused=UptoSign: Mail de refus
 UptoSignSync=Synchronisation UptoSign
@@ -149,6 +149,8 @@ UptoSignProcessTitle=Signature électronique
 UptoSealProcessTitle=Scellement électronique
 UptoSignProcessStarted=Processus de signature électronique lancé
 UptoSealProcessStarted=Processus de scellement électronique lancé
+ActionAC_UPTOSIGN=Signature électronique
+ActionAC_UPTOSEAL=Scellement électronique
 DeleteUptoSign=Annuler un processus de signature
 UptoSignConnectError=Erreur de connexion à l'API.
 UptoSignApiError=Erreur Api.
@@ -465,7 +467,7 @@ uptosignStatusRefused=Refusé
 uptosignListProcessInProgress = La procédure est en cours vous ne pouvez plus accéder à cette fonctionnalité
 UptoSignWorkflow = Automatisations
 uptosignInvoiceExists = Une facture liée existe déjà
-UptoSignXInputUserPlaceholder=Collez ici depuis un tableur ou saisissez une ligne par destinataire : email;nom;prenom;autre
+UptoSignXInputUserPlaceholder=Collez ici depuis un tableur ou saisissez une ligne par destinataire : prénom;nom;téléphone;email
 
 # About page
 AboutModuleInfo=Informations sur le module
@@ -485,3 +487,14 @@ UptosignFeedbackSendError=Erreur lors de l'envoi du retour
 UptosignBuyMeACoffee=Offrez-nous un café
 UptosignDonationText=Ce module nous a demandé du temps de développement et de conception. Si vous le trouvez utile et souhaitez soutenir son développement, pensez à nous offrir un café (ou un peu plus). Chaque contribution aide à maintenir le projet en vie et nous motive à ajouter de nouvelles fonctionnalités !
 UptosignOfferCoffee=Offrir un café ... ou un peu plus
+#
+# Destinataires (onglet cibles) - recherche et actions de masse
+#
+UptoSignDeleteRecipients=Supprimer les destinataires
+UptoSignConfirmDeleteRecipients=Êtes-vous sûr de vouloir supprimer les %s destinataires sélectionnés ?
+UptoSignRecipientsDeleted=%s destinataire(s) supprimé(s)
+UptoSignSearchContactWithMobile=Rechercher un contact (avec mobile et e-mail)
+UptoSignSearchEmployeeWithMobile=Rechercher un salarié (avec mobile et e-mail)
+UptoSignFilterEmployeesByGroup=Filtrer les salariés par groupe
+UseFormatInputEmailToTarget=Saisissez une ligne par destinataire au format <strong>prénom;nom;téléphone;email</strong>
+UseFormatFileEmailToTarget=Le fichier d'import doit être au format <strong>prénom;nom;téléphone;email</strong> (une ligne par destinataire)

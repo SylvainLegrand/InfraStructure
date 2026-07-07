@@ -683,7 +683,7 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 	//$object->status = 1;
 	// print "<p>OBJ : " . json_encode($obj) . "</p>";
 
-	// fausse bonne idée, il faut tout afficher
+	// fausse bonne idée, il faut tout afficher  :: ajouter un test avec contrat / contract
 	$sqlVerif = "SELECT nom FROM ".MAIN_DB_PREFIX."document_model WHERE nom = '" .$db->escape($dolibarr_model). "' AND type = '".$db->escape($object_type)."' AND entity = ".$conf->entity;
 	// print "<p>$sqlVerif</p>";
 	$resqlVerif = $db->query($sqlVerif);

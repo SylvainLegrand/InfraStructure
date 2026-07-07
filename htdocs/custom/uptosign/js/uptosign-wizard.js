@@ -541,14 +541,8 @@ function renderPage(num)
 		pageWith[num] = largeurPDF;
 		pageHeight[num] = hauteurPDF;
 
-		// InfraS change begin
-		// Utiliser la taille AFFICHEE du canvas (CSS, bornée par max-width/max-height)
-		// et non sa taille interne (canvas.width = viewport * devicePixelRatio) :
-		// quand devicePixelRatio > 1, le canvas est reduit par le CSS et les etiquettes
-		// (affichage initial ET conversion drag-drop) etaient decalees du meme facteur.
-		pxTommX[num] = largeurPDF / $('#uptosignCanvas').width();
-		pxTommY[num] = hauteurPDF / $('#uptosignCanvas').height();
-		// InfraS change end
+		pxTommX[num] = largeur / canvas.width;
+		pxTommY[num] = hauteur / canvas.height;
 
 		// uposignDebugJs("pour la page=" + num + ", largeurPDF=" + largeurPDF + ", hauteurPDF=" + hauteurPDF);
 		// uposignDebugJs("viewport.width=" + viewport.width + ", viewport.height=" + viewport.height);
@@ -604,7 +598,6 @@ function formSeal()
 	let input = $("<input>").attr("type", "hidden")
 		.attr("name", "action").val("uptoseal");
 	$('#leform').append(input);
-	$('#pdfData')[0].value = '';
 	leform.submit();
 }
 
@@ -613,13 +606,16 @@ function formSign()
 	let input = $("<input>").attr("type", "hidden")
 		.attr("name", "action").val("uptosign");
 	$('#leform').append(input);
-	$('#pdfData')[0].value = '';
+	//debug time
+	// $('#pdfData')[0].value='';
+	// uposignDebugJs("Debug pour Eric:");
+	// uposignDebugJs($('#leform').serialize());
+	// return false;
 	leform.submit();
 }
 
 function pdfFileChange()
 {
 	$("input[name=action]").val("pdffilechoose");
-	$('#pdfData')[0].value = '';
 	leform.submit();
 }

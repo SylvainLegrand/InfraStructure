@@ -804,6 +804,10 @@ class modUptoSign extends DolibarrModules
 			dolibarr_set_const($db, 'SOCIETE_RIB_ONLINE_SIGNATURE_SECURITY_TOKEN', $rand, 'chaine', 0, 'Set sign security token', $conf->entity);
 		}
 
+		// Register dedicated agenda event types (signature / seal) and recategorize
+		// legacy events that were downgraded to AC_OTH_AUTO between 2023 and 2024.
+		$this->_registerAgendaEventTypes();
+
 		dolibarr_set_const($db, 'UPTOSIGN_MODULE_VERSION', $this->version, 'chaine', 0, 'Active module version', $conf->entity);
 		dolibarr_del_const($db, 'UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL', $conf->entity);
 		dol_syslog("uptosign module end init", LOG_DEBUG);
@@ -820,6 +824,58 @@ class modUptoSign extends DolibarrModules
 		}
 
 		return $this->_init($sql, $options);
+	}
+
+	/**
+	 *  Register the dedicated agenda event types for signature and seal.
+	 *
+	 *  Historically the module tagged its agenda events with a dedicated type
+	 *  (AC_UPTOSIGN / AC_UPTOSEAL), but those codes were never declared in the
+	 *  llx_c_actioncomm dictionary, so ActionComm::create() failed. In 2023 the
+	 *  type was downgraded to the generic AC_OTH_AUTO ('Other auto'), which made
+	 *  the events impossible to filter. This declares the two types (idempotent,
+	 *  DB-portable) and recategorizes the legacy events created since then.
+	 *
+	 *  @return int  1 if OK, -1 if a query failed
+	 */
+	private function _registerAgendaEventTypes()
+	{
+		global $db;
+
+		// id, code, libelle (fallback label, real label comes from ActionAC_* lang key), picto
+		$types = array(
+			471040 => array('code' => 'AC_UPTOSIGN', 'libelle' => 'Electronic signature', 'picto' => 'uptosign@uptosign'),
+			471041 => array('code' => 'AC_UPTOSEAL', 'libelle' => 'Electronic seal', 'picto' => 'uptosign@uptosign'),
+		);
+
+		foreach ($types as $id => $t) {
+			$sql = "SELECT id FROM ".MAIN_DB_PREFIX."c_actioncomm WHERE code = '".$db->escape($t['code'])."'";
+			$resql = $db->query($sql);
+			if (!$resql) {
+				dol_syslog("uptosign: _registerAgendaEventTypes select failed for ".$t['code'].": ".$db->lasterror(), LOG_ERR);
+				return -1;
+			}
+			if ($db->num_rows($resql) == 0) {
+				$sqlins = "INSERT INTO ".MAIN_DB_PREFIX."c_actioncomm(id, code, type, libelle, module, active, position)";
+				$sqlins .= " VALUES(".((int) $id).", '".$db->escape($t['code'])."', 'systemauto', '".$db->escape($t['libelle'])."', 'uptosign@uptosign', 1, ".((int) $id).")";
+				if (!$db->query($sqlins)) {
+					dol_syslog("uptosign: _registerAgendaEventTypes insert failed for ".$t['code'].": ".$db->lasterror(), LOG_ERR);
+					return -1;
+				}
+				dol_syslog("uptosign: registered agenda event type ".$t['code'], LOG_DEBUG);
+			}
+
+			// Recategorize legacy events (created since 2023 with fk_action pointing to AC_OTH_AUTO).
+			// The code column is unique to this module, so matching on it is safe across entities.
+			$sqlupd = "UPDATE ".MAIN_DB_PREFIX."actioncomm SET fk_action = ".((int) $id);
+			$sqlupd .= " WHERE code = '".$db->escape($t['code'])."' AND fk_action <> ".((int) $id);
+			if (!$db->query($sqlupd)) {
+				dol_syslog("uptosign: _registerAgendaEventTypes recategorize failed for ".$t['code'].": ".$db->lasterror(), LOG_ERR);
+				return -1;
+			}
+		}
+
+		return 1;
 	}
 
 	/**

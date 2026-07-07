@@ -164,10 +164,17 @@ class uptosignlist_uts_inputfile extends UptosignListTargets
 						$buffer = trim(fgets($handle));
 						$tab = explode(';', $buffer, 4);
 
-						$email = dol_string_nohtmltag($tab[0]);
-						$name = dol_string_nohtmltag(empty($tab[1]) ? '' : $tab[1]);
-						$firstname = dol_string_nohtmltag(empty($tab[2]) ? '' : $tab[2]);
-						$other = dol_string_nohtmltag(empty($tab[3]) ? '' : $tab[3]);
+						// Column order: firstname ; lastname ; mobile ; email
+						// Backward-friendly shortcut: a single field that is a valid email is an email-only line
+						if (count($tab) == 1 && isValidEmail(dol_string_nohtmltag($tab[0]))) {
+							$firstname = $name = $mobile = '';
+							$email = dol_string_nohtmltag($tab[0]);
+						} else {
+							$firstname = dol_string_nohtmltag(empty($tab[0]) ? '' : $tab[0]);
+							$name = dol_string_nohtmltag(empty($tab[1]) ? '' : $tab[1]);
+							$mobile = dol_string_nohtmltag(empty($tab[2]) ? '' : $tab[2]);
+							$email = dol_string_nohtmltag(empty($tab[3]) ? '' : $tab[3]);
+						}
 
 						if (!empty($buffer)) {
 							//print 'xx'.dol_strlen($buffer).empty($buffer)."<br>\n";
@@ -177,10 +184,11 @@ class uptosignlist_uts_inputfile extends UptosignListTargets
 													'email' => $email,
 													'lastname' => $name,
 													'firstname' => $firstname,
-													'other' => $other,
+													'other' => '',
 													'source_url' => '',
 													'source_id' => '',
-													'source_type' => 'file'
+													'source_type' => 'file',
+													'mobile' => $mobile
 									);
 									$old = $email;
 									$j++;

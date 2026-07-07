@@ -117,7 +117,7 @@ class uptosignlist_uts_inputmanual extends UptosignListTargets
 	/**
 	 *  Add recipients to target table from multi-line textarea input.
 	 *  Each line is one recipient. Auto-detects separator (tab or semicolon).
-	 *  Expected columns: email ; lastname ; firstname ; other
+	 *  Expected columns: firstname ; lastname ; mobile ; email
 	 *
 	 *  @param	int		$uptosignlist_id    	Id of uptosignlist
 	 *  @return int           			< 0 if error, nb added if ok
@@ -153,10 +153,17 @@ class uptosignlist_uts_inputmanual extends UptosignListTargets
 				$parts = explode(';', $line, 4);
 			}
 
-			$email = trim(dol_string_nohtmltag($parts[0]));
-			$lastname = trim(dol_string_nohtmltag(isset($parts[1]) ? $parts[1] : ''));
-			$firstname = trim(dol_string_nohtmltag(isset($parts[2]) ? $parts[2] : ''));
-			$other = trim(dol_string_nohtmltag(isset($parts[3]) ? $parts[3] : ''));
+			// Column order: firstname ; lastname ; mobile ; email
+			// Backward-friendly shortcut: a single field that is a valid email is treated as an email-only line
+			if (count($parts) == 1 && isValidEmail(trim(dol_string_nohtmltag($parts[0])))) {
+				$firstname = $lastname = $mobile = '';
+				$email = trim(dol_string_nohtmltag($parts[0]));
+			} else {
+				$firstname = trim(dol_string_nohtmltag(isset($parts[0]) ? $parts[0] : ''));
+				$lastname = trim(dol_string_nohtmltag(isset($parts[1]) ? $parts[1] : ''));
+				$mobile = trim(dol_string_nohtmltag(isset($parts[2]) ? $parts[2] : ''));
+				$email = trim(dol_string_nohtmltag(isset($parts[3]) ? $parts[3] : ''));
+			}
 
 			if (!isValidEmail($email)) {
 				$errors++;
@@ -173,11 +180,11 @@ class uptosignlist_uts_inputmanual extends UptosignListTargets
 				'email' => $email,
 				'lastname' => $lastname,
 				'firstname' => $firstname,
-				'other' => $other,
+				'other' => '',
 				'source_url' => '',
 				'source_id' => '',
 				'source_type' => 'manual',
-				'mobile' => ''
+				'mobile' => $mobile
 			);
 		}
 

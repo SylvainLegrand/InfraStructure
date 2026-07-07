@@ -181,7 +181,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 
 			// Contacts
 			case 'CONTACT_CREATE':
-				if ($conf->global->UPTOSIGN_FORCE_FIRST_CONTACT_AS_SIGNER) {
+				if (getDolGlobalInt('UPTOSIGN_FORCE_FIRST_CONTACT_AS_SIGNER')) {	// InfraS change
 					$uptoSign = new UptoSign($db);
 					$res = $uptoSign->giveAllRolesToContact($object);
 					if ($res > 0) {

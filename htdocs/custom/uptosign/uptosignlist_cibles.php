@@ -69,7 +69,7 @@ dol_include_once('/uptosign/core/modules/uptosignlist/modules_mailings.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 
 // Load translation files required by the page
-$langs->loadLangs(array("mails", "admin"));
+$langs->loadLangs(array("mails", "admin", "other", "uptosign@uptosign"));
 
 // Load variable for pagination
 $limit = GETPOSTINT('limit') ?GETPOSTINT('limit') : $conf->liste_limit;
@@ -98,6 +98,9 @@ $search_email = GETPOST("search_email", 'alphanohtml');
 $search_mobile = GETPOST("search_mobile", 'alphanohtml');
 $search_other = GETPOST("search_other", 'alphanohtml');
 $search_dest_status = GETPOSTINT('search_dest_status');
+$massaction = GETPOST('massaction', 'alpha'); // The bulk action selected in the dropdown
+$confirm = GETPOST('confirm', 'alpha');
+$toselect = GETPOST('toselect', 'array'); // Array of member rowid selected for a mass action
 
 // Search modules dirs
 $modulesdir = dolGetModulesDirs('/uptosignlist');
@@ -251,6 +254,42 @@ if ($action == 'delete' && $user->hasRight('uptosign', 'create')) {
 	} else {
 		dol_print_error($db);
 	}
+}
+
+// Mass action: delete the selected recipients (only allowed while the list is still DRAFT)
+if ($action == 'confirm_massdelete' && $confirm == 'yes' && $user->hasRight('uptosign', 'create')) {
+	if ($object->statut != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: mass delete refused, list ".$object->id." is not DRAFT (status=".$object->statut.")", LOG_WARNING);
+		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+	} elseif (!is_array($toselect) || count($toselect) == 0) {
+		dol_syslog("uptosign: mass delete requested with an empty selection for list ".$object->id, LOG_WARNING);
+		setEventMessages($langs->trans("NoRecordSelected"), [], 'warnings');
+	} else {
+		$nbdeleted = 0;
+		$massdeleteerror = 0;
+		$db->begin();
+		foreach ($toselect as $selid) {
+			$sqldel = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers";
+			$sqldel .= " WHERE rowid = ".((int) $selid)." AND fk_uptosignlist = ".((int) $object->id);
+			if ($db->query($sqldel)) {
+				$nbdeleted++;
+			} else {
+				$massdeleteerror++;
+				dol_syslog("uptosign: mass delete recipient rowid=".((int) $selid)." failed: ".$db->lasterror(), LOG_ERR);
+			}
+		}
+		if (!$massdeleteerror) {
+			$db->commit();
+			$obj = new UptosignListTargets($db);
+			$obj->update_nb($object->id);
+			setEventMessages($langs->trans("UptoSignRecipientsDeleted", $nbdeleted), [], 'mesgs');
+		} else {
+			$db->rollback();
+			setEventMessages($langs->trans("Error"), [], 'errors');
+		}
+	}
+	$massaction = '';
+	$action = '';
 }
 
 // Purge search criteria
@@ -640,11 +679,25 @@ if ($id > 0 && $object->fetch($id)) {
 		}
 		$morehtmlcenter .= ' &nbsp; <a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=exportcsv&token='.newToken().'&exportcsv=1&id='.$object->id.'">'.img_picto('', 'download', 'class="pictofixedwidth"').$langs->trans("Download").'</a>';
 
-		$massactionbutton = '';
+		// Build the mass action dropdown (delete selected recipients), only while DRAFT
+		$arrayofmassactions = array();
+		if ($allowaddtarget && $user->hasRight('uptosign', 'create')) {
+			$arrayofmassactions['predelete'] = img_picto('', 'delete', 'class="pictofixedwidth"').$langs->trans("Delete");
+		}
+		$massactionbutton = count($arrayofmassactions) ? $form->selectMassAction('', $arrayofmassactions) : '';
 
 		print_barre_liste($langs->trans("MailSelectedRecipients"), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $morehtmlcenter, $num, $nbtotalofrecords, 'generic', 0, '', '', $limit, 0, 0, 1);
 
 		print '</form>';
+
+		// Confirmation dialog for the mass delete of the selected recipients
+		if ($massaction == 'predelete') {
+			$formquestion = array();
+			foreach ($toselect as $selid) {
+				$formquestion[] = array('type' => 'hidden', 'name' => 'toselect[]', 'value' => (int) $selid);
+			}
+			print $form->formconfirm($_SERVER["PHP_SELF"]."?id=".$object->id, $langs->trans("UptoSignDeleteRecipients"), $langs->trans("UptoSignConfirmDeleteRecipients", count($toselect)), "confirm_massdelete", $formquestion, 0, 1);
+		}
 
 		print "\n<!-- Liste destinataires selectionnes -->\n";
 		print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
@@ -655,6 +708,10 @@ if ($id > 0 && $object->fetch($id)) {
 		print '<input type="hidden" name="id" value="'.$object->id.'">';
 		print '<input type="hidden" name="limit" value="'.$limit.'">';
 		print '<input type="hidden" name="page_y" value="">';
+
+		if ($massactionbutton) {
+			print '<div class="right marginbottomonly">'.$massactionbutton.'</div>';
+		}
 
 		print '<div class="div-table-responsive">';
 		print '<table class="noborder centpercent">';
@@ -770,6 +827,9 @@ if ($id > 0 && $object->fetch($id)) {
 					print '<!-- ID uptosignlist_cibles = '.$obj->rowid.' -->';
 					if ($obj->statut == $object::STATUS_DRAFT) {	// Not sent yet
 						if (!empty($user->hasRight('uptosign', 'create'))) {
+							if ($massactionbutton) {
+								print '<input id="cbleft'.$obj->rowid.'" class="flat checkforselect marginrightonly" type="checkbox" name="toselect[]" value="'.((int) $obj->rowid).'"'.(in_array($obj->rowid, $toselect) ? ' checked="checked"' : '').'>';
+							}
 							print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
 						}
 					}
@@ -853,6 +913,9 @@ if ($id > 0 && $object->fetch($id)) {
 					print '<!-- ID uptosignlist_cibles = '.$obj->rowid.' -->';
 					if ($obj->statut == $object::STATUS_DRAFT) {	// Not sent yet
 						if (!empty($user->hasRight('uptosign', 'create'))) {
+							if ($massactionbutton) {
+								print '<input id="cbright'.$obj->rowid.'" class="flat checkforselect marginrightonly" type="checkbox" name="toselect[]" value="'.((int) $obj->rowid).'"'.(in_array($obj->rowid, $toselect) ? ' checked="checked"' : '').'>';
+							}
 							print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&rowid='.((int) $obj->rowid).$param.'">'.img_delete($langs->trans("RemoveRecipient")).'</a>';
 						}
 					}
