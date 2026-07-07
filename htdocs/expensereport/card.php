@@ -2852,21 +2852,28 @@ if ($action != 'create' && $action != 'edit' && $action != 'editline') {
 			print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=save_from_refuse&token='.newToken().'&id='.$object->id.'">'.$langs->trans('ValidateAndSubmit').'</a></div>';
 		}
 	}
-
-	if ($user->hasRight('expensereport', 'to_paid') && $object->status == ExpenseReport::STATUS_APPROVED) {
-		if ($user->id == $object->fk_user_author || $user->id == $object->fk_user_valid) {
-			// setdraft
+	// InfraS change begin
+	if ($object->status == ExpenseReport::STATUS_APPROVED) {
+		$candisplaysetdraft = false;
+		if ($user->hasRight('expensereport', 'to_paid') && ($user->id == $object->fk_user_author || $user->id == $object->fk_user_valid)) {
+			$candisplaysetdraft = true;
+		}
+		if ($user->hasRight('expensereport', 'creer') && is_object($userauthor) && $user->id == $userauthor->fk_user_expense_validator) {
+			$candisplaysetdraft = true;
+		}
+		if ($candisplaysetdraft) {
+			// setdraft (utilisateur déclaré comme valideur de notes de frais sur la fiche de l'auteur, ou auteur/soumetteur avec droit to_paid)
 			print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=setdraft&token='.newToken().'&id='.$object->id.'">'.$langs->trans('SetToDraft').'</a></div>';
 		}
 	}
-
+	// InfraS change end
 	/* Si l'état est "En attente d'approbation"
 	 *	ET user à droit de "approve"
 	 *	ET fk_user_validator == user courant
 	 *	Afficher : "Valider" / "Refuser" / "Supprimer"
 	 */
 	if ($object->status == ExpenseReport::STATUS_VALIDATED) {
-		if (in_array($object->fk_user_author, $childids)) {
+		if (in_array($object->fk_user_author, $childids) || (is_object($userauthor) && $user->id == $userauthor->fk_user_expense_validator)) { // InfraS change
 			// set draft
 			print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=setdraft&token='.newToken().'&id='.$object->id.'">'.$langs->trans('SetToDraft').'</a></div>';
 		}
