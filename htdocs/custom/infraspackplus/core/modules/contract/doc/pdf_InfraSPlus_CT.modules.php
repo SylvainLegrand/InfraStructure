@@ -751,13 +751,14 @@
 						$objectligne	= $object->lines[$i];
 						$valide			= empty($objectligne->id) ? 0 : $objectligne->fetch($objectligne->id);
 						if ($valide > 0 || $object->specimen) {
+							$pdf->SetY($curY);	// Resynchronise le curseur PDF sur la position reelle de la ligne : sans cela, si pdf_InfraSPlus_writelinedesc() ne dessine rien (ex: hook tiers renvoyant une erreur sur pdf_writelinedesc), $pdf->GetY() resterait sur une position obsolete et desynchroniserait $nexY (chevauchement visuel des lignes suivantes)
 							// Hauteur de la référence
 							$this->heightline	= $this->tab_hl;
 							if (empty($this->hide_cols)) {
 								// Reference
 								if (!empty($this->refcol) || !empty($this->show_num_col)) {
 									$pdf->startTransaction();
-									$startline			= $pdf->GetY();
+									$startline			= $curY;	// Utiliser $curY (position reelle de la ligne) plutot que $pdf->GetY(), qui peut etre desynchronise du curseur PDF interne
 									$ref				= !empty($this->refcol) ? pdf_getlineref($object, $i, $outputlangs, $hidedetails) : $i + 1;
 									$pdf->MultiCell($this->tableau['ref']['larg'], $this->heightline, $ref, '', $this->force_align_left_ref, 0, 1, $this->tableau['ref']['posx'], $startline, true, 0, 0, false, 0, 'M', false);
 									$endline			= $pdf->GetY();

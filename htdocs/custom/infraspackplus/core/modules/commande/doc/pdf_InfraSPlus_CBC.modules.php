@@ -1117,6 +1117,7 @@
 							$txturl	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
 							$ht_url	= $pdf->getStringHeight($this->tableau[$colPicture]['larg'], $txturl);
 						}
+						$pdf->SetY($curY);	// Resynchronise le curseur PDF sur la position reelle de la ligne : sans cela, si pdf_InfraSPlus_writelinedesc() ne dessine rien (ex: hook tiers renvoyant une erreur sur pdf_writelinedesc), $pdf->GetY() resterait sur une position obsolete et desynchroniserait $nexY (chevauchement visuel des lignes suivantes)
 						// Hauteur de la référence
 						$this->heightline	= $this->tab_hl;
 						// Photo of product line first

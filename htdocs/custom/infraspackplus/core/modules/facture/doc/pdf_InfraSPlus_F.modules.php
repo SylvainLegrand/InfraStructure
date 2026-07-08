@@ -1454,13 +1454,14 @@
 							$txturl	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
 							$ht_url	= $pdf->getStringHeight($this->tableau[$colPicture]['larg'], $txturl);
 						}
+						$pdf->SetY($curY);	// Resynchronise le curseur PDF sur la position reelle de la ligne : sans cela, si pdf_InfraSPlus_writelinedesc() ne dessine rien (ex: hook tiers renvoyant une erreur sur pdf_writelinedesc), $pdf->GetY() resterait sur une position obsolete et desynchroniserait $nexY (chevauchement visuel des lignes suivantes)
 						// Hauteur de la référence
 						$this->heightline	= $this->tab_hl;
 						if (empty($this->hide_cols)) {
 							// Reference
 							if (!empty($this->refcol) || !empty($this->show_num_col)) {
 								$pdf->startTransaction();
-								$startline			= $pdf->GetY();
+								$startline			= $curY;	// Utiliser $curY (position reelle de la ligne) plutot que $pdf->GetY(), qui peut etre desynchronise du curseur PDF interne
 								$ref				= $isSubTitle || $isSubTotal ? '' : (!empty($this->refcol) ? pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails) : $i + 1);
 								$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $startline, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 								$endline			= $pdf->GetY();

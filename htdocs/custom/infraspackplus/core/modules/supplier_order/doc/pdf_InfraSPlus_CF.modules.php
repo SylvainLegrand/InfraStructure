@@ -819,13 +819,14 @@
 							$PictureY	= pdf_InfraSPlus_writelineimg($pdf, $object, $i, $outputlangs, $this->tableau['desc']['posx'], $PictureY, $this->tableau['desc']['larg'], $realpatharray, $imglinesize, '', $this->tab_hl);
 							$curY		= $PictureY + $this->picture_padding;
 						}
+						$pdf->SetY($curY);	// Resynchronise le curseur PDF sur la position réelle de la ligne : sans cela, si pdf_InfraSPlus_writelinedesc() ne dessine rien (ex: hook tiers renvoyant une erreur sur le hook pdf_writelinedesc), $pdf->GetY() resterait sur une position obsolète et désynchroniserait $nexY (chevauchement visuel des lignes suivantes)
 						// Hauteur de la référence
 						$this->heightline	= $this->tab_hl;
 						if (empty($this->hide_cols)) {
 							// Reference
 							if (!empty($this->show_ref_col)) {
 								$pdf->startTransaction();
-								$startline			= $pdf->GetY();
+								$startline			= $curY;	// Utiliser $curY (position réelle de la ligne) plutôt que $pdf->GetY(), qui peut être désynchronisé du curseur PDF interne (ex: ligne précédente sans description rendue par un hook)
 								$ref				= pdf_InfraSPlus_getlineref_supplier($object, $i, $outputlangs, $hidedetails);
 								$pdf->MultiCell($this->tableau['ref']['larg'], $this->heightline, $ref, '', 'L', 0, 1, $this->tableau['ref']['posx'], $startline, true, 0, 0, false, 0, 'M', false);
 								$endline			= $pdf->GetY();

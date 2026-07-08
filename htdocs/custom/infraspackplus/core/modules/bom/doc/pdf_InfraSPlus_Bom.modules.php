@@ -485,11 +485,12 @@
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
 						$pageposbefore				= $pdf->getPage();
 						$showpricebeforepagebreak	= 1;
+						$pdf->SetY($curY);	// Resynchronise le curseur PDF sur la position reelle de la ligne : sans cela, si pdf_InfraSPlus_writelinedesc() ne dessine rien (ex: hook tiers renvoyant une erreur sur pdf_writelinedesc), $pdf->GetY() resterait sur une position obsolete et desynchroniserait $nexY (chevauchement visuel des lignes suivantes)
 						// Hauteur de la référence
 						$this->heightline			= $this->tab_hl;
 						// Reference
 						$pdf->startTransaction();
-						$startline					= $pdf->GetY();
+						$startline					= $curY;	// Utiliser $curY (position reelle de la ligne) plutot que $pdf->GetY(), qui peut etre desynchronise du curseur PDF interne
 						$idprod						= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : '';
 						$prodser					= new Product($this->db);
 						if (!empty($idprod)) {
