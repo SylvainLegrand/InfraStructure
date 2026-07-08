@@ -85,7 +85,7 @@
 						if (empty($object->lines[$i]->fk_product))	continue;
 						else										$ref	= $object->lines[$i]->ref;
 						$VAT										= vatrate($object->lines[$i]->tva_tx, 0, $object->lines[$i]->info_bits, 1);
-						$currency_subprice							= ($conf->multicurrency->enabled && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice);
+						$currency_subprice							= (isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice);
 						$currency_upFour							= price($currency_subprice, 0, $langs);
 						$currency_tx								= $object->multicurrency_tx;
 						$currency_code								= $object->multicurrency_code;
@@ -297,7 +297,7 @@
 										<th class = "center"><?php echo $langs->trans('InfraSSupPriceColRef')?></th>
 										<th class = "center"><?php echo $langs->trans('InfraSSupPriceColCodeFour')?></th>
 										<th class = "center"><?php echo $langs->trans('InfraSSupPriceColTVA')?></th>
-										<th class = "center"><?php echo $langs->trans(!empty($conf->multicurrency->enabled) && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 'PriceUHTCurrency' : 'InfraSSupPriceColPu')?></th>
+										<th class = "center"><?php echo $langs->trans(isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 'PriceUHTCurrency' : 'InfraSSupPriceColPu')?></th>
 										<th class = "center"><?php echo $langs->trans('InfraSSupPriceColQty')?></th>
 										<th class = "center"><?php echo $langs->trans('InfraSSupPriceColQtyMin')?></th>
 										<th class = "center"><?php echo $langs->trans('InfraSSupPriceColRem')?></th>
