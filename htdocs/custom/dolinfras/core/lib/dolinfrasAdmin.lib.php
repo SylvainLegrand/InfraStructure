@@ -33,6 +33,285 @@
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
 
 	/**
+	* Define head array for setup pages tabs
+	*
+	* @return	array			list of head
+	**/
+	function dolinfras_admin_prepare_head()
+	{
+		global $langs, $conf, $user;
+
+		$h		= 0;
+		$head	= array();
+		if (!empty($user->admin)) {
+			$head[$h][0]	= dol_buildpath('/dolinfras/admin/dolinfrassetup.php', 1);
+			$head[$h][1]	= $langs->trans('DolInfraSParams');
+			$head[$h][2]	= 'dolinfrassetup';
+		}
+		complete_head_from_modules($conf, $langs, null, $head, $h, 'dolinfras_admin');
+		$h++;
+		$head[$h][0]	= dol_buildpath('/dolinfras/admin/about.php', 1);
+		$head[$h][1]	= $langs->trans('About');
+		$head[$h][2]	= 'about';
+		$h++;
+		$head[$h][0]	= dol_buildpath('/dolinfras/admin/changelog.php', 1);
+		$head[$h][1]	= $langs->trans('DolInfraSParamsChangelog');
+		$head[$h][2]	= 'changelog';
+		complete_head_from_modules($conf, $langs, null, $head, $h, 'dolinfras_admin', 'remove');
+		return $head;
+	}
+
+	/**
+	*	Force la valeur des constantes du fichier sql/data.sql dans la base de données (entité courante)
+	*
+	*	@param		string	$appliname	module name
+	*	@return		int					number of constants applied or -1 if KO
+	**/
+	function dolinfras_force_lts_constants($appliname)
+	{
+		global $db, $conf;
+
+		$file	= dol_buildpath('/'.$appliname.'/sql/data.sql', 0);
+		if (! is_file($file)) {
+			dol_syslog('dolinfrasAdmin.Lib::dolinfras_force_lts_constants file not found = '.$file, LOG_ERR);
+			return -1;
+		}
+		$content	= file_get_contents($file);
+		if ($content === false) {
+			return -1;
+		}
+		$nbapplied	= 0;
+		if (preg_match_all('/^insert ignore into llx_const \(name, entity, value, type, visible, note\) values \(\'([A-Za-z0-9_]+)\',\s+__ENTITY__, \'(.*)\',\s+\'chaine\', ([01]), \'(.*)\'\);$/m', $content, $matches, PREG_SET_ORDER)) {
+			$db->begin();
+			foreach ($matches as $match) {
+				$result	= dolibarr_set_const($db, $match[1], $match[2], 'chaine', (int) $match[3], $match[4], $conf->entity);
+				if ($result < 0) {
+					$db->rollback();
+					dol_syslog('dolinfrasAdmin.Lib::dolinfras_force_lts_constants error on constant = '.$match[1], LOG_ERR);
+					return -1;
+				}
+				$nbapplied++;
+			}
+			$db->commit();
+		}
+		dol_syslog('dolinfrasAdmin.Lib::dolinfras_force_lts_constants nbapplied = '.$nbapplied);
+		return $nbapplied;
+	}
+
+	/**
+	*	Load a title with picto
+	*
+	*	@param	string	$titre				Title to show
+	*	@param	string	$morehtmlright		Added message to show on right
+	*	@param	string	$picto				Icon to use before title (should be a 32x32 transparent png file)
+	*	@param	int		$pictoisfullpath	1=Icon name is a full absolute url of image
+	*	@param	string	$id					To force an id on html objects
+	*	@param	string	$morecssontable		More css on table
+	*	@param	string	$morehtmlcenter		Added message to show on center
+	*	@return	string
+	**/
+	function dolinfras_load_title($titre, $morehtmlright = '', $picto = 'generic', $pictoisfullpath = 0, $id = '', $morecssontable = '', $morehtmlcenter = '')
+	{
+		$out	= '';
+		if ($picto == 'setup')	{
+			$picto	= 'generic';
+		}
+		$out	.= '<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
+											<tr class = "liste_titre">';
+		if (!empty($picto)) {
+			$out .= '							<td class = "dolinfrasnoborder dolinfrasnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle dolinfraswidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
+		}
+		$out	.= '							<td class = "dolinfrasnoborder dolinfrasnopadding valignmiddle col-title"><div class = "dolinfrasDivTitre uppercase inline-block">'.$titre.'</div></td>';
+		if (dol_strlen($morehtmlcenter)) {
+			$out .= '							<td class = "dolinfrasnoborder dolinfrasnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
+		}
+		if (dol_strlen($morehtmlright)) {
+			$out .= '							<td class = "dolinfrasnoborder dolinfrasnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
+		}
+		$out .= '							</tr>
+										</table>';
+		return $out;
+	}
+
+	/**
+	*	Print HTML colgroup for admin page
+	*
+	*	@param		array		$metas	list of col value
+	*	@return		void
+	**/
+	function dolinfras_print_colgroup($metas = array())
+	{
+		print '	<tr>';
+		foreach ($metas as $values)	{
+			print '<td class = "dolinfrasFinal dolinfrasnopadding"'.($values == '*' ? '' : ' width = "'.$values.'"').' style =" height: 1px;'.($values == '*' ? '' : ' max-width: '.$values.'; min-width: '.$values.'; width: '.$values.';').'">&nbsp;</td>';
+		}
+		print '	</tr>';
+	}
+
+	/**
+	*	Print HTML title for admin page
+	*
+	*	@param		array		$metas	list of col value
+	*	@return		void
+	**/
+	function dolinfras_print_liste_titre($metas = array())
+	{
+		global $langs;
+
+		print '	<tr class = "liste_titre">';
+		for ($i = 1 ; $i < count($metas) ; $i++) {
+			print '	<td colspan = "'.$metas[0][$i - 1].'" class = "center">'.$langs->trans($metas[$i]).'</td>';
+		}
+		print '	</tr>';
+	}
+
+	/**
+	*	Print HTML action button for admin page
+	*
+	*	@param		string		$action			action value posted on the 'action' parameter
+	*	@param		string		$desc			Description of action (writes on the first line)
+	*	@param		int			$cs1			first colspan
+	*	@param		string		$alignclass		Class used to align the description
+	*	@param		string		$lbl			button label (translate key)
+	*	@param		boolean		$noRowspan		don't use rowspan attribute
+	*	@param		int			$num			Add a numbering column first with this number
+	*	@return		int							line number for next option
+	**/
+	function dolinfras_print_btn_action($action, $desc = '', $cs1 = 3, $alignclass = 'center', $lbl = 'Modify', $noRowspan = false, $num = 0)
+	{
+		global $langs;
+
+		print '	<tr'.(!empty($num) ? ' class = "oddeven"' : '').'>';
+		if (!empty($num)) {
+			print '	<td class = "center bold">'.$num.'</td>';
+			$num++;
+		}
+		print '		<td colspan = "'.$cs1.'" class = "'.$alignclass.'">'.$desc.'</td>
+					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button dolinfraswidth220" type = "submit" value = "'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
+				</tr>';
+		return $num;
+	}
+
+	/**
+	*	Print HTML HR line
+	*
+	*	@param		int			$cs1		first colspan
+	*	@return		void
+	**/
+	function dolinfras_print_hr($cs1 = 3)
+	{
+		print '	<tr><td colspan = "'.$cs1.'"><hr class = "dolinfrasHR"></td></tr>';
+	}
+
+	/**
+	*	Print HTML subtitle line
+	*
+	*	@param		int			$cs1		first colspan
+	*	@param		string		$subtitle	subtitle or translation key for subtitle
+	*	@return		void
+	**/
+	function dolinfras_print_subTitle($cs1 = 3, $subtitle = '')
+	{
+		global $langs;
+
+		dolinfras_print_hr($cs1);
+		print '	<tr>
+					<td colspan = "'.$cs1.'" class = "center"><span class = "dolinfrassubtitleparam">'.$langs->trans($subtitle).'</span></td>
+				</tr>';
+	}
+
+	/**
+	*	Print HTML final line
+	*
+	*	@param		int			$cs1		first colspan
+	*	@return		void
+	**/
+	function dolinfras_print_final($cs1 = 3)
+	{
+		print '	<tr><td colspan = "'.$cs1.'" class = "dolinfrasFinal">&nbsp;</td></tr>';
+	}
+
+	/**
+	*	Print HTML input line for admin page
+	*
+	*	@param		string			$confkey	constant name
+	*	@param		string			$tag		input type (on_off button, input, textarea, select (from Dolibarr functions), editor)
+	*	@param		string			$desc		Description of action
+	*	@param		string			$help		Help description => active tooltip
+	*	@param		array|string	$metas		list of HTML parameters and values (example : 'type'=>'text' and/or 'class'=>'flat center', etc...) or HTML select for the 'select' tag
+	*	@param		int				$cs1		first colspan
+	*	@param		int				$cs2		second colspan => we add it with $cs1 in case off textarea
+	*	@param		string			$end		if input element string to be added after or empty td to finish the line
+	*	@param		int				$num		Add a numbering column first with this number
+	*	@return		int							line number for next option
+	**/
+	function dolinfras_print_input($confkey, $tag = 'on_off', $desc = '', $help = '', $metas = '', $cs1 = 2, $cs2 = 1, $end = '', $num = 0)
+	{
+		global $langs, $conf, $db;
+
+		$form	= new Form($db);
+		print '	<tr class = "oddeven">';
+		if (!empty($num)) {
+			print '	<td class = "center bold">'.$num.'</td>';
+			$num++;
+		}
+		if ($tag != 'textarea') {
+			print '	<td colspan = "'.$cs1.'">';
+			if (!empty($help))	{
+				print $form->textwithtooltip(($desc ? $desc : $langs->trans($confkey)), $langs->trans($help), 2, 1, img_help(1, ''));
+			} else {
+				print $desc ? $desc : $langs->trans($confkey);
+			}
+			print '	</td>
+					<td colspan = "'.$cs2.'" class = "center">';
+		} else {
+			print '	<td colspan = "'.($cs1 + $cs2).'" class = "center">';
+			if (!empty($desc))	{
+				print $desc.'<br/>';
+			}
+		}
+		if ($tag == 'on_off') {
+			$params	= '';
+			if (!empty($metas) && is_array($metas)) {
+				foreach ($metas as $key => $value) {
+					$params	.= '&'.$key.'='.$value;
+				}
+			}
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.$params.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
+			print ajax_constantonoff($confkey);
+			print '		</a>';
+		} elseif ($tag == 'input') {
+			// management of the minimum value of number type input fields
+			$inputValue	= getDolGlobalString($confkey, '');
+			if (!empty($metas['type']) && $metas['type'] == 'number' && !empty($metas['min'])) {
+				$currentValue	= getDolGlobalInt($confkey, $metas['min']);
+				$inputValue		= $currentValue < $metas['min'] ? $metas['min'] : $currentValue;
+			}
+			// default input
+			$defaultMetas	= array('type' => 'text', 'class' => 'flat quatrevingtpercent dolinfrasnopadding', 'style' => 'font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $inputValue);
+			$metas			= array_merge ($defaultMetas, $metas);
+			$metascompil	= '';
+			foreach ($metas as $key => $value) {
+				$metascompil	.= ' '.$key.($key == 'enabled' || $key == 'disabled' ? '' : ' = "'.$value.'"');
+			}
+			print '	<'.$tag.' '.$metascompil.'>'.(!preg_match('/<td(.*)/', $end, $reg) ? $end : '');
+		} elseif ($tag == 'textarea') {
+			print '<textarea name = "'.$confkey.'" class = "flat" cols = "120">'.getDolGlobalString($confkey, '').'</textarea>';
+		} elseif ($tag == 'select') {
+			print $metas;
+		} elseif ($tag == 'editor') {
+			$doleditor	= new DolEditor($confkey, getDolGlobalString($confkey, ''), $metas[0], $metas[1], $metas[2]);
+			print $doleditor->Create();
+		}
+		print '		</td>';
+		if (preg_match('/<td(.*)/', $end, $reg)) {
+			print $end;
+		}
+		print '	</tr>';
+		return $num;
+	}
+
+	/**
 	*	Test if the PHP extension 'XML' is loaded
 	*
 	**/
@@ -182,7 +461,6 @@
 		$preferedPartnerPath	= dol_buildpath('/'.$appliname.'/img/Dolibarr_preferred_partner.png', 1);
 		$listUpD				= dol_buildpath('/'.$appliname.'/img/list.png', 1);
 		$urlInfraS				= 'https://infras.fr';
-		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname;
 		$urlstore				= 'https://infras.store/';
 		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
 		$InputCarac				= 'class = "button dolinfraswidth180 dolinfrasheight32" name = "readmore" type = "button"';
@@ -200,9 +478,7 @@
 										<table class = "centpercent" style = "padding: 10px; background: url('.$headerPath.'); background-size: cover;">
 											<tr class = "dolinfrasheight75">
 												<td colspan = "3" class = "center bold valignmiddle">
-													<a href = "'.$urlWiki.'" target = "_blank">
-														<span class = "dolinfrascolor" style = "font-size: 24px;">'.$langs->trans('DolInfraSParamPresent1').'<span class = "dolinfrasneuropolinfras"> InfraS</span>'.$langs->trans('DolInfraSParamPresent2').'</span>
-													</a>
+													<span class = "dolinfrascolor" style = "font-size: 24px;">'.$langs->trans('DolInfraSParamPresent1').'<span class = "dolinfrasneuropolinfras"> InfraS</span>'.$langs->trans('DolInfraSParamPresent2').'</span>
 												</td>
 											</tr>
 											<tr class = "dolinfrasheight50">

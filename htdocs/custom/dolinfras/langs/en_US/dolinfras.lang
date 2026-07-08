@@ -16,9 +16,19 @@ DolInfraSWarningMaxVersion = <center><br>Your Dolibarr version (%s) is not yet s
 DolInfraSVersionUnknown = Unknown version
 DolInfraSIncompatible   = Incompatible Dolibarr version
 
+### Setup page ###
+DolInfraSSetupPages      = DolInfraS module setup
+DolInfraSParams          = Parameters
+DolInfraSParamsChangelog = Changelog
+DolInfraSTitleLTS        = LTS parameters management options
+DolInfraSParamForceApply = Force the value of the constants from the data.sql file into the database (current entity)
+DolInfraSForceApplyBtn   = Force parameters application
+DolInfraSForceApplyDone  = %s constant(s) applied to the current entity
+DolInfraSForceApplyError = Error while applying LTS parameters
+
 ### Changelog / About ###
 DolInfraSParamPresent1             = <b>This module is a creation of</b>
-DolInfraSParamPresent2             = <b>, its documentation is available on our wiki</b>
+DolInfraSParamPresent2             = <b>, structuring module of the « <span class = "dolinfraspuentedolibarr">Dolibarr LTS</span> by <span class = "dolinfrasneuropolinfras">InfraS</span> » distribution</b>
 DolInfraSParamSlogan               = Structure your growth!
 DolInfraSParamLienModules          = Our Modules
 DolInfraSParamSupport              = Support request

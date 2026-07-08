@@ -64,7 +64,7 @@
 											'js'	=> array('/'.$this->name.'/js/'.$this->name.'.js'),
 											'css'	=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php')
 											);
-			$this->config_page_url	= array();
+			$this->config_page_url	= array('dolinfrassetup.php@'.$this->name);
 			// Dependencies
 			$this->hidden			= false;
 			$this->depends			= array();																				// List of modules id that must be enabled if this module is enabled

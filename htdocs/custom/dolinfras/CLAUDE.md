@@ -9,7 +9,8 @@
 - avertissement à la connexion si la version Dolibarr dépasse la version max supportée,
 - affichage du changelog avec détection de mises à jour dans l'onglet aide du descripteur,
 - détection automatique du thème sombre (dark mode) pour le branding sur la page modules,
-- chargement de constantes LTS à l'activation (deux groupes : SaaS by InfraS et options fonctionnelles Dolibarr).
+- chargement de constantes LTS à l'activation (deux groupes : SaaS by InfraS et options fonctionnelles Dolibarr),
+- pages d'administration (paramètres, à propos, changelog) avec application forcée des constantes LTS de `data.sql`.
 
 Informations module (issues du code et du changelog local) :
 
@@ -18,7 +19,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.2` (2026-06)
+- Dernière version locale : `18.2.0` (2026-07)
 - Emplacement : `htdocs/custom/dolinfras/`
 
 Convention de lecture du descripteur :
@@ -33,6 +34,10 @@ htdocs/custom/dolinfras/
 ├── CLAUDE.md
 ├── LICENSE
 ├── README.md
+├── admin/
+│   ├── about.php
+│   ├── changelog.php
+│   └── dolinfrassetup.php
 ├── class/
 │   └── actions_dolinfras.class.php
 ├── config.php
@@ -79,8 +84,9 @@ Dans `core/modules/moddolinfras.class.php` :
 - **Dictionnaires** : aucun dictionnaire
 - **Boxes** : aucune
 - **Cron** : aucune tâche
-- **Permissions** : aucune (tableau vide)
+- **Permissions** : aucune (tableau vide) — les pages admin sont réservées aux utilisateurs `admin`
 - **Menus** : aucun (tableau vide)
+- **Page de configuration** : `config_page_url = array('dolinfrassetup.php@dolinfras')`
 - **Famille** : `Dolibarr LTS by InfraS` (branding dynamique avec polices puentebold et NeuropolRegular)
 
 ### Initialisation (Lifecycle : `init()`)
@@ -110,8 +116,9 @@ Lecture depuis `docs/changelog.xml` via `dolinfras_getLocalVersionMinDoli()` :
 Le module assure le branding, le suivi de version et la pré-configuration des instances Dolibarr LTS par InfraS :
 
 - `actions_dolinfras.class.php` : hook `afterLogin` qui vérifie la version max supportée et stocke la version Dolibarr,
-- `dolinfrasAdmin.lib.php` : fonctions utilitaires (vérification PHP XML, lecture changelog, affichage changelog avec support, téléchargement de mises à jour),
-- `sql/data.sql` : constantes LTS chargées une seule fois à l'activation via `_load_tables`.
+- `dolinfrasAdmin.lib.php` : fonctions utilitaires (vérification PHP XML, lecture changelog, affichage changelog avec support, téléchargement de mises à jour, onglets admin, application forcée des constantes LTS),
+- `sql/data.sql` : constantes LTS chargées une seule fois à l'activation via `_load_tables`,
+- `admin/` : pages d'administration du module (paramètres, à propos, changelog).
 
 ## Hooks et comportement (Hook behavior)
 
@@ -137,7 +144,10 @@ Le module ne crée aucune table SQL propre. La configuration est stockée dans `
 | `INFRASPACKPLUS_DISABLED_CORE_CHANGE` | `1` | Verrouille les changements core InfraSPackPlus |
 | `INFRASPACKPLUS_DISABLED_MODULE_CHANGE` | `1` | Verrouille les changements module InfraSPackPlus |
 | `MAILING_NO_USING_PHPMAIL` | `1` | Force SMTP, interdit le mail PHP natif |
+| `MAIN_MAIL_ADD_INLINE_IMAGES_IF_DATA` | `1` | Convertit les images base 64 du corps des mails en fichiers joints embarqués (cid) |
+| `MAIN_MAIL_ADD_INLINE_IMAGES_IF_IN_MEDIAS` | `1` | Convertit les images des médias dans les mails en fichiers joints embarqués (cid) |
 | `MAIN_MOTD` | HTML | Message de bienvenue personnalisé avec `__USER_FIRSTNAME__` |
+| `MAIN_HTML_FOOTER` | JS | Place le bouton d'import de lignes (`objectlinked_importbtn`) avant le libellé du type dans le bloc des objets liés |
 | `MAIN_SECURITY_DISABLEFORGETPASSLINK` | `1` | Masque le lien « Mot de passe oublié » |
 | `DATABASE_PWD_ENCRYPTED` | `1` | Mot de passe base chiffré |
 | `FCKEDITOR_SKIN` | `infras` | Skin WYSIWYG InfraS |
@@ -156,7 +166,17 @@ Le module ne crée aucune table SQL propre. La configuration est stockée dans `
 | `USER_HIDE_INACTIVE_IN_COMBOBOX` | Masque les utilisateurs inactifs dans les listes |
 | `MAIN_EXTRAFIELDS_ENABLE_NEW_SELECT2` | AJAX select2 pour les sellist sans limite |
 
-Toutes ces constantes sont insérées avec `INSERT IGNORE` : elles ne sont posées qu'une seule fois à l'activation et ne sont jamais écrasées si l'admin les a modifiées manuellement.
+Toutes ces constantes sont insérées avec `INSERT IGNORE` : elles ne sont posées qu'une seule fois à l'activation et ne sont jamais écrasées si l'admin les a modifiées manuellement. Exception : le bouton « Forcer l'application des paramètres » de `admin/dolinfrassetup.php` (fonction `dolinfras_force_lts_constants()`) réapplique la valeur de toutes les constantes de `data.sql` dans l'entité courante, en **écrasant** les valeurs modifiées en base.
+
+## Pages d'administration (Admin pages)
+
+Trois pages dans `admin/`, réservées aux utilisateurs `admin` (le module n'a pas de permissions propres), avec onglets communs générés par `dolinfras_admin_prepare_head()` :
+
+| Page | Onglet | Rôle |
+|------|--------|------|
+| `admin/dolinfrassetup.php` | `dolinfrassetup` | Page de paramètres. Section « Options de gestion des paramètres LTS » : bouton « Forcer l'application des paramètres » (action `forceLTSParams`) qui force la valeur des constantes de `sql/data.sql` dans la base (entité courante) via `dolinfras_force_lts_constants()` |
+| `admin/about.php` | `about` | Affiche `README.md` en HTML via `dolMd2Html()` |
+| `admin/changelog.php` | `changelog` | Affiche le changelog complet (`dolinfras_getChangeLog()`) avec bouton de téléchargement du dernier changelog (action `dwnChangelog`) |
 
 ## Fonctions utilitaires (Library functions)
 
@@ -166,11 +186,13 @@ Fichier unique de bibliothèque contenant toutes les fonctions du module :
 
 | Fonction | Description |
 |----------|-------------|
+| `dolinfras_admin_prepare_head()` | Génère les onglets des pages d'administration (Paramètres, À propos, Changelog) |
+| `dolinfras_force_lts_constants($appliname)` | Parse `sql/data.sql` et force chaque constante via `dolibarr_set_const()` dans l'entité courante (transaction avec rollback en cas d'erreur) ; retourne le nombre de constantes appliquées ou -1 |
 | `dolinfras_test_php_ext()` | Vérifie si l'extension PHP XML est chargée, stocke le résultat dans `INFRAS_PHP_EXT_XML` |
 | `dolinfras_getLocalVersionMinDoli($appliname)` | Lit `docs/changelog.xml` et retourne un tableau [version, minDoli, errFlag, versionsArray, maxDoli, minPHP, maxPHP] |
 | `dolinfras_getVersionDolinfras()` | Lit le fichier `VERSION` de Dolibarr et stocke sa valeur dans `DOLINFRAS_VERSION` et la famille dans `DOLINFRAS_FAMILY` |
 | `dolinfras_getChangelogFile($appliname, $from)` | Charge et parse un fichier changelog XML (local ou téléchargé) via `simplexml_load_string()` avec `LIBXML_NONET` |
-| `dolinfras_dwnChangelog($appliname)` | Télécharge le dernier changelog depuis `infras.fr` via `getURLContent()` et le stocke en local |
+| `dolinfras_dwnChangelog($appliname)` | Télécharge le dernier changelog depuis le dépôt GitHub `InfraS-SARL/modules-versions` via `getURLContent()` et le stocke en local |
 | `dolinfras_getChangeLog($appliname, $version, $resVersion, $tblversions, $dwn)` | Génère le HTML complet du changelog : bannière de support InfraS, tableau comparatif local/téléchargé, bouton de vérification |
 
 ## Constantes de configuration (Key settings)
@@ -202,7 +224,9 @@ Clés de traduction principales :
 - `DolInfraSCautionMess` / `InfraSXMLextError` — messages d'alerte extension PHP
 - `DolInfraSChangelogXMLError` — erreur de parsing XML
 - `DolInfraSWarningMaxVersion` — avertissement version Dolibarr trop récente
-- `DolInfraSParam*` — 14 clés pour la bannière de support et le changelog (présentation InfraS, slogan, liens, historique des mises à jour, etc.)
+- `DolInfraSParam*` — 15 clés pour la bannière de support et le changelog (présentation InfraS, slogan, liens, historique des mises à jour, etc.)
+- `DolInfraSSetupPages` / `DolInfraSParams` / `DolInfraSParamsChangelog` — titres des pages et onglets admin
+- `DolInfraSTitleLTS` / `DolInfraSParamForceApply` / `DolInfraSForceApply*` — section « Options de gestion des paramètres LTS » et bouton d'application forcée
 
 ## CSS (Styles)
 
@@ -247,7 +271,7 @@ Si modification du descripteur / constantes / hooks :
 
 Si modification de `sql/data.sql` :
 
-1. Désactiver puis réactiver le module pour rejouer le `_load_tables`
+1. Désactiver puis réactiver le module pour rejouer le `_load_tables` (ou utiliser le bouton « Forcer l'application des paramètres » de `admin/dolinfrassetup.php` — attention : celui-ci écrase les valeurs modifiées en base)
 2. Vérifier en base que les nouvelles constantes sont bien présentes (`SELECT name, value FROM llx_const WHERE note LIKE '%InfraS%'`)
 3. Rappel : `INSERT IGNORE` — les constantes déjà existantes ne sont jamais écrasées
 
@@ -258,7 +282,8 @@ Si modification de `sql/data.sql` :
 - Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis
 - Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée
 - La constante `DOLINFRAS_VERSION` est utilisée par d'autres modules InfraS (infrasdiscount, infraspackplus) pour le branding dynamique de leur famille
-- Les constantes LTS (`data.sql`) sont injectées avec `INSERT IGNORE` : jamais réécrites si modifiées en base
+- Les constantes LTS (`data.sql`) sont injectées avec `INSERT IGNORE` : jamais réécrites si modifiées en base — sauf via le bouton « Forcer l'application des paramètres » qui, lui, écrase les valeurs
+- `dolinfras_force_lts_constants()` parse `data.sql` par regex : toute nouvelle ligne du fichier doit respecter le format existant (`insert ignore into llx_const (name, entity, value, type, visible, note) values ('NOM', __ENTITY__, 'valeur', 'chaine', 0|1, 'note');`)
 
 ## Notes techniques (Technical notes)
 
@@ -286,10 +311,10 @@ Toutes les constantes utilisent `INSERT IGNORE` — idempotentes, sans écraseme
     <Version Number="18.0.0" MonthVersion="2026-03">
         <change type='add'>Initiale release.</change>
     </Version>
-    <Version Number="18.1.2" MonthVersion="2026-06">
-        <change type='chg'>Mise à jour des valeurs par défaut de MAIN_UPLOAD_DOC et MAIN_SECURITY_MAXFILESIZE_DOWNLOADED à 65536Ko (64Mo)</change>
+    <Version Number="18.1.3" MonthVersion="2026-07">
+        <change type='add'>Ajout de la constante masquée MAIN_HTML_FOOTER : place le bouton d'import de lignes avant le libellé du type dans le bloc des objets liés</change>
     </Version>
-    <InfraS Downloaded="20260619"/>
+    <InfraS Downloaded="20260708"/>
     <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
@@ -300,7 +325,7 @@ Types de changement supportés : `add` (ajout), `chg` (modification), `fix` (cor
 La fonction `dolinfras_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "18.1.2",           // Version courante du module
+    0 => "18.1.3",           // Version courante du module
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (0 = OK, -1 = KO)
     3 => SimpleXMLElement[], // Tableau des versions

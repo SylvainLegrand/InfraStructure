@@ -154,6 +154,44 @@
 	font-weight: bold;
 }
 
+.dolinfrassubtitleparam {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+/* Admin tables */
+img.dolinfraswidthpictotitle {
+	max-width: 48px;
+}
+
+.dolinfrasDivTitre {
+	<?php if (isModEnabled('oblyon')) { ?>
+		color: var(--colorftitle) !important;
+	<?php } else { ?>
+		color: var(--colortexttitle) !important;
+	<?php } ?>
+	font-weight: bold;
+	font-size: 1.1em;
+	text-decoration: none;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.dolinfrasHR {
+	text-align: center;
+	margin: 5px 0px !important;
+	padding: 0px !important;
+}
+
+.dolinfrasFinal {
+	line-height: 1px;
+	border: none !important;
+}
+
+.dolinfrasnopadding {
+	padding: 0px !important;
+}
+
 /* Changelog table */
 .dolinfraschangelogbase {
 	padding: 2px 5px;

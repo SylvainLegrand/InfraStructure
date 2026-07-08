@@ -11,7 +11,16 @@
 	<Version Number="18.1.2" MonthVersion="2026-06">
 		<change type='chg'>Mise à jour des valeurs par défaut de MAIN_UPLOAD_DOC et MAIN_SECURITY_MAXFILESIZE_DOWNLOADED à 65536Ko (64Mo)</change>
 	</Version>
-	<InfraS Downloaded="20260619"/>
+	<Version Number="18.1.3" MonthVersion="2026-07">
+		<change type='fix'>Suppression du doublon de MAIN_MAIL_ADD_INLINE_IMAGES_IF_IN_MEDIAS présent dans le groupe des options fonctionnelles visibles (conservé dans le groupe SaaS by InfraS)</change>
+		<change type='add'>Ajout de la constante masquée MAIN_HTML_FOOTER : place le bouton d'import de lignes (objectlinked_importbtn) avant le libellé du type dans le bloc des objets liés</change>
+		<change type='add'>Ajout de la constante masquée MAIN_MAIL_ADD_INLINE_IMAGES_IF_DATA : convertit les images encodées en base 64 du corps des mails en fichiers joints embarqués (cid)</change>
+	</Version>
+	<Version Number="18.2.0" MonthVersion="2026-07">
+		<change type='add'>Ajout des pages de paramètres du module : dolinfrassetup.php (paramètres), about.php (à propos) et changelog.php (historique des versions)</change>
+		<change type='add'>Ajout de la section « Options de gestion des paramètres LTS » avec le bouton « Forcer l'application des paramètres » : force la valeur des constantes du fichier data.sql dans la base de données (entité courante)</change>
+	</Version>
+	<InfraS Downloaded="20260708"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
