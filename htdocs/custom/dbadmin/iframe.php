@@ -27,6 +27,10 @@
 
 ob_start ();
 
+// Avoid "Session cache limiter cannot be sent after headers have already been sent" warning
+// triggered by Adminer's own internal session_start() call (adminer/adminer.php restart_session())
+session_cache_limiter(''); // InfraS add
+
 // Load Dolibarr environment
 $res = 0;
 
@@ -64,7 +68,7 @@ if(!is_numeric($zd)) {
 	$_SESSION["token"]=rand(1,1e6);
 }
 $_GET["username"] = "";
-if (empty($_SESSION["db"]["server"][""][""][""])){ // InfraS change
+if (($_SESSION["db"]["server"][""][""][""] ?? null) != true){ // InfraS change
 	$_POST["auth"] = array ("driver"=>"server","server"=>"","username"=>"","password"=>"","db"=>"");
 }
 
@@ -102,13 +106,6 @@ function adminer_object()
 //echo '<link rel="stylesheet" type="text/css" href="./adminer/adminer.css">';
 
 // Include original Adminer.
-// InfraS add begin
-// Disable the session cache limiter so Adminer can restart the session after output has started.
-// The limiter cannot be changed while a session is active: close, change, reopen (output is still buffered here).
-session_write_close();
-session_cache_limiter('');
-session_start();
-// InfraS add end
 ob_start();
 include "./adminer/adminer.php";
 ob_end_flush();
