@@ -160,8 +160,8 @@ class ActionsExtraitCompteClient
 
             $transPDF           = trim($langs->trans('ExtraitCompteClientGenerateAccountStatutModelsPDF'));
             $transCSV           = trim($langs->trans('ExtraitCompteClientGenerateAccountStatutModelsCSV'));
-        
-        
+
+
             // Load array model_docs with activated templates
             $model_docs = array();
             $sql = "SELECT nom";
@@ -248,7 +248,7 @@ class ActionsExtraitCompteClient
                 print $form->formconfirm($_SERVER["PHP_SELF"] . '?socid=' . $object->id, $langs->trans('ExtraitCompteClientGenerateAccountStatutTitle'), $langs->trans('ExtraitCompteClientGenerateAccountStatutConfirmLabel', $object->ref), 'confirm_extraitcompteclient_generate_account_statut', $formquestionclone, 'yes', 'action-extraitcompteclient_generate_account_statut', $popupHeight, 700);
             }
 
-            if ($user->rights->extraitcompteclient->societe->generate_account_statut) {
+            if ($user->hasRight('extraitcompteclient', 'societe', 'generate_account_statut')) { // InfraS change
                 if (!empty($conf->use_javascript_ajax) && empty($conf->dol_use_jmobile)) {
                     print '<div class="inline-block divButAction"><span id="action-extraitcompteclient_generate_account_statut" class="butAction">' . $langs->trans('ExtraitCompteClientGenerateAccountStatut') . '</span></div>' . "\n";
                 } else {
