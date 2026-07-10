@@ -3636,9 +3636,10 @@ class Product extends CommonObject
 	 * @param  int    $socid           Id thirdparty to filter on a thirdparty
 	 * @param  string $filtrestatut    Id status to filter on a status
 	 * @param  int    $forVirtualStock Ignore rights filter for virtual stock calculation. Set when load_stats_commande is used for virtual stock calculation.
+	 * @param  string $other_filters   Custom filter
 	 * @return integer                 Array of stats in $this->stats_commande (nb=nb of order, qty=qty ordered), <0 if ko or >0 if ok
 	 */
-	public function load_stats_commande($socid = 0, $filtrestatut = '', $forVirtualStock = 0)
+	public function load_stats_commande($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $other_filters = '')
 	{
 		// phpcs:enable
 		global $user, $hookmanager, $action;
@@ -3660,6 +3661,9 @@ class Product extends CommonObject
 		}
 		if ($filtrestatut != '') {
 			$sql .= " AND c.fk_statut IN (".$this->db->sanitize($filtrestatut).")";
+		}
+		if (!empty($other_filters)) {
+			$sql .= $other_filters;
 		}
 
 		$result = $this->db->query($sql);
@@ -3702,6 +3706,9 @@ class Product extends CommonObject
 					$sql .= " JOIN ".$this->db->prefix()."element_element as el ON ((el.fk_target = f.rowid AND el.targettype = 'facture' AND sourcetype = 'commande') OR (el.fk_source = f.rowid AND el.targettype = 'commande' AND sourcetype = 'facture'))";
 					$sql .= " JOIN ".$this->db->prefix()."commande as c ON el.fk_source = c.rowid";
 					$sql .= " WHERE c.fk_statut IN (".$this->db->sanitize($filtrestatut).") AND c.facture = 0 AND fd.fk_product = ".((int) $this->id);
+					if (!empty($other_filters)) {
+						$sql .= $other_filters;
+					}
 
 					dol_syslog(__METHOD__.":: sql $sql", LOG_NOTICE);
 					$resql = $this->db->query($sql);
@@ -3732,6 +3739,9 @@ class Product extends CommonObject
 					$sql .= " JOIN " . $this->db->prefix() . "element_element as el ON el.fk_source = f.rowid AND el.targettype = 'commande' AND el.sourcetype = 'facture'";
 					$sql .= " JOIN " . $this->db->prefix() . "commande as c ON el.fk_source = c.rowid";
 					$sql .= " WHERE c.fk_statut IN (".$this->db->sanitize($filtrestatut).") AND f.fk_statut > ".Facture::STATUS_DRAFT." AND fd.fk_product =".((int) $this->id);
+					if (!empty($other_filters)) {
+						$sql .= $other_filters;
+					}
 					dol_syslog(__METHOD__.":: sql $sql", LOG_NOTICE);
 					$resql = $this->db->query($sql);
 					if ($resql) {
@@ -3748,7 +3758,7 @@ class Product extends CommonObject
 				}
 			}
 
-			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock);
+			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock, 'other_filters' => $other_filters);
 			$reshook = $hookmanager->executeHooks('loadStatsCustomerOrder', $parameters, $this, $action);
 			if ($reshook > 0) {
 				$this->stats_commande = $hookmanager->resArray['stats_commande'];
@@ -3768,9 +3778,10 @@ class Product extends CommonObject
 	 * @param	string	$filtrestatut		Id of status to filter on status
 	 * @param	int		$forVirtualStock	Ignore rights filter for virtual stock calculation.
 	 * @param	int		$dateofvirtualstock	Date of virtual stock
+	 * @param	string	$other_filters		Custom filter
 	 * @return	int							Array of stats in $this->stats_commande_fournisseur, <0 if ko or >0 if ok
 	 */
-	public function load_stats_commande_fournisseur($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $dateofvirtualstock = null)
+	public function load_stats_commande_fournisseur($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $dateofvirtualstock = null, $other_filters = '')
 	{
 		// phpcs:enable
 		global $user, $hookmanager, $action;
@@ -3796,6 +3807,9 @@ class Product extends CommonObject
 		if (!empty($dateofvirtualstock)) {
 			$sql .= " AND c.date_livraison <= '".$this->db->idate($dateofvirtualstock)."'";
 		}
+		if (!empty($other_filters)) {
+			$sql .= $other_filters;
+		}
 
 		$result = $this->db->query($sql);
 		if ($result) {
@@ -3805,7 +3819,7 @@ class Product extends CommonObject
 			$this->stats_commande_fournisseur['rows'] = $obj->nb_rows;
 			$this->stats_commande_fournisseur['qty'] = $obj->qty ? $obj->qty : 0;
 
-			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock);
+			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock, 'other_filters' => $other_filters);
 			$reshook = $hookmanager->executeHooks('loadStatsSupplierOrder', $parameters, $this, $action);
 			if ($reshook > 0) {
 				$this->stats_commande_fournisseur = $hookmanager->resArray['stats_commande_fournisseur'];
@@ -3826,9 +3840,10 @@ class Product extends CommonObject
 	 * @param   string      $filtrestatut           [=''] Ids order status separated by comma
 	 * @param   int         $forVirtualStock        Ignore rights filter for virtual stock calculation.
 	 * @param   string      $filterShipmentStatus   [=''] Ids shipment status separated by comma
+	 * @param	string		$other_filters			Custom filter
 	 * @return  int                                 Array of stats in $this->stats_expedition, <0 if ko or >0 if ok
 	 */
-	public function load_stats_sending($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $filterShipmentStatus = '')
+	public function load_stats_sending($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $filterShipmentStatus = '', $other_filters = '')
 	{
 		// phpcs:enable
 		global $user, $hookmanager, $action;
@@ -3857,6 +3872,9 @@ class Product extends CommonObject
 		}
 		if (!empty($filterShipmentStatus)) {
 			$sql .= " AND e.fk_statut IN (".$this->db->sanitize($filterShipmentStatus).")";
+		}
+		if (!empty($other_filters)) {
+			$sql .= $other_filters;
 		}
 
 		$result = $this->db->query($sql);
@@ -3888,7 +3906,7 @@ class Product extends CommonObject
 				}
 			}
 
-			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock, 'filterShipmentStatus' => $filterShipmentStatus);
+			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock, 'filterShipmentStatus' => $filterShipmentStatus, 'other_filters' => $other_filters);
 			$reshook = $hookmanager->executeHooks('loadStatsSending', $parameters, $this, $action);
 			if ($reshook > 0) {
 				$this->stats_expedition = $hookmanager->resArray['stats_expedition'];
@@ -3909,9 +3927,10 @@ class Product extends CommonObject
 	 * @param	string 	$filtrestatut    	Id status to filter on a status
 	 * @param	int    	$forVirtualStock 	Ignore rights filter for virtual stock calculation.
 	 * @param	int		$dateofvirtualstock	Date of virtual stock
+	 * @param	string	$other_filters		Custom filter
 	 * @return	int                   		Array of stats in $this->stats_reception, <0 if ko or >0 if ok
 	 */
-	public function load_stats_reception($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $dateofvirtualstock = null)
+	public function load_stats_reception($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $dateofvirtualstock = null, $other_filters = '')
 	{
 		// phpcs:enable
 		global $user, $hookmanager, $action;
@@ -3937,6 +3956,9 @@ class Product extends CommonObject
 		if (!empty($dateofvirtualstock)) {
 			$sql .= " AND fd.datec <= '".$this->db->idate($dateofvirtualstock)."'";
 		}
+		if (!empty($other_filters)) {
+			$sql .= $other_filters;
+		}
 
 		$result = $this->db->query($sql);
 		if ($result) {
@@ -3946,7 +3968,7 @@ class Product extends CommonObject
 			$this->stats_reception['rows'] = $obj->nb_rows;
 			$this->stats_reception['qty'] = $obj->qty ? $obj->qty : 0;
 
-			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock);
+			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock, 'other_filters' => $other_filters);
 			$reshook = $hookmanager->executeHooks('loadStatsReception', $parameters, $this, $action);
 			if ($reshook > 0) {
 				$this->stats_reception = $hookmanager->resArray['stats_reception'];
@@ -3968,9 +3990,10 @@ class Product extends CommonObject
 	 * @param	int    	$forVirtualStock 	Ignore rights filter for virtual stock calculation.
 	 * @param	int		$dateofvirtualstock	Date of virtual stock
 	 * @param   int 	$warehouseid 		Filter by a warehouse. Warning: When a filter on a warehouse is set, it is not possible to calculate an accurate virtual stock because we can't know in which warehouse will be done virtual stock changes.
+	 * @param	string	$other_filters		Custom filter
 	 * @return 	integer                 	Array of stats in $this->stats_mrptoproduce (nb=nb of order, qty=qty ordered), <0 if ko or >0 if ok
 	 */
-	public function load_stats_inproduction($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $dateofvirtualstock = null, $warehouseid = 0)
+	public function load_stats_inproduction($socid = 0, $filtrestatut = '', $forVirtualStock = 0, $dateofvirtualstock = null, $warehouseid = 0, $other_filters = '')
 	{
 		// phpcs:enable
 		global $user, $hookmanager, $action;
@@ -4003,6 +4026,9 @@ class Product extends CommonObject
 		}
 		if (!empty($warehouseid)) {
 			$sql .= " AND m.fk_warehouse = ".((int) $warehouseid);
+		}
+		if (!empty($other_filters)) {
+			$sql .= $other_filters;
 		}
 		$sql .= " GROUP BY role";
 
@@ -4070,7 +4096,7 @@ class Product extends CommonObject
 				}
 			}
 
-			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock);
+			$parameters = array('socid' => $socid, 'filtrestatut' => $filtrestatut, 'forVirtualStock' => $forVirtualStock, 'other_filters' => $other_filters);
 			$reshook = $hookmanager->executeHooks('loadStatsInProduction', $parameters, $this, $action);
 			if ($reshook > 0) {
 				$this->stats_mrptoproduce = $hookmanager->resArray['stats_mrptoproduce'];
@@ -6278,10 +6304,12 @@ class Product extends CommonObject
 	 * 												You can also filter on 'warehouseclosed', 'warehouseopen', 'warehouseinternal'
 	 * @param	int		$includedraftpoforvirtual	Include draft status of PO for virtual stock calculation
 	 * @param	int		$dateofvirtualstock			Date of virtual stock
+	 * @param	array	$other_filters				Custom filters for load stock
+	 *												[ 'load_stock' => '', 'load_stats_commande' => '', 'load_stats_sending' => '', 'load_stats_commande_fournisseur' => '', 'load_stats_reception' => '', 'load_stats_inproduction' => '' ]
 	 * @return 	int                  				Return integer < 0 if KO, > 0 if OK
 	 * @see    	load_virtual_stock(), loadBatchInfo()
 	 */
-	public function load_stock($option = '', $includedraftpoforvirtual = null, $dateofvirtualstock = null)
+	public function load_stock($option = '', $includedraftpoforvirtual = null, $dateofvirtualstock = null, $other_filters = array())
 	{
 		// phpcs:enable
 		$this->stock_reel = 0;
@@ -6313,6 +6341,9 @@ class Product extends CommonObject
 		if (count($warehouseStatus)) {
 			$sql .= " AND w.statut IN (".$this->db->sanitize(implode(',', $warehouseStatus)).")";
 		}
+		if (!empty($other_filters['load_stock'])) {
+			$sql .= $other_filters['load_stock'];
+		}
 
 		$sql .= " ORDER BY ps.reel ".(getDolGlobalString('DO_NOT_TRY_TO_DEFRAGMENT_STOCKS_WAREHOUSE') ? 'DESC' : 'ASC'); // Note : qty ASC is important for expedition card, to avoid stock fragmentation;
 
@@ -6338,7 +6369,7 @@ class Product extends CommonObject
 			$this->db->free($result);
 
 			if (!preg_match('/novirtual/', $option)) {
-				$this->load_virtual_stock($includedraftpoforvirtual, $dateofvirtualstock); // This load stock_theorique and also load all arrays stats_xxx...
+				$this->load_virtual_stock($includedraftpoforvirtual, $dateofvirtualstock, $other_filters); // This load stock_theorique and also load all arrays stats_xxx...
 			}
 
 			return 1;
@@ -6356,10 +6387,12 @@ class Product extends CommonObject
 	 *
 	 * 	@param	int		$includedraftpoforvirtual	Include draft status and not yet approved Purchase Orders for virtual stock calculation
 	 *  @param	int		$dateofvirtualstock			Date of virtual stock
+	 *  @param	array	$other_filters				Custom filters for load virtual stock
+	 *												[ 'load_stats_commande' => '', 'load_stats_sending' => '', 'load_stats_commande_fournisseur' => '', 'load_stats_reception' => '', 'load_stats_inproduction' => '' ]
 	 *  @return int     							Return integer < 0 if KO, > 0 if OK
 	 *  @see	load_stock(), loadBatchInfo()
 	 */
-	public function load_virtual_stock($includedraftpoforvirtual = null, $dateofvirtualstock = null)
+	public function load_virtual_stock($includedraftpoforvirtual = null, $dateofvirtualstock = null, $other_filters = array())
 	{
 		// phpcs:enable
 		global $hookmanager, $action;
@@ -6373,7 +6406,7 @@ class Product extends CommonObject
 		//dol_syslog("load_virtual_stock");
 
 		if (isModEnabled('order')) {
-			$result = $this->load_stats_commande(0, '1,2', 1);
+			$result = $this->load_stats_commande(0, '1,2', 1, $other_filters['load_stats_commande'] ?? '');
 			if ($result < 0) {
 				dol_print_error($this->db, $this->error);
 			}
@@ -6387,7 +6420,7 @@ class Product extends CommonObject
 			} elseif (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT_CLOSE')) {
 				$filterShipmentStatus = Expedition::STATUS_CLOSED;
 			}
-			$result = $this->load_stats_sending(0, '1,2', 1, $filterShipmentStatus);
+			$result = $this->load_stats_sending(0, '1,2', 1, $filterShipmentStatus, $other_filters['load_stats_sending'] ?? '');
 			if ($result < 0) {
 				dol_print_error($this->db, $this->error);
 			}
@@ -6399,7 +6432,7 @@ class Product extends CommonObject
 			if (isset($includedraftpoforvirtual)) {
 				$filterStatus = '0,1,2,'.$filterStatus;	// 1,2 may have already been inside $filterStatus but it is better to have twice than missing $filterStatus does not include them
 			}
-			$result = $this->load_stats_commande_fournisseur(0, $filterStatus, 1, $dateofvirtualstock);
+			$result = $this->load_stats_commande_fournisseur(0, $filterStatus, 1, $dateofvirtualstock, $other_filters['load_stats_commande_fournisseur'] ?? '');
 			if ($result < 0) {
 				dol_print_error($this->db, $this->error);
 			}
@@ -6411,7 +6444,7 @@ class Product extends CommonObject
 			if (isset($includedraftpoforvirtual)) {
 				$filterStatus = '0,'.$filterStatus;
 			}
-			$result = $this->load_stats_reception(0, $filterStatus, 1, $dateofvirtualstock);
+			$result = $this->load_stats_reception(0, $filterStatus, 1, $dateofvirtualstock, $other_filters['load_stats_reception'] ?? '');
 			if ($result < 0) {
 				dol_print_error($this->db, $this->error);
 			}
@@ -6419,7 +6452,7 @@ class Product extends CommonObject
 		}
 		// Include manufacturing
 		if (isModEnabled('mrp')) {
-			$result = $this->load_stats_inproduction(0, '1,2', 1, $dateofvirtualstock);
+			$result = $this->load_stats_inproduction(0, '1,2', 1, $dateofvirtualstock, 0, $other_filters['load_stats_inproduction'] ?? '');
 			if ($result < 0) {
 				dol_print_error($this->db, $this->error);
 			}
@@ -6438,7 +6471,7 @@ class Product extends CommonObject
 		} elseif (getDolGlobalString('STOCK_CALCULATE_ON_VALIDATE_ORDER')) {
 			if (getDolGlobalString('STOCK_CALCULATE_ON_VALIDATE_ORDER_INCLUDE_DRAFT')) {	// By default, draft means "does not exist", so we do not include them by default, except if option is on
 				$tmpnewprod = dol_clone($this, 1);
-				$result = $tmpnewprod->load_stats_commande(0, '0', 1);	// Get qty in draft orders
+				$result = $tmpnewprod->load_stats_commande(0, '0', 1, $other_filters['load_stats_commande'] ?? '');	// Get qty in draft orders
 				$this->stock_theorique += $tmpnewprod->stats_commande['qty'];
 			}
 		} elseif (getDolGlobalString('STOCK_CALCULATE_ON_BILL') && $weBillOrderOrShipmentReception == 'order') {
@@ -6455,7 +6488,7 @@ class Product extends CommonObject
 		} elseif (getDolGlobalString('STOCK_CALCULATE_ON_SUPPLIER_VALIDATE_ORDER')) {	// Warning: stock change "on approval", not on validation !
 			if (getDolGlobalString('STOCK_CALCULATE_ON_SUPPLIER_VALIDATE_ORDER_INCLUDE_DRAFT')) {	// By default, draft means "does not exist", so we do not include them by default, except if option is on
 				$tmpnewprod = dol_clone($this, 1);
-				$result = $tmpnewprod->load_stats_commande_fournisseur(0, '0', 1);	// Get qty in draft orders
+				$result = $tmpnewprod->load_stats_commande_fournisseur(0, '0', 1, null, $other_filters['load_stats_commande_fournisseur'] ?? '');	// Get qty in draft orders
 				$this->stock_theorique += $this->stats_commande_fournisseur['qty'];
 			}
 			$this->stock_theorique -= $stock_reception_fournisseur;
@@ -6465,7 +6498,7 @@ class Product extends CommonObject
 			$this->stock_theorique += ($stock_commande_fournisseur - $stock_reception_fournisseur);
 		}
 
-		$parameters = array('id' => $this->id, 'includedraftpoforvirtual' => $includedraftpoforvirtual);
+		$parameters = array('id' => $this->id, 'includedraftpoforvirtual' => $includedraftpoforvirtual, 'other_filters' => $other_filters);
 		// Note that $action and $object may have been modified by some hooks
 		$reshook = $hookmanager->executeHooks('loadvirtualstock', $parameters, $this, $action);
 		if ($reshook > 0) {
@@ -6478,7 +6511,7 @@ class Product extends CommonObject
 		if (!empty($this->stock_warehouse) && getDolGlobalString('STOCK_ALLOW_VIRTUAL_STOCK_PER_WAREHOUSE')) {
 			foreach ($this->stock_warehouse as $warehouseid => $stockwarehouse) {
 				if (isModEnabled('mrp')) {
-					$result = $this->load_stats_inproduction(0, '1,2', 1, $dateofvirtualstock, $warehouseid);
+					$result = $this->load_stats_inproduction(0, '1,2', 1, $dateofvirtualstock, $warehouseid, $other_filters['load_stats_inproduction'] ?? '');
 					if ($result < 0) {
 						dol_print_error($this->db, $this->error);
 					}

@@ -1078,7 +1078,7 @@ class BonPrelevement extends CommonObject
 		// phpcs:enable
 		global $conf, $langs, $user;
 
-		dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".$dids." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
+		dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".(is_array($dids) ? implode(',', $dids) : $dids)." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
 
 		require_once DOL_DOCUMENT_ROOT . "/compta/facture/class/facture.class.php";
 		require_once DOL_DOCUMENT_ROOT . "/societe/class/societe.class.php";
@@ -1375,7 +1375,7 @@ class BonPrelevement extends CommonObject
 					$row = $this->db->fetch_row($resql);
 
 					// Build the new ref
-					$ref = "T" . $ref . sprintf("%02d", (intval($row[0]) + 1));
+					$ref = "T" . $ref . sprintf("%02d", (intval($row[0] ?? 0) + 1));
 
 					// $conf->abc->dir_output may be:
 					// /home/ldestailleur/git/dolibarr_15.0/documents/abc/
@@ -1884,25 +1884,28 @@ class BonPrelevement extends CommonObject
 				$sql = "SELECT soc.rowid as socid, soc.code_client as code, soc.address, soc.zip, soc.town, c.code as country_code,";
 				$sql .= " pl.client_nom as nom, pl.code_banque as cb, pl.code_guichet as cg, pl.number as cc, pl.amount as somme,";
 				$sql .= " f.ref as reffac, p.fk_facture as idfac,";
-				$sql .= " pl.rowid as pl_rowid,"; // InfraS add
 				$sql .= " rib.rowid, rib.datec, rib.iban_prefix as iban, rib.bic as bic, rib.rowid as drum, rib.rum, rib.date_rum";
 				$sql .= " FROM";
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 				$sql .= " " . MAIN_DB_PREFIX . "facture as f,";
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
+				$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe as soc,";
 				$sql .= " " . MAIN_DB_PREFIX . "c_country as c,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 				$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 				$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 				$sql .= " AND p.fk_facture = f.rowid";
+				$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);
+				$sql .= " AND pd.fk_facture = f.rowid";
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
-				// InfraS change begin
+				$sql .= " AND (";
+				$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
+				$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
+				$sql .= " )";
 				$sql .= " AND rib.type = 'ban'";
-				$sql .= " AND ((pl.fk_soc_rib IS NOT NULL AND rib.rowid = pl.fk_soc_rib)";
-				$sql .= " OR (pl.fk_soc_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1))";
-				// InfraS chage end
+
 				// Define $fileDebiteurSection. One section DrctDbtTxInf per invoice.
 				$resql = $this->db->query($sql);
 				$nbtotalDrctDbtTxInf = -1;
@@ -1912,8 +1915,8 @@ class BonPrelevement extends CommonObject
 					$num = $this->db->num_rows($resql);
 					while ($i < $num) {
 						$obj = $this->db->fetch_object($resql);
-						// InfraS change begin
-						if (!empty($cachearraytotestduplicate[$obj->pl_rowid])) {
+
+						if (!empty($cachearraytotestduplicate[$obj->idfac])) {
 							$soc = new Societe($this->db);
 							$soc->fetch($obj->socid);
 							$msg = (empty($thirdpartyBANIds)) ? 'ErrorCompanyHasDuplicateDefaultBAN' : 'ErrorCompanyHasDuplicateInvoicesBAN';
@@ -1922,13 +1925,41 @@ class BonPrelevement extends CommonObject
 							$result = -2;
 							break;
 						}
-						$cachearraytotestduplicate[$obj->pl_rowid] = true;
-						// InfraS change end
+						$cachearraytotestduplicate[$obj->idfac] = $obj->rowid;
 
+						// Get the default value
 						$daterum = (!empty($obj->date_rum)) ? $this->db->jdate($obj->date_rum) : $this->db->jdate($obj->datec);
 						$iban = dolDecrypt($obj->iban);
+						$bic = $obj->bic;
+						$drum = $obj->drum;
+						$rum = $obj->rum;
 
-						$fileDebiteurSection .= $this->EnregDestinataireSEPA($obj->code, $obj->nom, $obj->address, $obj->zip, $obj->town, $obj->country_code, $obj->cb, $obj->cg, $obj->cc, $obj->somme, $obj->reffac, $obj->idfac, $iban, $obj->bic, $daterum, $obj->drum, $obj->rum, $type);
+						// But if a force bank account is defined, we use it instead
+						if (!empty($obj->fk_prelevement_demande)) {
+							$companybankaccountid = 0;
+
+							$sqltmp = "SELECT fk_societe_rib FROM ".MAIN_DB_PREFIX."prelevement_demande";
+							$sqltmp .= " WHERE rowid = ".((int) $obj->fk_prelevement_demande);
+
+							$resqltmp = $this->db->query($sqltmp);
+
+							$objtmp = $this->db->fetch_object($resqltmp);
+							if ($objtmp) {
+								$companybankaccountid = (int) $objtmp->fk_societe_rib;
+							}
+
+							$bankaccount = new CompanyBankAccount($this->db);
+							$bankaccount->fetch($companybankaccountid);
+							if ($bankaccount->id > 0) {
+								$daterum = $bankaccount->date_rum;
+								$iban = $bankaccount->iban;
+								$bic = $bankaccount->bic;
+								$drum = $bankaccount->id;
+								$rum = $bankaccount->rum;
+							}
+						}
+
+						$fileDebiteurSection .= $this->EnregDestinataireSEPA($obj->code, $obj->nom, $obj->address, $obj->zip, $obj->town, $obj->country_code, '', '', '', $obj->somme, $obj->reffac, $obj->idfac, $iban, $bic, $daterum, (string) $drum, $rum, $type);
 
 						$this->total += $obj->somme;
 						$i++;
@@ -2033,24 +2064,26 @@ class BonPrelevement extends CommonObject
 					$sql = "SELECT soc.rowid as socid, soc.code_client as code, soc.address, soc.zip, soc.town, c.code as country_code,";
 					$sql .= " pl.client_nom as nom, pl.code_banque as cb, pl.code_guichet as cg, pl.number as cc, pl.amount as somme,";
 					$sql .= " f.ref as reffac, f.ref_supplier as fac_ref_supplier, p.fk_facture_fourn as idfac,";
-					$sql .= " pl.rowid as pl_rowid,"; // InfraS add
 					$sql .= " rib.rowid, rib.datec, rib.iban_prefix as iban, rib.bic as bic, rib.rowid as drum, rib.rum, rib.date_rum";
 					$sql .= " FROM";
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 					$sql .= " " . MAIN_DB_PREFIX . "facture_fourn as f,";
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
+					$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe as soc";
 					$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_country as c ON soc.fk_pays = c.rowid,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 					$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 					$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 					$sql .= " AND p.fk_facture_fourn = f.rowid";
+					$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);
+					$sql .= " AND pd.fk_facture_fourn = f.rowid";
 					$sql .= " AND f.fk_soc = soc.rowid";
-					// InfraS change begin
+					$sql .= " AND (";
+					$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
+					$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
+					$sql .= " )";
 					$sql .= " AND rib.type = 'ban'";
-					$sql .= " AND ((pl.fk_soc_rib IS NOT NULL AND rib.rowid = pl.fk_soc_rib)";
-					$sql .= " OR (pl.fk_soc_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1))";
-					// InfraS change end
 				}
 				// Define $fileCrediteurSection. One section DrctDbtTxInf per invoice.
 				$nbtotalDrctDbtTxInf = -1;
@@ -2062,13 +2095,13 @@ class BonPrelevement extends CommonObject
 					$num = $this->db->num_rows($resql);
 					while ($i < $num) {
 						$obj = $this->db->fetch_object($resql);
-						if (!empty($cachearraytotestduplicate[$obj->pl_rowid])) { // InfraS change
+						if (!empty($cachearraytotestduplicate[$obj->idfac])) {
 							$this->error = $langs->trans('ErrorCompanyHasDuplicateDefaultBAN', $obj->socid);
 							$this->invoice_in_error[$obj->idfac] = $this->error;
 							$result = -2;
 							break;
 						}
-						$cachearraytotestduplicate[$obj->pl_rowid] = true; // InfraS change
+						$cachearraytotestduplicate[$obj->idfac] = $obj->rowid;
 
 						$daterum = (!empty($obj->date_rum)) ? $this->db->jdate($obj->date_rum) : $this->db->jdate($obj->datec);
 						$iban = dolDecrypt($obj->iban);
@@ -2502,9 +2535,9 @@ class BonPrelevement extends CommonObject
 			}
 		} elseif ($reshook > 0) {
 			$XML_RESULT = $hookmanager->resPrint;
+		} else {
+			$XML_RESULT .= $hookmanager->resPrint;
 		}
-		$XML_RESULT .= $hookmanager->resPrint;
-
 		return $XML_RESULT;
 	}
 

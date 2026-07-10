@@ -2497,6 +2497,10 @@ if ($action == 'create') {
 	if ($origin && $origin_id > 0) {
 		print '<td class="center linecolqtyinothershipments">'.$langs->trans("QtyInOtherShipments").'</td>';
 	}
+	// Stock
+	if (isModEnabled('stock') && !getDolGlobalString('SHIPPING_DISABLE_STOCK_INFO_ON_CARD')) {
+		print '<td class="linecolstock right">'.$langs->trans("Stock").'</td>';
+	}
 	if ($action == 'editline') {
 		$editColspan = 3;
 		if (!isModEnabled('stock')) {
@@ -2605,6 +2609,7 @@ if ($action == 'create') {
 
 	// Loop on each product to send/sent
 	$conf->cache['product'] = array();
+	$conf->cache['productloadstock'] = array();
 	$conf->cache['warehouse'] = array();
 	for ($i = 0; $i < $num_prod; $i++) {
 		$parameters = array('i' => $i, 'line' => $lines[$i], 'line_id' => $line_id, 'num' => $num_prod, 'alreadysent' => $alreadysent, 'editColspan' => !empty($editColspan) ? $editColspan : 0, 'outputlangs' => $outputlangs);
@@ -2734,6 +2739,32 @@ if ($action == 'create') {
 					}
 				}
 				print $form->textwithpicto((string) $qtyalreadysent, $htmltooltip, 1, 'info', '', 0, 3, 'tooltip'.$lines[$i]->id);
+				print '</td>';
+			}
+
+			// Stock
+			if (isModEnabled('stock') && !getDolGlobalString('SHIPPING_DISABLE_STOCK_INFO_ON_CARD')) {
+				print '<td class="linecolstock nowraponall right">';
+				if ($lines[$i]->fk_product > 0) {
+					$product_id = $lines[$i]->fk_product;
+					if (!isset($conf->cache['product'][$product_id])) {
+						$prod = new Product($db);
+						$prod->fetch($product_id);
+						$conf->cache['product'][$product_id] = $prod;
+					}
+					if (!isset($conf->cache['productloadstock'][$product_id])) {
+						$conf->cache['product'][$product_id]->load_stock('nobatch,warehouseopen');
+						$conf->cache['productloadstock'][$product_id] = true;
+					}
+					$prod = $conf->cache['product'][$product_id];
+					if (getDolGlobalString('SHIPPING_VIRTUAL_STOCK_INFO_ON_CARD')) {
+						print $formproduct->printTheoreticalStockDetails($prod, true);
+					} else {
+						print price(price2num($prod->stock_reel, 'MS'));
+					}
+				} else {
+					print '&nbsp;';
+				}
 				print '</td>';
 			}
 

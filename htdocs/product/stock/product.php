@@ -815,97 +815,12 @@ if ($id > 0 || $ref) {
 			print '</td>';
 			print '</tr>';
 
-			$stocktheo = price2num($object->stock_theorique, 'MS');
-
-			$found = 0;
-			$helpondiff = '<strong>'.$langs->trans("StockDiffPhysicTeoric").':</strong><br>';
-			// Number of sales orders running
-			if (isModEnabled('order')) {
-				if ($found) {
-					$helpondiff .= '<br>';
-				} else {
-					$found = 1;
-				}
-				$helpondiff .= $langs->trans("ProductQtyInCustomersOrdersRunning").': '.$object->stats_commande['qty'];
-				$result = $object->load_stats_commande(0, '0', 1);
-				if ($result < 0) {
-					dol_print_error($db, $object->error);
-				}
-				$helpondiff .= ' <span class="opacitymedium">('.$langs->trans("ProductQtyInDraft").': '.$object->stats_commande['qty'].')</span>';
-			}
-
-			// Number of product from sales order already sent (partial shipping)
-			if (isModEnabled("shipping")) {
-				require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-				$filterShipmentStatus = '';
-				if (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT')) {
-					$filterShipmentStatus = Expedition::STATUS_VALIDATED.','.Expedition::STATUS_CLOSED;
-				} elseif (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT_CLOSE')) {
-					$filterShipmentStatus = Expedition::STATUS_CLOSED;
-				}
-				if ($found) {
-					$helpondiff .= '<br>';
-				} else {
-					$found = 1;
-				}
-				$result = $object->load_stats_sending(0, '2', 1, $filterShipmentStatus);
-				$helpondiff .= $langs->trans("ProductQtyInShipmentAlreadySent").': '.$object->stats_expedition['qty'];
-			}
-
-			// Number of supplier order running
-			if (isModEnabled("supplier_order") || isModEnabled("supplier_invoice")) {
-				if ($found) {
-					$helpondiff .= '<br>';
-				} else {
-					$found = 1;
-				}
-				$result = $object->load_stats_commande_fournisseur(0, '3,4', 1);
-				$helpondiff .= $langs->trans("ProductQtyInSuppliersOrdersRunning").': '.$object->stats_commande_fournisseur['qty'];
-				$result = $object->load_stats_commande_fournisseur(0, '0,1,2', 1);
-				if ($result < 0) {
-					dol_print_error($db, $object->error);
-				}
-				$helpondiff .= ' <span class="opacitymedium">('.$langs->trans("ProductQtyInDraftOrWaitingApproved").': '.$object->stats_commande_fournisseur['qty'].')</span>';
-			}
-
-			// Number of product from supplier order already received (partial receipt)
-			if (isModEnabled("supplier_order") || isModEnabled("supplier_invoice")) {
-				if ($found) {
-					$helpondiff .= '<br>';
-				} else {
-					$found = 1;
-				}
-				$helpondiff .= $langs->trans("ProductQtyInSuppliersShipmentAlreadyRecevied").': '.$object->stats_reception['qty'];
-			}
-
-			// Number of product in production
-			if (isModEnabled('mrp')) {
-				if ($found) {
-					$helpondiff .= '<br>';
-				} else {
-					$found = 1;
-				}
-				$helpondiff .= $langs->trans("ProductQtyToConsumeByMO").': '.$object->stats_mrptoconsume['qty'].'<br>';
-				$helpondiff .= $langs->trans("ProductQtyToProduceByMO").': '.$object->stats_mrptoproduce['qty'];
-			}
-			$parameters = array('found' => &$found, 'id' => $object->id, 'includedraftpoforvirtual' => null);
-			$reshook = $hookmanager->executeHooks('virtualStockHelpOnDiff', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
-			if ($reshook > 0) {
-				$helpondiff = $hookmanager->resPrint;
-			} elseif ($reshook == 0) {
-				$helpondiff .= $hookmanager->resPrint;
-			} else {
-				setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
-			}
-
-
 			// Calculating a theoretical value
 			print '<tr><td>';
 			print $form->textwithpicto($langs->trans("VirtualStock"), $langs->trans("VirtualStockDesc"));
 			print '</td>';
 			print "<td>";
-			//print (empty($stocktheo)?0:$stocktheo);
-			print $form->textwithpicto((empty($stocktheo) ? 0 : $stocktheo), $helpondiff);
+			print $formproduct->printTheoreticalStockDetails($object);
 			if ($object->seuil_stock_alerte != '' && ($object->stock_theorique < $object->seuil_stock_alerte)) {
 				print ' '.img_warning($langs->trans("StockLowerThanLimit", $object->seuil_stock_alerte));
 			}

@@ -159,9 +159,9 @@ class FormMail extends Form
 	public $witherrorsto;
 	// Osden add begin
 	/**
-	* @var string|array 		email address (string) used as pre selected destination or list of destination (array)
-	* @see findToDefaultDestination()
-	*/
+	 * @var string|array 		email address (string) used as pre selected destination or list of destination (array)
+	 * @see findToDefaultDestination()
+	 */
 	public $withtopreselected;
 	// Osden add end
 	/**

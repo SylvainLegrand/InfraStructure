@@ -350,3 +350,5 @@ QtyStock=Quantité en stock
 QtyRegulated=Quantité de correction de stock
 InventoryEntrepot=Id entrepôt
 SelectedWarehouse=Sélectionnez un entrepôt
+OrderedBefore=Commandé avant le
+ToBeReceivedBy=A recevoir avant le

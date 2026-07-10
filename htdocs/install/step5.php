@@ -191,6 +191,10 @@ if (!isset($modulesdir) || !is_array($modulesdir)) {
 	$modulesdir = array();
 }
 
+// BEGIN OSDEN- ONLY
+$prev_osden_version = getDolGlobalString("OSDEN_VERSION", '0');
+// END OSDEN ONLY
+
 if ($action == "set" || empty($action) || preg_match('/upgrade/i', $action)) {
 	$error = 0;
 
@@ -548,7 +552,13 @@ if ($action == "set") {
 	}
 } elseif (empty($action) || preg_match('/upgrade/i', $action)) {
 	// If upgrade
-	if (!getDolGlobalString('MAIN_VERSION_LAST_UPGRADE') || getDolGlobalString('MAIN_VERSION_LAST_UPGRADE') == DOL_VERSION) {
+	// BEGIN OSDEN ONLY
+	// if (!getDolGlobalString('MAIN_VERSION_LAST_UPGRADE') || getDolGlobalString('MAIN_VERSION_LAST_UPGRADE') == DOL_VERSION) {
+	if (
+		!getDolGlobalString('MAIN_VERSION_LAST_UPGRADE')
+		|| getDolGlobalString('MAIN_VERSION_LAST_UPGRADE') == DOL_VERSION
+		|| version_compare($prev_osden_version, trim(file_get_contents(__DIR__.'/../VERSION'))) <= 0) {
+		// END OSDEN ONLY
 		// Upgrade is finished (database is on the same version than files)
 		print '<img class="valignmiddle inline-block paddingright" src="../theme/common/octicons/build/svg/checklist.svg" width="30" alt="Configuration">';
 		print ' <span class="valignmiddle">'.$langs->trans("SystemIsUpgraded")."</span><br>";

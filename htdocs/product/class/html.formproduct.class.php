@@ -882,6 +882,129 @@ class FormProduct
 		return $out;
 	}
 
+	/**
+	 *  Return theoretical stock with tooltip details.
+	 *
+	 * @param	Product		$object					Product object
+	 * @param	bool		$show_physical_stock	Show physical stock in tooltip details
+	 * @param	array		$other_filters			Custom filters for load stats
+	 * 												[ 'load_stats_commande' => '', 'load_stats_sending' => '', 'load_stats_commande_fournisseur' => '' ]
+	 * @return	string								HTML theoretical stock with tooltip details
+	 */
+	public function printTheoreticalStockDetails(&$object, $show_physical_stock = false, $other_filters = array())
+	{
+		global $langs, $hookmanager, $form;
+
+		$langs->loadLangs(array('products', 'stocks', 'sendings'));
+
+		if (!is_object($hookmanager)) {
+			require_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
+			$hookmanager = new HookManager($this->db);
+		}
+		$hookmanager->initHooks(array('productdao'));
+
+		if (!is_object($form)) {
+			require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+			$form = new Form($this->db);
+		}
+
+		$this->error = '';
+		$out = '';
+		$stocktheo = price(price2num($object->stock_theorique, 'MS'));
+
+		$found = 0;
+		$helpondiff = '';
+		if ($show_physical_stock) {
+			$helpondiff .= '<strong>' . $langs->trans("PhysicalStock") . ':</strong> ' . price(price2num($object->stock_reel, 'MS')) . '<br>';
+		}
+		$helpondiff .= '<strong>' . $langs->trans("StockDiffPhysicTeoric") . ':</strong><br>';
+		// Number of sales orders running
+		if (isModEnabled('order')) {
+			if ($found) {
+				$helpondiff .= '<br>';
+			} else {
+				$found = 1;
+			}
+			$helpondiff .= $langs->trans("ProductQtyInCustomersOrdersRunning") . ': ' . $object->stats_commande['qty'];
+			$result = $object->load_stats_commande(0, '0', 1, $other_filters['load_stats_commande'] ?? '');
+			if ($result < 0) {
+				$this->error = $object->error;
+				dol_print_error($this->db, $object->error);
+			}
+			$helpondiff .= ' <span class="opacitymedium">(' . $langs->trans("ProductQtyInDraft") . ': ' . $object->stats_commande['qty'] . ')</span>';
+		}
+
+		// Number of product from sales order already sent (partial shipping)
+		if (isModEnabled("shipping")) {
+			require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+			$filterShipmentStatus = '';
+			if (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT')) {
+				$filterShipmentStatus = Expedition::STATUS_VALIDATED . ',' . Expedition::STATUS_CLOSED;
+			} elseif (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT_CLOSE')) {
+				$filterShipmentStatus = Expedition::STATUS_CLOSED;
+			}
+			if ($found) {
+				$helpondiff .= '<br>';
+			} else {
+				$found = 1;
+			}
+			$result = $object->load_stats_sending(0, '2', 1, $filterShipmentStatus, $other_filters['load_stats_sending'] ?? '');
+			$helpondiff .= $langs->trans("ProductQtyInShipmentAlreadySent") . ': ' . $object->stats_expedition['qty'];
+		}
+
+		// Number of supplier order running
+		if (isModEnabled("supplier_order") || isModEnabled("supplier_invoice")) {
+			if ($found) {
+				$helpondiff .= '<br>';
+			} else {
+				$found = 1;
+			}
+			$result = $object->load_stats_commande_fournisseur(0, '3,4', 1, null, $other_filters['load_stats_commande_fournisseur'] ?? '');
+			$helpondiff .= $langs->trans("ProductQtyInSuppliersOrdersRunning") . ': ' . $object->stats_commande_fournisseur['qty'];
+			$result = $object->load_stats_commande_fournisseur(0, '0,1,2', 1, null, $other_filters['load_stats_commande_fournisseur'] ?? '');
+			if ($result < 0) {
+				$this->error = $object->error;
+				dol_print_error($this->db, $object->error);
+			}
+			$helpondiff .= ' <span class="opacitymedium">(' . $langs->trans("ProductQtyInDraftOrWaitingApproved") . ': ' . $object->stats_commande_fournisseur['qty'] . ')</span>';
+		}
+
+		// Number of product from supplier order already received (partial receipt)
+		if (isModEnabled("supplier_order") || isModEnabled("supplier_invoice")) {
+			if ($found) {
+				$helpondiff .= '<br>';
+			} else {
+				$found = 1;
+			}
+			$helpondiff .= $langs->trans("ProductQtyInSuppliersShipmentAlreadyRecevied") . ': ' . $object->stats_reception['qty'];
+		}
+
+		// Number of product in production
+		if (isModEnabled('mrp')) {
+			if ($found) {
+				$helpondiff .= '<br>';
+			} else {
+				$found = 1;
+			}
+			$helpondiff .= $langs->trans("ProductQtyToConsumeByMO") . ': ' . $object->stats_mrptoconsume['qty'] . '<br>';
+			$helpondiff .= $langs->trans("ProductQtyToProduceByMO") . ': ' . $object->stats_mrptoproduce['qty'];
+		}
+		$parameters = array('found' => &$found, 'id' => $object->id, 'includedraftpoforvirtual' => null, 'other_filters' => $other_filters);
+		$reshook = $hookmanager->executeHooks('virtualStockHelpOnDiff', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+		if ($reshook > 0) {
+			$helpondiff = $hookmanager->resPrint;
+		} elseif ($reshook == 0) {
+			$helpondiff .= $hookmanager->resPrint;
+		} else {
+			$this->error = $hookmanager->error . (is_array($hookmanager->errors) ? (($hookmanager->error != '' ? ', ' : '') . implode(', ', $hookmanager->errors)) : '');
+			setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+		}
+
+		//$out .= (empty($stocktheo)?0:$stocktheo);
+		$out .= $form->textwithpicto((empty($stocktheo) ? 0 : $stocktheo), $helpondiff);
+
+		return $out;
+	}
 
 	/**
 	 * Load in cache array list of lot available in stock from a given list of products
