@@ -331,6 +331,14 @@
 	<Version Number="15.4.10" MonthVersion="2026-07">
 		<change type='fix'>Activation : échec avec l'erreur "Duplicate entry ... uk_const" quand la base contenait à la fois les anciennes constantes INFRASSEARCH_xxx et les nouvelles INFRASSEARCH_MOD_xxx (anciennes constantes réinjectées à chaque activation par la restauration automatique d'une sauvegarde de paramètres datant d'une version antérieure au renommage). La migration de renommage est rendue idempotente : suppression préalable des anciennes constantes dont l'équivalent INFRASSEARCH_MOD_xxx existe déjà dans la même entité.</change>
 	</Version>
+	<Version Number="15.5.0" MonthVersion="2026-07">
+		<change type='add'>Recherche infraspackplus	: ajout de la recherche dans les dictionnaires de mentions et de notes ; le résultat est un lien direct vers la page d'administration du dictionnaire (actif automatiquement si le module infraspackplus est activé)</change>
+		<change type='add'>Recherche infras2bridge	: les liens de paiement Bridge sont désormais inclus dans les résultats de recherche (recherche sur la référence client, l'identifiant Bridge et les champs associés) — actif automatiquement si le module infras2bridge est activé</change>
+		<change type='add'>Recherche infrastructure	: les textes libres prédéfinis sont désormais inclus dans les résultats de recherche (recherche sur le libellé et le contenu) — actif automatiquement si le module infrastructure est activé</change>
+		<change type='add'>Recherche infrastimebasket	: les paniers temps et leurs consommations sont désormais inclus dans les résultats de recherche (recherche sur le libellé du panier et le détail des consommations) — actif automatiquement si le module infrastimebasket est activé</change>
+		<change type='add'>Recherche ticket	: les tickets sont désormais inclus dans les résultats de recherche</change>
+		<change type='add'>Ajout de plusieurs modules natifs dans la recherche : Adhérents, Bank, Remise de cheque, Demande de congé, Ordres de fabrication, Nomenclatures, GRH, Receptions et Recrutement</change>
+	</Version>
 	<InfraS Downloaded="20260710"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

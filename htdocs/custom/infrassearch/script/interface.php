@@ -33,34 +33,46 @@
 	require '../config.php';
 
 	// Libraries ************************************
+	require_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/bom/class/bom.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/compta/paiement/cheque/class/remisecheque.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/knowledgemanagement/class/knowledgerecord.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/expensereport/class/expensereport.class.php';
-	$classPaths	= array('/societe/class/address.class.php',
-						'/infraspackplus/class/address.class.php',
-						'/equipement/class/equipement.class.php',
-						'/ndfp/class/ndfp.class.php',
+	require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/holiday/class/holiday.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/hrm/class/evaluation.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/knowledgemanagement/class/knowledgerecord.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/mrp/class/mo.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/recruitment/class/recruitmentcandidature.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/ticket/class/ticket.class.php';
+	$classPaths	= array('/abricot/inc.core.php',
 						'/contacttracking/class/contacttracking.class.php',
 						'/domain/class/domain.class.php',
+						'/equipement/class/equipement.class.php',
+						'/factory/class/factory.class.php',
 						'/hosting/class/host.class.php',
-						'/abricot/inc.core.php',
+						'/infraspackplus/class/address.class.php',
+						'/infras2bridge/class/infras2bridge_paymentlinks.class.php',
+						'/infrastimebasket/class/infrastimebasket.class.php',
+						'/ndfp/class/ndfp.class.php',
 						'/propalehistory/class/propaleHist.class.php',
 						'/rmindr/class/rmindr.class.php',
-						'/factory/class/factory.class.php'
+						'/societe/class/address.class.php',
 						);
 	foreach ($classPaths as $classPath) {
 		$testClass	= dol_buildpath($classPath, 0, 1);
@@ -102,8 +114,47 @@
 			foreach($validListTObjectType as $TObjectTypeValid) {
 				$TResult[$langs->transnoentities(ucfirst($TObjectTypeValid))] = _search($TObjectTypeValid, GETPOST('keywords'), true);
 			}
+			if (isModEnabled('infraspackplus')) {
+				$TResult['Mentions complémentaires']	= _search('c_infraspackplus_mention', GETPOST('keywords'), true);
+				$TResult['Notes']						= _search('c_infraspackplus_note', GETPOST('keywords'), true);
+			}
+			if (isModEnabled('infrastructure')) {
+				$TResult['Textes libres prédéfinis']	= _search('c_infrastructure_free_text', GETPOST('keywords'), true);
+			}
 			echo json_encode($TResult);
 		break;
+	}
+
+	/**
+	* Compute the admin/dict.php?id= value for a given table name
+	*
+	* @param		string		$tablename		Full table name including MAIN_DB_PREFIX
+	* @return		int|false					Dict ID for use in admin/dict.php?id=X, or false if not found
+	**/
+	function _getDictId(string $tablename)
+	{
+		static $cache = [];
+		if (array_key_exists($tablename, $cache)) {
+			return $cache[$tablename];
+		}
+		dol_include_once('/core/lib/admin.lib.php');
+		// Initialise $tabname with keys 1-46 (core Dolibarr dicts in Dolibarr 22.0.x)
+		$tabname        = array_fill(1, 46, '');
+		$taborder       = range(1, 46);	// max = 46 → first module dict → taborder[] = 47
+		$tablib         = array_fill(1, 46, '');
+		$tabsql         = [];
+		$tabsqlsort     = [];
+		$tabfield       = [];
+		$tabfieldvalue  = [];
+		$tabfieldinsert = [];
+		$tabrowid       = [];
+		$tabcond        = [];
+		$tabhelp        = [];
+		$tabcomplete    = [];
+		complete_dictionary_with_modules($taborder, $tabname, $tablib, $tabsql, $tabsqlsort, $tabfield, $tabfieldvalue, $tabfieldinsert, $tabrowid, $tabcond, $tabhelp, $tabcomplete);
+		$dictId             = array_search($tablename, $tabname);
+		$cache[$tablename]  = $dictId;
+		return $dictId;
 	}
 
 	/**
@@ -128,7 +179,21 @@
 		$TResult			= array();
 		$order_field		= '';
 		$customtabelem		= null;
+		$only_columns		= null;
+		$dict_url			= '';
+		$dict_display_cols	= '';
+		$header_label		= '';
+		$sql_extra_where	= '';
 		switch ($TObjectTypeValid) {
+			case 'adherent':
+				$tables			= array($db->prefix().'adherent', $db->prefix().'adherent_extrafields');
+				$objname		= 'Adherent';
+				$complete_label = 'societe';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'adherent_extrafields ON ('.$db->prefix().'adherent.rowid = '.$db->prefix().'adherent_extrafields.fk_object)';
+				$id_field		= $db->prefix().'adherent.rowid';
+				$order_field	= $db->prefix().'adherent.datec';
+				$only_columns	= [$db->prefix().'adherent' => ['rowid', 'ref', 'ref_ext', 'lastname', 'firstname', 'societe', 'address', 'zip', 'town', 'country', 'email', 'phone', 'phone_perso', 'phone_mobile', 'note_private', 'note_public']];
+			break;
 			case 'agenda':
 				$tables			= array($db->prefix().'actioncomm', $db->prefix().'actioncomm_extrafields', $db->prefix().'societe', $db->prefix().'socpeople');
 				$objname		= 'ActionComm';
@@ -139,12 +204,40 @@
 				$id_field		= $db->prefix().'actioncomm.id';
 				$order_field	= $db->prefix().'actioncomm.datep';
 			break;
+			case 'bank':
+				$tables			= array($db->prefix().'bank_account', $db->prefix().'bank_account_extrafields');
+				$objname		= 'Account';
+				$complete_label = 'label';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'bank_account_extrafields ON ('.$db->prefix().'bank_account.rowid = '.$db->prefix().'bank_account_extrafields.fk_object)';
+				$id_field		= $db->prefix().'bank_account.rowid';
+				$order_field 	= $db->prefix().'bank_account.datec';
+				$only_columns	= [$db->prefix().'bank_account' => ['rowid', 'ref', 'label', 'bank', 'code_banque', 'code_guichet', 'number', 'cle_rib', 'iban', 'bic', 'domiciliation', 'proprio', 'owner_address', 'account_number', 'owner_zip', 'owner_town', 'owner_country', 'note_private', 'note_public']];
+			break;
+			case 'bom':
+				$tables			= array($db->prefix().'bom_bom', $db->prefix().'bom_bom_extrafields', $db->prefix().'product');
+				$objname		= 'BOM';
+				$complete_label = 'label';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'bom_bom_extrafields ON ('.$db->prefix().'bom_bom.rowid = '.$db->prefix().'bom_bom_extrafields.fk_object)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'product ON ('.$db->prefix().'bom_bom.fk_product = '.$db->prefix().'product.rowid)';
+				$id_field		= $db->prefix().'bom_bom.rowid';
+				$order_field 	= $db->prefix().'bom_bom.date_creation';
+				$only_columns	= [$db->prefix().'bom_bom' => ['rowid', 'ref', 'label', 'description', 'note_public', 'note_private']];
+			break;
 			case 'categorie':
 				$tables			= array($db->prefix().'categorie', $db->prefix().'categories_extrafields');
 				$objname		= 'Categorie';
 				$complete_label	= 'description';
 				$sql_join		= 'LEFT JOIN '.$db->prefix().'categories_extrafields ON ('.$db->prefix().'categorie.rowid = '.$db->prefix().'categories_extrafields.fk_object)';
 				$id_field		= $db->prefix().'categorie.rowid';
+			break;
+			case 'chequereceipt':
+				$tables			= array($db->prefix().'bordereau_cheque', $db->prefix().'bank_account');
+				$objname		= 'RemiseCheque';
+				$complete_label = 'label';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'bank_account ON ('.$db->prefix().'bordereau_cheque.fk_bank_account = '.$db->prefix().'bank_account.rowid)';
+				$id_field		= $db->prefix().'bordereau_cheque.rowid';
+				$order_field 	= $db->prefix().'bordereau_cheque.datec';
+				$only_columns	= [$db->prefix().'bordereau_cheque' => ['rowid', 'ref', 'label', 'ref_ext', 'amount', 'note']];
 			break;
 			case 'commande':
 				$tables			= array($db->prefix().'commande', $db->prefix().'commande_extrafields', $db->prefix().'commandedet', $db->prefix().'commandedet_extrafields', $db->prefix().'product', $db->prefix().'societe', $db->prefix().'socpeople');
@@ -210,6 +303,54 @@
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'socpeople ON ('.$db->prefix().'element_contact.fk_socpeople = '.$db->prefix().'socpeople.rowid)';
 				$id_field		= $db->prefix().'contrat.rowid';
 				$order_field	= $db->prefix().'contrat.date_contrat';
+			break;
+			case 'c_infraspackplus_mention':
+				if (isModEnabled('infraspackplus')) {
+					$tables				= [$db->prefix().'c_infraspackplus_mention'];
+					$objname			= '';
+					$complete_label		= 'libelle';
+					$sql_join			= '';
+					$id_field			= $db->prefix().'c_infraspackplus_mention.rowid';
+					$order_field		= $db->prefix().'c_infraspackplus_mention.pos';
+					$only_columns		= [$db->prefix().'c_infraspackplus_mention' => ['code', 'libelle']];
+					$dict_display_cols	= $db->prefix().'c_infraspackplus_mention.code, '.$db->prefix().'c_infraspackplus_mention.libelle';
+					$dictId				= _getDictId($db->prefix().'c_infraspackplus_mention');
+					$dict_url			= DOL_URL_ROOT.'/admin/dict.php'.($dictId !== false ? '?id='.$dictId : '');
+					$header_label		= 'InfraSSearchLibMentions';
+					$sql_extra_where	= ' AND '.$db->prefix().'c_infraspackplus_mention.active = 1';
+				}
+			break;
+			case 'c_infraspackplus_note':
+				if (isModEnabled('infraspackplus')) {
+					$tables				= [$db->prefix().'c_infraspackplus_note'];
+					$objname			= '';
+					$complete_label		= 'libelle';
+					$sql_join			= '';
+					$id_field			= $db->prefix().'c_infraspackplus_note.rowid';
+					$order_field		= $db->prefix().'c_infraspackplus_note.pos';
+					$only_columns		= [$db->prefix().'c_infraspackplus_note' => ['code', 'libelle']];
+					$dict_display_cols	= $db->prefix().'c_infraspackplus_note.code, '.$db->prefix().'c_infraspackplus_note.libelle';
+					$dictId				= _getDictId($db->prefix().'c_infraspackplus_note');
+					$dict_url			= DOL_URL_ROOT.'/admin/dict.php'.($dictId !== false ? '?id='.$dictId : '');
+					$header_label		= 'InfraSSearchLibNotes';
+					$sql_extra_where	= ' AND '.$db->prefix().'c_infraspackplus_note.active = 1';
+				}
+			break;
+			case 'c_infrastructure_free_text':
+				if (isModEnabled('infrastructure')) {
+					$tables				= [$db->prefix().'c_infrastructure_free_text'];
+					$objname			= '';
+					$complete_label		= 'label';
+					$sql_join			= '';
+					$id_field			= $db->prefix().'c_infrastructure_free_text.rowid';
+					$order_field		= $db->prefix().'c_infrastructure_free_text.label';
+					$only_columns		= [$db->prefix().'c_infrastructure_free_text' => ['label', 'content']];
+					$dict_display_cols	= $db->prefix().'c_infrastructure_free_text.label';
+					$dictId				= _getDictId($db->prefix().'c_infrastructure_free_text');
+					$dict_url			= DOL_URL_ROOT.'/admin/dict.php'.($dictId !== false ? '?id='.$dictId : '');
+					$header_label		= 'InfraSSearchLibFreeText';
+					$sql_extra_where	= ' AND '.$db->prefix().'c_infrastructure_free_text.active = 1';
+				}
 			break;
 			case 'domain':
 				$tables			= array($db->prefix().'domain', $db->prefix().'domain_extrafields', $db->prefix().'societe');
@@ -322,6 +463,27 @@
 				$id_field		= $db->prefix().'fichinter.rowid';
 				$order_field	= $db->prefix().'fichinter.datec';
 			break;
+			case 'holiday':
+				$tables			= array($db->prefix().'holiday', $db->prefix().'holiday_users', $db->prefix().'holiday_extrafields', $db->prefix().'user');
+				$objname		= 'Holiday';
+				$complete_label = 'description';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'holiday_extrafields ON ('.$db->prefix().'holiday.rowid = '.$db->prefix().'holiday_extrafields.fk_object)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'user ON ('.$db->prefix().'holiday.fk_user = '.$db->prefix().'user.rowid)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'holiday_users ON ('.$db->prefix().'holiday_users.fk_user = '.$db->prefix().'user.rowid)';
+				$id_field		= $db->prefix().'holiday.rowid';
+				$order_field	= $db->prefix().'holiday.date_create';
+				$only_columns	= [$db->prefix().'holiday' => ['rowid', 'description', 'ref', 'ref_ext', 'note_private', 'note_public']];
+			break;
+			case 'hrm':
+				$tables			= array($db->prefix().'hrm_evaluation', $db->prefix().'hrm_job', $db->prefix().'hrm_evaluation_extrafields');
+				$objname		= 'Evaluation';
+				$complete_label = 'label';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'hrm_evaluation_extrafields ON ('.$db->prefix().'hrm_evaluation.rowid = '.$db->prefix().'hrm_evaluation_extrafields.fk_object)';
+				$sql_join 		.= ' LEFT JOIN '.$db->prefix().'hrm_job ON ('.$db->prefix().'hrm_evaluation.fk_job = '.$db->prefix().'hrm_job.rowid)';
+				$id_field		= $db->prefix().'hrm_evaluation.rowid';
+				$order_field	= $db->prefix().'hrm_evaluation.date_creation';
+				$only_columns	= [$db->prefix().'hrm_evaluation' => ['rowid', 'ref', 'label', 'description']];
+			break;
 			case 'hosting':
 				$tables			= array($db->prefix().'host', $db->prefix().'host_extrafields', $db->prefix().'societe');
 				$objname		= 'Host';
@@ -339,6 +501,15 @@
 				$id_field		= $db->prefix().'knowledgemanagement_knowledgerecord.rowid';
 				$order_field	= $db->prefix().'knowledgemanagement_knowledgerecord.date_creation';
 			break;
+			case 'mrp':
+				$tables			= array($db->prefix().'mrp_mo', $db->prefix().'mrp_mo_extrafields');
+				$objname		= 'Mo';
+				$complete_label = 'label';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'mrp_mo_extrafields ON ('.$db->prefix().'mrp_mo.rowid = '.$db->prefix().'mrp_mo_extrafields.fk_object)';
+				$id_field		= $db->prefix().'mrp_mo.rowid';
+				$order_field	= $db->prefix().'mrp_mo.date_creation';
+				$only_columns	= [$db->prefix().'mrp_mo' => ['rowid', 'ref', 'label', 'mrptype']];
+			break;
 			case 'ndfp':
 				$tables			= array($db->prefix().'ndfp', $db->prefix().'ndfp_det');
 				$objname		= 'Ndfp';
@@ -346,6 +517,19 @@
 				$sql_join		= 'LEFT JOIN '.$db->prefix().'ndfp_det ON ('.$db->prefix().'ndfp.rowid = '.$db->prefix().'ndfp_det.fk_ndfp)';
 				$id_field		= $db->prefix().'ndfp.rowid';
 				$order_field	= $db->prefix().'ndfp.datec';
+			break;
+			case 'paymentlinks':
+				if (isModEnabled('infras2bridge')) {
+					$tables			= array($db->prefix().'infras2bridge_paymentlinks', $db->prefix().'infras2bridge_paymentlinks_det');
+					$objname		= 'infras2bridge_paymentlinks';
+					$complete_label	= 'user_company';
+					$sql_join		= 'LEFT JOIN '.$db->prefix().'infras2bridge_paymentlinks_det ON ('.$db->prefix().'infras2bridge_paymentlinks.rowid = '.$db->prefix().'infras2bridge_paymentlinks_det.fk_paymentlinks)';
+					$id_field		= $db->prefix().'infras2bridge_paymentlinks.rowid';
+					$order_field	= $db->prefix().'infras2bridge_paymentlinks.created_at';
+					$only_columns	= [$db->prefix().'infras2bridge_paymentlinks'		=> ['rowid', 'client_ref', 'user_firstname', 'user_lastname', 'user_company', 'user_email'],
+									   $db->prefix().'infras2bridge_paymentlinks_det'	=> ['rowid', 'label', 'client_ref', 'currency', 'beneficiary_iban', 'beneficiary_email', 'beneficiary_firstname', 'beneficiary_lastname']
+									];
+				}
 			break;
 			case 'product':
 				$tables			= array($db->prefix().'product', $db->prefix().'product_extrafields');
@@ -395,13 +579,44 @@
 				$id_field		= $db->prefix().'propal.rowid';
 				$order_field	= $db->prefix().'propale_history.date_cre';
 			break;
+			case 'reception':
+				$tables			= array($db->prefix().'reception', $db->prefix().'reception_extrafields', $db->prefix().'receptiondet_batch', $db->prefix().'receptiondet_batch_extrafields', $db->prefix().'product', $db->prefix().'societe', $db->prefix().'socpeople');
+				$objname		= 'Reception';
+				$customtabelem	= array('element' => 'reception', 'maintabl' => 'reception');
+				$complete_label = 'ref_supplier';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'reception_extrafields ON ('.$db->prefix().'reception.rowid = '.$db->prefix().'reception_extrafields.fk_object)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'receptiondet_batch ON ('.$db->prefix().'reception.rowid = '.$db->prefix().'receptiondet_batch.fk_reception)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'receptiondet_batch_extrafields ON ('.$db->prefix().'receptiondet_batch.rowid = '.$db->prefix().'receptiondet_batch_extrafields.fk_object)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'product ON ('.$db->prefix().'receptiondet_batch.fk_product = '.$db->prefix().'product.rowid)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'societe ON ('.$db->prefix().'reception.fk_soc = '.$db->prefix().'societe.rowid)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'c_type_contact ON ('.$db->prefix().'c_type_contact.element = "reception")';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'element_contact ON ('.$db->prefix().'reception.rowid = '.$db->prefix().'element_contact.element_id AND '.$db->prefix().'c_type_contact.rowid = '.$db->prefix().'element_contact.fk_c_type_contact)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'socpeople ON ('.$db->prefix().'element_contact.fk_socpeople = '.$db->prefix().'socpeople.rowid)';
+				$id_field		= $db->prefix().'reception.rowid';
+				$order_field	= $db->prefix().'reception.date_creation';
+				$only_columns	= [$db->prefix().'reception' => ['rowid', 'ref', 'ref_supplier', 'note_private', 'note_public'],
+								   $db->prefix().'receptiondet_batch' => ['rowid', 'batch', 'element_type']
+								];
+			break;
+			case 'recruitment':
+				$tables			= array($db->prefix().'recruitment_recruitmentcandidature', $db->prefix().'recruitment_recruitmentjobposition', $db->prefix().'recruitment_recruitmentcandidature_extrafields');
+				$objname		= 'RecruitmentCandidature';
+				$complete_label = 'description';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'recruitment_recruitmentcandidature_extrafields ON ('.$db->prefix().'recruitment_recruitmentcandidature.rowid = '.$db->prefix().'recruitment_recruitmentcandidature_extrafields.fk_object)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'recruitment_recruitmentjobposition ON ('.$db->prefix().'recruitment_recruitmentcandidature.fk_recruitmentjobposition = '.$db->prefix().'recruitment_recruitmentjobposition.rowid)';
+				$id_field		= $db->prefix().'recruitment_recruitmentcandidature.rowid';
+				$order_field	= $db->prefix().'recruitment_recruitmentcandidature.date_creation';
+				$only_columns	= [$db->prefix().'recruitment_recruitmentcandidature' => ['rowid', 'ref', 'description', 'firstname', 'lastname', 'email', 'phone'],
+								   $db->prefix().'recruitment_recruitmentjobposition' => ['rowid', 'ref', 'label', 'description', 'email_recruiter', 'remuneration_suggested']
+								];
+			break;
 			case 'rmindr':
 				$tables			= array($db->prefix().'rmindr');
 				$objname		= 'rmindr';
 				$complete_label = 'description';
 				$sql_join		= '';
 				$id_field		= $db->prefix().'rmindr.rowid';
-				$order_field	= $db->prefix().'dateo';
+				$order_field	= $db->prefix().'rmindr.dateo';
 			break;
 			case 'societe':
 				$tables			= array($db->prefix().'societe', $db->prefix().'societe_extrafields');
@@ -450,6 +665,31 @@
 				$sql_join		.= ' LEFT JOIN '.$db->prefix().'socpeople ON ('.$db->prefix().'element_contact.fk_socpeople = '.$db->prefix().'socpeople.rowid)';
 				$id_field		= $db->prefix().'projet_task.rowid';
 				$order_field	= $db->prefix().'projet_task.datec';
+			break;
+			case 'ticket':
+				$tables			= array($db->prefix().'ticket', $db->prefix().'c_ticket_type', $db->prefix().'c_ticket_severity', $db->prefix().'c_ticket_resolution', $db->prefix().'c_ticket_category');
+				$objname		= 'Ticket';
+				$complete_label = 'subject';
+				$sql_join		= 'LEFT JOIN '.$db->prefix().'c_ticket_type  ON ('.$db->prefix().'ticket.type_code = '.$db->prefix().'c_ticket_type.code)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'c_ticket_severity ON ('.$db->prefix().'ticket.severity_code = '.$db->prefix().'c_ticket_severity.code)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'c_ticket_resolution ON ('.$db->prefix().'ticket.resolution = '.$db->prefix().'c_ticket_resolution.code)';
+				$sql_join		.= ' LEFT JOIN '.$db->prefix().'c_ticket_category ON ('.$db->prefix().'ticket.category_code = '.$db->prefix().'c_ticket_category.code)';
+				$id_field		= $db->prefix().'ticket.rowid';
+				$order_field	= $db->prefix().'ticket.datec';
+				$only_columns	= [$db->prefix().'ticket' => ['rowid', 'ref', 'subject', 'message', 'type_code', 'category_code', 'severity_code', 'resolution']];
+			break;
+			case 'time_basket':
+				if (isModEnabled('infrastimebasket')) {
+					$tables			= array($db->prefix().'time_basket', $db->prefix().'time_basket_consumption');
+					$objname		= 'InfraSTimeBasket';
+					$complete_label = 'label';
+					$sql_join		= 'LEFT JOIN '.$db->prefix().'time_basket_consumption ON ('.$db->prefix().'time_basket.rowid = '.$db->prefix().'time_basket_consumption.fk_time_basket)';
+					$id_field		= $db->prefix().'time_basket.rowid';
+					$order_field	= $db->prefix().'time_basket.datec';
+					$only_columns	= [$db->prefix().'time_basket'				=> ['rowid', 'label', 'available_time', 'timing_mode'],
+									   $db->prefix().'time_basket_consumption'	=> ['rowid', 'element', 'comments']
+									];
+				}
 			break;
 		}
 		$sql_where	= ' 0 ';
@@ -532,6 +772,10 @@
 			}
 			foreach ($describeCache[$table] as $tbl) {
 				$fieldname	= $tbl->Field;
+				// Restreindre aux colonnes explicitement listées (si défini pour ce module)
+				if ($only_columns !== null && isset($only_columns[$table]) && !in_array($fieldname, $only_columns[$table])) {
+					continue;
+				}
 				// Exclure les colonnes techniques et les clés étrangères (fk_*)
 				if (isset($skipColumnsMap[$fieldname]) || strpos($fieldname, 'fk_') === 0) {
 					continue;
@@ -565,7 +809,9 @@
 		}
 		$sql_where	.= in_array($db->prefix().'product', $tables) ? ' OR '.$db->prefix().'product.ref LIKE "%'.$escapedKeyword.'%"' : '';
 		$sql_where	.= in_array($db->prefix().'socpeople', $tables) ? ' OR CONCAT_WS(" ",'.$db->prefix().'socpeople.firstname, '.$db->prefix().'socpeople.lastname) LIKE "%'.$escapedKeyword.'%" OR CONCAT_WS(" ",'.$db->prefix().'socpeople.lastname, '.$db->prefix().'socpeople.firstname) LIKE "%'.$escapedKeyword.'%"' : '';
-		$sql		= 'SELECT DISTINCT '.$id_field.' as rowid FROM '.$tables[0].' '.$sql_join.' WHERE ('.$sql_where.') ';
+		$dict_extra_select	= !empty($dict_url) && !empty($dict_display_cols) ? ', '.$dict_display_cols : '';
+		$sql		= 'SELECT DISTINCT '.$id_field.' as rowid'.$dict_extra_select.' FROM '.$tables[0].' '.$sql_join.' WHERE ('.$sql_where.') ';
+		$sql		.= !empty($sql_extra_where) ? $sql_extra_where.' ' : '';
 		$sql		.= !empty($onlyInEntity) ? 'AND '.$tables[0].'.entity = '.$conf->entity.' ' : '';
 		$sql		.= !empty($sort) && !empty($order) && !empty($order_field) ? 'ORDER BY '.$order_field.' '.$order.' ' : '';
 		$sql		.= 'LIMIT '.$nbRows.' ';
@@ -577,7 +823,7 @@
 		if (!$asArray) {	// from the search page (tools)
 			print '<table class = "centpercent noborderspacing">
 								<tr class = "liste_titre">
-									<td colspan = "2" style = "padding: 2px 5px 2px 5px;"><span class = "badge">'.$nb_results.'</span>&nbsp;&nbsp;'.$langs->trans('InfraSSearchLib'.$objname).'</td>
+									<td colspan = "2" style = "padding: 2px 5px 2px 5px;"><span class = "badge">'.$nb_results.'</span>&nbsp;&nbsp;'.(!empty($header_label) ? $langs->trans($header_label) : $langs->trans('InfraSSearchLib'.$objname)).'</td>
 								</tr>';
 		}
 		if ($nb_results == 0) {
@@ -598,11 +844,15 @@
 					}
 					if ($objname == 'rmindr') {
 						$ref	= trim($o->label);
+					} elseif ($objname == 'infras2bridge_paymentlinks') {
+						$ref	= trim($o->getNomUrl(!empty($o->client_ref) ? $o->client_ref : $o->bridge_id, 1));
 					} elseif (method_exists($o, 'getNomUrl')) {
 						$ref	= trim($o->getNomUrl(1));
 					}
 					if (method_exists($o, 'getLibStatut')) {
 						$statut	= $o->getLibStatut(3);
+					} elseif (method_exists($o, 'getLibStatus')) {
+						$statut	= $o->getLibStatus(3);
 					}
 					$desc	= '';
 					if ($show_find_field) {
@@ -627,6 +877,29 @@
 						print '	<tr>
 									<td class="tdoverflowmax200 nowrap" style="padding: 2px 0px 2px 5px;">'.$ref.$label.$desc.'</td>
 									<td class="right" style = "padding: 2px 5px 2px 0px;">'.$statut.'</td>
+								</tr>';
+					}
+				}
+			} elseif (!empty($dict_url)) {	// Type dictionnaire : un résultat par entrée correspondante → lien vers admin/dict.php
+				while ($obj = $db->fetch_object($res)) {
+					$parts	= array_filter([ !empty($obj->code) ? dol_escape_htmltag($obj->code) : null,
+													!empty($obj->libelle) ? dol_escape_htmltag($obj->libelle) : (!empty($obj->label) ? dol_escape_htmltag($obj->label) : null)
+												]);
+					$displayText	= !empty($parts) ? implode(' - ', $parts) : dol_escape_htmltag($keyword);
+					$ref			= '<a href="'.dol_escape_htmltag($dict_url).'"><i class="fa fa-cog"></i> '.$displayText.'</a>';
+					if ($asArray) {
+						$TResult[]	= [
+							'categorie'		=> $langs->trans($header_label),
+							'label'			=> $ref,
+							'label_clean'	=> strip_tags($ref),
+							'url'			=> $dict_url,
+							'desc'			=> '',
+							'statut'		=> ''
+						];
+					} else {
+						print '	<tr>
+									<td class="tdoverflowmax200 nowrap" style="padding: 2px 0px 2px 5px;">'.$ref.'</td>
+									<td class="right" style="padding: 2px 5px 2px 0px;"></td>
 								</tr>';
 					}
 				}

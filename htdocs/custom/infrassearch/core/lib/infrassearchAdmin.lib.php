@@ -232,12 +232,6 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const			.= ' AND entity = "'.$conf->entity.'"';
 			$sql_const			.= ' ORDER BY name';
 			fwrite($handle, infrassearch_bkup_table ('const', $sql_const, $cols_const, $duplicate_const, 0, ''));
-			$cols_hist			= array ('entity', 'element', 'fk_element', 'fk_user', 'tms');
-			$sql_hist			= 'SELECT '.implode(', ', $cols_hist);
-			$sql_hist			= 'SELECT entity, element, fk_element, fk_user, tms';
-			$sql_hist			.= ' FROM '.$db->prefix().'infrassearch_history';
-			$sql_hist			.= ' WHERE entity = "'.$conf->entity.'"';
-			fwrite($handle, infrassearch_bkup_table ('infrassearch_history', $sql_hist, $cols_hist, array(), 0, ''));
 			// Enabling back the keys/index checking
 			$sqlfooter		= '
 SET FOREIGN_KEY_CHECKS = 1;

@@ -186,6 +186,42 @@
 			} elseif ($TObjectType == 'facturefournisseur' && $valid == 'fournisseur' && in_array($valid, $conf->modules)) {
 				$modules[$TObjectType]	= 'Factures '.$objMod->getName();
 				$validmodule			= true;
+			} elseif ($TObjectType == 'paymentlinks' && $valid == 'infras2bridge' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibinfras2bridge_paymentlinks');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'ticket' && $valid == 'ticket' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibTicket');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'time_basket' && $valid == 'infrastimebasket' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibInfraSTimeBasket');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'adherent' && $valid == 'adherent' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibAdherent');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'bank' && $valid == 'banque' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibAccount');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'bom' && $valid == 'bom' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibBOM');
+				$validmodule			= true;
+			}  elseif ($TObjectType == 'chequereceipt' && $valid == 'banque' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->transnoentities('InfraSSearchLibRemiseCheque');
+				$validmodule			= true;
+			}elseif ($TObjectType == 'mrp' && $valid == 'mrp' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibMo');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'holiday' && $valid == 'holiday' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibHoliday');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'reception' && $valid == 'reception' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibReception');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'recruitment' && $valid == 'recruitment' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibRecruitmentCandidature');
+				$validmodule			= true;
+			} elseif ($TObjectType == 'hrm' && $valid == 'hrm' && in_array($valid, $conf->modules)) {
+				$modules[$TObjectType]	= $langs->trans('InfraSSearchLibEvaluation');
+				$validmodule			= true;
 			}
 			if ($validmodule) {
 				$modules_names[$TObjectType]	= $objMod->name;

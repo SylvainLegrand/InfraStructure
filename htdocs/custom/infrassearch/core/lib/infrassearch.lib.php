@@ -54,8 +54,12 @@
 						if ($staticobject != null && method_exists(getobjectclass($objp->element, 1), 'fetch')) {
 							$result	= $staticobject->fetch($objp->fk_element);
 							if ($result > 0 && method_exists($staticobject, 'getNomUrl')) {
-								$dropDownBreadCrumbHtml	.= '	<div class = "infrassearchdropdown-breadcrumb-item infrassearchdropdown-item">';
-								$dropDownBreadCrumbHtml	.= in_array($staticobject->element, $maxInThirdPos) ? $staticobject->getNomUrl(1, '', 30) : $staticobject->getNomUrl(1);
+								$dropDownBreadCrumbHtml		.= '	<div class = "infrassearchdropdown-breadcrumb-item infrassearchdropdown-item">';
+								if ($staticobject->element == 'infras2bridge_paymentlinks') {
+									$dropDownBreadCrumbHtml	.= $staticobject->getNomUrl($staticobject->client_ref, 1);	// signature ($ref, $withpicto)
+								} else {
+									$dropDownBreadCrumbHtml	.= in_array($staticobject->element, $maxInThirdPos) ? $staticobject->getNomUrl(1, '', 30) : $staticobject->getNomUrl(1);
+								}
 								$dropDownBreadCrumbHtml	.= '	</div>';
 							}
 						}
@@ -145,6 +149,20 @@
 			$classpath	= 'equipement/class';
 		} elseif ($objecttype == 'equipconso') {
 			$classpath	= 'equipement/class';
+		} elseif ($objecttype == 'chequereceipt') {
+			$classpath = 'compta/paiement/cheque/class';
+		} elseif ($objecttype == 'recruitment') {
+			$classpath = 'recruitment/class';
+		} elseif ($objecttype == 'mo') {
+			$classpath = 'mrp/class';
+		} elseif ($objecttype == 'evaluation') {
+			$classpath = 'hrm/class';
+		} elseif ($objecttype == 'recruitmentcandidature') {
+			$classpath = 'recruitment/class';
+		} elseif ($objecttype == 'knowledgerecord') {
+			$classpath = 'knowledgemanagement/class';
+		} elseif ($objecttype == 'bank_account') {
+			$classpath = 'compta/bank/class';
 		}
 		// To work with non standard subelement
 		if ($objecttype == 'action') {
@@ -183,6 +201,20 @@
 			$classname	= 'ConferenceOrBooth';
 		} elseif ($objecttype == 'uptosign') {
 			$classname	= 'UptoSign';
+		} elseif ($objecttype == 'infras2bridge_paymentlinks') {
+			$classname	= 'infras2bridge_paymentlinks';
+		} elseif ($objecttype == 'infrastimebasket') {
+			$classname	= 'InfraSTimeBasket';
+		} elseif ($objecttype == 'mrp') {
+			$classname	= 'MO';
+		} elseif ($objecttype == 'bank') {
+			$classname	= 'Account';
+		} elseif ($objecttype == 'chequereceipt') {
+			$classname	= 'RemiseCheque';
+		} elseif ($objecttype == 'hrm') {
+			$classname	= 'Evaluation';
+		} elseif ($objecttype == 'recruitment') {
+			$classname	= 'RecruitmentCandidature';
 		}
 		// Set classfile
 		$classfile	= strtolower($subelement);
@@ -205,6 +237,14 @@
 			$classfile	= 'conferenceorboothattendee';
 		} elseif ($objecttype == 'conferenceorbooth') {
 			$classfile	= 'conferenceorbooth';
+		} elseif ($objecttype == 'infras2bridge_paymentlinks') {
+			$classfile	= 'infras2bridge_paymentlinks';
+		} elseif ($objecttype == 'infrastimebasket') {
+			$classfile	= 'infrastimebasket';
+		} elseif ($objecttype == 'chequereceipt') {
+   			$classfile = 'remisecheque';
+		} elseif ($objecttype == 'recruitment') {
+			$classfile	= 'recruitmentcandidature';
 		}
 		dol_include_once('/'.$classpath.'/'.$classfile.'.class.php');
 		$langs->load($objecttype);
