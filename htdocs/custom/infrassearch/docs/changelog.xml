@@ -328,7 +328,10 @@
 	<Version Number="15.4.9" MonthVersion="2026-06">
 		<change type='fix'>Recherche : la recherche d'expéditions échouait silencieusement (requête SQL invalide) à partir de Dolibarr v20 suite au renommage de la colonne llx_expeditiondet.fk_origin_line en fk_elementdet. Sélection conditionnelle du nom de colonne selon la version de Dolibarr.</change>
 	</Version>
-	<InfraS Downloaded="20260622"/>
+	<Version Number="15.4.10" MonthVersion="2026-07">
+		<change type='fix'>Activation : échec avec l'erreur "Duplicate entry ... uk_const" quand la base contenait à la fois les anciennes constantes INFRASSEARCH_xxx et les nouvelles INFRASSEARCH_MOD_xxx (anciennes constantes réinjectées à chaque activation par la restauration automatique d'une sauvegarde de paramètres datant d'une version antérieure au renommage). La migration de renommage est rendue idempotente : suppression préalable des anciennes constantes dont l'équivalent INFRASSEARCH_MOD_xxx existe déjà dans la même entité.</change>
+	</Version>
+	<InfraS Downloaded="20260710"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

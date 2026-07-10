@@ -16,7 +16,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.4.9` (2026-06)
+- Dernière version locale : `15.4.10` (2026-07)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrassearch/`
 
@@ -93,7 +93,7 @@ Dans `core/modules/modinfrassearch.class.php` :
 	 - `INFRASSEARCH_LISTTOBJECTTYPE`
 	 - `INFRASSEARCH_DOL_VERSION`
 	 - `INFRASSEARCH_MAIN_VERSION`
-4. Migration de compatibilité des anciennes constantes `INFRASSEARCH_*` vers `INFRASSEARCH_MOD_*`
+4. Migration de compatibilité des anciennes constantes `INFRASSEARCH_*` vers `INFRASSEARCH_MOD_*` (idempotente : les anciennes constantes dont l'équivalent `INFRASSEARCH_MOD_*` existe déjà dans la même entité sont supprimées avant le renommage, pour éviter une violation de la clé unique `uk_const`)
 
 ### Désactivation (Lifecycle : `remove()`)
 
@@ -344,6 +344,7 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - Le fil d'Ariane conserve l'historique pendant environ 1 mois (nettoyage glissant au 1er de chaque mois)
 - La recherche téléphone est calibrée pour Madagascar (indicatif +261), adapter pour autres pays
 - Les constantes `INFRASSEARCH_MOD_*` sont automatiquement nettoyées lors de la désactivation d'un module
+- La restauration automatique des paramètres à l'activation (`update.{entity}` dans les documents) rejoue les constantes telles qu'elles étaient au moment de la sauvegarde : un fichier datant d'une version antérieure au renommage `INFRASSEARCH_MOD_*` peut réintroduire les anciens noms `INFRASSEARCH_*` — cas géré par la migration idempotente de `init()`
 - La position d'affichage `INFRASSEARCH_POS_*` est recalculée automatiquement lors de l'ajout/suppression d'un type
 - Le cookie `infrassearch_tblPSexp` est isolé pour éviter les collisions avec d'autres modules InfraS
 - La recherche peut générer des requêtes SQL complexes — surveiller les performances sur de gros volumes
@@ -562,7 +563,7 @@ La fonction `infrassearch_getLocalVersionMinDoli()` parse ce XML et retourne un 
 2. Restauration des paramètres sauvegardés (`infrassearch_restore_module`)
 3. Initialisation de `INFRASSEARCH_LISTTOBJECTTYPE` (liste CSV des types d'objets disponibles)
 4. Enregistrement de `INFRASSEARCH_DOL_VERSION` et `INFRASSEARCH_MAIN_VERSION`
-5. Migration de compatibilité des anciennes constantes `INFRASSEARCH_*` vers `INFRASSEARCH_MOD_*`
+5. Migration de compatibilité des anciennes constantes `INFRASSEARCH_*` vers `INFRASSEARCH_MOD_*` (avec purge préalable des anciennes constantes dont l'équivalent `INFRASSEARCH_MOD_*` existe déjà — migration idempotente)
 6. Appel de `$this->_init()` standard
 
 **`remove()`** effectue :
