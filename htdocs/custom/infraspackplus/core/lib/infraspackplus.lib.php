@@ -2116,7 +2116,7 @@
 			if (getDolGlobalString('MAIN_MULTILANGS', '') && empty($newlang) && GETPOST('lang_id', 'aZ09')) {
 				$newlang	= GETPOST('lang_id', 'aZ09');
 			}
-			if (getDolGlobalString('MAIN_MULTILANGS', '') && empty($newlang) && !empty($object->thirdparty)) {
+			if (getDolGlobalString('MAIN_MULTILANGS', '') && empty($newlang) && is_object($object->thirdparty)) {
 				$newlang	= $object->thirdparty->default_lang;
 			}
 			if (!empty($newlang)) {

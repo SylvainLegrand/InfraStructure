@@ -2123,6 +2123,7 @@
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$signarea_hl_cli	= 0;
 			$signarea_hl_full	= 0;
+			$textNameCli		= '';
 			$signarea_top		= $posy + 1 + (!empty($this->show_sign_area_emet) && !empty($this->e_signing) && isModEnabled('uptosign') ? 10 : 0);	// si UpToSign et 2 cadres on décale les cadres vers le bas pour le STAMP
 			$posxsignarea1		= $this->marge_gauche;
 			$posxsignarea2		= $this->posxtabtotal;

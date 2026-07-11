@@ -1814,7 +1814,7 @@ if (empty($reshook)) {
 									}
 								}
 
-								$amount_ttc_diff = $amountdeposit[0];
+								$amount_ttc_diff = $amountdeposit[0] ?? 0; // InfraS change
 							}
 
 							foreach ($amountdeposit as $tva => $amount) {
@@ -1847,13 +1847,13 @@ if (empty($reshook)) {
 									0, // date_start
 									0, // date_end
 									0,
-									$i >= 0 ? $lines[$i]->info_bits : 0, // info_bits
+									(isset($i) && isset($lines[$i])) ? $lines[$i]->info_bits : 0, // info_bits // InfraS change
 									0,
 									'HT',
 									0,
 									0, // product_type
 									1,
-									$i >= 0 ? $lines[$i]->special_code : 0,
+									(isset($i) && isset($lines[$i])) ? $lines[$i]->special_code : 0, // InfraS change
 									$object->origin,
 									0,
 									0,
