@@ -57,7 +57,6 @@ class_exists('Smalot\PdfParser\Page');
 class_exists('Smalot\PdfParser\PDFObject');
 class_exists('Smalot\PdfParser\RawData\FilterHelper');
 // InfraS add end
-
 /**
  *  Prepare array of tabs for UptoSign
  *

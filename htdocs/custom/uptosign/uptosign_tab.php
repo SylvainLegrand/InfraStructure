@@ -833,7 +833,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					if (!isset($posSign['defaultSign' . $defaultKeyword . 'X'])) {
 						$tabKey = "SIGN_00";
 					}
-					$testUsed = $posSign['defaultSignContactPage'] . ":" . $posSign['defaultSignContactX'] . ":" . $posSign['defaultSignContactY'];
+					$testUsed = ($posSign['defaultSignContactPage'] ?? 0) . ":" . ($posSign['defaultSignContactX'] ?? 0) . ":" . ($posSign['defaultSignContactY'] ?? 0); // InfraS change
 					if (!$autopositionSign && in_array($testUsed, $allreadyUsed)) {
 						$posSign['defaultSignContactPage'] = $posSign['defaultSignContactX'] = $posSign['defaultSignContactY'] = 0;
 					} else {
@@ -845,7 +845,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					if (!isset($posSign['defaultSign' . $defaultKeyword . 'X'])) {
 						$tabKey = "FROM_00";
 					}
-					$testUsed = $posSign['defaultSignUserPage'] . ":" . $posSign['defaultSignUserX'] . ":" . $posSign['defaultSignUserY'];
+					$testUsed = ($posSign['defaultSignUserPage'] ?? 0) . ":" . ($posSign['defaultSignUserX'] ?? 0) . ":" . ($posSign['defaultSignUserY'] ?? 0); // InfraS change
 					if (!$autopositionSign && in_array($testUsed, $allreadyUsed)) {
 						$posSign['defaultSignUserPage'] = $posSign['defaultSignUserX'] = $posSign['defaultSignUserY'] = 0;
 					} else {
