@@ -57,7 +57,7 @@ a.badge:focus, a.badge:hover {
 }
 
 .liste_titre .badge:not(.nochangebackground) {
-	background-color: <?php print $badgeSecondary; ?>;
+	background-color: var(--badgeSecondary);
 	color: #fff;
 }
 
@@ -73,7 +73,7 @@ span.badgeneutral {
 /* PRIMARY */
 .badge-primary{
 	color: #fff !important;
-	background-color: <?php print $badgePrimary; ?>;
+	background-color: var(--badgePrimary);
 }
 a.badge-primary.focus, a.badge-primary:focus {
 	outline: 0;
@@ -87,7 +87,7 @@ a.badge-primary:focus, a.badge-primary:hover {
 /* SECONDARY */
 .badge-secondary, .tabs .badge {
 	color: #fff !important;
-	background-color: <?php print $badgeSecondary; ?>;
+	background-color: var(--badgeSecondary);
 }
 a.badge-secondary.focus, a.badge-secondary:focus {
 	outline: 0;
@@ -101,7 +101,7 @@ a.badge-secondary:focus, a.badge-secondary:hover {
 /* SUCCESS */
 .badge-success {
 	color: #fff !important;
-	background-color: <?php print $badgeSuccess; ?>;
+	background-color: var(--badgeSuccess);
 }
 a.badge-success.focus, a.badge-success:focus {
 	outline: 0;
@@ -115,7 +115,7 @@ a.badge-success:focus, a.badge-success:hover {
 /* DANGER */
 .badge-danger {
 	color: #fff !important;
-	background-color: <?php print $badgeDanger; ?>;
+	background-color: var(--badgeDanger);
 }
 a.badge-danger.focus, a.badge-danger:focus {
 	outline: 0;
@@ -129,7 +129,7 @@ a.badge-danger:focus, a.badge-danger:hover {
 /* WARNING */
 .badge-warning {
     color: #212529 !important;
-    background-color: <?php print $badgeWarning; ?>;
+    background-color: var(--badgeWarning);
 }
 a.badge-warning.focus, a.badge-warning:focus {
 	outline: 0;
@@ -142,7 +142,7 @@ a.badge-warning:focus, a.badge-warning:hover {
 
 /* WARNING colorblind */
 body[class*="colorblind-"] .badge-warning {
-	  background-color: <?php print $colorblind_deuteranopes_badgeWarning; ?>;
+	  background-color: var(--colorblind_deuteranopes_badgeWarning);
   }
 body[class*="colorblind-"] a.badge-warning.focus,body[class^="colorblind-"] a.badge-warning:focus {
 	box-shadow: 0 0 0 0.2rem <?php print colorHexToRgb($colorblind_deuteranopes_badgeWarning, 0.5); ?>;
@@ -154,7 +154,7 @@ body[class*="colorblind-"] a.badge-warning:focus, a.badge-warning:hover {
 /* INFO */
 .badge-info {
 	color: #fff !important;
-	background-color: <?php print $badgeInfo; ?>;
+	background-color: var(--badgeInfo);
 }
 a.badge-info.focus, a.badge-info:focus {
 	outline: 0;
@@ -168,7 +168,7 @@ a.badge-info:focus, a.badge-info:hover {
 /* LIGHT */
 .badge-light {
 	color: #212529 !important;
-	background-color: <?php print $badgeLight; ?>;
+	background-color: var(--badgeLight);
 }
 a.badge-light.focus, a.badge-light:focus {
 	outline: 0;
@@ -182,7 +182,7 @@ a.badge-light:focus, a.badge-light:hover {
 /* DARK */
 .badge-dark {
 	color: #fff !important;
-	background-color: <?php print $badgeDark; ?>;
+	background-color: var(--badgeDark);
 }
 a.badge-dark.focus, a.badge-dark:focus {
 	outline: 0;

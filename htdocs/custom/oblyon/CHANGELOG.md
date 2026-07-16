@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [3.3.0] - Compatibility 18.0.x - 23.0.x (2026/07/16)
+
+### Added
+- Color options for the product autocomplete highlighted row (select2 and jQuery UI "search-to-select")
+- Color options for the select2 multi-select fields (tags/categories): background and text of the selected tags shown in the field, and of the already-selected options in the drop-down list
+
+### Changed
+- Buttons CSS consolidated into a dedicated file (btn.inc.php); theme values exposed through :root CSS variables
+- Initial data (data.sql) made exhaustive, with "Oblyon Blue" as the default preset
+- Some theme-specific constants migrated to the standard Dolibarr/Eldy ones (font family, font size, sticky top bar, action button, line hover, main title text, kanban view)
+
+### Fixed
+- Inverted sticky top menu (MAIN_MENU_INVERT + sticky): when the bar wraps onto several lines, the content below is no longer hidden behind it (offset now follows the real bar height)
+- Autocomplete highlighted-row colors were not applied to the jQuery UI autocomplete used by the product search (PRODUIT_USE_SEARCH_TO_SELECT)
+- FontAwesome: on module disable, all MAIN_FONTAWESOME_* constants are now cleaned so Dolibarr falls back to its default icon pack
+- Theme copy/removal on enable/disable now conditioned on the absence of htdocs/VERSION (skipped on LTS distributions where the theme is pre-installed)
+
 ### [3.2.0] - Compatibility 18.0.x - 23.0.x (2026/06/19)
 
 ### Added

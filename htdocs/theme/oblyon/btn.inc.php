@@ -2,6 +2,206 @@
 if (!defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 /* <style type="text/css" > */
 
+/* ===== Boutons form/submit + paiement - deplaces depuis global.inc.php ===== */
+
+input[type=submit], input[type=submit]:hover {
+	margin-left: 5px;
+}
+
+input.button:hover {
+	-webkit-box-shadow: 0px 0px 6px 1px rgb(50 50 50 / 40%), 0px 0px 0px rgb(60 60 60 / 10%);
+	box-shadow: 0px 0px 6px 1px rgb(50 50 50 / 40%), 0px 0px 0px rgb(60 60 60 / 10%);
+}
+
+input.button:focus {
+	border-bottom: 0;
+}
+
+input.button.massactionconfirmed {
+	margin: 4px;
+}
+
+input.buttongen {
+	vertical-align: middle;
+}
+
+input.buttonpayment, button.buttonpayment, div.buttonpayment {
+	min-width: 290px;
+	margin-bottom: 15px;
+	margin-top: 15px;
+	height: 64px;
+	background-image: none;
+	line-height: 24px;
+	padding: 8px;
+	background: none;
+	text-align: center;
+	border: 0;
+	background-color: #9999bb;
+	white-space: normal;
+	box-shadow: 1px 1px 4px #bbb;
+	color: #fff;
+	border-radius: 4px;
+	cursor: pointer;
+	max-width: 350px;
+}
+
+div.buttonpayment input:focus {
+	color: #008;
+}
+
+.buttonpaymentsmall {
+	font-size: 0.65em;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+div.buttonpayment input {
+	background-color: unset;
+	color: #fff;
+	border-bottom: unset;
+	font-weight: bold;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+input.buttonpaymentcb {
+	background-image: url(<?php print dol_buildpath($path.'/theme/common/credit_card.png',1) ?>);
+	background-size: 26px;
+	background-repeat: no-repeat;
+	background-position: 5px 5px;
+}
+
+input.buttonpaymentcheque {
+	background-image: url(<?php print dol_buildpath($path.'/theme/common/cheque.png',1) ?>);
+	background-repeat: no-repeat;
+	background-position: 8px 7px;
+}
+
+input.buttonpaymentpaypal {
+	background-image: url(<?php print dol_buildpath($path.'/paypal/img/object_paypal.png',1) ?>);
+	background-repeat: no-repeat;
+	background-position: 8px 7px;
+}
+
+input.buttonpaymentpaybox {
+	background-image: url(<?php print dol_buildpath($path.'/paybox/img/object_paybox.png',1) ?>);
+	background-repeat: no-repeat;
+	background-position: 8px 7px;
+}
+
+input.buttonpaymentstripe {
+	background-image: url(<?php print dol_buildpath($path.'/stripe/img/object_stripe.png',1) ?>);
+	background-repeat: no-repeat;
+	background-position: 8px 7px;
+}
+
+
+/* ===== Boutons generiques (.button/.buttonRefused/.buttonajax) - deplaces depuis global.inc.php ===== */
+
+.button, .buttonDelete, input[name="sbmtConnexion"] {
+	margin-bottom: 0;
+	margin-top: 0;
+	margin-left: 5px;
+	margin-right: 5px;
+	font-family: var(--fontfamilydol);
+	display: inline-block;
+	padding: 4px 14px;
+	text-align: center;
+	cursor: pointer;
+	text-decoration: none !important;
+	background-color: #f5f5f5;
+	/*
+	background-image: -moz-linear-gradient(to top,  #ffffff, #e6e6e6);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
+	background-image: -webkit-linear-gradient(to top,  #ffffff, #e6e6e6);
+	background-image: -o-linear-gradient(to top,  #ffffff, #e6e6e6);
+	background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
+	*/
+
+	background-repeat: repeat-x;
+	border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+	-webkit-border-radius: 2px;
+	border-radius: 1px;
+
+	font-weight: bold;
+	/* text-transform: capitalize; */
+	color: #444;
+}
+.button:focus, .buttonDelete:focus  {
+	-webkit-box-shadow: 0px 0px 5px 1px rgba(0, 0, 60, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
+	box-shadow: 0px 0px 5px 1px rgba(0, 0, 60, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
+}
+.button:hover, .buttonDelete:hover   {
+	/* warning: having a larger shadow has side effect when button is completely on left of a table */
+	-webkit-box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
+	box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
+}
+.button:disabled, .buttonDelete:disabled, .button.disabled {
+	opacity: 0.4;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+	cursor: auto;
+}
+.buttonRefused {
+	pointer-events: none;
+	cursor: default;
+	opacity: 0.4;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+}
+
+.button,
+.button:link,
+.button:active,
+.button:visited {
+	background-color: var(--colorButtonAction1);
+	/* border: 1px solid #c0c0c0; */
+	/* border-color: var(--colorButtonAction1); */
+	/* box-shadow: inset 0 1px 0 rgba(235,235,235, .6); */
+	/* -webkit-box-shadow: inset 0 1px 0 rgba(235,235,235, .6); */
+	/* -webkit-border-radius: 0.30em; */
+	/* -moz-border-radius: 0.30em; */
+	border: none;
+	border-radius: 0.30em;
+	color: var(--colorTextButtonAction);
+	cursor: pointer;
+	font-size: 14px;
+	margin: .2em .5em;
+	/* margin: 2px 1px; */
+	padding: .5em 1em;
+	transition: all .3s ease-in-out;
+	-moz-transition: all .3s ease-in-out;
+	-webkit-transition: all .3s ease-in-out;
+}
+
+.button:hover, .button:focus {
+	background-color: var(--colorButtonAction2);
+	border-color: var(--colorButtonAction2);
+	box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
+	-webkit-box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
+	color: var(--colorTextButtonAction);
+}
+
+.button:disabled {
+	background-color: #ddd;
+	cursor: not-allowed;
+}
+
+.buttonajax {
+	background-image: var(--img_button);
+	background-position: bottom;
+	border: 0;
+	border-radius: 0 5px 0 5px;
+	-moz-border-radius: 0 5px 0 5px;
+	-webkit-border-radius: 0 5px 0 5px;
+	box-shadow: 4px 4px 4px rgba(0,0,0, .24);
+	-moz-box-shadow: 4px 4px 4px rgba(0,0,0, .24);
+	-webkit-box-shadow: 4px 4px 4px rgba(0,0,0, .24);
+	margin: 0em .5em;
+	padding: .1em .7em;
+}
+
+
 
 
 /* ============================================================================== */
@@ -33,7 +233,7 @@ span.butAction, span.butActionDelete {
     font-size: 0.9em;
 }
 .butAction, .cke_dialog_ui_button_ok {
-    background: <?php print $colorButtonAction1; ?> !important;
+    background: var(--colorButtonAction1) !important;
 }
 :not(.center) > .butActionRefused:last-child, :not(.center) > .butAction:last-child, :not(.center) > .butActionDelete:last-child {
     margin-<?php echo $right; ?>: 0px !important;
@@ -45,12 +245,12 @@ span.butAction, span.butActionDelete {
 
     margin: 0em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.9'); ?>em !important;
     padding: 0.6em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.7'); ?>em;
-    font-family: <?php print $fontlist ?>;
+    font-family: var(--fontlist);
     display: inline-block;
     text-align: center;
     cursor: pointer;
-    color: #fff;
-    background: <?php print $colorButtonAction1; ?>;
+    color: var(--colorTextButtonAction);
+    background: var(--colorButtonAction1);
     border: 0px;
 
     border-top-right-radius: 0.30em !important;
@@ -66,10 +266,10 @@ span.butAction, span.butActionDelete {
 
     margin: 0em 0.3em 0 0.3em !important;
     padding: 0.2em <?php echo ($dol_optimize_smallscreen ? '0.4' : '0.7'); ?>em 0.3em;
-    font-family: <?php print $fontlist ?>;
+    font-family: var(--fontlist);
     display: inline-block;
     /* text-align: center; New button are on right of screen */
-    background: <?php print $colorButtonAction2; ?>;
+    background: var(--colorButtonAction2);
     cursor: pointer;
 }
 
@@ -99,7 +299,7 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
 }
 
 .butAction:hover, .cke_dialog_ui_button_ok:hover {
-	background: <?php print $colorButtonAction2; ?> !important;
+	background: var(--colorButtonAction2) !important;
     -webkit-box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
     box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
 }
@@ -114,12 +314,12 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
 }
 
 .butActionDelete, .butActionDelete:link, .butActionDelete:visited, .butActionDelete:hover, .butActionDelete:active, .buttonDelete, .cke_dialog_ui_button_cancel, .ui-button {
-	background: <?php print $colorButtonDelete1; ?> !important;
+	background: var(--colorButtonDelete1) !important;
     color: #ffffff;
 }
 
 .butActionDelete:hover, .cke_dialog_ui_button_cancel:hover, .ui-button:hover, .ui-button:focus {
-	background: <?php print $colorButtonDelete2; ?> !important;
+	background: var(--colorButtonDelete2) !important;
     -webkit-box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
     box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
 }
@@ -133,7 +333,7 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
     cursor: not-allowed !important;
     margin: 0em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.9'); ?>em;
     padding: 0.6em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.7'); ?>em;
-    font-family: <?php print $fontlist ?> !important;
+    font-family: var(--fontlist) !important;
     display: inline-block;
     text-align: center;
     cursor: pointer;
@@ -156,7 +356,7 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
     cursor: not-allowed !important;
     margin: 0em <?php echo ($dol_optimize_smallscreen ? '0.7' : '0.9'); ?>em;
     padding: 0.2em <?php echo ($dol_optimize_smallscreen ? '0.4' : '0.7'); ?>em;
-    font-family: <?php print $fontlist ?> !important;
+    font-family: var(--fontlist) !important;
     display: inline-block;
     /* text-align: center;  New button are on right of screen */
     cursor: pointer;
@@ -164,6 +364,36 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
     padding-top: 0.2em;
     box-shadow: none !important;
     -webkit-box-shadow: none !important;
+}
+
+/* ===== Fusion 2026-07 : proprietes structurelles portees depuis l'ancien bloc .butAction de global.inc.php ===== */
+/* (couleurs/marges/paddings de l'ancien bloc etaient deja ecrasees par les regles btn ci-dessus ; on ne garde que le vivant) */
+.butActionRefused, .butAction, .butAction:link, .butAction:visited, .butAction:hover, .butAction:active, .butActionDelete, .butActionDelete:link, .butActionDelete:visited, .butActionDelete:hover, .butActionDelete:active, .butActionNewRefused {
+	white-space: nowrap;
+	transition: all .3s ease-in-out;
+	-moz-transition: all .3s ease-in-out;
+	-webkit-transition: all .3s ease-in-out;
+}
+.butAction {
+	-webkit-box-shadow: inset 0 1px 0 rgba(170, 200, 210, .6);
+	box-shadow: inset 0 1px 0 rgba(170, 200, 210, .6);
+}
+.butAction:active {
+	-webkit-box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
+	box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
+}
+.butActionDelete, .butActionDelete:active {
+	-webkit-box-shadow: inset 0 1px 0 rgba(210, 170, 170, .6);
+	box-shadow: inset 0 1px 0 rgba(210, 170, 170, .6);
+}
+.butActionNew:hover {
+	color: #f7f7f7;
+}
+.butActionRefused {
+	opacity: .6;
+}
+.butActionRefused:hover, .butActionRefused:active {
+	background-color: #666;
 }
 
 .butActionTransparent {
@@ -222,7 +452,7 @@ a.btnTitle.btnTitleSelected {
     margin: 0 0 0 10px;
     text-align: center;
     color: #ffffff;
-    background-color: <?php print $colorButtonAction1; ?>;
+    background-color: var(--colorButtonAction1);
     font-size: 12px;
     text-decoration: none;
     box-shadow: none;
@@ -231,7 +461,7 @@ a.btnTitle.btnTitleSelected {
 .btnTitle.refused, a.btnTitle.refused, .btnTitle.refused:hover, a.btnTitle.refused:hover {
     color: #ffffff;
     cursor: not-allowed;
-    background-color: <?php print $colorButtonDelete1; ?>;
+    background-color: var(--colorButtonDelete1);
 }
 
 .btnTitle:hover .btnTitle-label{

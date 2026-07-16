@@ -4,7 +4,7 @@
 	* Copyright (C) 2004-2012  Laurent Destailleur  <eldy@users.sourceforge.net>
 	* Copyright (C) 2005-2012  Regis Houssin        <regis.houssin@capnetworks.com>
 	* Copyright (C) 2015-2024  Alexandre Spangaro   <alexandre@inovea-conseil.com>
-	* Copyright (C) 2022-2025  Sylvain Legrand      <contact@infras.fr>
+	* Copyright (C) 2022-2026  Sylvain Legrand      <contact@infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -121,23 +121,23 @@
 			$sql		= array();
 			$this->_load_tables('/'.$this->name.'/sql/');
 			oblyon_restore_module($this->name);
-			// InfraS change begin
-			// Copy dir oblyon/themeoblyon to theme/oblyon
-			// $srcDir		= dol_buildpath('/oblyon/themeoblyon');
-			// $destDir	= DOL_DOCUMENT_ROOT.'/theme/oblyon';
-			// if (dol_is_dir($destDir)) {
-			// 	$result	= dol_delete_dir_recursive($destDir);
-			// 	if ($result < 0) {
-			// 		setEventMessage($langs->trans('OblyonDeleteThemeError'), 'errors');
-			// 		return 0;
-			// 	}
-			// }
-			// $result	= dolCopyDir($srcDir, $destDir, 0, 1);
-			// if ($result < 0) {
-			// 	setEventMessage($langs->trans('OblyonCopyThemeError'), 'errors');
-			// 	return 0;
-			// }
-			// InfraS change end
+			// Copie/mise a jour du theme vers theme/oblyon : uniquement en version standard (absence de htdocs/VERSION ; en LTS le theme est deja livre)
+			if (! dol_is_file(DOL_DOCUMENT_ROOT.'/VERSION')) {
+				$srcDir		= dol_buildpath('/oblyon/themeoblyon');
+				$destDir	= DOL_DOCUMENT_ROOT.'/theme/oblyon';
+				if (dol_is_dir($destDir)) {
+					$result	= dol_delete_dir_recursive($destDir);
+					if ($result < 0) {
+						setEventMessage($langs->trans('OblyonDeleteThemeError'), 'errors');
+						return 0;
+					}
+				}
+				$result	= dolCopyDir($srcDir, $destDir, 0, 1);
+				if ($result < 0) {
+					setEventMessage($langs->trans('OblyonCopyThemeError'), 'errors');
+					return 0;
+				}
+			}
 			// Get highest font awesome directory
 			$path				= dol_buildpath('/theme/common/', 0);
 			$listdir			= dol_dir_list($path, 'directories', 0, '^fontawesome-', null, 'name', SORT_ASC, 0, 0, '', 0);
@@ -159,6 +159,14 @@
 
 			// Désactivé en menu inversé car provoque un chargement html dans la page style.css et empêche le chargement des variables css
 			dolibarr_del_const($this->db,'OBLYON_SHOW_COMPNAME', $conf->entity);
+
+			// Migration constante kanban : ancienne OBLYON_DISABLE_KANBAN_VIEW_IN_LIST -> DISABLE_KANBAN_VIEW_IN_LIST, puis suppression
+			if (getDolGlobalString('OBLYON_DISABLE_KANBAN_VIEW_IN_LIST')) {
+				if (!getDolGlobalString('DISABLE_KANBAN_VIEW_IN_LIST')) {
+					dolibarr_set_const($this->db, 'DISABLE_KANBAN_VIEW_IN_LIST', getDolGlobalString('OBLYON_DISABLE_KANBAN_VIEW_IN_LIST'), 'chaine', 0, 'Oblyon module', $conf->entity);
+				}
+				dolibarr_del_const($this->db, 'OBLYON_DISABLE_KANBAN_VIEW_IN_LIST', $conf->entity);
+			}
 			return $this->_init($sql, $options);
 		}
 
@@ -197,18 +205,21 @@
 			dolibarr_del_const($this->db,'THEME_ELDY_TEXTLINK', $conf->entity);
 			dolibarr_del_const($this->db,'THEME_ELDY_ENABLE_PERSONALIZED', $conf->entity);
 
-			dolibarr_del_const($this->db,'MAIN_FONTAWESOME_ICON_STYLE', $conf->entity);
-			dolibarr_del_const($this->db,'MAIN_FONTAWESOME_WEIGHT', $conf->entity);
-			// InfraS change begin
-			// $destDir	= DOL_DOCUMENT_ROOT.'/theme/oblyon';
-			// if (dol_is_dir($destDir)) {
-			// 	$result = dol_delete_dir_recursive($destDir);
-			// 	if ($result < 0) {
-			// 		setEventMessage($langs->trans('ThemeOblyonErrorDelete'), 'errors');
-			// 		return 0;
-			// 	}
-			// }
-			// InfraS change end
+			dolibarr_del_const($this->db,'MAIN_FONTAWESOME_DIRECTORY', -1);
+			dolibarr_del_const($this->db,'MAIN_FONTAWESOME_FAMILY', -1);
+			dolibarr_del_const($this->db,'MAIN_FONTAWESOME_ICON_STYLE', -1);
+			dolibarr_del_const($this->db,'MAIN_FONTAWESOME_WEIGHT', -1);
+			// Suppression du theme theme/oblyon : uniquement en version standard (absence de htdocs/VERSION ; en LTS ne pas y toucher)
+			if (! dol_is_file(DOL_DOCUMENT_ROOT.'/VERSION')) {
+				$destDir	= DOL_DOCUMENT_ROOT.'/theme/oblyon';
+				if (dol_is_dir($destDir)) {
+					$result = dol_delete_dir_recursive($destDir);
+					if ($result < 0) {
+						setEventMessage($langs->trans('OblyonDeleteThemeError'), 'errors');
+						return 0;
+					}
+				}
+			}
 			return $this->_remove($sql, $options);
 		}
 	}

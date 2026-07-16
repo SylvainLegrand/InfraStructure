@@ -1,6 +1,7 @@
 # < Oblyon Control Panel - English translation >
 # Copyright (C) 2015       Nicolas Rivera       <nrivera.pro@gmail.com>
 # Copyright (C) 2015-2025  Alexandre Spangaro   <alexandre@inovea-conseil.com>
+# Copyright (C) 2022-2026  Sylvain Legrand      <contact@infras.fr>
 #
 Module432573Name   = Oblyon
 Module432573Desc   = Options panel allows you to personalize the Oblyon theme
@@ -95,6 +96,12 @@ OblyonColorsTitle                  = Oblyon Configurator - Colors
 Colors                             = Colors
 Buttons                            = Buttons
 OBLYON_COLOR_MAIN                  = Maincolor
+OBLYON_COLOR_AUTOCOMPLETE_BCKGRD   = Highlighted row background (autocomplete)
+OBLYON_COLOR_AUTOCOMPLETE_TEXT     = Highlighted row text (autocomplete)
+OBLYON_COLOR_CHIP_BCKGRD           = Already-selected options background (dropdown)
+OBLYON_COLOR_CHIP_TEXT             = Already-selected options text (dropdown)
+OBLYON_COLOR_RESULT_BCKGRD         = Selected tags background (field)
+OBLYON_COLOR_RESULT_TEXT           = Selected tags text (field)
 OBLYON_COLOR_BCKGRD                = Background color
 OBLYON_COLOR_LOGO_BCKGRD           = Logo background color
 OBLYON_COLOR_LOGIN_BCKGRD          = Login background color
@@ -106,6 +113,8 @@ OBLYON_COLOR_BLINE_HOVER           = Background color of the hovered lines
 OBLYON_COLOR_FDATE_DEFAULT         = Default date color (today's date) in date picker
 OBLYON_COLOR_FDATE_SELECTED        = Selected date color in date picker
 OBLYON_COLOR_FLINE                 = Lines text color
+OBLYON_COLOR_BTOTAL                = Total rows background color (when 'same as header' is off)
+OBLYON_COLOR_FTOTAL                = Total rows text color (when 'same as header' is off)
 OBLYON_COLOR_FLINE_HOVER           = Lines text hover color
 OBLYON_COLOR_TOPMENU_BCKGRD        = Topmenu background color
 OBLYON_COLOR_TOPMENU_BCKGRD_HOVER  = Topmenu background hover color
@@ -138,23 +147,53 @@ OBLYON_COLOR_NOTIF_ERROR_BCKGRD    = Color background on notification error mess
 OBLYON_COLOR_NOTIF_ERROR_TEXT      = Color text on notification error message
 OBLYON_COLOR_TEXTTABACTIVE         = Color text of active tabs
 OBLYON_COLOR_INPUT_BCKGRD          = Background color of inputs
+OBLYON_COLOR_INPUT_ADD_BCKGRD      = Input fields background color (when 'Grey background on inputs' is on)
+OBLYON_COLOR_BOX_SHADOW            = Small boxes shadow color (when 'Drop shadow on boxes' is on)
 OBLYON_COLOR_INFOBOX_BCKGRD1       = Background color 1 of active kanban cards (applications / modules)
 OBLYON_COLOR_INFOBOX_BCKGRD2       = Background color 2 of active kanban cards (applications / modules)
 OBLYON_COLOR_BORDER_ACTIONCOLUMN   = Border color of the 'action' column of the tables
+OBLYON_COLOR_AMOUNT_REMAIN         = Remaining amount color
+OBLYON_COLOR_AMOUNT_PAID           = Paid amount color
+OBLYON_COLOR_AMOUNT_UNPAID         = Unpaid links color
+OBLYON_COLOR_STATUS_SUCCESS        = Status color: success
+OBLYON_COLOR_STATUS_INFO           = Status color: info
+OBLYON_COLOR_STATUS_WARNING        = Status color: warning
+OBLYON_COLOR_STATUS_DANGER         = Status color: danger
+OBLYON_COLOR_STATUS_PRIMARY        = Status color: primary
+OBLYON_COLOR_PROGRESSBAR           = Progress bar color
+OBLYON_COLOR_TIMELINEITEM          = Timeline item color
+OBLYON_COLOR_WEATHER_LEVEL0        = Weather level 0 color
+OBLYON_COLOR_WEATHER_LEVEL1        = Weather level 1 color
+OBLYON_COLOR_WEATHER_LEVEL2        = Weather level 2 color
+OBLYON_COLOR_WEATHER_LEVEL3        = Weather level 3 color
+OBLYON_COLOR_WEATHER_LEVEL4        = Weather level 4 color
+OBLYON_COLOR_INFOBOX_UPDATE        = 'Update available' badge color
+THEME_ELDY_BTNACTION               = Action buttons background color (Eldy theme)
+THEME_ELDY_TEXTBTNACTION           = Action buttons text color (Eldy theme)
+THEME_ELDY_USE_HOVER               = Hovered rows background color (Eldy theme)
+THEME_ELDY_USE_CHECKED             = Checked rows background color (Eldy theme)
 InvertRatioDesc                    = Color Inversion Filter Ratio (Applicable to icons based on PNG image files)
 Eldys                              = Basic colors
-THEME_ELDY_TOPBORDER_TITLE1        = Title border color
-THEME_ELDY_BACKTITLE1              = Background color of filters (Oblyon => only on inactive statistics filters)
-THEME_ELDY_BACKTABACTIVE           = Color of active tabs
-THEME_ELDY_LINEIMPAIR1             = Background color 1 of the odd lines of the tables
-THEME_ELDY_LINEIMPAIR2             = Background color 2 of the odd lines of the tables
-THEME_ELDY_LINEPAIR1               = Background color 1 of the even rows of the tables
-THEME_ELDY_LINEPAIR2               = Background color 2 of the even rows of the tables
-THEME_ELDY_LINEBREAK               = Color of the line breaks
-THEME_ELDY_TEXTTITLENOTAB          = Title text color (excluding tables)
-THEME_ELDY_TEXTTITLE               = Title text color
-THEME_ELDY_TEXT                    = Basic text color
-THEME_ELDY_TEXTLINK                = Link text color
+THEME_ELDY_TOPBORDER_TITLE1        = Title border color (Eldy theme)
+THEME_ELDY_BACKTITLE1              = Background color of filters (Oblyon => only on inactive statistics filters) (Eldy theme)
+THEME_ELDY_BACKTABACTIVE           = Color of active tabs (Eldy theme)
+THEME_ELDY_LINEIMPAIR1             = Background color 1 of the odd lines of the tables (Eldy theme)
+THEME_ELDY_LINEIMPAIR2             = Background color 2 of the odd lines of the tables (Eldy theme)
+THEME_ELDY_LINEPAIR1               = Background color 1 of the even rows of the tables (Eldy theme)
+THEME_ELDY_LINEPAIR2               = Background color 2 of the even rows of the tables (Eldy theme)
+THEME_ELDY_LINEBREAK               = Color of the line breaks (Eldy theme)
+THEME_ELDY_TEXTTITLENOTAB          = Title text color (excluding tables) (Eldy theme)
+THEME_ELDY_TEXTTITLE               = Title text color (Eldy theme)
+THEME_ELDY_TEXT                    = Basic text color (Eldy theme)
+THEME_ELDY_TEXTLINK                = Link text color (Eldy theme)
+THEME_ELDY_PROSPECTBACK            = Background color of the 'prospect' nature (Eldy theme)
+THEME_ELDY_CUSTOMERBACK            = Background color of the 'customer' nature (Eldy theme)
+THEME_ELDY_VENDORBACK              = Background color of the 'supplier' nature (Eldy theme)
+THEME_ELDY_USERBACK                = Background color of the 'user' nature (Eldy theme)
+THEME_ELDY_COLORNATURE             = Text color of nature labels (prospect/customer/supplier) (Eldy theme)
+THEME_ELDY_MEMBER_COMPANYBACK      = Background color of company members (Eldy theme)
+THEME_ELDY_MEMBER_INDIVIDUALBACK   = Background color of individual members (Eldy theme)
+THEME_ELDY_COLORMEMBER             = Text color of member labels (Eldy theme)
 
 RestoreDefaultColors               = Restore default colors
 DefaultsColorsMsg                  = Default colors restored
@@ -296,3 +335,30 @@ OblyonAbout               = About
 Authors                   = Authors
 OldAuthors                = Previous authors
 LicenseMessage            = Theme Oblyon is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.<br><a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a>
+
+### Eldy theme options (lot 2) ###
+ThemeAddBackgroundOnInput      = Grey background on input fields
+ThemeUseBorderOnTable          = Enable rounded corners on tables and boxes
+ThemeBorderRadius              = Corner radius (px)
+ThemeShadowOnSmallBoxes        = Drop shadow on small boxes
+ThemeTotalBackgroundLikeHead   = Total rows background same as header
+ThemeUseComoActRow             = Taller table rows (comfort mode)
+ThemeSaturateRatio             = Dashboard icons saturation (0 to 1)
+ThemeMenuColorLogo             = Keep original color of menu icons
+
+### Colors page - option groups ###
+OblyonColorGrpBackgrounds     = General backgrounds
+OblyonColorGrpText            = Text
+OblyonColorGrpTitles          = Titles
+OblyonColorGrpTabs            = Tabs
+OblyonColorGrpLines           = Table lines
+OblyonColorGrpAutocomplete    = Autocomplete (highlighted row)
+OblyonColorGrpMultiselect     = Multiselect (tags, categories...)
+OblyonColorGrpTotal           = Total rows
+OblyonColorGrpDate            = Date picker
+OblyonColorGrpNatures         = Third-party natures
+OblyonColorGrpMembers         = Members
+OblyonColorGrpDashboard       = Dashboard / columns
+OblyonColorGrpAmounts         = Amounts
+OblyonColorGrpStatus          = Status (widgets)
+OblyonColorGrpWeather         = Weather / tiles

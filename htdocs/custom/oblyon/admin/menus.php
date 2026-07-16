@@ -1,7 +1,7 @@
 <?php
 /************************************************
 	* Copyright (C) 2015-2022  Alexandre Spangaro   <alexandre@inovea-conseil.com>
-	* Copyright (C) 2022-2025  Sylvain Legrand      <contact@infras.fr>
+	* Copyright (C) 2022-2026  Sylvain Legrand      <contact@infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -135,11 +135,13 @@ if (getDolGlobalString('MAIN_MENU_INVERT')) {
 }
 $metas		= array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'menus');
 oblyon_print_input('MAIN_SHOW_LOGO', 'on_off', $langs->trans('OblyonEnableShowLogo'), '', $metas, 2, 1);	// Show Company Logo
-$warning	= getDolGlobalString('OBLYON_STICKY_TOPBAR') ? '<br><span class = "warning">'.$langs->trans('StickyTopBarWarning').'</span>'.(getDolGlobalString('MAIN_MENU_INVERT') ? '<br><span class = "warning">'.$langs->trans('StickyTopBarInvertedWarning').'</span>' : '') : '';
+$warning	= getDolGlobalString('THEME_STICKY_TOPMENU') ? '<br><span class = "warning">'.$langs->trans('StickyTopBarWarning').'</span>'.(getDolGlobalString('MAIN_MENU_INVERT') ? '<br><span class = "warning">'.$langs->trans('StickyTopBarInvertedWarning').'</span>' : '') : '';
 $metas		= array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'menus');
-oblyon_print_input('OBLYON_STICKY_TOPBAR', 'on_off', $langs->trans('StickyTopBar').$warning, '', $metas, 2, 1);	// Sticky top bar
+oblyon_print_input('THEME_STICKY_TOPMENU', 'on_off', $langs->trans('StickyTopBar').' (thème Eldy)'.$warning, '', $metas, 2, 1);	// Sticky top bar
 $metas		= array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'menus');
 oblyon_print_input('OBLYON_HIDE_TOPICONS', 'on_off', $langs->trans('HideTopIcons'), '', $metas, 2, 1);	// Hide top icons
+$metas		= array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'menus');
+oblyon_print_input('THEME_MENU_COLORLOGO', 'on_off', $langs->trans('ThemeMenuColorLogo').' (thème Eldy)', '', $metas, 2, 1);
 // Left menu
 $metas		= array(array(3), 'LeftMenu');
 oblyon_print_liste_titre($metas);

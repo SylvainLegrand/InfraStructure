@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2025       Alexandre Spangaro          <alexandre@inovea-conseil.com>
+/* Copyright (C) 2022-2026  Sylvain Legrand      <contact@infras.fr>
  */
 if (!defined('ISLOADEDBYSTEELSHEET')) {
 	die('Must be call by steelsheet');
@@ -27,7 +28,7 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 }
 
 .info-box-module.--external.--need-update span.info-box-icon-version{
-	background: #bc9525;
+	background: var(--colorinfoboxupdate);
 }
 
 .info-box {
@@ -86,7 +87,7 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 	line-height: 20px;
 	color: #fff;
 	text-align: center;
-	background-color: #337ab7;
+	background-color: var(--colorstatusprimary);
 	box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
 	-webkit-transition: width .6s ease;
 	-o-transition: width .6s ease;
@@ -271,7 +272,7 @@ a.info-box-text-a i.fa.fa-exclamation-triangle, span.badge i.fa.fa-exclamation-t
 	background: linear-gradient(0.35turn, var(--color1BckgrdInfobox), var(--color1BckgrdInfobox), var(--color2BckgrdInfobox), var(--color2BckgrdInfobox));
 }
 .info-box-content-warning span.font-status4 {
-	color: #bc9526 !important;
+	color: var(--colorweatherlevel1) !important;
 }
 
 .info-box-number {
@@ -509,23 +510,23 @@ $conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RAT
 }
 .fa-weather-level0:before{
 	content: "\f185";
-	color : #cfbf00;
+	color : var(--colorweatherlevel0);
 }
 .fa-weather-level1:before{
 	content: "\f6c4";
-	color : #bc9526;
+	color : var(--colorweatherlevel1);
 }
 .fa-weather-level2:before{
 	content: "\f743";
-	color : #b16000;
+	color : var(--colorweatherlevel2);
 }
 .fa-weather-level3:before{
 	content: "\f740";
-	color : #b04000;
+	color : var(--colorweatherlevel3);
 }
 .fa-weather-level4:before{
 	content: "\f0e7";
-	color : #993013;
+	color : var(--colorweatherlevel4);
 }
 
 

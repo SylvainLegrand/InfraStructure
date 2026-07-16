@@ -151,7 +151,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 		background: var(--colorbtitle);
         padding-left: 10px;
         padding-right: 10px;
-		color: var(--colorftitle);
+		color: var(--colortexttitle);
     }
     div.login_block {
         <?php if (getDolGlobalString('MAIN_MENU_INVERT')) { ?>
@@ -162,7 +162,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
             height: 54px;
         <?php } ?>
         /* padding-right: 10px; */
-        <?php if (getDolGlobalString('OBLYON_STICKY_TOPBAR')) { ?>
+        <?php if (getDolGlobalString('THEME_STICKY_TOPMENU')) { ?>
             position: fixed !important;
         <?php } else { ?>
             position: absolute !important;
@@ -229,7 +229,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         <?php } ?>
     }
     div.login_block:hover:after {
-        color: <?php print $maincolor; ?>;
+        color: var(--maincolor);
     }
     div.login_block_tools {
         margin-<?php print $right ?>: 8px;
@@ -243,14 +243,14 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         vertical-align: middle;
         clear: <?php print $disableimages ? 'none' : 'both'; ?>;
         padding-top: 0;
-        text-align: <?php print $right ?>;
+        text-align: var(--right);
         max-width: 200px;
     }
     div.login_block_user {
     	display: inline-block;
     	vertical-align: middle;
         /*clear: left;*/
-        /*float: <?php print $left; ?>;*/
+        /*float: var(--left);*/
         margin-right: 0px;
     }
     div.login_block_user .login a,
@@ -259,7 +259,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         <?php if (getDolGlobalString('MAIN_MENU_INVERT')) { ?>
             font-size: 13px;
         <?php } ?>
-        font-family: <?php print $fontmainmenu; ?>;
+        font-family: var(--fontmainmenu);
         font-weight: 500;
         <?php if (getDolGlobalString('MAIN_MENU_INVERT')) { ?>
             height: 40px;
@@ -319,7 +319,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
     }
 
     .login_block_elem {
-        float: <?php print $left; ?>;
+        float: var(--left);
         <?php if (getDolGlobalString('MAIN_MENU_INVERT')) { ?>
             background-color: var(--bgnavleft);
             height: 40px;
@@ -468,11 +468,11 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
     }
     .alogin {
         font-weight: normal !important;
-        font-size: <?php print $fontsizesmaller; ?>px !important;
+        font-size: var(--fontsizesmaller) !important;
     }
     .alogin:hover {
         text-decoration: underline !important;
-        color: <?php print $maincolor; ?> !important;
+        color: var(--maincolor) !important;
     }
 /*------------------------------------------------------------------
 [ Responsive ]*/

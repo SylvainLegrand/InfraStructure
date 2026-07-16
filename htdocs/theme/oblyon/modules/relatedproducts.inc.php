@@ -15,23 +15,19 @@
  */
 
 /**
- * \file		htdocs/theme/oblyon/modules/scaninvoices.inc.php
+ * \file		htdocs/theme/oblyon/modules/relatedproducts.inc.php
  * \ingroup		oblyon
- * \brief		Manage compatibility between the Oblyon theme and the ScanInvoices module >
+ * \brief		Manage compatibility between the Oblyon theme and the RelatedProducts module >
  */
 <?php if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 /* <style type="text/css" > */
 
-#ScanInvoicesGlobal {
-	<?php if (getDolGlobalString('OBLYON_STICKY_LEFTBAR')) { ?>
-		<?php if (getDolGlobalString('OBLYON_REDUCE_LEFTMENU')) { ?>
-			padding-left: 50px !important;
-		<?php } else { ?>
-			padding-left: 240px !important;
-		<?php } ?>
-	<?php } ?>
+<?php if (isModEnabled('relatedproducts') && getDolGlobalString('FIX_STICKY_HEADER_CARD')) { ?>
+/* Popup « produits associés » (dialogue jQuery UI) : neutraliser l'en-tête sticky
+   qui recouvre les premières lignes du tableau (le décalage top 40/54px est calibré
+   pour le menu fixe de la page principale, pas pour un dialogue défilant) */
+#addrelatedproducts tr.liste_titre th {
+    position: static !important;
+    top: unset !important;
 }
-
-#ocr-server-card, #ScanInvoicesMydrop, #ScanInvoicesMydropLater {
-	background-color: var(--inputbackgroundcolor) !important;
-}
+<?php } ?>

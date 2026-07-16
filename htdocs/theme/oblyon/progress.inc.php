@@ -39,7 +39,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
     line-height: 20px;
     color: #fff;
     text-align: center;
-    background-color: #337ab7;
+    background-color: var(--colorstatusprimary);
     -webkit-box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
     box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
     -webkit-transition: width .6s ease;
@@ -137,7 +137,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 }
 .progress-bar-light-blue,
 .progress-bar-primary {
-    background-color: #3c8dbc;
+    background-color: var(--colorprogressbar);
 }
 .progress-striped .progress-bar-light-blue,
 .progress-striped .progress-bar-primary {
@@ -147,7 +147,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 }
 .progress-bar-green,
 .progress-bar-success {
-    background-color: #00a65a;
+    background-color: var(--colorstatussuccess);
 }
 .progress-striped .progress-bar-green,
 .progress-striped .progress-bar-success {
@@ -157,7 +157,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 }
 .progress-bar-aqua,
 .progress-bar-info {
-    background-color: #00c0ef;
+    background-color: var(--colorstatusinfo);
 }
 .progress-striped .progress-bar-aqua,
 .progress-striped .progress-bar-info {
@@ -167,7 +167,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 }
 .progress-bar-yellow,
 .progress-bar-warning {
-    background-color: #f39c12;
+    background-color: var(--colorstatuswarning);
 }
 .progress-striped .progress-bar-yellow,
 .progress-striped .progress-bar-warning {
@@ -177,7 +177,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 }
 .progress-bar-red,
 .progress-bar-danger {
-    background-color: #dd4b39;
+    background-color: var(--colorstatusdanger);
 }
 .progress-striped .progress-bar-red,
 .progress-striped .progress-bar-danger {

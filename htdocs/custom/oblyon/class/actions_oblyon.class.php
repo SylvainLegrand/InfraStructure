@@ -1,6 +1,7 @@
 <?php
 /* Copyright (C) 2022 Paul LEPONT           <paul@kawagency.fr>
 /* Copyright (C) 2022 Alexandre Spangaro    <alexandre@inovea-conseil.com>
+/* Copyright (C) 2022-2026  Sylvain Legrand      <contact@infras.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

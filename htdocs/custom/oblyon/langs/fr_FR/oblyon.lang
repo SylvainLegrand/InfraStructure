@@ -1,7 +1,7 @@
 # < Oblyon Control Panel - French translation >
 # Copyright (C) 2015       Nicolas Rivera       <nrivera.pro@gmail.com>
 # Copyright (C) 2015-2025  Alexandre Spangaro   <alexandre@inovea-conseil.com>
-# Copyright (C) 2015-2025  Sylvain Legrand      <technique@infras.fr>
+# Copyright (C) 2015-2026  Sylvain Legrand      <technique@infras.fr>
 #
 Module432573Name        = Oblyon
 Module432573Desc        = Panneau d'options qui vous permet de personnaliser le thème Oblyon
@@ -95,6 +95,12 @@ OblyonColorsTitle                  = Configurateur Oblyon - Couleurs
 Colors                             = Couleurs
 Buttons                            = Boutons
 OBLYON_COLOR_MAIN                  = Couleur principale
+OBLYON_COLOR_AUTOCOMPLETE_BCKGRD   = Fond de la ligne surlignée (autocomplétion)
+OBLYON_COLOR_AUTOCOMPLETE_TEXT     = Texte de la ligne surlignée (autocomplétion)
+OBLYON_COLOR_CHIP_BCKGRD           = Fond des catégories déjà sélectionnées (liste)
+OBLYON_COLOR_CHIP_TEXT             = Texte des catégories déjà sélectionnées (liste)
+OBLYON_COLOR_RESULT_BCKGRD         = Fond des étiquettes sélectionnées (champ)
+OBLYON_COLOR_RESULT_TEXT           = Texte des étiquettes sélectionnées (champ)
 OBLYON_COLOR_BCKGRD                = Couleur de fond
 OBLYON_COLOR_LOGO_BCKGRD           = Couleur de fond du logo
 OBLYON_COLOR_LOGIN_BCKGRD          = Couleur de fond de la page de connexion
@@ -106,6 +112,8 @@ OBLYON_COLOR_BLINE_HOVER           = Couleur de fond des lignes survolées
 OBLYON_COLOR_FDATE_DEFAULT         = Couleur de date par défaut (date du jour) dans le sélecteur de date
 OBLYON_COLOR_FDATE_SELECTED        = Couleur de date sélectionnée dans le sélecteur de date
 OBLYON_COLOR_FLINE                 = Couleur de texte des lignes
+OBLYON_COLOR_BTOTAL                = Couleur de fond des lignes de total (si option 'identique à l'entête' désactivée)
+OBLYON_COLOR_FTOTAL                = Couleur de texte des lignes de total (si option 'identique à l'entête' désactivée)
 OBLYON_COLOR_FLINE_HOVER           = Couleur du texte survolé des lignes
 OBLYON_COLOR_TOPMENU_BCKGRD        = Couleur de fond du menu haut
 OBLYON_COLOR_TOPMENU_BCKGRD_HOVER  = Couleur de fond survolé du menu haut
@@ -138,23 +146,53 @@ OBLYON_COLOR_NOTIF_ERROR_BCKGRD    = Couleur de fond des notifications d'erreur
 OBLYON_COLOR_NOTIF_ERROR_TEXT      = Couleur de texte des notifications d'erreur
 OBLYON_COLOR_TEXTTABACTIVE         = Couleur de texte des onglets actifs
 OBLYON_COLOR_INPUT_BCKGRD          = Couleur de fond des zones de saisie
+OBLYON_COLOR_INPUT_ADD_BCKGRD      = Couleur de fond des champs (si option "Fond gris sur les champs de saisie" active)
+OBLYON_COLOR_BOX_SHADOW            = Couleur de l'ombre des petites boîtes (si option "Ombre portée" active)
 OBLYON_COLOR_INFOBOX_BCKGRD1       = Couleur de fond 1 des cartes kanban active (applications / modules)
 OBLYON_COLOR_INFOBOX_BCKGRD2       = Couleur de fond 2 des cartes kanban active (applications / modules)
 OBLYON_COLOR_BORDER_ACTIONCOLUMN   = Couleur de bordure de la colonne 'action' des tableaux
+OBLYON_COLOR_AMOUNT_REMAIN         = Couleur du montant restant à payer
+OBLYON_COLOR_AMOUNT_PAID           = Couleur du montant payé / soldé
+OBLYON_COLOR_AMOUNT_UNPAID         = Couleur des liens impayés
+OBLYON_COLOR_STATUS_SUCCESS        = Couleur de statut : succès
+OBLYON_COLOR_STATUS_INFO           = Couleur de statut : information
+OBLYON_COLOR_STATUS_WARNING        = Couleur de statut : avertissement
+OBLYON_COLOR_STATUS_DANGER         = Couleur de statut : danger
+OBLYON_COLOR_STATUS_PRIMARY        = Couleur de statut : primaire
+OBLYON_COLOR_PROGRESSBAR           = Couleur de la barre de progression
+OBLYON_COLOR_TIMELINEITEM          = Couleur des éléments de timeline
+OBLYON_COLOR_WEATHER_LEVEL0        = Couleur météo niveau 0 (tableau de bord)
+OBLYON_COLOR_WEATHER_LEVEL1        = Couleur météo niveau 1 (tableau de bord)
+OBLYON_COLOR_WEATHER_LEVEL2        = Couleur météo niveau 2 (tableau de bord)
+OBLYON_COLOR_WEATHER_LEVEL3        = Couleur météo niveau 3 (tableau de bord)
+OBLYON_COLOR_WEATHER_LEVEL4        = Couleur météo niveau 4 (tableau de bord)
+OBLYON_COLOR_INFOBOX_UPDATE        = Couleur du badge « mise à jour disponible »
+THEME_ELDY_BTNACTION               = Couleur de fond des boutons d'action (thème Eldy)
+THEME_ELDY_TEXTBTNACTION           = Couleur du texte des boutons d'action (thème Eldy)
+THEME_ELDY_USE_HOVER               = Couleur de fond des lignes survolées (thème Eldy)
+THEME_ELDY_USE_CHECKED             = Couleur de fond des lignes cochées (thème Eldy)
 InvertRatioDesc                    = Ratio du filtre d'inversion des couleurs (Applicable aux icones basées sur des fichiers images PNG)
 Eldys                              = Couleurs de base
-THEME_ELDY_TOPBORDER_TITLE1        = Couleur des bordures de titre
-THEME_ELDY_BACKTITLE1              = Couleur de fond des filtres (Oblyon => uniquement sur les filtres inactifs des statistiques)
-THEME_ELDY_BACKTABACTIVE           = Couleur des onglets actifs
-THEME_ELDY_LINEIMPAIR1             = Couleur de fond 1 des lignes impaires des tables
-THEME_ELDY_LINEIMPAIR2             = Couleur de fond 2 des lignes impaires des tables
-THEME_ELDY_LINEPAIR1               = Couleur de fond 1 des lignes paires des tables
-THEME_ELDY_LINEPAIR2               = Couleur de fond 2 des lignes paires des tables
-THEME_ELDY_LINEBREAK               = Couleur des retours à la ligne
-THEME_ELDY_TEXTTITLENOTAB          = Couleur du texte des titres (hors tables)
-THEME_ELDY_TEXTTITLE               = Couleur du texte des titres
-THEME_ELDY_TEXT                    = Couleur du texte de base
-THEME_ELDY_TEXTLINK                = Couleur des textes de liens
+THEME_ELDY_TOPBORDER_TITLE1        = Couleur des bordures de titre (thème Eldy)
+THEME_ELDY_BACKTITLE1              = Couleur de fond des filtres (Oblyon => uniquement sur les filtres inactifs des statistiques) (thème Eldy)
+THEME_ELDY_BACKTABACTIVE           = Couleur des onglets actifs (thème Eldy)
+THEME_ELDY_LINEIMPAIR1             = Couleur de fond 1 des lignes impaires des tables (thème Eldy)
+THEME_ELDY_LINEIMPAIR2             = Couleur de fond 2 des lignes impaires des tables (thème Eldy)
+THEME_ELDY_LINEPAIR1               = Couleur de fond 1 des lignes paires des tables (thème Eldy)
+THEME_ELDY_LINEPAIR2               = Couleur de fond 2 des lignes paires des tables (thème Eldy)
+THEME_ELDY_LINEBREAK               = Couleur des retours à la ligne (thème Eldy)
+THEME_ELDY_TEXTTITLENOTAB          = Couleur du texte des titres (hors tables) (thème Eldy)
+THEME_ELDY_TEXTTITLE               = Couleur du texte des titres (thème Eldy)
+THEME_ELDY_TEXT                    = Couleur du texte de base (thème Eldy)
+THEME_ELDY_TEXTLINK                = Couleur des textes de liens (thème Eldy)
+THEME_ELDY_PROSPECTBACK            = Couleur de fond de la nature 'prospect' (thème Eldy)
+THEME_ELDY_CUSTOMERBACK            = Couleur de fond de la nature 'client' (thème Eldy)
+THEME_ELDY_VENDORBACK              = Couleur de fond de la nature 'fournisseur' (thème Eldy)
+THEME_ELDY_USERBACK                = Couleur de fond de la nature 'utilisateur' (thème Eldy)
+THEME_ELDY_COLORNATURE             = Couleur du texte des étiquettes de nature (prospect/client/fournisseur) (thème Eldy)
+THEME_ELDY_MEMBER_COMPANYBACK      = Couleur de fond des adhérents personnes morales (thème Eldy)
+THEME_ELDY_MEMBER_INDIVIDUALBACK   = Couleur de fond des adhérents personnes physiques (thème Eldy)
+THEME_ELDY_COLORMEMBER             = Couleur du texte des étiquettes d'adhérents (thème Eldy)
 
 RestoreDefaultColors               = Rétablir couleurs par défaut
 DefaultsColorsMsg                  = Couleurs par défaut rétabli
@@ -296,3 +334,30 @@ OblyonAbout               = A propos
 Authors                   = Auteurs
 OldAuthors                = Ancien auteurs
 LicenseMessage            = Thème Oblyon mis à disposition selon les termes de la <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">licence Creative Commons Attribution - Pas d’Utilisation Commerciale 4.0 International</a>.<br><a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Licence Creative Commons" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a>
+
+### Eldy theme options (lot 2) ###
+ThemeAddBackgroundOnInput      = Fond gris sur les champs de saisie
+ThemeUseBorderOnTable          = Activer les arrondis sur tableaux et boîtes
+ThemeBorderRadius              = Rayon des arrondis (px)
+ThemeShadowOnSmallBoxes        = Ombre portée sur les petites boîtes
+ThemeTotalBackgroundLikeHead   = Fond des lignes de total identique à l'entête
+ThemeUseComoActRow             = Lignes de tableau plus espacées (mode confort)
+ThemeSaturateRatio             = Saturation des icônes du tableau de bord (0 à 1)
+ThemeMenuColorLogo             = Conserver la couleur d'origine des icônes du menu
+
+### Colors page - option groups ###
+OblyonColorGrpBackgrounds     = Fonds généraux
+OblyonColorGrpText            = Texte
+OblyonColorGrpTitles          = Titres
+OblyonColorGrpTabs            = Onglets
+OblyonColorGrpLines           = Lignes des tableaux
+OblyonColorGrpAutocomplete    = Autocomplétion (ligne surlignée)
+OblyonColorGrpMultiselect     = Multi-sélection (tags, catégories…)
+OblyonColorGrpTotal           = Lignes de total
+OblyonColorGrpDate            = Sélecteur de date
+OblyonColorGrpNatures         = Natures des tiers
+OblyonColorGrpMembers         = Adhérents
+OblyonColorGrpDashboard       = Tableau de bord / colonnes
+OblyonColorGrpAmounts         = Montants
+OblyonColorGrpStatus          = Statuts (widgets)
+OblyonColorGrpWeather         = Météo / vignettes

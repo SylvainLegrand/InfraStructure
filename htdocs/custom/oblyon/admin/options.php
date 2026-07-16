@@ -1,7 +1,7 @@
 <?php
 /************************************************
 * Copyright (C) 2015-2025  Alexandre Spangaro   <alexandre@inovea-conseil.com>
-* Copyright (C) 2022-2025  Sylvain Legrand      <contact@infras.fr>
+* Copyright (C) 2022-2026  Sylvain Legrand      <contact@infras.fr>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ if (preg_match('/set_(.*)/', $action, $reg)) {
 }
 	// Update buttons management
 if (preg_match('/update_(.*)/', $action, $reg)) {
-	$list									= array('Card'  => array('OBLYON_FONT_SIZE', 'OBLYON_IMAGE_HEIGHT_TABLE', 'OBLYON_FONT', 'OBLYON_FONT_FAMILY', 'MAIN_MAXTABS_IN_CARD'));
+	$list									= array('Card'  => array('THEME_ELDY_FONT_SIZE1', 'OBLYON_IMAGE_HEIGHT_TABLE', 'THEME_FONT_FAMILY', 'MAIN_MAXTABS_IN_CARD', 'THEME_ELDY_BORDER_RADIUS'));
 	$confkey								= $reg[1];
 	$error									= 0;
 	foreach ($list[$confkey] as $constname)	$result	= dolibarr_set_const($db, $constname, GETPOST($constname, 'alpha'), 'chaine', 0, 'Oblyon module', $conf->entity);
@@ -102,7 +102,7 @@ $font_options				= array ('Arial' 				=> 'Arial',
 		    						'Trebuchet MS' 			=> 'Trebuchet MS',
 		    						'Verdana' 				=> 'Verdana',
 									);
-$currentFont				= getDolGlobalString('OBLYON_FONT_FAMILY', 'Arial');
+$currentFont				= getDolGlobalString('THEME_FONT_FAMILY', 'Arial');
 
 // View *****************************************
 $help_url = '';
@@ -190,12 +190,12 @@ print "</tr>\n";
 $countg = 1;
 
 $metas = array('type' => 'number', 'class' => 'flat quatrevingtpercent right action', 'dir' => 'rtl', 'min' => '10', 'max' => '16');
-oblyon_print_input('OBLYON_FONT_SIZE', 'input', 'G' . $countg . ' - ' . $langs->trans('OblyonFontSize'), '', $metas, 2, 1);	// Font size
+oblyon_print_input('THEME_ELDY_FONT_SIZE1', 'input', 'G' . $countg . ' - ' . $langs->trans('OblyonFontSize') . ' (thème Eldy)', '', $metas, 2, 1);	// Font size
 $countg++;
 
 $form = new Form($db);
-$metas = $form->selectarray('OBLYON_FONT_FAMILY', $font_options, $currentFont, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
-oblyon_print_input('OBLYON_FONT_FAMILY', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonFontFamily'), '', $metas, 2, 1);
+$metas = $form->selectarray('THEME_FONT_FAMILY', $font_options, $currentFont, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('THEME_FONT_FAMILY', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonFontFamily') . ' (thème Eldy)', '', $metas, 2, 1);
 $countg++;
 
 $metas = array('type' => 'number', 'class' => 'flat quatrevingtpercent right action', 'dir' => 'rtl', 'min' => '24', 'max' => '128');
@@ -227,6 +227,31 @@ if (isModEnabled('bookmark')) {
 $metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
 oblyon_print_input('OBLYON_PADDING_RIGHT_BOTTOM', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonPaddingRightBottom'), '', $metas, 2, 1);	// Add padding on bottom
 $countg++;
+
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'options');
+oblyon_print_input('THEME_ADD_BACKGROUND_ON_INPUT', 'on_off', 'G' . $countg . ' - ' . $langs->trans('ThemeAddBackgroundOnInput') . ' (thème Eldy)', '', $metas, 2, 1);	// A7
+$countg++;
+
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'options');
+oblyon_print_input('THEME_ELDY_USEBORDERONTABLE', 'on_off', 'G' . $countg . ' - ' . $langs->trans('ThemeUseBorderOnTable') . ' (thème Eldy)', '', $metas, 2, 1);	// B1
+$countg++;
+
+$metas = array('type' => 'number', 'class' => 'flat quatrevingtpercent right action', 'dir' => 'rtl', 'min' => '0', 'max' => '30');
+oblyon_print_input('THEME_ELDY_BORDER_RADIUS', 'input', 'G' . $countg . ' - ' . $langs->trans('ThemeBorderRadius') . ' (thème Eldy)', '', $metas, 2, 1);	// B1
+$countg++;
+
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'options');
+oblyon_print_input('THEME_ELDY_SHADOW_ON_SMALL_BOXES', 'on_off', 'G' . $countg . ' - ' . $langs->trans('ThemeShadowOnSmallBoxes') . ' (thème Eldy)', '', $metas, 2, 1);	// B2
+$countg++;
+
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'options');
+oblyon_print_input('THEME_ELDY_TOTAL_BACKGROUND_LIKE_HEAD', 'on_off', 'G' . $countg . ' - ' . $langs->trans('ThemeTotalBackgroundLikeHead') . ' (thème Eldy)', '', $metas, 2, 1);	// B3
+$countg++;
+
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'options');
+oblyon_print_input('THEME_ELDY_USECOMOACTROW', 'on_off', 'G' . $countg . ' - ' . $langs->trans('ThemeUseComoActRow') . ' (thème Eldy)', '', $metas, 2, 1);	// B4
+$countg++;
+
 
 /* Login
 $metas	= array(array(3), 'OblyonLogin');
@@ -265,9 +290,12 @@ if ($easyaVersion >= "2024.0.0" || (float) DOL_VERSION >= 18.0) {
 }
 if ($easyaVersion >= "2024.0.0" || (float) DOL_VERSION >= 19.0) {
     // Remove Kanban view in list - DISABLE_KANBAN_VIEW_IN_LIST
-    // Old Compatibility
+    // Migration ancienne constante -> nouvelle, puis suppression de l'ancienne
     if (getDolGlobalString('OBLYON_DISABLE_KANBAN_VIEW_IN_LIST')) {
-        getDolGlobalString('DISABLE_KANBAN_VIEW_IN_LIST') == 1;
+        if (!getDolGlobalString('DISABLE_KANBAN_VIEW_IN_LIST')) {
+            dolibarr_set_const($db, 'DISABLE_KANBAN_VIEW_IN_LIST', getDolGlobalString('OBLYON_DISABLE_KANBAN_VIEW_IN_LIST'), 'chaine', 0, 'Oblyon module', $conf->entity);
+        }
+        dolibarr_del_const($db, 'OBLYON_DISABLE_KANBAN_VIEW_IN_LIST', $conf->entity);
     }
 
     $metas	= array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');

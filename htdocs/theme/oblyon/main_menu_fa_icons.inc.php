@@ -332,11 +332,13 @@ icon--blockedlogbrowser:before {
     font-variant: normal;
     text-rendering: auto;
     line-height: 26px;
-	font-size: <?php echo $topMenuFontSize; ?>;
+	font-size: var(--topMenuFontSize);
     -webkit-font-smoothing: antialiased;
     text-align:center;
 	text-decoration:none;
-	color: #<?php echo $colortextbackhmenu; ?>;
+<?php if (!getDolGlobalString('THEME_MENU_COLORLOGO')) { ?>
+	color: var(--colortextbackhmenu);
+<?php } ?>
 }
 
 

@@ -2,6 +2,7 @@
 /**
  * Copyright (C) 2013-2016  Nicolas Rivera	  <nrivera.pro@gmail.com>
  * Copyright (C) 2015-2025  Alexandre Spangaro  <alexandre@inovea-conseil.com>
+ * Copyright (C) 2022-2026  Sylvain Legrand      <contact@infras.fr>
  *
  * Copyright (C) 2010-2013  Laurent Destailleur <eldy@users.sourceforge.net>
  * Copyright (C) 2010	   Regis Houssin	   <regis.houssin@capnetworks.com>

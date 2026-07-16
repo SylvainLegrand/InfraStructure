@@ -180,18 +180,18 @@ a.timeline-btn:hover
 }
 
 .timeline-icon-todo{
-    background-color: #dd4b39 !important;
+    background-color: var(--colorstatusdanger) !important;
 }
 
 .timeline-icon-in-progress{
-    background-color: #00c0ef !important;
+    background-color: var(--colorstatusinfo) !important;
 }
 .timeline-icon-done{
-    background-color: #00a65a !important;
+    background-color: var(--colorstatussuccess) !important;
 }
 
 
 .timeline-badge-date{
-    background-color: #0073b7 !important;
+    background-color: var(--colortimelineitem) !important;
     color: #fff !important;
 }

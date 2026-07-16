@@ -1,7 +1,7 @@
 <?php
 	/************************************************
 	* Copyright (C) 2015-2022  Alexandre Spangaro   <alexandre@inovea-conseil.com>
-	* Copyright (C) 2022-2025	   Sylvain Legrand	  <contact@infras.fr>
+	* Copyright (C) 2022-2026	   Sylvain Legrand	  <contact@infras.fr>
 	*
 	* This program is free software: you can redistribute it and/or modify
 	* it under the terms of the GNU General Public License as published by
@@ -135,16 +135,28 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 ';
 			fwrite($handle, $sqlhead);
 			$cols_const			= array ('name', 'entity', 'value', 'type', 'visible', 'note');
+			// Préfixes : constantes calculées au runtime (MAIN_FONTAWESOME_*) et familles du thème (OBLYON_*, THEME_*)
 			$listConstKeys		= array('FIX\_AREAREF\_TABACTION', 'FIX\_STICKY\_%\_CARD', 'MAIN\_CHECKBOX\_LEFT\_COLUMN', 'MAIN\_DISABLE\_BLOCK\_%', 'MAIN\_DISABLE\_GLOBAL\_%', 'MAIN\_DISABLE\_METEO',
-										'MAIN\_FONTAWESOME\_%', 'MAIN\_LOGIN\_RIGHT', 'MAIN\_MENU\_INVERT', 'MAIN\_SHOW\_LOGO', 'MAIN\_STATUS\_USES\_IMAGES', 'MAIN\_USE\_TOP\_MENU\_%', 'OBLYON\_%', 'THEME\_%');
+									'MAIN\_FONTAWESOME\_%', 'MAIN\_LOGIN\_RIGHT', 'MAIN\_MENU\_INVERT', 'MAIN\_SHOW\_LOGO', 'MAIN\_STATUS\_USES\_IMAGES', 'MAIN\_USE\_TOP\_MENU\_%', 'OBLYON\_%', 'THEME\_%');
+			// + Toutes les constantes déclarées dans le data.sql du module (source de vérité, auto-synchronisée) :
+			//   couvre les réglages sans préfixe dédié (FCKEDITOR_*, MAIN_MENU*_FORCED, MAIN_SECURITY_*, ...).
+			$listConstNames		= array();
+			$datasqlfile		= dol_buildpath('/'.$appliname.'/sql/data.sql', 0);
+			if (dol_is_file($datasqlfile)) {
+				foreach (file($datasqlfile) as $dataline) {
+					if (preg_match('/VALUES\s*\(\s*\'([A-Za-z0-9_]+)\'/', $dataline, $regdata))	$listConstNames[$regdata[1]]	= $regdata[1];
+				}
+			}
 			$duplicate_const	= array ('2', 'value', 'name');
+			$whereConst			= array();
+			foreach ($listConstKeys as $constKey)	$whereConst[]	= 'name LIKE "'.$constKey.'"';
+			if (!empty($listConstNames)) {
+				$listConstNames	= array_map(array($db, 'escape'), $listConstNames);
+				$whereConst[]	= 'name IN ("'.implode('", "', $listConstNames).'")';
+			}
 			$sql_const			= 'SELECT '.implode(', ', $cols_const);
 			$sql_const			.= ' FROM '.MAIN_DB_PREFIX.'const';
-			$sql_const			.= ' WHERE (';
-			foreach ($listConstKeys as $key => $constKey) {
-				$sql_const		.= 'name LIKE "'.$constKey.($key === array_key_last($listConstKeys) ? '"' : '" OR ');
-			}
-			$sql_const			.= ')';
+			$sql_const			.= ' WHERE ('.implode(' OR ', $whereConst).')';
 			$sql_const			.= ' AND entity = '.((int) $conf->entity);
 			$sql_const			.= ' ORDER BY name';
 			fwrite($handle, oblyon_bkup_table ('const', $sql_const, $cols_const, $duplicate_const));
@@ -234,7 +246,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 			$filesql	= $pathsql.'/'.'update.'.$conf->entity;
 			$moved	  = dol_copy($filesql, $filesql.'.sql');
 			if (is_file($filesql.'.sql')) {
-				$result	= run_sql($filesql.'.sql', (getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG') ? 1 : 0), $conf->entity, 1);
+				$result	= run_sql($filesql.'.sql', (!getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG') ? 1 : 0), $conf->entity, 1);
 			}
 			$delete	 = dol_delete_file($filesql.'.sql');
 

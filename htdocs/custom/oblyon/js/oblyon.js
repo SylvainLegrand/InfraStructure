@@ -32,6 +32,48 @@ jQuery(document).ready(function () {
 	var $ = jQuery;
 	var OPEN = 'is-touch-open';
 
+	/*
+	 * Inverted top menu (MAIN_MENU_INVERT + THEME_STICKY_TOPMENU) : dynamic content offset.
+	 *
+	 * The inverted top bar (#tmenu_tooltipinvert) is position:fixed and the content below
+	 * (#id-left, #id-right which contains .fiche) is pushed down by a HARDCODED padding-top
+	 * (40/52px) sized for a single 40px row. When there are too many entries for the available
+	 * width, the bar wraps onto several lines and grows taller, but the static offset does not
+	 * follow, so the top of the content is hidden behind the bar. We recompute the offset from
+	 * the real bar height. Runs on every device, so it must stay BEFORE the touch early-return.
+	 * The sub-menus are position:absolute (excluded from outerHeight), so hovering does not
+	 * change the measured height.
+	 */
+	(function () {
+		var $bar = $('#tmenu_tooltipinvert');
+		// Only when the bar is sticky (fixed) : otherwise it is in normal flow and pushes the
+		// content by itself, no offset to patch.
+		if (!$bar.length || $bar.css('position') !== 'fixed') {
+			return;
+		}
+		var $left = $('#id-left');
+		var $right = $('#id-right');
+		function adjustInvertOffset() {
+			var h = $bar.outerHeight();
+			if (!h) {
+				return;
+			}
+			if ($left.length) {
+				$left.css('padding-top', h + 'px');
+			}
+			if ($right.length) {
+				$right.css('padding-top', (h + 12) + 'px');	// keep the original 12px gap (id-left 40 / id-right 52)
+			}
+		}
+		adjustInvertOffset();
+		$(window).on('load', adjustInvertOffset);	// fonts / FA icons can change the height after load
+		var resizeTimer;
+		$(window).on('resize', function () {
+			clearTimeout(resizeTimer);
+			resizeTimer = setTimeout(adjustInvertOffset, 150);
+		});
+	})();
+
 	// Read the flags exposed by the theme CSS (touchmenu.inc.php)
 	function cssFlag(name) {
 		try {
