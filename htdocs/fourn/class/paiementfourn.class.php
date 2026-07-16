@@ -5,12 +5,13 @@
  * Copyright (C) 2005-2009 Regis Houssin          <regis.houssin@inodbox.com>
  * Copyright (C) 2010-2011 Juanjo Menent          <jmenent@2byte.es>
  * Copyright (C) 2014      Marcos García          <marcosgdf@gmail.com>
- * Copyright (C) 2018      Nicolas ZABOURI	  <info@inovea-conseil.com>
- * Copyright (C) 2018-2024	Frédéric France			<frederic.france@free.fr>
+ * Copyright (C) 2018      Nicolas ZABOURI	      <info@inovea-conseil.com>
+ * Copyright (C) 2018-2024 Frédéric France		  <frederic.france@free.fr>
  * Copyright (C) 2023      Joachim Kueter		  <git-jk@bloxera.com>
  * Copyright (C) 2023      Sylvain Legrand		  <technique@infras.fr>
- * Copyright (C) 2024		MDW						<mdeweerd@users.noreply.github.com>
- * Copyright (C) 2026		Lionel Vessiller		<lvessiller@open-dsi.fr>
+ * Copyright (C) 2024      Frédéric France        <frederic.france@free.fr>
+ * Copyright (C) 2024      MDW					  <mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2026      Lionel Vessiller		  <lvessiller@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -330,6 +331,8 @@ class PaiementFourn extends Paiement
 											$discount->fk_soc = $invoice->socid;
 											$discount->socid = $invoice->socid;
 											$discount->fk_invoice_supplier_source = $invoice->id;
+											$discount->multicurrency_code = $invoice->multicurrency_code;
+											$discount->multicurrency_tx = $invoice->multicurrency_tx;
 
 											// Loop on each vat rate
 											$i = 0;
@@ -358,8 +361,6 @@ class PaiementFourn extends Paiement
 												$discount->amount_tva = abs($amount_tva[$tva_tx]);
 												$discount->amount_ttc = abs($amount_ttc[$tva_tx]);
 												// multi-currency
-												$discount->multicurrency_code = $invoice->multicurrency_code;
-												$discount->multicurrency_tx = $invoice->multicurrency_tx;
 												$discount->multicurrency_total_ht = abs($multicurrency_amount_ht[$tva_tx]);
 												$discount->multicurrency_total_tva = abs($multicurrency_amount_tva[$tva_tx]);
 												$discount->multicurrency_total_ttc = abs($multicurrency_amount_ttc[$tva_tx]);

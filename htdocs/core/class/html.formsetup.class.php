@@ -16,7 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-require_once DOL_DOCUMENT_ROOT . '/webportal/lib/functions.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/webportal/lib/functions.lib.php';	// Osden add
 
 /**
  * This class help you create setup render.
@@ -147,7 +147,7 @@ class FormSetup
 	 * @param	string	$cssfirstcolumn	CSS first column
 	 * @return 	string					Html output
 	 */
-	public function generateOutput($editMode = false, $hideTitle = false, $title = '', $cssfirstcolumn = '')
+	public function generateOutput($editMode = false, $hideTitle = false, $title = '', $cssfirstcolumn = '')	// Osden change
 	{
 		global $hookmanager, $action;
 
@@ -169,7 +169,7 @@ class FormSetup
 
 			if ($editMode) {
 				$out .= '<form ' . self::generateAttributesStringFromArray($this->formAttributes) . ' >';
-				$out .= '<input type="hidden" name="page_y" value="">';
+				$out .= '<input type="hidden" name="page_y" value="">';	// Osden add
 
 				// generate hidden values from $this->formHiddenInputs
 				if (!empty($this->formHiddenInputs) && is_array($this->formHiddenInputs)) {
@@ -180,7 +180,7 @@ class FormSetup
 			}
 
 			// generate output table
-			$out .= $this->generateTableOutput($editMode, $hideTitle, $title, $cssfirstcolumn);
+			$out .= $this->generateTableOutput($editMode, $hideTitle, $title, $cssfirstcolumn);	// Osden change
 
 
 			$reshook = $hookmanager->executeHooks('formSetupBeforeGenerateOutputButton', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
@@ -219,7 +219,7 @@ class FormSetup
 	 * @param	string	$cssfirstcolumn	CSS first column
 	 * @return 	string					Html output
 	 */
-	public function generateTableOutput($editMode = false, $hideTitle = false, $title = '', $cssfirstcolumn = '')
+	public function generateTableOutput($editMode = false, $hideTitle = false, $title = '', $cssfirstcolumn = '')	// Osden change
 	{
 		global $hookmanager, $action;
 		require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
@@ -237,12 +237,14 @@ class FormSetup
 		} else {
 			$out = '<table class="noborder centpercent">';
 			if (empty($hideTitle)) {
+				// Osden add begin
 				if (empty($title)) {
 					$title = $this->langs->transnoentitiesnoconv("Parameter");
 				}
+				// Osden add end
 				$out .= '<thead>';
 				$out .= '<tr class="liste_titre">';
-				$out .= '	<td'.($cssfirstcolumn ? ' class="'.$cssfirstcolumn.'"' : '').'>' . dolPrintHTML($title) . '</td>';
+				$out .= '	<td'.($cssfirstcolumn ? ' class="'.$cssfirstcolumn.'"' : '').'>' . dolPrintHTML($title) . '</td>';	// Osden change
 				$out .= '	<td></td>';
 				$out .= '</tr>';
 				$out .= '</thead>';
@@ -411,9 +413,9 @@ class FormSetup
 		 */
 
 		$item = new FormSetupItem($confKey);
-		// setTypeFromTypeString was created as deprecated to incite developer to use object oriented usage
-		/** @phan-suppress-next-line PhanDeprecatedFunction */
-		$item->setTypeFromTypeString((string) $params['type']);
+		// need to be ignored from scrutinizer setTypeFromTypeString was created as deprecated to incite developer to use object oriented usage
+		// @phan-suppress-next-line PhanDeprecatedFunction
+		/** @scrutinizer ignore-deprecated */ $item->setTypeFromTypeString((string) $params['type']);
 
 		if (!empty($params['enabled']) && is_numeric($params['enabled'])) {
 			$item->enabled = (int) $params['enabled'];
@@ -909,8 +911,8 @@ class FormSetupItem
 			$out .= $this->generateInputFieldMultiSelect();
 		} elseif ($this->type == 'select') {
 			$out .= $this->generateInputFieldSelect();
-		} elseif ($this->type == 'radio') {
-			$out .= $this->generateInputFieldRadio();
+		} elseif ($this->type == 'radio') {	// Osden add
+			$out .= $this->generateInputFieldRadio();	// Osden add
 		} elseif ($this->type == 'selectUser') {
 			$out .= $this->generateInputFieldSelectUser();
 		} elseif ($this->type == 'textarea') {
@@ -922,6 +924,7 @@ class FormSetupItem
 		} elseif ($this->type == 'yesno') {
 			if (!empty($conf->use_javascript_ajax)) {
 				$input = $this->fieldParams['input'] ?? array();
+				// Osden change begin
 				$revertonoff = empty($this->fieldParams['revertonoff']) ? 0 : 1;
 				$forcereload = empty($this->fieldParams['forcereload']) ? 0 : 1;
 				$suffixarray = array(
@@ -940,6 +943,7 @@ class FormSetupItem
 				}
 
 				$out .= ajax_constantonoff($this->confKey, $input, $this->entity, $revertonoff, 0, $forcereload, 2, 0, 0, $suffixarray, '', $this->cssClass);
+				// Osden change end
 			} else {
 				$out .= $this->form->selectyesno($this->confKey, $this->fieldValue, 1, false, 0, 0, $this->cssClass);
 			}
@@ -956,7 +960,7 @@ class FormSetupItem
 		} elseif ($this->type == 'product') {
 			if (isModEnabled("product") || isModEnabled("service")) {
 				$selected = (empty($this->fieldValue) ? '' : $this->fieldValue);
-				$out .= img_picto('', 'product', 'class="pictofixedwidth"');
+				$out .= img_picto('', 'product', 'class="pictofixedwidth"');	// Osden add
 				$out .= $this->form->select_produits((int) $selected, $this->confKey, '', 0, 0, 1, 2, '', 0, array(), 0, '1', 0, $this->cssClass, 0, '', null, 1);
 			}
 		} elseif ($this->type == 'selectBankAccount') {
@@ -968,12 +972,14 @@ class FormSetupItem
 			$out .= $this->generateInputFieldPassword('dolibarr');
 		} elseif ($this->type == 'genericpassword') {
 			$out .= $this->generateInputFieldPassword('generic');
+		// Osden add begin
 		} elseif ($this->type == 'price') {
 			$out .= $this->generateInputFieldPrice();
 		} elseif ($this->type == 'email') {
 			$out .= $this->generateInputFieldEmail();
 		} elseif ($this->type == 'url') {
 			$out .= $this->generateInputFieldUrl();
+		// Osden add end
 		} else {
 			$out .= $this->generateInputFieldText();
 		}
@@ -993,7 +999,7 @@ class FormSetupItem
 		}
 		return '<input '.FormSetup::generateAttributesStringFromArray($this->fieldAttr).' />';
 	}
-
+	// Osden add begin
 	/**
 	 * Generate default input field
 	 *
@@ -1035,7 +1041,7 @@ class FormSetupItem
 		}
 		return img_picto('', 'url', 'class="pictofixedwidth"').'<input '.FormSetup::generateAttributesStringFromArray($this->fieldAttr).' />';
 	}
-
+	// Osden add end
 	/**
 	 * generate input field for textarea
 	 *
@@ -1173,7 +1179,7 @@ class FormSetupItem
 		}
 		$out .= '>';
 
-		$out .= '<span class="fa fa-eye paddingleft paddingright" onclick="javascript: console.log(\'click on show-hide pass\'); newtype = (jQuery(\'#'.trim($this->confKey).'\').attr(\'type\') == \'text\' ? \'password\' : \'text\'); jQuery(\'#'.trim($this->confKey).'\').attr(\'type\', newtype);"></span>';
+		$out .= '<span class="fa fa-eye paddingleft paddingright" onclick="javascript: console.log(\'click on show-hide pass\'); newtype = (jQuery(\'#'.trim($this->confKey).'\').attr(\'type\') == \'text\' ? \'password\' : \'text\'); jQuery(\'#'.trim($this->confKey).'\').attr(\'type\', newtype);"></span>';	// Osden add
 
 		return $out;
 	}
@@ -1195,6 +1201,7 @@ class FormSetupItem
 		return $this->form->multiselectarray($this->confKey, $this->fieldOptions, $TSelected, 0, 0, '', 0, 0, 'style="min-width:100px"');
 	}
 
+
 	/**
 	 * generateInputFieldSelect
 	 *
@@ -1211,7 +1218,7 @@ class FormSetupItem
 
 		return $s;
 	}
-
+	// Osden add begin
 	/**
 	 * generateInputFieldSelect
 	 *
@@ -1228,7 +1235,7 @@ class FormSetupItem
 
 		return $s;
 	}
-
+	// Osden add end
 	/**
 	 * @return string
 	 */
@@ -1351,7 +1358,7 @@ class FormSetupItem
 			if ($result < 0) {
 				$this->setErrors($c->errors);
 			}
-			$ways = $c->print_all_ways('auto', 'none', 0, 1); // $ways[0] = "ccc2 >> ccc2a >> ccc2a1" with html formatted text
+			$ways = $c->print_all_ways('auto', 'none', 0, 1); // $ways[0] = "ccc2 >> ccc2a >> ccc2a1" with html formatted text	// Osden change
 			$toprint = array();
 			foreach ($ways as $way) {
 				$toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories"' . ($c->color ? ' style="background: #' . $c->color . ';"' : ' style="background: #bbb"') . '>' . $way . '</li>';
@@ -1541,7 +1548,7 @@ class FormSetupItem
 		$this->type = 'email';
 		return $this;
 	}
-
+	// Osden add begin
 	/**
 	 * Set type of input as string
 	 *
@@ -1552,7 +1559,7 @@ class FormSetupItem
 		$this->type = 'url';
 		return $this;
 	}
-
+	// Osden add end
 	/**
 	 * Set type of input as color
 	 *
@@ -1641,7 +1648,7 @@ class FormSetupItem
 		$this->type = 'product';
 		return $this;
 	}
-
+	// Osden add begin
 	/**
 	 * Set type of input as product
 	 *
@@ -1652,7 +1659,7 @@ class FormSetupItem
 		$this->type = 'price';
 		return $this;
 	}
-
+	// Osdenadd end
 	/**
 	 * Set type of input as a category selector
 	 * TODO add default value
@@ -1697,7 +1704,7 @@ class FormSetupItem
 	/**
 	 * Set type of input as a simple title. No data to store
 	 *
-	 * @param ?array<string,string|array{id:string,label:string,color:string,picto:string,labelhtml:string}>  $fieldOptions  A table of field options
+	 * @param ?array<int|string,string|array{id:string,label:string,color:string,picto:string,labelhtml:string}>  $fieldOptions  A table of field options
 	 * @return self
 	 */
 	public function setAsSelect($fieldOptions)
@@ -1710,7 +1717,7 @@ class FormSetupItem
 		return $this;
 	}
 
-
+	// Osdena dd begin
 	/**
 	 * Set type of input as a simple title. No data to store
 	 *
@@ -1726,7 +1733,7 @@ class FormSetupItem
 		$this->type = 'radio';
 		return $this;
 	}
-
+	// Osden add end
 	/**
 	 * Set type of input as a simple title. No data to store
 	 *
@@ -1772,7 +1779,7 @@ class FormSetupItem
 		$this->type = 'genericpassword';
 		return $this;
 	}
-
+	// Osden add begin
 	/**
 	 * Generates a set of HTML radio inputs from an array of key-value items.
 	 *
@@ -1845,4 +1852,5 @@ class FormSetupItem
 
 		return $out;
 	}
+	// Osden add end
 }

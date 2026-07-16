@@ -1648,7 +1648,7 @@ function dol_buildpath($path, $type = 0, $returnemptyifnotfound = 0)
 
 	return $res;
 }
-
+// Osden add begin
 if (!function_exists('dolBuildUrl')) {
 	/**
 	 *  Build a URL with query string parameters (and optionally a CSRF token and an anchor).
@@ -1698,7 +1698,7 @@ if (!function_exists('dolBuildUrl')) {
 		return $url;
 	}
 }
-
+// Osden add end
 /**
  *	Get properties for an object - including magic properties when requested
  *
@@ -8493,9 +8493,9 @@ function dol_string_nohtmltag($stringtoclean, $removelinefeed = 1, $pagecodeto =
 		$temp = str_replace(array("\r\n", "\r", "\n"), " ", $temp);
 	}
 
-	// And double quotes
+	// And double spaces
 	if ($removedoublespaces) {
-		while (strpos($temp, "  ")) {
+		while (strpos($temp, "  ") !== false) {
 			$temp = str_replace("  ", " ", $temp);
 		}
 	}
