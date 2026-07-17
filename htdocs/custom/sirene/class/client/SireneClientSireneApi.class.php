@@ -148,7 +148,7 @@ class SireneClientSireneApi extends SireneClientApi
 		if (!empty($siren)) $filter[] = 'siren:' . $siren;
 		if (!empty($siret)) $filter[] = '(siret:' . implode(' OR siret:', is_array($siret) ? $siret : [ $siret ]) . ')';
 		// An exact identifier (SIREN/SIRET) takes precedence over unreliable identification criteria (name, naf, zipcode, town, rna)
-		if (!empty($siren) || !empty($siret)) {
+		if (empty($siren) && empty($siret)) {
 			if (!empty($company_name)) $filter[] = 'raisonSociale:"' . str_replace('"', '\\"', $company_name) . '"';
 			if (!empty($naf)) $filter[] = 'activitePrincipaleUniteLegale:' . $naf;
 			if (!empty($zipcode)) $filter[] = 'codePostalEtablissement:' . $zipcode;

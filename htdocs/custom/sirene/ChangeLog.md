@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non distribué]
 
+## [10.4.1] - 17-07-2026
+- FIX : La recherche SIREN/SIRET ne fonctionne pas si un autre champs est cherché. (inversion de condition sur la priorité des champs)
+
 ## [10.4.0] - 06-07-2026
 - FIX : Recherche SIRENE en échec quand un nom commercial est pré-rempli avec un SIREN/SIRET exact (#10)
 
@@ -399,7 +402,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initiale.
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.0...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.1...HEAD
+[10.4.1]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.1
 [10.4.0]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.0
 [10.3.15]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.15
 [10.3.14]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.14
