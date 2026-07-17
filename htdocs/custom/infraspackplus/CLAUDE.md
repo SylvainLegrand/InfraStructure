@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.5.2` (2026-07)
+- Dernière version locale : `21.5.4` (2026-07)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -594,6 +594,22 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 
 **Priorité d'instanciation** dans `infraspackplus.pdf.lib.php` :
 `TCPDI_InfraS` → `TCPDF_InfraS` → `TCPDI` → `TCPDF`
+
+### Page blanche dans les visionneuses PDF strictes — z-order vs pied de page (fix v21.5.3)
+
+- **Symptôme** : une page du PDF généré s'affichait entièrement blanche (hormis le logo et le titre du petit en-tête) dans les moteurs PDF **stricts** — PDFium (Edge/Chrome, donc l'aperçu Dolibarr dans ces navigateurs) et Poppler (`pdftoppm` : `Syntax Error: Too few (1) args to 'Tf' operator`) — alors que Firefox (pdf.js, tolérant) affichait la page correctement et que l'extraction de texte restait complète. Bug **déterministe** : régénérer le document reproduisait la corruption à l'octet près.
+- **Cause** : cas limite du mécanisme z-order ci-dessus. Quand un contenu HTML volumineux déborde sur **plusieurs pages en un seul appel** `writeHTMLCell` (ex. description de ligne de ~50 ko s'étalant sur les pages 5→6→7), TCPDF ferme la page intermédiaire (6) — **pied de page déjà rendu**, `footerlen[6] > 0` — avant que le modèle ne reprenne la main pour dessiner filigrane et en-tête. `liftPageContent()` extrayait alors le pied de page avec le corps (tout ce qui suit `intmrk`) mais laissait `footerlen` actif : chaque écriture de l'en-tête passait ensuite par la branche « insertion avant le pied de page » de `TCPDF::_out()` (coupe du buffer à `pagelen - footerlen`), qui tombait au milieu d'un opérateur du setup de page tronqué (ex. `BT /F2 9.000000 Tf` coupé en `9.00` + insertion + `0000 Tf`) → flux de contenu invalide, page abandonnée par les moteurs stricts.
+- **Correctif** (`liftPageContent()`/`dropPageContent()`, dans les **deux** classes `TCPDF_InfraS` et `TCPDI_InfraS`) : pendant l'extraction, si `footerlen[page] > 0`, sa valeur est sauvegardée dans la propriété `$liftedFooterLen[page]` puis **neutralisée** (`footerlen = 0`) — les écritures de l'en-tête redeviennent de simples appends. `dropPageContent()` restaure `footerlen` après réinsertion du corps (le pied redevient la fin du buffer) et recale `footerpos` selon l'invariant de `setFooter()` : `footerpos = pagelen - footerlen + 1`.
+- **Pourquoi le bug était rare** : il faut qu'une page soit fermée par débordement multi-pages *avant* le dessin de son en-tête (débordement d'un seul tenant sur ≥ 2 sauts de page), *et* que la coupe `pagelen - footerlen` du buffer tronqué tombe au milieu d'un jeton (dépend de la longueur des opérateurs du setup de page) — d'où un déclenchement dépendant du contenu exact du document.
+- **Méthode de diagnostic réutilisable** : le bug étant déterministe, cloner `htdocs/includes/tecnickcom/tcpdf/` dans un répertoire temporaire, y instrumenter `setPageBuffer()` (détection d'un motif corrompu type `9.00BT` + backtrace) et générer via un script CLI définissant `define('TCPDF_PATH', '<clone>/')` **avant** l'include de `master.inc.php` (`filefunc.inc.php` respecte une constante pré-définie) — zéro impact sur la production.
+- **Règle à retenir** : toute manipulation directe des buffers de page TCPDF (`setPageBuffer`) doit maintenir la cohérence des marqueurs internes associés (`footerpos`, `footerlen`, `intmrk`, `bordermrk`, `cntmrk`) — un `footerlen` orphelin ne provoque pas d'erreur immédiate mais corrompt silencieusement le flux à la prochaine écriture via `_out()`.
+
+### Colonne « P.U. TTC » affichant le HT pour les lignes sans quantité (fix v21.5.4)
+
+- **Symptôme** : sur une fiche document (constaté sur devis), la colonne « P.U. TTC » (`linecoluttc`, toujours affichée sur les devis car `card.php` force `$inputalsopricewithtax = 1`) affichait le prix unitaire **HT** pour une ligne libre marquée « Optionnelle » (module infrastructure, `INFRASTRUCTURE_MANAGE_OL`) saisie sans quantité — `qty = 0` donc `total_ttc = 0` en base.
+- **Cause (héritée du core Dolibarr, `core/tpl/objectline_view.tpl.php`)** : `subprice_ttc` n'est pas renseigné sur les lignes, le calcul `total_ttc / qty` est court-circuité quand l'un des deux vaut 0, et le repli final affectait la **mauvaise variable** (`$multicurrency_upinctax` au lieu de `$upinctax`) à partir de la **mauvaise source** (`multicurrency_subprice` au lieu de `subprice`) — copier/coller du bloc multi-devises voisin. `$upinctax` restait donc `null` et le `print` retombait sur `$line->subprice` (HT).
+- **Correctif** : le repli calcule désormais `$upinctax = price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU')` dans les 5 variantes `lineviews` (v21 à v24 + v22-DolInfraS). Les variantes v21/v22 (forme ancienne sans repli) reçoivent en plus un garde `&& $line->qty` sur la division `total_ttc / qty` (sinon `DivisionByZeroError` fatale en PHP 8 quand `MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES` est active sur une ligne sans quantité). Même correctif appliqué au template core de l'instance (tags `// InfraS change`) et aux `lineviews`/`lineedits` d'InfraSProject (21.1.5), utilisés quand InfraSPackPlus est inactif.
+- **Règle à retenir** : toute correction dans un bloc de calcul d'un template `lineviews` doit être reportée sur les 5 variantes du module **et** vérifiée dans les templates homologues d'InfraSProject (lineviews/lineedits) ainsi que dans le template core d'origine — le même code hérité vit en plusieurs exemplaires.
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 

@@ -41,6 +41,12 @@
 	class TCPDF_InfraS extends TCPDF
 	{
 		/**
+		*	Longueur du pied de page (footerlen) neutralisée par liftPageContent(), par page.
+		*	@var array
+		**/
+		protected $liftedFooterLen = array();
+
+		/**
 		*	Override setColor to always force ColorFlag = true
 		*	@see TCPDF::setColor()
 		**/
@@ -116,6 +122,16 @@
 			// Tronquer le buffer en conservant le setup initial de startPage (avant intmrk)
 			$this->setPageBuffer($page, ($buffer !== false) ? substr($buffer, 0, $mark) : '');
 			// intmrk, bordermrk, cntmrk restent à leur position (fin du setup initial)
+			// Si le pied de page a déjà été rendu sur cette page (writeHTML débordant sur
+			// plusieurs pages en un seul appel : la page intermédiaire est fermée avant que
+			// le modèle ne dessine son en-tête), il fait partie du contenu extrait ci-dessus.
+			// footerlen doit alors être neutralisé : sinon _out() insère l'en-tête « avant le
+			// pied de page » (coupe à pagelen - footerlen) dans le buffer tronqué, en plein
+			// milieu d'un opérateur PDF → page illisible dans les moteurs stricts (PDFium/Poppler).
+			if ($content !== '' && !empty($this->footerlen[$page])) {
+				$this->liftedFooterLen[$page] = $this->footerlen[$page];
+				$this->footerlen[$page] = 0;
+			}
 			return $content;
 		}
 
@@ -140,6 +156,14 @@
 			$this->cntmrk[$page] = $currentLen;
 			// Ajouter le contenu texte après en-tête/filigrane
 			$this->setPageBuffer($page, $content, true);
+			// Restaurer le pied de page neutralisé par liftPageContent() : le contenu réinséré
+			// se termine par le pied de page, qui redevient les footerlen derniers octets du
+			// buffer. Rétablir l'invariant de setFooter() : footerpos = pagelen - footerlen + 1.
+			if (!empty($this->liftedFooterLen[$page])) {
+				$this->footerlen[$page] = $this->liftedFooterLen[$page];
+				$this->footerpos[$page] = $this->pagelen[$page] - $this->footerlen[$page] + 1;
+				unset($this->liftedFooterLen[$page]);
+			}
 		}
 	}
 
@@ -150,6 +174,12 @@
 	if (class_exists('TCPDI')) {
 		class TCPDI_InfraS extends TCPDI
 		{
+			/**
+			*	Longueur du pied de page (footerlen) neutralisée par liftPageContent(), par page.
+			*	@var array
+			**/
+			protected $liftedFooterLen = array();
+
 			/**
 			*	Override setColor to always force ColorFlag = true
 			*	@see TCPDF::setColor()
@@ -219,6 +249,16 @@
 				// Tronquer le buffer en conservant le setup initial de startPage (avant intmrk)
 				$this->setPageBuffer($page, ($buffer !== false) ? substr($buffer, 0, $mark) : '');
 				// intmrk, bordermrk, cntmrk restent à leur position (fin du setup initial)
+				// Si le pied de page a déjà été rendu sur cette page (writeHTML débordant sur
+				// plusieurs pages en un seul appel : la page intermédiaire est fermée avant que
+				// le modèle ne dessine son en-tête), il fait partie du contenu extrait ci-dessus.
+				// footerlen doit alors être neutralisé : sinon _out() insère l'en-tête « avant le
+				// pied de page » (coupe à pagelen - footerlen) dans le buffer tronqué, en plein
+				// milieu d'un opérateur PDF → page illisible dans les moteurs stricts (PDFium/Poppler).
+				if ($content !== '' && !empty($this->footerlen[$page])) {
+					$this->liftedFooterLen[$page] = $this->footerlen[$page];
+					$this->footerlen[$page] = 0;
+				}
 				return $content;
 			}
 
@@ -241,6 +281,14 @@
 				$this->cntmrk[$page] = $currentLen;
 				// Ajouter le contenu texte après en-tête/filigrane
 				$this->setPageBuffer($page, $content, true);
+				// Restaurer le pied de page neutralisé par liftPageContent() : le contenu réinséré
+				// se termine par le pied de page, qui redevient les footerlen derniers octets du
+				// buffer. Rétablir l'invariant de setFooter() : footerpos = pagelen - footerlen + 1.
+				if (!empty($this->liftedFooterLen[$page])) {
+					$this->footerlen[$page] = $this->liftedFooterLen[$page];
+					$this->footerpos[$page] = $this->pagelen[$page] - $this->footerlen[$page] + 1;
+					unset($this->liftedFooterLen[$page]);
+				}
 			}
 		}
 	}

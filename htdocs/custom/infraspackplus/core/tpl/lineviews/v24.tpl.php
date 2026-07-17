@@ -433,7 +433,7 @@ if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH
 		$upinctax = price2num($line->total_ttc / (float) $line->qty, 'MU');
 	}
 	if (!$upinctax) {
-		$multicurrency_upinctax = price2num($line->multicurrency_subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
+		$upinctax = price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax	// InfraS change
 	}
 	if (empty($line->fk_remise_except)) print (isset($upinctax) ? price($sign * $upinctax) : price($sign * $line->subprice));	// if upinctax can't be known, we show subprice excl ta
 	?></td>
