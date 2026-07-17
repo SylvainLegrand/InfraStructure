@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.1.4` (2026-06)
+- Dernière version locale : `21.1.5` (2026-07)
 - Dépendances obligatoires : `modProjet`, `modStock`
 - Emplacement : `htdocs/custom/infrasproject/`
 
@@ -305,6 +305,8 @@ else return ''; // Dolibarr < 21 plus supporté
 ```
 
 **Compatibilité InfraSPackPlus** : si `infraspackplus` est activé en même temps qu'infrasproject, le hook `printObjectLine` d'infrasproject **laisse la main à infraspackplus** en mode view (return 0). InfraSPackPlus inclut déjà la colonne « Projet » via son propre partial `core/tpl/lineviews/_columns/refproject.tpl.php` qui appelle `infrasproject_printprj()`. Les modes title/edit/create restent gérés par infrasproject puisque InfraSPackPlus ne les surcharge pas (IPP n'implémente ni `printObjectLineTitle`, ni `formAddObjectLine`, ni la branche `editline` de `printObjectLine`).
+
+**Colonne « P.U. TTC » — lignes sans quantité (fix 21.1.5)** : les 5 variantes `lineviews` affichaient le prix unitaire HT dans la colonne « P.U. TTC » pour les lignes à `qty = 0` (ex. ligne libre « Optionnelle » du module infrastructure) — bug hérité du template core Dolibarr : le repli du calcul affectait `$multicurrency_upinctax` au lieu de `$upinctax` à partir de `multicurrency_subprice` au lieu de `subprice`. Le repli calcule désormais `subprice x (1 + tva/100)` ; les variantes v21/v22 (forme ancienne sans repli) reçoivent le même bloc plus un garde `&& $line->qty` sur la division `total_ttc / qty` (fatal en PHP 8 avec `MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES`). Le même garde est ajouté au pré-remplissage du champ « Prix unitaire TTC » des 5 variantes `lineedits` (le champ reste vide quand le TTC est indéterminable, comportement core conservé). Correctif identique côté InfraSPackPlus 21.5.4 (ses lineviews priment en mode view) et dans les templates core de l'instance (tags `// InfraS change`).
 
 ### Hooks — récapitulatif des comportements
 
