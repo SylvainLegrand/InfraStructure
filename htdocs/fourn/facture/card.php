@@ -789,7 +789,6 @@ if (empty($reshook)) {
 					$discount->multicurrency_amount_ht = abs((float) $discount->multicurrency_total_ht);
 					$discount->multicurrency_amount_tva = abs((float) $discount->multicurrency_total_tva);
 					$discount->multicurrency_amount_ttc = abs((float) $discount->multicurrency_total_ttc);
-
 					// Clean vat code
 					$reg = array();
 					$vat_src_code = '';
