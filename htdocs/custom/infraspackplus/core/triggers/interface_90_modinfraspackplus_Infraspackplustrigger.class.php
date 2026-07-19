@@ -118,7 +118,7 @@
 		*/
 		public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 		{
-			if (!isModEnabled('infraspackplus') || !in_array($object->element, ['societe']) || !in_array($action, ['COMPANY_CREATE', 'COMPANY_DELETE'])) {
+			if (!isModEnabled('infraspackplus') || empty($object->element) || !in_array($object->element, ['societe']) || !in_array($action, ['COMPANY_CREATE', 'COMPANY_DELETE'])) {
 				return 0;
 			}
 			$ParamLogoEmet	= getDolGlobalInt('INFRASPLUS_PDF_SET_LOGO_EMET_TIERS', 0);

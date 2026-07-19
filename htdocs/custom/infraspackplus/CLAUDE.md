@@ -443,6 +443,8 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 | `COMPANY_CREATE` | `INFRASPLUS_PDF_SET_LOGO_EMET_TIERS` activé | Associe un logo émetteur au tiers via `infraspackplus_setLogoEmet()` |
 | `COMPANY_DELETE` | Toujours | Supprime toutes les adresses secondaires liées via `Address::fetch_lines()` + `Address::delete()` (cascade en PHP) |
 
+**Point de vigilance (depuis v21.5.5)** : `runTrigger()` est appelé par Dolibarr pour **tous** les événements métier, pas seulement ceux sur `societe` — certains objets passés (ex. `TPropaleHist`, historique de devis) n'exposent pas de propriété `element`. La garde `empty($object->element) ||` placée avant le test `in_array($object->element, ['societe'])` est nécessaire pour sortir immédiatement (`return 0`) sans avertissement PHP « Undefined property » sur ces objets.
+
 ### Structure du changelog (Changelog structure)
 
 ```xml
@@ -610,6 +612,16 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 - **Cause (héritée du core Dolibarr, `core/tpl/objectline_view.tpl.php`)** : `subprice_ttc` n'est pas renseigné sur les lignes, le calcul `total_ttc / qty` est court-circuité quand l'un des deux vaut 0, et le repli final affectait la **mauvaise variable** (`$multicurrency_upinctax` au lieu de `$upinctax`) à partir de la **mauvaise source** (`multicurrency_subprice` au lieu de `subprice`) — copier/coller du bloc multi-devises voisin. `$upinctax` restait donc `null` et le `print` retombait sur `$line->subprice` (HT).
 - **Correctif** : le repli calcule désormais `$upinctax = price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU')` dans les 5 variantes `lineviews` (v21 à v24 + v22-DolInfraS). Les variantes v21/v22 (forme ancienne sans repli) reçoivent en plus un garde `&& $line->qty` sur la division `total_ttc / qty` (sinon `DivisionByZeroError` fatale en PHP 8 quand `MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES` est active sur une ligne sans quantité). Même correctif appliqué au template core de l'instance (tags `// InfraS change`) et aux `lineviews`/`lineedits` d'InfraSProject (21.1.5), utilisés quand InfraSPackPlus est inactif.
 - **Règle à retenir** : toute correction dans un bloc de calcul d'un template `lineviews` doit être reportée sur les 5 variantes du module **et** vérifiée dans les templates homologues d'InfraSProject (lineviews/lineedits) ainsi que dans le template core d'origine — le même code hérité vit en plusieurs exemplaires.
+
+### Avertissements PHP sur extrafield de livraison libre absent et trigger société (fix v21.5.5)
+
+- **Symptôme 1** : à chaque génération de document via le modèle spécimen interne (`core/modules/specialhead/doc/interne.pdf.head.php`), avertissements PHP `Undefined array key "livr"` / `Undefined array key "options_livr"`, puis (une fois ces deux accès neutralisés) une seconde vague de 14 avertissements `Undefined array key` **dans le core Dolibarr** (`core/class/extrafields.class.php:2080-2093`, méthode `showOutputField()` : `label`, `type`, `size`, `default`, `computed`, `unique`, `required`, `param`, `perms`, `langfile`, `list`, `help`, `cssview`, `alwayseditable`).
+- **Cause 1** : `pdf_interne_getAddresses()` lit `$extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]` et `$object->array_options['options_'.$free_addr_livr]` sans vérifier que la clé existe, **et** appelle inconditionnellement `$extrafields->showOutputField($free_addr_livr, ...)` — l'extrafield désigné par la constante `INFRASPLUS_PDF_FREE_LIVR_EXF` (ex. `livr`) n'existe pas ou plus pour ce type d'objet, ni côté module ni côté core (`$this->attributes[$extrafieldsobjectkey]`), et `showOutputField()` (core) ne fait lui non plus aucune vérification d'existence avant de lire ses propriétés.
+- **Correctif 1** : ajout d'une garde `isset($extrafields->attributes[$object->table_element]['label'][$free_addr_livr])` **avant** tout traitement — si l'extrafield n'est pas défini pour ce type d'objet, `$free_addr_livr` est mis à `''` directement, sans jamais appeler `showOutputField()` avec une clé inexistante (évite d'atteindre le core, qui reste non modifié).
+- **Symptôme 2** : avertissement PHP `Undefined property: TPropaleHist::$element` déclenché par le trigger `Infraspackplustrigger` (cf. section *Trigger* ci-dessus).
+- **Cause 2** : le trigger étant appelé pour tous les événements Dolibarr, `runTrigger()` testait `$object->element` sans vérifier au préalable que la propriété existe — certains objets internes (historique de devis, etc.) n'ont pas cette propriété.
+- **Correctif 2** : ajout d'un `empty($object->element) ||` avant le test `in_array` (court-circuit, sortie immédiate `return 0`).
+- **Règle à retenir** : dans un trigger générique appelé pour tous les événements métier, toujours tester `empty($object->element)` (ou `isset()`) avant toute comparaison sur `$object->element` — ne jamais supposer que l'objet reçu est de type `CommonObject`.
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 

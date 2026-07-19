@@ -225,9 +225,13 @@
 		if (!empty($free_addr_livr)) {
 			$extrafields	= new ExtraFields($db);
 			$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
-			$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
-			$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr], '', $object->table_element));
-			$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
+			if (isset($extrafields->attributes[$object->table_element]['label'][$free_addr_livr])) {
+				$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
+				$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr] ?? '', '', $object->table_element));
+				$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
+			} else {
+				$free_addr_livr	= '';	// extrafield configured (INFRASPLUS_PDF_FREE_LIVR_EXF) but not defined for this table_element
+			}
 		}
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		$use_doli_addr_fact		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 0);
