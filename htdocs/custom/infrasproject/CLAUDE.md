@@ -460,6 +460,8 @@ Le trigger filtre d'abord par élément (`propal`, `facture_fourn_det`) et par a
 
 La génération de la référence projet utilise le modèle de numérotation configuré dans `PROJECT_ADDON`.
 
+**Point de vigilance (depuis v21.1.6)** : `runTrigger()` est appelé par Dolibarr pour **tous** les événements métier avant même ce filtre par élément — le test `in_array($object->element, ['propal', 'facture_fourn_det'])` lisait la propriété sans vérifier son existence, provoquant un avertissement PHP « Undefined property » sur des objets qui n'exposent pas `element` (ex. `TPropaleHist`, historique de devis). Un test `empty($object->element) ||` protège désormais ce filtre.
+
 ### Structure du changelog (Changelog structure)
 
 ```xml

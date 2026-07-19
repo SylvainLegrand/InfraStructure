@@ -122,7 +122,7 @@
 			global $conf, $langs;
 
 			// Quick environment test
-			if (!isModEnabled('infrasproject') || !in_array($object->element, ['propal', 'facture_fourn_det'])) {
+			if (!isModEnabled('infrasproject') || empty($object->element) || !in_array($object->element, ['propal', 'facture_fourn_det'])) {
 				return 0;
 			}
 			$insert_actions		= array('LINEBILL_SUPPLIER_CREATE');

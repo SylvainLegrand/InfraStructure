@@ -267,7 +267,10 @@
 		<change type='fix'>Templates lineviews (v21 à v24, y compris v22-DolInfraS) : la colonne « P.U. TTC » affichait le prix unitaire HT au lieu du TTC pour les lignes sans quantité — par exemple une ligne libre marquée « Optionnelle » (module infrastructure, INFRASTRUCTURE_MANAGE_OL) dont qty = 0 entraîne total_ttc = 0. Cause (héritée du template core Dolibarr objectline_view.tpl.php) : dans les variantes v22-DolInfraS/v23/v24, le calcul de repli affectait la mauvaise variable ($multicurrency_upinctax au lieu de $upinctax) et partait du prix en devise (multicurrency_subprice) au lieu du prix HT (subprice), si bien que l'affichage retombait toujours sur le HT quand le TTC ne pouvait pas être déduit de total_ttc/qty. Le repli calcule désormais $upinctax = subprice x (1 + tva/100). Les variantes v21/v22 (forme ancienne sans repli du tout) reçoivent le même bloc de repli, plus un garde sur la division total_ttc/qty (DivisionByZeroError fatale en PHP 8 si MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES est active sur une ligne sans quantité). Correctif identique appliqué côté InfraSPackPlus 21.5.4 (ses lineviews priment en mode view quand les deux modules sont actifs).</change>
 		<change type='fix'>Templates lineedits (v21 à v24, y compris v22-DolInfraS) : ajout du même garde sur la division total_ttc/qty du pré-remplissage du champ « Prix unitaire TTC » (DivisionByZeroError fatale en PHP 8 lors de l'édition d'une ligne sans quantité si MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES est active). Le champ reste vide quand le TTC ne peut pas être déterminé, comportement du core conservé.</change>
 	</Version>
-	<InfraS Downloaded="20260717"/>
+	<Version Number="21.1.6" MonthVersion="2026-07">
+		<change type='fix'>Trigger : avertissement PHP "Undefined property" (TPropaleHist::$element) à chaque événement Dolibarr sans rapport avec les devis ou lignes de facture fournisseur. Le test in_array($object->element, ['propal', 'facture_fourn_det']) lisait la propriété sans vérifier son existence au préalable.</change>
+	</Version>
+	<InfraS Downloaded="20260718"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
