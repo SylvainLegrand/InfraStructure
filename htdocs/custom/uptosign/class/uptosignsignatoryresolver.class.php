@@ -272,6 +272,16 @@ class UptoSignSignatoryResolver
 			$object->roles = array();
 		}
 
+		// InfraS add begin
+		if (empty($object->thirdparty) && is_callable(array($object, 'fetch_thirdparty'))) {
+			$object->fetch_thirdparty();
+		}
+		if (empty($object->thirdparty)) {
+			dol_syslog("uptosign: giveAllRolesToContact thirdparty not loaded, return");
+			return -1;
+		}
+		// InfraS add end
+
 		$code = "";
 		if ($object->thirdparty->client > 0) {
 			$code = "'CustomerSign'";

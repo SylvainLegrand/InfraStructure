@@ -151,7 +151,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 		$callback = array($this, $methodName);
 		dol_syslog("uptosign: Trigger ".$this->name." will call $methodName function");
 		if (is_callable($callback)) {
-			dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+			dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".(isset($object->id) ? $object->id : '')); // InfraS change
 			return call_user_func($callback, $action, $object, $user, $langs, $conf);
 		};
 
@@ -562,7 +562,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			// and more...
 
 			default:
-				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".(isset($object->id) ? $object->id : '')); // InfraS change
 				break;
 		}
 
