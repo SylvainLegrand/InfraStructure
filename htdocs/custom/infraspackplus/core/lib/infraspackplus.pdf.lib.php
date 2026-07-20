@@ -1410,7 +1410,7 @@
 		if ($contact instanceof Contact) {
 			$contactname	= $outputlangs->convToOutputCharset($contact->getFullName($outputlangs, 1, -1));
 		}
-		return $outputlangs->convToOutputCharset($customerAddr == 'C' ? $contactname : ($customerAddr == 'B' ? $socname."\n".$contactname : ($customerAddr == 'A' ? $contactname."\n".$socname : $socname)));
+		return $outputlangs->convToOutputCharset($customerAddr == 'C' ? $contactname : ($customerAddr == 'B' ? ($contactname !== '' ? $socname."\n".$contactname : $socname) : ($customerAddr == 'A' ? ($contactname !== '' ? $contactname."\n".$socname : $socname) : $socname)));
 	}
 
 	/**
@@ -1523,6 +1523,7 @@
 		$frmrTxtColor	= getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '0,0,0');
 		$frmrTxtColor	= explode(',', $frmrTxtColor);
 		$statusWithName	= getDolGlobalString('INFRASPLUS_PDF_SHOW_STATUS_WITH_SENDER_NAME', '') && !empty($emetteur->forme_juridique_code) ? ' '.$outputlangs->convToOutputCharset(getFormeJuridiqueLabel($emetteur->forme_juridique_code))	: '';
+		$posyendsender	= $dimCadres['Y'];	// Default when sender frame is hidden (no sender block rendered below to update it)
 		if (empty($hide_recep_frame)) {
 			// Show sender
 			$posy	= $dimCadres['Y'];

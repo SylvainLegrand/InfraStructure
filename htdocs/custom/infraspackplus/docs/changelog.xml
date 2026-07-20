@@ -1929,7 +1929,10 @@
 		<change type='fix'>Génération de document (spécimen interne) : avertissements PHP "Undefined array key" (jusque dans le core Dolibarr, ExtraFields::showOutputField()) quand l'extrafield configuré pour l'adresse de livraison libre (option INFRASPLUS_PDF_FREE_LIVR_EXF) n'existe pas ou plus.</change>
 		<change type='fix'>Trigger société : avertissement PHP "Undefined property" sur des objets sans tiers (ex. historique de devis) lors d'événements Dolibarr sans rapport avec les sociétés.</change>
 	</Version>
-	<InfraS Downloaded="20260718"/>
+	<Version Number="21.5.6" MonthVersion="2026-07">
+		<change type='fix'>Devis (modèle InfraSPlus_D) : avec le type d'adresse destinataire "Contact et Tiers" (ou "Tiers et Contact") et aucun contact sélectionné sur le document, une ligne vide s'affichait avant le nom du tiers dans le cadre destinataire. pdf_InfraSPlus_Build_Third_party_Name() concaténait systématiquement un saut de ligne entre le nom du contact et celui du tiers sans vérifier que le nom du contact n'était pas vide.</change>
+	</Version>
+	<InfraS Downloaded="20260720"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
