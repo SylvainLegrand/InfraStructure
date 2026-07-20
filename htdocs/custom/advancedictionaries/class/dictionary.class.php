@@ -3390,7 +3390,7 @@ class DictionaryLine extends CommonObjectLine
 			$insert_field = array();
 			$insert_statement = array();
 			foreach ($this->dictionary->fields as $fieldName => $field) {
-				if (($formattedValue = $this->formatFieldValueForSQL($fieldName, $this->fields[$fieldName])) !== null) {
+				if (($formattedValue = $this->formatFieldValueForSQL($fieldName, $this->fields[$fieldName] ?? null)) !== null) { // InfraS change
 					$insert_field[] = $fieldName;
 					$insert_statement[] = $formattedValue;
 				}
