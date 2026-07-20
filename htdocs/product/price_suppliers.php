@@ -1170,7 +1170,7 @@ if ($id > 0 || $ref) {
 					// Availability
 					if (!empty($arrayfields['pfp.fk_availability']['checked'])) {
 						$form->load_cache_availability();
-						$availability = $form->cache_availability[$productfourn->fk_availability]['label'];
+						$availability = $form->cache_availability[$productfourn->fk_availability]['label'] ?? ''; // InfraS change
 						print '<td class="left">'.$availability.'</td>';
 					}
 

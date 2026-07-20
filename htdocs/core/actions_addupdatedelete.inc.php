@@ -77,6 +77,8 @@
 $hidedetails = isset($hidedetails) ? $hidedetails : '';
 $hidedesc = isset($hidedesc) ? $hidedesc : '';
 $hideref = isset($hideref) ? $hideref : '';
+$permissiontoadd = isset($permissiontoadd) ? $permissiontoadd : 0; // InfraS add
+$backurlforlist = isset($backurlforlist) ? $backurlforlist : ''; // InfraS add
 $error = 0;
 
 if (!empty($permissionedit) && empty($permissiontoadd)) {

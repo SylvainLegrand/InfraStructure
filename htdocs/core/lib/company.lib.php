@@ -2504,7 +2504,7 @@ function show_actions_done($conf, $langs, $db, $filterobj, $objcon = null, $nopr
 				$contactstatic->lastname = $histo[$key]['lastname'];
 				$contactstatic->firstname = $histo[$key]['firstname'];
 				$contactstatic->id = $histo[$key]['contact_id'];
-				$contactstatic->photo = $histo[$key]['contact_photo'];
+				$contactstatic->photo = ($histo[$key]['contact_photo'] ?? ''); // InfraS change
 				$out .= '<td width="120">'.$contactstatic->getNomUrl(-1, '', 10).'</td>';
 			} else {
 				$out .= '<td>&nbsp;</td>';

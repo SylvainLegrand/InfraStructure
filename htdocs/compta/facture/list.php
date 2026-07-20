@@ -2547,7 +2547,7 @@ if ($num > 0) {
 				if (!is_array($typenArray) || count($typenArray) == 0) {
 					$typenArray = $formcompany->typent_array(1);
 				}
-				print '<td class="center tdoverflowmax100" title="'.dolPrintHTMLForAttribute($typenArray[$obj->typent_code]).'">';
+				print '<td class="center tdoverflowmax100" title="'.(!empty($obj->typent_code) ? dolPrintHTMLForAttribute($typenArray[$obj->typent_code]) : '').'">'; // InfraS change
 				if (!empty($obj->typent_code)) {
 					print $typenArray[$obj->typent_code];
 				}

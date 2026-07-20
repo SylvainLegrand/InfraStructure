@@ -881,7 +881,7 @@ if (getDolGlobalString('PRODUIT_CUSTOMER_PRICES') || getDolGlobalString('PRODUIT
 
 				// Extrafields
 				$extrafields->fetch_name_optionals_label("product_customer_price");
-				$extralabels = $extrafields->attributes["product_customer_price"]['label'];
+				$extralabels = $extrafields->attributes["product_customer_price"]['label'] ?? array(); // InfraS change
 				if (!empty($extralabels)) {
 					$sql  = "SELECT";
 					$sql .= " fk_object";
