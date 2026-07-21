@@ -1,7 +1,10 @@
 # Changelog
 Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.com/fr/1.0.0/).
 
-## [Non distribué]
+## [Non Distribué]
+
+## [10.4.2] - 21-07-2026
+- ENH : clearer translation strings when checking uniqueness on thirdparty name.
 
 ## [10.4.1] - 17-07-2026
 - FIX : La recherche SIREN/SIRET ne fonctionne pas si un autre champs est cherché. (inversion de condition sur la priorité des champs)
@@ -402,7 +405,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initiale.
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.1...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.2...HEAD
+[10.4.2]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.2
 [10.4.1]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.1
 [10.4.0]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.0
 [10.3.15]: https://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.3.15

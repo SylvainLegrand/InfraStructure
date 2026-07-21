@@ -168,9 +168,9 @@ SireneCodeNafNbInsert           = %s code(s) NAF ajouté(s).
 #######################################################################
 # Check company name
 #######################################################################
-SireneCompanyNameOk         = Le nom du tiers n'a pas été retrouvé
-SireneCompanyNameWarning    = Le nom approchant du tiers a été retrouvé
-SireneCompanyNameError      = Le nom exact du tiers a été retrouvé
+SireneCompanyNameOkNotFoundInDolibarr               = Le nom du tiers est unique dans Dolibarr
+SireneCompanyNameWarningSimilarFoundInDolibarr      = Un tiers au nom approchant a été trouvé dans Dolibarr
+SireneCompanyNameErrorSameFoundInDolibarr           = Un tiers avec le même nom a été trouvé dans Dolibarr
 SireneOtherCompanyNameFound = Liste des tiers trouvés :
 
 #######################################################################

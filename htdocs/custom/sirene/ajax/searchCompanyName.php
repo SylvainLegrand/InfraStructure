@@ -138,20 +138,20 @@ if ($error_code == 'InvalidToken') {
 		if ($found == 0) { // Not found
 			$icon = 'check';
 			$icon_color = '';
-			$htmltext = $label = $langs->transnoentitiesnoconv('SireneCompanyNameOk');
+			$htmltext = $label = $langs->transnoentitiesnoconv('SireneCompanyNameOkNotFoundInDolibarr');
 			$tooltip_trigger = '';
 			$tooltip_on = 1;
 		} elseif ($found == 1) { // Found near
 			$icon = 'warning';
 			$icon_color = 'darkorange';
-			$label = $langs->transnoentitiesnoconv('SireneCompanyNameWarning') . ' - ' . $langs->transnoentitiesnoconv("ClickToShowHelp");
+			$label = $langs->transnoentitiesnoconv('SireneCompanyNameWarningSimilarFoundInDolibarr') . ' - ' . $langs->transnoentitiesnoconv("ClickToShowHelp");
 			$htmltext = $langs->transnoentitiesnoconv('SireneOtherCompanyNameFound') . '<ul id="sirene_check_name_company_list"><li>' . implode('</li><li>', $companies) . '</li></ul>';
 			$tooltip_trigger = 'sirene_check_name_infos';
 			$tooltip_on = 3;
 		} else { // $found == 2 // Found strict
 			$icon = 'error';
 			$icon_color = 'red';
-			$label = $langs->transnoentitiesnoconv('SireneCompanyNameError') . ' - ' . $langs->transnoentitiesnoconv("ClickToShowHelp");
+			$label = $langs->transnoentitiesnoconv('SireneCompanyNameErrorSameFoundInDolibarr') . ' - ' . $langs->transnoentitiesnoconv("ClickToShowHelp");
 			$htmltext = $langs->transnoentitiesnoconv('SireneOtherCompanyNameFound') . '<ul id="sirene_check_name_company_list"><li>' . implode('</li><li>', $companies) . '</li></ul>';
 			$tooltip_trigger = 'sirene_check_name_infos';
 			$tooltip_on = 3;
