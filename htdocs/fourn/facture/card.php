@@ -2079,7 +2079,17 @@ if (empty($reshook)) {
 				}
 
 				$action = '';
+			// InfraS add begin: give a visible reason instead of silently doing nothing and leaving $action='confirm_edit' (hides the fichecenter block below)
+			} else {
+				setEventMessages($langs->trans('DisabledBecausePayments'), null, 'errors');
+				$action = '';
+				// InfraS add end
 			}
+		// InfraS add begin
+		} else {
+			setEventMessages($langs->trans('DisabledBecauseDispatchedInBookkeeping'), null, 'errors');
+			$action = '';
+			// InfraS add end
 		}
 	} elseif ($action == 'reopen' && $usercancreate) {
 		// Set invoice to validated/unpaid status

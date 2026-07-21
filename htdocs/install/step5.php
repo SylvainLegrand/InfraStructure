@@ -557,7 +557,10 @@ if ($action == "set") {
 	if (
 		!getDolGlobalString('MAIN_VERSION_LAST_UPGRADE')
 		|| getDolGlobalString('MAIN_VERSION_LAST_UPGRADE') == DOL_VERSION
-		|| version_compare($prev_osden_version, trim(file_get_contents(__DIR__.'/../VERSION'))) <= 0) {
+		// InfraS change begin : cette comparaison déclenchait "upgrade terminé" a chaque etape intermediaire
+		// d'une migration multi-versions, car le fichier VERSION ne change pas pendant toute la sequence.
+		/* || version_compare($prev_osden_version, trim(file_get_contents(__DIR__.'/../VERSION'))) <= 0 */) {
+		// InfraS change end
 		// END OSDEN ONLY
 		// Upgrade is finished (database is on the same version than files)
 		print '<img class="valignmiddle inline-block paddingright" src="../theme/common/octicons/build/svg/checklist.svg" width="30" alt="Configuration">';
