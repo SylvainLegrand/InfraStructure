@@ -25,6 +25,13 @@
 
 .bash_aliases text eol=lf
 
+# InfraS add begin
+# Fichier vendor livré en UTF-16LE par le module abricot (jscalendar-1.0) : la
+# normalisation eol=lf de la règle *.js n'est pas idempotente sur cet encodage
+# et corrompt le fichier / le fait apparaître comme modifié en permanence.
+htdocs/custom/abricot/includes/js/jscalendar-1.0/lang/calendar-hr.js -text
+# InfraS add end
+
 # Denote all files that are truly binary and should not be modified.
 *.bmp binary
 *.frm binary
