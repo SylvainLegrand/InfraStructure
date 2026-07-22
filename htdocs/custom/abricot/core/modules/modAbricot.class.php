@@ -51,11 +51,7 @@ class modAbricot extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$isDolinfras	= isModEnabled('dolinfras');
-		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'ATM Consulting';
-		$this->family = $family;
-		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100022;
+		$this->family = "ATM Consulting";
 		// Module label (no space allowed)
 		// used if translation string 'ModuleXXXName' not found
 		// (where XXX is value of numeric property 'numero' of module)
@@ -65,7 +61,7 @@ class modAbricot extends DolibarrModules
 		// (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Collection of specific ATM functions and classes";
 		// Possible values for version are: 'development', 'experimental' or version
-		$this->version = '3.9.8';
+		$this->version = '3.10';
 		$this->editor_name = 'ATM Consulting';
 		$this->editor_url = 'https://www.atm-consulting.fr';
 		// Key used in llx_const table to save module status enabled/disabled

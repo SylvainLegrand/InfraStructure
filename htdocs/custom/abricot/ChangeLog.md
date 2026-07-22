@@ -4,6 +4,9 @@ ___
 
 # NOT RELEASED
 
+## RELEASE 3.10
+- NEW: Release V23 - *01/04/2026* - 3.10.0
+
 ## RELEASE 3.9
 - FIX: Negation search in list - *27/02/2026* - 3.9.8
 - FIX: COMPAT V23 - *24/12/2025* - 3.9.7
