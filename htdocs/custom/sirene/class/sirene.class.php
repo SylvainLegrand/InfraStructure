@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2025      Open-DSI             <support@open-dsi.fr>
+ * Copyright (C) 2026      Open-DSI             <support@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,6 +85,7 @@ class Sirene
 		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_extrafields AS sef ON sef.fk_object = s.rowid";
 		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_country AS cc ON cc.rowid = s.fk_pays";
 		$sql .= " WHERE s.status = 1";
+		$sql .= " AND s.entity IN (" . getEntity('societe') . ")";
 		$sql .= " AND s.siret != ''";
 		$sql .= " AND (cc.code IS NULL OR cc.code = 'FR')";
 		$sql .= " AND (";
@@ -182,7 +184,14 @@ class Sirene
 							$companies_found[] = $company_infos['siret'];
 
 							$company = new Societe($this->db);
-							$company->fetch($company_sql_infos->rowid);
+							$result = $company->fetch($company_sql_infos->rowid);
+							if ($result <= 0) {
+								$msg = $langs->transnoentitiesnoconv('SireneErrorWhenFetchCompanySource', $company_sql_infos->rowid) . ' : ' . ($result == 0 ? $langs->transnoentitiesnoconv('ErrorRecordNotFound') : $company->errorsToString());
+								dol_syslog(__METHOD__ . " " . $msg, LOG_ERR);
+								$errors_msg .= '<li>' . $msg . '</li>';
+								$error++;
+								continue;
+							}
 							$company->oldcopy = clone $company;
 
 							$updated = false;
