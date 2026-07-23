@@ -426,7 +426,7 @@ $listofreferent = infrasproject_getListOfReferent($object->id, $object->socid); 
 // Change rules for profit/benefit calculation
 if (getDolGlobalString('PROJECT_ELEMENTS_FOR_PLUS_MARGIN')) {
 	foreach ($listofreferent as $key => $element) {
-		if ($listofreferent[$key]['margin'] == 'add') {
+		if (!empty($listofreferent[$key]['margin']) && $listofreferent[$key]['margin'] == 'add') { // InfraS change
 			unset($listofreferent[$key]['margin']);
 		}
 	}
@@ -437,7 +437,7 @@ if (getDolGlobalString('PROJECT_ELEMENTS_FOR_PLUS_MARGIN')) {
 }
 if (getDolGlobalString('PROJECT_ELEMENTS_FOR_MINUS_MARGIN')) {
 	foreach ($listofreferent as $key => $element) {
-		if ($listofreferent[$key]['margin'] == 'minus') {
+		if (!empty($listofreferent[$key]['margin']) && $listofreferent[$key]['margin'] == 'minus') { // InfraS change
 			unset($listofreferent[$key]['margin']);
 		}
 	}
@@ -450,7 +450,7 @@ if (getDolGlobalString('PROJECT_ELEMENTS_FOR_MINUS_MARGIN')) {
 // InfraS add begin
 if (!empty($conf->global->INFRASPROJECT_ELEMENTS_FOR_PLUS_MARGIN_PROV)) {
 	foreach ($listofreferent as $key => $element) {
-		if ($listofreferent[$key]['provmargin'] == 'add') {
+		if (!empty($listofreferent[$key]['provmargin']) && $listofreferent[$key]['provmargin'] == 'add') { // InfraS change
 			unset($listofreferent[$key]['provmargin']);
 		}
 	}
@@ -461,7 +461,7 @@ if (!empty($conf->global->INFRASPROJECT_ELEMENTS_FOR_PLUS_MARGIN_PROV)) {
 }
 if (!empty($conf->global->INFRASPROJECT_ELEMENTS_FOR_MINUS_MARGIN_PROV)) {
 	foreach ($listofreferent as $key => $element) {
-		if ($listofreferent[$key]['provmargin'] == 'minus') {
+		if (!empty($listofreferent[$key]['provmargin']) && $listofreferent[$key]['provmargin'] == 'minus') { // InfraS change
 			unset($listofreferent[$key]['provmargin']);
 		}
 	}
@@ -602,7 +602,7 @@ foreach ($listofreferent as $key => $value) {
 	if ($key === 'project_task' && !$canSeeFinancials) {
 		$qualified = false;
 	}
-	$margin = $value['margin'];	// InfraS change
+	$margin = empty($value['margin']) ? '' : $value['margin'];	// InfraS change
 	$project_field = empty($value['project_field']) ? '' : $value['project_field'];
 	if ($qualified) {		// If this element must be included into profit summary table ($margin is '', 'minus' or 'add')
 		$element = new $classname($db);
@@ -849,7 +849,7 @@ if (getDolGlobalInt('INFRASPROJECT_SHOW_MARGIN_PROV', 0)) {
 		if ($key === 'project_task' && !$canSeeFinancials) {
 			$qualified = false;
 		}
-		$provmargin	= $value['provmargin'];
+		$provmargin	= $value['provmargin'] ?? null; // InfraS change
 		if ($qualified && isset($provmargin)) {		// If this element must be included into profit calculation ($margin is 'minus' or 'add')
 			if ($provmargin == 'add') {
 				$tooltiponprovmarginplus	.= ' &gt; '.$name." (+)<br>\n";
@@ -894,8 +894,8 @@ if (getDolGlobalInt('INFRASPROJECT_SHOW_MARGIN_PROV', 0)) {
 		$tablename 		= $value['table'];
 		$datefieldname 	= $value['datefieldname'];
 		$qualified 		= $value['test'];
-		$provmargin 	= $value['provmargin'];
-		$project_field 	= $value['project_field'];
+		$provmargin 	= $value['provmargin'] ?? null; // InfraS change
+		$project_field 	= empty($value['project_field']) ? '' : $value['project_field']; // InfraS change
 		if ($qualified && isset($provmargin)) {// If this element must be included into prov margin ($margin is 'minus' or 'add')
 			$element		= new $classname($db);
 			$qualifiedTotal 		= 0;
@@ -913,7 +913,7 @@ if (getDolGlobalInt('INFRASPROJECT_SHOW_MARGIN_PROV', 0)) {
 				for ($i = 0; $i < $num; $i++) {
 					$tmp					= explode('_', $elementarray[$i]);
 					$idofelement			= $tmp[0];
-					$idofelementuser		= $tmp[1];
+					$idofelementuser		= isset($tmp[1]) ? (int) $tmp[1] : 0; // InfraS change
 					$element->fetch($idofelement);
 					if ($key == 'invoice_supplier' && getDolGlobalInt('INFRASPROJECT_ADD_SUPPLIER_INVOICE_IN_MARGIN_PROV', 0)) {
 						$element->fetchObjectLinked();
@@ -1684,7 +1684,7 @@ foreach ($listofreferent as $key => $value) {
 							$linkname				= $tablename == 'commande_fournisseur' ? 'invoice_supplier' : 'facture';
 							$totalonlinkedelements	= 0;
 							$element->fetchObjectLinked($element->id, $element->element);	// search all invoices linked to this order
-							if (!empty($element->linkedObjects)) {
+							if (!empty($element->linkedObjects[$linkname])) {	// InfraS change
 								foreach ($element->linkedObjects[$linkname] as $factureliee) {	// read each invoice found
 									$totalonlinkedelements	+= $factureliee->total_ht;
 								}

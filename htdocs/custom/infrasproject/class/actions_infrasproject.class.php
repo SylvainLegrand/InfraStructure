@@ -167,7 +167,7 @@
 				// Change rules for profit/benefit calculation
 				if (getDolGlobalString('PROJECT_ELEMENTS_FOR_PLUS_MARGIN', '')) {
 					foreach ($this->results as $key => $element) {
-						if ($this->results[$key]['margin'] == 'add') {
+						if (!empty($this->results[$key]['margin']) && $this->results[$key]['margin'] == 'add') {
 							unset($this->results[$key]['margin']);
 						}
 					}
@@ -178,7 +178,7 @@
 				}
 				if (getDolGlobalString('PROJECT_ELEMENTS_FOR_MINUS_MARGIN', '')) {
 					foreach ($this->results as $key => $element) {
-						if ($this->results[$key]['margin'] == 'minus') {
+						if (!empty($this->results[$key]['margin']) && $this->results[$key]['margin'] == 'minus') {
 							unset($this->results[$key]['margin']);
 						}
 					}

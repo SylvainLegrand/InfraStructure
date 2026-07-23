@@ -276,7 +276,14 @@
 	<Version Number="21.1.8" MonthVersion="2026-07">
 		<change type='chg'>Templates lineviews (v21 à v24, y compris v22-DolInfraS) : l'affichage de la quantité sur les lignes « Option » (fix 21.1.7) est désormais conditionné à la nouvelle option INFRASTRUCTURE_OL_SHOW_DETAILS du module infrastructure (en plus de son activation), et non plus systématique dès qu'infrastructure est actif.</change>
 	</Version>
-	<InfraS Downloaded="20260722"/>
+	<Version Number="21.1.9" MonthVersion="2026-07">
+		<change type='fix'>Hook completeListOfReferent (actions_infrasproject.class.php) : avertissement PHP "Undefined array key margin" à chaque affichage de la vue d'ensemble projet avec l'option PROJECT_ELEMENTS_FOR_PLUS_MARGIN ou PROJECT_ELEMENTS_FOR_MINUS_MARGIN active. Le test $this->results[$key]['margin'] == 'add' (ou 'minus') lisait la clé sans vérifier son existence : la plupart des éléments référents (entrepot, order, invoice_predefined, contract, shipping, mrp, etc.) ne définissent pas cette clé. Un garde !empty(...) protège désormais le test.</change>
+		<change type='fix'>Page de substitution projet/element.php (dlb220x-DolInfraS) : même avertissement "Undefined array key margin" sur le calcul du tableau de bénéfice (2 occurrences, filtrage PROJECT_ELEMENTS_FOR_PLUS_MARGIN / MINUS_MARGIN), et son équivalent "Undefined array key provmargin" sur le calcul du bénéfice provisoire (4 occurrences : 2 sur le filtrage INFRASPROJECT_ELEMENTS_FOR_PLUS_MARGIN_PROV / MINUS_MARGIN_PROV, 2 sur la lecture directe de l'élément courant). Même correctif (garde !empty()) sur les 6 occurrences.</change>
+		<change type='fix'>Page de substitution projet/element.php (dlb220x-DolInfraS) : avertissement "Undefined array key project_field" sur le calcul du bénéfice provisoire — la clé project_field n'est définie que par certains types d'éléments référents. Alignement sur le garde déjà utilisé ailleurs dans le même fichier (empty($value['project_field']) ? '' : $value['project_field']).</change>
+		<change type='fix'>Page de substitution projet/element.php (dlb220x-DolInfraS) : avertissement "Undefined array key 1" sur $tmp[1] issu d'un explode('_', ...) ne contenant parfois qu'un seul élément (pas d'utilisateur lié). Alignement sur le garde déjà utilisé ailleurs dans le même fichier (isset($tmp[1]) ? (int) $tmp[1] : 0).</change>
+		<change type='fix'>Page de substitution projet/element.php (dlb220x-DolInfraS) : sur les commandes fournisseur / devis sans facture liée, la lecture de $element->linkedObjects[$linkname] (clé absente) provoquait un avertissement "Undefined array key facture" puis un "foreach() argument must be of type array|object, null given" fatal en pratique pour l'affichage du reste à payer. Le test porte désormais sur !empty($element->linkedObjects[$linkname]) au lieu de !empty($element->linkedObjects).</change>
+	</Version>
+	<InfraS Downloaded="20260723"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
