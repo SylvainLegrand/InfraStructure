@@ -270,7 +270,13 @@
 	<Version Number="21.1.6" MonthVersion="2026-07">
 		<change type='fix'>Trigger : avertissement PHP "Undefined property" (TPropaleHist::$element) à chaque événement Dolibarr sans rapport avec les devis ou lignes de facture fournisseur. Le test in_array($object->element, ['propal', 'facture_fourn_det']) lisait la propriété sans vérifier son existence au préalable.</change>
 	</Version>
-	<InfraS Downloaded="20260718"/>
+	<Version Number="21.1.7" MonthVersion="2026-07">
+		<change type='fix'>Templates lineviews (v21 à v24, y compris v22-DolInfraS) : la colonne quantité (linecolqty) masquait la quantité des lignes marquées « Option » (special_code = 3) même quand le module infrastructure est actif et sa case « Opt » cochée — le module infrastructure exclut désormais ces lignes du montant du sous-total de bloc mais souhaite garder leur quantité visible individuellement. La quantité reste désormais affichée quand le module infrastructure est actif (isModEnabled('infrastructure')) ; le masquage natif Dolibarr des lignes "Option" est conservé en son absence.</change>
+	</Version>
+	<Version Number="21.1.8" MonthVersion="2026-07">
+		<change type='chg'>Templates lineviews (v21 à v24, y compris v22-DolInfraS) : l'affichage de la quantité sur les lignes « Option » (fix 21.1.7) est désormais conditionné à la nouvelle option INFRASTRUCTURE_OL_SHOW_DETAILS du module infrastructure (en plus de son activation), et non plus systématique dès qu'infrastructure est actif.</change>
+	</Version>
+	<InfraS Downloaded="20260722"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

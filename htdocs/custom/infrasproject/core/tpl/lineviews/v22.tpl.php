@@ -416,21 +416,19 @@ print $tooltiponpriceend;
 if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
 	<td class="linecoluttc nowraponall right"><?php $coldisplay++; ?><?php
 	$upinctax = isset($line->pu_ttc) ? $line->pu_ttc : null;
-	if (getDolGlobalInt('MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES') && $line->qty) {	// InfraS change
+	if (getDolGlobalInt('MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES') && $line->qty) {
 		$upinctax = price2num($line->total_ttc / (float) $line->qty, 'MU');
 	}
-	// InfraS add begin
 	if (!$upinctax) {
 		$upinctax = price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
 	}
-	// InfraS add end
 	print(isset($upinctax) ? price($sign * $upinctax) : price($sign * $line->subprice));
 	?></td>
 <?php } ?>
 
 	<td class="linecolqty nowraponall right"><?php $coldisplay++; ?>
 <?php
-if ((($line->info_bits & 2) != 2) && $line->special_code != 3) {
+if ((($line->info_bits & 2) != 2) && ($line->special_code != 3 || (isModEnabled('infrastructure') && getDolGlobalString('INFRASTRUCTURE_OL_SHOW_DETAILS')))) {	// InfraS change
 	// I comment this because it shows info even when not required
 	// for example always visible on invoice but must be visible only if stock module on and stock decrease option is on invoice validation and status is not validated
 	// must also not be output for most entities (proposal, intervention, ...)
