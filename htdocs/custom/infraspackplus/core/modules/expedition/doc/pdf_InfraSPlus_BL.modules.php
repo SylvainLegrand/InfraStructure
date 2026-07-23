@@ -41,6 +41,8 @@
 	************************************************/
 	class pdf_InfraSPlus_BL extends ModelePdfExpedition
 	{
+		const MIN_GAP_BEFORE_FOOTER	= 0.75;	// Espace mini garanti entre le bas du dernier bloc (colonne infos/bank ou zone de signature) et la ligne de separation du pied de page (~2px a 96dpi)
+
 		public $db;
 		public $name;
 		public $description;
@@ -679,6 +681,7 @@
 					}
 					$heightforinfotot	= $this->show_2sign_area ? $ht_signareas : ($ht_colinfo > $ht_signareas ? $ht_colinfo : $ht_signareas);
 					$heightforinfotot	+= !empty($this->free_text_end) ? pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, 0, 1, $this->horLineStyle) : 0;
+					$heightforinfotot	+= self::MIN_GAP_BEFORE_FOOTER;
 					$heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 1);
 					// Incoterm
 					$height_incoterms	= 0;
@@ -1334,6 +1337,10 @@
 		protected function _tableau_info(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)
 		{
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings	= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$posytabinfo		= $posy + $this->ht_space_info;
 			$tabinfo_hl			= $this->tab_hl;
@@ -1400,6 +1407,7 @@
 				return $heightforinfo;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posytabinfo;
 			}
 		}
@@ -1416,6 +1424,10 @@
 		protected function _tableau_tot(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)
 		{
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings	= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$posytabtot			= $posy + $this->ht_space_tot;
 			$tabtot_hl			= $this->tab_hl;
@@ -1488,6 +1500,7 @@
 				return $heightfortot;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posytabtot;
 			}
 		}
@@ -1505,6 +1518,10 @@
 		protected function _signature_area(&$pdf, $object, $posy, $outputlangs, $calculseul = 0, $freetext = 0)
 		{
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings	= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$signarea_top		= $posy + 1;
 			$posxsignarea1		= $this->marge_gauche;
@@ -1533,6 +1550,7 @@
 				return $heightforarea;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $signarea_top + $signarea_hl + $this->ht_signarea + 1;
 			}
 		}

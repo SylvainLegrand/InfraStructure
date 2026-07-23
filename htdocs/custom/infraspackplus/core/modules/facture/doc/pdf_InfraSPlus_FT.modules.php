@@ -38,6 +38,8 @@
 	************************************************/
 	class pdf_InfraSPlus_FT extends ModelePDFFactures
 	{
+		const MIN_GAP_BEFORE_FOOTER	= 0.75;	// Espace mini garanti entre le bas du dernier bloc (colonne infos/bank ou zone de signature) et la ligne de separation du pied de page (~2px a 96dpi)
+
 		public $db;
 		public $name;
 		public $description;
@@ -683,29 +685,30 @@
 						}
 					}
 					// Define width and position of secondary tables columns
-					$this->larg_tabtotal										= $this->larg_updisc + $this->larg_qty + $this->larg_unit + $this->larg_totalht;
-					$this->larg_tabinfo											= $this->page_largeur - $this->marge_gauche - $this->marge_droite;
-					$this->posxtabtotal											= $this->marge_gauche;
+					$this->larg_tabtotal	= $this->larg_updisc + $this->larg_qty + $this->larg_unit + $this->larg_totalht;
+					$this->larg_tabinfo		= $this->page_largeur - $this->marge_gauche - $this->marge_droite;
+					$this->posxtabtotal		= $this->marge_gauche;
 					// Calculs de positions
-					$this->tab_hl												= 4;
-					$head														= $this->_pagehead($pdf, $object, 1, $outputlangs);
-					$hauteurhead												= $head["totalhead"];
-					$hauteurcadre												= $head["hauteurcadre"];
-					$tab_top													= $hauteurhead + 5 > $this->height_header_sep ? $hauteurhead + 5 : $this->height_header_sep;
-					$tab_top_newpage											= (empty($this->small_head2) ? $hauteurhead - $hauteurcadre : 17);
-					$this->ht_top_table											= $this->height_top_table + $this->tab_hl * 0.5;
-					$ht_colinfo													= $this->_tableau_info($pdf, $object, $this->marge_haute, $outputlangs, 1);
-					$ht_coltotal												= $this->_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1);
+					$this->tab_hl			= 4;
+					$head					= $this->_pagehead($pdf, $object, 1, $outputlangs);
+					$hauteurhead			= $head["totalhead"];
+					$hauteurcadre			= $head["hauteurcadre"];
+					$tab_top				= $hauteurhead + 5 > $this->height_header_sep ? $hauteurhead + 5 : $this->height_header_sep;
+					$tab_top_newpage		= (empty($this->small_head2) ? $hauteurhead - $hauteurcadre : 17);
+					$this->ht_top_table		= $this->height_top_table + $this->tab_hl * 0.5;
+					$ht_colinfo				= $this->_tableau_info($pdf, $object, $this->marge_haute, $outputlangs, 1);
+					$ht_coltotal			= $this->_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					if ($this->paid || $this->credit_notes || $this->deposits) {
 						$ht_colpay	+= $this->_tableau_versements($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					}
-					$heightforinfotot											= $ht_colinfo + $ht_coltotal + $ht_colpay;
-					$heightforinfotot											+= pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, 1, 1, $this->horLineStyle);
-					$heightforfooter											= $this->_pagefoot($pdf, $object, $outputlangs, 1);
+					$heightforinfotot	= $ht_colinfo + $ht_coltotal + $ht_colpay;
+					$heightforinfotot	+= pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, 1, 1, $this->horLineStyle);
+					$heightforinfotot	+= self::MIN_GAP_BEFORE_FOOTER;
+					$heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 1);
 					// Affiche représentant, notes, Attributs supplémentaires et n° de série
-					$height_note												= pdf_InfraSPlus_Notes($pdf, $object, $this->listnotep, $outputlangs, $this->exftxtcolor, $default_font_size, $tab_top, $this->larg_util_txt, $this->tab_hl, $this->posx_G_txt, $this->horLineStyle, $this->ht_top_table + $this->decal_round + $heightforfooter, $this->page_hauteur, $this->Rounded_rect, $this->showtblline, $this->marge_gauche, $this->larg_util_cadre, $this->tblLineStyle, 0, $this->first_page_empty);
-					$tab_top													+= 	$height_note > 0 ? $height_note : $this->tab_hl * 0.5;
-					$nexY														= $tab_top + $this->ht_top_table + ($this->tab_hl * 0.5);
+					$height_note		= pdf_InfraSPlus_Notes($pdf, $object, $this->listnotep, $outputlangs, $this->exftxtcolor, $default_font_size, $tab_top, $this->larg_util_txt, $this->tab_hl, $this->posx_G_txt, $this->horLineStyle, $this->ht_top_table + $this->decal_round + $heightforfooter, $this->page_hauteur, $this->Rounded_rect, $this->showtblline, $this->marge_gauche, $this->larg_util_cadre, $this->tblLineStyle, 0, $this->first_page_empty);
+					$tab_top			+= 	$height_note > 0 ? $height_note : $this->tab_hl * 0.5;
+					$nexY				= $tab_top + $this->ht_top_table + ($this->tab_hl * 0.5);
 					// Loop on each lines
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						if (!empty(pdf_InfraSPlus_escapeEns($object, $i, 1))) {
@@ -1137,6 +1140,10 @@
 			global $conf;
 
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings	= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$posytabinfo		= $posy + 1;
 			$tabinfo_hl			= $this->tab_hl;
@@ -1296,6 +1303,7 @@
 				return $heightforinfo;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posytabinfo;
 			}
 		}
@@ -1312,6 +1320,10 @@
 		protected function _tableau_tot(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)
 		{
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings				= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size				= pdf_getPDFFontSize($outputlangs);
 			$posytabtot						= $posy + 1;
 			$tabtot_hl						= $this->tab_hl - 1;
@@ -1529,6 +1541,7 @@
 				return $heightfortot;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posytabtot;
 			}
 		}

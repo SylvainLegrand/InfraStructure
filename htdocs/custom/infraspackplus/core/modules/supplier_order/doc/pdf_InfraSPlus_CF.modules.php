@@ -40,6 +40,8 @@
 	************************************************/
 	class pdf_InfraSPlus_CF extends ModelePDFSuppliersOrders
 	{
+		const MIN_GAP_BEFORE_FOOTER	= 0.75;	// Espace mini garanti entre le bas du dernier bloc (colonne infos/bank ou zone de signature) et la ligne de separation du pied de page (~2px a 96dpi)
+
 		public $db;
 		public $name;
 		public $description;
@@ -679,6 +681,7 @@
 					$ht_coltotal			+= $ht2_coltotal;
 					$heightforinfotot		= $ht_colinfo > $ht_coltotal ? $ht_colinfo : $ht_coltotal;
 					$heightforinfotot		+= !empty($this->free_text_end) ? pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, 0, 1, $this->horLineStyle) : 0;
+					$heightforinfotot		+= self::MIN_GAP_BEFORE_FOOTER;
 					$heightforfooter		= $this->_pagefoot($pdf, $object, $outputlangs, 1);
 					// Incoterm
 					$height_incoterms		= 0;
@@ -755,12 +758,13 @@
 						} else {
 							$txtC12	= $outputlangs->transnoentities('OrderToProcess');
 						}
-						$usehourmin								= !empty($this->sup_order_hour) ? 'dayhour' : 'day';
+						$usehourmin	= !empty($this->sup_order_hour) ? 'dayhour' : 'day';
+						$txtC12b	= '';
 						if (!empty($date_livraison)) {
 							$txtC12b	= $outputlangs->transnoentities('DateDeliveryPlanned').' : '.dol_print_date($date_livraison, $usehourmin, false, $outputlangs, true);
 						}
-						$largC12								= $this->larg_util_txt - $largC11;
-						$xC12									= $this->posx_G_txt + $this->larg_util_txt - $largC12;
+						$largC12	= $this->larg_util_txt - $largC11;
+						$xC12		= $this->posx_G_txt + $this->larg_util_txt - $largC12;
 						$pdf->SetFont('', ($this->datesbold ? 'B' : ''), $default_font_size - 1);
 						$pdf->MultiCell($largC12, $this->tab_hl, $txtC12.(empty($this->dates_br) ? ' / '.$txtC12b : ''), 0, 'R', 0, 0, $xC12, $tab_top, true, 0, 1, false, 0, 'M', false);
 						if (!empty($this->dates_br)) {
@@ -1325,6 +1329,10 @@
 		{
 
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings	= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$posytabinfo		= $posy + $this->ht_space_info;
 			$tabinfo_hl			= $this->tab_hl;
@@ -1370,6 +1378,7 @@
 				return $heightforinfo;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posytabinfo;
 			}
 		}
@@ -1388,6 +1397,10 @@
 		{
 
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings				= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size				= pdf_getPDFFontSize($outputlangs);
 			$posytabtot						= $posy + $this->ht_space_tot;
 			$tabtot_hl						= $this->tab_hl;
@@ -1566,6 +1579,7 @@
 				return $heightfortot;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posytabtot;
 			}
 		}

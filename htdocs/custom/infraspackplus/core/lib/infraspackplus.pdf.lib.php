@@ -878,9 +878,13 @@
 		if (!empty($free_addr_livr)) {
 			$extrafields	= new ExtraFields($db);
 			$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
-			$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
-			$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr], '', $object->table_element));
-			$free_addr_livr	= $printable == 1 || !empty($value) && $printable == 2 ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
+			if (isset($extrafields->attributes[$object->table_element]['label'][$free_addr_livr])) {
+				$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
+				$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr] ?? '', '', $object->table_element));
+				$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
+			} else {
+				$free_addr_livr	= '';	// extrafield configured (INFRASPLUS_PDF_FREE_LIVR_EXF) but not defined for this table_element
+			}
 		}
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		$doli_addr_livr_recep	= empty($use_doli_addr_livr) ? 0 : getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0);
@@ -2068,13 +2072,13 @@
 			$tmpuser	= new User($db);
 			$tmpuser->fetch($arrayidcontact[0]);
 			$salesrep	.= $outputlangs->transnoentities('CaseFollowedBy').' '.(!empty($show_sales_rep_bold) ? '<b>'.$tmpuser->getFullName($outputlangs).'</b>' : $tmpuser->getFullName($outputlangs));
-			if (!empty($tmpuser->email)) {
+			if (!empty($tmpuser->email) && !getDolGlobalInt('INFRASPLUS_PDF_FIRST_SALES_DONT_SHOW_EMAIL')) {
 				$salesrep	.= ', '.$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($tmpuser->email);
 			}
-			if (!empty($tmpuser->office_phone)) {
+			if (!empty($tmpuser->office_phone) && !getDolGlobalInt('INFRASPLUS_PDF_FIRST_SALES_DONT_SHOW_PHONE')) {
 				$salesrep	.= ', '.$outputlangs->transnoentities('PhoneShort').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($tmpuser->office_phone)));
 			}
-			if (!empty($tmpuser->user_mobile)) {
+			if (!empty($tmpuser->user_mobile) && !getDolGlobalInt('INFRASPLUS_PDF_FIRST_SALES_DONT_SHOW_MOBILE')) {
 				$salesrep	.= ', '.$outputlangs->transnoentities('PhoneMobile').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($tmpuser->user_mobile)));
 			}
 		}
@@ -5656,4 +5660,38 @@
 			dol_include_once('/infrastructure/class/infrastructure.class.php');
 		}
 		return class_exists('TInfrastructure') && TInfrastructure::isFreeText($line);
+	}
+
+	/**
+	*	Applique, si actif, le style/couleur PDF des lignes optionnelles du module infrastructure (case « Opt »,
+	*	extrafield options_infrastructure_ol, constantes INFRASTRUCTURE_PDF_OL_STYLE / INFRASTRUCTURE_PDF_OL_COLOR)
+	*	sur la colonne Num/Réf, qui n'est rendue par aucun hook Dolibarr standard (contrairement aux autres
+	*	colonnes, déjà couvertes côté module infrastructure via ses hooks pdf_getline*).
+	*
+	*	@param		TCPDF|TCPDF_InfraS	$pdf		Instance PDF courante
+	*	@param		CommonObject		$object		Document en cours de génération
+	*	@param		int					$i			Index de la ligne dans $object->lines
+	*	@return		bool								true si le style a été appliqué
+	**/
+	function infraspackplus_applyInfrastructureOlPdfStyle(&$pdf, &$object, $i)
+	{
+		if (!isModEnabled('infrastructure') || empty($object->lines[$i]) || !getDolGlobalInt('INFRASTRUCTURE_PDF_OL_SHOW_DETAILS')) {
+			return false;
+		}
+		$line	= $object->lines[$i];
+		if (empty($line->array_options)) {
+			$line->fetch_optionals();
+		}
+		if (empty($line->array_options['options_infrastructure_ol'])) {
+			return false;
+		}
+		if (!function_exists('infrastructure_setPdfTextColor')) {
+			dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
+		}
+		if (!function_exists('infrastructure_setPdfTextColor') || !is_object($pdf)) {
+			return false;
+		}
+		$pdf->SetFont('', getDolGlobalString('INFRASTRUCTURE_PDF_OL_STYLE'));
+		infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_OL_COLOR');
+		return true;
 	}
