@@ -188,6 +188,12 @@ class CMailFile
 	public $atleastoneimage = 0; // at least one image file with file=xxx.ext into content (TODO Debug this. How can this case be tested. Remove if not used).
 	/** @var array<array{type:string,fullpath:string,content_type?:string,name:string,cid:string}> */
 	public $html_images = array();
+	 // InfraS add begin
+	/** @var string[] URLs of images found in html body that could not be embedded as inline attachments (kept as external links) */
+	public $html_images_external = array();
+	/** @var string[] Non-blocking warning messages (does not prevent the email from being sent, unlike ->error / ->errors) */
+	public $warnings = array();
+	// InfraS add end
 	/** @var array<array{name:string,fullpath:string,content_type:string,cid:string,image_encoded:string}> */
 	public $images_encoded = array();
 	public $image_types = array(
@@ -229,7 +235,7 @@ class CMailFile
 	 */
 	public function __construct($subject, $to, $from, $msg, $filename_list = array(), $mimetype_list = array(), $mimefilename_list = array(), $addr_cc = "", $addr_bcc = "", $deliveryreceipt = 0, $msgishtml = 0, $errors_to = '', $css = '', $trackid = '', $moreinheader = '', $sendcontext = 'standard', $replyto = '', $upload_dir_tmp = '', $in_reply_to = '', $references = '')
 	{
-		global $conf, $dolibarr_main_data_root, $user;
+		global $conf, $dolibarr_main_data_root, $user, $langs; // InfraS change
 
 		dol_syslog("CMailFile::CMailfile: charset=".$conf->file->character_set_client." from=$from, to=$to, addr_cc=$addr_cc, addr_bcc=$addr_bcc, errors_to=$errors_to, replyto=$replyto trackid=$trackid sendcontext=$sendcontext");
 		dol_syslog("CMailFile::CMailfile: subject=".$subject.", deliveryreceipt=".$deliveryreceipt.", msgishtml=".$msgishtml, LOG_DEBUG);
@@ -342,6 +348,12 @@ class CMailFile
 					$this->error = 'ErrorInAddAttachmentsImageBaseOnMedia';
 					return;
 				}
+				// InfraS add begin
+				if (!empty($this->html_images_external)) {
+					dol_syslog("CMailFile::CMailfile: Images kept as external links (not embedded): ".implode(', ', $this->html_images_external), LOG_WARNING);
+					$this->warnings[] = $langs->trans('WarningMailImagesKeptAsExternalLinks', implode(', ', $this->html_images_external));
+				}
+				// InfraS add end
 			}
 
 			if (getDolGlobalString('MAIN_MAIL_ADD_INLINE_IMAGES_IF_DATA')) {
@@ -356,7 +368,7 @@ class CMailFile
 				$findimg += $resultImageData;
 			}
 
-			// Set atleastoneimage if there is at least one embedded file (into ->html_images)
+			// Set at least one image if there is at least one embedded file (into ->html_images)
 			if ($findimg > 0) {
 				foreach ($this->html_images as $i => $val) {
 					if ($this->html_images[$i]) {
@@ -2092,6 +2104,7 @@ class CMailFile
 				$full = urldecode($full);
 
 				$regs = array();
+				$resolved = false; // InfraS add
 				if (preg_match('/file=([A-Za-z0-9_\-\/ ]+[\.]?[A-Za-z0-9]+)?$/i', $full, $regs)) {   // If xxx is 'file=aaa'
 					$img = $regs[1];
 
@@ -2114,9 +2127,16 @@ class CMailFile
 						$this->html_images[$i]["type"] = 'cidfromurl';
 
 						$this->html = preg_replace("/src=\"$src\"|src='$src'/i", "src=\"cid:".$this->html_images[$i]["cid"]."\"", $this->html);
+						$resolved = true; // InfraS add
 					}
 					$i++;
 				}
+				// InfraS add begin
+				if (!$resolved) {
+					// Image not embeddable as a local media file, kept as-is (external link in $this->html), reported as a warning instead of blocking the whole email.
+					$this->html_images_external[] = $full;
+				}
+				// InfraS add end
 			}
 
 			if (!empty($this->html_images)) {
@@ -2146,10 +2166,8 @@ class CMailFile
 					}
 					$i++;
 				}
-			} else {
-				return -1;
+				// InfraS change: previously "else { return -1; }" here blocked the whole email as soon as no image could be embedded as a local media file. Now kept as external links
 			}
-
 			return 1;
 		} else {
 			return 0;
