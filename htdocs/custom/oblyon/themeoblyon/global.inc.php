@@ -5029,6 +5029,7 @@ div.tabsAction {
 	div.tabsAction .dropdown-holder .dropdown-content {
 		bottom: auto !important;
 		top: 0 !important;
+		transform: translateY(-100%) !important; /* InfraS add: pair with top:0 so the menu opens upward instead of overlapping content below */
 		background-color: var(--bgcolor) !important;
 	}
 		/* Dropdown links match the theme */

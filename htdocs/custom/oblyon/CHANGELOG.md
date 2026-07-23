@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [3.3.1] - Compatibility 18.0.x - 23.0.x (2026/07/23)
+
+### Fixed
+- Action button dropdown menu (multi-choice buttons, e.g. propal card "Create order/intervention/contract/invoice"): `.dropdown-holder` selector was missing its leading dot and never applied, and `.dropdown-content` had no default anchor below the button (both present in eldy) - the menu could end up positioned over the "Linked files" / "Last events" blocks instead of right under the button
+- Sticky action bar option (FIX_ABSOLUTE_BUTTONS_ACTION_CARD): the forced upward-opening override was missing the matching transform, so the menu stayed anchored at the top of the button and extended downward over the content below instead of opening upward
+
 ### [3.3.0] - Compatibility 18.0.x - 23.0.x (2026/07/16)
 
 ### Added

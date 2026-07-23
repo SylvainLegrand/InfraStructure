@@ -392,7 +392,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
     }
 
     /* for the dropdown on action buttons */
-    dropdown-holder {
+    .dropdown-holder { /* InfraS change: added missing leading dot, selector never matched .dropdown-holder */
         position: relative;
         display: inline-block;
     }
@@ -400,9 +400,13 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
     .dropdown-content {
         display: none;
         position: absolute;
-        z-index: 1;
+        z-index: 5; /* InfraS change: aligned with eldy so the menu stacks above surrounding page content */
         width: 300px;
         right:10px;	/* will be set with js */
+        /* InfraS add begin: default anchor below the button, aligned with eldy */
+        bottom: 0;
+        transform: translateY(100%);
+        /* InfraS add end */
         background: #fff;
         border: 1px solid #bbb;
         text-align: var(--left);

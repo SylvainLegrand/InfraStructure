@@ -21,7 +21,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `23.0.x`
 - Compatibilité PHP : `7.1` à `8.4`
-- Dernière version locale : `3.3.0` (2026-07)
+- Dernière version locale : `3.3.1` (2026-07)
 - Dépendances obligatoires : aucune
 - Conflits : `modQuickUX`
 - Emplacement : `htdocs/custom/oblyon/`
@@ -363,6 +363,7 @@ Si modification SQL / descripteur / thème CSS / menus / constantes :
 
 ## Dernières mises à jour (Recent updates)
 
+- `3.3.1` (2026-07) : fix chevauchement du dropdown des boutons d'action (`dropdown.inc.php` : sélecteur `.dropdown-holder` sans son point initial, jamais appliqué ; `.dropdown-content` sans ancrage par défaut `bottom:0`/`transform:translateY(100%)` ni `z-index:5`, contrairement à eldy — le menu pouvait recouvrir les blocs « Fichiers joints » / « Derniers événements ») ; complément du correctif `FIX_ABSOLUTE_BUTTONS_ACTION_CARD` (`global.inc.php`) avec le `transform: translateY(-100%)` manquant pour que l'ouverture vers le haut de la barre d'action sticky fonctionne réellement
 - `3.3.0` (2026-07) : regroupe l'ensemble des évolutions 2026-07 listées ci-dessous (options couleurs autocomplétion + multi-select, fix menu inversé sticky, fix fallback FontAwesome, migration constantes → eldy, consolidation CSS boutons, data.sql exhaustif). Version portée dans `VERSION` et `CHANGELOG.md`
 - (2026-07) Migration des constantes propres au thème vers les constantes standard Dolibarr/Eldy (groupe A) : `OBLYON_FONT_FAMILY`→`THEME_FONT_FAMILY`, `OBLYON_FONT_SIZE`→`THEME_ELDY_FONT_SIZE1`, `OBLYON_STICKY_TOPBAR`→`THEME_STICKY_TOPMENU`, `OBLYON_COLOR_BUTTON_ACTION1`→`THEME_ELDY_BTNACTION`, `OBLYON_COLOR_FTITLE`→`THEME_ELDY_TEXTTITLE`, `OBLYON_COLOR_BLINE_HOVER`→`THEME_ELDY_USE_HOVER` (+ `_USE_CHECKED`) ; nouveau `sql/update_3.2.0_oblyon_to_eldy.sql`
 - (2026-07) `data.sql` rendu **exhaustif** et **preset par défaut passé à « Oblyon Blue »**
