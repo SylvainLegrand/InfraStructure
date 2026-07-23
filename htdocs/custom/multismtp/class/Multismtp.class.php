@@ -329,7 +329,7 @@ class Multismtp
 		$imap_port = null;
 		$imap_tls = null;
 
-		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
+		if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') == 1) { // InfraS change
 			$smtp_server = $this->smtp_server;
 
 			if ($this->smtp_port !== null) {
@@ -499,7 +499,7 @@ class Multismtp
 	{
 		global $conf;
 
-		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER != 1) {
+		if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') != 1) { // InfraS change
 			return true;
 		}
 
@@ -693,7 +693,7 @@ smtp_oauth_tenant = NULL";
 			'id' => $this->smtp_id,
 			'auth_type' => $conf->global->MAIN_MAIL_SMTPS_AUTH_TYPE,
 			'pw' => $this->smtp_pw,
-			'oauth_service' => $conf->global->MAIN_MAIL_SMTPS_OAUTH_SERVICE,
+			'oauth_service' => getDolGlobalString('MAIN_MAIL_SMTPS_OAUTH_SERVICE'), // InfraS change
 			'oauth_service_user' => '',
 			'oauth_provider' => '',
 			'oauth_id' => '',
@@ -705,7 +705,7 @@ smtp_oauth_tenant = NULL";
 
 		if (empty($array['auth_type'])) $array['auth_type'] = 'LOGIN';
 
-		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
+		if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') == 1) { // InfraS change
 			if ($this->smtp_port !== null) {
 				$array['port'] = $this->smtp_port;
 			}
