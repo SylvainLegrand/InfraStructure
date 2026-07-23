@@ -412,6 +412,7 @@ WarningChangingThisMayBreakStopTaskScheduler=Attention, changer cette valeur peu
 WarningAmountOfFileDiffersFromSumOfLines=Attention, le montant du fichier (%s) diffère de la somme des lignes (%s)
 WarningModuleAffiliatedToAReportedCompany=Attention, ce module a été signalé à la fondation Dolibarr comme étant publié par une société utilisant des pratiques illégales (non-respect des règles d'utilisation de la marque Dolibarr, collecte de vos données sans votre consentement ou déploiement de malware).
 WarningModuleAffiliatedToAPiratPlatform=Soyez prudent lorsque vous téléchargez un module (payant ou gratuit) à partir d'une plateforme non officielle suspecte comme %s
+WarningMailImagesKeptAsExternalLinks=Une ou plusieurs images de l'email n'ont pas pu être intégrées en pièce jointe et resteront des liens externes : %s
 
 SwissQrOnlyVIR = La facture SwissQR ne peut être ajoutée que sur les factures définies pour être payées avec des paiements par virement.
 SwissQrCreditorAddressInvalid = L'adresse du créancier n'est pas valide (le code postal et la ville sont-ils définis ? (%s)
