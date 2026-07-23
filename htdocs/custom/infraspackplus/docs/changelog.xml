@@ -1931,8 +1931,12 @@
 	</Version>
 	<Version Number="21.5.6" MonthVersion="2026-07">
 		<change type='fix'>Devis (modèle InfraSPlus_D) : avec le type d'adresse destinataire "Contact et Tiers" (ou "Tiers et Contact") et aucun contact sélectionné sur le document, une ligne vide s'affichait avant le nom du tiers dans le cadre destinataire. pdf_InfraSPlus_Build_Third_party_Name() concaténait systématiquement un saut de ligne entre le nom du contact et celui du tiers sans vérifier que le nom du contact n'était pas vide.</change>
+		<change type='fix'>Templates lineviews (v21 à v24, y compris v22-DolInfraS) : la colonne quantité (linecolqty) masquait la quantité des lignes marquées « Option » (special_code = 3) même quand le module infrastructure est actif et sa case « Opt » cochée — le module infrastructure exclut désormais ces lignes du montant du sous-total de bloc mais souhaite garder leur quantité visible individuellement. La quantité reste désormais affichée quand le module infrastructure est actif (isModEnabled('infrastructure')) ; le masquage natif Dolibarr des lignes "Option" est conservé en son absence.</change>
 	</Version>
-	<InfraS Downloaded="20260720"/>
+	<Version Number="21.5.7" MonthVersion="2026-07">
+		<change type='chg'>Templates lineviews (v21 à v24, y compris v22-DolInfraS) : l'affichage de la quantité sur les lignes « Option » (fix 21.5.6) est désormais conditionné à la nouvelle option INFRASTRUCTURE_OL_SHOW_DETAILS du module infrastructure (en plus de son activation), et non plus systématique dès qu'infrastructure est actif.</change>
+	</Version>
+	<InfraS Downloaded="20260722"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

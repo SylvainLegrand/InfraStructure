@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.5.6` (2026-07)
+- Dernière version locale : `21.5.7` (2026-07)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -468,7 +468,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.5.6",          // Version courante
+    0 => "21.4.1",          // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
@@ -622,6 +622,12 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 - **Cause 2** : le trigger étant appelé pour tous les événements Dolibarr, `runTrigger()` testait `$object->element` sans vérifier au préalable que la propriété existe — certains objets internes (historique de devis, etc.) n'ont pas cette propriété.
 - **Correctif 2** : ajout d'un `empty($object->element) ||` avant le test `in_array` (court-circuit, sortie immédiate `return 0`).
 - **Règle à retenir** : dans un trigger générique appelé pour tous les événements métier, toujours tester `empty($object->element)` (ou `isset()`) avant toute comparaison sur `$object->element` — ne jamais supposer que l'objet reçu est de type `CommonObject`.
+
+### Quantité masquée sur les lignes « Option » quand infrastructure est actif (fix v21.5.6, affinée en v21.5.7)
+
+- **Symptôme** : la colonne quantité (`linecolqty`) des 5 variantes `lineviews` reste vide pour toute ligne marquée « Option » (`special_code = 3`), y compris les lignes marquées optionnelles via la case « Opt » du module infrastructure (qui pose ce même `special_code = 3`, cf. CLAUDE.md du module infrastructure, section *Colonne « Opt »*).
+- **Cause** : les 5 variantes reprennent littéralement la logique cosmétique native Dolibarr (`core/tpl/objectline_view.tpl.php`) qui vide la cellule (`&nbsp;`) dès que `$line->special_code == 3`, sans distinction entre une ligne marquée « Option » nativement et une ligne marquée optionnelle par le module infrastructure.
+- **Correctif** : le module infrastructure exclut désormais le montant de ces lignes du sous-total du bloc (`infrastructure_get_totalLineFromObject()`) mais veut pouvoir conserver leur quantité visible individuellement. La condition devient `$line->special_code != 3 || (isModEnabled('infrastructure') && getDolGlobalString('INFRASTRUCTURE_OL_SHOW_DETAILS'))` dans les 5 fichiers `lineviews` (v21.5.7) : la quantité reste affichée quand infrastructure est actif **et** que son option `INFRASTRUCTURE_OL_SHOW_DETAILS` (désactivée par défaut) est cochée, quelle que soit l'origine du `special_code = 3` (case Opt du module ou marquage natif Dolibarr manuel). Sans infrastructure actif, ou avec l'option désactivée, le masquage natif reste inchangé. Même correctif dans les 5 `lineviews` d'InfraSProject (21.1.7/21.1.8, ses lineviews gèrent le rendu quand InfraSPackPlus est inactif).
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 
