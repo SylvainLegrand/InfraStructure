@@ -652,6 +652,7 @@
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Gestion des titres, sous-titres et sous-totaux
 						$isSubTotalLine												= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isInfraSLine												= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
 						$isSubTitle													= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
 						$isSubTotal													= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
 						if (!empty($isSubTotal) && !empty($this->subti_with_subto)) {
@@ -729,7 +730,7 @@
 							if (!empty($this->refcol) || !empty($this->show_num_col)) {
 								$pdf->startTransaction();
 								$startline			= $curY;	// Utiliser $curY (position reelle de la ligne) plutot que $pdf->GetY(), qui peut etre desynchronise du curseur PDF interne
-								$ref				= $isSubTitle || $isSubTotal ? '' : (!empty($this->refcol) ? pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails) : $i + 1);
+								$ref				= $isSubTitle || $isSubTotal || $isInfraSLine ? '' : (!empty($this->refcol) ? pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails) : $i + 1);
 								$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $startline, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 								$endline			= $pdf->GetY();
 								$heightRef			= (ceil($endline) - ceil($startline)) > $this->tab_hl ? (ceil($endline) - ceil($startline)) : $this->tab_hl;

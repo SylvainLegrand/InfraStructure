@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.5.7` (2026-07)
+- Dernière version locale : `21.5.8` (2026-07)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -628,6 +628,13 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 - **Symptôme** : la colonne quantité (`linecolqty`) des 5 variantes `lineviews` reste vide pour toute ligne marquée « Option » (`special_code = 3`), y compris les lignes marquées optionnelles via la case « Opt » du module infrastructure (qui pose ce même `special_code = 3`, cf. CLAUDE.md du module infrastructure, section *Colonne « Opt »*).
 - **Cause** : les 5 variantes reprennent littéralement la logique cosmétique native Dolibarr (`core/tpl/objectline_view.tpl.php`) qui vide la cellule (`&nbsp;`) dès que `$line->special_code == 3`, sans distinction entre une ligne marquée « Option » nativement et une ligne marquée optionnelle par le module infrastructure.
 - **Correctif** : le module infrastructure exclut désormais le montant de ces lignes du sous-total du bloc (`infrastructure_get_totalLineFromObject()`) mais veut pouvoir conserver leur quantité visible individuellement. La condition devient `$line->special_code != 3 || (isModEnabled('infrastructure') && getDolGlobalString('INFRASTRUCTURE_OL_SHOW_DETAILS'))` dans les 5 fichiers `lineviews` (v21.5.7) : la quantité reste affichée quand infrastructure est actif **et** que son option `INFRASTRUCTURE_OL_SHOW_DETAILS` (désactivée par défaut) est cochée, quelle que soit l'origine du `special_code = 3` (case Opt du module ou marquage natif Dolibarr manuel). Sans infrastructure actif, ou avec l'option désactivée, le masquage natif reste inchangé. Même correctif dans les 5 `lineviews` d'InfraSProject (21.1.7/21.1.8, ses lineviews gèrent le rendu quand InfraSPackPlus est inactif).
+
+### Colonne « Num » chevauchant le libellé des titres infrastructure (fix v21.5.8)
+
+- **Symptôme** : avec `INFRASPLUS_PDF_WITH_NUM_COLUMN` actif et `INFRASPLUS_PDF_NUMCOL_REF=1` (valeur par défaut — colonne Num en 1ère position), le libellé des titres de niveau 1 du module infrastructure se superpose visuellement au numéro de ligne (`$i + 1`) imprimé dans la colonne Num.
+- **Cause** : dans les 10 modèles `pdf_InfraSPlus_{C,CBL,CP,D,DP,DST,F,FL,OF,OM}.modules.php`, le calcul de `$ref` (contenu de la colonne Num) ne vide cette valeur que pour les titres/sous-totaux du module **Sous-Total (ATM)** (`$isSubTitle`/`$isSubTotal`), jamais pour ceux du module **infrastructure**. La variable `$isInfraSLine` (calculée via `infraspackplus_isInfrastructureLine()`) existait déjà dans 7 de ces 10 modèles mais n'était jamais utilisée dans cette condition (code mort) ; absente des 3 autres (`CBL`, `OM`, `OF`). Cumulé à un bug du **module infrastructure** (`pdfAddTitle()` positionnait le texte du titre à la marge brute au lieu de la position réelle de la Désignation, cf. CLAUDE.md du module infrastructure, fix 21.7.1), les deux textes s'imprimaient au même point X/Y.
+- **Correctif** : `$isInfraSLine` ajoutée à la condition qui vide `$ref` dans les 10 modèles, au même titre que `$isSubTitle`/`$isSubTotal` ; ajoutée aux 3 modèles où elle manquait (`$isInfraSLine = infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;`, juste après le calcul de `$isSubTotalLine`, même position que dans les 7 autres modèles).
+- **Règle à retenir** : toute variable de détection de ligne spéciale (`$isInfraSLine`, `$isSubTitle`, `$isSubTotal`, `$isOuvrage`...) calculée dans un modèle PDF doit être systématiquement recoupée avec les conditions qui pilotent l'affichage de la colonne Num/Réf — une variable calculée mais jamais branchée (code mort) est un piège classique lors de l'ajout d'un nouveau type de ligne spéciale à un modèle existant.
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 
