@@ -1718,29 +1718,35 @@ if ($action == 'create') {
 									print '<!-- subj='.$subj.'/'.$nbofsuggested.' --><tr '.((($subj + 1) == $nbofsuggested) ? 'oddeven' : '').'>';
 									print '<td colspan="3" ></td><td class="center"><!-- qty to ship (no lot management for product line indiceAsked='.$indiceAsked.') -->';
 									if ($line->product_type == Product::TYPE_PRODUCT || getDolGlobalString('STOCK_SUPPORTS_SERVICES') || getDolGlobalString('SHIPMENT_SUPPORTS_SERVICES')) {
-										if (isset($alreadyQtySetted[$line->fk_product][intval($warehouse_id)])) {
-											$deliverableQty = min($quantityToBeDelivered, $stock - $alreadyQtySetted[$line->fk_product][intval($warehouse_id)]);
-										} else {
-											if (!isset($alreadyQtySetted[$line->fk_product])) {
-												$alreadyQtySetted[$line->fk_product] = array();
+										// For a virtual product (kit), $deliverableQty is already min($quantityToBeDelivered, $stock) computed above
+										// and the per-warehouse "stock" returned by loadStockForVirtualProduct() is $qtyWish, not a shared physical
+										// stock. The cross-line $alreadyQtySetted cap must not be applied for kits, otherwise the 2nd and next order
+										// lines of the same kit would be wrongly pre-filled with 0.
+										$tooltipClass = $tooltipTitle = '';
+										if ($productChildrenNb <= 0) {
+											if (isset($alreadyQtySetted[$line->fk_product][intval($warehouse_id)])) {
+												$deliverableQty = min($quantityToBeDelivered, $stock - $alreadyQtySetted[$line->fk_product][intval($warehouse_id)]);
+											} else {
+												if (!isset($alreadyQtySetted[$line->fk_product])) {
+													$alreadyQtySetted[$line->fk_product] = array();
+												}
+
+												$deliverableQty = min($quantityToBeDelivered, $stock);
 											}
 
-											$deliverableQty = min($quantityToBeDelivered, $stock);
-										}
+											if ($deliverableQty < 0) {
+												$deliverableQty = 0;
+											}
 
-										if ($deliverableQty < 0) {
-											$deliverableQty = 0;
-										}
+											if (!empty($alreadyQtySetted[$line->fk_product][intval($warehouse_id)])) {
+												$tooltipClass = ' classfortooltip';
+												$tooltipTitle = $langs->trans('StockQuantitiesAlreadyAllocatedOnPreviousLines').' : '.$alreadyQtySetted[$line->fk_product][intval($warehouse_id)];
+											} else {
+												$alreadyQtySetted[$line->fk_product][intval($warehouse_id)] = 0;
+											}
 
-										$tooltipClass = $tooltipTitle = '';
-										if (!empty($alreadyQtySetted[$line->fk_product][intval($warehouse_id)])) {
-											$tooltipClass = ' classfortooltip';
-											$tooltipTitle = $langs->trans('StockQuantitiesAlreadyAllocatedOnPreviousLines').' : '.$alreadyQtySetted[$line->fk_product][intval($warehouse_id)];
-										} else {
-											$alreadyQtySetted[$line->fk_product][intval($warehouse_id)] = 0;
+											$alreadyQtySetted[$line->fk_product][intval($warehouse_id)] = $deliverableQty + $alreadyQtySetted[$line->fk_product][intval($warehouse_id)];
 										}
-
-										$alreadyQtySetted[$line->fk_product][intval($warehouse_id)] = $deliverableQty + $alreadyQtySetted[$line->fk_product][intval($warehouse_id)];
 
 										$inputName = 'qtyl'.$indiceAsked.'_'.$subj;
 										if (GETPOSTISSET($inputName)) {
@@ -2497,10 +2503,12 @@ if ($action == 'create') {
 	if ($origin && $origin_id > 0) {
 		print '<td class="center linecolqtyinothershipments">'.$langs->trans("QtyInOtherShipments").'</td>';
 	}
+	// Osden add begin
 	// Stock
 	if (isModEnabled('stock') && !getDolGlobalString('SHIPPING_DISABLE_STOCK_INFO_ON_CARD')) {
 		print '<td class="linecolstock right">'.$langs->trans("Stock").'</td>';
 	}
+	// Osden add end
 	if ($action == 'editline') {
 		$editColspan = 3;
 		if (!isModEnabled('stock')) {
@@ -2609,7 +2617,7 @@ if ($action == 'create') {
 
 	// Loop on each product to send/sent
 	$conf->cache['product'] = array();
-	$conf->cache['productloadstock'] = array();
+	$conf->cache['productloadstock'] = array();	// Osden add
 	$conf->cache['warehouse'] = array();
 	for ($i = 0; $i < $num_prod; $i++) {
 		$parameters = array('i' => $i, 'line' => $lines[$i], 'line_id' => $line_id, 'num' => $num_prod, 'alreadysent' => $alreadysent, 'editColspan' => !empty($editColspan) ? $editColspan : 0, 'outputlangs' => $outputlangs);
@@ -2741,7 +2749,7 @@ if ($action == 'create') {
 				print $form->textwithpicto((string) $qtyalreadysent, $htmltooltip, 1, 'info', '', 0, 3, 'tooltip'.$lines[$i]->id);
 				print '</td>';
 			}
-
+			// Osden add begin
 			// Stock
 			if (isModEnabled('stock') && !getDolGlobalString('SHIPPING_DISABLE_STOCK_INFO_ON_CARD')) {
 				print '<td class="linecolstock nowraponall right">';
@@ -2767,7 +2775,7 @@ if ($action == 'create') {
 				}
 				print '</td>';
 			}
-
+			// Osden add end
 			if ($action == 'editline' && $lines[$i]->id == $line_id) {
 				// edit mode
 				print '<td colspan="'.$editColspan.'" class="center"><table class="nobordernopadding centpercent">';
