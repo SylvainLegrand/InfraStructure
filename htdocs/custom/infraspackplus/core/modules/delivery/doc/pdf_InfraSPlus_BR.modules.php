@@ -512,6 +512,8 @@
 								$realpatharray[$i]	= $realpath;
 							} elseif (!empty($onlyOne)) {
 								$realpatharray[$i]	= 'done';
+							} else {
+								$realpatharray[$i]	= pdf_InfraSPlus_getLineDescriptionImage($object->lines[$i]);	// Repli : image insérée dans la description si le produit catalogué n'a pas de photo
 							}
 						} else {
 							$realpatharray[$i]	= '';

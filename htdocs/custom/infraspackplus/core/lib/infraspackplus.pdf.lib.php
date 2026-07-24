@@ -3608,6 +3608,46 @@
 	}
 
 	/**
+	*	Fallback used when a catalog product/service line has no photo of its own : look for the first
+	*	medias-library image embedded in the line's HTML description and resolve it to a readable
+	*	absolute disk path, so pdf_InfraSPlus_writelineimg() can display it like a normal product photo.
+	*	Same <img src=".../viewimage.php?modulepart=medias&file=...">extraction as pdf_InfraSPlus_formatNotes()
+	*	(only that source is supported here too), reusing pdf_InfraSPlus_resolveMediaPath() so both call
+	*	sites share the same tolerant path resolution.
+	*
+	*	@param	object	$line	Document line object (->desc / ->description)
+	*	@return	string			Absolute disk path to the first embedded medias image found, '' if none
+	**/
+	function pdf_InfraSPlus_getLineDescriptionImage($line)
+	{
+		global $conf;
+
+		$desc	= !empty($line->desc) ? $line->desc : (!empty($line->description) ? $line->description : '');
+		if (empty($desc) || strpos($desc, 'viewimage.php') === false) {
+			return '';
+		}
+		$reg	= [];
+		if (!preg_match('/<img\b[^>]*\bsrc="([^"]*viewimage\.php[^"]*)"[^>]*>/i', $desc, $reg)) {
+			return '';
+		}
+		$src	= html_entity_decode($reg[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		if (strpos($src, 'modulepart=medias') === false) {
+			return '';
+		}
+		$qs		= parse_url($src, PHP_URL_QUERY);
+		$params	= [];
+		parse_str(!empty($qs) ? $qs : $src, $params);	// parse_str url-decodes file= (e.g. accented names)
+		$file	= !empty($params['file']) ? $params['file'] : '';
+		if (empty($file) || strpos($file, '..') !== false) {	// guard against path traversal
+			return '';
+		}
+		$entity		= !empty($params['entity']) ? (int) $params['entity'] : (int) $conf->entity;
+		$basedir	= !empty($conf->medias->multidir_output[$entity]) ? $conf->medias->multidir_output[$entity] : (!empty($conf->medias->dir_output) ? $conf->medias->dir_output : DOL_DATA_ROOT.'/medias');
+		$fullpath	= pdf_InfraSPlus_resolveMediaPath($basedir, $file);
+		return $fullpath !== false ? $fullpath : '';
+	}
+
+	/**
 	*	Output product / service image into PDF
 	*
 	*	@param	TCPDF|TCPDI		$pdf			The PDF factory
