@@ -242,16 +242,18 @@ InfrastructureLinkedDelivery        = Linked delivery note
 InfrastructureAddShippingListToTile = Add the reference list of related shipping or delivery notes to the title block description
 
 ### Miscellaneous options ###
-InfrastructureCloneLInfrastructureBlock = Clone the title/infrastructure block
-InfrastructureDisplayMarginOnTotal      = Display margins on infrastructure lines
-InfrastructureQuickSummary              = Quick summary
-InfrastructureDisableSummary            = Disable the "quick summary" menu (floating button visible when the document has titles)
-InfrastructureSetup                     = Infrastructure module setup
-InfrastructureSetupPage                 = Infrastructure module setup
-InfrastructureSetupForSubBlocs          = Setting the option "Hide the price of lines in sets"
-InfrastructureUseHiddenConfToAutoCheck  = To pre-set the default, you can activate the setting
-InfrastructureExperimental              = EXPERIMENTAL
-InfrastructureExperimentalZone          = Experimental or deprecated configurations
+InfrastructureCloneLInfrastructureBlock   = Clone the title/infrastructure block
+InfrastructureDisplayMarginOnTotal        = Display margins on infrastructure lines
+InfrastructureDisplayCostPriceOnTotal     = Display total cost price on subtotal lines
+InfrastructureDisplayCostPriceOnTotalInfo = If enabled, displays the block's cumulated cost price (instead of the gross margin) in the dedicated column. The margin rate and mark rate (dedicated Dolibarr options) are still displayed independently of this option.
+InfrastructureQuickSummary                = Quick summary
+InfrastructureDisableSummary              = Disable the "quick summary" menu (floating button visible when the document has titles)
+InfrastructureSetup                       = Infrastructure module setup
+InfrastructureSetupPage                   = Infrastructure module setup
+InfrastructureSetupForSubBlocs            = Setting the option "Hide the price of lines in sets"
+InfrastructureUseHiddenConfToAutoCheck    = To pre-set the default, you can activate the setting
+InfrastructureExperimental                = EXPERIMENTAL
+InfrastructureExperimentalZone            = Experimental or deprecated configurations
 
 ### Errors ###
 InfrastructureErrorDeleteLine                          = Error when deleting a line from the infrastructure module

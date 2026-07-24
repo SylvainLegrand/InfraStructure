@@ -242,16 +242,18 @@ InfrastructureLinkedDelivery        = Albarán vinculado
 InfrastructureAddShippingListToTile = Agregar la lista de referencias de los albaranes o notas de entrega relacionados a la descripción del bloque de título
 
 ### Miscellaneous options ###
-InfrastructureCloneLInfrastructureBlock = Clonar el bloque título/infrastructure
-InfrastructureDisplayMarginOnTotal      = Mostrar los márgenes en las líneas de infrastructure
-InfrastructureQuickSummary              = Resumen rápido
-InfrastructureDisableSummary            = Desactivar el menú "resumen rápido" (botón flotante visible cuando el documento tiene títulos)
-InfrastructureSetup                     = Configuración del módulo infrastructure
-InfrastructureSetupPage                 = Configuración del módulo infrastructure
-InfrastructureSetupForSubBlocs          = Configuración de la opción "Ocultar el precio de las líneas de los conjuntos"
-InfrastructureUseHiddenConfToAutoCheck  = Para preseleccionar por defecto, puede activar la configuración
-InfrastructureExperimental              = EXPERIMENTAL
-InfrastructureExperimentalZone          = Configuraciones experimentales u obsoletas
+InfrastructureCloneLInfrastructureBlock   = Clonar el bloque título/infrastructure
+InfrastructureDisplayMarginOnTotal        = Mostrar los márgenes en las líneas de infrastructure
+InfrastructureDisplayCostPriceOnTotal     = Mostrar el precio de coste total en las líneas de subtotal
+InfrastructureDisplayCostPriceOnTotalInfo = Si está activada, muestra el precio de coste acumulado del bloque (en lugar del margen bruto) en la columna correspondiente. La tasa de margen y la tasa de marca (opciones específicas de Dolibarr) se siguen mostrando independientemente de esta opción.
+InfrastructureQuickSummary                = Resumen rápido
+InfrastructureDisableSummary              = Desactivar el menú "resumen rápido" (botón flotante visible cuando el documento tiene títulos)
+InfrastructureSetup                       = Configuración del módulo infrastructure
+InfrastructureSetupPage                   = Configuración del módulo infrastructure
+InfrastructureSetupForSubBlocs            = Configuración de la opción "Ocultar el precio de las líneas de los conjuntos"
+InfrastructureUseHiddenConfToAutoCheck    = Para preseleccionar por defecto, puede activar la configuración
+InfrastructureExperimental                = EXPERIMENTAL
+InfrastructureExperimentalZone            = Configuraciones experimentales u obsoletas
 
 ### Errors ###
 InfrastructureErrorDeleteLine                          = Error al eliminar una línea del módulo infrastructure

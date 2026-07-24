@@ -41,6 +41,7 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_TOTAL_ON_ELEMENTS',				'__ENTITY__', '',		'chaine', '0', 'Infrastructure module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_TOTAL_ON_ELEMENTS_PDF',			'__ENTITY__', '',		'chaine', '0', 'Infrastructure module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASTRUCTURE_DISABLE_SUMMARY',											'__ENTITY__', '0',		'chaine', '0', 'Infrastructure module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASTRUCTURE_DISPLAY_COST_PRICE_ON_TOTAL',								'__ENTITY__', '0',		'chaine', '0', 'Infrastructure module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL',									'__ENTITY__', '0',		'chaine', '0', 'Infrastructure module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASTRUCTURE_FORCE_EXPLODE_ACTION_BTN',									'__ENTITY__', '0',		'chaine', '0', 'Infrastructure module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASTRUCTURE_HIDE_FOLDERS_BY_DEFAULT',									'__ENTITY__', '0',		'chaine', '0', 'Infrastructure module');

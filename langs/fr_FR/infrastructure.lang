@@ -242,16 +242,18 @@ InfrastructureLinkedDelivery        = Bon de livraison lié
 InfrastructureAddShippingListToTile = Ajouter à la description du bloc titre la liste des références des bons d'expédition ou de livraison liés
 
 ### Miscellaneous options ###
-InfrastructureCloneLInfrastructureBlock = Cloner le bloc titre/sous-total
-InfrastructureDisplayMarginOnTotal      = Afficher les marges sur les lignes de sous-totaux
-InfrastructureQuickSummary              = Sommaire rapide
-InfrastructureDisableSummary            = Désactiver le menu "sommaire rapide" (bouton flottant visible lorsque le document a des titres)
-InfrastructureSetup                     = Paramètre InfraS
-InfrastructureSetupPage                 = Paramètre du module InfraStructure
-InfrastructureSetupForSubBlocs          = Paramétrage de l'option "Cacher le prix des lignes des ensembles"
-InfrastructureUseHiddenConfToAutoCheck  = Pour précocher par défaut vous pouvez activer la configuration divers
-InfrastructureExperimental              = EXPERIMENTAL
-InfrastructureExperimentalZone          = Configurations expérimentales ou dépréciées
+InfrastructureCloneLInfrastructureBlock   = Cloner le bloc titre/sous-total
+InfrastructureDisplayMarginOnTotal        = Afficher les marges sur les lignes de sous-totaux
+InfrastructureDisplayCostPriceOnTotal     = Afficher le prix de revient total sur les lignes de sous-totaux
+InfrastructureDisplayCostPriceOnTotalInfo = Si activée, affiche le prix de revient cumulé du bloc (au lieu de la marge brute) dans la colonne prévue à cet effet. Le taux de marge et le taux de marque (options dédiées de Dolibarr) restent affichés indépendamment de cette option.
+InfrastructureQuickSummary                = Sommaire rapide
+InfrastructureDisableSummary              = Désactiver le menu "sommaire rapide" (bouton flottant visible lorsque le document a des titres)
+InfrastructureSetup                       = Paramètre InfraS
+InfrastructureSetupPage                   = Paramètre du module InfraStructure
+InfrastructureSetupForSubBlocs            = Paramétrage de l'option "Cacher le prix des lignes des ensembles"
+InfrastructureUseHiddenConfToAutoCheck    = Pour précocher par défaut vous pouvez activer la configuration divers
+InfrastructureExperimental                = EXPERIMENTAL
+InfrastructureExperimentalZone            = Configurations expérimentales ou dépréciées
 
 ### Errors ###
 InfrastructureErrorDeleteLine                          = Erreur lors de la suppression d'une ligne du module InfraStructure
