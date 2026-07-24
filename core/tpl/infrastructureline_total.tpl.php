@@ -57,9 +57,15 @@
 	?>
 <!-- BEGIN PHP TEMPLATE infrastructureline_total.tpl.php -->
 <?php
-	// Détermine si la cellule marge sera rendue (juste avant Total HT, dans la colonne Marge native)
+	// Détermine si les cellules marge seront rendues (juste avant Total HT, dans les colonnes Marge natives)
 	// Aligné sur les permissions Dolibarr standard (cf. core/tpl/objectline_view.tpl.php) : module margin actif, utilisateur interne, droit margins.liretous, pas de masquage par le module affmarges.
 	$displayMargin			= getDolGlobalString('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL') && isModEnabled('margin') && !in_array($object->element, array('supplier_order', 'supplier_invoice', 'supplier_proposal')) && empty($user->socid) && !(isset($margins_hidden_by_module) && $margins_hidden_by_module) && !empty($user) && $user->hasRight('margins', 'liretous');
+	// Colonne montant (linecolmargin1 native) : le prix de revient cumulé du bloc n'est affiché que si INFRASTRUCTURE_DISPLAY_COST_PRICE_ON_TOTAL est actif (remplace l'ancien affichage systématique de la marge brute, devenue inutile depuis l'ajout des taux ci-dessous)
+	$displayCostPrice		= $displayMargin && getDolGlobalString('INFRASTRUCTURE_DISPLAY_COST_PRICE_ON_TOTAL');
+	// Colonnes Marge % / Marque % natives (linecolmargin2 / linecolmark1) : rendues si les options Dolibarr correspondantes sont actives (cf. margin/admin/margin.php)
+	$displayMarginRate		= $displayMargin && getDolGlobalString('DISPLAY_MARGIN_RATES');
+	$displayMarkRate		= $displayMargin && getDolGlobalString('DISPLAY_MARK_RATES');
+	$marginColsCount		= ($displayCostPrice ? 1 : 0) + ($displayMarginRate ? 1 : 0) + ($displayMarkRate ? 1 : 0);
 	// Styles communs du libellé
 	$style					= getDolGlobalString('INFRASTRUCTURE_TOTAL_STYLE', '');
 	$titleStyleItalic		= strpos($style, 'I') === false ? '' : ' font-style: italic;';
@@ -98,7 +104,7 @@
 	$labelHtml		= ob_get_clean();
 	$alignedMode	= $line_show_qty && isset($colsBeforeQty) && $colsBeforeQty > 0 && ($colsBeforeQty + 1) <= $colspan;
 	if ($alignedMode) {
-		$colsAfterQty	= $colspan - $colsBeforeQty - 1 - ($displayMargin ? 1 : 0);
+		$colsAfterQty	= $colspan - $colsBeforeQty - 1 - $marginColsCount;
 		print '	<td colspan="'.$colsBeforeQty.'" style="font-weight:bold;text-align:right;">'.$labelHtml.'</td>';
 		print '	<td class="linecolqty nowraponall right" style="font-weight:bold;">'.price($total_qty, 0, '', 0, 0).'</td>';
 		// Cellule(s) vide(s) entre la colonne Qté et la colonne Marge / Total HT
@@ -117,7 +123,7 @@
 			print '</td>';
 			$colspan = 2;
 		}
-		$labelColspan	= $displayMargin ? $colspan - 1 : $colspan;
+		$labelColspan	= $colspan - $marginColsCount;
 		if ($labelColspan < 1) {
 			$labelColspan	= 1;
 		}
@@ -125,8 +131,10 @@
 		print $labelHtml;
 		print '</td>';
 	}
-	// Cellule marge (rendue uniquement si activée + module margin actif), juste avant Total HT, sans libellé « Marge : »
-	if ($displayMargin) {
+	// Cellule(s) marge (rendues uniquement si activées + module margin actif), juste avant Total HT, sans libellé « Marge : »
+	// Prix de revient total (si INFRASTRUCTURE_DISPLAY_COST_PRICE_ON_TOTAL), puis taux de marge (Marge / prix d'achat) et/ou taux de marque (Marge / prix de vente)
+	// suivant les options Dolibarr DISPLAY_MARGIN_RATES / DISPLAY_MARK_RATES, dans leur colonne native respective (cf. core/tpl/objectline_view.tpl.php ~L504-514)
+	if ($marginColsCount > 0) {
 		$parentTitleLine	= TInfrastructure::getParentTitleOfLine($object, $line->rang);
 		$productLines		= TInfrastructure::getLinesFromTitleId($object, $parentTitleLine->id);
 		$totalCostPrice		= 0;
@@ -139,7 +147,17 @@
 			}
 		}
 		$marge	= $total_line - $totalCostPrice;
-		print '	<td nowrap="nowrap" class="margininfos right" style="text-align:right;font-weight:bold;">'.price($marge).'</td>';
+		if ($displayCostPrice) {
+			print '	<td nowrap="nowrap" class="margininfos right" style="text-align:right;font-weight:bold;">'.price($totalCostPrice).'</td>';
+		}
+		if ($displayMarginRate) {
+			$margeTx	= $totalCostPrice != 0 ? (100 * $marge) / $totalCostPrice : '';
+			print '	<td nowrap="nowrap" class="margininfos right" style="text-align:right;font-weight:bold;">'.($totalCostPrice == 0 ? 'n/a' : price(price2num($margeTx, 'MT')).'%').'</td>';
+		}
+		if ($displayMarkRate) {
+			$marqueTx	= $total_line != 0 ? (100 * $marge) / $total_line : '';
+			print '	<td nowrap="nowrap" class="margininfos right" style="text-align:right;font-weight:bold;">'.($total_line == 0 ? 'n/a' : price(price2num($marqueTx, 'MT')).'%').'</td>';
+		}
 	}
 	?>
 <!-- END PHP TEMPLATE infrastructureline_total.tpl.php -->

@@ -242,16 +242,18 @@ InfrastructureLinkedDelivery        = Documento di consegna collegato
 InfrastructureAddShippingListToTile = Aggiungere alla descrizione del blocco titolo la lista dei riferimenti dei documenti di spedizione o di consegna collegati
 
 ### Miscellaneous options ###
-InfrastructureCloneLInfrastructureBlock = Clonare il blocco titolo/subtotale
-InfrastructureDisplayMarginOnTotal      = Visualizzare i margini sulle righe di subtotale
-InfrastructureQuickSummary              = Sommario rapido
-InfrastructureDisableSummary            = Disattivare il menu "sommario rapido" (pulsante flottante visibile quando il documento ha titoli)
-InfrastructureSetup                     = Parametro modulo InfraStructure
-InfrastructureSetupPage                 = Parametro modulo InfraStructure
-InfrastructureSetupForSubBlocs          = Configurazione dell'opzione "Nascondere il prezzo delle righe degli insiemi"
-InfrastructureUseHiddenConfToAutoCheck  = Per pre-selezionare per default, potete attivare la configurazione varia
-InfrastructureExperimental              = SPERIMENTALE
-InfrastructureExperimentalZone          = Configurazioni sperimentali o deprecate
+InfrastructureCloneLInfrastructureBlock   = Clonare il blocco titolo/subtotale
+InfrastructureDisplayMarginOnTotal        = Visualizzare i margini sulle righe di subtotale
+InfrastructureDisplayCostPriceOnTotal     = Visualizza il prezzo di costo totale sulle righe di subtotale
+InfrastructureDisplayCostPriceOnTotalInfo = Se attiva, visualizza il prezzo di costo cumulato del blocco (invece del margine lordo) nella colonna dedicata. Il tasso di margine e il tasso di marcatura (opzioni specifiche di Dolibarr) continuano a essere visualizzati indipendentemente da questa opzione.
+InfrastructureQuickSummary                = Sommario rapido
+InfrastructureDisableSummary              = Disattivare il menu "sommario rapido" (pulsante flottante visibile quando il documento ha titoli)
+InfrastructureSetup                       = Parametro modulo InfraStructure
+InfrastructureSetupPage                   = Parametro modulo InfraStructure
+InfrastructureSetupForSubBlocs            = Configurazione dell'opzione "Nascondere il prezzo delle righe degli insiemi"
+InfrastructureUseHiddenConfToAutoCheck    = Per pre-selezionare per default, potete attivare la configurazione varia
+InfrastructureExperimental                = SPERIMENTALE
+InfrastructureExperimentalZone            = Configurazioni sperimentali o deprecate
 
 ### Errors ###
 InfrastructureErrorDeleteLine                          = Errore durante l'eliminazione di una riga del modulo InfraStructure

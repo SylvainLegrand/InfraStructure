@@ -237,6 +237,12 @@
 		infrastructure_print_btn_action('Gen', $langs->trans('InfrastructureParamCautionSave'), 4);
 		$num	= 1;
 		$num	= infrastructure_print_input('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL', 'on_off', $langs->trans('InfrastructureDisplayMarginOnTotal'), '', [], 2, 1, '', $num);
+		// Option dépendant de l'affichage des marges sur les sous-totaux : masquée si la fonctionnalité est désactivée
+		if (getDolGlobalInt('INFRASTRUCTURE_DISPLAY_MARGIN_ON_TOTAL')) {
+			$num	= infrastructure_print_input('INFRASTRUCTURE_DISPLAY_COST_PRICE_ON_TOTAL', 'on_off', $langs->trans('InfrastructureDisplayCostPriceOnTotal'), 'InfrastructureDisplayCostPriceOnTotalInfo', [], 2, 1, '', $num);
+		} else {
+			$num	= $num + 1;
+		}
 		$num	= infrastructure_print_input('INFRASTRUCTURE_AUTO_ADD_TOTAL_ON_ADDING_NEW_TITLE', 'on_off', $langs->trans('InfrastructureAutoAddInfrastructureOnAddingNewTitle'), '', [], 2, 1, '', $num);
 		$num	= infrastructure_print_input('INFRASTRUCTURE_TEXT_FOR_TITLE_ORDERS_TO_INVOICE', 'input', $langs->trans('InfrastructureTextForTitleOrdetstoinvoice'), 'InfrastructureTextForTitleOrdetstoinvoiceInfo', $metas, 1, 2, '', $num);
 		infrastructure_print_subTitle(4, 'InfrastructureManageOptionalLines');
