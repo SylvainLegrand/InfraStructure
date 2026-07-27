@@ -671,7 +671,7 @@ if ($customer_order_id > 0) {
 			if ($action != 'classify') {
 				$morehtmlref .= '<a class="editfielda" href="' . $_SERVER['PHP_SELF'] . '?action=classify&customer_order_id=' . $order->id . '">' . img_edit($langs->transnoentitiesnoconv('SetProject')) . '</a> ';
 			}
-			$morehtmlref .= $form->form_project($_SERVER['PHP_SELF'] . '?id=' . $order->id, $order->socid, (string)$order->fk_project, ($action == 'classify' ? 'projectid' : 'none'), 0, 0, 0, 1, '', 'maxwidth300');
+			$morehtmlref .= $form->form_project($_SERVER['PHP_SELF'] . '?id=' . $order->id, $order->socid, (string) $order->fk_project, ($action == 'classify' ? 'projectid' : 'none'), 0, 0, 0, 1, '', 'maxwidth300');
 		} else {
 			if (!empty($order->fk_project)) {
 				$proj = new Project($db);

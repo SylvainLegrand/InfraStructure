@@ -146,6 +146,8 @@ if (!($object->id > 0) && ($action == 'view' || $action == '')) {
 	recordNotFound();
 }
 
+$selectedLines = array();	// Osden add
+
 
 /*
  * Actions
@@ -168,6 +170,8 @@ if (empty($reshook)) {
 			}
 		}
 	}
+
+	$selectedLines = GETPOST('toselect', 'array');	// Osden add
 
 	if ($cancel) {
 		if (!empty($backtopageforcancel)) {
@@ -363,6 +367,11 @@ if (empty($reshook)) {
 						$rang = 0;
 
 						for ($i = 0; $i < $num; $i++) {
+							// Osden add begin
+							if (!in_array($lines[$i]->id, $selectedLines)) {
+								continue; // Skip unselected lines
+							}
+							// Osden add end
 							$product_type = ($lines[$i]->product_type ? $lines[$i]->product_type : 0);
 
 							if ($product_type == 1 || (getDolGlobalString('CONTRACT_SUPPORT_PRODUCTS') && in_array($product_type, array(0, 1)))) { 	// TODO Exclude also deee
@@ -1342,16 +1351,29 @@ if ($action == 'create') {
 	print dol_get_fiche_end();
 
 	print $form->buttonsSaveCancel("Create");
-
+	// Osden change begin
+	// Show origin lines
 	if (is_object($objectsrc)) {
 		print '<input type="hidden" name="origin"         value="'.$objectsrc->element.'">';
 		print '<input type="hidden" name="originid"       value="'.$objectsrc->id.'">';
 
+		$title = $langs->trans('Services');
+		$supportedProductTypes = array(1);
 		if (!getDolGlobalString('CONTRACT_SUPPORT_PRODUCTS')) {
-			print '<br>'.$langs->trans("Note").': '.$langs->trans("OnlyLinesWithTypeServiceAreUsed");
+			$title = $langs->trans('ProductsAndServices');
+			$supportedProductTypes = array(0, 1);
 		}
-	}
+		print load_fiche_titre($title);
 
+		print '<div class="div-table-responsive-no-min">';
+		print '<table class="noborder centpercent">';
+
+		$objectsrc->printOriginLinesList('', $selectedLines, $supportedProductTypes);
+
+		print '</table>';
+		print '</div>';
+	}
+	// Osden change end
 	print "</form>\n";
 } else {
 	// View and edit mode
