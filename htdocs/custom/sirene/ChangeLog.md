@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [10.4.4] - 24-07-2026
+- FIX : manque un token CSRF
+
 ## [10.4.3] - 22-07-2026
 - FIX : Erreur SQL (fk_object vide) lors de la mise à jour d'un tiers via la tâche CRON en environnement multicompany, quand le SELECT remontait des tiers d'une entité non visible depuis le contexte du cronjob.
 
@@ -408,7 +411,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initiale.
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.3...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.4...HEAD
+[10.4.4]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.4
 [10.4.3]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.3
 [10.4.2]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.2
 [10.4.1]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.1

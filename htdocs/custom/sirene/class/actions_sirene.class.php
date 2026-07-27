@@ -681,7 +681,7 @@ STYLE;
 				$langs->loadLangs(array('sirene@sirene', 'companies'));
 
 				// Add sirene button
-				print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?socid=' . $object->id . '&action=sirene_check_company">' . $langs->trans(!empty($object->idprof2) ? 'SireneCheckSirene' : 'SireneSearchThirdparty') . '</a></div>';
+				print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?socid=' . $object->id . '&action=sirene_check_company&token=' . newToken().'">' . $langs->trans(!empty($object->idprof2) ? 'SireneCheckSirene' : 'SireneSearchThirdparty') . '</a></div>';
 
 				// Get action
 				$act = GETPOST('action', 'aZ09');
