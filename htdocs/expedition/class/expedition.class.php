@@ -1309,7 +1309,7 @@ class Expedition extends CommonObject
 					}
 					$tab[] = $linebatch;
 
-					if (getDolGlobalString("STOCK_MUST_BE_ENOUGH_FOR_SHIPMENT", '0')) {
+					if (getDolGlobalString("STOCK_MUST_BE_ENOUGH_FOR_SHIPMENT", '0') && ($linebatch->qty > 0 || !getDolGlobalString('SHIPMENT_GETS_ALL_ORDER_PRODUCTS'))) {	// InfraS change
 						require_once DOL_DOCUMENT_ROOT.'/product/class/productbatch.class.php';
 						$prod_batch = new Productbatch($this->db);
 						$prod_batch->fetch($value['id_batch']);
