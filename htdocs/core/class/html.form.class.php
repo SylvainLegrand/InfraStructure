@@ -6033,7 +6033,7 @@ class Form
 						$moreattr = (!empty($input['moreattr']) ? ' ' . $input['moreattr'] : '');
 						$morecss = (!empty($input['morecss']) ? ' ' . $input['morecss'] : '');
 
-						$more .= '<input type="hidden" id="' . dol_escape_htmltag($input['name']) . '" name="' . dol_escape_htmltag($input['name']) . '" value="' . dol_escape_htmltag($input['value']) . '" class="' . $morecss . '"' . $moreattr . '>' . "\n";
+						$more .= '<input type="hidden" id="' . dol_escape_htmltag($input['name']) . '" name="' . dol_escape_htmltag($input['name']) . '" value="' . dol_escape_htmltag(isset($input['value']) ? $input['value'] : '') . '" class="' . $morecss . '"' . $moreattr . '>' . "\n"; // InfraS change : 'value' non fourni par tous les appelants
 					}
 				}
 			}

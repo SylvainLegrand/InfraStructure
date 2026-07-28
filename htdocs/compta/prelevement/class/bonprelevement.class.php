@@ -2899,8 +2899,9 @@ class BonPrelevement extends CommonObject
 	public function LibStatut($status, $mode = 0)
 	{
 		// phpcs:enable
+		global $langs; // InfraS add
+
 		if (empty($this->labelStatus) || empty($this->labelStatusShort)) {
-			global $langs;
 			//$langs->load("mymodule");
 			$this->labelStatus[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('StatusWaiting');
 			$this->labelStatus[self::STATUS_TRANSFERED] = $langs->transnoentitiesnoconv('StatusTrans');
@@ -2922,6 +2923,13 @@ class BonPrelevement extends CommonObject
 		if ($status == self::STATUS_CREDITED || $status == self::STATUS_DEBITED) {
 			$statusType = 'status6';
 		}
+
+		// InfraS add begin : $status peut valoir null/'' (objet non chargé ou colonne statut vide en base) ->
+		// $this->labelStatus[$status] n'existe pas pour cette clé, repli sur un badge "Inconnu" au lieu du warning PHP.
+		if (!isset($this->labelStatus[$status]) || !isset($this->labelStatusShort[$status])) {
+			return dolGetStatus($langs->transnoentitiesnoconv('Unknown'), $langs->transnoentitiesnoconv('Unknown'), '', 'status0', $mode);
+		}
+		// InfraS add end
 
 		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
 	}
