@@ -1216,20 +1216,20 @@
 
 		$alreadyreceived	= [];
 		if ($origin_id > 0) {
-			$sql	= 'SELECT det.rowid, SUM(disp.qty) AS qty';
-			$sql	.= ' FROM '.$db->prefix().'commande_fournisseur_dispatch AS disp';
-			$sql	.= ' LEFT JOIN '.$db->prefix().'commande_fournisseurdet AS det ON det.rowid = disp.fk_commandefourndet';
-			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = disp.fk_reception';
+			$sql	= 'SELECT rlb.fk_elementdet, SUM(rlb.qty) AS qty';
+			$sql	.= ' FROM '.$db->prefix().'receptiondet_batch AS rlb';
+			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = rlb.fk_reception';
 			$sql	.= ' WHERE r.entity IN ('.getEntity('reception').')';
-			$sql	.= ' AND disp.fk_commande = '.((int) $origin_id);
-			$sql	.= ' GROUP BY det.rowid';
+			$sql	.= ' AND rlb.fk_element = '.((int) $origin_id);
+			$sql	.= " AND rlb.element_type = 'supplier_order'";
+			$sql	.= ' GROUP BY rlb.fk_elementdet';
 			dol_syslog('infraspackplus.lib.php::infraspackplus_get_alreadyreceived $sql = '.$sql, LOG_DEBUG);
 			$resql	= $db->query($sql);
 			if (!empty($resql)) {
 				for ($i = 0 ; $i < $db->num_rows($resql) ; $i++) {
 					$obj	= $db->fetch_object($resql);
 					if (!empty($obj)) {
-						$alreadyreceived[$obj->rowid]	= $obj->qty;
+						$alreadyreceived[$obj->fk_elementdet]	= $obj->qty;
 					}
 				}
 				return $alreadyreceived;
@@ -1251,20 +1251,20 @@
 
 		$serialreceived	= [];
 		if ($origin_id > 0 && $object_id > 0) {
-			$sql	= 'SELECT det.rowid, disp.batch, disp.qty';
-			$sql	.= ' FROM '.$db->prefix().'commande_fournisseur_dispatch AS disp';
-			$sql	.= ' LEFT JOIN '.$db->prefix().'commande_fournisseurdet AS det ON det.rowid = disp.fk_commandefourndet';
-			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = disp.fk_reception';
+			$sql	= 'SELECT rlb.fk_elementdet, rlb.batch, rlb.qty';
+			$sql	.= ' FROM '.$db->prefix().'receptiondet_batch AS rlb';
+			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = rlb.fk_reception';
 			$sql	.= ' WHERE r.entity IN ('.getEntity('reception').')';
-			$sql	.= ' AND disp.fk_reception = '.((int) $object_id);
-			$sql	.= ' AND disp.fk_commande = '.((int) $origin_id);
+			$sql	.= ' AND rlb.fk_reception = '.((int) $object_id);
+			$sql	.= ' AND rlb.fk_element = '.((int) $origin_id);
+			$sql	.= " AND rlb.element_type = 'supplier_order'";
 			dol_syslog('infraspackplus.lib.php::infraspackplus_get_serialreceived $sql = '.$sql, LOG_DEBUG);
 			$resql	= $db->query($sql);
 			if (!empty($resql)) {
 				for ($i = 0 ; $i < $db->num_rows($resql) ; $i++) {
 					$obj	= $db->fetch_object($resql);
 					if (!empty($obj)) {
-						$serialreceived[$obj->rowid][$obj->batch]	= $obj->qty;
+						$serialreceived[$obj->fk_elementdet][$obj->batch]	= $obj->qty;
 					}
 				}
 				return $serialreceived;

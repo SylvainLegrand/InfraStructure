@@ -838,6 +838,8 @@
 						// Ajout du numéro de série, s'il existe...
 						$serialEquip	= isModEnabled('equipement') ? pdf_InfraSPlus_getEquipementSerialDesc($object, $outputlangs, $i, 'expedition') : '';
 						$extraDet		.= empty($serialEquip) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$serialEquip.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
+						// Ajout du numéro de série reçu sur commande fournisseur, s'il existe...
+						$serialStd		= '';
 						if (!empty($serialreceived)) {
 							$space	= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 							foreach ($serialreceived as $commandefourndet => $serialvalues) {

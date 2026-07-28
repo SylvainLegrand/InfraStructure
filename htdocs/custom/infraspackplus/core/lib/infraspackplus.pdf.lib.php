@@ -1001,7 +1001,7 @@
 					$livrshow_name	= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
 					$livrshow		= $outputlangs->convToOutputCharset(dol_format_address($object->user, 0, "\n", $outputlangs));
 				}
-			} elseif (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
+			} elseif (!empty($use_doli_addr_livr) && isset($arrayidcontact['L']) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
 				$companyDiff	= 0;
 				$result			= $object->fetch_contact($arrayidcontact['L'][0]);
 				$usecontact		= in_array($customerAddr, getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON') ? array('C', 'A', 'T', 'B') : array('C', 'A')) ? true : false;
