@@ -87,6 +87,12 @@ if (empty($object->element)) {
 
 	// Security check
 	restrictedArea($user, $object->module, $object, $object->table_element, $usesublevelpermission);
+	// InfraS add begin
+	// Extrafields are keyed by table_element in llx_extrafields, which is the objecttype value sent by select2, not $object->element (ex: supplier invoice: element = 'invoice_supplier' but elementtype = 'facture_fourn')
+	if (!empty($objecttype)) {
+		$element = $objecttype;
+	}
+	// InfraS add end
 }
 // InfraS change end
 
@@ -105,7 +111,7 @@ $data = [
 if ($page == 1) {
 	$data['results'][] = [
 		'id' => -1,
-		'text' => '&nbsp;',
+		'text' => html_entity_decode('&nbsp;', ENT_QUOTES, 'UTF-8'),	// InfraS change: select2 escapes result texts, so the raw entity was displayed literally
 	];
 }
 $i = 0;
