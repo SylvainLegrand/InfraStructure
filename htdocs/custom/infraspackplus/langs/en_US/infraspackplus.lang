@@ -167,6 +167,8 @@ InfraSPlusParamFilesFromExpensereport          = Merge attachments associated wi
 InfraSPlusParamPropalWithRawPrices             = Quote => Creation of an additional document in raw price (Prices do not take into account discounts and/or customer rates; they come from the default sales price of the item library)
 InfraSPlusParamProduitMergePropal              = Manage merging of product/service documentation with quotes from final settings (checkbox)
 InfraSPlusParamCheckProduitMergePropalX2       = Check for the presence of duplicate files (files with the same name associated with different product / service references) => the file will only be merged once
+InfraSPlusParamMergeProductLinks               = Also use the external PDF links (URL, product card Linked files tab) as a source of technical documentation to merge
+InfraSPlusParamDocSeparate                     = Offer to gather the products / services technical documentation into a PDF separate from the main document from the final parameters (checkbox)
 InfraSPlusParamFilesFromAttestationTVA         = In the quotes also offer the VAT certificate associated with the document as a mergable file
 InfraSPlusParamRoundingUP                      = Force the number of decimals displayed for unit prices to
 InfraSPlusParamRoundingTot                     = Force the number of decimals displayed for total prices (lines and document) to
@@ -374,6 +376,8 @@ InfraSPlusParamMRP                             = <b>Options concerning only prod
 InfraSPlusParamMrpWithDimColumns               = Show dimensions column on production orders
 InfraSPlusParamHeightMrpControlTable           = Height of the control panel => <b>must be between 20 and 90</b>
 PDFInfraSPlusMergeProduct                      = Merge the documentation of the products / services present with the Quotation
+PDFInfraSPlusDocSeparate                       = Gather the products / services technical documentation into a separate PDF (the main document is left untouched)
+InfraSPlusDatasheetWarning                     = Technical datasheet not retrieved for product %s: %s
 PDFInfraSPlusUseNtAsCover                      = Show cover page
 PDFInfraSPlusFiles                             = Files to merge
 InfraSPlusParamHideUP                          = Hides unit price on commercial proposal, order and invoice
@@ -506,6 +510,8 @@ InfraSPlusParamDeleted                          = Deleted
 InfraSPlusParamImagesSetup                      = <b>Options about images use for pack editions</b>
 InfraSPlusParamSetLogoEmetTiers                 = Register in third parties the association of a sender logo (this logo will be proposed by default to the creation of any documents concerning this third party)
 InfraSPlusParamWithPicture                      = In sales chain documents shows image for each product / service with at least one image (the first)
+InfraSPlusParamPictureFromUrl                   = Use the first image link (URL ending with jpg, jpeg, png, gif or webp) from the product card Linked files tab as the image of a product / service without photo
+InfraSPlusParamUrlImgTimeout                    = Maximum download time for an external URL image
 InfraSPlusParamPictureInRef                     = Show image in reference column (or line number)
 InfraSPlusParamPictureReplaceRef                = Do not display the reference (or the line number) => the image <b>REPLACES</b> the values (Otherwise the reference or the line number will be displayed under the image)
 InfraSPlusParamAvertissementCalculImage         = <b>Priority of height over width !</b> (the calculation seeks to apply the greatest possible height)

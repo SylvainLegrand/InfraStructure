@@ -416,7 +416,7 @@
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
 					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
-					$this->listFees			= [];
+					$this->listFees			= ['lunch' => [], 'night' => [], 'homework' => []];
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Link with InfraSTime => collect special counter like ticket restaurant, housework, ...
 						if (isModEnabled('infrastime')) {
@@ -571,10 +571,11 @@
 					$nexY		= $tab_top + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
 					// Loop on each lines
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						if (isModEnabled('infrastime'))
-							if (in_array($i, $this->listFees['lunch']) || in_array($i, $this->listFees['night']) || in_array($i, $this->listFees['homework'])) {
+						if (isModEnabled('infrastime')) {
+							if (is_array($this->listFees) && (in_array($i, $this->listFees['lunch']) || in_array($i, $this->listFees['night']) || in_array($i, $this->listFees['homework']))) {
 								continue;	// these lines are just counter (not real expenses)
 							}
+						}
 						$curY								= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
 						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);

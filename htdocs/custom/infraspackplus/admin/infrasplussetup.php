@@ -904,17 +904,19 @@
 		} else {
 			$num	+= 2;
 		}
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_MERGE_PRODUCT_LINKS', 'on_off', $langs->trans('InfraSPlusParamMergeProductLinks'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_DOC_SEPARATE', 'on_off', $langs->trans('InfraSPlusParamDocSeparate'), '', [], 1, 1, '', $num);
 		if (isModEnabled('attestationtva')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_ATTESTATIONTVA', 'on_off', $langs->trans('InfraSPlusParamFilesFromAttestationTVA'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
-		// $num = 16
+		// $num = 18
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '10', 'step' => '1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ROUNDING_UP', 'input', $langs->trans('InfraSPlusParamRoundingUP'), '', $metas, 1, 1, '&nbsp;', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '10', 'step' => '1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ROUNDING_TOT', 'input', $langs->trans('InfraSPlusParamRoundingTot'), '', $metas, 1, 1, '&nbsp;', $num);
-		// $num = 18
+		// $num = 20
 	}
 	print '			</table>
 				</div>';

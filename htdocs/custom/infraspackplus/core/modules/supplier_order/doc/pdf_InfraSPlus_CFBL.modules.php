@@ -425,6 +425,7 @@
 					// First loop on each lines to prepare calculs and variables
 					$realpatharray				= [];
 					$objproduct					= new Product($this->db);
+					$listObjBib					= [];
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Positionne $this->atleastonediscount si on a au moins une remise
 						if (!empty($object->lines[$i]->remise_percent)) {
@@ -467,43 +468,10 @@
 							$this->tva[$vatrate]	= 0;
 						}
 						$this->tva[$vatrate]									+= $tvaligne;
+						$isProd	= !empty($object->lines[$i]->fk_product) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						// detect if there is at least one image to show
-						if (!empty($this->with_picture)) {
-							if (empty($object->lines[$i]->fk_product)) {
-								continue;
-							}
-							$objproduct->fetch($object->lines[$i]->fk_product);
-							if (!empty($this->old_path_photo)) {
-								$pdir[0]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';
-								$pdir[1]	= get_exdir(0, 0, 0, 0, $objproduct, 'product').dol_sanitizeFileName($objproduct->ref).'/';
-							} else {
-								$pdir[0]	= get_exdir(0, 0, 0, 0, $objproduct, 'product'); // default
-								$pdir[1]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';		// alternative
-							}
-							$arephoto = false;
-							foreach ($pdir as $midir) {
-								if (! $arephoto) {
-									$dir = $conf->product->dir_output.'/'.$midir;
-									foreach ($objproduct->liste_photos($dir, 1) as $key => $obj) {
-										if (empty($this->cat_hq_image)) {		// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
-											if (!empty($obj['photo_vignette'])) {
-												$filename	= $obj['photo_vignette'];
-											} else {
-												$filename	= $obj['photo'];
-											}
-										} else {
-											$filename	= $obj['photo'];
-										}
-										$realpath	= $dir.$filename;
-										$arephoto	= true;
-									}
-								}
-							}
-							if (!empty($realpath) && !empty($arephoto)) {
-								$realpatharray[$i]	= $realpath;
-							} else {
-								$realpatharray[$i]	= pdf_InfraSPlus_getLineDescriptionImage($object->lines[$i]);	// Repli : image insérée dans la description si le produit catalogué n'a pas de photo
-							}
+						if (!empty($this->with_picture) && $isProd > 0) {
+							$realpatharray[$i]	= pdf_InfraSPlus_getLineProductImage($this->db, $objproduct, $object->lines[$i], $this->old_path_photo, $this->cat_hq_image, $this->only_one_picture, $listObjBib);
 						} else {
 							$realpatharray[$i]	= '';
 						}

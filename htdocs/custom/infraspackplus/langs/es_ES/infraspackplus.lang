@@ -167,6 +167,8 @@ InfraSPlusParamFilesFromExpensereport          = Fusionar archivos adjuntos asoc
 InfraSPlusParamPropalWithRawPrices             = Estimar => Creación de un documento adicional en precio bruto (Los precios no toman en cuenta descuentos y/o tarifas de clientes; provienen del precio de venta predeterminado de la biblioteca de artículos)
 InfraSPlusParamProduitMergePropal              = Administre la fusión de la documentación del producto/servicio con cotizaciones de la configuración final (casilla de verificación)
 InfraSPlusParamCheckProduitMergePropalX2       = Compruebe la presencia de archivos duplicados (archivos con el mismo nombre asociados con diferentes referencias de productos/servicios) => el archivo solo se fusionará una vez
+InfraSPlusParamMergeProductLinks               = Utilizar también los enlaces externos de tipo PDF (URL, pestaña Archivos adjuntos de la ficha del producto) como fuente de documentación técnica a fusionar
+InfraSPlusParamDocSeparate                     = Proponer agrupar la documentación técnica de los productos / servicios en un PDF separado del documento principal desde los parámetros finales (casilla de verificación)
 InfraSPlusParamFilesFromAttestationTVA         = En las cotizaciones también se ofrece el certificado de IVA asociado al documento como un archivo fusionable
 InfraSPlusParamRoundingUP                      = Forzar el número de decimales mostrados para los precios unitarios a
 InfraSPlusParamRoundingTot                     = Forzar el número de decimales mostrados para los precios totales (líneas y documento) a
@@ -374,6 +376,8 @@ InfraSPlusParamMRP                             = <b>Opciones relativas únicamen
 InfraSPlusParamMrpWithDimColumns               = Visualiza columna de dimensiones en órdenes de producción
 InfraSPlusParamHeightMrpControlTable           = Altura del panel de control => <b>debe estar entre 20 y 90</b>
 PDFInfraSPlusMergeProduct                      = Fusionar la documentación de los productos/servicios presentes con la Cotización
+PDFInfraSPlusDocSeparate                       = Agrupar la documentación técnica de los productos / servicios en un PDF separado (el documento principal no se modifica)
+InfraSPlusDatasheetWarning                     = Ficha técnica no recuperada para el producto %s: %s
 PDFInfraSPlusUseNtAsCover                      = Visualiza portada
 PDFInfraSPlusFiles                             = Archivos para fusionar
 InfraSPlusParamHideUP                          = Esconder el precio unitario (propales, pedidos y facturas del cliente)
@@ -506,6 +510,8 @@ InfraSPlusParamDeleted                          = Eliminado
 InfraSPlusParamImagesSetup                      = <b>Opciones concerniendo para la utilización de imagenes en las ediciones del pack</b>
 InfraSPlusParamSetLogoEmetTiers                 = Registrar en terceros la asociación de un logotipo de remitente (este logotipo se propondrá por defecto para la creación de cualquier documento relacionado con este tercero)
 InfraSPlusParamWithPicture                      = En los documentos de la cadena de ventas visualiza el imagen de cada producto /servicio que contiene  a menos una imagen (la primera)
+InfraSPlusParamPictureFromUrl                   = Utilizar el primer enlace de tipo imagen (URL terminada en jpg, jpeg, png, gif o webp) de la pestaña Archivos adjuntos de la ficha del producto como imagen del producto / servicio sin foto
+InfraSPlusParamUrlImgTimeout                    = Tiempo máximo de descarga de una imagen por URL externa
 InfraSPlusParamPictureInRef                     = Visualiza imagen en la columna de referencia (o número de línea)
 InfraSPlusParamPictureReplaceRef                = No mostrar la referencia (o el número de línea) => la imagen <b>REEMPLAZA</b> los valores (De lo contrario, la referencia o el número de línea se mostrarán debajo de la imagen)
 InfraSPlusParamAvertissementCalculImage         = <b>Altura prioritaria sobre la anchura!</b> (El cálculo busca a aplicar la altura la más grande posible)

@@ -32,6 +32,7 @@
 	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 	include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
 	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
 	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	include_once DOL_DOCUMENT_ROOT.'/product/class/productcustomerprice.class.php';
@@ -3648,6 +3649,145 @@
 	}
 
 	/**
+	*	Return the path of the product/service photo to show onto PDF for a document line.
+	*	Photos attached to the product are matched against the ECM index, sorted by ECM position,
+	*	and the first sorted photo is used. When the product has no photo of its own, falls back
+	*	to the image link posted onto the product (native Dolibarr links, image downloaded from its
+	*	URL — pdf_InfraSPlus_getLineExternalImage()), then to the first medias-library image embedded
+	*	in the line description (pdf_InfraSPlus_getLineDescriptionImage()).
+	*
+	*	@param	DoliDB	$db					Database handler
+	*	@param	Product	$objproduct			Product/service of the line (already fetched)
+	*	@param	object	$line				Document line object
+	*	@param	int		$old_path_photo		1 = old path style for photos (PRODUCT_USE_OLD_PATH_FOR_PHOTO)
+	*	@param	int		$cat_hq_image		1 = use original photo instead of thumb (CAT_HIGH_QUALITY_IMAGES)
+	*	@param	int		$only_one_picture	1 = show only one picture per product for the whole document
+	*	@param	array	&$listObjBib		Ids of products whose picture is already shown (updated)
+	*	@return	string						Absolute photo path, 'done' marker, description image path or ''
+	**/
+	function pdf_InfraSPlus_getLineProductImage($db, $objproduct, $line, $old_path_photo, $cat_hq_image, $only_one_picture, &$listObjBib)
+	{
+		global $conf;
+
+		$ecmfile	= new EcmFiles($db);
+		if (!empty($old_path_photo)) {
+			$pdir[0]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';
+			$pdir[1]	= get_exdir(0, 0, 0, 0, $objproduct, 'product').dol_sanitizeFileName($objproduct->ref).'/';
+		} else {
+			$pdir[0]	= get_exdir(0, 0, 0, 0, $objproduct, 'product'); // default
+			$pdir[1]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';		// alternative
+		}
+		$realpath	= '';
+		$arephoto	= false;
+		$onlyOne	= $only_one_picture ? (in_array($objproduct->id, $listObjBib) ? 1 : 0) : 0;
+		foreach ($pdir as $midir) {
+			if (!$arephoto && !$onlyOne) {
+				$dir		= ($objproduct->entity != $conf->entity ? $conf->product->multidir_output[$objproduct->entity] : $conf->product->dir_output).'/'.$midir;
+				$listPhotos	= [];
+				// We recover all the photos attached to the product and we find their position in the ECM
+				foreach ($objproduct->liste_photos($dir, 0) as $key => $obj) {
+					$relpath	= ($objproduct->entity == 1 ? '' : $objproduct->entity.'/').'produit/'.$midir.$obj['photo'];
+					$hasecmfile	= $ecmfile->fetch(0, '', $relpath, '', '', $objproduct->table_element, $objproduct->id);
+					if ($hasecmfile > 0) {
+						$obj['position']	= $ecmfile->position;
+						$listPhotos[]		= $obj;
+					}
+				}
+				// Sort the photos by position
+				if (!empty($listPhotos)) {
+					usort($listPhotos, function($a, $b) {
+						return intval($a['position']) - intval($b['position']);
+					});
+					// Use the first sorted photo
+					// TODO we could use a configuration to choose if we want the first, the last or more than one photo
+					$obj	= $listPhotos[0];
+					if (empty($cat_hq_image)) {	// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
+						if (!empty($obj['photo_vignette'])) {
+							$filename	= $obj['photo_vignette'];
+						} else {
+							$filename	= $obj['photo'];
+						}
+					} else {
+						$filename	= $obj['photo'];
+					}
+					$realpath		= $dir.$filename;
+					$listObjBib[]	= $objproduct->id;
+					$arephoto		= true;
+				}
+			}
+		}
+		if (!empty($realpath) && !empty($arephoto)) {
+			return $realpath;
+		} elseif (!empty($onlyOne)) {
+			return 'done';
+		}
+		$urlimage	= pdf_InfraSPlus_getLineExternalImage($db, $objproduct);	// Priorité 2 : lien image externe posé sur le produit (llx_links)
+		if ($urlimage !== '') {
+			$listObjBib[]	= $objproduct->id;
+			return $urlimage;
+		}
+		return pdf_InfraSPlus_getLineDescriptionImage($line);	// Repli : image insérée dans la description si le produit catalogué n'a pas de photo
+	}
+
+	/**
+	*	Resolve the external image of a catalog product : first image link posted onto the product
+	*	(native Dolibarr links, llx_links — first link whose URL path owns an image extension, see
+	*	infraspackplus_get_product_links()). The image is downloaded (timeout INFRASPLUS_URL_IMG_TIMEOUT,
+	*	10s by default), checked (JPEG/PNG/GIF/WebP) and written in the module temp directory, so that
+	*	TCPDF and the existing sizing functions can use it as a regular disk path. Per-request cache :
+	*	a same URL is downloaded only once for the whole PDF generation. On failure the link is
+	*	silently ignored (syslog warning) and the caller falls back to the next image source.
+	*	The whole feature is enabled by the INFRASPLUS_PDF_PICTURE_FROM_URL constant (module Images
+	*	setup page, disabled by default).
+	*
+	*	@param	DoliDB	$db				Database handler
+	*	@param	Product	$objproduct		Product/service of the line (already fetched)
+	*	@return	string					Absolute path to the downloaded image, '' if disabled, no image link or failure
+	**/
+	function pdf_InfraSPlus_getLineExternalImage($db, $objproduct)
+	{
+		global $conf;
+		static $urlcache	= [];
+
+		if (!getDolGlobalInt('INFRASPLUS_PDF_PICTURE_FROM_URL', 0)) {
+			return '';
+		}
+		$extlinks	= infraspackplus_get_product_links($db, $objproduct->id);
+		$url		= $extlinks['img_url'];
+		if (empty($url)) {
+			return '';
+		}
+		if (isset($urlcache[$url])) {
+			return $urlcache[$url];
+		}
+		$urlcache[$url]	= '';	// Cache négatif : ne pas retenter une URL en échec dans la même génération
+		$fetcherror		= '';
+		$content		= infraspackplus_fetch_url_content($url, $fetcherror);
+		if ($content === false) {
+			dol_syslog(__FUNCTION__.' : product '.$objproduct->id.' external image KO ('.$url.') : '.$fetcherror, LOG_WARNING);
+			return '';
+		}
+		$allowed	= [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_GIF => 'gif', IMAGETYPE_WEBP => 'webp'];
+		$imginfos	= getimagesizefromstring($content);
+		if (empty($imginfos[2]) || empty($allowed[$imginfos[2]])) {
+			dol_syslog(__FUNCTION__.' : product '.$objproduct->id.' external image KO ('.$url.') : unsupported content type', LOG_WARNING);
+			return '';
+		}
+		$dir	= (!empty($conf->infraspackplus->dir_temp) ? $conf->infraspackplus->dir_temp : DOL_DATA_ROOT.'/infraspackplus/temp').'/urlimg';
+		if (dol_mkdir($dir) < 0) {
+			dol_syslog(__FUNCTION__.' : unable to create dir '.$dir, LOG_ERR);
+			return '';
+		}
+		$filepath	= $dir.'/'.md5($url).'.'.$allowed[$imginfos[2]];
+		if (file_put_contents($filepath, $content) === false) {
+			dol_syslog(__FUNCTION__.' : unable to write file '.$filepath, LOG_ERR);
+			return '';
+		}
+		$urlcache[$url]	= $filepath;
+		return $filepath;
+	}
+
+	/**
 	*	Output product / service image into PDF
 	*
 	*	@param	TCPDF|TCPDI		$pdf			The PDF factory
@@ -4540,6 +4680,173 @@
 		$path		= ($conf->entity > 1 ? '/'.$conf->entity : '');
 		$cgv_pdf	= DOL_DATA_ROOT.$path.'/mycompany/'.$cgv;
 		pdf_InfraSPlus_Merge($pdf, $cgv_pdf, $hidepagenum, $object, $outputlangs, $formatpage);
+	}
+
+	/**
+	*	Download the PDF technical datasheet pointed by an external URL and make it available as a disk
+	*	file in the module temp directory (content checked : %PDF signature). Per-request cache : a same
+	*	URL is downloaded only once for the whole PDF generation.
+	*
+	*	@param	string	$url		URL of the PDF to download
+	*	@param	string	&$error		Error message on failure
+	*	@return	string				Absolute path of the downloaded file, '' on failure
+	**/
+	function pdf_InfraSPlus_getProductDatasheetFile($url, &$error = '')
+	{
+		global $conf;
+		static $urlcache	= [];
+
+		$error	= '';
+		if (isset($urlcache[$url])) {
+			return $urlcache[$url];
+		}
+		$fetcherror	= '';
+		$content	= infraspackplus_fetch_url_content($url, $fetcherror);
+		if ($content === false) {
+			$error	= $fetcherror;
+			return '';
+		}
+		if (strncmp($content, '%PDF-', 5) !== 0) {
+			$error	= 'not a PDF';
+			return '';
+		}
+		$dir	= (!empty($conf->infraspackplus->dir_temp) ? $conf->infraspackplus->dir_temp : DOL_DATA_ROOT.'/infraspackplus/temp').'/urlpdf';
+		if (dol_mkdir($dir) < 0) {
+			$error	= 'unable to create dir '.$dir;
+			return '';
+		}
+		$filepath	= $dir.'/'.md5($url).'.pdf';
+		if (file_put_contents($filepath, $content) === false) {
+			$error	= 'unable to write file '.$filepath;
+			return '';
+		}
+		$urlcache[$url]	= $filepath;
+		return $filepath;
+	}
+
+	/**
+	*	Collect, following the document lines order, the products / services technical documentation to
+	*	merge : files selected onto the product card (native Propalmergepdfproduct class) and / or first
+	*	external PDF link posted onto the product card (llx_links, downloaded through
+	*	pdf_InfraSPlus_getProductDatasheetFile()). Each product is handled only once ; duplicated file
+	*	names (option INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2) and duplicated URLs are skipped.
+	*
+	*	@param	DoliDB			$db					Database handler
+	*	@param	CommonObject	$object				Source document (lines loaded)
+	*	@param	Translate		$outputlangs		Output language (multilang file selection)
+	*	@param	int				$withlocalfiles		1 = include the product card selected files (Propalmergepdfproduct)
+	*	@param	int				$withlinks			1 = include the products external PDF links
+	*	@param	int				$multilangs			1 = select the files matching the document language
+	*	@param	int				$old_path_photo		1 = old storage path (PRODUCT_USE_OLD_PATH_FOR_PHOTO)
+	*	@param	int				$checkduplicates	1 = merge only once the files sharing the same name
+	*	@param	array			&$warnings			Warning messages (links in error)
+	*	@return	array								Absolute paths of the files, following the lines order
+	**/
+	function infraspackplus_collect_product_documentation($db, $object, $outputlangs, $withlocalfiles, $withlinks, $multilangs, $old_path_photo, $checkduplicates, &$warnings = [])
+	{
+		global $conf;
+
+		include_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
+		$result		= [];
+		$already	= array('products' => [], 'files' => [], 'urls' => []);
+		if (empty($object->lines) || !is_array($object->lines)) {
+			return $result;
+		}
+		foreach ($object->lines as $line) {
+			if (empty($line->fk_product) || in_array($line->fk_product, $already['products'])) {
+				continue;
+			}
+			$already['products'][]	= $line->fk_product;
+			$product				= new Product($db);
+			if ($product->fetch($line->fk_product) <= 0) {
+				continue;
+			}
+			$entity_product_file	= $product->entity != $conf->entity ? $product->entity : $conf->entity;
+			if (!empty($withlocalfiles)) {
+				$filetomerge	= new Propalmergepdfproduct($db);
+				if (!empty($multilangs)) {
+					$filetomerge->fetch_by_product($product->id, $outputlangs->defaultlang);
+				} else {
+					$filetomerge->fetch_by_product($product->id);
+				}
+				if (count($filetomerge->lines) > 0) {
+					foreach ($filetomerge->lines as $linefile) {
+						if (!empty($linefile->id) && !empty($linefile->file_name)) {
+							if (!empty($old_path_photo)) {
+								if (isModEnabled('product')) {
+									$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
+								} elseif (isModEnabled('service')) {
+									$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
+								}
+							} else {
+								if (isModEnabled('product')) {
+									$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');
+								} elseif (isModEnabled('service')) {
+									$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');
+								}
+							}
+							if (empty($checkduplicates) || !in_array($linefile->file_name, $already['files'])) {
+								$result[]			= preg_replace('/[\\/]$/', '', $filetomerge_dir).'/'.$linefile->file_name;
+								$already['files'][]	= $linefile->file_name;
+							}
+						}
+					}
+				}
+			}
+			if (!empty($withlinks)) {
+				$extlinks	= infraspackplus_get_product_links($db, $product->id);
+				if (!empty($extlinks['datasheet_url']) && !in_array($extlinks['datasheet_url'], $already['urls'])) {
+					$already['urls'][]	= $extlinks['datasheet_url'];
+					$dserror			= '';
+					$dsfile				= pdf_InfraSPlus_getProductDatasheetFile($extlinks['datasheet_url'], $dserror);
+					if ($dsfile !== '') {
+						$result[]	= $dsfile;
+					} else {
+						$warnings[]	= $outputlangs->trans('InfraSPlusDatasheetWarning', $product->ref, $dserror);
+					}
+				}
+			}
+		}
+		return $result;
+	}
+
+	/**
+	*	Build the separate PDF gathering the products / services technical documentation of a document
+	*	(pre-generation option 'docseparate') : same sources as the inline merge (files selected onto
+	*	the product cards and, when INFRASPLUS_PDF_MERGE_PRODUCT_LINKS is enabled, external PDF links).
+	*	The <ref>_documentation.pdf file is written next to the main PDF (overwritten when existing)
+	*	and indexed into the ECM. The main PDF is never modified.
+	*
+	*	@param	CommonObject	$object			Source document (lines loaded)
+	*	@param	string			$mainpdfpath	Absolute path of the generated main PDF
+	*	@param	Translate		$outputlangs	Output language
+	*	@param	array			&$warnings		Warning messages (links in error)
+	*	@return	string|false					Path of the documentation PDF, false when no documentation
+	**/
+	function infraspackplus_build_documentation_pdf($object, $mainpdfpath, $outputlangs, &$warnings = [])
+	{
+		global $conf, $db;
+
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+		$docfiles	= infraspackplus_collect_product_documentation($db, $object, $outputlangs, 1, getDolGlobalInt('INFRASPLUS_PDF_MERGE_PRODUCT_LINKS', 0), getDolGlobalInt('MAIN_MULTILANGS', 0), getDolGlobalInt('PRODUCT_USE_OLD_PATH_FOR_PHOTO', 0), getDolGlobalInt('INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2', 0), $warnings);
+		if (empty($docfiles)) {
+			return false;
+		}
+		$formats	= pdf_getFormat($outputlangs);
+		$formatpage	= array('largeur' => $formats['width'], 'hauteur' => $formats['height'], 'mgauche' => getDolGlobalInt('MAIN_PDF_MARGIN_LEFT', 10), 'mdroite' => getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT', 10), 'mhaute' => getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 10), 'mbasse' => getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 10));
+		$pdf		= pdf_InfraSPlus_getInstance(array($formatpage['largeur'], $formatpage['hauteur']), 'mm', 'P', false);
+		$pagecount	= 0;
+		foreach ($docfiles as $docfile) {
+			$pagecount	+= pdf_InfraSPlus_Merge($pdf, $docfile, 1, $object, $outputlangs, $formatpage, 0);
+		}
+		if (empty($pagecount)) {
+			return false;
+		}
+		$target	= dirname($mainpdfpath).'/'.basename($mainpdfpath, '.pdf').'_documentation.pdf';
+		$pdf->Close();
+		$pdf->Output($target, 'F');
+		addFileIntoDatabaseIndex(dirname($target), basename($target), '', 'generated', 0, $object, '');
+		return $target;
 	}
 
 	/**

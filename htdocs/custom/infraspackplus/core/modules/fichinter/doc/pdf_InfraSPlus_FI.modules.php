@@ -547,41 +547,7 @@
 						$this->tva[$vatrate]	+= $object->lines[$i]->product_type != 9 && $object->lines[$i]->special_code != 501028 ? $tvaligne : 0;
 						// detect if there is at least one image to show
 						if (!empty($this->with_picture) && $isProd[$i] > 0) {
-							if (!empty($this->old_path_photo)) {
-								$pdir[0]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';
-								$pdir[1]	= get_exdir(0, 0, 0, 0, $objproduct, 'product').dol_sanitizeFileName($objproduct->ref).'/';
-							} else {
-								$pdir[0]	= get_exdir(0, 0, 0, 0, $objproduct, 'product'); // default
-								$pdir[1]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';		// alternative
-							}
-							$arephoto	= false;
-							$onlyOne	= $this->only_one_picture ? (in_array($objproduct->id, $listObjBib) ? 1 : 0) : 0;
-							foreach ($pdir as $midir) {
-								if (!$arephoto && !$onlyOne) {
-									$dir	= ($objproduct->entity != $conf->entity ? $conf->product->multidir_output[$objproduct->entity] : $conf->product->dir_output).'/'.$midir;
-									foreach ($objproduct->liste_photos($dir, 1) as $key => $obj) {
-										if (empty($this->cat_hq_image)) {	// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
-											if (!empty($obj['photo_vignette'])) {
-												$filename	= $obj['photo_vignette'];
-											} else {
-												$filename	= $obj['photo'];
-											}
-										} else {
-											$filename	= $obj['photo'];
-										}
-										$realpath		= $dir.$filename;
-										$listObjBib[]	= $objproduct->id;
-										$arephoto		= true;
-									}
-								}
-							}
-							if (!empty($realpath) && !empty($arephoto)) {
-								$realpatharray[$i]	= $realpath;
-							} elseif (!empty($onlyOne)) {
-								$realpatharray[$i]	= 'done';
-							} else {
-								$realpatharray[$i]	= pdf_InfraSPlus_getLineDescriptionImage($object->lines[$i]);	// Repli : image insérée dans la description si le produit catalogué n'a pas de photo
-							}
+							$realpatharray[$i]	= pdf_InfraSPlus_getLineProductImage($this->db, $objproduct, $object->lines[$i], $this->old_path_photo, $this->cat_hq_image, $this->only_one_picture, $listObjBib);
 						} else {
 							$realpatharray[$i]	= '';
 						}

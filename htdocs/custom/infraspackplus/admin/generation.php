@@ -96,22 +96,23 @@
 							'expensereportfiles'		=> array('InfraSPlusParamFilesFromExpensereport',	1),	// $num = 14
 							'includealias'			=> array('PDFParamAliasIn3rdName',					1),	// $num = 15
 							'mergeproduct'			=> array('PDFInfraSPlusMergeProduct',				1),	// $num = 16
-							'usentascover'			=> array('PDFInfraSPlusUseNtAsCover',				1),	// $num = 17
-							'showwvccchk'			=> array('PDFInfraSPlusShowWVCCchk',				1),	// $num = 18
-							'hidepict'				=> array('PDFInfraSPlusHidePictchk',				1),	// $num = 19
-							'refcol'				=> array('PDFInfraSPlusShowRefCol',					1),	// $num = 20
-							'hidetimespent'			=> array('PDFInfraSPlusHidetimeSpentchk',			1),	// $num = 21
-							'hidedesc'				=> array('PDFInfraSPlusHideDescchk',				1),	// $num = 22
-							'hidedisc'				=> array('PDFInfraSPlusHideDiscchk',				1),	// $num = 23
-							'hidecols'				=> array('PDFInfraSPlusHideColschk',				1),	// $num = 24
-							'showpricebl'			=> array('PDFInfraSPlusShowPriceBLchk',				1),	// $num = 25
-							'adrfact'				=> array('PDFInfraSPlusParamAdrFact',				1),	// $num = 26
-							'showtotdisc'			=> array('InfraSPlusShowTotDiscChk',				!getDolGlobalInt('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT', 0)),	// $num = 27
-							'showtvabtp'			=> array('InfraSPlusShowTVAtxtBTPChk',				1),	// $num = 28
-							'showtot'				=> array('InfraSPlusShowTotChk',					1),	// $num = 29
-							'showvir'				=> array('InfraSPlusParamNoIBAN',					1),	// $num = 30
-							'showpayspec'			=> array('InfraSPlusShowPaySpecChk',				1),	// $num = 31
-							'showPropalSignEmet'	=> array('InfraSPlusShowPropalSignEmetChk',			1)	// $num = 32
+							'docseparate'			=> array('PDFInfraSPlusDocSeparate',				1),	// $num = 17
+							'usentascover'			=> array('PDFInfraSPlusUseNtAsCover',				1),	// $num = 18
+							'showwvccchk'			=> array('PDFInfraSPlusShowWVCCchk',				1),	// $num = 19
+							'hidepict'				=> array('PDFInfraSPlusHidePictchk',				1),	// $num = 20
+							'refcol'				=> array('PDFInfraSPlusShowRefCol',					1),	// $num = 21
+							'hidetimespent'			=> array('PDFInfraSPlusHidetimeSpentchk',			1),	// $num = 22
+							'hidedesc'				=> array('PDFInfraSPlusHideDescchk',				1),	// $num = 23
+							'hidedisc'				=> array('PDFInfraSPlusHideDiscchk',				1),	// $num = 24
+							'hidecols'				=> array('PDFInfraSPlusHideColschk',				1),	// $num = 25
+							'showpricebl'			=> array('PDFInfraSPlusShowPriceBLchk',				1),	// $num = 26
+							'adrfact'				=> array('PDFInfraSPlusParamAdrFact',				1),	// $num = 27
+							'showtotdisc'			=> array('InfraSPlusShowTotDiscChk',				!getDolGlobalInt('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT', 0)),	// $num = 28
+							'showtvabtp'			=> array('InfraSPlusShowTVAtxtBTPChk',				1),	// $num = 29
+							'showtot'				=> array('InfraSPlusShowTotChk',					1),	// $num = 30
+							'showvir'				=> array('InfraSPlusParamNoIBAN',					1),	// $num = 31
+							'showpayspec'			=> array('InfraSPlusShowPaySpecChk',				1),	// $num = 32
+							'showPropalSignEmet'	=> array('InfraSPlusShowPropalSignEmetChk',			1)	// $num = 33
 							);
 	if (preg_match('/update_(.*)/', $action, $reg)) {
 		foreach ($listOptions as $option => $transKey) {

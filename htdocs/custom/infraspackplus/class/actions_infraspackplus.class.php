@@ -934,6 +934,35 @@ EOJS;
 				} else {
 					$this->resprints	.= '<input type = "hidden" name = "mergeproduct" value = '.GETPOST('mergeproduct', 'alpha').'>';
 				}
+				// Documentation technique des produits / services dans un PDF séparé
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'mo', 'bom']) && getDolGlobalInt('INFRASPLUS_PDF_DOC_SEPARATE', 0)) {
+					$docseparatePost	= empty(GETPOST('docseparate', 'alpha')) || GETPOST('docseparate', 'alpha') == 'none' ? 0 : 1;
+					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
+												<td colspan = "'.$colspan.'" align = "right">
+													<label for = "docseparate">'.$langs->trans('PDFInfraSPlusDocSeparate').'</label>&nbsp;
+													<input type = "checkbox" name = "docseparate" value = "docseparate" '.($docseparatePost ? 'checked' : '').' class = "cursorpointer">
+												</td>
+											</tr>';
+					if (!empty($conf->use_javascript_ajax)) {
+						// Exclusivité type bouton radio entre fusion inline (mergeproduct) et PDF séparé (docseparate)
+						$this->resprints	.= '<script type = "text/javascript">
+													jQuery(document).ready(function() {
+														jQuery("input[type=checkbox][name=docseparate]").on("change", function() {
+															if (this.checked) {
+																jQuery("input[type=checkbox][name=mergeproduct]").prop("checked", false);
+															}
+														});
+														jQuery("input[type=checkbox][name=mergeproduct]").on("change", function() {
+															if (this.checked) {
+																jQuery("input[type=checkbox][name=docseparate]").prop("checked", false);
+															}
+														});
+													});
+												</script>';
+					}
+				} else {
+					$this->resprints	.= '<input type = "hidden" name = "docseparate" value = '.GETPOST('docseparate', 'alpha').'>';
+				}
 				// Page de garde
 				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat'])) {
 					if (!empty($usentascover)) {
@@ -1318,6 +1347,8 @@ EOJS;
 				$this->results['includealias']			= GETPOST('includealias', 'alpha') == 'none' ? '' : GETPOST('includealias', 'alpha');
 				// Fusion documentation produits / services
 				$this->results['mergeproduct']			= GETPOST('mergeproduct', 'alpha') == 'none' ? '' : GETPOST('mergeproduct', 'alpha');
+				// Documentation technique dans un PDF séparé
+				$this->results['docseparate']			= GETPOST('docseparate', 'alpha') == 'none' ? '' : GETPOST('docseparate', 'alpha');
 				// Page de garde
 				$this->results['usentascover']			= GETPOST('usentascover', 'alpha') == 'none' ? '' : GETPOST('usentascover', 'alpha');
 				// Infos Douanières (Poids, volume, dimensions et code SH
@@ -1437,6 +1468,18 @@ EOJS;
 		public function afterPDFCreation($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			unset($_SESSION['InfraSPackPlus_model']);	// Destroys the session variable that indicates that we are using an InfraSPackPlus template
+			// Documentation technique des produits / services dans un PDF séparé (option 'docseparate' avant génération)
+			// Nota : l'objet métier est dans $parameters['object'] et le chemin du PDF principal dans $parameters['file'] ($object reçu = instance du modèle PDF)
+			$docseparate	= GETPOST('docseparate', 'alpha');
+			if (!empty($docseparate) && $docseparate != 'none' && getDolGlobalInt('INFRASPLUS_PDF_DOC_SEPARATE', 0)
+				&& !empty($parameters['file']) && !empty($parameters['object']) && is_object($parameters['object']) && !empty($parameters['object']->lines) && !empty($parameters['outputlangs'])) {
+				dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
+				$warnings	= [];
+				infraspackplus_build_documentation_pdf($parameters['object'], $parameters['file'], $parameters['outputlangs'], $warnings);
+				if (!empty($warnings)) {
+					setEventMessages(null, $warnings, 'warnings');
+				}
+			}
 			return 0;
 		}
 

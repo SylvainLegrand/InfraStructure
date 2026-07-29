@@ -4,12 +4,14 @@
 
 ## ***InfraSPackPlus***
 #### Développé par ***InfraS*** - Membre du programme officiel ![](img/Dolibarr_preferred_partner_small.png), gage de qualité et d’expertise.
-* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 38 modèles pour 21 types de documents différents et 744 options (32 options sont modifiables directement sur la fiche du document) dont
+* Le pack de modèles ***InfraS*** apporte de nombreuses modifications aux modèles de base : c'est plus de 38 modèles pour 21 types de documents différents et plusieurs centaines d'options (une trentaine étant modifiables directement sur la fiche du document) dont
 	 * Les cadres arrondis, l’organisation des colonnes (ordre, affichage, largeur, …)
 	 * Le choix des couleurs de texte, de fond, des images, des filigranes, des types épaisseur et couleurs des lignes, …
 	 * L’affichage 'full' TTC
 	 * L'affichage du total en toutes lettres
 	 * Une gestion plus claire des options, une gestion complète des images (logo, image en pied, image des produits / services)
+	 * L'utilisation d'images produit hébergées sur un serveur externe (URL renseignée comme lien sur la fiche produit)
+	 * La fusion des fiches techniques PDF hébergées sur un serveur externe (liens sur la fiche produit) et / ou le regroupement de la documentation technique dans un PDF séparé du document principal
 	 * L’activation des adresses multiples pour votre société comme pour les tiers et l'utilisation des adresses de livraison (y compris en saisie manuelle)
 	 * Un en-tête simplifié pour les pages suivantes
 	 * L’utilisation du nom commercial (marque) des tiers
@@ -24,7 +26,7 @@
 
 ***InfraSPackPlus*** est distribué sous les termes de la licence GNU General Public License v3+ ou supérieure. ![](img/gplv3.png)
 
-Copyright (C) 2016-2024 Sylvain Legrand - InfraS
+Copyright (C) 2016-2026 Sylvain Legrand - InfraS
 
 voir le fichier LICENSE pour plus d'informations
 
@@ -45,7 +47,7 @@ Utilise jSignature de Brinley Ang sous licence MIT pour la gestion des signature
 	 * Commandes client, compatibilité module ***“Sous-Total” - ATM Consulting - version améliorée par InfraS***, ***“Custom Link” - Patas-Monkey***,  ***“Milestone/Jalon” - iNodbox*** et ***“Ouvrage/Forfait” - Inovea***
 	 * Contrats
 	 * Factures, compatibilité module ***“Sous-Total” - ATM Consulting - version améliorée par InfraS***, ***“Équipement” - Patas-Monkey***, ***“Milestone/Jalon” - iNodbox*** et ***“Ouvrage/Forfait” - Inovea***
-* Chaîne des achâts
+* Chaîne des achats
 	 * Devis fournisseur
 	 * Commandes fournisseur
 	 * Factures fournisseur
@@ -144,7 +146,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***2*** Activer la génération semi-automatique ("à la validation du document") des PDF : ATTENTION ! Le module active nativement cette fonction pour des raisons d'ergonomie. Vous pouvez forcer ce choix
 		* ***3*** Activer la génération semi-automatique des PDF à la modification des notes publiques manuelles
 		* ***4*** Activer la génération semi-automatique des PDF à la modification des attributs supplémentaires de document
-		* ***5*** Activer la génération semi-automatique des PDF à l'enregistrement des champs modifiables après validation  du document (Date de fin de validité, Conditions de règlement, Mode de règlement, Date d'expédittion / de livraison, Délai de livraison, Compte bancaire)
+		* ***5*** Activer la génération semi-automatique des PDF à l'enregistrement des champs modifiables après validation  du document (Date de fin de validité, Conditions de règlement, Mode de règlement, Date d'expédition / de livraison, Délai de livraison, Compte bancaire)
 		* ***6*** Activer / Désactiver la génération automatique ("à la volée") des PDF
 		* ***7*** Autoriser l'enregistrement de plusieurs fichiers PDF pour un même document quand plusieurs modèles sont disponibles (un fichier par modèle et par document)
 		* ***8*** Horodater le nom du fichier des fiches projet pour garder un historique de l'évolution
@@ -153,21 +155,23 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***11*** Devis => Création d'un document supplémentaire en prix brut (Les prix ne tiennent pas compte des remises et / ou des tarifs client ; ils sont issus du prix de vente par défaut de la bibliothèque articles)
 		* ***12*** Gérer la fusion de la documentation produit / service avec les devis depuis les paramètres finaux (case à cocher)
 		* ***13*** Vérifier la présence de fichier en double (fichiers ayant un nom identique associés à des références produit / service différents) => le fichier ne sera fusionné qu'une seule fois
-		* ***14*** Dans les devis proposer aussi l'attestation de TVA associée au document comme fichier fusionnable (requiert le module externe Attestation de TVA - Iouston)
-		* ***15-17*** Forcer le nombre de décimales  affichées pour les prix unitaires et/ou les prix totaux (lignes et document)
+		* ***14*** Utiliser aussi les liens externes de type PDF (URL, onglet Fichiers joints de la fiche produit) comme source de documentation technique à fusionner
+		* ***15*** Proposer le regroupement de la documentation technique des produits / services dans un PDF séparé du document principal depuis les paramètres finaux (case à cocher)
+		* ***16*** Dans les devis proposer aussi l'attestation de TVA associée au document comme fichier fusionnable (requiert le module externe Attestation de TVA - Iouston)
+		* ***17-19*** Forcer le nombre de décimales  affichées pour les prix unitaires et/ou les prix totaux (lignes et document)
 	* OPTIONS DE L'APPARENCE GÉNÉRALE DES DOCUMENTS
 		* ***1*** Importer des fichiers True Type Font (ttf) comme nouvelle police de caractère à utiliser
-		* ***2*** Tester la police sélectionnée (création d'un document test avec 84 caractères différents => affichage standard, gras, italique et gras italique => alphabet latin en miniuscules et majuscules, chiffres, ponctuation, accentuation, symboles monétaires, etc soit 98% d'un clavier AZERTY)
-		* ***2*** Choisir la police de caractères désirée pour la génération des documents
-		* ***3*** Choisir la couleur de texte de l’en-tête de page et / ou du corps du document indépendamment
-		* ***4*** Afficher la référence du document et sa date en haut à droite des éléments concaténés (CGV, documentation technique, commerciale, etc...)
-		* ***5*** Choisir la valeur du rayon des angles des tableaux et cadres (comprise entre 0 pour angles aigus et 5)
-		* ***6*** Ajouter un texte à afficher en filigrane sur les factures réglées
-		* ***7*** Ajouter un texte à afficher en filigrane sur tous les documents (à utiliser pour les instances de test)
-		* ***8*** Ajouter un Texte à afficher en filigrane sur les devis validés provisoires
-		* ***9*** Afficher le symbole monétaire dans les tableaux et détails du document
-		* ***10*** Si l'option précédente est active, masquer les informations monétaires situées au dessus de l'en-tête des tableaux (à droite)
-		* ***11*** Si l'option précédente est désactivé, Afficher le symbole monétaire dans le tableau des totaux
+		* ***2*** Tester la police sélectionnée (création d'un document test avec 84 caractères différents => affichage standard, gras, italique et gras italique => alphabet latin en minuscules et majuscules, chiffres, ponctuation, accentuation, symboles monétaires, etc soit 98% d'un clavier AZERTY)
+		* ***3*** Choisir la police de caractères désirée pour la génération des documents
+		* ***4*** Choisir la couleur de texte de l’en-tête de page et / ou du corps du document indépendamment
+		* ***5*** Afficher la référence du document et sa date en haut à droite des éléments concaténés (CGV, documentation technique, commerciale, etc...)
+		* ***6*** Choisir la valeur du rayon des angles des tableaux et cadres (comprise entre 0 pour angles aigus et 5)
+		* ***7*** Ajouter un texte à afficher en filigrane sur les factures réglées
+		* ***8*** Ajouter un texte à afficher en filigrane sur tous les documents (à utiliser pour les instances de test)
+		* ***9*** Ajouter un Texte à afficher en filigrane sur les devis validés provisoires
+		* ***10*** Afficher le symbole monétaire dans les tableaux et détails du document
+		* ***11*** Si l'option précédente est active, masquer les informations monétaires situées au dessus de l'en-tête des tableaux (à droite)
+		* ***12*** Si l'option précédente est désactivé, Afficher le symbole monétaire dans le tableau des totaux
 	* OPTIONS DES EN-TÊTES DE DOCUMENT
 		* ***1*** Laisser la première page vide => seuls l'en-tête et le pied de page seront visibles (actif pour les : Devis et Devis sans total ; Commandes, Commande avec code-barres et Proforma ; Contrats ; Factures)
 		* ***2*** Créer un en-tête personnalisé à partir d'un fichier PHP
@@ -190,7 +194,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***19*** Afficher les références clients des commandes dans la liste des objets liés (entre parenthèses)
 		* ***20*** Afficher les expéditions dans la liste des objets liés
 		* ***21*** Afficher les contrats dans la liste des objets liés
-		* ***22*** Afficher les fiches d'interventioàn dans la liste des objets liés
+		* ***22*** Afficher les fiches d'intervention dans la liste des objets liés
 		* ***23*** Afficher les projets dans la liste des objets liés
 		* ***24*** Afficher la description des projets en plus de leur référence
 		* ***25*** Masquer les libellés “Émetteur” et “ Adressé à”
@@ -211,24 +215,24 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***48*** Gérer l'apparence du nom du représentant commercial dans les notes (normal ou gras)
 		* ***49*** Dans les fiches d'intervention afficher les notes (saisies sur le document) dans un tableau indépendant sous celui des consommations de pièces / services
 		* ***50*** Afficher une marque de pliage à droite et à gauche de chaque page (choix de la longueur des marques)
-		* ***51*** Choisir la position minimum (en hauteur) de l'en-tête du tableau (permet d'augmenter la taille de l'en-tête de la première page => utile pour la gestion des envelopes à fenêtre)
+		* ***51*** Choisir la position minimum (en hauteur) de l'en-tête du tableau (permet d'augmenter la taille de l'en-tête de la première page => utile pour la gestion des enveloppes à fenêtre)
 		* ***52*** Choisir la position en x (largeur) du coin supérieur gauche du cadre d'adresse destinataire
 		* ***53*** Choisir la position en y (hauteur) du coin supérieur gauche du cadre d'adresse destinataire
 	* OPTIONS DU CORPS DU DOCUMENT (COLONNAGE)
 		* ***1*** Choisir la couleur de fond des éléments marqués du tableau (minimum => totaux) par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV)
 		* ***2*** Appliquer la couleur de fond définie à l'en-tête du tableau
 		* ***3-4*** Choisir le calcul automatique de la couleur (noire ou blanche) de police adaptée au choix précédent ou imposer une couleur choisie (choix graphique ou par code RVB, hexa, ou HSV)
-		* ***5*** Choisier la hauteur de l'en-tête des colonnes du tableau (comprise entre 4 et 5 au pas de 0.1 => cette valeur doit être supérieur ou égale à 2 x la valeur du rayon des angles du tableau)
+		* ***5*** Choisir la hauteur de l'en-tête des colonnes du tableau (comprise entre 4 et 5 au pas de 0.1 => cette valeur doit être supérieur ou égale à 2 x la valeur du rayon des angles du tableau)
 		* ***6*** Afficher / Cacher l’en-tête des colonnes du tableau après la 1ère page
 		* ***7-8*** Choisir l'épaisseur et le type de ligne pour les cadres et lignes des tableaux
 		* ***9-11*** Choisir la couleur pour les cadres, les lignes verticales et les lignes horizontales (indépendamment) des tableaux (choix graphique ou par code RVB, hexa, ou HSV)
-		* ***12*** Choisir la hauteur de l'espace de séparation des lignes (éléments) d'un document (si l'option native d'afficage d'une ligne de séparation est désactivée)
-		* ***13*** Choisir la couleur de fond des sous-titres et sous totaux indépendemment par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV)  (version améliorée par InfaS du module d'ATM)
-		* ***14-16*** Choisir la couleur du texte et de la description longue des sous-titres et du texte des sous totaux indépendemment par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV)  (version améliorée par InfaS du module d'ATM)
-		* ***17*** Couleur de fond à appliquer aux sous-totaux du module sous-total (choix graphique ou par code RVB, hexa, ou HSV) (version améliorée par InfaS du module d'ATM)
-		* ***18*** Désactiver l'utilisation d'une couleur de fond (surlignage) pour les sous-totaux (version améliorée par InfaS du module d'ATM)
-		* ***19*** Coordonner la couleur de fond (surlignage) des sous-totaux avec celle des sous-titres (version améliorée par InfaS du module d'ATM)
-		* ***20*** Fusionner les sous-totaux avec les sous-titres (les montants des sous-totaux sont affichés sur les lignes de sous-titres) (version améliorée par InfaS)
+		* ***12*** Choisir la hauteur de l'espace de séparation des lignes (éléments) d'un document (si l'option native d'affichage d'une ligne de séparation est désactivée)
+		* ***13*** Choisir la couleur de fond des sous-titres et sous totaux indépendamment par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV)  (version améliorée par InfraS du module d'ATM)
+		* ***14-16*** Choisir la couleur du texte et de la description longue des sous-titres et du texte des sous totaux indépendamment par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV)  (version améliorée par InfraS du module d'ATM)
+		* ***17*** Couleur de fond à appliquer aux sous-totaux du module sous-total (choix graphique ou par code RVB, hexa, ou HSV) (version améliorée par InfraS du module d'ATM)
+		* ***18*** Désactiver l'utilisation d'une couleur de fond (surlignage) pour les sous-totaux (version améliorée par InfraS du module d'ATM)
+		* ***19*** Coordonner la couleur de fond (surlignage) des sous-totaux avec celle des sous-titres (version améliorée par InfraS du module d'ATM)
+		* ***20*** Fusionner les sous-totaux avec les sous-titres (les montants des sous-totaux sont affichés sur les lignes de sous-titres) (version améliorée par InfraS)
 		* ***21*** Choisir la couleur de fond des sous-titres par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV) => demande le module Milestone/Jalon d'iNodbox
 		* ***22*** Choisir la couleur du texte des Ouvrages/Forfaits par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV) => demande le module Ouvrages/ForfaitsOuvrages/Forfaits d'Inovea
 		* ***23*** Choisir la couleur de fond des Ouvrages/Forfaits par fenêtre de sélection (choix graphique ou par code RVB, hexa, ou HSV) => demande le module Ouvrages/ForfaitsOuvrages/Forfaits d'Inovea
@@ -241,7 +245,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***31*** Choisir la taille des codes 2D (code QR) dans les documents commerciaux (hors fiche produit)
 		* ***32*** Afficher une colonne 'Num.' (numéro de ligne) dans les documents de la chaîne des ventes => désactive automatiquement l'affichage de la colonne référence de la chaîne des ventes
 		* ***33-37*** Afficher une colonne “Réf.” Dans les documents de la chaîne des ventes et celle des achats indépendamment (Référence) => désactive automatiquement l'affichage de la référence avec la description
-		* ***38*** Gérer les écotaxes dans les commandes fournisseur suivant le même processus que dans la chaîne des achats (l'attribut suppémentaire dédié à l'écotaxe des produits sera mentionné comme écotaxe incluse dans la description du produit, totalisé dans le document et affiché après le total TTC)
+		* ***38*** Gérer les écotaxes dans les commandes fournisseur suivant le même processus que dans la chaîne des achats (l'attribut supplémentaire dédié à l'écotaxe des produits sera mentionné comme écotaxe incluse dans la description du produit, totalisé dans le document et affiché après le total TTC)
 		* ***39*** Forcer l'alignement de la colonne 'Unité'
 		* ***40*** Afficher la description sur toute la largeur d'une ligne
 		* ***41*** Définir la largeur de la ligne de séparation quand l'option d'affichage de la description sur toute la largeur est active
@@ -302,7 +306,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 	* OPTIONS DU PIED DE DOCUMENT
 		* ***1*** Choisir la hauteur de l'espace entre le corps du document (tableau) et les informations de pied de document 
 		* ***2*** Choisir la hauteur de l'espace entre le corps du document (tableau) et le total général
-		* ***3*** Affichage de la mention rélative au régime du TVA sur les factures
+		* ***3*** Affichage de la mention relative au régime du TVA sur les factures
 		* ***4*** Afficher les conditions de règlements sur une nouvelle ligne
 		* ***5*** Afficher un code de "communication structurée" sur les factures (Belgique)
 		* ***6*** Afficher le nombre total d'éléments de type produit dans le document (Devis, commandes et factures client)
@@ -313,7 +317,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***11*** Inverser la couleur de fond des totaux Ht et TTC (par défaut le total HT n'a pas de couleur de fond mais le total TTC oui)
 		* ***12*** Afficher séparément les totaux HT des produits et des services et ventilés par type de TVA (Facture client)
 		* ***13*** Présenter les totaux des factures de situation suivant 2 méthodes au choix :
-			* le total HT, le total TVA et le total TTC corespondent au cumul des situations, les situations précédentes sont considérées comme des règlements anticipés (sur le TTC) et le TTC de la situation en cours est présenté comme reste à payer.
+			* le total HT, le total TVA et le total TTC correspondent au cumul des situations, les situations précédentes sont considérées comme des règlements anticipés (sur le TTC) et le TTC de la situation en cours est présenté comme reste à payer.
 			* le cumul des situations et les situations précédentes sont affichés HT, puis le total Ht de la situation en cours est présenté avec son total TVA et son total TTC
 		* ***14-15*** Pour les société Suisse (CH) non assujettie à la TVA l'utilisation de la TVA forfaitaire est possible dans les factures (Présentation client seule, aucun calcul n'est fait en comptabilité)
 		* ***16*** Afficher une ligne de total TTC supplémentaire dans la monnaie locale, pour les documents en devise
@@ -375,14 +379,14 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 			 * Choix d'une gestion en fonction de la langue (si l'option multi-langues est activée dans Dolibarr) => le fichier proposé par défaut pour chaque Tiers est en fonction de la langue renseignée pour ce Tiers
 		* ***6*** Insérer des CGA dans les devis ou commandes fournisseurs
 			 * Plusieurs fichiers de CGA différents possible (différentes langues, différentes activités, etc...)
-			 * Choix du réglage par défaut (fichier spécifique ou pas de CGA) pour chaque type de document indépendemment (Devis ou commande fournisseur)
+			 * Choix du réglage par défaut (fichier spécifique ou pas de CGA) pour chaque type de document indépendamment (Devis ou commande fournisseur)
 			 * Choix d'une gestion en fonction de la langue (si l'option multi-langues est activée dans Dolibarr) => le fichier proposé par défaut pour chaque Tiers fournisseur est en fonction de la langue renseignée pour ce Tiers
 	* GESTION DES FICHIERS SPÉCIAUX
 		* LISTE DES FICHIERS SPÉCIAUX DISPONIBLES (MASQUES PDF)
-			* ***1*** Ajouter des fichiers modèles (fichiers PDF associés à des fichiers PHP) => cette option permet de fusionner des PDF en y associant des informatiuons issues de Dolibarr
+			* ***1*** Ajouter des fichiers modèles (fichiers PDF associés à des fichiers PHP) => cette option permet de fusionner des PDF en y associant des informations issues de Dolibarr
 			* Visualiser la liste des fichiers PDF disponibles
 		* LISTE DES FICHIERS SPÉCIAUX DISPONIBLES (TRAITEMENT PDF)
-			* ***2*** Ajouter des fichiers modèles (fichiers PHP associés à des fichiers PDF) => cette option permet de fusionner des PDF en y associant des informatiuons issues de Dolibarr
+			* ***2*** Ajouter des fichiers modèles (fichiers PHP associés à des fichiers PDF) => cette option permet de fusionner des PDF en y associant des informations issues de Dolibarr
 			* Visualiser la liste des fichiers PHP disponibles
 * Onglet Images
 	* GESTION DES FICHIERS IMAGE UTILISABLES COMME LOGO ET / OU PIED DE PAGE DANS LES DIFFÉRENTES ÉDITIONS DU PACK INFRAS
@@ -400,22 +404,24 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***3*** Choisir la hauteur du logo pour les en-têtes réduits (après la première page)
 		* ***4*** Choisir la largeur maximale de l’image de pied de page (la hauteur est calculée proportionnellement)
 		* ***5*** Borner la hauteur maximale de l’image de pied de page (la largeur est calculée proportionnellement)
-		* ***6*** Dans les tiers, Enregistrer un des logos de la société émetrice comme fichier à utliser par défaut pour les documents concernant ce tiers
+		* ***6*** Dans les tiers, Enregistrer un des logos de la société émettrice comme fichier à utiliser par défaut pour les documents concernant ce tiers
 		* ***7*** Dans les documents de la chaine des ventes afficher l'image de chaque produit / service qui contient au moins une image (la première)
-		* ***8*** Dans les documents de la chaine des ventes afficher l'image dans la colonne référence (ou numéro de ligne)
-		* ***9*** N'afficher que l'image dans la colonne référence (ou numéro de ligne), celle-ci vient en remplacement des valeurs de référence ou de numéro
-		* ***10*** Dans les documents de la chaine des ventes n'afficher qu'une fois l'image d'un produit / service utilisé plusieurs fois dans le même document
-		* ***11*** Afficher l'image après la description longue des produits / services
-		* ***12*** Afficher l'image entre le libellé et la description longue des produits / services
-		* ***13*** Choisir la taille de l'intervalle entre l'image du produit / service et le texte de description
-		* ***14*** Choisir le texte à afficher comme lien de téléchargement associé à l'image produit / service (renseigné, un lien est créé à coté de l'image du produit avec l'url publique du produit / service)
-		* ***15*** Dans les commandes fournisseurs afficher l'image de chaque produit / service contenant au moins une image (la première)
-		* ***16*** Largeur maximale des images affichées (la hauteur est calculée proportionnellement)
-		* ***17*** Borner la hauteur maximale des images affichées (la largeur est calculée proportionnellement)
-		* ***18*** Rechercher les images en utilisant aussi le chemin antérieur à la version 3.7
-		* ***19*** Interdire l'utilisation de vignettes (thumb) en lieu et place d'image HQ
-		* ***20-21*** Gérer l’opacité des filigranes (du texte utilisé et / ou de l’image de fond indépendamment l’un de l’autre)
-		* ***22*** Fixer la largeur de la signature émetteur pour que les dimmensions de l'image correspondent aux dimensions physiques (surtout en cas d'utilisation d'un cachet)
+		* ***8*** Utiliser le premier lien de type image (URL se terminant par jpg, jpeg, png, gif ou webp) de l'onglet Fichiers joints de la fiche produit comme image du produit / service sans photo (l'image est téléchargée par le serveur au moment de la génération ; option visible si l'option précédente est active, désactivée par défaut)
+		* ***9*** Choisir le délai maximum de téléchargement d'une image par URL externe (en secondes, 10 par défaut ; option visible si l'option précédente est active)
+		* ***10*** Dans les documents de la chaine des ventes afficher l'image dans la colonne référence (ou numéro de ligne)
+		* ***11*** N'afficher que l'image dans la colonne référence (ou numéro de ligne), celle-ci vient en remplacement des valeurs de référence ou de numéro
+		* ***12*** Dans les documents de la chaine des ventes n'afficher qu'une fois l'image d'un produit / service utilisé plusieurs fois dans le même document
+		* ***13*** Afficher l'image après la description longue des produits / services
+		* ***14*** Afficher l'image entre le libellé et la description longue des produits / services
+		* ***15*** Choisir la taille de l'intervalle entre l'image du produit / service et le texte de description
+		* ***16*** Choisir le texte à afficher comme lien de téléchargement associé à l'image produit / service (renseigné, un lien est créé à coté de l'image du produit avec l'url publique du produit / service)
+		* ***17*** Dans les commandes fournisseurs afficher l'image de chaque produit / service contenant au moins une image (la première)
+		* ***18*** Largeur maximale des images affichées (la hauteur est calculée proportionnellement)
+		* ***19*** Borner la hauteur maximale des images affichées (la largeur est calculée proportionnellement)
+		* ***20*** Rechercher les images en utilisant aussi le chemin antérieur à la version 3.7
+		* ***21*** Interdire l'utilisation de vignettes (thumb) en lieu et place d'image HQ
+		* ***22-23*** Gérer l’opacité des filigranes (du texte utilisé et / ou de l’image de fond indépendamment l’un de l’autre)
+		* ***24*** Fixer la largeur de la signature émetteur pour que les dimensions de l'image correspondent aux dimensions physiques (surtout en cas d'utilisation d'un cachet)
 * Onglet Adresses
 	* GESTION DES ADRESSES UTILISABLES DANS LES DIFFÉRENTES ÉDITIONS DU PACK INFRAS
 		* Gérer la fonction multi-adresses de votre société (création, modification, suppression, …)
@@ -430,7 +436,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***6-11*** Afficher les identifiants professionnels dans l'adresse de l'émetteur (TVA intracommunautaire, Id. prof. 1 “SIREN”, Id. prof. 2 “SIRET”, Id. prof. 3 “NAF – APE”, Id. prof. 4 “RCS/RM”, Id. prof. 5 “EORI”)
 		* ***12*** Afficher la forme juridique avec le nom de la société dans le cadre d'adresse du destinataire
 		* ***13*** Utiliser l'adresse de facturation de la maison mère (si renseignée) en lieu et place de l'adresse client => l'ensemble de la configuration des automatismes s'applique à la société mère
-		* ***14*** Utiliser le nom commercial alternatif (alias) en remplacement de la raison sociale si une adresse émetteur secondaire est sélectionnée pour la génératrion du document
+		* ***14*** Utiliser le nom commercial alternatif (alias) en remplacement de la raison sociale si une adresse émetteur secondaire est sélectionnée pour la génération du document
 		* ***15*** Gérer l'affichage de l'adresse du destinataire (Adresse du tiers, Adresse du contact lié, Adresse du tiers et affichage du contact ou Adresse du contact et affichage du tiers)
 		* ***16*** Automatiser l’utilisation d’une adresse de facturation client spécifique en choisissant le ‘label’ caractérisant cette adresse
 		* ***17*** Toujours afficher une adresse de livraison (même si l'adresse de facturation automatique est inactive)
@@ -463,11 +469,11 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* Créer plusieurs types de mentions complémentaire distincts pour chaque type de document
 		* Gérer les mentions complémentaires des différents types de documents (devis, commandes, contrats, expéditions, réceptions, fiches d’intervention, factures, Ordres de fabrication, Nomenclatures, demandes de prix, commandes fournisseur, fiche produit et notes de frais) d'une même page de paramètres
 	* OPTIONS CONCERNANT L'UTILISATION DES MENTIONS COMPLÉMENTAIRES DANS LES ÉDITIONS DU PACK
-		* ***1-13*** Intégrer systématiquement les mentions complémentaires de base (le choix se fait pour chaque type de document indépendemment les uns des autres)
+		* ***1-13*** Intégrer systématiquement les mentions complémentaires de base (le choix se fait pour chaque type de document indépendamment les uns des autres)
 		* ***14*** Afficher les mentions complémentaires en dernier et sur la largeur de la page
 		* ***15-16*** Automatiser l'utilisation d'une mention liée à une banque (Factor)
 		* ***17*** Gérer automatiquement les mentions obligatoires relatives à la TVA (franchise en base de TVA, autoliquidation, export)
-		* ***18*** Gérer automatiquement les mentions obligatoires relatives à la TVA (franchise en base de TVA, autoliquidation, export)
+		* ***18*** Gérer les mentions de TVA pour les départements d'outre-mer (DOM) => rend disponibles les mentions TVA_DOM / TVA_DOMS
 		* ***19-24*** Enregistrer la mention obligatoire à utiliser pour les différentes situations possibles (Micro-entreprise, autoliquidation, exonération, Sous-traitance BTP)
 * Onglet Notes publiques
 	* Ajouter des notes publiques standards sur les fiches produits (actif dès l'activation du module)
@@ -476,9 +482,9 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* Gérer les notes publiques standards des différents types de documents (devis, commandes, contrats, expéditions, réceptions, fiches d’intervention, factures, Ordres de fabrication, Nomenclatures, demandes de prix, commandes fournisseur, produits, projets, notes de frais) d'une même page de paramètres
 	* OPTIONS CONCERNANT L'UTILISATION DES NOTES PUBLIQUES STANDARDS DANS LES ÉDITIONS DU PACK
 		* ***1*** Utiliser un type de note publique pour créer une page de garde dans les documents clients
-		* ***2-13*** Intégrer systématiquement les notes publiques standards de base (le choix se fait pour chaque type de document indépendemment les uns des autres)
+		* ***2-13*** Intégrer systématiquement les notes publiques standards de base (le choix se fait pour chaque type de document indépendamment les uns des autres)
 * Onglet Options avant génération
-	* ***1-30*** Pour chaque option disponible avant la génération du document choisir le type d'enregistrement du réglage (par utilisateur, par document (référence), par type (devis, commande, ...), par client ou non enregistré) 
+	* ***1-33*** Pour chaque option disponible avant la génération du document choisir le type d'enregistrement du réglage (par utilisateur, par document (référence), par type (devis, commande, ...), par client ou non enregistré) 
 	* ***Toujours visible*** Pour chaque option, cocher cette case (colonne à droite de « Aucun enregistrement ») pour épingler la ligne : sur le document (devis, facture, ...), elle reste affichée même lorsque le bloc « Options pour le module d'impression InfraSPack » est replié. Décochée, la ligne se replie / se déplie avec les autres. Les lignes d'adresses (livraison, sous-traitant, livraison fournisseur) sont cochées par défaut.
 
 
@@ -489,7 +495,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 * Choisir le logo, l’adresse expéditeur et / ou l’image en pied de page (marques commerciales, partenaires, communication, …)
 * Choisir l'affichage de l'adresse du destinataire (Adresse du tiers, Adresse du contact lié, Adresse du tiers et affichage du contact ou Adresse du contact et affichage du tiers)
 * Choisir la / les mention(s) complémentaire(s) disponible(s) pour ce type de document à intégrer au fichier PDF généré
-* Choisir la / les note(s) publique(s) standrad(s) disponible(s) pour ce type de document à intégrer au fichier PDF généré
+* Choisir la / les note(s) publique(s) standard(s) disponible(s) pour ce type de document à intégrer au fichier PDF généré
 * Choisir une adresse de livraison (dans les documents fournisseurs. Cette adresse peut inclure les adresses société comme celles des clients)
 	 * Saisie rapide disponible
 * Choisir un sous-traitant dans la liste des contacts externes déclarés via le module customLink et choisir son adresse (si plusieurs adresses sont déclarées pour ce tiers sous-traitant)
@@ -499,6 +505,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 * Choisir un ou plusieurs fichier(s) joint(s) pour le(s) fusionner avec le document généré.
 * Inclure les alias dans le nom des tiers
 * Fusionner la documentation produit / service avec les devis (si cette option est présente elle n'est jamais mémorisée)
+* Regrouper la documentation technique des produits / services dans un PDF séparé du document principal (fichier &lt;nom&gt;_documentation.pdf, visible dans l'onglet Documents) => cette case et celle de fusion avec les devis s'excluent mutuellement (cocher l'une décoche l'autre)
 * Afficher une page de garde (le contenu de cette page dépend d'une note publique dédiée)
 * Gérer l'affichage de l'adresse du destinataire (Adresse du tiers, Adresse du contact lié, Adresse du tiers et affichage du contact ou Adresse du contact et affichage du tiers)
 * Inclure ou exclure les informations douanières (dimensions, poids, volume, surface et / ou code SH) pour chaque ligne, dans les documents de vente (export à l’international)

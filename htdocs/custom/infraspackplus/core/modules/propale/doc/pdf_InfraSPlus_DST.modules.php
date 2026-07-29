@@ -320,6 +320,7 @@
 		public $hide_totcol;
 		public $largcol11;
 		public $mergeproduct;
+		public $docseparate;
 		public $posystamp;
 		public $product_merge;
 		public $product_merge_check_x2;
@@ -443,6 +444,7 @@
 					$this->CGV					= !empty($hookmanager->resArray['cgv']) ? $hookmanager->resArray['cgv'] : '';
 					$this->files				= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
 					$this->mergeproduct			= !empty($hookmanager->resArray['mergeproduct']) ? $hookmanager->resArray['mergeproduct'] : '';
+					$this->docseparate			= !empty($hookmanager->resArray['docseparate']) ? $hookmanager->resArray['docseparate'] : '';
 					$this->usentascover			= !empty($hookmanager->resArray['usentascover']) ? $hookmanager->resArray['usentascover'] : '';
 					$this->include_alias		= !empty($hookmanager->resArray['includealias']) ? $hookmanager->resArray['includealias'] : '';
 					$this->with_picture			= !empty($hookmanager->resArray['hidepict']) ? $hookmanager->resArray['hidepict'] : '';
@@ -696,59 +698,7 @@
 						}
 						// detect if there is at least one image to show
 						if (!empty($this->with_picture) && $isProd > 0) {
-							$ecmfile	= new EcmFiles($this->db);
-							if (!empty($this->old_path_photo)) {
-								$pdir[0]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';
-								$pdir[1]	= get_exdir(0, 0, 0, 0, $objproduct, 'product').dol_sanitizeFileName($objproduct->ref).'/';
-							} else {
-								$pdir[0]	= get_exdir(0, 0, 0, 0, $objproduct, 'product'); // default
-								$pdir[1]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';		// alternative
-							}
-							$arephoto	= false;
-							$onlyOne	= $this->only_one_picture ? (in_array($objproduct->id, $listObjBib) ? 1 : 0) : 0;
-							foreach ($pdir as $midir) {
-								if (!$arephoto && !$onlyOne) {
-									$dir		= ($objproduct->entity != $conf->entity ? $conf->product->multidir_output[$objproduct->entity] : $conf->product->dir_output).'/'.$midir;
-									$listPhotos	= [];
-									// We recover all the photos attached to the product and we find their position in the ECM
-									foreach ($objproduct->liste_photos($dir, 0) as $key => $obj) {
-										$relpath	= ($objproduct->entity == 1 ? '' : $objproduct->entity.'/').'produit/'.$midir.$obj['photo'];
-										$hasecmfile	= $ecmfile->fetch(0, '', $relpath, '', '', $objproduct->table_element, $objproduct->id);
-										if ($hasecmfile > 0) {
-											$obj['position']	= $ecmfile->position;
-											$listPhotos[]		= $obj;
-										}
-									}
-									// Sort the photos by position
-									if (!empty($listPhotos)) {
-										usort($listPhotos, function($a, $b) {
-											return intval($a['position']) - intval($b['position']);
-										});
-										// Use the first sorted photo
-										// TODO we could use a configuration to choose if we want the first, the last or more than one photo
-										$obj	= $listPhotos[0];
-										if (empty($this->cat_hq_image)) {	// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
-											if (!empty($obj['photo_vignette'])) {
-												$filename	= $obj['photo_vignette'];
-											} else {
-												$filename	= $obj['photo'];
-											}
-										} else {
-											$filename	= $obj['photo'];
-										}
-										$realpath		= $dir.$filename;
-										$listObjBib[]	= $objproduct->id;
-										$arephoto		= true;
-									}
-								}
-							}
-							if (!empty($realpath) && !empty($arephoto)) {
-								$realpatharray[$i]	= $realpath;
-							} elseif (!empty($onlyOne)) {
-								$realpatharray[$i]	= 'done';
-							} else {
-								$realpatharray[$i]	= pdf_InfraSPlus_getLineDescriptionImage($object->lines[$i]);	// Repli : image insérée dans la description si le produit catalogué n'a pas de photo
-							}
+							$realpatharray[$i]	= pdf_InfraSPlus_getLineProductImage($this->db, $objproduct, $object->lines[$i], $this->old_path_photo, $this->cat_hq_image, $this->only_one_picture, $listObjBib);
 						} else {
 							$realpatharray[$i]	= '';
 						}
@@ -1552,51 +1502,14 @@
 						pdf_InfraSPlus_files($pdf, $this->files, $this->hidepagenum, $object, $outputlangs, $this->formatpage);
 					}
 					// If propal merge product PDF is active
-					if (!empty($this->produit_pdf_merge) && (empty($this->product_merge) || !empty($this->mergeproduct))) {
-						include_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
-						$already_merged = array ('products' => [], 'files' => []);
-						foreach ($object->lines as $line) {
-							if (!empty($line->fk_product) && ! (in_array($line->fk_product, $already_merged['products']))) {
-								$filetomerge	= new Propalmergepdfproduct($this->db);	// Find the desire PDF
-								if (!empty($this->multilangs)) {
-									$filetomerge->fetch_by_product($line->fk_product, $outputlangs->defaultlang);
-								} else {
-									$filetomerge->fetch_by_product($line->fk_product);
-								}
-								$already_merged['products'][]	= $line->fk_product;
-								$product						= new Product($this->db);
-								$product->fetch($line->fk_product);
-								if ($product->entity != $conf->entity) {
-									$entity_product_file	= $product->entity;
-								} else {
-									$entity_product_file	= $conf->entity;
-								}
-								// If PDF is selected and file is not empty
-								if (count($filetomerge->lines) > 0) {
-									foreach ($filetomerge->lines as $linefile) {
-										if (!empty($linefile->id) && !empty($linefile->file_name)) {
-											if (!empty($this->old_path_photo)) {
-												if (isModEnabled('product')) {
-													$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
-												} elseif (isModEnabled('service')) {
-													$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
-												}
-											} else {
-												if (isModEnabled('product')) {
-													$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');	//.dol_sanitizeFileName($product->ref);
-												} elseif (isModEnabled('service')) {
-													$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');	//.dol_sanitizeFileName($product->ref);
-												}
-											}
-											if (empty($this->product_merge_check_x2) || (!empty($linefile->file_name) && ! (in_array($linefile->file_name, $already_merged['files'])))) {
-												$infile						= preg_replace('/[\\/]$/', '', $filetomerge_dir).'/'.$linefile->file_name;
-												pdf_InfraSPlus_Merge($pdf, $infile, $this->hidepagenum, $object, $outputlangs, $this->formatpage);
-												$already_merged['files'][]	= $linefile->file_name;
-											}
-										}
-									}
-								}
-							}
+					if (!empty($this->produit_pdf_merge) && (empty($this->product_merge) || !empty($this->mergeproduct)) && empty($this->docseparate)) {	// Si le regroupement en PDF séparé est demandé, la documentation n'est pas fusionnée au document principal
+						$docwarnings	= [];
+						$docfiles		= infraspackplus_collect_product_documentation($this->db, $object, $outputlangs, 1, getDolGlobalInt('INFRASPLUS_PDF_MERGE_PRODUCT_LINKS', 0), $this->multilangs, $this->old_path_photo, $this->product_merge_check_x2, $docwarnings);
+						foreach ($docfiles as $docfile) {
+							pdf_InfraSPlus_Merge($pdf, $docfile, $this->hidepagenum, $object, $outputlangs, $this->formatpage, 0);
+						}
+						if (!empty($docwarnings)) {
+							setEventMessages(null, $docwarnings, 'warnings');
 						}
 					}
 					// If merge CGV is active at the very end
