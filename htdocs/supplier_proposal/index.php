@@ -359,7 +359,7 @@ if (isModEnabled('supplier_proposal') && $user->hasRight('supplier_proposal', 'l
 				print $supplier_proposalstatic->getNomUrl(1);
 				print '</td>';
 				print '<td width="18" class="nobordernopadding nowrap">';
-				if (isset($obj->dfv) && $db->jdate($obj->dfv) < ($now - $conf->supplier_proposal->cloture->warning_delay)) { // InfraS change
+				if (isset($obj->dfv) && $db->jdate($obj->dfv) < ($now - $conf->supplier_proposal->cloture->warning_delay)) {
 					print img_warning($langs->trans("Late"));
 				}
 				print '</td>';

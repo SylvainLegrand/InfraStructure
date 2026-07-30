@@ -9395,7 +9395,7 @@ abstract class CommonObject
 						// Otherwise, they would be empty after an update of the object. See also getOptionalsFromPost
 						// TODO: We should not have this hidden field, and action='update' should be done only if field was POSTED by form.
 						$ef_name = 'options_' . $key;
-						$ef_value = isset($this->array_options[$ef_name]) ? $this->array_options[$ef_name] : ''; // InfraS change
+						$ef_value = isset($this->array_options[$ef_name]) ? $this->array_options[$ef_name] : '';
 						$out .= '<input type="hidden" name="' . $ef_name . '" id="' . $ef_name . '" value="' . dolPrintHTMLForAttribute($ef_value) . '" />' . "\n";
 						continue; // <> -1 and <> 1 and <> 3 = not visible on forms, only on list and <> 4 = not visible at the creation
 					} elseif ($mode == 'view' && empty($visibility)) {
@@ -9764,7 +9764,7 @@ abstract class CommonObject
 			return $user->hasRight($module, $element);
 		}
 
-		return isset($user->rights->$element) ? $user->rights->$element : null; // InfraS change
+		return isset($user->rights->$element) ? $user->rights->$element : null;
 	}
 
 	/**
