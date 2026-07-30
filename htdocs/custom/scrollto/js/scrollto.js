@@ -16,7 +16,7 @@ if($) {
 		);
 	});
 
-	$(window).on('unload', function() {
+	$(window).on('pagehide', function() { // InfraS change
 		var page_y = $(document).scrollTop();
 		if($.cookie) {
 			$.cookie("scrollTo_page_y", page_y, { expires: 1, path: '/' });	

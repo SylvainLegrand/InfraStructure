@@ -1,3 +1,7 @@
+# DotBot (crawler SEO Moz) : aucun interet SEO sur une instance Dolibarr — tout interdit (2026-07-30)
+User-agent: DotBot
+Disallow: /
+
 User-agent: *
 Allow: /public/demo/
 Allow: /public/members/new.php
