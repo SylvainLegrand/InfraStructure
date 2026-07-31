@@ -3730,32 +3730,3 @@ if ($action == 'create') {
 // End of page
 llxFooter();
 $db->close();
-
-// InfraS add begin
-// Select cheapest supplier price (after remise_percent / Remise Qty min) in fournprice_predef. we override the default selection with the real minimum.
-if (!empty($conf->use_javascript_ajax)) {
-	?>
-	<script>
-	$(document).on('ajaxComplete', function(event, jqXHR, settings) {
-		if (!settings.url || settings.url.indexOf('getSupplierPrices.php') === -1) { return; }
-
-		var select = $('#fournprice_predef');
-		var minPrice = null;
-		var minVal   = null;
-
-		select.find('option').each(function() {
-			var val   = $(this).val();
-			var price = parseFloat($(this).attr('price')) || 0;
-			if (val === 'pmpprice' || val === 'costprice' || val === 'inputprice') { return; }
-			if (price > 0 && (minPrice === null || price < minPrice)) { minPrice = price; minVal = val; }
-		});
-
-		if (minVal !== null) {
-			select.val(minVal);
-			$('#buying_price').val(minPrice);
-		}
-	});
-	</script>
-	<?php
-}
-// InfraS add end

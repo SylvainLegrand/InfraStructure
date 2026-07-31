@@ -104,6 +104,27 @@ if ($idprod > 0) {
 		}
 	}
 
+	// InfraS add begin
+	// The SQL ORDER BY above sorts on pfp.unitprice (raw), which ignores fourn_remise_percent.
+	// Re-sort here on the discounted price already computed in $price so the entry the caller
+	// picks by default ("first price > 0") is genuinely the cheapest, not just the lowest raw unit price.
+	if (GETPOST('bestpricefirst') && count($prices) > 1) {
+		$i = 0;
+		foreach ($prices as &$pricetmp) {
+			$pricetmp['sortorder'] = $i++;
+		}
+		unset($pricetmp);
+		usort($prices, function ($a, $b) {
+			$cmp = ((float) $a['price']) <=> ((float) $b['price']);
+			return $cmp !== 0 ? $cmp : ($a['sortorder'] <=> $b['sortorder']);
+		});
+		foreach ($prices as &$pricetmp) {
+			unset($pricetmp['sortorder']);
+		}
+		unset($pricetmp);
+	}
+	// InfraS add end
+
 	// After best supplier prices and before costprice
 	if (isModEnabled('stock')) {
 		// Add price for pmp
