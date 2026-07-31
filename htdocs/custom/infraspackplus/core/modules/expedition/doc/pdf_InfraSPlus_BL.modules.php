@@ -510,7 +510,7 @@
 								$this->label_efl	= $label;
 								$value				= $extrafieldsprod->showOutputField($key, $options_key, '', $objproduct->table_element);
 							}
-							$prod_pos[$i]	= $value ? $value : '';
+							$prod_pos[$i]	= $value ? dol_string_nohtmltag($value) : '';
 						}
 						// detect if there is at least one image to show
 						if (!empty($this->with_picture) && $isProd > 0) {

@@ -1276,12 +1276,16 @@
 	/**
 	*	Return the external URLs associated to a product through the native Dolibarr links (llx_links,
 	*	"Add link" feature of the product "Linked files" tab). Links are classified from the extension
-	*	of the URL path : image (jpg/jpeg/png/gif/webp) or PDF datasheet. For each type, only the first
-	*	link found (creation order) is kept, next ones are silently ignored.
+	*	of the URL path : image (jpg/jpeg/png/gif/webp) or PDF datasheet. For the image, only the first
+	*	link found (creation order) is kept, next ones are silently ignored. All PDF links are kept
+	*	(creation order, duplicated URLs collapsed). Links whose extension matches neither category
+	*	(ex : cloud file-sharing links such as Nextcloud/ownCloud "public share" URLs, which carry no
+	*	file extension) are returned separately as candidates for infraspackplus_get_product_links()
+	*	callers doing content-based resolution (see pdf_InfraSPlus_resolveAmbiguousDatasheetLink()).
 	*
 	*	@param	DoliDB	$db				Database handler
 	*	@param	int		$fk_product		Product id
-	*	@return	array					['img_url' => string, 'datasheet_url' => string] ('' when no link of that type)
+	*	@return	array					['img_url' => string, 'datasheet_urls' => array, 'other_urls' => array]
 	**/
 	function infraspackplus_get_product_links($db, $fk_product)
 	{
@@ -1289,7 +1293,8 @@
 
 		$imgExts		= ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 		$imgUrl			= '';
-		$datasheetUrl	= '';
+		$datasheetUrls	= [];
+		$otherUrls		= [];
 		$links			= [];
 		$linkobj		= new Link($db);
 		$result			= $linkobj->fetchAll($links, 'product', (int) $fk_product, 'rowid', 'ASC');
@@ -1298,15 +1303,51 @@
 				$ext	= strtolower(pathinfo((string) parse_url($link->url, PHP_URL_PATH), PATHINFO_EXTENSION));
 				if ($imgUrl === '' && in_array($ext, $imgExts)) {
 					$imgUrl	= $link->url;
-				} elseif ($datasheetUrl === '' && $ext === 'pdf') {
-					$datasheetUrl	= $link->url;
-				}
-				if ($imgUrl !== '' && $datasheetUrl !== '') {
-					break;	// Les deux types sont trouvés
+				} elseif ($ext === 'pdf') {
+					if (!in_array($link->url, $datasheetUrls)) {
+						$datasheetUrls[]	= $link->url;
+					}
+				} elseif ($ext === '' && !in_array($link->url, $otherUrls)) {
+					$otherUrls[]	= $link->url;
 				}
 			}
 		}
-		return ['img_url' => $imgUrl, 'datasheet_url' => $datasheetUrl];
+		return ['img_url' => $imgUrl, 'datasheet_urls' => $datasheetUrls, 'other_urls' => $otherUrls];
+	}
+
+	/**
+	*	Probe the MIME type of a public external URL (http/https) with a lightweight HTTP HEAD request
+	*	(no body downloaded), through the native Dolibarr getURLContent(). Used to decide whether a
+	*	product link with no recognizable file extension (ex : cloud file-sharing "public share" URL)
+	*	is actually serving a PDF, before attempting a full download. Connection/response timeouts are
+	*	driven by the shared INFRASPLUS_URL_IMG_TIMEOUT constant. Local/internal URLs are refused
+	*	(getURLContent() SSRF protection).
+	*
+	*	@param	string	$url		URL to probe
+	*	@param	string	&$error		Error message on failure
+	*	@return	string|false		Content-Type, lowercase, without charset/parameters (ex : 'application/pdf'), or false on failure
+	**/
+	function infraspackplus_probe_url_content_type($url, &$error = '')
+	{
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
+
+		$error		= '';
+		$timeout	= getDolGlobalInt('INFRASPLUS_URL_IMG_TIMEOUT', 10);
+		$result		= getURLContent($url, 'HEAD', '', 1, array(), array('http', 'https'), 0, -1, $timeout, $timeout);
+		if (!empty($result['curl_error_no'])) {
+			$error	= $result['curl_error_msg'];
+			return false;
+		}
+		if (empty($result['http_code']) || $result['http_code'] < 200 || $result['http_code'] >= 300) {
+			$error	= 'HTTP '.(empty($result['http_code']) ? '?' : $result['http_code']);
+			return false;
+		}
+		if (empty($result['content_type'])) {
+			$error	= 'No Content-Type header';
+			return false;
+		}
+		$contenttype	= explode(';', $result['content_type']);
+		return strtolower(trim($contenttype[0]));
 	}
 
 	/**

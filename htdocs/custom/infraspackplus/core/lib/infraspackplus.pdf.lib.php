@@ -4725,11 +4725,50 @@
 	}
 
 	/**
+	*	Try to resolve a product link with no recognizable file extension (ex : Nextcloud/ownCloud
+	*	"public share" URL, such as https://host/index.php/s/<token>) as a PDF technical datasheet.
+	*	Unlike pdf_InfraSPlus_getProductDatasheetFile(), the URL is not assumed to already point to the
+	*	raw file : two strategies are attempted, in order, and the URL is silently discarded (no error
+	*	message, since there is no positive signal it was ever meant to be a datasheet) if none matches :
+	*		1. HTTP HEAD probe (infraspackplus_probe_url_content_type()) : if the Content-Type header is
+	*		   'application/pdf', the URL is downloaded as-is.
+	*		2. Nextcloud/ownCloud share link pattern (path ending in '/s/<token>' or '/index.php/s/<token>') :
+	*		   retried with '/download' appended, which is the standard convention of these tools to force
+	*		   the raw file instead of the HTML preview page.
+	*	Both strategies finish with the same %PDF signature check as pdf_InfraSPlus_getProductDatasheetFile()
+	*	(itself reused for the actual download), so a false-positive Content-Type never produces a merged
+	*	non-PDF file.
+	*
+	*	@param	string	$url		Product link URL with no recognizable extension
+	*	@param	string	&$error		Error message when a positive signal was found but the download still failed
+	*	@return	string				Absolute path of the downloaded file, '' when not resolved (silently ignored)
+	**/
+	function pdf_InfraSPlus_resolveAmbiguousDatasheetLink($url, &$error = '')
+	{
+		$error			= '';
+		$probeerror		= '';
+		$contenttype	= infraspackplus_probe_url_content_type($url, $probeerror);
+		if ($contenttype === 'application/pdf') {
+			return pdf_InfraSPlus_getProductDatasheetFile($url, $error);
+		}
+		if (preg_match('/\/(?:index\.php\/)?s\/[^\/?]+\/?$/i', (string) parse_url($url, PHP_URL_PATH))) {
+			$downloadurl	= (strpos($url, '?') !== false)
+				? preg_replace('/\?/', '/download?', $url, 1)
+				: rtrim($url, '/').'/download';
+			return pdf_InfraSPlus_getProductDatasheetFile($downloadurl, $error);
+		}
+		dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_resolveAmbiguousDatasheetLink discarded url='.$url.' contenttype='.$contenttype.' probeerror='.$probeerror, LOG_DEBUG);
+		return '';
+	}
+
+	/**
 	*	Collect, following the document lines order, the products / services technical documentation to
-	*	merge : files selected onto the product card (native Propalmergepdfproduct class) and / or first
-	*	external PDF link posted onto the product card (llx_links, downloaded through
-	*	pdf_InfraSPlus_getProductDatasheetFile()). Each product is handled only once ; duplicated file
-	*	names (option INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2) and duplicated URLs are skipped.
+	*	merge : files selected onto the product card (native Propalmergepdfproduct class) and / or all
+	*	external PDF links posted onto the product card (llx_links, downloaded through
+	*	pdf_InfraSPlus_getProductDatasheetFile() when the URL has a .pdf extension, or resolved through
+	*	pdf_InfraSPlus_resolveAmbiguousDatasheetLink() otherwise, ex : cloud file-sharing links). Each
+	*	product is handled only once ; duplicated file names (option
+	*	INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2) and duplicated URLs are skipped.
 	*
 	*	@param	DoliDB			$db					Database handler
 	*	@param	CommonObject	$object				Source document (lines loaded)
@@ -4795,14 +4834,31 @@
 			}
 			if (!empty($withlinks)) {
 				$extlinks	= infraspackplus_get_product_links($db, $product->id);
-				if (!empty($extlinks['datasheet_url']) && !in_array($extlinks['datasheet_url'], $already['urls'])) {
-					$already['urls'][]	= $extlinks['datasheet_url'];
+				foreach ($extlinks['datasheet_urls'] as $datasheeturl) {
+					if (empty($datasheeturl) || in_array($datasheeturl, $already['urls'])) {
+						continue;
+					}
+					$already['urls'][]	= $datasheeturl;
 					$dserror			= '';
-					$dsfile				= pdf_InfraSPlus_getProductDatasheetFile($extlinks['datasheet_url'], $dserror);
+					$dsfile				= pdf_InfraSPlus_getProductDatasheetFile($datasheeturl, $dserror);
 					if ($dsfile !== '') {
 						$result[]	= $dsfile;
 					} else {
 						$warnings[]	= $outputlangs->trans('InfraSPlusDatasheetWarning', $product->ref, $dserror);
+					}
+				}
+				foreach ($extlinks['other_urls'] as $otherurl) {
+					if (empty($otherurl) || in_array($otherurl, $already['urls'])) {
+						continue;
+					}
+					$already['urls'][]	= $otherurl;
+					$amberror			= '';
+					$ambfile			= pdf_InfraSPlus_resolveAmbiguousDatasheetLink($otherurl, $amberror);
+					if ($ambfile !== '') {
+						$result[]	= $ambfile;
+					} elseif (!empty($amberror)) {
+						// A positive signal was found (Content-Type or share link pattern) but the download still failed : warn, unlike the fully ambiguous case
+						$warnings[]	= $outputlangs->trans('InfraSPlusDatasheetWarning', $product->ref, $amberror);
 					}
 				}
 			}
