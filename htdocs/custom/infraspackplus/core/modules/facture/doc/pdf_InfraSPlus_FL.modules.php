@@ -574,7 +574,13 @@
 							$pricesObjProd[$i]	= [];
 						}
 						// Collecte des totaux par valeur de tva
-						if (empty($isDiscount) && empty($isOuvrage) && empty($isSubTotalLine)) {
+						// Lignes optionnelles (special_code = 3) : exclues des totaux du document par le module infrastructure (hook updateTotalPrice, option INFRASTRUCTURE_MANAGE_OL),
+						// elles doivent donc aussi être exclues de la ventilation TVA / taxes locales pour rester cohérentes avec les totaux HT / TTC affichés
+						$isOptionalLine	= $object->lines[$i]->special_code == 3 && isModEnabled('infrastructure') && getDolGlobalString('INFRASTRUCTURE_MANAGE_OL') ? 1 : 0;
+						// Lignes spéciales infrastructure (titres, sous-totaux, textes libres) : montants nuls mais taux 0% => elles créent une entrée parasite dans tva_array,
+						// faisant croire à un document multi-taux (affichage de la base HT entre parenthèses sur chaque ligne de TVA)
+						$isInfraSLine	= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
+						if (empty($isDiscount) && empty($isOuvrage) && empty($isSubTotalLine) && empty($isOptionalLine) && empty($isInfraSLine)) {
 							$tvaligne		= $this->use_multicurrency ? doubleval($object->lines[$i]->multicurrency_total_tva) : doubleval($object->lines[$i]->total_tva);
 							$htligne		= $this->use_multicurrency ? $object->lines[$i]->multicurrency_total_ht : $object->lines[$i]->total_ht;
 							$localtax1ligne	= $object->lines[$i]->total_localtax1;

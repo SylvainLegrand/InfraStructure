@@ -441,6 +441,12 @@
 						if (!empty($object->lines[$i]->remise_percent)) {
 							$this->atleastonediscount++;
 						}
+						// Lignes optionnelles (special_code = 3) : exclues des totaux du document par le module infrastructure (hook updateTotalPrice, option INFRASTRUCTURE_MANAGE_OL),
+						// elles doivent donc aussi être exclues de la ventilation TVA / taxes locales pour rester cohérentes avec les totaux HT / TTC affichés
+						$isOptionalLine	= $object->lines[$i]->special_code == 3 && isModEnabled('infrastructure') && getDolGlobalString('INFRASTRUCTURE_MANAGE_OL') ? 1 : 0;
+						// Lignes spéciales infrastructure (titres, sous-totaux, textes libres) : montants nuls mais taux 0% => elles créent une entrée parasite dans $this->tva,
+						// faisant croire à un document multi-taux
+						$isInfraSLine	= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
 						// Collecte des totaux par valeur de tva dans $this->tva["taux"] = total_tva
 						$tvaligne										= $this->use_multicurrency ? doubleval($object->lines[$i]->multicurrency_total_tva) : doubleval($object->lines[$i]->total_tva);
 						$htligne										= $this->use_multicurrency ? $object->lines[$i]->multicurrency_total_ht : $object->lines[$i]->total_ht;
@@ -464,20 +470,22 @@
 							$localtax1_type		= isset($localtaxtmp_array[0]) ? $localtaxtmp_array[0] : '';
 							$localtax2_type		= isset($localtaxtmp_array[2]) ? $localtaxtmp_array[2] : '';
 						}
-						// retrieve global local tax
-						if (!empty($localtax1_type) && $localtax1ligne != 0) {
-							$this->localtax1[$localtax1_type][$localtax1_rate]	+= $localtax1ligne;
+						if (empty($isOptionalLine) && empty($isInfraSLine)) {
+							// retrieve global local tax
+							if (!empty($localtax1_type) && $localtax1ligne != 0) {
+								$this->localtax1[$localtax1_type][$localtax1_rate]	+= $localtax1ligne;
+							}
+							if (!empty($localtax2_type) && $localtax2ligne != 0) {
+								$this->localtax2[$localtax2_type][$localtax2_rate]	+= $localtax2ligne;
+							}
+							if (($object->lines[$i]->info_bits & 0x01) == 0x01) {
+								$vatrate	.= '*';
+							}
+							if (! isset($this->tva[$vatrate])) {
+								$this->tva[$vatrate]	= 0;
+							}
+							$this->tva[$vatrate]								+= $tvaligne;
 						}
-						if (!empty($localtax2_type) && $localtax2ligne != 0) {
-							$this->localtax2[$localtax2_type][$localtax2_rate]	+= $localtax2ligne;
-						}
-						if (($object->lines[$i]->info_bits & 0x01) == 0x01) {
-							$vatrate	.= '*';
-						}
-						if (! isset($this->tva[$vatrate])) {
-							$this->tva[$vatrate]	= 0;
-						}
-						$this->tva[$vatrate]									+= $tvaligne;
 					}
 					// Define width and position of notes frames
 					$this->larg_util_txt											= $this->page_largeur - ($this->marge_gauche + $this->marge_droite + ($this->Rounded_rect * 2) + 2);
