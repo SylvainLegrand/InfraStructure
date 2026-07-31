@@ -1696,7 +1696,6 @@ class CommandeFournisseur extends CommonOrder
 						$line->subprice,
 						$line->qty,
 						$line->tva_tx,
-						// InfraS change begin
 						$line->localtax1_tx ?? 0.0,
 						$line->localtax2_tx ?? 0.0,
 						$line->fk_product,
@@ -1717,7 +1716,6 @@ class CommandeFournisseur extends CommonOrder
 						$line->origin_id ?? 0,  // origin_id
 						$line->rang ?? -1,       // rang
 						$line->special_code ?? 0
-						// InfraS change end
 					);
 					if ($result < 0) {
 						dol_syslog(get_class($this)."::create ".$this->error, LOG_WARNING); // do not use dol_print_error here as it may be a functional error
