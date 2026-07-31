@@ -346,6 +346,8 @@ Ce pattern est nécessaire car les appels à `addline()`, `updateline()` et `del
 | `ORDER_VALIDATE` | Déclenche les remises automatiques (`validateRemiseAutomatique`) |
 | `BILL_PAYED` | Appel API Sort&Group si `INFRASDISCOUNT_SORTANDGROUP` activé |
 
+**Point de vigilance (depuis v15.3.8)** : `runTrigger()` est appelé par Dolibarr pour **tous** les événements métier, pas seulement les éléments listés ci-dessus — le test `in_array($object->element, ['propaldet', 'commande', 'commandedet', 'facture', 'facturedet'])` lisait la propriété sans vérifier son existence, provoquant un avertissement PHP « Undefined property » sur des objets qui n'exposent pas `element` (ex. `TPropaleHist`, historique de devis). Un test `empty($object->element) ||` protège désormais ce filtre.
+
 **Flux du recalcul (`updateRemise`)** :
 1. Recharge l'objet complet avec ses lignes
 2. Recalcule les remises en pourcentage (cascade)

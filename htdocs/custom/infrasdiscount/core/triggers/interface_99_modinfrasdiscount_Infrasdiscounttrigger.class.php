@@ -119,7 +119,7 @@
 		**/
 		public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 		{
-			if (!isModEnabled('infrasdiscount') || !in_array($object->element, ['propaldet', 'commande', 'commandedet', 'facture', 'facturedet'])) {
+			if (!isModEnabled('infrasdiscount') || empty($object->element) || !in_array($object->element, ['propaldet', 'commande', 'commandedet', 'facture', 'facturedet'])) {
 				return 0;
 			}
 			$insert_actions		= array('LINEPROPAL_INSERT', 'LINEORDER_INSERT', 'LINEBILL_INSERT');
