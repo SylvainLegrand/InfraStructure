@@ -2115,9 +2115,14 @@
 		$substitutionarray	= $__ipp_fn_cache[$__ipp_cacheKey]['substitutionarray'];
 		$urlwithroot		= $__ipp_fn_cache[$__ipp_cacheKey]['urlwithroot'];
 		$html				= make_substitutions($notes, $substitutionarray, $outputlangs);
-		// Clean variables not found
+		// Clean variables not found. Dolibarr substitution keys are always __UPPERCASE_WORDS__ (see
+		// pdf_getSubstitutionArray()/complete_substitutions_array()), so the pattern is restricted to
+		// that alphabet. The previous /__(.+)_(.+)__/ was unanchored and greedy: any free text using
+		// long runs of underscores as a fill-in-the-blank line (e.g. "Nom : _______________") matched
+		// from its first "__" to the last "__" found anywhere later in the string, silently wiping out
+		// everything in between (labels, other blanks...) instead of leaving the untouched text alone.
 		$reg				= [];
-		while (preg_match('/__(.+)_(.+)__/', $html, $reg)) {
+		while (preg_match('/__[A-Z0-9]+(?:_[A-Z0-9]+)*__/', $html, $reg)) {
 			$html	= str_replace($reg[0], '', $html);
 		}
 		// Convert medias images to a local file path instead of an absolute HTTP URL.
@@ -2159,10 +2164,17 @@
 			$mime		= !empty($imgsize['mime']) ? $imgsize['mime'] : dol_mimetype($fullpath, 'image/png', 0);
 			return str_replace('"'.$m[1].'"', '"data:'.$mime.';base64,'.base64_encode($data).'"', $tag);
 		}, $html);
-		// Checkbox glyphs pasted from Word (U+2610/2611/2612) are outside the WGL4 glyph set embedded
-		// by the module's TrueType fonts (Century Gothic and most others), so TCPDF renders them as a
-		// missing-glyph box. Fold them onto U+25A1 (WHITE SQUARE), which is covered by WGL4.
-		$html	= str_replace(['☐', '☑', '☒'], '□', $html);
+		// Checkbox glyphs pasted from Word (U+2610/2611/2612) are missing not only from the module's
+		// TrueType fonts (Century Gothic...) but also from any font-family the WYSIWYG editor may have
+		// set inline on the text (Calibri, Cambria, Corbel... all converted here without the Geometric
+		// Shapes/Miscellaneous Symbols Unicode blocks), so TCPDF renders a missing-glyph box regardless
+		// of a same-font substitute glyph. Force these characters through TCPDF's bundled DejaVu Sans
+		// (full Unicode coverage) via an inline font-family span, overriding whatever font surrounds them.
+		$html	= str_replace(
+			['☐', '☑', '☒'],
+			['<span style="font-family:dejavusans">☐</span>', '<span style="font-family:dejavusans">☑</span>', '<span style="font-family:dejavusans">☒</span>'],
+			$html
+		);
 		return $html;
 	}
 
