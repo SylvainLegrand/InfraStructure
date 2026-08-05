@@ -2426,14 +2426,14 @@
 				$larg_signarea		= $this->larg_tabtotal;
 				$signarea_hl		= $this->tab_hl;
 				$this->posystamp	= $posytabinfo;
-				// Position naturelle de la cellule signature client : juste sous le bloc info.
+				// Position naturelle de la cellule : juste sous le bloc info.
 				// Si elle dépasserait le bas de page, on la remonte au plus tard pour qu'elle tienne sur la page courante (évite l'auto-break TCPDF). La cellule étant invisible (SetAlpha 0), l'éventuel chevauchement avec le bloc info est sans impact visuel.
 				$sig_y				= $signarea_top + $signarea_hl;
 				$sig_y_max			= $this->page_hauteur - $this->heightforfooter - $this->ht_signarea;
 				if ($sig_y > $sig_y_max) {
 					$sig_y			= $sig_y_max;
 				}
-				pdf_InfraSPlus_add_e_signature($pdf, $object, $this, 'customer', $posxsignarea, $sig_y, $larg_signarea, $this->ht_signarea);
+				pdf_InfraSPlus_add_e_signature($pdf, $object, $this, 'stamp', $posxsignarea, $sig_y, $larg_signarea, $this->ht_signarea);
 				$posytabinfo		+= 10;	// espace requis pour le scellement
 			}
 			if (!empty($calculseul)) {

@@ -1909,6 +1909,11 @@
 			$num++;
 		}
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_CONTRACT_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureCtr'), '', [], 2, 1, '', $num);
+		if (getDolGlobalString('INFRASPLUS_PDF_CONTRACT_SHOW_SIGNATURE', '')) {
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_CONTRACT_SHOW_SIGNATURE_NAME_FUNCTION', 'on_off', $langs->trans('InfraSPlusParamShowSignatureNameFunctionCtr'), '', [], 2, 1, '', $num);
+		} else {
+			$num++;
+		}
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXPEDITION_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureExp'), '', [], 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SHOW_SIGNATURE', 'on_off', $langs->trans('InfraSPlusParamShowSignatureFi'), '', [], 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_INTERVENTION_SHOW_SIGNATURE_EMET', 'on_off', $langs->trans('InfraSPlusParamShowSignatureFiEmet'), '', [], 2, 1, '', $num);
@@ -1917,7 +1922,7 @@
 		} else {
 			$num++;
 		}
-		// $num = 49
+		// $num = 50
 	}
 	print '			</table>
 				</div>';

@@ -45,6 +45,7 @@
 		public $defaulttemplate;
 		public $draft_watermark;
 		public $show_sign_area;
+		public $show_sign_area_name_function;
 		public $show_ExtraFieldsLines;
 		public $option_logo;
 		public $option_tva;
@@ -293,6 +294,7 @@
 			$this->defaulttemplate				= getDolGlobalString('CONTRACT_ADDON_PDF', '');
 			$this->draft_watermark				= getDolGlobalString('CONTRACT_DRAFT_WATERMARK', '');
 			$this->show_sign_area				= getDolGlobalInt('INFRASPLUS_PDF_CONTRACT_SHOW_SIGNATURE', 0);
+			$this->show_sign_area_name_function	= getDolGlobalInt('INFRASPLUS_PDF_CONTRACT_SHOW_SIGNATURE_NAME_FUNCTION', 0);
 			$this->show_ExtraFieldsLines		= getDolGlobalInt('INFRASPLUS_PDF_EXFL_CT', 0);
 			$this->option_logo					= 1;	// Display logo
 			$this->option_tva					= 1;	// Manage the vat option FACTURE_TVAOPTION
@@ -1255,34 +1257,72 @@
 			$signarea_hl		= $pdf->getStringHeight($larg_signarea, $outputlangs->transnoentities('ContactNameAndSignature', $object->thirdparty->name));
 			$signarea_hl2		= $pdf->getStringHeight($larg_signarea, $outputlangs->transnoentities('ContactNameAndSignature', $this->emetteur->name));
 			$signarea_hl		= $signarea_hl < $signarea_hl2 ? ($signarea_hl2 < $this->tab_hl ? $this->tab_hl : $signarea_hl2) : ($signarea_hl < $this->tab_hl ? $this->tab_hl : $signarea_hl);
+			$contactname		= '';
+			$contactname_emet	= '';
+			if (!empty($this->show_sign_area_name_function)) {
+				$arrayidcontact	= $object->getIdContact('external', 'CUSTOMER');
+				if (count($arrayidcontact) > 0) {
+					$object->fetch_contact($arrayidcontact[0]);
+					if ($object->contact instanceof Contact) {
+						$contactname	= $outputlangs->convToOutputCharset($object->contact->getFullName($outputlangs, 1, -1));
+					}
+					if (!empty($contactname)) {
+						$contactname	.= !empty($object->contact->poste) ? ' ('.$object->contact->poste.')' : '';
+					}
+				}
+				$arrayidcontact_emet	= $object->getIdContact('internal', 'SALESREPFOLL');
+				if (count($arrayidcontact_emet) > 0) {
+					$object->fetch_user($arrayidcontact_emet[0]);
+					if ($object->user instanceof User) {
+						$contactname_emet	= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
+					}
+					if (!empty($contactname_emet)) {
+						$contactname_emet	.= !empty($object->user->job) ? ' ('.$object->user->job.')' : '';
+					}
+				}
+			}
+			$signarea_hl_contact_cli	= !empty($contactname) ? $pdf->getStringHeight($larg_signarea, $contactname) : 0;
+			$signarea_hl_contact_emet	= !empty($contactname_emet) ? $pdf->getStringHeight($larg_signarea, $contactname_emet) : 0;
+			$signarea_hl_contact		= $signarea_hl_contact_cli > $signarea_hl_contact_emet ? $signarea_hl_contact_cli : $signarea_hl_contact_emet;
 			$pdf->SetFont('', '', $default_font_size - 2);
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->MultiCell($larg_signarea, $signarea_hl, $outputlangs->transnoentities("ContactNameAndSignature", $object->thirdparty->name), '', 'L', 0, 1, $posxsignarea1 + $this->decal_round, $signarea_top, true, 0, 0, false, 0, 'M', false);
-			$pdf->RoundedRect($posxsignarea1, $signarea_top + $signarea_hl, $larg_signarea, $this->ht_signarea, $this->Rounded_rect, '1111', null, $this->signLineStyle);
+			if (!empty($contactname)) {
+				$pdf->MultiCell($larg_signarea, $signarea_hl_contact_cli, $contactname, '', 'L', 0, 1, $posxsignarea1 + $this->decal_round, $signarea_top + $signarea_hl, true, 0, 0, false, 0, 'M', false);
+			}
+			$pdf->RoundedRect($posxsignarea1, $signarea_top + $signarea_hl + $signarea_hl_contact, $larg_signarea, $this->ht_signarea, $this->Rounded_rect, '1111', null, $this->signLineStyle);
 			$pdf->MultiCell($larg_signarea, $signarea_hl, $outputlangs->transnoentities("ContactNameAndSignature", $this->emetteur->name), 0, 'L', 0, 1, $posxsignarea2 + $this->decal_round, $signarea_top, true, 0, 0, false, 0, 'M', false);
-			$pdf->RoundedRect($posxsignarea2, $signarea_top + $signarea_hl, $larg_signarea, $this->ht_signarea, $this->Rounded_rect, '1111', null, $this->signLineStyle);
+			if (!empty($contactname_emet)) {
+				$pdf->MultiCell($larg_signarea, $signarea_hl_contact_emet, $contactname_emet, '', 'L', 0, 1, $posxsignarea2 + $this->decal_round, $signarea_top + $signarea_hl, true, 0, 0, false, 0, 'M', false);
+			}
+			$pdf->RoundedRect($posxsignarea2, $signarea_top + $signarea_hl + $signarea_hl_contact, $larg_signarea, $this->ht_signarea, $this->Rounded_rect, '1111', null, $this->signLineStyle);
 			if (!empty($this->signvalue)) {
-				pdf_InfraSPlus_Client_Sign($pdf, $this->signvalue, $larg_signarea, $this->ht_signarea, $posxsignarea1, $signarea_top + $signarea_hl);
+				pdf_InfraSPlus_Client_Sign($pdf, $this->signvalue, $larg_signarea, $this->ht_signarea, $posxsignarea1, $signarea_top + $signarea_hl + $signarea_hl_contact);
 			}
 			if (!empty($this->e_signing) && isModEnabled('uptosign')) {
 				$this->posystamp	= $posy + 1;
 			}
 			if (!empty($calculseul)) {
-				$heightforarea	= ($signarea_top + $signarea_hl + $this->ht_signarea + 1 + (!empty($this->e_signing) && isModEnabled('uptosign') ? 10 : 0)) - $posy;	// si UpToSign et 2 cadres on décale les cadres vers le bas pour le STAMP
+				$heightforarea	= ($signarea_top + $signarea_hl + $signarea_hl_contact + $this->ht_signarea + 1) - $posy;
 				$pdf->rollbackTransaction(true);
 				return $heightforarea;
 			} else {
 				if (!empty($this->e_signing)) {
 					if (!isModEnabled('uptosign')) {
-						$pdf->addEmptySignatureAppearance($posxsignarea1, $signarea_top + $signarea_hl, $larg_signarea, $this->ht_signarea);
-						$pdf->addEmptySignatureAppearance($posxsignarea2, $signarea_top + $signarea_hl, $larg_signarea, $this->ht_signarea);
+						$pdf->addEmptySignatureAppearance($posxsignarea1, $signarea_top + $signarea_hl + $signarea_hl_contact, $larg_signarea, $this->ht_signarea);
+						$pdf->addEmptySignatureAppearance($posxsignarea2, $signarea_top + $signarea_hl + $signarea_hl_contact, $larg_signarea, $this->ht_signarea);
 					} else {
-						pdf_InfraSPlus_add_e_signature($pdf, $object, $this, 'internal', $posxsignarea1, $signarea_top + $signarea_hl, $larg_signarea, $this->ht_signarea);
-						pdf_InfraSPlus_add_e_signature($pdf, $object, $this, 'customer', $posxsignarea2, $signarea_top + $signarea_hl, $larg_signarea, $this->ht_signarea);
+						// posxsignarea1/2 correspondent aux blocs "nom et signature" imprimés plus haut
+						// (posxsignarea1 = colonne du tiers/client, ligne 1289 ; posxsignarea2 = colonne de
+						// l'émetteur/interne, ligne 1294) : les deux appels doivent utiliser la même colonne
+						// que le nom correspondant, sinon le placeholder invisible atterrit sous le nom de
+						// l'autre partie.
+						pdf_InfraSPlus_add_e_signature($pdf, $object, $this, 'internal', $posxsignarea2, $signarea_top + $signarea_hl + $signarea_hl_contact, $larg_signarea, $this->ht_signarea);
+						pdf_InfraSPlus_add_e_signature($pdf, $object, $this, 'customer', $posxsignarea1, $signarea_top + $signarea_hl + $signarea_hl_contact, $larg_signarea, $this->ht_signarea);
 					}
 				}
 				$pdf->commitTransaction();
-				return $signarea_top + $signarea_hl + $this->ht_signarea + 1 + (!empty($this->e_signing) && isModEnabled('uptosign') ? 10 : 0);	// si UpToSign et 2 cadres on décale les cadres vers le bas pour le STAMP
+				return $signarea_top + $signarea_hl + $signarea_hl_contact + $this->ht_signarea + 1;
 			}
 		}
 

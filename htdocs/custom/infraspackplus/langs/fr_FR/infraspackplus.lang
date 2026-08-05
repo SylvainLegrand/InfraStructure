@@ -453,6 +453,7 @@ InfraSPlusParamShowSignatureNameFunction       = Afficher le nom complet et la f
 InfraSPlusParamShowSignatureCom                = Afficher la zone de signature client sur les commandes
 InfraSPlusParamShow2SignaturesCom              = Afficher la zone de signature Tiers (sous-traitant) sur les Ordres de Fabrication (OF créés à partir des commandes) et les Bons de livraison (Expéditions)
 InfraSPlusParamShowSignatureCtr                = Afficher la zone de signature client sur les contrats
+InfraSPlusParamShowSignatureNameFunctionCtr    = Afficher le nom complet et la fonction (si disponible) du contact de suivi client et du commercial interne avant leur zone de signature respective
 InfraSPlusParamShowSignatureExp                = Afficher la zone de signature client sur les bons de livraison (expédition)
 InfraSPlusParamShowSignatureFi                 = Afficher la zone de signature client sur les fiches d'intervention
 InfraSPlusParamShowSignatureFiEmet             = Afficher la zone de signature société émettrice sur les fiches d'intervention

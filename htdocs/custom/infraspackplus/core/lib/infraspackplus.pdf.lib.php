@@ -1096,6 +1096,7 @@
 		$targetLivrDetFax	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_FAX', 0);
 		$targetLivrDetEmail	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_MAIL', 0);
 		$targetLivrDetWeb	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_WEB', 0);
+		$targetDetNative	= !empty($targetDet) && !in_array($mode, array('targetwithdetails', 'targetlivrwithdetails'));	// MAIN_PDF_ADDALSOTARGETDETAILS n'est décisif que hors sélection InfraS par détail, qui doit primer
 		$showNumCli			= getDolGlobalInt('INFRASPLUS_PDF_SHOW_NUM_CLI', 0);
 		$numCliFrm			= getDolGlobalInt('INFRASPLUS_PDF_NUM_CLI_FRM', 0);
 		$showCodeCliCompt	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_CODE_CLI_COMPT', 0);
@@ -1212,7 +1213,7 @@
 						}
 						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode) || preg_match('/targetlivrwithdetails/', $mode)) {
 							// Phone
-							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
 								if (!empty($targetcontact->phone_pro) || !empty($targetcontact->phone_mobile)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
 								}
@@ -1227,19 +1228,19 @@
 								}
 							}
 							// Fax
-							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
 								if (!empty($targetcontact->fax)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcontact->fax)));
 								}
 							}
 							// EMail
-							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
 								if (!empty($targetcontact->email)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($targetcontact->email);
 								}
 							}
 							// Web
-							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
 								if (!empty($targetcontact->url)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Web').' : '.$outputlangs->convToOutputCharset($targetcontact->url);
 								}
@@ -1251,7 +1252,7 @@
 						$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->convToOutputCharset(dol_format_address($targetcompany, $withCountry, "\n", $outputlangs)).($ticket ? '' : "\n");
 						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode) || preg_match('/targetlivrwithdetails/', $mode)) {
 							// Phone
-							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
 								if (!empty($targetcompany->phone) || !empty($targetcompany->phone_mobile)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
 								}
@@ -1266,19 +1267,19 @@
 								}
 							}
 							// Fax
-							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
 								if (!empty($targetcompany->fax)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->fax)));
 								}
 							}
 							// EMail
-							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
 								if (!empty($targetcompany->email)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($targetcompany->email);
 								}
 							}
 							// Web
-							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
+							if (!empty($targetDetNative) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
 								if (!empty($targetcompany->url)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Web').' : '.$outputlangs->convToOutputCharset($targetcompany->url);
 								}
@@ -2158,6 +2159,10 @@
 			$mime		= !empty($imgsize['mime']) ? $imgsize['mime'] : dol_mimetype($fullpath, 'image/png', 0);
 			return str_replace('"'.$m[1].'"', '"data:'.$mime.';base64,'.base64_encode($data).'"', $tag);
 		}, $html);
+		// Checkbox glyphs pasted from Word (U+2610/2611/2612) are outside the WGL4 glyph set embedded
+		// by the module's TrueType fonts (Century Gothic and most others), so TCPDF renders them as a
+		// missing-glyph box. Fold them onto U+25A1 (WHITE SQUARE), which is covered by WGL4.
+		$html	= str_replace(['☐', '☑', '☒'], '□', $html);
 		return $html;
 	}
 
@@ -6002,14 +6007,14 @@
 		$ht_signarea	-= $template->Rounded_rect;
 		$pdf->SetAlpha(0);
 		if ($object->element != 'facture' || $type != 'stamp') {
-			$pdf->MultiCell($larg_signarea, $ht_signarea, $type == 'customer' ? 'UPTOSIGN_SIGN_TO_HERE' : 'UPTOSIGN_SIGN_FROM_HERE', '', 'L', 0, 1, $posxsignarea, $posysignarea, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell($larg_signarea, $ht_signarea, $type == 'customer' ? 'UPTOSIGN_SIGN_TO_00_HERE' : 'UPTOSIGN_SIGN_FROM_HERE', '', 'L', 0, 1, $posxsignarea, $posysignarea, true, 0, 0, false, 0, 'M', false);
 			if ($object->element == 'contrat' || $object->element == 'fichinter' && !empty($template->show_sign_area_emet) || $object->element == 'commande' && !empty($template->show_2sign_area)) {
 				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, $template->page_largeur / 2 - 32.5, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 			} else {
 				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 			}
 		} else {
-			$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SEAL_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 		}
 		$pdf->SetAlpha(1);
 	}

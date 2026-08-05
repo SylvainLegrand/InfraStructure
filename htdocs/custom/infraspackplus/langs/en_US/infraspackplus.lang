@@ -453,6 +453,7 @@ InfraSPlusParamShowSignatureNameFunction       = Shows the full name and title (
 InfraSPlusParamShowSignatureCom                = Shows the customer signature area on order
 InfraSPlusParamShow2SignaturesCom              = Shows the Third party (subcontractor) signature area on the Orders of Manufacture (OF created from the orders) and Delivery Notes (Expeditions)
 InfraSPlusParamShowSignatureCtr                = Shows the customer signature area on contracts
+InfraSPlusParamShowSignatureNameFunctionCtr    = Shows the full name and title (if available) of the customer follow-up contact and the internal sales representative before their respective signature area
 InfraSPlusParamShowSignatureExp                = Shows the customer signature area on delivery form (shipping)
 InfraSPlusParamShowSignatureFi                 = Shows the customer signature area on intervention sheet
 InfraSPlusParamShowSignatureFiEmet             = Shows issuing company signature area on intervention sheet

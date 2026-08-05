@@ -453,6 +453,7 @@ InfraSPlusParamShowSignatureNameFunction       = Visualiza el nombre completo y 
 InfraSPlusParamShowSignatureCom                = Visualiza el área de firma cliente para los pedidos
 InfraSPlusParamShow2SignaturesCom              = Visualiza el área de firma de terceros (subcontratista) en los pedidos de fabricación (OF creado a partir de los pedidos) y albaranes (expediciones)
 InfraSPlusParamShowSignatureCtr                = Visualiza el área de firma del cliente en los contratos
+InfraSPlusParamShowSignatureNameFunctionCtr    = Visualiza el nombre completo y el cargo (si está disponible) del contacto de seguimiento del cliente y del comercial interno antes de su respectiva zona de firma
 InfraSPlusParamShowSignatureExp                = Visualiza el área de firma cliente para las notaa de entrega (expedición)
 InfraSPlusParamShowSignatureFi                 = Visualiza el área de firma cliente en la hoja de intervención
 InfraSPlusParamShowSignatureFiEmet             = Visualiza el área de firma de la empresa emisora en la hoja de intervención

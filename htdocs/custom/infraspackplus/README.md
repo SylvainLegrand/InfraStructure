@@ -345,10 +345,11 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***41*** Afficher la zone de signature client sur les commandes
 		* ***42*** Afficher la zone de signature Tiers (sous-traitant) sur les Ordres de Fabrication (OF créés à partir des commandes) et les Bons de livraison (Expéditions)
 		* ***43*** Afficher la zone de signature client sur les contrats
-		* ***44*** Afficher la zone de signature client sur les bons de livraison (expédition)
-		* ***45*** Afficher la zone de signature client sur les fiches d'intervention
-		* ***46*** Afficher la zone de signature société émettrice sur les fiches d'intervention
-		* ***47*** Afficher le nom de l'intervenant dans la zone de signature société émettrice sur les fiches d'intervention
+		* ***44*** Afficher le nom complet et la fonction (si disponible) du contact de suivi client et du commercial interne avant leur zone de signature respective (contrats)
+		* ***45*** Afficher la zone de signature client sur les bons de livraison (expédition)
+		* ***46*** Afficher la zone de signature client sur les fiches d'intervention
+		* ***47*** Afficher la zone de signature société émettrice sur les fiches d'intervention
+		* ***48*** Afficher le nom de l'intervenant dans la zone de signature société émettrice sur les fiches d'intervention
 	* OPTIONS DU PIED DE PAGE
 		* ***1*** Afficher les détails de la société en pied de page (chaque ligne peut être affichée ou masquée indé-pendamment les unes des autres)
 			 * Ligne 1 => Adresse du siège social
