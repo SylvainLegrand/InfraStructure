@@ -258,17 +258,26 @@ if ($action == 'delete' && $user->hasRight('uptosign', 'create')) {
 
 // Mass action: delete the selected recipients (only allowed while the list is still DRAFT)
 if ($action == 'confirm_massdelete' && $confirm == 'yes' && $user->hasRight('uptosign', 'create')) {
+	// The confirm dialog carries the selection as a comma separated list of rowid
+	// (a scalar field, not toselect[], to avoid an invalid "#toselect[]" jQuery selector).
+	$idstodelete = array();
+	foreach (explode(',', GETPOST('toselectids', 'alphanohtml')) as $piece) {
+		$piece = (int) trim($piece);
+		if ($piece > 0) {
+			$idstodelete[] = $piece;
+		}
+	}
 	if ($object->statut != UptoSignList::STATUS_DRAFT) {
 		dol_syslog("uptosign: mass delete refused, list ".$object->id." is not DRAFT (status=".$object->statut.")", LOG_WARNING);
 		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
-	} elseif (!is_array($toselect) || count($toselect) == 0) {
+	} elseif (count($idstodelete) == 0) {
 		dol_syslog("uptosign: mass delete requested with an empty selection for list ".$object->id, LOG_WARNING);
 		setEventMessages($langs->trans("NoRecordSelected"), [], 'warnings');
 	} else {
 		$nbdeleted = 0;
 		$massdeleteerror = 0;
 		$db->begin();
-		foreach ($toselect as $selid) {
+		foreach ($idstodelete as $selid) {
 			$sqldel = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers";
 			$sqldel .= " WHERE rowid = ".((int) $selid)." AND fk_uptosignlist = ".((int) $object->id);
 			if ($db->query($sqldel)) {
@@ -690,13 +699,21 @@ if ($id > 0 && $object->fetch($id)) {
 
 		print '</form>';
 
-		// Confirmation dialog for the mass delete of the selected recipients
+		// Confirmation dialog for the mass delete of the selected recipients.
+		// The selection is carried as a single comma separated scalar field (toselectids):
+		// an array field named toselect[] would produce an invalid "#toselect[]" jQuery
+		// selector in formconfirm's ajax dialog and break the confirmation.
 		if ($massaction == 'predelete') {
-			$formquestion = array();
+			$cleanids = array();
 			foreach ($toselect as $selid) {
-				$formquestion[] = array('type' => 'hidden', 'name' => 'toselect[]', 'value' => (int) $selid);
+				if ((int) $selid > 0) {
+					$cleanids[] = (int) $selid;
+				}
 			}
-			print $form->formconfirm($_SERVER["PHP_SELF"]."?id=".$object->id, $langs->trans("UptoSignDeleteRecipients"), $langs->trans("UptoSignConfirmDeleteRecipients", count($toselect)), "confirm_massdelete", $formquestion, 0, 1);
+			$formquestion = array(
+				array('type' => 'hidden', 'name' => 'toselectids', 'value' => implode(',', $cleanids)),
+			);
+			print $form->formconfirm($_SERVER["PHP_SELF"]."?id=".$object->id, $langs->trans("UptoSignDeleteRecipients"), $langs->trans("UptoSignConfirmDeleteRecipients", count($cleanids)), "confirm_massdelete", $formquestion, 0, 1);
 		}
 
 		print "\n<!-- Liste destinataires selectionnes -->\n";

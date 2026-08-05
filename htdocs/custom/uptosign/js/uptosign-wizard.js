@@ -528,21 +528,25 @@ function renderPage(num)
 		//large pour stocker
 		$('#pageContainer').width(canvas.width);
 
-		// calcul pixels -> mm : mm = ( pixels * 25.4 ) / DPI
+		// dimensions reelles de la page PDF en mm
 		let largeurPDF = Math.round((25.4*pageDisplay.view[2])/72);
 		let hauteurPDF = Math.round((25.4*pageDisplay.view[3])/72);
-
-		let largeur = Math.round(25.4*canvas.width/72);
-		let hauteur = Math.round(25.4*canvas.height/72);
-
-		// let ratioX = largeurPDF / largeur;
-		// let ratioY = hauteurPDF / hauteur;
 
 		pageWith[num] = largeurPDF;
 		pageHeight[num] = hauteurPDF;
 
-		pxTommX[num] = largeur / canvas.width;
-		pxTommY[num] = hauteur / canvas.height;
+		// mm par pixel REELLEMENT affiche a l'ecran.
+		// Le canvas est redimensionne par le CSS (max-width/max-height, responsive du
+		// theme, devicePixelRatio) : sa taille intrinseque (canvas.width) ne correspond
+		// PAS a sa taille affichee. On doit donc diviser les mm de la page par la
+		// largeur/hauteur affichee en px CSS, sinon toutes les coordonnees sont mises a
+		// l'echelle de facon proportionnelle et la signature est decalee.
+		// Fallback (canvas pas encore mis en page) = view en points => ratio 25.4/72.
+		let displayW = $('#uptosignCanvas').width() || pageDisplay.view[2];
+		let displayH = $('#uptosignCanvas').height() || pageDisplay.view[3];
+
+		pxTommX[num] = largeurPDF / displayW;
+		pxTommY[num] = hauteurPDF / displayH;
 
 		// uposignDebugJs("pour la page=" + num + ", largeurPDF=" + largeurPDF + ", hauteurPDF=" + hauteurPDF);
 		// uposignDebugJs("viewport.width=" + viewport.width + ", viewport.height=" + viewport.height);
@@ -592,12 +596,17 @@ function renderPage(num)
 $('#leform').submit(function (event) {
 	event.preventDefault();
 });
-
+// ModSecurity bloque les requêtes POST dont le corps hors-fichiers dépasse 128Ko (SecRequestBodyNoFilesLimit 131072).
+// Lors du changement de document, la fonction pdfFileChange() soumet le formulaire avec le champ hidden #pdfData contenant le PDF entier encodé en base64 (~319Ko pour un PDF de 239Ko), ce qui déclenche le blocage 413.
+// Les trois fonctions de submit (formSeal, formSign, pdfFileChange) vident maintenant $('#pdfData')[0].value = '' avant de soumettre.
+// Ce champ est purement client-side (utilisé par PDF.js pour le rendu canvas) — le serveur PHP lit toujours le PDF directement depuis le disque via file_get_contents($pdfFileName), jamais depuis le POST.
+// Après rechargement, la page re-sérialise le nouveau pdfData côté serveur depuis le fichier sélectionné.
 function formSeal()
 {
 	let input = $("<input>").attr("type", "hidden")
 		.attr("name", "action").val("uptoseal");
 	$('#leform').append(input);
+	$('#pdfData')[0].value = '';
 	leform.submit();
 }
 
@@ -607,7 +616,7 @@ function formSign()
 		.attr("name", "action").val("uptosign");
 	$('#leform').append(input);
 	//debug time
-	// $('#pdfData')[0].value='';
+	$('#pdfData')[0].value = '';
 	// uposignDebugJs("Debug pour Eric:");
 	// uposignDebugJs($('#leform').serialize());
 	// return false;
@@ -617,5 +626,6 @@ function formSign()
 function pdfFileChange()
 {
 	$("input[name=action]").val("pdffilechoose");
+	$('#pdfData')[0].value = '';
 	leform.submit();
 }

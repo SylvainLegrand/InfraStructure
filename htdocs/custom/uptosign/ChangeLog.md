@@ -1,7 +1,8 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
-## 2.4.6 -- 2026-07-02
+## 2.4.8 -- 2026-07-16
 
+ fix position on screen with diff pixel ratio
  fix old events to AC_UPTOSEAL / AC_UPTOSIGN
 
 ## 2.4.4 -- 2026-06-02

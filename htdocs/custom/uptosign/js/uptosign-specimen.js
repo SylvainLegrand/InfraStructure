@@ -420,10 +420,16 @@ function renderPage(num)
 		$('#pageContainer').width(canvas.width);
 
 		// console.log("Canvas w=" + canvas.width + ", h=" + canvas.height);
-		let largeur = Math.round(25.4*canvas.width/72);
-		let hauteur = Math.round(25.4*canvas.height/72);
-		pxTommX = largeur / canvas.width;
-		pxTommY = hauteur / canvas.height;
+		// dimensions reelles de la page PDF en mm
+		let largeurPDF = Math.round((25.4*pageDisplay.view[2])/72);
+		let hauteurPDF = Math.round((25.4*pageDisplay.view[3])/72);
+		// mm par pixel REELLEMENT affiche : le canvas est redimensionne par le CSS
+		// (max-width/max-height, responsive du theme, devicePixelRatio), sa taille
+		// intrinseque ne correspond pas a l'affichage. Diviser par la taille affichee.
+		let displayW = $('#uptosignCanvas').width() || pageDisplay.view[2];
+		let displayH = $('#uptosignCanvas').height() || pageDisplay.view[3];
+		pxTommX = largeurPDF / displayW;
+		pxTommY = hauteurPDF / displayH;
 
 		$('#pageContainer').width($('#uptosignCanvas').width);
 		// Render PDF page into canvas context
