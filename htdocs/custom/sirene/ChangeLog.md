@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [10.4.5] - 05-08-2026
+- Ajout compatibilité v23
+
 ## [10.4.4] - 24-07-2026
 - FIX : manque un token CSRF
 
@@ -411,7 +414,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 - Version initiale.
 
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.4...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/sirene/compare/10.4.5...HEAD
+[10.4.5]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.5
 [10.4.4]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.4
 [10.4.3]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.3
 [10.4.2]: http://git.open-dsi.fr/dolibarr-extension/sirene/commits/10.4.2
