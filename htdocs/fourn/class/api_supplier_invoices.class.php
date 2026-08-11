@@ -590,9 +590,11 @@ class SupplierInvoices extends DolibarrApi
 			$paymentamount = $amount;
 		} else {
 			// We calculate the remain to pay, and use it as amount
-			$totalpaid = $this->invoice->getSommePaiement();
-			$totaldeposits = $this->invoice->getSumDepositsUsed();
-			$paymentamount = price2num($this->invoice->total_ttc - $totalpaid - $totaldeposits, 'MT');
+			// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+			$totalpaid = price2num($this->invoice->getSommePaiement(), 'MT');
+			$totaldeposits = price2num($this->invoice->getSumDepositsUsed(), 'MT');
+			$paymentamount = price2num(price2num($this->invoice->total_ttc, 'MT') - $totalpaid - $totaldeposits, 'MT');
+			// InfraS change end Arrondis
 		}
 
 		$this->db->begin();

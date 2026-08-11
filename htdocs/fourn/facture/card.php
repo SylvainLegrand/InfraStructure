@@ -775,7 +775,8 @@ if (empty($reshook)) {
 					dol_print_error($db);
 				}
 
-				$discount->amount_ht = $discount->amount_ttc = $total_paiements + $total_creditnote_and_deposit - $object->total_ttc;
+				// arrondi de chaque composant avant combinaison pour éviter un faux excédent d'un centime
+				$discount->amount_ht = $discount->amount_ttc = price2num(price2num($total_paiements, 'MT') + price2num($total_creditnote_and_deposit, 'MT') - price2num($object->total_ttc, 'MT'), 'MT');	// InfraS change
 				$discount->amount_tva = 0;
 				$discount->tva_tx = 0;
 				$discount->vat_src_code = '';
@@ -1059,10 +1060,12 @@ if (empty($reshook)) {
 				if (GETPOSTINT('invoiceAvoirWithPaymentRestAmount') == 1 && $id > 0) {
 					$facture_source = new FactureFournisseur($db); // fetch origin object if not previously defined
 					if ($facture_source->fetch($object->fk_facture_source) > 0) {
-						$totalpaid = $facture_source->getSommePaiement();
-						$totalcreditnotes = $facture_source->getSumCreditNotesUsed();
-						$totaldeposits = $facture_source->getSumDepositsUsed();
-						$remain_to_pay = abs($facture_source->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits);
+						// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+						$totalpaid = price2num($facture_source->getSommePaiement(), 'MT');
+						$totalcreditnotes = price2num($facture_source->getSumCreditNotesUsed(), 'MT');
+						$totaldeposits = price2num($facture_source->getSumDepositsUsed(), 'MT');
+						$remain_to_pay = abs(price2num($facture_source->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits);
+						// InfraS change end Arrondis
 						$desc = $langs->trans('invoiceAvoirLineWithPaymentRestAmount');
 						$retAddLine = $object->addline($desc, $remain_to_pay, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'TTC');
 
@@ -3115,9 +3118,14 @@ if ($action == 'create') {
 
 		$societe = $object->thirdparty;
 
-		$totalpaid = $object->getSommePaiement();
-		$totalcreditnotes = $object->getSumCreditNotesUsed();
-		$totaldeposits = $object->getSumDepositsUsed();
+		// InfraS change begin Arrondis - chaque composant monétaire est arrondi au centime dès son affectation, et
+		// $total_ttc_arrondi (jamais $object->total_ttc lui-même, qui doit rester exact pour les autres usages de la
+		// page) est utilisé pour tout calcul de reste à payer/excédent plus loin dans ce fichier.
+		$totalpaid = price2num($object->getSommePaiement(), 'MT');
+		$totalcreditnotes = price2num($object->getSumCreditNotesUsed(), 'MT');
+		$totaldeposits = price2num($object->getSumDepositsUsed(), 'MT');
+		$total_ttc_arrondi = price2num($object->total_ttc, 'MT');
+		// InfraS change end Arrondis
 		// print "totalpaid=".$totalpaid." totalcreditnotes=".$totalcreditnotes." totaldeposts=".$totaldeposits."
 		// selleruserrevenuestamp=".$selleruserevenustamp;
 
@@ -3125,15 +3133,18 @@ if ($action == 'create') {
 		// For example print 239.2 - 229.3 - 9.9; does not return 0.
 		// $resteapayer=bcadd($object->total_ttc,$totalpaid,$conf->global->MAIN_MAX_DECIMALS_TOT);
 		// $resteapayer=bcadd($resteapayer,$totalavoir,$conf->global->MAIN_MAX_DECIMALS_TOT);
-		$resteapayer = price2num($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+		$resteapayer = price2num($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT'); // InfraS change Arrondis
 
 		// Multicurrency
 		$multicurrency_resteapayer = 0;
 		if (isModEnabled("multicurrency")) {
-			$multicurrency_totalpaid = $object->getSommePaiement(1);
-			$multicurrency_totalcreditnotes = $object->getSumCreditNotesUsed(1);
-			$multicurrency_totaldeposits = $object->getSumDepositsUsed(1);
-			$multicurrency_resteapayer = price2num($object->multicurrency_total_ttc - $multicurrency_totalpaid - $multicurrency_totalcreditnotes - $multicurrency_totaldeposits, 'MT');
+			// InfraS change begin Arrondis
+			$multicurrency_totalpaid = price2num($object->getSommePaiement(1), 'MT');
+			$multicurrency_totalcreditnotes = price2num($object->getSumCreditNotesUsed(1), 'MT');
+			$multicurrency_totaldeposits = price2num($object->getSumDepositsUsed(1), 'MT');
+			$multicurrency_total_ttc_arrondi = price2num($object->multicurrency_total_ttc, 'MT');
+			$multicurrency_resteapayer = price2num($multicurrency_total_ttc_arrondi - $multicurrency_totalpaid - $multicurrency_totalcreditnotes - $multicurrency_totaldeposits, 'MT');
+			// InfraS change end Arrondis
 			// Code to fix case of corrupted data
 			// TODO We should not need this. Also data comes from not reliable value of $object->multicurrency_total_ttc that may be wrong if it was
 			// calculated by summing lines that were in a currency for some of them and into another for others (lines from discount/down payment into another currency for example)
@@ -3989,6 +4000,7 @@ if ($action == 'create') {
 			} else {
 				dol_print_error($db);
 			}
+			$totalpaid = price2num($totalpaid, 'MT'); // InfraS change Arrondis
 
 			if ($object->type != FactureFournisseur::TYPE_CREDIT_NOTE) {
 				// Total already paid
@@ -4049,6 +4061,10 @@ if ($action == 'create') {
 				} else {
 					dol_print_error($db);
 				}
+				// InfraS change begin Arrondis
+				$creditnoteamount = price2num($creditnoteamount, 'MT');
+				$depositamount = price2num($depositamount, 'MT');
+				// InfraS change end Arrondis
 
 				// Paye partiellement 'escompte'
 				if (($object->status == FactureFournisseur::STATUS_CLOSED || $object->status == FactureFournisseur::STATUS_ABANDONED) && $object->close_code == 'discount_vat') {
@@ -4056,7 +4072,7 @@ if ($action == 'create') {
 					print '<span class="opacitymedium">';
 					print $form->textwithpicto($langs->trans("Discount"), $langs->trans("HelpEscompte"), - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					$resteapayeraffiche = 0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4066,7 +4082,7 @@ if ($action == 'create') {
 					print '<span class="opacitymedium">';
 					print $form->textwithpicto($langs->trans("Abandoned"), $langs->trans("HelpAbandonBadCustomer"), - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					// $resteapayeraffiche=0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4076,7 +4092,7 @@ if ($action == 'create') {
 					print '<span class="opacitymedium">';
 					print $form->textwithpicto($langs->trans("ProductReturned"), $langs->trans("HelpAbandonProductReturned"), - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					$resteapayeraffiche = 0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4091,7 +4107,7 @@ if ($action == 'create') {
 					// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 					print $form->textwithpicto($langs->trans("Abandoned"), $text, - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					$resteapayeraffiche = 0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4331,7 +4347,7 @@ if ($action == 'create') {
 					}
 
 					// For standard invoice with excess paid
-					if ($object->type == FactureFournisseur::TYPE_STANDARD && empty($object->paid) && ($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits) < 0 && $usercancreate && empty($discount->id)) {
+					if ($object->type == FactureFournisseur::TYPE_STANDARD && empty($object->paid) && ($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits) < 0 && $usercancreate && empty($discount->id)) { // InfraS change Arrondis
 						print '<a class="butAction'.($conf->use_javascript_ajax ? ' reposition' : '').'" href="'.$_SERVER["PHP_SELF"].'?facid='.$object->id.'&action=converttoreduc&token='.newToken().'">'.$langs->trans('ConvertExcessPaidToReduc').'</a>';
 					}
 					// For credit note

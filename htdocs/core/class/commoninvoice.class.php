@@ -315,16 +315,21 @@ abstract class CommonInvoice extends CommonObject
 	 */
 	public function getRemainToPay($multicurrency = 0)
 	{
+		// InfraS change begin Arrondis - chaque composant monétaire est arrondi au centime avant combinaison, pour éviter
+		// qu'un résidu sous-centime (issu du calcul de lignes non arrondi, voir price.lib.php) ne devienne un faux
+		// reste à payer/excédent d'un centime plein une fois que seul le résultat final est arrondi.
 		$alreadypaid = 0.0;
-		$alreadypaid += $this->getSommePaiement($multicurrency);
-		$alreadypaid += $this->getSumDepositsUsed($multicurrency);
-		$alreadypaid += $this->getSumCreditNotesUsed($multicurrency);
+		$alreadypaid += price2num($this->getSommePaiement($multicurrency), 'MT');
+		$alreadypaid += price2num($this->getSumDepositsUsed($multicurrency), 'MT');
+		$alreadypaid += price2num($this->getSumCreditNotesUsed($multicurrency), 'MT');
 
 		if ((int) $multicurrency > 0) {
 			$totalamount = $this->multicurrency_total_ttc;
 		} else {
 			$totalamount = $this->total_ttc;
 		}
+		$totalamount = price2num($totalamount, 'MT');
+		// InfraS change end Arrondis
 		$remaintopay = price2num($totalamount - $alreadypaid, 'MT');
 		if ($this->status == self::STATUS_CLOSED && $this->close_code == 'discount_vat') {		// If invoice closed with discount for anticipated payment
 			$remaintopay = 0.0;
@@ -1250,10 +1255,12 @@ abstract class CommonInvoice extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 
 				// InfraS change begin
-				$totalpaid = $this->getSommePaiement();
-				$totalcreditnotes = $this->getSumCreditNotesUsed();
-				$totaldeposits = $this->getSumDepositsUsed();
-				$resteapayer = (float) price2num($this->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+				// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison (cf. getRemainToPay)
+				$totalpaid = price2num($this->getSommePaiement(), 'MT');
+				$totalcreditnotes = price2num($this->getSumCreditNotesUsed(), 'MT');
+				$totaldeposits = price2num($this->getSumDepositsUsed(), 'MT');
+				$resteapayer = (float) price2num(price2num($this->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+				// InfraS change end Arrondis
 				$pendingAmount = (float) ($obj->pending_amount ?? 0);
 
 				if ($obj && ($obj->nb == 0 || $pendingAmount < $resteapayer)) {	// If no request found yet, or pending amount is less than remaining to pay
