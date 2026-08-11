@@ -827,7 +827,7 @@ class Facture extends CommonInvoice
 			}
 
 			// Insert lines of invoices, if not coming from template invoice, into database
-			if (!$error && empty($this->fac_rec) && count($this->lines) && is_object($this->lines[0])) {	// If this->lines is array of InvoiceLines (preferred mode)
+			if (!$error && empty($this->fac_rec) && count($this->lines) && is_object(reset($this->lines))) {	// If this->lines is array of InvoiceLines (preferred mode) // InfraS change: array keys are not guaranteed to start at 0
 				$fk_parent_line = 0;
 
 				dol_syslog("There is ".count($this->lines)." lines into ->lines that are InvoiceLines");

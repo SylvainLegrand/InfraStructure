@@ -2274,7 +2274,11 @@ class CommandeFournisseur extends CommonOrder
 							// Update all rank of all other lines starting from the same $ranktouse
 							$linecount = count($this->lines);
 							for ($ii = $rang; $ii <= $linecount; $ii++) {
-								$this->updateRangOfLine($this->lines[$ii - 1]->id, $ii + 1);
+								// InfraS change begin: $this->lines may hold non-object entries when populated by third-party structure-preserving code (eg module infrastructure)
+								if (isset($this->lines[$ii - 1]->id)) {
+									$this->updateRangOfLine($this->lines[$ii - 1]->id, $ii + 1);
+								}
+								// InfraS change end
 							}
 						}
 

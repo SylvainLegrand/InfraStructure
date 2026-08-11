@@ -644,7 +644,7 @@ class FactureFournisseur extends CommonInvoice
 				}
 			}
 
-			if (!$error && empty($this->fac_rec) && count($this->lines) && is_object($this->lines[0])) {	// If this->lines is array of InvoiceLines (preferred mode)
+			if (!$error && empty($this->fac_rec) && count($this->lines) && is_object(reset($this->lines))) {	// If this->lines is array of InvoiceLines (preferred mode) // InfraS change: array keys are not guaranteed to start at 0
 				dol_syslog("There is ".count($this->lines)." lines that are invoice lines objects");
 				foreach ($this->lines as $i => $val) {
 					$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'facture_fourn_det (fk_facture_fourn, special_code, fk_remise_except)';

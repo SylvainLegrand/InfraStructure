@@ -136,6 +136,8 @@ if (!$action) {
 $thirdparty = null; // Init for static analysis
 $stripecu = null; // Init for static analysis
 $paymentintent = null; // Init for static analysis
+$customer = null; // Init for static analysis // InfraS add
+$charge = null; // Init for static analysis // InfraS add
 
 // Load data required later for actions and view
 
@@ -907,7 +909,7 @@ if ($action == 'charge' && isModEnabled('stripe')) {	// Test on permission not r
 	dol_syslog("_SERVER[SERVER_NAME] = ".(empty($_SERVER["SERVER_NAME"]) ? '' : dol_escape_htmltag($_SERVER["SERVER_NAME"])), LOG_DEBUG, 0, '_payment');
 	dol_syslog("_SERVER[SERVER_ADDR] = ".(empty($_SERVER["SERVER_ADDR"]) ? '' : dol_escape_htmltag($_SERVER["SERVER_ADDR"])), LOG_DEBUG, 0, '_payment');
 	dol_syslog("session_id=".session_id(), LOG_DEBUG, 0, '_payment');
-	dol_syslog("onlinetoken=".$_SESSION["onlinetoken"]." paymentoksessioncode=".$_SESSION["paymentoksessioncode"]." paymentkosessioncode=".$_SESSION["paymentkosessioncode"], LOG_DEBUG, 0, '_payment');
+	dol_syslog("onlinetoken=".$_SESSION["onlinetoken"]." paymentoksessioncode=".($_SESSION["paymentoksessioncode"] ?? '')." paymentkosessioncode=".($_SESSION["paymentkosessioncode"] ?? ''), LOG_DEBUG, 0, '_payment'); // InfraS change
 	dol_syslog("FinalPaymentAmt=".$_SESSION["FinalPaymentAmt"]." currencyCodeType=".$_SESSION["currencyCodeType"]." payerID=".$_SESSION['payerID']." TRANSACTIONID=".$_SESSION['TRANSACTIONID'], LOG_DEBUG, 0, '_payment');
 	dol_syslog("FULLTAG=".$FULLTAG, LOG_DEBUG, 0, '_payment');
 	dol_syslog("error=".$error." errormessage=".$errormessage, LOG_DEBUG, 0, '_payment');
