@@ -2329,7 +2329,7 @@ class UptoSign extends CommonObject
 			$contactID = $forcelement_type = $forcelement_id = null;
 			if (isset($listMembers) && is_array($listMembers)) {
 				foreach ($listMembers as $member) {
-					if ($member['doltype'] == 'contact') {
+					if (($member['doltype'] ?? '') == 'contact') { // InfraS change
 						$contactID = $member['dolid'];
 						dol_syslog("uptosign sealOrSignInitLight contactID = $contactID");
 						break;
@@ -3217,7 +3217,7 @@ class UptoSign extends CommonObject
 			$uProof = new UptoSign($this->db);
 			$uProof->ref = $uProof->getNextNumRef();
 			$uProof->hash_file = '';
-			$uProof->sign_id = $resultContent['id'];
+			$uProof->sign_id = $child->sign_id; // InfraS change
 			$uProof->hash_file_signed = $hashProof;
 			$uProof->path_file_signed = uptosign_relative_path($fullSignFile);
 			$uProof->label = $langs->trans("UptoSignDocumentProof");
