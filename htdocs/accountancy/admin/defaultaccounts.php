@@ -162,13 +162,13 @@ if ($action == 'update') {
 	if (!dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, '', $conf->entity)) {
 		$error++;
 	}
-
+	// Osden add begin
 	$constname = 'ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT_FOR_VAT';
 	$constvalue = GETPOSTINT($constname);
 	if (!dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, '', $conf->entity)) {
 		$error++;
 	}
-
+	// Osden add end
 	$constname = 'ACCOUNTING_ACCOUNT_SUPPLIER_DEPOSIT';
 	$constvalue = GETPOSTINT($constname);
 	if (!dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, '', $conf->entity)) {
@@ -324,7 +324,7 @@ print '<td class="right">'; // Do not force class=right, or it align also the co
 print $formaccounting->select_account(getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT'), 'ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT', 1, [], 1, 1, 'minwidth100 maxwidth300 maxwidthonsmartphone', 'accounts');
 print '</td>';
 print '</tr>';
-
+// Osden add begin
 // customer deposit account for VAT
 print '<tr class="oddeven value">';
 // Param
@@ -336,7 +336,7 @@ print '<td class="right">'; // Do not force class=right, or it align also the co
 print $formaccounting->select_account(getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT_FOR_VAT'), 'ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT_FOR_VAT', 1, [], 1, 1, 'minwidth100 maxwidth300 maxwidthonsmartphone', 'accounts');
 print '</td>';
 print '</tr>';
-
+// Osden add end
 if (isModEnabled('societe') && getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT') && getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT') != '-1') {
 	print '<tr class="oddeven">';
 	print '<td>' . img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("UseAuxiliaryAccountOnCustomerDeposit") . '</td>';

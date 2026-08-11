@@ -390,9 +390,11 @@ if ($end_d != '') {
 if ($search_categ_cus != 0) {
 	$param .= '&search_categ_cus='.urlencode((string) ($search_categ_cus));
 }
+// Osden add begin
 if ($check_holiday) {
 	$param .= '&check_holiday=1';
 }
+// Osden add end
 $param .= "&maxprint=".urlencode((string) ($maxprint));
 
 $paramnoactionodate = $param;
@@ -582,7 +584,7 @@ if (!empty($conf->use_javascript_ajax)) {	// If javascript on
 	$s .= '<script type="text/javascript">'."\n";
 	$s .= 'jQuery(document).ready(function () {'."\n";
 	$s .= 'jQuery(".check_birthday").click(function() { console.log("Click on .check_birthday so we toggle class .peruser_birthday"); jQuery(".peruser_birthday").addClass("peruser_birthday_imp"); });'."\n";
-
+	// Osden change begin
 	$s .= 'jQuery(".check_holiday").click(function() {';
 	$s .= '	console.log("Click on .check_holiday so we toggle class .peruser_holiday");';
 	$s .= '	if (jQuery(".peruser_holiday").hasClass("peruser_holiday_imp")) {';
@@ -602,7 +604,7 @@ if (!empty($conf->use_javascript_ajax)) {	// If javascript on
 	$s .= '		navLinkElem.attr("href", navLinkPath + "?" + navLinkParams.toString());';
 	$s .= '	});';
 	$s .= '});'."\n";
-
+	// Osden change end
 	if (isModEnabled("bookcal") && !empty($bookcalcalendars["calendars"])) {
 		foreach ($bookcalcalendars["calendars"] as $key => $value) {
 			$s .= 'jQuery(".check_bookcal_calendar_'.$value['id'].'").click(function() { console.log("Toggle Bookcal Calendar '.$value['id'].'"); jQuery(".family_bookcal_calendar_'.$value['id'].'").toggle(); });'."\n";

@@ -41,7 +41,7 @@ require_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountingaccount.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/client.class.php';
 require_once DOL_DOCUMENT_ROOT.'/accountancy/class/bookkeeping.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';	// Osden add
 
 /**
  * @var Conf $conf
@@ -94,17 +94,19 @@ $tabwarranty = array();
 $tabttc = array();
 $tablocaltax1 = array();
 $tablocaltax2 = array();
+// Osden add begin
 $tabCustomerDiscountHT = array();
 $tabCustomerDiscountVAT = array();
 $tabCustomerDiscountTTC = array();
 
 $manageCustomerDepositInInvoice = getDolGlobalInt('ACCOUNTING_MANAGE_CUSTOMER_DEPOSIT_IN_INVOICE');
 $labelCustomerDiscountExtension = ' (AC)';
-
+// Osden add end
 $cptcli = 'NotDefined';
+// Osden add begin
 $accountCustomerDeposit = getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT', 'NotDefined');
 $accountCustomerDepositVAT = getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_DEPOSIT_FOR_VAT', 'NotDefined');
-
+// Osden add end
 /*
  * Actions
  */
@@ -210,9 +212,11 @@ if ($in_bookkeeping == 'notyet') {
 	$sql .= " AND f.rowid NOT IN (SELECT fk_doc FROM ".MAIN_DB_PREFIX."accounting_bookkeeping as ab WHERE ab.doc_type='customer_invoice')";
 	// $sql .= " AND fd.rowid NOT IN (SELECT fk_docdet FROM " . MAIN_DB_PREFIX . "accounting_bookkeeping as ab WHERE ab.doc_type='customer_invoice')";		// Useless, we save one line for all products with same account
 }
+// Osden add begin
 if ($manageCustomerDepositInInvoice) {
 	$sql .= " AND (fd.description != '(DEPOSIT)' OR COALESCE(fd.fk_remise_except, 0) = 0)";
 }
+// Osden add end
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters); // Note that $action and $object may have been modified by hook
 $sql .= $hookmanager->resPrint;
@@ -231,10 +235,11 @@ $tablocaltax1 = array();
 $tablocaltax2 = array();
 $tabcompany = array();
 $vatdata_cache = array();
+// Osden add begin
 $tabCustomerDiscountHT = array();
 $tabCustomerDiscountVAT = array();
 $tabCustomerDiscountTTC = array();
-
+// Osden add end
 // Variables
 $cptcli = getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER', 'NotDefined');
 $cpttva = getDolGlobalString('ACCOUNTING_VAT_SOLD_ACCOUNT', 'NotDefined');
@@ -276,12 +281,14 @@ if ($result) {
 			$vatdata = getTaxesFromId($tax_id, $buyer, $seller, 0);
 			$vatdata_cache[$tax_id] = $vatdata;
 		}
+		// Osden add begin
 		if (!empty(length_accountg($accountCustomerDepositVAT)) && $accountCustomerDepositVAT != 'NotDefined' && $obj->type == Facture::TYPE_DEPOSIT) {
 			// customer deposit account for VAT
 			$compta_tva = $accountCustomerDepositVAT;
 		} else {
 			$compta_tva = (!empty($vatdata['accountancy_code_sell']) ? $vatdata['accountancy_code_sell'] : $cpttva);
 		}
+		// Osden add end
 		$compta_localtax1 = (!empty($vatdata['accountancy_code_sell']) ? $vatdata['accountancy_code_sell'] : $cpttva);
 		$compta_localtax2 = (!empty($vatdata['accountancy_code_sell']) ? $vatdata['accountancy_code_sell'] : $cpttva);
 
@@ -310,7 +317,7 @@ if ($result) {
 		}
 
 		$revenuestamp = (float) price2num($obj->revenuestamp, 'MT');
-
+		// Osden add begin
 		if ($manageCustomerDepositInInvoice && $obj->type == Facture::TYPE_STANDARD && !isset($tabfac[$obj->rowid])) {
 			// Get all linked invoice deposit consumed by this invoice
 			$sql2 = "SELECT re.rowid";
@@ -345,7 +352,7 @@ if ($result) {
 				dol_print_error($db);
 			}
 		}
-
+		// Osden add end
 		// Invoice lines
 		$tabfac[$obj->rowid]["date"] = $db->jdate($obj->df);
 		$tabfac[$obj->rowid]["datereg"] = $db->jdate($obj->dlr);
@@ -659,10 +666,10 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 		$companystatic->code_client = $tabcompany[$key]['code_client'];
 		$companystatic->client = 3;
 
-		$invoicestatic->id = (int) $key;
+		$invoicestatic->id = (int) $key;	// Osden change
 		$invoicestatic->ref = (string) $val["ref"];
-		$invoicestatic->type = (int) ($val["type"] ?? 0);
-		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');
+		$invoicestatic->type = (int) ($val["type"] ?? 0);	// Osden change
+		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');	// Osden change
 
 		$date = dol_print_date($val["date"], 'day');
 
@@ -686,7 +693,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 		if (isset($errorforinvoice[$key]) && $errorforinvoice[$key] == 'somelinesarenotbound') {
 			$error++;
 			$errorforline++;
-			setEventMessages($langs->trans('ErrorInvoiceContainsLinesNotYetBounded', (string) ($val['ref'] ?? '')), null, 'errors');
+			setEventMessages($langs->trans('ErrorInvoiceContainsLinesNotYetBounded', (string) ($val['ref'] ?? '')), null, 'errors');	// Osden change
 		}
 
 		// Warranty
@@ -699,7 +706,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 					$bookkeeping->doc_ref = $val["ref"];
 					$bookkeeping->date_creation = $now;
 					$bookkeeping->doc_type = 'customer_invoice';
-					$bookkeeping->fk_doc = (int) $key;
+					$bookkeeping->fk_doc = (int) $key;	// Osden change
 					$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are the source of this record to add
 					$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -749,7 +756,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 				$bookkeeping->doc_ref = $val["ref"];
 				$bookkeeping->date_creation = $now;
 				$bookkeeping->doc_type = 'customer_invoice';
-				$bookkeeping->fk_doc = (int) $key;
+				$bookkeeping->fk_doc = (int) $key;	// Osden change
 				$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 				$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -817,7 +824,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 					$bookkeeping->doc_ref = $val["ref"];
 					$bookkeeping->date_creation = $now;
 					$bookkeeping->doc_type = 'customer_invoice';
-					$bookkeeping->fk_doc = (int) $key;
+					$bookkeeping->fk_doc = (int) $key;	// Osden change
 					$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 					$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -898,7 +905,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 						$bookkeeping->doc_ref = $val["ref"];
 						$bookkeeping->date_creation = $now;
 						$bookkeeping->doc_type = 'customer_invoice';
-						$bookkeeping->fk_doc = (int) $key;
+						$bookkeeping->fk_doc = (int) $key;	// Osden change
 						$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 						$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -966,7 +973,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 						$bookkeeping->doc_ref = $val["ref"];
 						$bookkeeping->date_creation = $now;
 						$bookkeeping->doc_type = 'customer_invoice';
-						$bookkeeping->fk_doc = (int) $key;
+						$bookkeeping->fk_doc = (int) $key;	// Osden change
 						$bookkeeping->fk_docdet = 0; // Useless, can be several lines that are source of this record to add
 						$bookkeeping->thirdparty_code = $companystatic->code_client;
 
@@ -1007,7 +1014,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 				}
 			}
 		}
-
+		// Osden add begin
 		if ($manageCustomerDepositInInvoice) {
 			// customer discount consumed TTC amount (like Third-party section)
 			if (!$errorforline && isset($tabCustomerDiscountTTC[$key])) {
@@ -1197,7 +1204,7 @@ if ($action == 'writebookkeeping' && !$error && $user->hasRight('accounting', 'b
 				}
 			}
 		}
-
+		// Osden add end
 		// Protection against a bug on lines before
 		if (!$errorforline && (price2num($totaldebit, 'MT') != price2num($totalcredit, 'MT'))) {
 			$error++;
@@ -1275,10 +1282,10 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 		$companystatic->code_client = $tabcompany[$key]['code_client'];
 		$companystatic->client = 3;
 
-		$invoicestatic->id = (int) $key;
+		$invoicestatic->id = (int) $key;	// Osden change
 		$invoicestatic->ref = (string) $val["ref"];
-		$invoicestatic->type = (int) ($val["type"] ?? 0);
-		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');
+		$invoicestatic->type = (int) ($val["type"] ?? 0);	// Osden change
+		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');	// Osden change
 
 		$date = dol_print_date($val["date"], 'day');
 
@@ -1303,7 +1310,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				//if ($mt) {
 				print '"'.$key.'"'.$sep;
 				print '"'.$date.'"'.$sep;
-				print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
+				print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;	// Osden change
 				print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 				print '"'.length_accounta(html_entity_decode($k)).'"'.$sep;
 				print '"'.length_accountg(getDolGlobalString('ACCOUNTING_ACCOUNT_CUSTOMER_RETAINED_WARRANTY')).'"'.$sep;
@@ -1323,7 +1330,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 			//if ($mt) {
 			print '"'.$key.'"'.$sep;
 			print '"'.$date.'"'.$sep;
-			print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
+			print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;	// Osden change
 			print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 			print '"'.length_accounta(html_entity_decode($k)).'"'.$sep;
 			print '"'.length_accountg($companystatic->accountancy_code_customer_general).'"'.$sep;
@@ -1344,7 +1351,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 			//if ($mt) {
 			print '"'.$key.'"'.$sep;
 			print '"'.$date.'"'.$sep;
-			print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
+			print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;	// Osden change
 			print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 			print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 			print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
@@ -1373,7 +1380,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				if ($mt) {
 					print '"'.$key.'"'.$sep;
 					print '"'.$date.'"'.$sep;
-					print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
+					print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;	// Osden change
 					print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 					print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 					print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
@@ -1394,7 +1401,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				//if ($mt) {
 				print '"'.$key.'"'.$sep;
 				print '"'.$date.'"'.$sep;
-				print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;
+				print '"'.((string) ($val["ref"] ?? '')).'"'.$sep;	// Osden change
 				print '"'.csvClean(dol_trunc($companystatic->name, 32)).'"'.$sep;
 				print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 				print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
@@ -1408,7 +1415,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				//}
 			}
 		}
-
+		// Osden add begin
 		if ($manageCustomerDepositInInvoice) {
 			// customer discount consumed TTC amount (like Third-party section)
 			if (isset($tabCustomerDiscountTTC[$key])) {
@@ -1475,6 +1482,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				}
 			}
 		}
+		// Osden add end
 	}
 }
 
@@ -1596,10 +1604,10 @@ if (empty($action) || $action == 'view') {
 		$companystatic->code_client = $tabcompany[$key]['code_client'];
 		$companystatic->client = 3;
 
-		$invoicestatic->id = (int) $key;
+		$invoicestatic->id = (int) $key;	// Osden change
 		$invoicestatic->ref = (string) $val["ref"];
-		$invoicestatic->type = (int) ($val["type"] ?? 0);
-		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');
+		$invoicestatic->type = (int) ($val["type"] ?? 0);	// Osden change
+		$invoicestatic->close_code = (string) ($val["close_code"] ?? '');	// Osden change
 
 		$date = dol_print_date($val["date"], 'day');
 
@@ -1642,7 +1650,7 @@ if (empty($action) || $action == 'view') {
 			print "<td>".$invoicestatic->getNomUrl(1)."</td>";
 			// Account
 			print "<td>";
-			print '<span class="error">'.$langs->trans('ErrorInvoiceContainsLinesNotYetBoundedShort', $invoicestatic->ref).'</span>';
+			print '<span class="error">'.$langs->trans('ErrorInvoiceContainsLinesNotYetBoundedShort', $invoicestatic->ref).'</span>';	// Osden change
 			print '</td>';
 			// Subledger account
 			print "<td>";
@@ -1833,7 +1841,7 @@ if (empty($action) || $action == 'view') {
 				print "</tr>";
 			}
 		}
-
+		// Osden add begin
 		if ($manageCustomerDepositInInvoice) {
 			// customer discount consumed TTC amount (like Third-party section)
 			if (isset($tabCustomerDiscountTTC[$key])) {
@@ -1944,6 +1952,7 @@ if (empty($action) || $action == 'view') {
 				}
 			}
 		}
+		// Osden add end
 	}
 
 	if (!$i) {
