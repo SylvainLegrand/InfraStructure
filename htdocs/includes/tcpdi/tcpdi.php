@@ -19,7 +19,7 @@
 //
 
 // Dummy shim to allow unmodified use of fpdf_tpl
-class FPDF extends TCPDF {}
+//class FPDF extends TCPDF {}	// InfraS change + Backport V24
 
 require_once('fpdf_tpl.php');
 
