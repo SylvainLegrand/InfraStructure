@@ -223,21 +223,26 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 			$outputlangs->charset_output = 'ISO-8859-1';
 		}
 		$outputlangs->loadLangs(array('main','dict','contracts','companies','infraspackplus@infraspackplus','specialfiles@infraspackplus'));
-		$filesufixe			= (empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_CTS')) ? '' : '_CTS';
+		$fileprefix		= '';
+		if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+			$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_CTS') ? '' : '_CTS';
+		} else {
+			$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_CTS', '');
+			$filesufixe	= empty($fileprefix) ? '_CTS' : '';
+		}
 		// Répertoire de sortie
 		$baseDir			= !empty($conf->contrat->multidir_output[$conf->entity]) ? $conf->contrat->multidir_output[$conf->entity] : $conf->contrat->dir_output;
 		if (empty($baseDir)) {
 			$this->error	= $outputlangs->trans('ErrorConstantNotDefined', 'CONTRACT_OUTPUTDIR');
 			return 0;
 		}
-
 		$objectref			= dol_sanitizeFileName($object->ref);
 		if (preg_match('/specimen/i', $objectref)) {
 			$dir			= $baseDir;
 			$file			= $dir.'/SPECIMEN.pdf';
 		} else {
 			$dir			= $baseDir.'/'.$objectref;
-			$file			= $dir.'/'.$objectref.$filesufixe.'.pdf';
+			$file			= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 		}
 
 		if (!file_exists($dir)) {

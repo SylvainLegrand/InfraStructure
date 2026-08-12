@@ -1985,7 +1985,10 @@
 		<change type='fix'><![CDATA[Zone de signature électronique UpToSign (pdf_InfraSPlus_add_e_signature(), core/lib/infraspackplus.pdf.lib.php) : les mots-clés magiques historiques imprimés en transparence pour le positionnement automatique des signatures / sceaux sont remplacés par leurs équivalents actuels du module uptosign — UPTOSIGN_SIGN_TO_HERE (forme historique du 1er signataire) devient UPTOSIGN_SIGN_TO_00_HERE, et UPTOSIGN_STAMP_HERE (sceau sur facture, mot-clé qui n'est plus reconnu par la recherche de mots-clés d'uptosign) devient UPTOSIGN_STAMP_SEAL_HERE, le mot-clé recherché par l'action de scellement (preseal).]]></change>
 		<change type='fix'><![CDATA[Modèle PDF pdf_InfraSPlus_F (facture) : le mot-clé magique UpToSign était écrit avec le type 'customer' (signature client), si bien que la branche scellement de pdf_InfraSPlus_add_e_signature() (facture + type 'stamp', qui écrit UPTOSIGN_STAMP_SEAL_HERE) n'était jamais exécutée — le scellement d'une facture retombait systématiquement sur la position par défaut de la configuration uptosign au lieu du positionnement automatique par mot-clé. L'appel passe désormais le type 'stamp' : le PDF facture porte le mot-clé UPTOSIGN_STAMP_SEAL_HERE recherché par l'action de scellement (preseal), positionné à la marge gauche sous le bloc d'informations.]]></change>
 	</Version>
-	<InfraS Downloaded="20260805"/>
+	<Version Number="21.8.0" MonthVersion="2026-08">
+		<change type='add'>Ajout de 33 nouvelles options pour le préfixage du nom de fichier PDF</change>
+	</Version>
+	<InfraS Downloaded="20260811"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

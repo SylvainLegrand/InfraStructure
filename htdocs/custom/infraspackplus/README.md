@@ -149,16 +149,18 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***5*** Activer la génération semi-automatique des PDF à l'enregistrement des champs modifiables après validation  du document (Date de fin de validité, Conditions de règlement, Mode de règlement, Date d'expédition / de livraison, Délai de livraison, Compte bancaire)
 		* ***6*** Activer / Désactiver la génération automatique ("à la volée") des PDF
 		* ***7*** Autoriser l'enregistrement de plusieurs fichiers PDF pour un même document quand plusieurs modèles sont disponibles (un fichier par modèle et par document)
-		* ***8*** Horodater le nom du fichier des fiches projet pour garder un historique de l'évolution
-		* ***9*** Proposer aussi les pièces jointes du projet (affaire) associé au document comme fichiers fusionnables
-		* ***10*** Dans les ordres de fabrication proposer aussi les pièces jointes de la nomenclature associée au document comme fichiers fusionnables
-		* ***11*** Devis => Création d'un document supplémentaire en prix brut (Les prix ne tiennent pas compte des remises et / ou des tarifs client ; ils sont issus du prix de vente par défaut de la bibliothèque articles)
-		* ***12*** Gérer la fusion de la documentation produit / service avec les devis depuis les paramètres finaux (case à cocher)
-		* ***13*** Vérifier la présence de fichier en double (fichiers ayant un nom identique associés à des références produit / service différents) => le fichier ne sera fusionné qu'une seule fois
-		* ***14*** Utiliser aussi les liens externes de type PDF (URL, onglet Fichiers joints de la fiche produit) comme source de documentation technique à fusionner
-		* ***15*** Proposer le regroupement de la documentation technique des produits / services dans un PDF séparé du document principal depuis les paramètres finaux (case à cocher)
-		* ***16*** Dans les devis proposer aussi l'attestation de TVA associée au document comme fichier fusionnable (requiert le module externe Attestation de TVA - Iouston)
-		* ***17-19*** Forcer le nombre de décimales  affichées pour les prix unitaires et/ou les prix totaux (lignes et document)
+		* ***8*** Ajouter un préfixe au nom des modèles de documents.
+		* ***9-40*** Préfixe à ajouter au nom des modèles (Devis, commandes, facture, etc)
+		* ***41*** Horodater le nom du fichier des fiches projet pour garder un historique de l'évolution
+		* ***42*** Proposer aussi les pièces jointes du projet (affaire) associé au document comme fichiers fusionnables
+		* ***43*** Dans les ordres de fabrication proposer aussi les pièces jointes de la nomenclature associée au document comme fichiers fusionnables
+		* ***44*** Devis => Création d'un document supplémentaire en prix brut (Les prix ne tiennent pas compte des remises et / ou des tarifs client ; ils sont issus du prix de vente par défaut de la bibliothèque articles)
+		* ***44*** Gérer la fusion de la documentation produit / service avec les devis depuis les paramètres finaux (case à cocher)
+		* ***45*** Vérifier la présence de fichier en double (fichiers ayant un nom identique associés à des références produit / service différents) => le fichier ne sera fusionné qu'une seule fois
+		* ***46*** Utiliser aussi les liens externes de type PDF (URL, onglet Fichiers joints de la fiche produit) comme source de documentation technique à fusionner
+		* ***47*** Proposer le regroupement de la documentation technique des produits / services dans un PDF séparé du document principal depuis les paramètres finaux (case à cocher)
+		* ***48*** Dans les devis proposer aussi l'attestation de TVA associée au document comme fichier fusionnable (requiert le module externe Attestation de TVA - Iouston)
+		* ***49-52*** Forcer le nombre de décimales  affichées pour les prix unitaires et/ou les prix totaux (lignes et document)
 	* OPTIONS DE L'APPARENCE GÉNÉRALE DES DOCUMENTS
 		* ***1*** Importer des fichiers True Type Font (ttf) comme nouvelle police de caractère à utiliser
 		* ***2*** Tester la police sélectionnée (création d'un document test avec 84 caractères différents => affichage standard, gras, italique et gras italique => alphabet latin en minuscules et majuscules, chiffres, ponctuation, accentuation, symboles monétaires, etc soit 98% d'un clavier AZERTY)

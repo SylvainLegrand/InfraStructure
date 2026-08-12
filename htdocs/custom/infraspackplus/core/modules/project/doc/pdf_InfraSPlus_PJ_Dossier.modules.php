@@ -282,9 +282,14 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_PJ_Dossier') ? '' : '_PJ_D';
-			$baseDir						= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
-
+			$baseDir		= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_PJ_Dossier') ? '' : '_PJ_D';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_PJ_D', '');
+				$filesufixe	= empty($fileprefix) ? '_PJ_D' : '';
+			}
 			if (!empty($baseDir)) {
 				$objectref	= dol_sanitizeFileName($object->ref);
 				// Definition of $dir and $file
@@ -293,7 +298,7 @@
 					$file	= $dir.'/SPECIMEN.pdf';
 				} else {
 					$dir	= $baseDir.'/'.$objectref;
-					$file	= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$file	= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}
 				if (! file_exists($dir)) {
 					if (dol_mkdir($dir) < 0) {

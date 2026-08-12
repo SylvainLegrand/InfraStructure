@@ -326,7 +326,13 @@
 				$outputlangsbis->setDefaultLang($this->multilangsBis);
 				$outputlangsbis->loadLangs(array('main', 'dict', 'bills', 'orders', 'products', 'productbatch', 'mrp', 'companies', 'projects', 'infraspackplus@infraspackplus'));
 			}
-			$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BOM') ? '' : '_BOM';
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BOM') ? '' : '_BOM';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_BOM', '');
+				$filesufixe	= empty($fileprefix) ? '_BOM' : '';
+			}
 			$baseDir	= !empty($conf->mrp->multidir_output[$conf->entity]) ? $conf->mrp->multidir_output[$conf->entity] : $conf->mrp->dir_output;
 			$nblines	= count($object->lines);
 			$hidetop	= getDolGlobalString('MAIN_PDF_DISABLE_COL_HEAD_TITLE', '0');
@@ -341,7 +347,7 @@
 				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
-					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}
 				if (! file_exists($dir)) {
 					if (dol_mkdir($dir) < 0) {

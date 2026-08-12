@@ -321,8 +321,13 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_CFBL') ? '' : '_CFBL';
-
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_CFBL') ? '' : '_CFBL';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_CFBL', '');
+				$filesufixe	= empty($fileprefix) ? '_CFBL' : '';
+			}
 			if ($conf->fournisseur->commande->dir_output) {
 				$object->fetch_thirdparty();
 				if (!empty($this->show_ExtraFieldsLines)) {
@@ -335,10 +340,10 @@
 					$dir							= $conf->fournisseur->commande->dir_output;
 					$file							= $dir.'/SPECIMEN.pdf';
 				} else {
-					$objectref								= dol_sanitizeFileName($object->ref);
-					$objectrefsupplier						= dol_sanitizeFileName($object->ref_supplier);
-					$dir									= $conf->fournisseur->commande->dir_output.'/'.$objectref;
-					$file									= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$objectref						= dol_sanitizeFileName($object->ref);
+					$objectrefsupplier				= dol_sanitizeFileName($object->ref_supplier);
+					$dir							= $conf->fournisseur->commande->dir_output.'/'.$objectref;
+					$file							= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 					if (!empty($this->supplier_ref_name)) {
 						$file	= $dir.'/'.$objectref.($objectrefsupplier ? '_'.$objectrefsupplier : '').'.pdf';
 					}

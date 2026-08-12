@@ -370,13 +370,19 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$this->sign												= 1;
+			$this->sign		= 1;
 			if ($object->type == 2 && !empty($this->credit_note)) {
 				$this->sign	= -1;
 			}
-			$filesufixe												= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FT') ? '' : '_FT';
-			$baseDir												= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
-			$this->titlekey											= 'Bill';
+			$baseDir		= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FT') ? '' : '_FT';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_FT', '');
+				$filesufixe	= empty($fileprefix) ? '_FT' : '';
+			}
+			$this->titlekey	= 'Bill';
 			if ($object->type == 1) {
 				$this->titlekey	= 'InvoiceReplacement';
 			}
