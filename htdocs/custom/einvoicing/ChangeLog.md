@@ -55,6 +55,29 @@ resolve - a deployment that does not sit where the module expects, which is what
 can produce - only wrote a line in the log and returned false, so the polyfill was silently absent and
 the next call to it was a fatal "Call to undefined function isValidSiren" (issue #565).
 
+FIX: A seller that charges no VAT now identifies itself on the documents it generates. A company set
+as "Non assujetti a la TVA" has no VAT number, and the writer only ever emitted one, so the seller
+carried no tax registration at all: every exempt line then broke BR-E-02, which wants the seller VAT
+identifier (BT-31), the seller tax registration identifier (BT-32) or the tax representative one, and
+the platform refused the invoice. Recording an exemption reason code did not help, that one answers
+BR-E-10. The seller now declares whichever identifier its VAT regime calls for - its VAT number under
+the scheme VA, or its SIREN under the scheme FC (BT-32) when it charges no VAT - and the regime
+follows the sales tax type of the company setup, the same setting the VAT category of each line is
+already derived from. No option of this module states it: a second place to declare the regime is a
+second place for it to disagree with Dolibarr, and a document carrying exempt lines while claiming a VAT
+registration is what that disagreement produces. A seller subject to VAT that simply left the field
+empty keeps getting the message naming what to fill in, rather than a silent fallback on its SIREN, and
+an exportation or an intracommunity supply now stops with an explicit message when no VAT number is
+recorded: BR-G-02 and BR-IC-02 accept the VAT identifier alone, so nothing can stand in for it there
+(issue #560).
+
+FIX: An exempt invoice line now carries the exemption reason it is counted against, and not only the
+VAT breakdown does. BR-FXEXT-E-08 reconciles the taxable amount of an exempt breakdown with the sum of
+the net amounts of the lines it covers, and only counts a line whose own reason code and reason text
+equal those of the breakdown - so with the reason on the breakdown alone the rule counted zero lines,
+reported the invoice as unbalanced, and the reference validator returned it as invalid whatever else
+the document got right. Both the CII and the Factur-X writers now repeat them on the line; a line with
+nothing to declare is unchanged.
 FIX: Below Dolibarr 24, a Factur-X invoice was produced as a plain PDF with the XML attached to it,
 without the document level /AF entry nor the PDF/A-3 output intent a Factur-X reader looks for, and
 with the XML embedded twice. Nothing said so, and the file was refused further down the line: the
@@ -76,6 +99,14 @@ entirely - and the same invoice produced two different documents depending on th
 One date alone is a period the norm accepts: BR-CO-20 asks for the start date or the end date, "or
 both".
 
+FIX: The Access point setup page carries the title of each of its sections again on Dolibarr 18 to 22.
+FormSetup::generateOutput() did not grow its arguments all at once - $editMode alone up to 19, plus
+$hideTitle from 20, and only from 23 the $title and $cssfirstcolumn the page passes - and PHP discards
+the surplus arguments of a user function without a word, so from 20 on the page asked for a title the
+core never read and printed the default "Parameter / Value" header instead. The rewrite that supplies
+the title below that version is used up to 22 now, and it matches the header row on its shape rather
+than on the "Value" label, which 22 leaves empty.
+
 FIX: Generating two Factur-X sample invoices in the same request no longer ends on a PHP fatal error.
 The generator loaded its helper file with require rather than require_once, so the second call
 redeclared its functions - and a fatal error is not something the calling code can catch and report.
@@ -90,16 +121,14 @@ the platform are concerned; one that is already paid, or still a draft, is left 
 FIX: A down payment invoice now declares in BT-8 that its VAT falls due on collection, whatever the
 VAT mode of the instance, which is already why its cash-in is reported to the platform with the status
 212. Dolibarr builds every down payment line as a goods line, so the document used to say nothing at
-all while its lifecycle said otherwise.
-
-NEW: The VAT regime the generated documents declare in BT-8 can now be set explicitly, in the module
-setup, for a seller whose regime the VAT mode of the Tax/VAT module cannot express. That mode still
-decides by default and nothing changes for an instance that leaves the setting alone. An explicit
-value applies to every document and drives the "VAT on debits" legal mention and the scope of the
-"Cashed in" (212) status with it. It is also the only way to declare the exigibility at the delivery
-(29), a value the automatic derivation never produces: it says the same thing as 5, and the public
-portal only expects 5 (BR-FR-MAP-29). The setting completes the VAT mode rather than duplicating it,
-unlike the option dropped earlier in this version (issue #419).
+all while its lifecycle said otherwise. The VAT regime every other document declares in BT-8 keeps
+coming from the VAT mode of the Tax/VAT module and from nothing else: no option of this module states
+it, that mode being also what the VAT report of Dolibarr is built on, so a second place to declare the
+regime would let an invoice tell the buyer the debits option while the seller declares its VAT on
+collection. The exigibility at the delivery (29) is therefore never emitted, which changes nothing for
+the public portal - it only expects 5, a 29 having to be reported to it as 5 (BR-FR-MAP-29) - and
+Dolibarr has nothing to derive it from anyway, its own setup reading a goods delivery as the invoice
+date (issue #419).
 
 FIX: The setup page no longer dies on a fatal error when the selected Access point cannot be
 instantiated - the case of a provider disabled after being selected, "SuperPDP via partner only" being
@@ -235,6 +264,47 @@ instead of undetermined, and the option that requires a reachable recipient bloc
 value. Where the verdict was read is displayed next to it, since the directory consulted by hand
 shows no status for that line.
 
+FIX: Synchronizing incoming documents no longer stops on a vendor whose thirdparty code is missing.
+On an instance where the code is mandatory - MAIN_COMPANY_CODE_ALWAYS_REQUIRED, or a numbering module
+that refuses an empty code - a thirdparty saved without one, as an import or a provisioning script
+leaves it, is refused by the core on every update: Societe::verify() answers ErrorSupplierCodeRequired
+and the synchronization aborts there, leaving the remaining flows untouched. The module now asks for a
+generated code, the way the thirdparty card does when it saves that same thirdparty, and only where
+the numbering module allows the code to be set. The customer code is treated the same, because the core
+checks both on any update and reports only the last of the two, which made the customer half invisible
+behind the vendor error. Marking a thirdparty as a vendor also stores its new code now, which passing
+the code alone never did: update() writes the code columns only when it is allowed to modify them.
+
+FIX: The same invoice no longer produces two different documents depending on the button that generated
+it. The comment opening the XML names the instance it was produced on, and that name comes from
+getHashUniqueIdOfRegistration(), a function of the blockedlog library that only the paths going through
+the PDF builder happen to load - so generating from the attached files carried the hash, while
+regenerating from the e-invoicing menu, which calls the writer directly, silently dropped it. The
+library is now loaded where the comment is written. Nothing changes below Dolibarr 23, where that
+function does not exist yet, and nothing changes on the PDF path (issue #581).
+  
+FIX: Approving a received invoice no longer takes away the statuses that come after it. The einvoice
+button group of the supplier invoice card disappeared as soon as an "Approved" (205) or a "Refused"
+(210) status had been accepted by the platform, on the assumption that either of them closes the
+lifecycle. Only the refusal does - an invoice sent back to its vendor is not going to be paid - while
+an approved one is, and "Payment transmitted" (211) is what reports it. Since the normal order of
+things is to approve an invoice and then pay it, the manual 211 was already unreachable by the time
+anyone would want it, and re-opening the invoice did not bring it back: the condition never looked at
+the Dolibarr status of the invoice, only at what had been sent. The card now offers what the exchange
+still allows - a status the platform accepted is not proposed a second time, a refusal leaves nothing,
+and an approval only takes the refusal away with it. The query it replaces also compared the direction
+and the validation status against their stored case, which matches nothing on PostgreSQL (issue #548).
+
+FIX: A synchronization interrupted on a Factur-X invoice lets you download the document that stopped it
+again. The document list offers the last invoice that could not be processed under a fixed name, and it
+kept asking for facturx.pdf, a name nobody has written since the Factur-X reception was merged into the
+CII protocol: the received document is promoted to a slot named after the protocol file extension, so it
+lands in einvoice.pdf and the page pointed at nothing. The name is now asked of the protocols themselves,
+both by the page and by the clean-up that empties the slots at the start of a run - which was leaving the
+Factur-X one behind, too - so a protocol added later gets its slot without a page to update. The readable
+view that comes with some flows follows the same rule: it is offered when it exists, where it used to be
+offered on a Factur-X failure although its file is never written under that name, and never on a CII one
+although it is written there (issue #588).
 
 ## 1.0.3
 
