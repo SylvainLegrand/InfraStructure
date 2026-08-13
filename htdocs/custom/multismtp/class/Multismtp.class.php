@@ -686,12 +686,14 @@ smtp_oauth_tenant = NULL";
 		$user_id = !empty($this->fk_user) ? $this->fk_user : $user->id;
 
 		$array = array(
-			'server' => $conf->global->MAIN_MAIL_SMTP_SERVER,
-			'port' => $conf->global->MAIN_MAIL_SMTP_PORT,
-			'tls' => $conf->global->MAIN_MAIL_EMAIL_TLS,
-			'starttls' => $conf->global->MAIN_MAIL_EMAIL_STARTTLS,
+			// InfraS change begin : getDolGlobalString() au lieu d'accès directs à $conf->global (warning "Undefined property" en PHP 8 quand la constante est absente)
+			'server' => getDolGlobalString('MAIN_MAIL_SMTP_SERVER'),
+			'port' => getDolGlobalString('MAIN_MAIL_SMTP_PORT'),
+			'tls' => getDolGlobalString('MAIN_MAIL_EMAIL_TLS'),
+			'starttls' => getDolGlobalString('MAIN_MAIL_EMAIL_STARTTLS'),
+			// InfraS change end
 			'id' => $this->smtp_id,
-			'auth_type' => $conf->global->MAIN_MAIL_SMTPS_AUTH_TYPE,
+			'auth_type' => getDolGlobalString('MAIN_MAIL_SMTPS_AUTH_TYPE'), // InfraS change : même correctif (constante absente sur cette instance → 172 warnings/jour)
 			'pw' => $this->smtp_pw,
 			'oauth_service' => getDolGlobalString('MAIN_MAIL_SMTPS_OAUTH_SERVICE'), // InfraS change
 			'oauth_service_user' => '',
