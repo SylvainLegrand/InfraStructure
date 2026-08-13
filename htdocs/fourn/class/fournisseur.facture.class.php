@@ -1673,10 +1673,10 @@ class FactureFournisseur extends CommonInvoice
 			$this->deleteEcmFiles(1); // Deleting files physically is done later with the dol_delete_dir_recursive
 
 			// We remove directory
-			if ($conf->fournisseur->facture->dir_output) {
+			$ref = dol_sanitizeFileName($this->ref);
+			if ($conf->fournisseur->facture->dir_output && !empty($ref)) {
 				include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
-				$ref = dol_sanitizeFileName($this->ref);
 				$dir = $conf->fournisseur->facture->dir_output.'/'.get_exdir($this->id, 2, 0, 0, $this, 'invoice_supplier').$ref;
 				$file = $dir."/".$ref.".pdf";
 				if (file_exists($file)) {
@@ -3347,7 +3347,7 @@ class FactureFournisseur extends CommonInvoice
 	 */
 	public function createFromClone(User $user, $fromid, $invertdetail = 0)
 	{
-		global $conf, $langs, $hookmanager;
+		global $conf, $langs, $hookmanager;	// Osden change
 
 		$error = 0;
 
@@ -3357,8 +3357,7 @@ class FactureFournisseur extends CommonInvoice
 
 		// Load source object
 		$object->fetch($fromid);
-		$objFrom = clone $object;
-
+		$objFrom = clone $object;	// Osden add
 		$object->id = 0;
 		$object->statut = self::STATUS_DRAFT;	// For backward compatibility
 		$object->status = self::STATUS_DRAFT;
@@ -3402,6 +3401,7 @@ class FactureFournisseur extends CommonInvoice
 		}
 
 		if (!$error) {
+			// Osden add begin
 			// Hook of thirdparty module
 			if (is_object($hookmanager)) {
 				$parameters = array('objFrom'=>$objFrom);
@@ -3412,6 +3412,7 @@ class FactureFournisseur extends CommonInvoice
 					$error++;
 				}
 			}
+			// Osden add end
 		}
 
 		unset($object->context['createfromclone']);
