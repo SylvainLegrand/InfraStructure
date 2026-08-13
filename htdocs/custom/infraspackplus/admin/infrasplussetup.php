@@ -254,6 +254,13 @@
 					$result	= infraspackplus_search_extf (-2, '', 'INFRASPLUS_PDF_EXF_PROD_POS', 'InfraSPlusParamLabelExfProdPos', array('expedition'), $listParamsExfProdPos);
 				}
 			}
+			// Pour les préfixes, on remplace les espaces par des underscores et on ajoute un underscore à la fin si nécessaire
+			if (strpos($constname, 'INFRASPLUS_PDF_ADD_PREFIX_TO_') === 0) {
+				$constvalue = preg_replace('/\s+/', '_', trim(GETPOST($constname, 'alpha')));
+				if (!empty($constvalue) && substr($constvalue, -1) !== '_') {
+					$constvalue .= '_';
+				}
+			}
 			$result	= dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 		}
 		foreach ($listcolor[$confkey] as $constname) {
