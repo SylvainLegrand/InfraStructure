@@ -13,7 +13,8 @@ class AdminerBackwardKeys extends Adminer\Plugin {
 		$return = array();
 		// we couldn't use the same query in MySQL and PostgreSQL because unique_constraint_name is not table-specific in MySQL and referenced_table_name is not available in PostgreSQL
 		foreach (
-			Adminer\get_rows("SELECT s.table_name table_name, s.constraint_name constraint_name, s.column_name column_name, " . (Adminer\JUSH == "sql" ? "referenced_column_name" : "t.column_name") . " referenced_column_name
+			Adminer\get_rows("SELECT s.table_name table_name, s.constraint_name constraint_name, s.column_name column_name,
+	" . (Adminer\JUSH == "sql" ? "referenced_column_name" : "t.column_name") . " referenced_column_name
 FROM information_schema.key_column_usage s" . (Adminer\JUSH == "sql" ? "
 WHERE table_schema = " . Adminer\q(Adminer\DB) . "
 AND referenced_table_schema = " . Adminer\q(Adminer\DB) . "
@@ -48,7 +49,7 @@ ORDER BY s.ordinal_position", null, "") as $row
 	function backwardKeysPrint($backwardKeys, $row) {
 		foreach ($backwardKeys as $table => $backwardKey) {
 			foreach ($backwardKey["keys"] as $cols) {
-				$link = Adminer\ME . 'select=' . urlencode($table);
+				$link = Adminer\ME . 'select=' . Adminer\url_escape($table);
 				$i = 0;
 				foreach ($cols as $column => $val) {
 					if (!isset($row[$val])) {
@@ -56,12 +57,14 @@ ORDER BY s.ordinal_position", null, "") as $row
 					}
 					$link .= Adminer\where_link($i++, $column, $row[$val]);
 				}
-				echo "<a href='" . Adminer\h($link) . "'>" . Adminer\h(preg_replace('(^' . preg_quote($_GET["select"]) . (substr($_GET["select"], -1) == 's' ? '?' : '') . '_)', '_', $backwardKey["name"])) . "</a>";
-				$link = Adminer\ME . 'edit=' . urlencode($table);
+				echo "<a href='" . Adminer\h($link) . "'>"
+					. Adminer\h(preg_replace('(^' . preg_quote($_GET["select"]) . (substr($_GET["select"], -1) == 's' ? '?' : '') . '_)', '_', $backwardKey["name"]))
+					. "</a>";
+				$link = Adminer\ME . 'edit=' . Adminer\url_escape($table);
 				foreach ($cols as $column => $val) {
-					$link .= "&set" . urlencode("[" . Adminer\bracket_escape($column) . "]") . "=" . urlencode($row[$val]);
+					$link .= "&set[" . Adminer\url_escape(Adminer\bracket_escape($column)) . "]=" . Adminer\url_escape($row[$val]);
 				}
-				echo "<a href='" . Adminer\h($link) . "' title='" . Adminer\lang('New item') . "'>+</a> ";
+				echo "<a href='" . Adminer\h($link) . "' title='" . $this->lang('New item') . "'>+</a> ";
 			}
 		}
 	}
@@ -72,9 +75,25 @@ ORDER BY s.ordinal_position", null, "") as $row
 
 	protected $translations = array(
 		'fr' => array('' => 'Affiche des liens vers des tableaux faisant référence à la ligne actuelle, tout comme l\'éditeur Adminer'),
-		'cs' => array('' => 'Zobrazí odkazy na tabulky odkazující aktuální řádek, stejně jako Adminer Editor'),
-		'de' => array('' => 'Links zu Tabellen anzeigen die auf die aktuelle Zeile verweisen, wie im Adminer Editor'),
-		'ja' => array('' => 'Adminer Editor と同様に、カレント行を参照しているテーブルへのリンクを表示'),
-		'pl' => array('' => 'Wyświetlaj linki do tabel odnoszących się do bieżącego wiersza, tak samo jak w Edytorze administratora'),
+		'cs' => array(
+			'' => 'Zobrazí odkazy na tabulky odkazující aktuální řádek, stejně jako Adminer Editor',
+			'New item' => 'Nová položka',
+		),
+		'de' => array(
+			'' => 'Links zu Tabellen anzeigen die auf die aktuelle Zeile verweisen, wie im Adminer Editor',
+			'New item' => 'Neuer Datensatz',
+		),
+		'ja' => array(
+			'' => 'Adminer Editor と同様に、カレント行を参照しているテーブルへのリンクを表示',
+			'New item' => '新規レコードを挿入',
+		),
+		'pl' => array(
+			'' => 'Wyświetlaj linki do tabel odnoszących się do bieżącego wiersza, tak samo jak w Edytorze administratora',
+			'New item' => 'Nowy rekord',
+		),
+		'hr' => array(
+			'' => 'Prikazuje veze na tablice koje referenciraju trenutni redak, kao u Adminer Editoru',
+			'New item' => 'Nova stavka',
+		),
 	);
 }
