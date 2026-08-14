@@ -86,9 +86,11 @@ class EsalinkPDPProvider extends AbstractPDPProvider
 		// Retrieve and complete the OAuth token information from the database
 		$this->tokenData = $this->fetchOAuthTokenDB();
 
+		/*
 		$exchangeProtocolConf = getDolGlobalString('EINVOICING_PROTOCOL');
 		$ProtocolManager = new ProtocolManager($this->db);
 		$this->exchangeProtocol = $ProtocolManager->getProtocol($exchangeProtocolConf);
+		*/
 	}
 
 
@@ -558,6 +560,12 @@ class EsalinkPDPProvider extends AbstractPDPProvider
 		$einvoicing = new EInvoicing($this->db);
 
 		try {
+			if (empty($this->exchangeProtocol)) {
+				$exchangeProtocolConf = getDolGlobalString('EINVOICING_PROTOCOL');
+				$ProtocolManager = new ProtocolManager($this->db);
+				$this->exchangeProtocol = $ProtocolManager->getProtocol($exchangeProtocolConf);
+			}
+
 			if ((float) DOL_VERSION < 24.0) {
 				$resarray = $this->exchangeProtocol->generateSampleInvoiceOld($einvoicing);
 			} else {
@@ -1116,6 +1124,9 @@ class EsalinkPDPProvider extends AbstractPDPProvider
 			return array('res' => -1, 'message' => "ERROR_FLOW_METADATA Failed to parse the json answer for flowId: " . $flowId);
 		}
 
+		$provider = getDolGlobalString('EINVOICING_PDP');
+		$providershort = preg_replace('/ViaPartner$/', '', $provider);
+
 		$document = new Document($this->db);
 		$document->date_creation        = dol_now();
 		$document->fk_user_creat        = $user->id;
@@ -1147,7 +1158,7 @@ class EsalinkPDPProvider extends AbstractPDPProvider
 		} else {
 			$document->updatedat = null;
 		}
-		$document->provider             = getDolGlobalString('EINVOICING_PDP') ?? null;
+		$document->provider             = $providershort ?: null;
 		$document->entity               = $conf->entity;
 		$document->flow_uiid            = $flowData['uuid'] ?? null;
 

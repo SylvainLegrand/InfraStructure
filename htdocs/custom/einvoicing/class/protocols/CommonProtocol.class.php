@@ -815,6 +815,17 @@ trait CommonProtocol
 			$sellername = trim($sellerInfo['sellername'] ?? '');
 			$selleremail = trim($sellerInfo['sellercontactemailaddr'] ?? '');
 			$sellervat = trim($sellerInfo['sellerTaxRegistations']['VA'] ?? '');
+			$sellerzip = trim($sellerInfo['sellerpostcode'] ?? '');
+			$sellertown = trim($sellerInfo['sellercity'] ?? '');
+			$sellercountrycode = trim($sellerInfo['sellercountry'] ?? '');
+			$selleraddress = trim($sellerInfo['sellerlineone'] ?? '');
+			if (!empty($sellerInfo['sellerlinetwo'])) {
+				$selleraddress .= "\n" . $sellerInfo['sellerlinetwo'];
+			}
+			if (!empty($sellerInfo['sellerlinethree'])) {
+				$selleraddress .= "\n" . $sellerInfo['sellerlinethree'];
+			}
+
 
 			$createParams = [];
 
@@ -825,7 +836,7 @@ trait CommonProtocol
 				$createParams['email'] = $selleremail;
 			}
 			if (!empty($sellervat)) {
-				$createParams['vatnumber'] = $sellervat;
+				$createParams['tva_intra'] = $sellervat;
 			}
 			if (!empty($sellerInfo['sellerGlobalIds']) && is_array($sellerInfo['sellerGlobalIds'])) {
 				foreach ($sellerInfo['sellerGlobalIds'] as $idScheme => $globalId) {
@@ -837,6 +848,22 @@ trait CommonProtocol
 					}
 				}
 			}
+			if (!empty($selleraddress)) {
+				$createParams['address'] = $selleraddress;
+			}
+			if (!empty($sellerzip)) {
+				$createParams['zipcode'] = $sellerzip;
+			}
+			if (!empty($sellertown)) {
+				$createParams['town'] = $sellertown;
+			}
+			if (!empty($sellercountrycode)) {
+				$countryid = dol_getIdFromCode($this->db, $sellercountrycode, 'c_country');
+				if ($countryid > 0) {
+					$createParams['country_id'] = $countryid;
+				}
+			}
+
 
 			// Create URL to prefill thirdparty creation form
 			$createUrl = DOL_URL_ROOT . '/societe/card.php?action=create&type=f';
@@ -845,6 +872,8 @@ trait CommonProtocol
 			}
 			$createUrl .= '&backtopage=' . urlencode(dol_buildpath('/einvoicing/document_list.php', 1));
 
+			$langs->loadLangs(array("companies", "einvoicing@einvoicing"));
+
 			$errorDetails = [];
 			// The caller renders $actiondata as "key: value" pairs, the flat shape the PRODUCT_NOT_FOUND
 			// case returns. Building it as a list of one-entry arrays made every value reach the message
@@ -852,15 +881,15 @@ trait CommonProtocol
 			// index 0 - so the vendor name never made it there.
 			$actiondata = [];
 			if (!empty($sellername)) {
-				$errorDetails[] = 'Supplier: ' . $sellername;
+				$errorDetails['name'] = $langs->trans("Supplier").': ' . $sellername;
 				$actiondata['name'] = $sellername;
 			}
 			if (!empty($selleremail)) {
-				$errorDetails[] = 'Email: ' . $selleremail;
+				$errorDetails['email'] = $langs->trans("Email").': ' . $selleremail;
 				$actiondata['email'] = $selleremail;
 			}
 			if (!empty($sellervat)) {
-				$errorDetails[] = 'Vat number: ' . $sellervat;
+				$errorDetails['vatnumber'] = $langs->trans("VATIntra").': ' . $sellervat;
 				$actiondata['vatnumber'] = $sellervat;
 			}
 			if (!empty($sellerInfo['sellerGlobalIds']) && is_array($sellerInfo['sellerGlobalIds'])) {
@@ -868,7 +897,7 @@ trait CommonProtocol
 					if (!empty($globalId)) {
 						$idprofField = $this->_mapGlobalIdSchemeToIdprof($idScheme, $sellerCountryCode);
 						if (!empty($idprofField)) {
-							$errorDetails[] = $idprofField.': ' . $globalId;
+							$errorDetails[$idprofField] = $langs->trans($idprofField).': ' . $globalId;
 							$actiondata[$idprofField] = $globalId;
 						}
 					}
@@ -877,7 +906,8 @@ trait CommonProtocol
 
 			$detailsStr = !empty($errorDetails) ? ' [' . implode(' - ', $errorDetails) . ']' : '';
 
-			$message = 'Unable to find supplier' . $detailsStr . '. Auto-creation of thirdparties is disabled in settings.';
+			$message = $langs->trans("FailedToFindSupplier"). ' ' . $detailsStr . ". \n";
+			$message .= $langs->trans("AutoCreateThirdPartyOffCreateItManually");
 
 			$action = $langs->trans('CreateSupplierManually');
 			$action .= '<a class="butAction small" href="' . dol_escape_htmltag($createUrl) . '" target="_blank">';
@@ -1116,6 +1146,8 @@ trait CommonProtocol
 			$prodDesc = trim($lineData['proddesc'] ?? '');
 			$vendorId = $lineData['supplierId'];
 
+			$langs->loadLangs(array("product", "einvoicing@einvoicing"));
+
 			$errorDetails = [];
 			$createParams = [];
 			$actiondata = ['ref' => $prodRef, 'supplierref' => $prodSupplierRef, 'name' => $prodName];
@@ -1136,7 +1168,7 @@ trait CommonProtocol
 				$createParams['supplierref'] = $prodSupplierRef;			// TODO Dolibarr must be able to handle this parameter
 			}
 			if (!empty($prodName)) {
-				$errorDetails[] = 'Name: ' . $prodName;
+				$errorDetails[] = $langs->trans("Name").': ' . $prodName;
 				$createParams['label'] = $prodName;
 			}
 			if (!empty($prodDesc)) {
@@ -1176,6 +1208,7 @@ trait CommonProtocol
 			$action .= $langs->trans($prodType == 1 ? 'CreateTheService' : 'CreateTheProduct');
 			$action .= '</a>';
 
+
 			// Second choice: map the vendor product reference(s) of this flow onto existing Dolibarr products.
 			// This creates the vendor reference (llx_product_fournisseur_price) that the matching uses at step 1,
 			// so the next synchronization will find the product without creating a new one.
@@ -1188,10 +1221,11 @@ trait CommonProtocol
 
 				$action .= ' ' . $langs->trans("or") . ' ';
 				$action .= '<a class="butAction smallpaddingimp" href="' . dol_escape_htmltag($mappingUrl) . '" target="_blank">';
-				$action .= '<i class="fas fa-link"></i> ';
+				$action .= '<i class="fas fa-link unsetcolor"></i> ';
 				$action .= $langs->trans('MapToAnExistingProduct');
 				$action .= '</a>';
 			}
+
 
 			return array(
 				'res' => -1,

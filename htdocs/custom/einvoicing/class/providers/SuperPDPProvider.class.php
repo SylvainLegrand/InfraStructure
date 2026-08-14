@@ -110,9 +110,11 @@ class SuperPDPProvider extends AbstractPDPProvider
 		// Retrieve and complete the OAuth token information from the database
 		$this->tokenData = $this->fetchOAuthTokenDB();
 
+		/*
 		$exchangeProtocolConf = getDolGlobalString('EINVOICING_PROTOCOL');
 		$ProtocolManager = new ProtocolManager($this->db);
 		$this->exchangeProtocol = $ProtocolManager->getProtocol($exchangeProtocolConf);
+		*/
 	}
 
 
@@ -297,9 +299,11 @@ class SuperPDPProvider extends AbstractPDPProvider
 			// We suggest all these options if we are on the proxy.
 			if (getDolGlobalString('EINVOICING_SUPERPDP_VIAPARTNER') == 'proxy' && preg_match('/ViaPartner/', getDolGlobalString('EINVOICING_PDP'))) {
 				// Redirect URI to register in the SuperPDP interface (must match exactly)
+				$urlforredirecturiinproxymode = dol_buildpath('einvoicing/public/proxy_oauthcallback.php', 3);
+
 				$item = $formSetup->newItem($prefix.'REDIRECT_URI_INFO');
 				$item->nameText = $langs->trans('EINVOICING_SUPERPDP_REDIRECT_URI');
-				$item->fieldOverride = '<span class="opacitymedium">'.dol_escape_htmltag($this->callbackurl).'</span>';
+				$item->fieldOverride = '<span class="opacitymedium">'.dol_escape_htmltag($urlforredirecturiinproxymode).'</span>';
 				$item->helpText = $langs->transnoentities('EINVOICING_SUPERPDP_REDIRECT_URI_HELP');
 				$item->cssClass = 'minwidth500';
 
@@ -316,6 +320,12 @@ class SuperPDPProvider extends AbstractPDPProvider
 				$item->nameText = $langs->trans('EINVOICING_SUPERPDP_ONLY_FUTURE');
 				$item->helpText = $langs->transnoentities('EINVOICING_SUPERPDP_ONLY_FUTURE_HELP');
 				$item->defaultFieldValue = '0';
+				$item->cssClass = 'minwidth500';
+
+				$item = $formSetup->newItem($prefix.'ONLY_DOMAIN');
+				$item->nameText = $langs->trans('EINVOICING_SUPERPDP_ONLY_DOMAIN');
+				$item->helpText = $langs->transnoentities('EINVOICING_SUPERPDP_ONLY_DOMAIN_HELP');
+				$item->defaultFieldValue = '';
 				$item->cssClass = 'minwidth500';
 
 				$item = $formSetup->newItem($prefix.'DIRECTORY_ENTRY_IDENTIFIER');
@@ -995,6 +1005,12 @@ class SuperPDPProvider extends AbstractPDPProvider
 		$einvoicing = new EInvoicing($this->db);
 
 		try {
+			if (empty($this->exchangeProtocol)) {
+				$exchangeProtocolConf = getDolGlobalString('EINVOICING_PROTOCOL');
+				$ProtocolManager = new ProtocolManager($this->db);
+				$this->exchangeProtocol = $ProtocolManager->getProtocol($exchangeProtocolConf);
+			}
+
 			if ((float) DOL_VERSION < 24.0) {
 				$resarray = $this->exchangeProtocol->generateSampleInvoiceOld($einvoicing);
 			} else {
@@ -1898,6 +1914,9 @@ class SuperPDPProvider extends AbstractPDPProvider
 			return array('res' => -1, 'message' => "ERROR_FLOW_METADATA Failed to parse the json answer for flowId: " . $flowId);
 		}
 
+		$provider = getDolGlobalString('EINVOICING_PDP');
+		$providershort = preg_replace('/ViaPartner$/', '', $provider);
+
 		$document = new Document($this->db);
 		$document->date_creation        = dol_now();
 		$document->fk_user_creat        = $user->id;
@@ -1929,7 +1948,7 @@ class SuperPDPProvider extends AbstractPDPProvider
 		} else {
 			$document->updatedat = null;
 		}
-		$document->provider             = getDolGlobalString('EINVOICING_PDP') ?? null;
+		$document->provider             = $providershort ?: null;
 		$document->entity               = $conf->entity;
 		$document->flow_uiid            = $flowData['uuid'] ?? null;
 
