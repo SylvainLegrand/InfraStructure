@@ -131,7 +131,7 @@ class SuperPDPProvider extends AbstractPDPProvider
 	 */
 	public function initFormSetup(&$formSetup, $prefix, $prefixenv, $providersConfig, $TFieldProtocols, $TFieldProfiles)
 	{
-		global $langs, $mysoc;
+		global $langs, $mysoc, $user;
 
 		$tokenData = $this->getTokenData();
 
@@ -159,6 +159,13 @@ class SuperPDPProvider extends AbstractPDPProvider
 					'response_type' => 'code',
 					'redirect_uri' => dol_buildpath('/einvoicing/admin/setup.php', 2)
 				];
+
+				if ($mysoc->email) {
+					$query['login_hint'] = $mysoc->email;
+				} elseif (!empty($user->email)) {
+					$query['login_hint'] = $user->email;
+				}
+
 				// Prefill company information: number and scheme must be paired together.
 				// Use 'sandbox' scheme for non-live environment, otherwise use country-specific scheme (fr_siren for France, be_numero_entreprise for Belgium).
 				if (!empty($mysoc->idprof1)) {
@@ -643,7 +650,9 @@ class SuperPDPProvider extends AbstractPDPProvider
 			'state'         => $state,
 		);
 
-		if (!empty($user->email)) {
+		if ($mysoc->email) {
+			$query['login_hint'] = $mysoc->email;
+		} elseif (!empty($user->email)) {
 			$query['login_hint'] = $user->email;
 		}
 
@@ -824,7 +833,7 @@ class SuperPDPProvider extends AbstractPDPProvider
 	 * This function send an invoice to PDP
 	 *
 	 * @param	Facture		$object 	Invoice object
-	 * @return 	string|array{res:int<-1,1>,message:string}|0|false			flowId if the invoice was successfully sent, false otherwise.
+	 * @return 	false|string|array{res:int<-1,1>,message:string}			flowId if the invoice was successfully sent, false otherwise.
 	 */
 	public function sendInvoice($object)
 	{
@@ -983,7 +992,7 @@ class SuperPDPProvider extends AbstractPDPProvider
 				$this->error .= ' - Curl error ' . $response['curl_error_no'] . (empty($response['curl_error_msg']) ? '' : ' - ' . $response['curl_error_msg']);
 			}
 			$this->errors[] = $this->error;
-			return 0;
+			return false;
 		}
 	}
 
@@ -992,7 +1001,7 @@ class SuperPDPProvider extends AbstractPDPProvider
 	 * This function generates a sample invoice and sends it to PDP
 	 *
 	 * @param 	int<0,1>		$onlymake		1=to only make the sample
-	 * @return 	string[]|0	 					True if the invoice was successfully sent, false otherwise.
+	 * @return 	string[]|0	 					Array of messages if the invoice was successfully sent, 0 otherwise.
 	 */
 	public function sendSampleInvoice($onlymake = 0)
 	{
