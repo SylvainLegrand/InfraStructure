@@ -89,45 +89,46 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 	* Sauvegarder automatiquement les paramètres spécifiques du module lors de la désactivation et réinjecter lesdits paramètres à la réactivation du module
 * Onglet Paramètres Dolibarr
 	* ***1*** Gérer les marges et le format papier à appliquer aux documents
-	* ***2*** Choisir la taille de police utilisée comme base
-	* ***3*** Désactiver l'impression du logo de la société
-	* ***4*** Utiliser le logo original (avec sa résolution plus élevée) dans le PDF au lieu de l'image réduite. ***ATTENTION !*** Cela peut augmenter considérablement la taille du fichier PDF !
-	* ***5*** Intervertir les cadres “émetteur” et “destinataire”
-	* ***6*** Inclure les alias dans le nom des tiers
-	* ***7*** Utiliser la position standard française (La Poste) pour la position de l'adresse client
-	* ***8*** Masquer les détails de l'émetteur sur les PDF générés (e-mail, fax, URL et téléphone)
-	* ***9*** Ajouter les détails du destinataire sur les PDF générés (e-mail, fax, URL et téléphone)
-	* ***10***	Cacher l'identifiant de TVA Intracommunautaire dans l'adresse du destinataire
-	* ***11-15*** Afficher les identifiants professionnels dans l'adresse du destinataire (Id. prof. 1 “SIREN”, Id. prof. 2 “SIRET”, Id. prof. 3 “NAF – APE”, Id. prof. 4 “RCS/RM”, Id. prof. 5 “EORI”)
-	* ***16*** Afficher une ligne de séparation entre chaque élément présent dans le document PDF
-	* ***17*** Activer le mode 'full details' pour l'éditeur WYSIWYG de saisie des descriptions produits / services (permet l'insertion d'image à la volée - non enregistrée en bibliothèque)
-	* ***18*** Améliorer la visibilité des éléments importants, comme la référence ou le numéro de série, dans la description
-	* ***19-20*** Cacher la référence et/ou la description des produits
-	* ***21*** Inverser la description longue des produits / services et leur libellé (à partir de Dolibarr 10+)
-	* ***22*** Désactiver la copie des informations douanières (code SH et pays d'origine) dans le descriptif produit des lignes des documents de ventes
-	* ***23*** Masquer la colonne 'Poids / Volume' sur les bons de livraison (expédition)
-	* ***24*** Activer l'utilisation des unités (issues du dictionnaire) pour les produits / services (Vide => Désactive l'utilisation des unités. Sinon => Permet de definir l'unité proposé par défaut)
-	* ***25*** Inclure la documentation produit / service aux devis (Les documents à inclure sont à sélectionner sur la fiche produit / service en bas de l'onglet 'fichiers joints' !)
-	* ***26*** Afficher la description des catégories auxquelles appartient le produit / services (après sa propre description)
-	* ***27*** Modifier le type de référence produit utilisé dans la chaîne des achats
+	* ***2*** Choisir le format des documents PDF générés (PDF 1.7 standard, PDF/A-1b ou PDF/A-3b)
+	* ***3*** Choisir la taille de police utilisée comme base
+	* ***4*** Désactiver l'impression du logo de la société
+	* ***5*** Utiliser le logo original (avec sa résolution plus élevée) dans le PDF au lieu de l'image réduite. ***ATTENTION !*** Cela peut augmenter considérablement la taille du fichier PDF !
+	* ***6*** Intervertir les cadres “émetteur” et “destinataire”
+	* ***7*** Inclure les alias dans le nom des tiers
+	* ***8*** Utiliser la position standard française (La Poste) pour la position de l'adresse client
+	* ***9*** Masquer les détails de l'émetteur sur les PDF générés (e-mail, fax, URL et téléphone)
+	* ***10*** Ajouter les détails du destinataire sur les PDF générés (e-mail, fax, URL et téléphone)
+	* ***11***	Cacher l'identifiant de TVA Intracommunautaire dans l'adresse du destinataire
+	* ***12-16*** Afficher les identifiants professionnels dans l'adresse du destinataire (Id. prof. 1 “SIREN”, Id. prof. 2 “SIRET”, Id. prof. 3 “NAF – APE”, Id. prof. 4 “RCS/RM”, Id. prof. 5 “EORI”)
+	* ***17*** Afficher une ligne de séparation entre chaque élément présent dans le document PDF
+	* ***18*** Activer le mode 'full details' pour l'éditeur WYSIWYG de saisie des descriptions produits / services (permet l'insertion d'image à la volée - non enregistrée en bibliothèque)
+	* ***19*** Améliorer la visibilité des éléments importants, comme la référence ou le numéro de série, dans la description
+	* ***20-21*** Cacher la référence et/ou la description des produits
+	* ***22*** Inverser la description longue des produits / services et leur libellé (à partir de Dolibarr 10+)
+	* ***23*** Désactiver la copie des informations douanières (code SH et pays d'origine) dans le descriptif produit des lignes des documents de ventes
+	* ***24*** Masquer la colonne 'Poids / Volume' sur les bons de livraison (expédition)
+	* ***25*** Activer l'utilisation des unités (issues du dictionnaire) pour les produits / services (Vide => Désactive l'utilisation des unités. Sinon => Permet de definir l'unité proposé par défaut)
+	* ***26*** Inclure la documentation produit / service aux devis (Les documents à inclure sont à sélectionner sur la fiche produit / service en bas de l'onglet 'fichiers joints' !)
+	* ***27*** Afficher la description des catégories auxquelles appartient le produit / services (après sa propre description)
+	* ***28*** Modifier le type de référence produit utilisé dans la chaîne des achats
 		 * 0 = référence interne, puis référence fournisseur
 		 * 1 = référence fournisseur seule
 		 * 2 = référence fournisseur, puis référence interne
-	* ***28*** Modifier le type de référence produit utilisé dans la chaîne des ventes => option prix par client activée
+	* ***29*** Modifier le type de référence produit utilisé dans la chaîne des ventes => option prix par client activée
 		 * 0 = référence interne, puis référence client
 		 * 1 = référence client seule
 		 * 2 = référence client, puis référence interne
-	* ***29-30*** Imprimer un code QR sur les factures (ZATCA ou Suisse)
-	* ***31*** Activer l'utilisation des "factures de situations" (avancement de travaux)
-	* ***32*** Afficher la mention "catégorie d'opérations" sur la facture dans le tableau d'information (en bas à gauche) ou au dessus de l'en-tête du tableau (1ère page à gauche)
-	* ***33*** Pour le mode de règlement par chèque n'afficher que l'ordre (l'adresse d'envoi du chèque est masquée)
-	* ***34*** Pour le mode de règlement par virement n'afficher que l'IBAN / BIC
-	* ***35*** Inclure un lien de paiement en ligne en pied de facture
-	* ***36*** Afficher des montants positifs dans les factures d'avoir
-	* ***37*** Considérer les factures d'acompte comme des règlements (Utilisées dans une facture finale elles n'apparaissent pas dans les lignes de détail mais sont incluses aux règlements déjà effectués)
-	* ***38-39*** Cacher les conditions et / ou les modes de règlements dans les devis
-	* ***40*** Masquer les détails des règlements effectués dans les factures
-	* ***41*** Type d'affichage des totaux de TVA
+	* ***30-31*** Imprimer un code QR sur les factures (ZATCA ou Suisse)
+	* ***32*** Activer l'utilisation des "factures de situations" (avancement de travaux)
+	* ***33*** Afficher la mention "catégorie d'opérations" sur la facture dans le tableau d'information (en bas à gauche) ou au dessus de l'en-tête du tableau (1ère page à gauche)
+	* ***34*** Pour le mode de règlement par chèque n'afficher que l'ordre (l'adresse d'envoi du chèque est masquée)
+	* ***35*** Pour le mode de règlement par virement n'afficher que l'IBAN / BIC
+	* ***36*** Inclure un lien de paiement en ligne en pied de facture
+	* ***37*** Afficher des montants positifs dans les factures d'avoir
+	* ***38*** Considérer les factures d'acompte comme des règlements (Utilisées dans une facture finale elles n'apparaissent pas dans les lignes de détail mais sont incluses aux règlements déjà effectués)
+	* ***39-40*** Cacher les conditions et / ou les modes de règlements dans les devis
+	* ***41*** Masquer les détails des règlements effectués dans les factures
+	* ***42*** Type d'affichage des totaux de TVA
 		 * n'afficher que le taux
 		 * n'afficher que le code
 		 * n'afficher que la description (libellé)
@@ -135,7 +136,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		 * afficher le taux et la description (libellé)
 		 * afficher le code et la description (libellé)
 		 * VIDE => affiche les trois (le taux, le code et la description)
-	* ***42*** Ouvrir la page de configuration générale des éditions PDF (Options natives)
+	* ***43*** Ouvrir la page de configuration générale des éditions PDF (Options natives)
 * Onglets Paramètres ***InfraS***, Images, Adresses, Attributs supplémentaires, Mentions complémentaires, Notes publiques et Options avant génération
 	* Télécharger le fichier de sauvegarde des paramètres
 	* Sauvegarder / Restaurer l'ensemble des paramètres du module (une copie de sécurité de la sauvegarde est systématiquement créée dans le répertoire d'administration des documents)

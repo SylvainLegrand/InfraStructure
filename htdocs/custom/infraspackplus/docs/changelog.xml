@@ -1988,7 +1988,11 @@
 	<Version Number="21.8.0" MonthVersion="2026-08">
 		<change type='add'>Ajout de 33 nouvelles options pour le préfixage du nom de fichier PDF</change>
 	</Version>
-	<InfraS Downloaded="20260811"/>
+	<Version Number="21.8.1" MonthVersion="2026-08">
+		<change type='fix'><![CDATA[Filigrane image en fond de page (pdf_InfraSPlus_bg_watermark(), core/lib/infraspackplus.pdf.lib.php) : quand PDF_USE_A (PDF/A-1b ou PDF/A-3b) est actif et qu'un filigrane image (INFRASPLUS_PDF_IMAGE_WATERMARK, non déjà au format PDF) est configuré, le PDF généré n'était en réalité pas conforme PDF/A malgré des métadonnées XMP annonçant la conformité (pdfaid:part/conformance corrects). La conversion de l'image en PDF temporaire de fond (mis en cache dans DOL_DATA_ROOT/admin/temp/) instanciait un TCPDF nu, sans le flag PDF/A — ce TCPDF temporaire embarquait donc la police standard "Helvetica" non embarquée, recopiée telle quelle dans le document final lors de la fusion TCPDI (setSourceFile/importPage/useTemplate, qui reprend intégralement les ressources de la page importée). Le TCPDF temporaire reçoit désormais le même réglage PDF_USE_A que le document principal. Vérifié par génération de spécimens et inspection des polices (pdffonts) : la police orpheline non embarquée disparaît après correctif. Le cache existant (DOL_DATA_ROOT/admin/temp/watermark_*.pdf) doit être supprimé manuellement pour que les documents déjà en cache bénéficient du correctif (il ne se régénère sinon que si le fichier image source est modifié).]]></change>
+		<change type='add'><![CDATA[Onglet Paramètres Dolibarr (admin/generalpdf.php) : ajout du champ natif "Format des documents PDF" (PDF_USE_A, réglage natif exposé par admin/pdf.php — PDF 1.7 standard, PDF/A-1b ou PDF/A-3b), positionné juste avant le réglage de taille de police de base. Évite un aller-retour vers la configuration native de Dolibarr pour activer le mode PDF/A. Réglage persisté via le même bouton "Enregistrer" que les autres options natives de cet onglet (ajouté à la liste des constantes sauvegardées par l'action update_Gen).]]></change>
+	</Version>
+	<InfraS Downloaded="20260817"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
