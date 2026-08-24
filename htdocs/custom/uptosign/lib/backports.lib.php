@@ -17,15 +17,16 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
  */
 function utsbackports_dol_verifyHash($chain, $hash, $type = '0')
 {
-	global $conf;
-	dol_syslog("utsbackports_dol_verifyHash chain=$chain, hash=$hash, type=$type MAIN_SECURITY_HASH_ALGO=" . $conf->global->MAIN_SECURITY_HASH_ALGO);
+	// Never log $chain (the clear string being verified, e.g. a submitted securekey)
+	// nor $hash (the stored hash): this function runs on public NOLOGIN pages.
+	dol_syslog("utsbackports_dol_verifyHash type=$type MAIN_SECURITY_HASH_ALGO=" . utsbackports_getDolGlobalString('MAIN_SECURITY_HASH_ALGO', ''));
 
 	if ($type == '0'
 	&& (utsbackports_getDolGlobalString('MAIN_SECURITY_HASH_ALGO', '') != "")
 	&& (utsbackports_getDolGlobalString('MAIN_SECURITY_HASH_ALGO', '')  == 'password_hash')
 	&& function_exists('password_verify')) {
 		if ($hash[0] == '$') {
-			dol_syslog("utsbackports_dol_verifyHash (a) type=$type hash=$hash");
+			dol_syslog("utsbackports_dol_verifyHash (a) type=$type");
 			return password_verify($chain, $hash);
 		} elseif (strlen($hash) == 32) {
 			dol_syslog("utsbackports_dol_verifyHash size is 32");
@@ -135,8 +136,8 @@ function utsbackports_dol_hash($chain, $type = '0')
 		return sha1(md5($chain));
 	}
 
-	// No particular encoding defined, use default
-	dol_syslog("utsbackports_dol_hash No particular encoding defined, use default md5 for $chain");
+	// No particular encoding defined, use default. Do not log $chain (may be a secret).
+	dol_syslog("utsbackports_dol_hash No particular encoding defined, use default md5");
 	return md5($chain);
 }
 
@@ -266,9 +267,9 @@ function utsbackports_getOnlineSignatureUrl($mode, $type, $ref = '', $localorext
 		}
 		$out .= ($mode ? '</span>' : '');
 		if ($mode == 1) {
-			$out .= "hash('".$securekeyseed."' + '".$type."' + $type + '_ref)";
+			$out .= "hash('".$securekeyseed."' + '".$type."' + ".$type."_ref)";
 		} else {
-			$out .= '&securekey='.utsbackports_dol_hash($securekeyseed.$type.$ref.(!isModEnabled('multicompany') ? '' : $obj->entity), '0');
+			$out .= '&securekey='.utsbackports_dol_hash($securekeyseed.$type.$ref.(!isModEnabled('multicompany') ? '' : (empty($obj->entity) ? '' : (int) $obj->entity)), '0');
 		}
 	}
 	dol_syslog("utsbackports_getOnlineSignatureUrl out is " . json_encode($out));
@@ -339,8 +340,10 @@ function utsbackports_buttonsSaveCancel($save_label = 'Save', $cancel_label = 'C
 
 	!empty($save_label) ? $buttons[] = $save : '';
 
-	if (!empty($morebuttons)) {
-		$buttons[] = $morebuttons;
+	if (!empty($morebuttons) && is_array($morebuttons)) {
+		// $morebuttons is a list of button definitions: merge them one by one so the
+		// render loop reads $button['name'] on each, instead of on the wrapping array.
+		$buttons = array_merge($buttons, $morebuttons);
 	}
 
 	!empty($cancel_label) ? $buttons[] = $cancel : '';
@@ -409,12 +412,13 @@ function utsbackports_getLastMainDocLink($last_main_doc, $modulepart, $initshare
 	}
 
 	if (empty($ecmfile->id)) {
-		// Add entry into index
-		if ($initsharekey) {
-			require_once DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';
-		} else {
-			return '';
-		}
+		// No ECM index entry for this document: we only know last_main_doc and the
+		// module part, not the full path on disk, so we cannot rebuild the entry and
+		// generate a share key here (the Dolibarr core leaves this case as a TODO for
+		// the same reason). Returning a link now would produce a dead URL without a
+		// hashp, so we return an empty string with a log instead.
+		dol_syslog("utsbackports_getLastMainDocLink no ECM entry for '$last_main_doc' (modulepart=$modulepart), can not create a share key, return empty link", LOG_WARNING);
+		return '';
 	} elseif (empty($ecmfile->share)) {
 		// Add entry into index
 		if ($initsharekey) {

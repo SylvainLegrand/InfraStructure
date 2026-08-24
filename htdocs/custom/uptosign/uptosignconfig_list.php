@@ -111,7 +111,7 @@ $id = GETPOSTINT('id');
 $limit = GETPOSTINT('limit') ? GETPOSTINT('limit') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'aZ09comma');
 $sortorder = GETPOST('sortorder', 'aZ09comma');
-$page = GETPOSTISSET('pageplusone') ? (GETPOSTINT('pageplusone') - 1) : GETPOST("page");
+$page = GETPOSTISSET('pageplusone') ? (GETPOSTINT('pageplusone') - 1) : GETPOSTINT("page");
 if (empty($page) || $page < 0 || (string) GETPOST('button_search', 'alpha') || GETPOST('button_removefilter', 'alpha')) {
 	// If $page is not defined, or '' or -1 or if we click on clear filters
 	$page = 0;
@@ -684,21 +684,29 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 	// print "<p>OBJ : " . json_encode($obj) . "</p>";
 
 	// fausse bonne idée, il faut tout afficher  :: ajouter un test avec contrat / contract
-	$sqlVerif = "SELECT nom FROM ".MAIN_DB_PREFIX."document_model WHERE nom = '" .$db->escape($dolibarr_model). "' AND type = '".$db->escape($object_type)."' AND entity = ".$conf->entity;
+	$sqlVerif = "SELECT nom FROM ".MAIN_DB_PREFIX."document_model WHERE nom = '" .$db->escape($dolibarr_model). "' AND type = '".$db->escape($object_type)."' AND entity = ".((int) $conf->entity);
 	// print "<p>$sqlVerif</p>";
 	$resqlVerif = $db->query($sqlVerif);
 	if ($resqlVerif) {
 		if ($db->num_rows($resqlVerif) == 0) {
 			$object->status = 0;
 			$res = $object->updateCommon($user, true);
+			if ($res < 0) {
+				dol_syslog("uptosign: updateCommon failed for config #".$object->id." (model not in document_model): ".$object->error, LOG_ERR);
+			}
 			// continue;
 		}
+	} else {
+		dol_syslog("uptosign: document_model verification query failed: ".$db->lasterror(), LOG_ERR);
 	}
 
 	//passe en brouillon les modeles qui ne sont pas correctement configurés
 	if (!in_array($obj->sign_or_seal, ['sign','seal'])) {
 		$object->status = 0;
 		$res = $object->updateCommon($user, true);
+		if ($res < 0) {
+			dol_syslog("uptosign: updateCommon failed for config #".$object->id." (invalid sign_or_seal): ".$object->error, LOG_ERR);
+		}
 	}
 
 	//evite les doublons entre les modeles modifiés par l'utilisateur et un éventuel réimport des données "usine"

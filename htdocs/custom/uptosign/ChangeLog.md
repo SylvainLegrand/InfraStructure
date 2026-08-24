@@ -1,5 +1,15 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.10 -- 2026-08-24
+
+ add more tests (code coverage)
+ fix default data (sql)
+ switch to internal syslog system (prefix + cleanup)
+ better check user rights
+ better entity check on some race sql requests
+ better tests / filters on GET / GETPOST data
+ code factoring (roleCodeFromConfigLabel)
+
 ## 2.4.8 -- 2026-07-16
 
  fix position on screen with diff pixel ratio

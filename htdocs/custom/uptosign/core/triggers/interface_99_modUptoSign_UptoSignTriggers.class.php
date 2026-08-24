@@ -96,21 +96,22 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 		// dol_syslog("Custom Trigger uptosign userModify '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 		// dol_syslog("uptosign object : " . json_encode($object));
 		// dol_syslog("uptosign user : " . json_encode($user));
-		$listOfCheckUsers = explode(',', getDolGlobalString('UPTOSIGN_DOLIBARR_USERS_SIGN', '')); // InfraS change : $conf->global->X non défini tant que la constante n'a jamais été écrite
+		$listOfCheckUsers = explode(',', getDolGlobalString('UPTOSIGN_DOLIBARR_USERS_SIGN', '')); // InfraS change $conf->global->X non défini tant que la constante n'a jamais été écrite
 		dol_syslog("uptosign signlist = " . json_encode($listOfCheckUsers));
 
 		//object = user modified, implication uptosign, si on lui a supprimé le droit de signer il faut le supprimer de notre liste de signataire possibles
 		$object->getRights();
-		if ($object->hasRight('uptosign', 'sign')) { // InfraS change : ->rights->uptosign->sign n'existe pas tant que le droit n'a jamais été accordé à cet utilisateur
+		// InfraS change begin
+		if ($object->hasRight('uptosign', 'sign')) { // ->rights->uptosign->sign n'existe pas tant que le droit n'a jamais été accordé à cet utilisateur
 			//user can sign, nothing to do
 		} else {
 			//remove perm -> propagate to uptosign stuff
-			$toremove=[$object->id];
+			$toremove = [$object->id];
 		}
-
+		// InfraS change end
 		//autre cas de figure, l'utilisateur est maintenant externe
-		if (null !== $object->socid) {
-			$toremove=[$object->id];
+		if (!empty($object->socid)) {
+			$toremove = [$object->id];
 		}
 
 		if (count($toremove) > 0) {
@@ -120,6 +121,8 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 
 		dol_syslog("uptosign signlist = " . json_encode($listOfCheckUsers));
 		dolibarr_set_const($db, 'UPTOSIGN_DOLIBARR_USERS_SIGN', implode(',', $listOfCheckUsers), 'chaine', 0, '', $conf->entity);
+
+		return 1;
 	}
 
 	/**
@@ -151,7 +154,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 		$callback = array($this, $methodName);
 		dol_syslog("uptosign: Trigger ".$this->name." will call $methodName function");
 		if (is_callable($callback)) {
-			dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".(isset($object->id) ? $object->id : '')); // InfraS change
+			dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".(isset($object->id) ? $object->id : ''));	// InfraS change
 			return call_user_func($callback, $action, $object, $user, $langs, $conf);
 		};
 
@@ -303,13 +306,18 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 					} else {
 						$invoice = uptosign_create_invoice_from_proposal($object);
 
-						if(null != $invoice) {
+						if (null != $invoice) {
 							//seal the invoice ?
 							if (getDolGlobalString('UPTOSIGN_WORKFLOW_INVOICE_AUTOSEAL_IF_FROM_PROPAL_SIGN')) {
 								//for that invoice must be validated
-								$invoice->validate($user);
+								$resValidate = $invoice->validate($user);
+								if ($resValidate < 0) {
+									dol_syslog("uptosign: PROPAL_CLOSE_SIGNED autocreate invoice validate failed id=".$invoice->id.": ".$invoice->error, LOG_ERR);
+								}
 								//next is BILL_VALIDATE trigger
 							}
+						} else {
+							dol_syslog("uptosign: PROPAL_CLOSE_SIGNED autocreate invoice from proposal id=".$object->id." failed", LOG_ERR);
 						}
 					}
 				}
@@ -366,14 +374,17 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 					}
 					foreach ($object->lines as $line) {
 						if ($line->statut != ContratLigne::STATUS_OPEN) {
-							$result	= $line->active_line($user, $date_start, -1, '');
-							if ($result < 0) {
+							$resLine = $line->active_line($user, $date_start, -1, '');
+							if ($resLine < 0) {
 								$error++;
-								$this->errors[]		= $line->errors;
+								// Cumulate line errors flatly (no nested array) and keep processing the other lines.
 								if (!empty($line->errors)) {
-									$this->errors	= array_merge($this->errors, $line->errors);
+									$this->errors = array_merge($this->errors, $line->errors);
 								}
-								dol_syslog("uptosign: Error activating contract line id=".$line->id.": ".$line->error, LOG_ERR);							return -1;
+								if (!empty($line->error)) {
+									$this->errors[] = $line->error;
+								}
+								dol_syslog("uptosign: Error activating contract line id=".$line->id.": ".$line->error, LOG_ERR);
 							} else {
 								dol_syslog("uptosign: Contract line id=".$line->id." activated successfully");
 							}
@@ -381,7 +392,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 					}
 					if ($error > 0) {
 						setEventMessages($langs->trans("ErrorActivatingContractLines"), [], 'errors');
-						return -1;
+						dol_syslog("uptosign: CONTRACT_CLOSED_SIGNED activated with ".$error." line error(s), keeping the signed closure", LOG_WARNING);
 					}
 				}
 			break;
@@ -431,7 +442,12 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 											$newlang = GETPOST('lang_id', 'aZ09');
 										}
 										if (getDolGlobalInt('MAIN_MULTILANGS') && empty($newlang)) {
-											$newlang = $object->thirdparty->default_lang;
+											if (empty($object->thirdparty)) {
+												$object->fetch_thirdparty();
+											}
+											if (!empty($object->thirdparty) && !empty($object->thirdparty->default_lang)) {
+												$newlang = $object->thirdparty->default_lang;
+											}
 										}
 										if (!empty($newlang)) {
 											$outputlangs = new Translate("", $conf);
@@ -440,8 +456,15 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 										}
 										$fact = new Facture($db);
 										$ret = $fact->fetch($object->id);
+										if ($ret <= 0) {
+											dol_syslog("uptosign: BILL_VALIDATE autoseal cannot fetch invoice id=".$object->id.": ".$fact->error, LOG_ERR);
+											break 2;
+										}
 										$model = $object->model_pdf;
-										$fact->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
+										$resDoc = $fact->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
+										if ($resDoc <= 0) {
+											dol_syslog("uptosign: BILL_VALIDATE autoseal generateDocument failed for invoice id=".$fact->id.": ".$fact->error, LOG_ERR);
+										}
 
 										$object = $fact;
 										$fullFileName = uptosignFindFileToUse($fact, '');
@@ -450,9 +473,14 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 
 									if (!empty($fullFileName)) {
 										$res = $uptoSign->sealInit($user, $object, $fullFileName);
+										if ($res < 0) {
+											dol_syslog("uptosign: BILL_VALIDATE autoseal sealInit failed: ".implode(', ', $uptoSign->errors), LOG_ERR);
+										} else {
+											dol_syslog("uptosign: BILL_VALIDATE autoseal sealInit ok");
+										}
 										break 2;
 									} else {
-										dol_syslog("uptosign workflow can't find file to seal ");
+										dol_syslog("uptosign workflow can't find file to seal ", LOG_WARNING);
 									}
 
 								}
@@ -562,7 +590,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			// and more...
 
 			default:
-				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".(isset($object->id) ? $object->id : '')); // InfraS change
+				dol_syslog("uptosign: Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".(isset($object->id) ? $object->id : ''));	// InfraS change
 				break;
 		}
 
@@ -591,11 +619,15 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 			if ($result > 0) {
 				$signStatus = $uptoSign->status;
 				if ($signStatus == UptoSign::STATUS_WAITING) {
-					$res = $uptoSign->signCancel($user);
+					// Cancel the remote procedure on the DocWizon service BEFORE removing the local record.
+					// signCancel()/delete() only remove the local row and leave the remote procedure active.
+					// deleteRemote() calls the remote cancel/delete endpoint first, then deleteCommon() locally.
+					$res = $uptoSign->deleteRemote($user);
 					if ($res < 0) {
 						if (!empty($uptoSign->errors)) {
 							$this->errors = $uptoSign->errors;
 						}
+						dol_syslog("uptosign: cancelUptoSign remote cancel failed for objectId=".$objectId." objectType=".$objectType.": ".implode(', ', (array) $uptoSign->errors), LOG_ERR);
 						return -1;
 					} else {
 						setEventMessages($langs->trans('UptoSignCanceled'), [], 'warnings');

@@ -91,14 +91,15 @@ if ($enablepermissioncheck) {
 }
 
 // Security check (enable the most restrictive one)
-//if ($user->socid > 0) accessforbidden();
-//if ($user->socid > 0) $socid = $user->socid;
-//$isdraft = (($object->status == $object::STATUS_DRAFT) ? 1 : 0);
-//restrictedArea($user, $object->module, $object->id, $object->table_element, $object->element, 'fk_soc', 'rowid', $isdraft);
+if ($user->socid > 0) {
+	accessforbidden();
+}
 if (!isModEnabled("uptosign")) {
 	accessforbidden();
 }
-if (!$permissiontoread) accessforbidden();
+if (!$permissiontoread) {
+	accessforbidden();
+}
 
 
 /*
@@ -122,8 +123,17 @@ if ($action == 'addcontact' && $permission) {
 		}
 	}
 } elseif ($action == 'swapstatut' && $permission) {
-	// Toggle the status of a contact
+	// Toggle the status of a contact (state-changing GET action: require a valid CSRF token)
+	$sesstoken = empty($_SESSION['token']) ? '' : $_SESSION['token'];
+	if (GETPOST('token', 'alpha') !== $sesstoken || $sesstoken === '') {
+		dol_syslog("uptosign: swapstatut refused, invalid CSRF token", LOG_WARNING);
+		accessforbidden('Invalid CSRF token');
+	}
 	$result = $object->swapContactStatus(GETPOSTINT('ligne'));
+	if ($result < 0) {
+		dol_syslog("uptosign: swapContactStatus failed for uptosignlist #".$object->id.": ".$object->error, LOG_ERR);
+		setEventMessages($object->error, $object->errors, 'errors');
+	}
 } elseif ($action == 'deletecontact' && $permission) {
 	// Deletes a contact
 	$result = $object->delete_contact($lineid);
@@ -132,6 +142,7 @@ if ($action == 'addcontact' && $permission) {
 		header("Location: ".$_SERVER['PHP_SELF']."?id=".$object->id);
 		exit;
 	} else {
+		dol_syslog("uptosign: delete_contact failed for uptosignlist #".$object->id.": ".$object->error, LOG_ERR);
 		dol_print_error($db);
 	}
 }

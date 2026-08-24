@@ -80,7 +80,7 @@ class modUptoSign extends DolibarrModules
 		$this->editor_url = 'https://cap-rel.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.4.8';
+		$this->version = '2.4.10';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version . "&d=" . DOL_VERSION . "&h=" . md5(DOL_DATA_ROOT);
 
@@ -146,9 +146,9 @@ class modUptoSign extends DolibarrModules
 					'usercard',
 					'infrassalariescontractscard', // pour le module infrassalariescontracts
 					'formfile',   //pour ajouter proprement l'icone seal/sign dans la liste des fichiers joints
-					'createFrom', //pour capturer le createfromclone et affecter eventuelement uptosign si config
 					'contactcard', //pour ajouter le bouton "uptosign sign all docs"
-					'ordersuppliercard' //pour signer les commandes fournisseur
+					'ordersuppliercard', //pour signer les commandes fournisseur
+					'supplier_proposalcard' //pour signer les propositions fournisseur
 				),
 			),
 			// Set this to 1 if features of module are opened to external users
@@ -207,6 +207,7 @@ class modUptoSign extends DolibarrModules
 		$this->tabs[] = array('data'=>'propal:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=propal&id=__ID__');
 		$this->tabs[] = array('data'=>'order:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=commande&id=__ID__');
 		$this->tabs[] = array('data'=>'supplier_order:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=supplier_order&id=__ID__');
+		$this->tabs[] = array('data'=>'supplier_proposal:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=supplier_proposal&id=__ID__');
 		$this->tabs[] = array('data'=>'invoice:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=invoice&id=__ID__');
 		$this->tabs[] = array('data'=>'contract:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=contract&id=__ID__');
 		$this->tabs[] = array('data'=>'intervention:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=intervention&id=__ID__');
@@ -649,6 +650,22 @@ class modUptoSign extends DolibarrModules
 		dol_include_once('/uptosign/lib/uptosign_upgrades.lib.php');
 		dol_include_once('/uptosign/lib/uptosign_uptosignconfig.lib.php');
 
+		// Refresh the shipped defaults before replaying sql/data.sql (which only contains
+		// INSERT IGNORE per Dolibarr sql conventions). These deletes used to live in data.sql
+		// but a data file must not contain DELETE statements, so they are executed here in PHP.
+		// 1. Drop the initial-setup document configurations so the current default coordinates
+		//    are re-inserted for this entity.
+		$sqlDelConf = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignconfig WHERE import_key = 'initial-setup' AND entity = ".((int) $conf->entity);
+		if (!$db->query($sqlDelConf)) {
+			dol_syslog("uptosign init: failed to reset initial-setup configs: ".$db->lasterror(), LOG_ERR);
+		}
+		// 2. Drop the module email templates that were never customized by the user (datec == tms),
+		//    so the up-to-date wording is re-inserted.
+		$sqlDelTpl = "DELETE FROM ".MAIN_DB_PREFIX."c_email_templates WHERE module = 'uptosign' AND datec = tms";
+		if (!$db->query($sqlDelTpl)) {
+			dol_syslog("uptosign init: failed to reset uptosign email templates: ".$db->lasterror(), LOG_ERR);
+		}
+
 		//$result = $this->_load_tables('/install/mysql/tables/', 'uptosign');
 		$result = $this->_load_tables('/uptosign/sql/');
 		if ($result < 0) {
@@ -717,6 +734,7 @@ class modUptoSign extends DolibarrModules
 		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'commande', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
 		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'contrat', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
 		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'projet', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
+		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'supplier_proposal', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
 		$result = $extrafields->addExtraField('digitalsign_disable_sms', $langs->trans('DigitalSignCodeBy'), 'select', 1200, 1, 'thirdparty', 0, 0, '0', array('options' => array('0' =>"DigitalSignCodeBySMS", '1' => "DigitalSignCodeByEmail")), 1, '', 1, 'DigitalSignCodeByTooltip', '', '', 'uptosign@uptosign', 'getDolGlobalString("UPTOSIGN_DISABLE_SMS_SELECT_THIRDPART")', 0, 0);
 
 		// UPTOSIGN_DISABLE_SMS_SELECT_THIRDPART
@@ -905,7 +923,9 @@ class modUptoSign extends DolibarrModules
 			$sql = array("DELETE FROM ".MAIN_DB_PREFIX."const WHERE name like 'UPTOSIGN\_%' AND entity = '".$conf->entity . "';",
 						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign;',
 						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_config;',
-						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_uptosignconfig;');
+						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_uptosignconfig;',
+						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_uptosignlistmembers;',
+						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_uptosignlist;');
 		} else {
 			//multicomp ?
 			if ((int) $conf->entity == 1) {

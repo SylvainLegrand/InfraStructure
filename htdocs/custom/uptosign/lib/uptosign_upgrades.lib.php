@@ -65,9 +65,19 @@ function uptosign_bkup_module($appliname)
 		$currentversion	= $module->version;
 		$dataversion    = utsbackports_getDolGlobalString('UPTOSIGN_MODULE_VERSION', '');
 		$handle			= fopen($bkpfile, 'w+');
+		if ($handle === false) {
+			// fopen() failed (permissions, disk full, ...): fwrite() on a false handle
+			// would raise a TypeError on PHP 8. Fail cleanly with a log instead.
+			$langs->load('errors');
+			$errormsg	= $langs->trans('ErrorFailedToWriteInDir');
+			dol_syslog("uptosign: uptosign_bkup_module could not open backup file $bkpfile for writing", LOG_ERR);
+			return -1;
+		}
 		if (fwrite($handle, '') === false) {
 			$langs->load('errors');
 			$errormsg	= $langs->trans('ErrorFailedToWriteInDir');
+			dol_syslog("uptosign: uptosign_bkup_module could not write to backup file $bkpfile", LOG_ERR);
+			fclose($handle);
 			return -1;
 		}
 		// Print headers and global mysql config vars
@@ -104,7 +114,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 		}
 		$sql_uptosign		= 'SELECT '.implode(', ', $cols_uptosign);
 		$sql_uptosign		.= ' FROM '.MAIN_DB_PREFIX.'uptosign';
-		$sql_uptosign		.= ' WHERE entity = "'.$conf->entity.'"';
+		$sql_uptosign		.= ' WHERE entity = '.((int) $conf->entity);
 		$sql_uptosign		.= ' ORDER BY date_creation';
 		fwrite($handle, uptosign_bkup_table('uptosign', $sql_uptosign, $cols_uptosign, array(), 1, ''));
 
@@ -119,7 +129,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 										'date_creation', 'tms', 'fk_user_creat', 'fk_user_modif', 'import_key', 'status');
 				$sql_conf_uptosign	= 'SELECT '.implode(', ', $cols_conf_uptosign);
 				$sql_conf_uptosign	.= ' FROM '.MAIN_DB_PREFIX.'uptosign_uptosignconfig';
-				$sql_conf_uptosign	.= ' WHERE entity = "'.$conf->entity.'" AND (import_key != "initial-setup" OR import_key IS NULL)';
+				$sql_conf_uptosign	.= ' WHERE entity = '.((int) $conf->entity)." AND (import_key != 'initial-setup' OR import_key IS NULL)";
 				$sql_conf_uptosign	.= ' ORDER BY date_creation';
 				dol_syslog("uptosign: module backup ". $sql_conf_uptosign, LOG_DEBUG);
 				fwrite($handle, uptosign_bkup_table('uptosign_uptosignconfig', $sql_conf_uptosign, $cols_conf_uptosign, array(), 0, ''));
@@ -186,7 +196,9 @@ function uptosign_bkup_table($table, $sql, $listeCols, $duplicate = array(), $tr
 			$duplicateValue					= '';
 			for ($j = 0; $j < $columns; $j++) {
 				// Processing each columns of the row to ensure that we correctly save the value (eg: add quotes for string - in fact we add quotes for everything, it's easier)
-				if ($row[$j] == null && !is_string($row[$j])) {
+				// Use strict null comparison: with == a numeric 0 (or '0') would be
+				// wrongly dumped as NULL and corrupt the restored data.
+				if ($row[$j] === null) {
 					$row[$j]	= 'NULL';
 				}	// IMPORTANT: if the field is NULL we set it NULL
 				elseif (is_string($row[$j]) && $row[$j] == '') {
@@ -295,7 +307,14 @@ function uptosign_bkup_get_version($appliname)
 	// print "<p>Backup du module :" . $filesql . "</p>";
 	if (is_file($filesql)) {
 		$fp = fopen($filesql, 'r');
-		for ($i = 0; ($i < 20) && ($version == -1); $i++) {
+		if ($fp === false) {
+			dol_syslog("uptosign: " . __METHOD__ . " could not open $filesql for reading", LOG_ERR);
+			return $version;
+		}
+		// Keep scanning the first lines until the version is found. The initial value
+		// is "0.0.0", so the loop must run while it is still that default (the previous
+		// condition tested $version == -1, which is never true and skipped the loop).
+		for ($i = 0; ($i < 20) && ($version == "0.0.0"); $i++) {
 			if (feof($fp)) {
 				// echo 'EOF reached';
 				break;

@@ -149,14 +149,18 @@ if ($enablepermissioncheck) {
 $upload_dir = $conf->uptosign->multidir_output[isset($object->entity) ? $object->entity : 1].'/uptosignlist';
 
 // Security check (enable the most restrictive one)
-//if ($user->socid > 0) accessforbidden();
-//if ($user->socid > 0) $socid = $user->socid;
-//$isdraft = (isset($object->status) && ($object->status == $object::STATUS_DRAFT) ? 1 : 0);
-//restrictedArea($user, $object->module, $object, $object->table_element, $object->element, 'fk_soc', 'rowid', $isdraft);
+if ($user->socid > 0) {
+	accessforbidden();
+}
 if (!isModEnabled("uptosign")) {
 	accessforbidden();
 }
 if (!$permissiontoread) {
+	accessforbidden();
+}
+// Entity guard: object must belong to the current entity (multicompany IDOR)
+if (!empty($object->id) && isset($object->entity) && !in_array((int) $object->entity, array_map('intval', explode(',', (string) $conf->entity)), true) && empty($user->admin)) {
+	dol_syslog("uptosign: uptosignlist #".$object->id." entity ".$object->entity." not in current entity ".$conf->entity, LOG_WARNING);
 	accessforbidden();
 }
 
@@ -207,7 +211,16 @@ if (empty($reshook)) {
 		$object->setValueFrom('fk_soc', GETPOSTINT('fk_soc'), '', '', 'date', '', $user, $triggermodname);
 	}
 	if ($action == 'classin' && $permissiontoadd) {
-		$object->setProject(GETPOSTINT('projectid'));
+		if (isset($object->status) && $object->status != $object::STATUS_DRAFT) {
+			dol_syslog("uptosign: setProject refused, uptosignlist #".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
+			setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+		} else {
+			$res = $object->setProject(GETPOSTINT('projectid'));
+			if ($res < 0) {
+				dol_syslog("uptosign: setProject failed for uptosignlist #".$object->id.": ".$object->error, LOG_ERR);
+				setEventMessages($object->error, $object->errors, 'errors');
+			}
+		}
 	}
 
 	// Actions to send emails

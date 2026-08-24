@@ -37,12 +37,11 @@ if (!defined('NOBROWSERNOTIF')) {
 }
 
 // For MultiCompany module.
-// Do not use GETPOST here, function is not defined and define must be done before including main.inc.php
-// TODO This should be useless. Because entity must be retrieve from object ref and not from url.
-$entity = (!empty($_GET['entity']) ? (int) $_GET['entity'] : (!empty($_POST['entity']) ? (int) $_POST['entity'] : 1));
-if (is_numeric($entity)) {
-	define('DOLENTITY', $entity);
-}
+// On purpose there is NO entity taken from the URL here: a webhook URI is stored on
+// a remote server, exposing the entity there would be both useless and unwanted.
+// The entity is deduced server side from the uptosign record matching the uuid sent
+// by the webhook (see uptosign_switch_to_entity() below), once the HMAC signature
+// has been verified.
 
 // Load Dolibarr environment
 $res = 0;
@@ -101,13 +100,25 @@ $object = $modulepart = $error = null;
 
 $hookmanager = new HookManager($db);
 
-//TODO: all
-$h = apache_request_headers();
+// Read request headers. getallheaders() works under php-fpm/nginx (apache_request_headers() does not).
+$h = function_exists('getallheaders') ? getallheaders() : array();
+// Normalize header names to lowercase because header names are case-insensitive.
+$hLower = array();
+foreach ($h as $hName => $hValue) {
+	$hLower[strtolower((string) $hName)] = $hValue;
+}
+$contentType = (string) ($hLower['content-type'] ?? '');
 // dol_syslog('uptosign headers : '.json_encode($h));
-if ($h['Content-Type'] == 'application/json') {
+if (stripos($contentType, 'application/json') !== false) {
 	$content = file_get_contents('php://input');
 	$json = json_decode($content);
 	dol_syslog('uptosign request is : '.json_encode($json));
+	if (!is_object($json)) {
+		dol_syslog('uptosign error, json body is not a valid object : '.$content, LOG_ERR);
+		http_response_code(400);
+		echo 'Invalid JSON body.';
+		exit(-1);
+	}
 	if (empty($json->id)) {
 		dol_syslog('uptosign error, json id is empty : '.$content, LOG_ERR);
 		http_response_code(403);
@@ -142,13 +153,45 @@ if ($h['Content-Type'] == 'application/json') {
 	// dol_syslog("uptosign document, content is : ".$content);
 	// dol_syslog("uptosign document, hook key is : ".$uptoSign->hook_key);
 	//check signature
-	$computedSignature = hash_hmac('sha256', $content, $uptoSign->hook_key);
-	dol_syslog('uptosign signature is '.$h['Signature'].' compare to '.$computedSignature.' ...');
-	if (hash_equals($computedSignature, $h['Signature'])) {
-		dol_syslog('uptosign signature is confirmed, can continue !');
-	} else {
+	// Refuse any record with an empty hook_key: an empty key makes the HMAC signature
+	// forgeable by anyone (hook_key is notnull=-1, so an empty value can exist in base).
+	if (trim((string) $uptoSign->hook_key) === '') {
+		dol_syslog('uptosign hook: empty hook_key for record id '.((int) $uptoSign->id).', reject to avoid forgeable signature', LOG_ERR);
 		http_response_code(403);
 		echo 'Bad value for security check(Signature).';
+		exit(-1);
+	}
+	$sig = (string) ($hLower['signature'] ?? '');
+	$computedSignature = hash_hmac('sha256', $content, $uptoSign->hook_key);
+	dol_syslog('uptosign signature is '.$sig.' compare to '.$computedSignature.' ...');
+	if (hash_equals($computedSignature, $sig)) {
+		dol_syslog('uptosign signature is confirmed, can continue !');
+	} else {
+		dol_syslog('uptosign signature check failed for record id '.((int) $uptoSign->id), LOG_ERR);
+		http_response_code(403);
+		echo 'Bad value for security check(Signature).';
+		exit(-1);
+	}
+
+	// The request is authenticated: we can trust the record and switch the whole
+	// configuration to its entity. This MUST happen before fetching the Dolibarr
+	// object and before any call to the remote API, otherwise UPTOSIGN_KEY_API and
+	// the data directories are read from entity 1 (empty key -> 401 on every call).
+	// The record exists (fetch above succeeded), so a 0 entity is an inconsistency
+	// that must abort rather than silently fall back to entity 1.
+	$recordEntity = uptosign_get_record_entity($db, $uptoSign->id);
+	if ((int) $recordEntity <= 0) {
+		dol_syslog('uptosign hook: unable to resolve entity for record id '.((int) $uptoSign->id).', abort', LOG_ERR);
+		http_response_code(500);
+		echo 'Unable to resolve entity for this record.';
+		exit(-1);
+	}
+	uptosign_switch_to_entity($db, $recordEntity);
+
+	if (trim(utsbackports_getDolGlobalString('UPTOSIGN_KEY_API', '')) === '') {
+		dol_syslog('uptosign hook: UPTOSIGN_KEY_API is empty for entity ' . $conf->entity . ', abort (no API call sent)', LOG_ERR);
+		http_response_code(500);
+		echo 'UptoSign API key is not configured for this entity.';
 		exit(-1);
 	}
 
@@ -166,7 +209,7 @@ if ($h['Content-Type'] == 'application/json') {
 		//exclude uptoseal to that auto close process
 		if ($uptoSign->api_name == 'uptosign') {
 			//try to avoid triple entry on events
-			if ($json->status == 'success' && $object->status != Propal::STATUS_SIGNED) {
+			if (isset($json->status) && $json->status == 'success' && $object->status != Propal::STATUS_SIGNED) {
 				if (method_exists($object, 'call_trigger')) {
 					$result = $object->call_trigger('PROPAL_CLOSE_SIGNED', $user);
 					if ($result < 0) {
@@ -192,7 +235,7 @@ if ($h['Content-Type'] == 'application/json') {
 		$resFetch = $object->fetch($fko);
 		if ($uptoSign->api_name == 'uptosign') {
 			//try to avoid triple entry on events
-			if ($json->status == 'success' && $object->status == Contrat::STATUS_VALIDATED) {
+			if (isset($json->status) && $json->status == 'success' && $object->status == Contrat::STATUS_VALIDATED) {
 				if (method_exists($object, 'call_trigger')) {
 					$result	= $object->call_trigger('CONTRACT_CLOSED_SIGNED', $user);
 					if ($result < 0) {
@@ -220,7 +263,7 @@ if ($h['Content-Type'] == 'application/json') {
 		}
 		if ($uptoSign->api_name == 'uptosign') {
 			//try to avoid triple entry on events
-			if ($json->status == 'success') {
+			if (isset($json->status) && $json->status == 'success') {
 				if (method_exists($object, 'call_trigger')) {
 					$result = $object->call_trigger('INVOICE_SEALED', $user);
 					if ($result < 0) {
@@ -240,6 +283,17 @@ if ($h['Content-Type'] == 'application/json') {
 			http_response_code(403);
 			exit(-1);
 		}
+	} elseif ($objectType == 'supplier_proposal') {
+		require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/core/lib/supplier_proposal.lib.php';
+		$object = new SupplierProposal($db);
+		$resFetch = $object->fetch($fko);
+		$modulepart = 'supplier_proposal';
+		if ($resFetch <= 0) {
+			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
+			http_response_code(403);
+			exit(-1);
+		}
 	} elseif ($objectType == 'societe') {
 		$object = new Societe($db);
 		$resFetch = $object->fetch($fko);
@@ -250,6 +304,7 @@ if ($h['Content-Type'] == 'application/json') {
 			exit(-1);
 		}
 	} elseif ($objectType == 'order') {
+		require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
 		$object = new Commande($db);
 		$resFetch = $object->fetch($fko);
 		$modulepart = 'commande';
@@ -272,28 +327,40 @@ if ($h['Content-Type'] == 'application/json') {
 		}
 	} elseif ($objectType == 'user') {
 		$object = new User($db);
-		$object->fetch($fko);
+		$resFetch = $object->fetch($fko);
 		$modulepart = "user";
+		if ($resFetch <= 0) {
+			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
+			http_response_code(403);
+			exit(-1);
+		}
 	} else {
-		//no dolibarr object
+		//no dolibarr object matching this object type: nothing to fetch, abort with a log
+		dol_syslog("uptosign hook: unsupported object type '$objectType' for record id ".((int) $uptoSign->id).", abort", LOG_ERR);
+		http_response_code(500);
+		echo 'Unsupported object type.';
+		exit(-1);
 	}
 
 	//TODO erreur de conception, le retour webhook donne un uuid de document disponible, il ne faut pas aller chercher
 	//quel est l'objet dolibarr sous peine de télécharger le mauvais fichier !
 	//exemple une facture avec 3 pièces jointes et scellement d'une PJ + facture ... echec assuré
 	//donc on passe l'uuid dans les parametres
-	$parameters = ['currentcontext' => $modulepart.'card', 'uuid' => $json->id];
+	// Note: we pass the sign_id of the record we found, NOT $json->id: on a "proof"
+	// callback $json->id is the uuid of the proof file, not the one of the document
+	$parameters = ['currentcontext' => $modulepart.'card', 'uuid' => $uptoSign->sign_id];
 	$api_name = $uptoSign->api_name;
 
-	if (isModEnabled('multicompany')) {
-		$conf->setEntityValues($db, $object->entity);
-	}
 	//First sync
 	$action = $api_name.'sync';
 	dol_syslog('uptosign $action call hook doActions, object is'.json_encode($object->id));
 	//note: $object peut être modifié par le hook ...
 	$objectSave = $object;
-	if ($action != "confirm_uptosignfetchproof") {
+	// On a "proof" callback we only fetch the proof (below): syncing and re-fetching the
+	// main document here would trigger two useless remote calls. Detect it from the JSON
+	// payload, not from $action which was just overwritten with the sync action above.
+	$isProofCallback = (isset($json->typeOfDoc) && $json->typeOfDoc == 'proof');
+	if (!$isProofCallback) {
 		$hookmanager->initHooks([$modulepart.'card', 'uptosigncard']);
 		$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 
@@ -314,5 +381,11 @@ if ($h['Content-Type'] == 'application/json') {
 		$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 	}
 	dol_syslog('uptosign after call hook doActions');
+} else {
+	// Any request without a JSON Content-Type is not a valid webhook call.
+	dol_syslog('uptosign hook: unexpected Content-Type "'.$contentType.'", expected application/json', LOG_ERR);
+	http_response_code(415);
+	echo 'Unsupported Media Type, expected application/json.';
+	exit(-1);
 }
 //$computedSignature = hash_hmac('sha256', $request, $configuredSigningSecret);

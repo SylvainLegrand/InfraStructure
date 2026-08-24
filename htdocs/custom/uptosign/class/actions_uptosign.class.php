@@ -74,7 +74,7 @@ class ActionsUptoSign
 	public function __construct($db)
 	{
 		$this->db = $db;
-		$this->array_of_handled_context = ['propalcard','interventioncard','ordercard', 'contractcard', 'expeditioncard', 'invoicecard', 'projectcard','uptosignnewonlinesign','uptosigncard', 'usercard','contactcard', 'ordersuppliercard', 'infrassalariescontractscard'];
+		$this->array_of_handled_context = ['propalcard','interventioncard','ordercard', 'contractcard', 'expeditioncard', 'invoicecard', 'projectcard','uptosignnewonlinesign','uptosigncard', 'usercard','contactcard', 'ordersuppliercard', 'supplier_proposalcard', 'infrassalariescontractscard'];
 	}
 
 
@@ -140,6 +140,11 @@ class ActionsUptoSign
 
 		//cas particulier pour la fiche contact d'un utilisateur: on ajoute un bouton pour lui donner tous les droits de signer tous les docs possibles
 		if ($currentcontext == 'contactcard' && $action == 'uptosignAllDocsToContact') {
+			if (!$user->hasRight('uptosign', 'create')) {
+				dol_syslog("uptosign doActions uptosignAllDocsToContact refused, user has no uptosign create right", LOG_WARNING);
+				setEventMessages($langs->trans('UptoSignYouDoNotHaveRightsToDo'), [], 'warnings');
+				return -1;
+			}
 			dol_syslog("uptosign doActions uptosignAllDocsToContact", LOG_DEBUG);
 			$res = $uptoSign->giveAllRolesToContact($object);
 			if ($res > 0) {
@@ -169,13 +174,17 @@ class ActionsUptoSign
 		}
 
 		//uuid possible >> prioritaire
+		// Set by the webhook (public/hook.php) only: it restricts the whole processing
+		// to the document carried by that webhook, instead of replaying every document
+		// attached to the business object.
+		$restrictSignId = (string) ($parameters['uuid'] ?? '');
 		if (isset($parameters['uuid'])) {
 			$resUTS = $uptosignstatic->fetchWhereUuidSign($parameters['uuid']);
 			if ($resUTS <= 0) {
-				dol_syslog("uptosign doActions can't find document : " . json_encode($uptoSign), LOG_ERR);
+				dol_syslog("uptosign doActions can't find document for uuid : " . $restrictSignId, LOG_ERR);
 			} else {
 				dol_syslog("uptosign resUTS=" . json_encode($uptosignstatic));
-				if($uptosignstatic->object_type == $object->element && empty($object->id)) {
+				if (uptosign_unify_object_type($uptosignstatic->object_type) == uptosign_unify_object_type($object->element) && empty($object->id)) {
 					$object->fetch($uptosignstatic->fk_object);
 				}
 			}
@@ -279,12 +288,9 @@ class ActionsUptoSign
 				} else {
 					dol_syslog("uptosign : confirm_uptosignfetch");
 				}
-				//si l'uuid est spécifié on est alors sur un objet uptosign specifique
-				if (isset($parameters['uuid'])) {
-					$res = $uptoSign->signFetch($user, $uptosignstatic, $signOrSeal);
-				} else {
-					$res = $uptoSign->signFetch($user, $object, $signOrSeal);
-				}
+				// With an uuid only that document is processed, but we stay on the Dolibarr
+				// object: signFetch needs it for the proof file and the agenda event
+				$res = $uptoSign->signFetch($user, $object, $signOrSeal, $restrictSignId);
 				if ($res < 0) {
 					dol_syslog("uptosign doAction signFetch Error", LOG_DEBUG);
 					$errors = $uptoSign->errors;
@@ -296,7 +302,7 @@ class ActionsUptoSign
 				break;
 			case "confirm_uptosignfetchproof":
 				// dol_syslog("uptosign : confirm_uptosignfetchproof");
-				$res = $uptoSign->signFetchProof($user, $object);
+				$res = $uptoSign->signFetchProof($user, $object, $restrictSignId);
 				if ($res < 0) {
 					dol_syslog("uptosign doAction signFetchProof Error", LOG_DEBUG);
 					$errors = $uptoSign->errors;
@@ -314,7 +320,8 @@ class ActionsUptoSign
 				// no break
 			case "uptosealsync":
 				if ($signOrSeal == "") {
-					$signOrSeal = $parameters['signOrSeal'] ?? '';
+					// Deduce signOrSeal from the current action: uptosealsync -> seal, uptosignsync -> sign.
+					$signOrSeal = ($action == 'uptosealsync') ? 'seal' : 'sign';
 				}
 				if (!isset($mode) || $mode == "") {
 					$mode = 'sync';
@@ -322,9 +329,9 @@ class ActionsUptoSign
 
 				$object_type = uptosign_unify_object_type($object->element);
 				$api_name = uptosign_unify_api_name($signOrSeal);
-				$res = $uptoSign->signFetch($user, $object, $signOrSeal);
+				$res = $uptoSign->signFetch($user, $object, $signOrSeal, $restrictSignId);
 				if ($res) {
-					$signStatus = $uptoSign->signInfo($user, $object, $mode);
+					$signStatus = $uptoSign->signInfo($user, $object, $mode, $restrictSignId);
 					// print "<p>update $object->ref, set sign status to $signStatus</p>";
 
 					// for updating status in view
@@ -333,13 +340,20 @@ class ActionsUptoSign
 						setEventMessages('UptoSign: ' . $langs->trans('WaitingUptoSign'), [], 'mesgs');
 					} elseif ($signStatus == UptoSign::STATUS_SIGNED) {
 						setEventMessages('UptoSign: ' . $langs->trans('SignedUptoSign'), [], 'mesgs');
-						$this->resprints = '<td>' . $langs->trans('SignedUptoSign') . '</td>';
-						if ($currentcontext == 'uptosigncard') {
-							header("Location: " . $_SERVER["PHP_SELF"] . '?id=' . GETPOSTINT('id'));
+						// When called from the webhook (public/hook.php) the 'uuid' parameter is set.
+						// In that case we must NOT redirect/exit: the webhook chains this sync with
+						// confirm_uptosignfetch and the proof fetch afterwards. A header(Location)+exit
+						// here would kill the process before the document and proof are downloaded and
+						// would answer 302 to the remote server. So only redirect in a real browser context.
+						if (!isset($parameters['uuid'])) {
+							if ($currentcontext == 'uptosigncard') {
+								header("Location: " . $_SERVER["PHP_SELF"] . '?id=' . GETPOSTINT('id'));
+								exit;
+							}
+							header("Location: " . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=confirm_uptosignfetch');
 							exit;
 						}
-						header("Location: " . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=confirm_uptosignfetch');
-						exit;
+						dol_syslog("uptosign doActions webhook context: skip redirect on STATUS_SIGNED, let caller chain fetch", LOG_DEBUG);
 					} elseif ($signStatus == UptoSign::STATUS_CANCELED) {
 						setEventMessages('UptoSign: ' . $langs->trans('CanceledUptoSign'), [], 'mesgs');
 						$this->resprints = '<td>' . $langs->trans('CanceledUptoSign') . '</td>';
@@ -389,18 +403,16 @@ class ActionsUptoSign
 				break;
 			case "builddoc":
 				//Si le document est signé / scellé il faut "capturer" le clic sur le bouton de création du PDF
-				$object_type = uptosign_unify_object_type(uptosignModel($object));
+				$object_type = uptosign_unify_object_type($object->element);
 				$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('sign_status' => 'done'));
 				if (is_array($result) && count($result) > 0) {
 					$this->formConfirm($parameters, $object, $action, $hookmanager);
-					$this->results = array('myreturn' => 999);
-					$this->resprints = 'A text to show';
 					return 1;
 				}
 				break;
 			case "confirm_builddoc":
 				//change uptosign entries -> override
-				$object_type = uptosign_unify_object_type(uptosignModel($object));
+				$object_type = uptosign_unify_object_type($object->element);
 				$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('sign_status' => 'done'));
 				if (is_array($result) && count($result) > 0) {
 					foreach ($result as $uts) {
@@ -470,8 +482,6 @@ class ActionsUptoSign
 
 		if (!$error) {
 			dol_syslog("uptosign doAction end", LOG_DEBUG);
-			$this->results = array('myreturn' => 999);
-			$this->resprints = 'A text to show';
 			return 0; // or return 1 to replace standard code
 		} else {
 			dol_syslog("uptosign doAction end Error", LOG_DEBUG);
@@ -557,7 +567,7 @@ class ActionsUptoSign
 		} elseif ($action == 'uptosealfetch') {
 			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('UptoSign'), $langs->trans('ConfirmUptoSignFetch', $object->ref), 'confirm_uptosealfetch', '', 0, 1);
 		} elseif ($action == 'builddoc') {
-			$object_type = uptosign_unify_object_type(uptosignModel($object));
+			$object_type = uptosign_unify_object_type($object->element);
 			$result = $uptoSign->fetchByObject((int) $object->id, $object_type, array('sign_status' => 'done'));
 			if (is_array($result) && count($result) > 0) {
 				$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('UptoSign'), $langs->trans('UptoSignConfirmRebuildPDF'), 'confirm_builddoc', '', 0, 1);
@@ -589,13 +599,14 @@ class ActionsUptoSign
 
 		$error = 0; // Error counter
 		if (empty($object->id)) {
-			return -1;
+			dol_syslog("uptosign addMoreActionsButtons: object id is empty, nothing to do", LOG_DEBUG);
+			return 0;
 		}
 		$currentcontext = $parameters['currentcontext'];
 
 
 		//cas particulier pour la fiche contact d'un utilisateur: on ajoute un bouton pour lui donner tous les droits de signer tous les docs possibles
-		if ($currentcontext == 'contactcard') {
+		if ($currentcontext == 'contactcard' && $user->hasRight('uptosign', 'create')) {
 			dol_syslog("uptosign addMoreActionsButtons param = " . json_encode($parameters) . ", action = $action", LOG_DEBUG);
 			print '<div class="inline-block divButAction"><a class="butAction classfortooltip" title="' . $langs->trans('UptoSignAddAllDocToSignTooltip') . '" href="' . dol_escape_htmltag($_SERVER["PHP_SELF"]) . '?id=' . $object->id . '&action=uptosignAllDocsToContact"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignAddAllDocToSign') . '</a></div>';
 		}
@@ -657,7 +668,7 @@ class ActionsUptoSign
 			$active = true;
 			$minStatus = Project::STATUS_VALIDATED;
 			$maxStatus = Project::STATUS_CLOSED;
-		} elseif (! empty($parameters['uptosigncustomcard']) && ! empty($config->fetchListId($model_pdf, $object->element))) {	// InfraS change
+		} elseif (isset($parameters['uptosigncustomcard']) && $parameters['uptosigncustomcard'] == true && ! empty($config->fetchListId($model_pdf, $object->element))) {
 			dol_include_once($parameters['include_class_file']);
 			$class = $parameters['class_name'];
 			$active = true;
@@ -667,6 +678,10 @@ class ActionsUptoSign
 			$active = true;
 			$minStatus = CommandeFournisseur::STATUS_VALIDATED;
 			$maxStatus = CommandeFournisseur::STATUS_ACCEPTED;
+		} elseif ($currentcontext == 'supplier_proposalcard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+			$active = true;
+			$minStatus = SupplierProposal::STATUS_VALIDATED;
+			$maxStatus = SupplierProposal::STATUS_SIGNED;
 		} elseif ($currentcontext == 'infrassalariescontractscard') {
 			$active = true;
 			/** @phpstan-ignore-next-line */
@@ -808,17 +823,20 @@ class ActionsUptoSign
 						if ($uptoSignConfig->sign_or_seal == "sign") {
 							// print "<p>" . json_encode($object) . "</p>";
 							// print "<p>" . json_encode($uptoSignConfig) . "</p>";
-							if ($uptoSignConfig->label == "CustomerSign") {
-								$contacts = new ArrayObject();
-								$uptoSign = new UptoSign($this->db);
-								$uptoSign->whoCanSign($object, 'internal', "", $contacts);
-								$uptoSign->whoCanSign($object, 'internal', "CustomerSign", $contacts);
-								$uptoSign->whoCanSign($object, 'external', "CustomerSign", $contacts);
-								if (count($contacts) > 1) {
-									$signbtn = true;
-								} else {
-									$signbtn = false;
-								}
+							// The role to look for is the label of the config, not a hardcoded
+							// CustomerSign: a supplier proposal or a supplier order is signed by
+							// a VendorSign contact, so no sign button ever showed up there.
+							$roleCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($uptoSignConfig->label);
+							$contacts = new ArrayObject();
+							$uptoSign = new UptoSign($this->db);
+							$uptoSign->whoCanSign($object, 'internal', "", $contacts);
+							$uptoSign->whoCanSign($object, 'internal', $roleCode, $contacts);
+							$uptoSign->whoCanSign($object, 'external', $roleCode, $contacts);
+							if (count($contacts) > 1) {
+								$signbtn = true;
+							} else {
+								dol_syslog("uptosign _availableButtonSignSeal: not enough signatories with role " . $roleCode . " on " . $object->element . " #" . $object->id . ", no sign button", LOG_DEBUG);
+								$signbtn = false;
 							}
 						}
 						if ($uptoSignConfig->sign_or_seal == "seal") {
@@ -832,28 +850,27 @@ class ActionsUptoSign
 		}
 
 		//Si la fiche en cours est déjà sur uptosign
+		$existingProcess = false;
 		if ($object->element == 'uptosign') {
 			//cas particulier du dossier de preuves
 			if ($object->hash_file != '') {
 				$uptoSign = $object;
+				$existingProcess = true;
 			}
 		} else {
 			//une procedure est déjà en cours ?
 			$uptoSign = new UptoSign($this->db);
-			$result = $uptoSign->fetch(null, null, $object->id);
+			$result = $uptoSign->fetch(null, null, $object->id, $object->element);
+			if ($result > 0) {
+				$existingProcess = true;
+			} else {
+				dol_syslog("uptosign _availableButtonSignSeal: no existing process for object id " . $object->id . ", element " . $object->element, LOG_DEBUG);
+			}
 		}
 
 		// print "<p>".json_encode($uptoSign)."</p>";
 
-		if (isset($uptoSign) && is_array($uptoSign)) {
-			foreach ($uptoSign as $uts) {
-				if ($uts->api_name == 'uptoseal') {
-					$sealbtnMessage .= $langs->trans("UptoSignProcessing") . $uts->getLibStatut();
-				} else {
-					$signbtnMessage .= $langs->trans("UptoSignProcessing") . $uts->getLibStatut();
-				}
-			}
-		} else {
+		if ($existingProcess) {
 			if (isset($uptoSign->status)) {
 				if ($uptoSign->api_name == 'uptoseal') {
 					$sealbtnMessage .= $langs->trans("UptoSignProcessing") . $uptoSign->getLibStatut();
@@ -871,10 +888,6 @@ class ActionsUptoSign
 			$signbtn = $force_signbtn;
 		}
 
-
-		// $contactCode = $typeContacts[$uptoSignConfig->fk_c_type_contact];
-		// $contactIds = $object->getIdContact('external', $contactCode['code']);
-		// $userIds = $object->getIdContact('internal', $contactCode['code']);
 
 		//Si pas de btn alors affichage en mode disabled
 		if ($signbtn) {
@@ -927,10 +940,15 @@ class ActionsUptoSign
 
 		$currentcontext = $parameters['currentcontext'];
 		if (isset($massContextClasses[$currentcontext]) && $parameters['massaction'] == "uptosealMass") {
+			if (!$user->hasRight('uptosign', 'create')) {
+				dol_syslog("uptosign doMassActions uptosealMass refused, user has no uptosign create right", LOG_WARNING);
+				$this->errors[] = $langs->trans('UptoSignYouDoNotHaveRightsToDo');
+				return -1;
+			}
 			$className = $massContextClasses[$currentcontext];
 			$obj = new $className($db);
 			foreach ($parameters['toselect'] as $id) {
-				$res = $obj->fetch($id);
+				$res = $obj->fetch((int) $id);
 				if ($res > 0) {
 					$uptoSign = new UptoSign($this->db);
 					$filename = dol_sanitizeFileName($obj->ref);
@@ -941,7 +959,8 @@ class ActionsUptoSign
 					} elseif ($elem == 'contrat') {
 						$baseDir = $conf->contrat->dir_output;
 					} elseif ($elem == 'facture') {
-						$baseDir = $conf->invoice->dir_output;
+						// $conf->invoice alias only exists since Dolibarr 19, module is compat 15-23.
+						$baseDir = $conf->facture->dir_output;
 					} elseif ($elem == 'project') {
 						$baseDir = $conf->projet->dir_output;
 					} else {
@@ -995,7 +1014,7 @@ class ActionsUptoSign
 		);
 
 		$currentcontext = $parameters['currentcontext'];
-		if (isset($massContextLabels[$currentcontext])) {
+		if (isset($massContextLabels[$currentcontext]) && $user->hasRight('uptosign', 'create')) {
 			dol_syslog("uptosign: " . get_class($this) . '::addMoreMassActions ' . $currentcontext);
 			$this->resprints = '<option value="uptosealMass"' . ($disabled ? ' disabled="disabled"' : '') . '>' . $langs->trans($massContextLabels[$currentcontext]) . '</option>';
 		}
@@ -1247,7 +1266,7 @@ class ActionsUptoSign
 		$out = "";
 		$uptoSign = new UptoSign($this->db);
 		// $result = $uptoSign->fetchAll(null, null, $object->id, $object->element);
-		$object_type = uptosign_unify_object_type(uptosignModel($object));
+		$object_type = uptosign_unify_object_type($object->element);
 		$result = $uptoSign->fetchByObject((int) $object->id, $object_type);
 		foreach ($result as $uts) {
 			// print '<p>'.json_encode($uts).'</p>';
@@ -1283,8 +1302,17 @@ class ActionsUptoSign
 		$model_pdf = uptosignModel($object);
 
 		$configIds = $config->fetchListId($model_pdf, $object->element, 'sign');
-		$typeContacts = $config->getTypeContactCode($object->element, $parameters['sourceContact']);
-		$sourceContacts = $config->getSourceContactCode($object->element);
+
+		// The PDF asks for the signature areas of one source at a time
+		$contactSource = $parameters['sourceContact'] ?? 'external';
+		$resolver = new UptoSignSignatoryResolver($object->db);
+
+		// fetchListId returns an array of ids, or a negative int when nothing matches.
+		// Guard so we never foreach over an int (warning + no area added).
+		if (!is_array($configIds)) {
+			dol_syslog("uptosign changeSignatureArea: no config available for " . $model_pdf . " / " . $object->element, LOG_DEBUG);
+			return 0;
+		}
 
 		//Parcourt les ID de configuration
 		foreach ($configIds as $configId) {
@@ -1297,12 +1325,15 @@ class ActionsUptoSign
 				return --$error;
 			}
 
-			//Récupère les informations du contact et de l'utilisateur
-			$contactCode = $typeContacts[$config->fk_c_type_contact];
-			$contactSource = $sourceContacts[$config->fk_c_type_contact];
-			if ($object->getIdContact($contactSource, $contactCode)) {
-				$signCount += count($object->getIdContact($contactSource, $contactCode));
+			// The contact role is carried by the config label (CustomerSign,
+			// VendorSign, ...), not by a rowid of llx_c_type_contact: the former
+			// $config->fk_c_type_contact column does not exist anymore.
+			$contactCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($config->label);
+			if (!$resolver->isTypeContactCodeDeclared($object->element, $contactCode, $contactSource)) {
+				dol_syslog("uptosign changeSignatureArea: contact type '" . $contactCode . "' is not declared as " . $contactSource . " for element " . $object->element, LOG_WARNING);
+				continue;
 			}
+			$signCount += count($object->getIdContact($contactSource, $contactCode));
 		}
 
 		$height = $parameters['tab'] * 3;
@@ -1440,7 +1471,8 @@ class ActionsUptoSign
 				dol_syslog("uptosign createFrom clone can't update digitalsign ! res value is $res", LOG_INFO);
 			}
 		} else {
-			dol_syslog("uptosign createFrom clone do not update object : " . $object->array_options['options_digitalsign'], LOG_INFO);
+			$currentDigitalSign = isset($object->array_options['options_digitalsign']) ? $object->array_options['options_digitalsign'] : '';
+			dol_syslog("uptosign createFrom clone do not update object : " . $currentDigitalSign, LOG_INFO);
 		}
 
 		return 0;

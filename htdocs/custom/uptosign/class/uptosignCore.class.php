@@ -68,7 +68,7 @@ class uptosignCore implements ArrayAccess
 		'seal_page' => 1,          // page number where to put seal
 		'title' => '',             // document title
 		'redirect_sign' => false,  // if you want to do a transparent redirect to uptosign (header location:)
-		'redirect_end',            // redirect page at the end of process
+		'redirect_end' => '',      // redirect page at the end of process
 		'hook_uri' => '',          // if you want to enable that feature: uptosign server could make a request on your hook uri at the end of the process
 		'hook_key' => '',          // key used for that hook
 		'mail_alerts' => ''        // email where alerts will be sent
@@ -128,7 +128,7 @@ class uptosignCore implements ArrayAccess
 	 *                            'seal_y'          => 20,  // y position (in mm) of seal stamp
 	 *                            'seal_page'       => 1,   // page number where to put seal
 	 *                            'title'           => 'Propal 20', // document title
-	 *                            'alerts'			=> 'adresse.mail@de.suivi' // if you want to get informations about that process by email
+	 *                            'mail_alerts'		=> 'adresse.mail@de.suivi' // if you want to get informations about that process by email
 	 *                            'redirect_end'	=> 'https://url.to.redirect/' // if you want to configure the landing page at the end of sign process
 	 *                            ]
 	 *
@@ -153,7 +153,10 @@ class uptosignCore implements ArrayAccess
 	 */
 	public function &__get($key)
 	{
-		return $this->getAttribute($key);
+		// Return a real variable reference (returning the result of getAttribute()
+		// directly would raise "Only variable references should be returned").
+		$value = $this->getAttribute($key);
+		return $value;
 	}
 
 	/**
@@ -220,10 +223,10 @@ class uptosignCore implements ArrayAccess
 	 */
 	public function offsetExists($offset): bool
 	{
-		if (!empty($this->attributes[$offset])) {
-			return true;
-		}
-		return false;
+		// Use isset() so a legitimate 0/'' value is reported as existing
+		// (the previous !empty() reported them as missing), while a null value
+		// is still considered absent.
+		return isset($this->attributes[$offset]);
 	}
 
 	/**
@@ -247,7 +250,8 @@ class uptosignCore implements ArrayAccess
 	 * @return mixed
 	 * @abstracting ArrayAccess
 	 */
-	public function offsetGet($offset): mixed
+	#[\ReturnTypeWillChange]
+	public function offsetGet($offset)
 	{
 		return $this->getAttribute($offset);
 	}
@@ -263,7 +267,9 @@ class uptosignCore implements ArrayAccess
 	{
 		foreach ($attr as $key => $value) {
 			if (in_array($key, $this->fillable)) {
-				$this->setAttribute($key, $value);
+				if (!$this->setAttribute($key, $value)) {
+					dol_syslog("uptosignCore: fill() rejected value for key '$key' (setAttribute returned false)", LOG_WARNING);
+				}
 			}
 		}
 	}
@@ -300,20 +306,20 @@ class uptosignCore implements ArrayAccess
 				return false;
 			}
 		}
-		if (!empty($value) && is_string($value) && strlen($value) > 0) {
-			$this->attributes[$key] = $value;
-			return true;
-		} elseif (!empty($value) && is_numeric($value)) {
-			$this->attributes[$key] = $value;
-			return true;
-		} elseif (!empty($value) && is_object($value)) {
-			$this->attributes[$key] = $value;
-			return true;
-		} elseif (!empty($value) && is_array($value)) {
-			$this->attributes[$key] = $value;
-			return true;
+		// Reject only null (or an empty string), never a legitimate 0/false so that
+		// seal_x=0 / seal_y=0 / redirect_sign=false are correctly stored.
+		if (is_null($value)) {
+			$this->error = "null value rejected for key : " . $key;
+			dol_syslog('uptosignCore: setAttribute ' . $this->error, LOG_WARNING);
+			return false;
 		}
-		return false;
+		if (is_string($value) && $value === '') {
+			$this->error = "empty string rejected for key : " . $key;
+			dol_syslog('uptosignCore: setAttribute ' . $this->error, LOG_WARNING);
+			return false;
+		}
+		$this->attributes[$key] = $value;
+		return true;
 	}
 
 	/**
@@ -348,6 +354,16 @@ class uptosignCore implements ArrayAccess
 	}
 
 	/**
+	 * Return the last error message recorded by this instance
+	 *
+	 * @return string Error message, or '' if none
+	 */
+	public function getError()
+	{
+		return $this->error;
+	}
+
+	/**
 	 * get link to uptosign process
 	 */
 	public function signLink()
@@ -368,9 +384,34 @@ class uptosignCore implements ArrayAccess
 	{
 		global $conf;
 
+		$this->resultArray = array(
+			'error' => '',
+			'json' => '',
+			'file_name' => '',
+			'base64_file' => '',
+			'base64_file_name' => '',
+		);
+
 		if (empty($user) || empty($user->id)) {
 			dol_syslog('uptosignCore run, user is empty, early return', LOG_DEBUG);
 			dol_syslog("uptosign: " . json_encode($user), LOG_DEBUG);
+			$this->error = 'user is empty';
+			$this->resultArray['error'] = $this->error;
+			return -1;
+		}
+
+		// The UptoSign object is only built when a db handler was provided.
+		if (!is_object($this->uptosign)) {
+			$this->error = 'uptosignCore has no db handler, cannot run (missing db attribute)';
+			dol_syslog('uptosignCore: ' . $this->error, LOG_ERR);
+			$this->resultArray['error'] = $this->error;
+			return -1;
+		}
+
+		if (empty($this->src_file_name) || !is_file($this->src_file_name)) {
+			$this->error = 'source file to sign is missing or unreadable';
+			dol_syslog('uptosignCore run: ' . $this->error, LOG_ERR);
+			$this->resultArray['error'] = $this->error;
 			return -1;
 		}
 
@@ -386,17 +427,38 @@ class uptosignCore implements ArrayAccess
 			'alerts' => $this->mail_alerts,
 		);
 
+		// endRedirect can come either from the run() options or from the object attribute.
 		if (!empty($options['redirect_end'])) {
 			$this->uptosign->endRedirect = $options['redirect_end'];
+		} elseif (!empty($this->redirect_end)) {
+			$this->uptosign->endRedirect = $this->redirect_end;
 		}
 
-		return $this->uptosign->sealOrSignInitLight(
+		$res = $this->uptosign->sealOrSignInitLight(
 			$user,
 			$this->object,
 			$fileToSign,
 			$this->list_of_signers,
 			$this->procedure
 		);
+
+		// Populate the result contract from what sealOrSignInitLight left on the object.
+		$this->resultArray['file_name'] = $this->src_file_name;
+		$this->resultArray['json'] = $this->uptosign->sign_link ?? '';
+		if ($res < 0) {
+			$errs = array();
+			if (!empty($this->uptosign->error)) {
+				$errs[] = $this->uptosign->error;
+			}
+			if (!empty($this->uptosign->errors) && is_array($this->uptosign->errors)) {
+				$errs = array_merge($errs, $this->uptosign->errors);
+			}
+			$this->error = implode(', ', $errs);
+			$this->resultArray['error'] = $this->error;
+			dol_syslog('uptosignCore run: sealOrSignInitLight returned error res=' . $res . ' : ' . $this->error, LOG_ERR);
+		}
+
+		return $res;
 	}
 
 
@@ -413,6 +475,12 @@ class uptosignCore implements ArrayAccess
 	public function whoCanSign($socid, $element, $role = 'CustomerSign')
 	{
 		dol_syslog('uptoSignCore whoCanSign socid=' . $socid . ' element=' . $element . ' role=' . $role, LOG_DEBUG);
+
+		if (!isset($this->db) || !is_object($this->db)) {
+			$this->error = 'uptosignCore has no db handler, cannot resolve signers';
+			dol_syslog('uptoSignCore whoCanSign: ' . $this->error, LOG_ERR);
+			return new ArrayObject();
+		}
 
 		$resolver = new UptoSignSignatoryResolver($this->db);
 		$typeContacts = $resolver->getTypeContactCode($element, '', '', ['module' => 'uptosign']);

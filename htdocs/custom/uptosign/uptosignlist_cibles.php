@@ -75,7 +75,7 @@ $langs->loadLangs(array("mails", "admin", "other", "uptosign@uptosign"));
 $limit = GETPOSTINT('limit') ?GETPOSTINT('limit') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'aZ09comma');
 $sortorder = GETPOST('sortorder', 'aZ09comma');
-$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOSTINT('pageplusone') - 1) : GETPOSTINT("page");
 if (empty($page) || $page == -1) {
 	$page = 0;
 }     // If $page is not defined, or '' or -1
@@ -188,14 +188,29 @@ if ($action == 'add' && $user->hasRight('uptosign', 'create')) {		// Add recipie
 	}
 }
 
-if (GETPOSTINT('clearlist') && $user->hasRight('uptosign', 'create')) {
-	// Loading Class
-	$obj = new UptosignListTargets($db);
-	$obj->clear_target($id);
-	/* Avoid this to allow reposition
-	header("Location: ".$_SERVER['PHP_SELF']."?id=".$id);
-	exit;
-	*/
+if (GETPOSTINT('clearlist')) {
+	// Destructive action: require create right, valid CSRF token and DRAFT status
+	if (!$user->hasRight('uptosign', 'create')) {
+		dol_syslog("uptosign: clearlist refused, user lacks 'create' right", LOG_WARNING);
+		accessforbidden();
+	}
+	$sesstoken = empty($_SESSION['token']) ? '' : $_SESSION['token'];
+	if (GETPOST('token', 'alpha') !== $sesstoken || $sesstoken === '') {
+		dol_syslog("uptosign: clearlist refused, invalid CSRF token", LOG_WARNING);
+		accessforbidden('Invalid CSRF token');
+	}
+	if ($object->status != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: clearlist refused, list ".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
+		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+	} else {
+		// Loading Class
+		$obj = new UptosignListTargets($db);
+		$obj->clear_target($id);
+		/* Avoid this to allow reposition
+		header("Location: ".$_SERVER['PHP_SELF']."?id=".$id);
+		exit;
+		*/
+	}
 }
 
 if (GETPOSTINT('exportcsv') && $user->hasRight('uptosign', 'read')) {
@@ -203,9 +218,9 @@ if (GETPOSTINT('exportcsv') && $user->hasRight('uptosign', 'read')) {
 	header('Content-Type: text/csv');
 	header('Content-Disposition: attachment;filename='.$completefilename);
 
-	// List of selected targets
-	$sql  = "SELECT mc.rowid, mc.lastname, mc.firstname, mc.email, mc.other, mc.statut as status, mc.date_envoi, mc.tms,";
-	$sql .= " mc.source_id, mc.source_type, mc.error_text";
+	// List of selected targets (only columns that actually exist in the members table)
+	$sql  = "SELECT mc.rowid, mc.lastname, mc.firstname, mc.email, mc.other, mc.status, mc.tms,";
+	$sql .= " mc.source_id, mc.source_type";
 	$sql .= " FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers as mc";
 	$sql .= " WHERE mc.fk_uptosignlist = ".((int) $object->id);
 	$sql .= $db->order($sortfield, $sortorder);
@@ -215,44 +230,63 @@ if (GETPOSTINT('exportcsv') && $user->hasRight('uptosign', 'read')) {
 		$num = $db->num_rows($resql);
 		$sep = ',';
 
+		// CSV field escaper: double the double-quotes and neutralize spreadsheet formula
+		// injection by prefixing values that start with = + - @ (and tab/CR) with a quote.
+		$csvcell = static function ($value) {
+			$value = (string) $value;
+			if ($value !== '' && strpos("=+-@\t\r", $value[0]) !== false) {
+				$value = "'".$value;
+			}
+			return '"'.str_replace('"', '""', $value).'"';
+		};
+
 		while ($obj = $db->fetch_object($resql)) {
-			print $obj->rowid.$sep;
-			print '"'.$obj->lastname.'"'.$sep;
-			print '"'.$obj->firstname.'"'.$sep;
-			print $obj->email.$sep;
-			print $obj->other.$sep;
-			print $obj->tms.$sep;
-			print $obj->source_type.$sep;
-			print $obj->source_id.$sep;
-			print $obj->date_envoi.$sep;
-			print $obj->status.$sep;
-			print '"'.$obj->error_text.'"'.$sep;
+			print $csvcell($obj->rowid).$sep;
+			print $csvcell($obj->lastname).$sep;
+			print $csvcell($obj->firstname).$sep;
+			print $csvcell($obj->email).$sep;
+			print $csvcell($obj->other).$sep;
+			print $csvcell($obj->tms).$sep;
+			print $csvcell($obj->source_type).$sep;
+			print $csvcell($obj->source_id).$sep;
+			print $csvcell($obj->date_envoi ?? '').$sep;
+			print $csvcell($obj->status).$sep;
+			print $csvcell($obj->error_text ?? '').$sep;
 			print "\n";
 		}
 
 		exit;
 	} else {
+		dol_syslog("uptosign: CSV export query failed: ".$db->lasterror(), LOG_ERR);
 		dol_print_error($db);
 	}
 	exit;
 }
 
 if ($action == 'delete' && $user->hasRight('uptosign', 'create')) {
-	// Ici, rowid indique le destinataire et id le mailing
-	$sql = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers WHERE rowid = ".((int) $rowid);
-	$resql = $db->query($sql);
-	if ($resql) {
-		if (!empty($id)) {
-			$obj = new UptosignListTargets($db);
-			$obj->update_nb($id);
-
-			setEventMessages($langs->trans("RecordDeleted"), [], 'mesgs');
-		} else {
-			header("Location: list.php");
-			exit;
-		}
+	// Only allowed while the list is still DRAFT
+	if ($object->status != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: delete recipient refused, list ".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
+		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+		$action = '';
 	} else {
-		dol_print_error($db);
+		// Ici, rowid indique le destinataire et id le mailing (IDOR guard: recipient must belong to this list)
+		$sql = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers WHERE rowid = ".((int) $rowid)." AND fk_uptosignlist = ".((int) $object->id);
+		$resql = $db->query($sql);
+		if ($resql) {
+			if (!empty($id)) {
+				$obj = new UptosignListTargets($db);
+				$obj->update_nb($id);
+
+				setEventMessages($langs->trans("RecordDeleted"), [], 'mesgs');
+			} else {
+				header("Location: list.php");
+				exit;
+			}
+		} else {
+			dol_syslog("uptosign: delete recipient failed: ".$db->lasterror(), LOG_ERR);
+			dol_print_error($db);
+		}
 	}
 }
 
@@ -267,8 +301,8 @@ if ($action == 'confirm_massdelete' && $confirm == 'yes' && $user->hasRight('upt
 			$idstodelete[] = $piece;
 		}
 	}
-	if ($object->statut != UptoSignList::STATUS_DRAFT) {
-		dol_syslog("uptosign: mass delete refused, list ".$object->id." is not DRAFT (status=".$object->statut.")", LOG_WARNING);
+	if ($object->status != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: mass delete refused, list ".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
 		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
 	} elseif (count($idstodelete) == 0) {
 		dol_syslog("uptosign: mass delete requested with an empty selection for list ".$object->id, LOG_WARNING);
@@ -312,7 +346,12 @@ if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x'
 }
 
 // Action update description of emailing
-if ($action == 'settitle' || $action == 'setemail_from' || $action == 'setreplyto' || $action == 'setemail_errorsto') {
+if (($action == 'settitle' || $action == 'setemail_from' || $action == 'setreplyto' || $action == 'setemail_errorsto') && $user->hasRight('uptosign', 'create')) {
+	if ($object->status != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: title/email update refused, list ".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
+		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+		$action = '';
+	} else {
 	$mailingDirOutput = isset($conf->mailing->dir_output) ? $conf->mailing->dir_output : (DOL_DATA_ROOT . '/mailing');
 	$upload_dir = $mailingDirOutput . "/" . get_exdir($object->id, 2, 0, 1, $object, 'mailing');
 	$mesg = null;
@@ -341,6 +380,7 @@ if ($action == 'settitle' || $action == 'setemail_from' || $action == 'setreplyt
 
 	setEventMessages($mesg, [], 'errors');
 	$action = "";
+	}
 }
 
 
@@ -446,7 +486,7 @@ if ($id > 0 && $object->fetch($id)) {
 	print '<br>';
 
 
-	$allowaddtarget = ($object->statut == $object::STATUS_DRAFT);
+	$allowaddtarget = ($object->status == $object::STATUS_DRAFT);
 
 	// Show email selectors
 	if ($allowaddtarget) {
@@ -609,12 +649,10 @@ if ($id > 0 && $object->fetch($id)) {
 		print '<br>';
 	}
 
-	// List of selected targets
-	$sql  = "SELECT mc.rowid, mc.lastname, mc.firstname, mc.email, mc.mobile, mc.tms";
-	// $sql .= " mc.source_url, mc.source_id, mc.source_type, mc.error_text,";
-	// $sql .= " COUNT(mu.rowid) as nb";
+	// List of selected targets (include the columns actually read below: source + status)
+	$sql  = "SELECT mc.rowid, mc.lastname, mc.firstname, mc.email, mc.mobile, mc.other, mc.tms,";
+	$sql .= " mc.source_url, mc.source_id, mc.source_type, mc.status";
 	$sql .= " FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers as mc";
-	// $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."uptosignlist_unsubscribe as mu ON mu.email = mc.email";
 	$sql .= " WHERE mc.fk_uptosignlist=".((int) $object->id);
 	$asearchcriteriahasbeenset = 0;
 	if ($search_lastname) {
@@ -637,7 +675,11 @@ if ($id > 0 && $object->fetch($id)) {
 		$sql .= natural_search("mc.other", $search_other);
 		$asearchcriteriahasbeenset++;
 	}
-	$sql .= ' GROUP BY mc.rowid, mc.lastname, mc.firstname, mc.email, mc.mobile, mc.tms';
+	if (GETPOSTISSET('search_dest_status') && $search_dest_status >= 0) {
+		$sql .= natural_search("mc.status", $search_dest_status, 2);
+		$asearchcriteriahasbeenset++;
+	}
+	$sql .= ' GROUP BY mc.rowid, mc.lastname, mc.firstname, mc.email, mc.mobile, mc.other, mc.tms, mc.source_url, mc.source_id, mc.source_type, mc.status';
 	$sql .= $db->order($sortfield, $sortorder);
 
 
@@ -684,7 +726,7 @@ if ($id > 0 && $object->fetch($id)) {
 
 		$morehtmlcenter = '';
 		if ($allowaddtarget) {
-			$morehtmlcenter = '<span class="opacitymedium hideonsmartphone">'.$langs->trans("ToClearAllRecipientsClickHere").'</span> <a href="'.$_SERVER["PHP_SELF"].'?clearlist=1&id='.$object->id.'" class="button reposition smallpaddingimp">'.$langs->trans("TargetsReset").'</a>';
+			$morehtmlcenter = '<span class="opacitymedium hideonsmartphone">'.$langs->trans("ToClearAllRecipientsClickHere").'</span> <a href="'.$_SERVER["PHP_SELF"].'?clearlist=1&token='.newToken().'&id='.$object->id.'" class="button reposition smallpaddingimp">'.$langs->trans("TargetsReset").'</a>';
 		}
 		$morehtmlcenter .= ' &nbsp; <a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=exportcsv&token='.newToken().'&exportcsv=1&id='.$object->id.'">'.img_picto('', 'download', 'class="pictofixedwidth"').$langs->trans("Download").'</a>';
 
@@ -794,7 +836,7 @@ if ($id > 0 && $object->fetch($id)) {
 		print '</tr>';
 
 		if ($page) {
-			$param .= "&page=".urlencode($page);
+			$param .= "&page=".((int) $page);
 		}
 
 		print '<tr class="liste_titre">';
@@ -811,8 +853,8 @@ if ($id > 0 && $object->fetch($id)) {
 		// Date last update
 		print_liste_field_titre("DateLastModification", $_SERVER["PHP_SELF"], "mc.tms", $param, "", '', $sortfield, $sortorder, 'center ');
 		// Date sending
-		print_liste_field_titre("DateSending", $_SERVER["PHP_SELF"], "mc.date_envoi", $param, '', '', $sortfield, $sortorder, 'center ');
-		print_liste_field_titre("Status", $_SERVER["PHP_SELF"], "mc.statut", $param, '', '', $sortfield, $sortorder, 'center ');
+		print_liste_field_titre("DateSending", $_SERVER["PHP_SELF"], "", $param, '', '', $sortfield, $sortorder, 'center ');
+		print_liste_field_titre("Status", $_SERVER["PHP_SELF"], "mc.status", $param, '', '', $sortfield, $sortorder, 'center ');
 		// Action column
 		if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
 			print_liste_field_titre('', $_SERVER["PHP_SELF"], "", '', '', '', $sortfield, $sortorder, 'maxwidthsearch ');
@@ -842,7 +884,7 @@ if ($id > 0 && $object->fetch($id)) {
 				if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
 					print '<td class="center">';
 					print '<!-- ID uptosignlist_cibles = '.$obj->rowid.' -->';
-					if ($obj->statut == $object::STATUS_DRAFT) {	// Not sent yet
+					if ($obj->status == $object::STATUS_DRAFT) {	// Not sent yet
 						if (!empty($user->hasRight('uptosign', 'create'))) {
 							if ($massactionbutton) {
 								print '<input id="cbleft'.$obj->rowid.'" class="flat checkforselect marginrightonly" type="checkbox" name="toselect[]" value="'.((int) $obj->rowid).'"'.(in_array($obj->rowid, $toselect) ? ' checked="checked"' : '').'>';
@@ -859,9 +901,6 @@ if ($id > 0 && $object->fetch($id)) {
 
 				print '<td class="tdoverflowmax150">';
 				print img_picto($obj->email, 'email', 'class="paddingright"');
-				if ($obj->nb > 0) {
-					print img_warning($langs->trans("EmailOptedOut"), 'warning', 'pictofixedwidth');
-				}
 				print dol_escape_htmltag($obj->email);
 				print '</td>';
 
@@ -909,26 +948,22 @@ if ($id > 0 && $object->fetch($id)) {
 
 				// Date sent
 				print '<td class="center nowraponall">';
-				if ($obj->statut != $object::STATUS_DRAFT) {
-					// Date sent
-					print $obj->date_envoi;
+				if ($obj->status != $object::STATUS_DRAFT) {
+					// Date sent (no dedicated column: fall back to last modification date)
+					print dol_print_date(dol_stringtotime($obj->tms), 'dayhour');
 				}
 				print '</td>';
 
 				// Status of recipient sending email (Warning != status of emailing)
 				print '<td class="nowrap center">';
-				if ($obj->statut == $object::STATUS_DRAFT) {
-					print $object::libStatutDest($obj->statut, 2, '');
-				} else {
-					print $object::libStatutDest($obj->statut, 2, $obj->error_text);
-				}
+				print $object::libStatutDest($obj->status, 2, '');
 				print '</td>';
 
 				// Action column
 				if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
 					print '<td class="center">';
 					print '<!-- ID uptosignlist_cibles = '.$obj->rowid.' -->';
-					if ($obj->statut == $object::STATUS_DRAFT) {	// Not sent yet
+					if ($obj->status == $object::STATUS_DRAFT) {	// Not sent yet
 						if (!empty($user->hasRight('uptosign', 'create'))) {
 							if ($massactionbutton) {
 								print '<input id="cbright'.$obj->rowid.'" class="flat checkforselect marginrightonly" type="checkbox" name="toselect[]" value="'.((int) $obj->rowid).'"'.(in_array($obj->rowid, $toselect) ? ' checked="checked"' : '').'>';
@@ -947,7 +982,7 @@ if ($id > 0 && $object->fetch($id)) {
 				$i++;
 			}
 		} else {
-			if ($object->statut < $object::STATUS_SENTPARTIALY) {
+			if ($object->status < $object::STATUS_SENTPARTIALY) {
 				print '<tr><td colspan="9">';
 				print '<span class="opacitymedium">'.$langs->trans("NoTargetYet").'</span>';
 				print '</td></tr>';

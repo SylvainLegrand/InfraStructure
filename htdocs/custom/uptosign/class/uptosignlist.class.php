@@ -501,8 +501,30 @@ class UptoSignList extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
+		$this->db->begin();
+
+		// Cascade delete of the list members: childtablesoncascade is not declared,
+		// so deleteCommon() would leave orphan rows in uptosign_uptosignlistmembers.
+		$sql = "DELETE FROM ".$this->db->prefix()."uptosign_uptosignlistmembers";
+		$sql .= " WHERE fk_uptosignlist = ".((int) $this->id);
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			dol_syslog("uptosign: " . get_class($this)."::delete failed to delete list members: ".$this->error, LOG_ERR);
+			$this->db->rollback();
+			return -1;
+		}
+
 		/** @phpstan-ignore-next-line */
-		return $this->deleteCommon($user, $notrigger ? 1 : 0);
+		$result = $this->deleteCommon($user, $notrigger ? 1 : 0);
+		if ($result <= 0) {
+			dol_syslog("uptosign: " . get_class($this)."::delete deleteCommon failed, rollback", LOG_ERR);
+			$this->db->rollback();
+			return $result;
+		}
+
+		$this->db->commit();
+		return $result;
 	}
 
 	/**
@@ -557,6 +579,16 @@ class UptoSignList extends CommonObject
 			$num = $this->ref;
 		}
 		$this->newref = $num;
+
+		// A failed numbering (empty ref) must abort validation: otherwise we would
+		// commit a validated record still carrying a PROV ref and rename ecm_files
+		// with an empty newref.
+		if (empty($num)) {
+			$this->error = $this->error ?: 'ErrorFailedToGetNextNumRef';
+			dol_syslog("uptosign: " . get_class($this)."::validate getNextNumRef returned empty, abort validation: ".$this->error, LOG_ERR);
+			$this->db->rollback();
+			return -1;
+		}
 
 		if (!empty($num)) {
 			// Validate
@@ -948,14 +980,24 @@ class UptoSignList extends CommonObject
 			//$langs->load("uptosign@uptosign");
 			$this->labelStatus[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
 			$this->labelStatus[self::STATUS_VALIDATED] = $langs->transnoentitiesnoconv('Enabled');
+			$this->labelStatus[self::STATUS_SENTPARTIALY] = $langs->transnoentitiesnoconv('UptoSignListSentPartialy');
+			$this->labelStatus[self::STATUS_SENTCOMPLETELY] = $langs->transnoentitiesnoconv('UptoSignListSentCompletely');
 			$this->labelStatus[self::STATUS_CANCELED] = $langs->transnoentitiesnoconv('Disabled');
 			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->transnoentitiesnoconv('Draft');
 			$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->transnoentitiesnoconv('Enabled');
+			$this->labelStatusShort[self::STATUS_SENTPARTIALY] = $langs->transnoentitiesnoconv('UptoSignListSentPartialy');
+			$this->labelStatusShort[self::STATUS_SENTCOMPLETELY] = $langs->transnoentitiesnoconv('UptoSignListSentCompletely');
 			$this->labelStatusShort[self::STATUS_CANCELED] = $langs->transnoentitiesnoconv('Disabled');
 		}
 
 		$statusType = 'status'.$status;
 		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
+		if ($status == self::STATUS_SENTPARTIALY) {
+			$statusType = 'status3';
+		}
+		if ($status == self::STATUS_SENTCOMPLETELY) {
+			$statusType = 'status4';
+		}
 		if ($status == self::STATUS_CANCELED) {
 			$statusType = 'status6';
 		}
@@ -986,14 +1028,10 @@ class UptoSignList extends CommonObject
 
 				$this->user_creation_id = $obj->fk_user_creat;
 				$this->user_modification_id = $obj->fk_user_modif;
-				if (!empty($obj->fk_user_valid)) {
-					$this->user_validation_id = $obj->fk_user_valid;
-				}
+				// Note: this table has no fk_user_valid/date_validation columns,
+				// so validation info is intentionally not read here.
 				$this->date_creation     = $this->db->jdate($obj->datec);
 				$this->date_modification = empty($obj->datem) ? '' : $this->db->jdate($obj->datem);
-				if (!empty($obj->datev)) {
-					$this->date_validation   = empty($obj->datev) ? '' : $this->db->jdate($obj->datev);
-				}
 			}
 
 			$this->db->free($result);
@@ -1188,6 +1226,8 @@ class UptoSignList extends CommonObject
 		if ($resql) {
 			$obj = $this->db->fetch_object($resql);
 			$this->_nb_contacts = $obj->cnt;
+		} else {
+			dol_syslog("uptosign: " . get_class($this)."::getNbContacts sql error: ".$this->db->lasterror(), LOG_ERR);
 		}
 		return $this->_nb_contacts;
 	}
@@ -1211,6 +1251,8 @@ class UptoSignList extends CommonObject
 			while ($obj = $this->db->fetch_object($resql)) {
 				$this->_contacts[] = $obj;
 			}
+		} else {
+			dol_syslog("uptosign: " . get_class($this)."::getContacts sql error: ".$this->db->lasterror(), LOG_ERR);
 		}
 		return $this->_contacts;
 	}
@@ -1241,6 +1283,8 @@ class UptoSignList extends CommonObject
 				$result[] = $obj;
 			}
 			$this->db->free($resql);
+		} else {
+			dol_syslog("uptosign: " . get_class($this)."::getContactsWithProcedures sql error: ".$this->db->lasterror(), LOG_ERR);
 		}
 
 		return $result;
