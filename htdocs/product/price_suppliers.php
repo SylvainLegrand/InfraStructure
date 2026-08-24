@@ -647,6 +647,10 @@ if ($id > 0 || $ref) {
 				$tmpproductsupplier->fetch_product_fournisseur_price($rowid, 1);
 				$default_vat = $tmpproductsupplier->fourn_tva_tx;
 				$default_npr = $tmpproductsupplier->fourn_tva_npr;
+			} else {
+				if (empty($default_vat)) {
+					$default_vat = $object->tva_tx;
+				}
 			}
 			$vattosuggest = (GETPOSTISSET("tva_tx") ? vatrate(GETPOST("tva_tx")) : ($default_vat != '' ? vatrate($default_vat) : ''));
 			$vattosuggest = preg_replace('/\s*\(.*\)$/', '', $vattosuggest);

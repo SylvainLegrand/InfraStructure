@@ -17,6 +17,7 @@
  * Copyright (C) 2020		Tobias Sekan			<tobias.sekan@startmail.com>
  * Copyright (C) 2022      Gauthier VERDOL     		<gauthier.verdol@atm-consulting.fr>
  * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2026		Lionel Vessiller		<lvessiller@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -631,6 +632,8 @@ class SupplierProposal extends CommonObject
 			$this->line->fk_product = $fk_product;
 			$this->line->remise_percent = $remise_percent;
 			$this->line->subprice = (float) $pu_ht;
+			// Persist the original entry mode of the line so updateline() can preserve it later.
+			$this->line->subprice_ttc = ($price_base_type === 'TTC') ? (float) $pu_ttc : 0;
 			$this->line->rang = $ranktouse;
 			$this->line->info_bits = $info_bits;
 			$this->line->total_ht = (float) $total_ht;
@@ -800,11 +803,6 @@ class SupplierProposal extends CommonObject
 			$multicurrency_total_ttc = $tabprice[18];
 			$pu_ht_devise = $tabprice[19];
 
-			$pu = $pu_ht;
-			if ($price_base_type == 'TTC') {
-				$pu = $pu_ttc;
-			}
-
 			// Fetch current line from the database and then clone the object and set it in $oldline property
 			$line = new SupplierProposalLine($this->db);
 			$line->fetch($rowid);
@@ -838,7 +836,9 @@ class SupplierProposal extends CommonObject
 			$this->line->localtax1_type		= empty($localtaxes_type[0]) ? '' : $localtaxes_type[0];
 			$this->line->localtax2_type		= empty($localtaxes_type[2]) ? '' : $localtaxes_type[2];
 			$this->line->remise_percent		= $remise_percent;
-			$this->line->subprice			= (float) $pu;
+			$this->line->subprice			= (float) $pu_ht;
+			// Persist the original entry mode of the line so a no-op edit can preserve it later.
+			$this->line->subprice_ttc		= ($price_base_type === 'TTC') ? (float) $pu_ttc : 0;
 			$this->line->info_bits			= $info_bits;
 			$this->line->total_ht			= (float) $total_ht;
 			$this->line->total_tva			= (float) $total_tva;
@@ -1072,17 +1072,19 @@ class SupplierProposal extends CommonObject
 							$fk_parent_line = 0;
 						}
 
+						// Preserve the original entry mode of the line so the total is computed from the typed value (no rounding drift).
+						$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 						$result = $this->addline(
 							$this->lines[$i]->desc,
-							$this->lines[$i]->subprice,
+							(float) $this->lines[$i]->subprice,
 							$this->lines[$i]->qty,
 							$this->lines[$i]->tva_tx,
 							$this->lines[$i]->localtax1_tx,
 							$this->lines[$i]->localtax2_tx,
 							$this->lines[$i]->fk_product,
 							$this->lines[$i]->remise_percent,
-							'HT',
-							0,
+							$line_price_base_type,
+							(float) $this->lines[$i]->subprice_ttc,
 							0,
 							$this->lines[$i]->product_type,
 							$this->lines[$i]->rang,
@@ -1356,7 +1358,7 @@ class SupplierProposal extends CommonObject
 				$this->lines = array();
 
 				// Lines of supplier proposals
-				$sql = "SELECT d.rowid, d.fk_supplier_proposal, d.fk_parent_line, d.label as custom_label, d.description, d.price, d.tva_tx, d.localtax1_tx, d.localtax2_tx, d.qty, d.fk_remise_except, d.remise_percent, d.subprice, d.fk_product,";
+				$sql = "SELECT d.rowid, d.fk_supplier_proposal, d.fk_parent_line, d.label as custom_label, d.description, d.price, d.tva_tx, d.localtax1_tx, d.localtax2_tx, d.qty, d.fk_remise_except, d.remise_percent, d.subprice, d.subprice_ttc, d.fk_product,";
 				$sql .= " d.info_bits, d.total_ht, d.total_tva, d.total_localtax1, d.total_localtax2, d.total_ttc, d.fk_product_fournisseur_price as fk_fournprice, d.buy_price_ht as pa_ht, d.special_code, d.rang, d.product_type,";
 				$sql .= ' p.ref as product_ref, p.description as product_desc, p.fk_product_type, p.label as product_label,';
 				$sql .= ' d.ref_fourn as ref_produit_fourn, d.extraparams,';
@@ -1388,6 +1390,7 @@ class SupplierProposal extends CommonObject
 						$line->localtax1_tx		= $objp->localtax1_tx;
 						$line->localtax2_tx		= $objp->localtax2_tx;
 						$line->subprice         = $objp->subprice;
+						$line->subprice_ttc     = $objp->subprice_ttc;
 						$line->fk_remise_except = $objp->fk_remise_except;
 						$line->remise_percent   = $objp->remise_percent;
 
@@ -3171,7 +3174,7 @@ class SupplierProposalLine extends CommonObjectLine
 	{
 		$sql = 'SELECT pd.rowid, pd.fk_supplier_proposal, pd.fk_parent_line, pd.fk_product, pd.label as custom_label, pd.description, pd.price, pd.qty, pd.tva_tx,';
 		$sql .= ' pd.date_start, pd.date_end,';
-		$sql .= ' pd.remise, pd.remise_percent, pd.fk_remise_except, pd.subprice,';
+		$sql .= ' pd.remise, pd.remise_percent, pd.fk_remise_except, pd.subprice, pd.subprice_ttc,';
 		$sql .= ' pd.info_bits, pd.total_ht, pd.total_tva, pd.total_ttc, pd.fk_product_fournisseur_price as fk_fournprice, pd.buy_price_ht as pa_ht, pd.special_code, pd.rang,';
 		$sql .= ' pd.localtax1_tx, pd.localtax2_tx, pd.total_localtax1, pd.total_localtax2,';
 		$sql .= ' p.ref as product_ref, p.label as product_label, p.description as product_desc,';
@@ -3191,6 +3194,7 @@ class SupplierProposalLine extends CommonObjectLine
 				$this->desc = $objp->description;
 				$this->qty = $objp->qty;
 				$this->subprice = $objp->subprice;
+				$this->subprice_ttc = $objp->subprice_ttc;
 				$this->tva_tx = $objp->tva_tx;
 				$this->remise_percent = $objp->remise_percent;
 				$this->fk_remise_except = $objp->fk_remise_except;
@@ -3333,7 +3337,7 @@ class SupplierProposalLine extends CommonObjectLine
 		$sql .= ' (fk_supplier_proposal, fk_parent_line, label, description, fk_product, product_type,';
 		$sql .= ' date_start, date_end,';
 		$sql .= ' fk_remise_except, qty, tva_tx, vat_src_code, localtax1_tx, localtax2_tx, localtax1_type, localtax2_type,';
-		$sql .= ' subprice, remise_percent, ';
+		$sql .= ' subprice, subprice_ttc, remise_percent, ';
 		$sql .= ' info_bits, ';
 		$sql .= ' total_ht, total_tva, total_localtax1, total_localtax2, total_ttc, fk_product_fournisseur_price, buy_price_ht, special_code, rang,';
 		$sql .= ' ref_fourn,';
@@ -3355,6 +3359,7 @@ class SupplierProposalLine extends CommonObjectLine
 		$sql .= " '".$this->db->escape($this->localtax1_type)."',";
 		$sql .= " '".$this->db->escape($this->localtax2_type)."',";
 		$sql .= " ".price2num($this->subprice, 8) .","; // InfraS change Arrondis
+		$sql .= " ".(float) price2num($this->subprice_ttc, 'MU') .",";
 		$sql .= " ".((float) $this->remise_percent).",";
 		$sql .= " ".(isset($this->info_bits) ? ((int) $this->info_bits) : "null").",";
 		$sql .= " ".price2num($this->total_ht, 8).","; // InfraS change Arrondis
@@ -3542,6 +3547,7 @@ class SupplierProposalLine extends CommonObjectLine
 		$sql .= " , localtax2_type='".$this->db->escape($this->localtax2_type)."'";
 		$sql .= " , qty='".price2num($this->qty)."'";
 		$sql .= " , subprice=".price2num($this->subprice);
+		$sql .= " , subprice_ttc = ".(float) price2num($this->subprice_ttc);
 		$sql .= " , remise_percent=".price2num($this->remise_percent);
 		$sql .= " , info_bits='".$this->db->escape((string) $this->info_bits)."'";
 		if (empty($this->skip_update_total)) {

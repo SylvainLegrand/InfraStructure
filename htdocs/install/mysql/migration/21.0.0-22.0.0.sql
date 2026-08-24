@@ -405,3 +405,13 @@ INSERT INTO llx_c_sepa_community_instrument (code, label, position, active) VALU
 INSERT INTO llx_c_sepa_community_instrument (code, label, position, active) VALUES ('INST', 'c_sepa_community_instrumentINST', 1, 1);
 -- InfraS add end
 
+-- Fix #37658 - pu_ttc for supplier invoices now flags a line entered including tax (0 when entered excluding
+-- tax). Before this change, SupplierInvoiceLine::insert() stored pu_ttc = total_ttc / qty unconditionally, so
+-- every existing supplier invoice line has a non-zero pu_ttc that would now be wrongly treated as entered
+-- including tax on clone/edit/bulk actions. Reset it once on existing lines so they keep behaving as excluding
+-- tax; the value is set again when a line is re-entered including tax.
+-- (Customer objects, supplier orders and supplier proposals never persisted the marker before -> nothing to
+-- reset for them.) Guarded by a one-shot constant so the reset runs exactly once per database, whatever the
+-- upgrade path.
+UPDATE llx_facture_fourn_det SET pu_ttc = 0 WHERE pu_ttc <> 0 AND NOT EXISTS (SELECT rowid FROM llx_const WHERE __DECRYPT('name')__ = 'OSDEN_SUPPLIER_TTC_ENTRY_MODE_RESET_DONE');
+INSERT INTO llx_const (name, entity, value, type, visible, note) SELECT DISTINCT __ENCRYPT('OSDEN_SUPPLIER_TTC_ENTRY_MODE_RESET_DONE')__, 0, __ENCRYPT('1')__, 'chaine', 0, 'Supplier invoice pu_ttc reset done once (fix #37658)' FROM llx_const WHERE NOT EXISTS (SELECT rowid FROM llx_const WHERE __DECRYPT('name')__ = 'OSDEN_SUPPLIER_TTC_ENTRY_MODE_RESET_DONE');

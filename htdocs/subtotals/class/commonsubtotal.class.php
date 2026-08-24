@@ -2,6 +2,7 @@
 /* Copyright (C) 2014-2017  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2024		MDW						<mdeweerd@users.noreply.github.com>
  * Copyright (C) 2024-2025  Frédéric France         <frederic.france@free.fr>
+ * Copyright (C) 2026		Lionel Vessiller		<lvessiller@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -491,10 +492,13 @@ trait CommonSubtotal
 				}
 			} else {
 				if ($current_module == 'facture') {
+					// Preserve the original entry mode of the line so the total is not drifted by rounding.
+					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
+					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
 						$this->lines[$i]->desc, // @phpstan-ignore-line
-						$this->lines[$i]->subprice, // @phpstan-ignore-line
+						$line_pu, // @phpstan-ignore-line
 						$this->lines[$i]->qty, // @phpstan-ignore-line
 						$mode == 'discount' ? $value : $this->lines[$i]->remise_percent, // @phpstan-ignore-line
 						$this->lines[$i]->date_start, // @phpstan-ignore-line
@@ -502,7 +506,7 @@ trait CommonSubtotal
 						$mode == 'tva' ? $value : $this->lines[$i]->tva_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax1_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax2_tx, // @phpstan-ignore-line
-						'HT', // @phpstan-ignore-line
+						$line_price_base_type, // @phpstan-ignore-line
 						$this->lines[$i]->info_bits, // @phpstan-ignore-line
 						$this->lines[$i]->product_type, // @phpstan-ignore-line
 						$this->lines[$i]->fk_parent_line, 0, // @phpstan-ignore-line
@@ -516,16 +520,19 @@ trait CommonSubtotal
 						$this->lines[$i]->multicurrency_subprice // @phpstan-ignore-line
 					);
 				} elseif ($current_module == 'commande') {
+					// Preserve the original entry mode of the line so the total is not drifted by rounding.
+					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
+					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
 						$this->lines[$i]->desc, // @phpstan-ignore-line
-						$this->lines[$i]->subprice, // @phpstan-ignore-line
+						$line_pu, // @phpstan-ignore-line
 						$this->lines[$i]->qty, // @phpstan-ignore-line
 						$mode == 'discount' ? $value : $this->lines[$i]->remise_percent, // @phpstan-ignore-line
 						$mode == 'tva' ? $value : $this->lines[$i]->tva_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax1_rate, // @phpstan-ignore-line
 						$this->lines[$i]->localtax2_rate, // @phpstan-ignore-line
-						'HT', // @phpstan-ignore-line
+						$line_price_base_type, // @phpstan-ignore-line
 						$this->lines[$i]->info_bits, // @phpstan-ignore-line
 						$this->lines[$i]->date_start, // @phpstan-ignore-line
 						$this->lines[$i]->date_end, // @phpstan-ignore-line
@@ -540,16 +547,19 @@ trait CommonSubtotal
 						$this->lines[$i]->multicurrency_subprice // @phpstan-ignore-line
 					);
 				} elseif ($current_module == 'propal') {
+					// Preserve the original entry mode of the line so the total is not drifted by rounding.
+					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
+					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
-						$this->lines[$i]->subprice, // @phpstan-ignore-line
+						$line_pu, // @phpstan-ignore-line
 						$this->lines[$i]->qty, // @phpstan-ignore-line
 						$mode == 'discount' ? $value : $this->lines[$i]->remise_percent, // @phpstan-ignore-line
 						$mode == 'tva' ? $value : $this->lines[$i]->tva_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax1_rate, // @phpstan-ignore-line
 						$this->lines[$i]->localtax2_rate, // @phpstan-ignore-line
 						$this->lines[$i]->desc, // @phpstan-ignore-line
-						'HT', // @phpstan-ignore-line
+						$line_price_base_type, // @phpstan-ignore-line
 						$this->lines[$i]->info_bits, // @phpstan-ignore-line
 						$this->lines[$i]->special_code, // @phpstan-ignore-line
 						$this->lines[$i]->fk_parent_line, 0, // @phpstan-ignore-line
