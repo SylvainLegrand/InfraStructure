@@ -305,7 +305,7 @@ Sélection des ~66 constantes réellement lues (liste complète : grep `getDolGl
 | `EINVOICING_PRECHECK_DIRECTORY` | Vérification de joignabilité dans l'annuaire (affichage fiche facture) |
 | `EINVOICING_REQUIRE_ROUTABLE_RECIPIENT` | `0`/`1`/`2` — exige un destinataire joignable avant envoi (`2` = bloque aussi « non concluant ») |
 | `EINVOICING_SKIP_B2C` | Pas d'e-facture pour les particuliers |
-| `EINVOICING_VAT_POINT_DATE_CODE` | Régime TVA BT-8 : `auto` / `5` / `29` / `72` (remplace `EINVOICING_VAT_ON_DEBITS`, supprimée en 1.0.4) |
+| `EINVOICING_VAT_POINT_DATE_CODE` | Régime TVA BT-8 : `auto` / `5` / `29` / `72` (remplace `EINVOICING_VAT_ON_DEBITS`, supprimée en 1.1.0) |
 | `EINVOICING_SEND_PAYMENT_SENT_STATUS` | Statut 211 automatique au paiement d'une facture fournisseur |
 | `EINVOICING_PMT` / `EINVOICING_PMD` / `EINVOICING_AAB` | Mentions : frais de recouvrement / pénalités de retard / absence d'escompte |
 | `EINVOICING_DISABLE_SYNC_AP_TO_DOLI` / `EINVOICING_DISABLE_SYNC_DOLI_TO_AP` | Désactivation par sens de synchronisation (⚠️ logique **inversée** : l'UI dit « Activer », la constante stocke « Désactiver ») |
