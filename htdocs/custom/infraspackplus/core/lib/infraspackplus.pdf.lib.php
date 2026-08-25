@@ -113,8 +113,7 @@
 		$template->text_TVA_auto			= getDolGlobalInt('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', 0);
 		$template->multi_files				= getDolGlobalInt('INFRASPLUS_PDF_MULTI_FILES', 0);
 		$template->font						= getDolGlobalString('INFRASPLUS_PDF_FONT', 'centurygothic');
-		$template->headertxtcolor			= getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '0,0,0');
-		$template->headertxtcolor			= explode(',', $template->headertxtcolor);
+		$template->headertxtcolor			= colorStringToArray(getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '0,0,0'), array(0, 0, 0));
 		$template->bodytxtcolor				= getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '0,0,0');
 		$template->bodytxtcolor				= explode(',', $template->bodytxtcolor);
 		$template->datesbold				= getDolGlobalInt('INFRASPLUS_PDF_DATES_BOLD', 0);
@@ -1524,10 +1523,8 @@
 	{
 		global $conf;
 
-		$frmeTxtColor	= getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '0,0,0');
-		$frmeTxtColor	= explode(',', $frmeTxtColor);
-		$frmrTxtColor	= getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '0,0,0');
-		$frmrTxtColor	= explode(',', $frmrTxtColor);
+		$frmeTxtColor	= colorStringToArray(getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '0,0,0'), array(0, 0, 0));
+		$frmrTxtColor	= colorStringToArray(getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '0,0,0'), array(0, 0, 0));
 		$statusWithName	= getDolGlobalString('INFRASPLUS_PDF_SHOW_STATUS_WITH_SENDER_NAME', '') && !empty($emetteur->forme_juridique_code) ? ' '.$outputlangs->convToOutputCharset(getFormeJuridiqueLabel($emetteur->forme_juridique_code))	: '';
 		$posyendsender	= $dimCadres['Y'];	// Default when sender frame is hidden (no sender block rendered below to update it)
 		if (empty($hide_recep_frame)) {
