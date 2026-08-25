@@ -21,6 +21,7 @@
  * Copyright (C) 2024-2025	Alexandre Spangaro			<alexandre@inovea-conseil.com>
  * Copyright (C) 2025		Lenin Rivas					<lenin.rivas777@gmail.com>
  * Copyright (C) 2026		Joachim Küter				<git-jk@bloxera.com>
+ * Copyright (C) 2026		Lionel Vessiller		<lvessiller@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1068,7 +1069,8 @@ if (empty($reshook)) {
 					dol_print_error($db);
 				}
 
-				$discount->amount_ttc = price2num($total_paiements + $total_creditnote_and_deposit - $object->total_ttc, 'MT');
+				// Arrondis - arrondi de chaque composant avant combinaison pour éviter un faux excédent d'un centime
+				$discount->amount_ttc = price2num(price2num($total_paiements, 'MT') + price2num($total_creditnote_and_deposit, 'MT') - price2num($object->total_ttc, 'MT'), 'MT');	// InfraS change
 				$discount->amount_tva = 0;
 				$discount->amount_ht = $discount->amount_ttc;
 				$discount->tva_tx = 0;
@@ -1434,6 +1436,7 @@ if (empty($reshook)) {
 							$line->fk_parent_line = $fk_parent_line;
 
 							$line->subprice = -$line->subprice; // invert price for object
+							$line->subprice_ttc = -$line->subprice_ttc; // keep the TTC entry mode with the inverted sign (no rounding drift)
 							// $line->pa_ht = $line->pa_ht; // we chose to have buy/cost price always positive, so no revert of sign here
 							$line->total_ht = -$line->total_ht;
 							$line->total_tva = -$line->total_tva;
@@ -1463,10 +1466,12 @@ if (empty($reshook)) {
 
 				if (GETPOSTINT('invoiceAvoirWithPaymentRestAmount') == 1 && $id > 0) {
 					if ($facture_source->fetch($object->fk_facture_source) > 0) {
-						$totalpaid = $facture_source->getSommePaiement();
-						$totalcreditnotes = $facture_source->getSumCreditNotesUsed();
-						$totaldeposits = $facture_source->getSumDepositsUsed();
-						$remain_to_pay = abs($facture_source->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits);
+						// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+						$totalpaid = price2num($facture_source->getSommePaiement(), 'MT');
+						$totalcreditnotes = price2num($facture_source->getSumCreditNotesUsed(), 'MT');
+						$totaldeposits = price2num($facture_source->getSumDepositsUsed(), 'MT');
+						$remain_to_pay = abs(price2num($facture_source->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits);
+						// InfraS change end Arrondis
 
 						if (getDolGlobalString('INVOICE_VAT_TO_USE_ON_CREDIT_NOTE_WHEN_GENERATED_FROM_REMAIN_TO_PAY') == 'default') {
 							if ((empty($object->thirdparty) || !is_object($object->thirdparty) || get_class($object->thirdparty) != 'Societe')) {
@@ -2021,6 +2026,8 @@ if (empty($reshook)) {
 										$localtax1_tx = get_localtax($tva_tx, 1, $object->thirdparty);
 										$localtax2_tx = get_localtax($tva_tx, 2, $object->thirdparty);
 
+										// Preserve the original entry mode of the line so the total is computed from the typed value (no rounding drift).
+										$line_price_base_type = $lines[$i]->getPriceBaseType();
 										$result = $object->addline(
 											$desc,
 											$lines[$i]->subprice,
@@ -2035,8 +2042,8 @@ if (empty($reshook)) {
 											0,
 											$lines[$i]->info_bits,
 											isset($lines[$i]->fk_remise_except) ? $lines[$i]->fk_remise_except : null,
-											'HT',
-											0,
+											$line_price_base_type,
+											(float) $lines[$i]->subprice_ttc,
 											$product_type,
 											$lines[$i]->rang,
 											$lines[$i]->special_code,
@@ -2326,7 +2333,10 @@ if (empty($reshook)) {
 				continue;
 			}
 			if ($line->product_type == 1) { // only service line
-				$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->qty, $line->remise_percent, $alldate_start, $alldate_end, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, 'HT', $line->info_bits, $line->product_type, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->special_code, $line->array_options, $line->situation_percent, $line->fk_unit, $line->multicurrency_subprice);
+				// Preserve the original entry mode of the line so the total is not drifted by rounding.
+				$line_price_base_type = $line->getPriceBaseType();
+				$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
+				$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, $line->remise_percent, $alldate_start, $alldate_end, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line_price_base_type, $line->info_bits, $line->product_type, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->special_code, $line->array_options, $line->situation_percent, $line->fk_unit, $line->multicurrency_subprice);
 			}
 		}
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'alpha') && GETPOST('vatforalllines', 'alpha') !== '' && $usercancreate) {
@@ -2339,7 +2349,10 @@ if (empty($reshook)) {
 			if ($line->special_code == SUBTOTALS_SPECIAL_CODE) {
 				continue;
 			}
-			$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->qty, $line->remise_percent, $line->date_start, $line->date_end, $vat_rate, $localtax1_rate, $localtax2_rate, 'HT', $line->info_bits, $line->product_type, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->special_code, $line->array_options, $line->situation_percent, $line->fk_unit, $line->multicurrency_subprice);
+			// Preserve the original entry mode of the line so the total is not drifted by rounding.
+			$line_price_base_type = $line->getPriceBaseType();
+			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
+			$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, $line->remise_percent, $line->date_start, $line->date_end, $vat_rate, $localtax1_rate, $localtax2_rate, $line_price_base_type, $line->info_bits, $line->product_type, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->special_code, $line->array_options, $line->situation_percent, $line->fk_unit, $line->multicurrency_subprice);
 		}
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'alpha') && GETPOST('remiseforalllines', 'alpha') !== '' && $usercancreate) {
 		// Define vat_rate
@@ -2353,7 +2366,10 @@ if (empty($reshook)) {
 			if (!empty($line->vat_src_code)) {
 				$tvatx .= ' ('.$line->vat_src_code.')';
 			}
-			$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->qty, (float) $remise_percent, $line->date_start, $line->date_end, $tvatx, $line->localtax1_tx, $line->localtax2_tx, 'HT', $line->info_bits, $line->product_type, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->special_code, $line->array_options, $line->situation_percent, $line->fk_unit, $line->multicurrency_subprice);
+			// Preserve the original entry mode of the line so the total is not drifted by rounding.
+			$line_price_base_type = $line->getPriceBaseType();
+			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
+			$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, (float) $remise_percent, $line->date_start, $line->date_end, $tvatx, $line->localtax1_tx, $line->localtax2_tx, $line_price_base_type, $line->info_bits, $line->product_type, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->special_code, $line->array_options, $line->situation_percent, $line->fk_unit, $line->multicurrency_subprice);
 		}
 	} elseif ($action == 'confirm_addtitleline' && $usercancreate) {
 		// Handling adding a new title line for subtotals module
@@ -2630,18 +2646,29 @@ if (empty($reshook)) {
 				$tmpvat = (float) price2num(preg_replace('/\s*\(.*\)/', '', $tva_tx));
 				$tmpprodvat = price2num(preg_replace('/\s*\(.*\)/', '', (string) $prod->tva_tx));
 
-				// Set unit price to use
-				// TODO We should not have this
+				// Set unit price to use.
+				// Force price_base_type to match what the user actually entered, so the total is computed
+				// from the typed value and not from the converted/rounded value (avoids 0.01 rounding drift).
 				if (!empty($price_ht) || $price_ht === '0') {
 					$pu_ht = price2num($price_ht, 'MU');
 					$pu_ttc = price2num((float) $pu_ht * (1 + ($tmpvat / 100)), 'MU');
+					$price_base_type = 'HT';
 				} elseif (!empty($price_ht_devise) || $price_ht_devise === '0') {
 					$pu_ht_devise = price2num($price_ht_devise, 'MU');
+					$pu_ttc_devise = (float) price2num((float) $pu_ht_devise * (1 + ((float) $tmpvat / 100)), 'MU');
 					$pu_ht = '';
 					$pu_ttc = '';
+					$price_base_type = 'HT';
 				} elseif (!empty($price_ttc) || $price_ttc === '0') {
 					$pu_ttc = price2num($price_ttc, 'MU');
 					$pu_ht = price2num((float) $pu_ttc / (1 + ($tmpvat / 100)), 'MU');
+					$price_base_type = 'TTC';
+				} elseif (!empty($price_ttc_devise) || (string) $price_ttc_devise === '0') {
+					$pu_ttc_devise = (float) price2num($price_ttc_devise, 'MU');
+					$pu_ht_devise = (float) price2num((float) $pu_ttc_devise / (1 + ((float) $tmpvat / 100)), 'MU');
+					$pu_ht = '';
+					$pu_ttc = '';
+					$price_base_type = 'TTC';
 				} elseif ($tmpvat != $tmpprodvat) {
 					// Is this still used ?
 					if ($price_base_type != 'HT') {
@@ -3146,11 +3173,25 @@ if (empty($reshook)) {
 
 		$remise_percent = price2num(GETPOST('remise_percent'), '', 2);
 
-		$price_base_type = 'HT';
+		// The form JS clears the other field when the user edits one of them: only the modified field is filled.
+		// When both fields are submitted, the user did not change the price - we must preserve the original
+		// storage mode of the line, otherwise a no-op save would shift the total by rounding.
 		$pu = $pu_ht;
-		if (empty($pu) && !empty($pu_ttc)) {
+		$price_base_type = 'HT';
+		if (empty($pu_ht) && !empty($pu_ttc)) {
 			$pu = $pu_ttc;
 			$price_base_type = 'TTC';
+		} elseif (!empty($pu_ht) && !empty($pu_ttc)) {
+			foreach ($object->lines as $line_obj) {
+				if ($line_obj->id == GETPOSTINT('lineid')) {
+					// Line was originally entered in TTC mode (subprice_ttc filled by addline)
+					if ($line_obj->wasEnteredIncludingTax()) {
+						$pu = $pu_ttc;
+						$price_base_type = 'TTC';
+					}
+					break;
+				}
+			}
 		}
 
 		// Check minimum price
@@ -4135,7 +4176,7 @@ if ($action == 'create') {
 					}
 
 					$typedeposit = GETPOST('typedeposit', 'aZ09');
-					$valuedeposit = GETPOSTINT('valuedeposit');
+					$valuedeposit = GETPOSTFLOAT('valuedeposit');
 					if (empty($typedeposit) && !empty($objectsrc->deposit_percent)) {
 						$origin_payment_conditions_deposit_percent = getDictionaryValue('c_payment_term', 'deposit_percent', $objectsrc->cond_reglement_id);
 						if (!empty($origin_payment_conditions_deposit_percent)) {
@@ -4768,22 +4809,31 @@ if ($action == 'create') {
 	}
 	$selleruserevenustamp = $mysoc->useRevenueStamp();
 
-	$totalpaid = $object->getSommePaiement();
-	$totalcreditnotes = $object->getSumCreditNotesUsed();
-	$totaldeposits = $object->getSumDepositsUsed();
+	// InfraS change begin Arrondis - chaque composant monétaire est arrondi au centime dès son affectation, et
+	// $total_ttc_arrondi (jamais $object->total_ttc lui-même, qui doit rester exact pour les autres usages de la
+	// page) est utilisé pour tout calcul de reste à payer/excédent plus loin dans ce fichier. Sans cela, un résidu
+	// sous-centime issu du calcul de lignes non arrondi (voir price.lib.php) devient un faux écart d'un centime plein.
+	$totalpaid = price2num($object->getSommePaiement(), 'MT');
+	$totalcreditnotes = price2num($object->getSumCreditNotesUsed(), 'MT');
+	$totaldeposits = price2num($object->getSumDepositsUsed(), 'MT');
+	$total_ttc_arrondi = price2num($object->total_ttc, 'MT');
+	// InfraS change end Arrondis
 	//print "totalpaid=".$totalpaid." totalcreditnotes=".$totalcreditnotes." totaldeposts=".$totaldeposits."
 	// selleruserrevenuestamp=".$selleruserevenustamp;
 
 	// We can also use bcadd to avoid pb with floating points
 	// For example print 239.2 - 229.3 - 9.9; does not return 0.
-	$resteapayer = price2num($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+	$resteapayer = price2num($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT'); // InfraS change Arrondis
 
 	// Multicurrency
 	if (isModEnabled('multicurrency')) {
-		$multicurrency_totalpaid = $object->getSommePaiement(1);
-		$multicurrency_totalcreditnotes = $object->getSumCreditNotesUsed(1);
-		$multicurrency_totaldeposits = $object->getSumDepositsUsed(1);
-		$multicurrency_resteapayer = price2num($object->multicurrency_total_ttc - $multicurrency_totalpaid - $multicurrency_totalcreditnotes - $multicurrency_totaldeposits, 'MT');
+		// InfraS change begin Arrondis
+		$multicurrency_totalpaid = price2num($object->getSommePaiement(1), 'MT');
+		$multicurrency_totalcreditnotes = price2num($object->getSumCreditNotesUsed(1), 'MT');
+		$multicurrency_totaldeposits = price2num($object->getSumDepositsUsed(1), 'MT');
+		$multicurrency_total_ttc_arrondi = price2num($object->multicurrency_total_ttc, 'MT');
+		$multicurrency_resteapayer = price2num($multicurrency_total_ttc_arrondi - $multicurrency_totalpaid - $multicurrency_totalcreditnotes - $multicurrency_totaldeposits, 'MT');
+		// InfraS change end Arrondis
 		// Code to fix case of corrupted data
 		// TODO We should not need this. Also data comes from a not reliable value of $object->multicurrency_total_ttc that may be wrong if it was
 		// calculated by summing lines that were in a currency for some of them and into another for others (lines from discount/down payment into another currency for example)
@@ -5235,7 +5285,7 @@ if ($action == 'create') {
 	$object->totalpaid = $totalpaid; // To give a chance to dol_banner_tab to use already paid amount to show correct status
 	$object->totalcreditnotes = $totalcreditnotes;
 	$object->totaldeposits = $totaldeposits;
-	$object->remaintopay = price2num($object->total_ttc - $object->totalpaid - $object->totalcreditnotes - $object->totaldeposits, 'MT');
+	$object->remaintopay = price2num($total_ttc_arrondi - $object->totalpaid - $object->totalcreditnotes - $object->totaldeposits, 'MT'); // InfraS change Arrondis
 
 	dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref, '', 0, '', '');
 
@@ -6114,6 +6164,10 @@ if ($action == 'create') {
 			} else {
 				dol_print_error($db);
 			}
+			// InfraS change begin Arrondis
+			$creditnoteamount = price2num($creditnoteamount, 'MT');
+			$depositamount = price2num($depositamount, 'MT');
+			// InfraS change end Arrondis
 
 			// Partially paid 'discount'
 			if (($object->status == Facture::STATUS_CLOSED || $object->status == Facture::STATUS_ABANDONED) && $object->close_code == 'discount_vat') {
@@ -6121,7 +6175,7 @@ if ($action == 'create') {
 				print '<span class="opacitymedium">';
 				print $form->textwithpicto($langs->trans("Discount"), $langs->trans("HelpEscompte"), - 1);
 				print '</span>';
-				print '</td><td class="right"><span class="amount">'.price(price2num($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid, 'MT')).'</span></td><td>&nbsp;</td></tr>';
+				print '</td><td class="right"><span class="amount">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT') /* InfraS change Arrondis */).'</span></td><td>&nbsp;</td></tr>';
 				$resteapayeraffiche = 0;
 				$cssforamountpaymentcomplete = 'amountpaymentneutral';
 			}
@@ -6131,7 +6185,7 @@ if ($action == 'create') {
 				print '<span class="opacitymedium">';
 				print $form->textwithpicto($langs->trans("Abandoned"), $langs->trans("HelpAbandonBadCustomer"), - 1);
 				print '</span>';
-				print '</td><td class="right">'.price(price2num($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid, 'MT')).'</td><td>&nbsp;</td></tr>';
+				print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT') /* InfraS change Arrondis */).'</td><td>&nbsp;</td></tr>';
 				// $resteapayeraffiche=0;
 				$cssforamountpaymentcomplete = 'amountpaymentneutral';
 			}
@@ -6141,7 +6195,7 @@ if ($action == 'create') {
 				print '<span class="opacitymedium">';
 				print $form->textwithpicto($langs->trans("ProductReturned"), $langs->trans("HelpAbandonProductReturned"), - 1);
 				print '</span>';
-				print '</td><td class="right"><span class="amount">'.price(price2num($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid, 'MT')).'</span></td><td>&nbsp;</td></tr>';
+				print '</td><td class="right"><span class="amount">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT') /* InfraS change Arrondis */).'</span></td><td>&nbsp;</td></tr>';
 				$resteapayeraffiche = 0;
 				$cssforamountpaymentcomplete = 'amountpaymentneutral';
 			}
@@ -6156,7 +6210,7 @@ if ($action == 'create') {
 				// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 				print $form->textwithpicto($langs->trans("Abandoned"), $text, - 1);
 				print '</span>';
-				print '</td><td class="right"><span class="amount">'.price(price2num($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid, 'MT')).'</span></td><td>&nbsp;</td></tr>';
+				print '</td><td class="right"><span class="amount">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT') /* InfraS change Arrondis */).'</span></td><td>&nbsp;</td></tr>';
 				$resteapayeraffiche = 0;
 				$cssforamountpaymentcomplete = 'amountpaymentneutral';
 			}
@@ -6627,7 +6681,7 @@ if ($action == 'create') {
 			// For situation invoice
 			if ($object->status > Facture::STATUS_DRAFT
 				&& $object->isSituationInvoice()
-				&& ($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits) > 0
+				&& ($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits) > 0 // InfraS change Arrondis
 				&& $usercancreate
 				&& !$objectidnext
 				&& $object->is_last_in_cycle()
@@ -6663,7 +6717,7 @@ if ($action == 'create') {
 				&& $object->is_last_in_cycle()
 				&& $usercanunvalidate
 			) {
-				if (price2num($object->total_ttc - $totalcreditnotes, 'MT') == 0) {
+				if (price2num($total_ttc_arrondi - $totalcreditnotes, 'MT') == 0) { // InfraS change Arrondis
 					print '<a id="butSituationOut" class="butAction" href="'.$_SERVER['PHP_SELF'].'?facid='.$object->id.'&action=situationout">'.$langs->trans("RemoveSituationFromCycle").'</a>';
 				} else {
 					print '<a id="butSituationOutRefused" class="butActionRefused classfortooltip" href="#" title="'.$langs->trans("DisabledBecauseNotEnouthCreditNote").'" >'.$langs->trans("RemoveSituationFromCycle").'</a>';

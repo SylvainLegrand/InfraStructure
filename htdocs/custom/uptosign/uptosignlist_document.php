@@ -93,7 +93,7 @@ $ref = GETPOST('ref', 'alpha');
 $limit = GETPOSTINT('limit') ? GETPOSTINT('limit') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'aZ09comma');
 $sortorder = GETPOST('sortorder', 'aZ09comma');
-$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOSTINT('pageplusone') - 1) : GETPOSTINT("page");
 if (empty($page) || $page == -1) {
 	$page = 0;
 }     // If $page is not defined, or '' or -1
@@ -247,10 +247,9 @@ print '</div>';
 print dol_get_fiche_end();
 
 $modulepart = 'uptosign';
-//$permissiontoadd = $user->rights->uptosign->uptosignlist->write;
-$permissiontoadd = 1;
-//$permtoedit = $user->rights->uptosign->uptosignlist->write;
-$permtoedit = 1;
+// Keep the real permissions computed above ($permissiontoadd = uptosignlist write right):
+// forcing them to 1 would expose the upload/delete UI to read-only users.
+$permtoedit = $permissiontoadd;
 $param = '&id='.$object->id;
 
 //$relativepathwithnofile='uptosignlist/' . dol_sanitizeFileName($object->id).'/';

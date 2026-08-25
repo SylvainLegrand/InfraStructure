@@ -378,9 +378,14 @@
 			if ($object->type == 2 && !empty($this->credit_note)) {
 				$this->sign	= -1;
 			}
-			$filesufixe												= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FL') ? '' : '_FL';
-			$baseDir												= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
-
+			$fileprefix		= '';
+			$baseDir		= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FL') ? '' : '_FL';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_FL', '');
+				$filesufixe	= empty($fileprefix) ? '_FL' : '';
+			}
 			if (!empty($baseDir)) {
 				$object->fetch_thirdparty();
 				// Use of multicurrency for this document
@@ -428,7 +433,7 @@
 				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
-					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}
 				if (! file_exists($dir)) {
 					if (dol_mkdir($dir) < 0) {

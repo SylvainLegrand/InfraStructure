@@ -61,6 +61,15 @@
 	$confirm				= GETPOST('confirm', 'alpha');
 	$urlfile				= GETPOST('urlfile', 'alpha');
 	$typefile				= GETPOST('typefile', 'alpha');
+	$listModeles 			= ['BLC', 'C', 'CBC', 'CBL', 'CP', 'OF', 'OM', 'CF', 'CFBL', 'F', 'FL', 'FR', 'FT', 'FF', 'D', 'DP', 'DST', 'DF', 'PJ_Dossier', 'PJ',
+								'BL', 'BLX', 'ET', 'BR', 'CT', 'CTS', 'RE', 'MRP', 'FI', 'NDF', 'BC', 'BOM'];
+	// Module Dolibarr requis pour chaque modèle (masque l'option de préfixe si le module correspondant est désactivé)
+	$listModelesModule		= ['BLC' => 'commande', 'C' => 'commande', 'CBC' => 'commande', 'CBL' => 'commande', 'CP' => 'commande', 'OF' => 'commande', 'OM' => 'commande',
+								'CF' => 'supplier_order', 'CFBL' => 'supplier_order', 'F' => 'facture', 'FL' => 'facture', 'FR' => 'facture', 'FT' => 'facture', 'FF' => 'supplier_invoice',
+								'D'	=> 'propal', 'DP' => 'propal', 'DST' => 'propal', 'DF' => 'supplier_proposal', 'PJ_Dossier' => 'projet', 'PJ' => 'projet', 'BL' => 'expedition',
+								'BLX' => 'expedition', 'ET' => 'expedition', 'BR' => 'expedition', 'CT' => 'contrat', 'CTS' => 'contrat', 'RE' => 'reception', 'MRP' => 'mrp',
+								'FI' => 'ficheinter', 'NDF' => 'expensereport', 'BC' => 'banque', 'BOM' => 'mrp',
+							];
 	$listParamsExfProdPos	= array('type'				=> 'varchar',
 									'pos'				=> 50,
 									'size'				=> '64',
@@ -170,9 +179,13 @@
 			}
 		}
 	}
+	$INFRASPLUS_PDF_ADD_PREFIX_TO_MODEL	= [];
+	foreach ($listModeles as $model) {
+		$INFRASPLUS_PDF_ADD_PREFIX_TO_MODEL[] = 'INFRASPLUS_PDF_ADD_PREFIX_TO_'.$model;
+	}
 	// Update buttons management
 	if (preg_match('/update_(.*)/', $action, $reg)) {
-		$list		= array('manage'	=> array('INFRASPLUS_PDF_ROUNDING_UP',				'INFRASPLUS_PDF_ROUNDING_TOT'),
+		$list		= array('manage'	=> array_merge(array('INFRASPLUS_PDF_ROUNDING_UP', 'INFRASPLUS_PDF_ROUNDING_TOT'), $INFRASPLUS_PDF_ADD_PREFIX_TO_MODEL),
 							'Gen'		=> array('INFRASPLUS_PDF_ROUNDED_REC',				'INFRASPLUS_PDF_FACTURE_PAID_WATERMARK',	'INFRASPLUS_PDF_ENABLE_TEST_WATERMARK', 'INFRASPLUS_PDF_PROPAL_PROV_WATERMARK'),
 							'Template'	=> [],
 							'Head'		=> array('INFRASPLUS_PDF_SPE_HEAD',					'INFRASPLUS_PDF_INVOICE_TITLE_IF_DEPOSIT',	'INFRASPLUS_PDF_TITLE_SIZE', 			'INFRASPLUS_PDF_FRM_E_LINE_WIDTH',
@@ -239,6 +252,13 @@
 				$name	= getDolGlobalString('INFRASPLUS_PDF_EXF_PROD_POS', '');
 				if (empty($constvalue) || !empty($name) && $name != $constvalue) {
 					$result	= infraspackplus_search_extf (-2, '', 'INFRASPLUS_PDF_EXF_PROD_POS', 'InfraSPlusParamLabelExfProdPos', array('expedition'), $listParamsExfProdPos);
+				}
+			}
+			// Pour les préfixes, on remplace les espaces par des underscores et on ajoute un underscore à la fin si nécessaire
+			if (strpos($constname, 'INFRASPLUS_PDF_ADD_PREFIX_TO_') === 0) {
+				$constvalue = preg_replace('/\s+/', '_', trim(GETPOST($constname, 'alpha')));
+				if (!empty($constvalue) && substr($constvalue, -1) !== '_') {
+					$constvalue .= '_';
 				}
 			}
 			$result	= dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
@@ -878,9 +898,23 @@
 		}
 		$num	= infraspackplus_print_input('MAIN_DISABLE_PDF_AUTOUPDATE', 'on_off', $langs->trans('InfraSPlusParamAutoUpdate'), '', [], 1, 1, '', $num);
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_MULTI_FILES', 'on_off', $langs->trans('InfraSPlusParamMultiFiles'), '', [], 1, 1, '', $num);
-		// $num = 8
 		if (getDolGlobalString('INFRASPLUS_PDF_MULTI_FILES', '')) {
 			print '		<tr><td colspan = "2" class = "center">'.$langs->trans('InfraSPlusParamMultiFilesText').'</td><td>&nbsp;</td></tr>';
+		} else {
+			$num++;
+		}
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME', 'on_off', $langs->trans('InfraSPlusPDFAddPrefixToTemplateName'), '', [], 1, 1, '', $num);
+		if (getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME', 0)) {
+			foreach ($listModeles as $model) {
+				if (!empty($listModelesModule[$model]) && isModEnabled($listModelesModule[$model])) {
+					$num	= infraspackplus_print_input('INFRASPLUS_PDF_ADD_PREFIX_TO_'.$model, 'input', $langs->trans('InfraSPlusPDFAddPrefixTo'.$model), '', ['class' => 'centpercent width200'], 1, 1, '', $num);
+				}
+			}
+		} else {
+			$num	+= count($listModeles);
+		}
+		// $num = 41
+		if (getDolGlobalString('INFRASPLUS_PDF_MULTI_FILES', '')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PROJECT_TIMESTAMP', 'on_off', $langs->trans('InfraSPlusParamProjectTimeStamp'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
@@ -891,7 +925,7 @@
 		} else {
 			$num++;
 		}
-		// $num = 11
+		// $num = 44
 		if (isModEnabled('expensereport')) {
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FILES_FROM_EXPENSEREPORT', 'on_off', $langs->trans('InfraSPlusParamFilesFromExpensereport').' '.$langs->trans('InfraSPlusGenModif'), '', [], 1, 1, '', $num);
 		} else {
@@ -911,12 +945,12 @@
 		} else {
 			$num++;
 		}
-		// $num = 18
+		// $num = 51
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '10', 'step' => '1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ROUNDING_UP', 'input', $langs->trans('InfraSPlusParamRoundingUP'), '', $metas, 1, 1, '&nbsp;', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '10', 'step' => '1');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_ROUNDING_TOT', 'input', $langs->trans('InfraSPlusParamRoundingTot'), '', $metas, 1, 1, '&nbsp;', $num);
-		// $num = 20
+		// $num = 53
 	}
 	print '			</table>
 				</div>';

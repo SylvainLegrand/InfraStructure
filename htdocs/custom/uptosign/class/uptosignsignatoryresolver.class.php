@@ -96,7 +96,7 @@ class UptoSignSignatoryResolver
 		}
 
 		// Remove uptosign prefix from label
-		$configLabel = str_ireplace("uptosign", "", $configLabel);
+		$configLabel = self::roleCodeFromConfigLabel($configLabel);
 
 		// Handle user element type (employee)
 		if ($object->element == 'user') {
@@ -107,11 +107,10 @@ class UptoSignSignatoryResolver
 			}
 			$phone_mobile = uptoSignSearchMobile($pm, $object->office_phone, $object->country_code);
 			if (empty($phone_mobile)) {
+				// Do not append a user without a valid mobile (align with societe/contact branches).
 				array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-				dol_syslog("uptosign: resolveSigners: user element type, without mobile phone or error format");
-			}
-
-			if (!in_array($phone_mobile, $dedup)) {
+				dol_syslog("uptosign: resolveSigners: user element type, without mobile phone or error format, skip", LOG_WARNING);
+			} elseif (!in_array($phone_mobile, $dedup)) {
 				dol_syslog("uptosign: resolveSigners: (u1) put in dedup " . $object->personal_email);
 				array_push($dedup, $phone_mobile);
 				$storeArray->append($object);
@@ -188,7 +187,7 @@ class UptoSignSignatoryResolver
 
 		// Add internal users from config
 		if ($internalExternal == "internal") {
-			$listeUsers = explode(',', $conf->global->UPTOSIGN_DOLIBARR_USERS_SIGN);
+			$listeUsers = explode(',', utsbackports_getDolGlobalString('UPTOSIGN_DOLIBARR_USERS_SIGN', ''));
 			foreach ($listeUsers as $userid) {
 				$contactIds[] = $userid;
 				dol_syslog("uptosign: resolveSigners: add internal user $userid");
@@ -264,14 +263,13 @@ class UptoSignSignatoryResolver
 		$object->fetchRoles();
 		dol_syslog("uptosign: UptoSignSignatoryResolver::giveAllRolesToContact initial roles " . json_encode($object->roles));
 
+		if (!is_array($object->roles)) {
+			$object->roles = array();
+		}
 		$duplicateID = [];
 		foreach ($object->roles as $key => $val) {
 			$duplicateID[] = $val['id'];
 		}
-		if (!is_array($object->roles)) {
-			$object->roles = array();
-		}
-
 		// InfraS add begin
 		if (empty($object->thirdparty) && is_callable(array($object, 'fetch_thirdparty'))) {
 			$object->fetch_thirdparty();
@@ -281,7 +279,6 @@ class UptoSignSignatoryResolver
 			return -1;
 		}
 		// InfraS add end
-
 		$code = "";
 		if ($object->thirdparty->client > 0) {
 			$code = "'CustomerSign'";
@@ -333,6 +330,51 @@ class UptoSignSignatoryResolver
 		}
 		dol_syslog("uptosign: giveAllRolesToContact apply " . json_encode($object->roles));
 		return $object->updateRoles();
+	}
+
+	/**
+	 * Turn the label of an UptoSignConfig record into a contact role code
+	 *
+	 * The label IS the code of the contact type (CustomerSign, VendorSign, ...),
+	 * possibly carrying a legacy "uptosign" prefix. Single place where that
+	 * conversion is done, so every caller resolves the same code.
+	 *
+	 * @param  string $configLabel Label of the UptoSignConfig record
+	 * @return string              Contact role code
+	 */
+	public static function roleCodeFromConfigLabel($configLabel)
+	{
+		return str_ireplace('uptosign', '', (string) $configLabel);
+	}
+
+	/**
+	 * Tell if a contact role code is declared for an element
+	 *
+	 * @param  string $element Object element name (propal, commande, ...)
+	 * @param  string $code    Contact role code (CustomerSign, VendorSign, ...)
+	 * @param  string $source  'internal', 'external' or 'all'
+	 * @return bool            True when the code exists in llx_c_type_contact
+	 */
+	public function isTypeContactCodeDeclared($element, $code, $source = 'all')
+	{
+		if ((string) $code === '') {
+			dol_syslog('uptosign: isTypeContactCodeDeclared called with an empty code for element ' . $element, LOG_WARNING);
+			return false;
+		}
+
+		$types = $this->getTypeContactCode($element, $source);
+		if (!is_array($types)) {
+			dol_syslog('uptosign: isTypeContactCodeDeclared can not read contact types of element ' . $element, LOG_ERR);
+			return false;
+		}
+
+		foreach ($types as $type) {
+			if (isset($type['code']) && $type['code'] === $code) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

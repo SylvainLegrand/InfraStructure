@@ -64,9 +64,9 @@ $action = (string) GETPOST('action', 'aZ09');
 
 
 // Security check
-// if (! $user->rights->uptosign->myobject->read) {
-// 	accessforbidden();
-// }
+if (!$user->hasRight('uptosign', 'read')) {
+	accessforbidden();
+}
 $socid = GETPOSTINT('socid');
 if (isset($user->socid) && $user->socid > 0) {
 	$action = '';

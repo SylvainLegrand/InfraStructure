@@ -670,12 +670,32 @@ if (empty($reshook)) {
 				if ($line->product_type < 9 && $line->total_ht != 0) { // Remove lines with product_type greater than or equal to 9 and no need to create discount if amount is null
 					$keyforvatrate = $line->tva_tx.($line->vat_src_code ? ' ('.$line->vat_src_code.')' : '');
 
+					// InfraS change begin: initialize keys before += to avoid "Undefined array key" warning
+					if (!isset($amount_ht[$keyforvatrate])) {
+						$amount_ht[$keyforvatrate] = 0;
+					}
 					$amount_ht[$keyforvatrate] += $line->total_ht;
+					if (!isset($amount_tva[$keyforvatrate])) {
+						$amount_tva[$keyforvatrate] = 0;
+					}
 					$amount_tva[$keyforvatrate] += $line->total_tva;
+					if (!isset($amount_ttc[$keyforvatrate])) {
+						$amount_ttc[$keyforvatrate] = 0;
+					}
 					$amount_ttc[$keyforvatrate] += $line->total_ttc;
+					if (!isset($multicurrency_amount_ht[$keyforvatrate])) {
+						$multicurrency_amount_ht[$keyforvatrate] = 0;
+					}
 					$multicurrency_amount_ht[$keyforvatrate] += $line->multicurrency_total_ht;
+					if (!isset($multicurrency_amount_tva[$keyforvatrate])) {
+						$multicurrency_amount_tva[$keyforvatrate] = 0;
+					}
 					$multicurrency_amount_tva[$keyforvatrate] += $line->multicurrency_total_tva;
+					if (!isset($multicurrency_amount_ttc[$keyforvatrate])) {
+						$multicurrency_amount_ttc[$keyforvatrate] = 0;
+					}
 					$multicurrency_amount_ttc[$keyforvatrate] += $line->multicurrency_total_ttc;
+					// InfraS change end
 					$i++;
 				}
 			}
@@ -755,7 +775,8 @@ if (empty($reshook)) {
 					dol_print_error($db);
 				}
 
-				$discount->amount_ht = $discount->amount_ttc = $total_paiements + $total_creditnote_and_deposit - $object->total_ttc;
+				// arrondi de chaque composant avant combinaison pour éviter un faux excédent d'un centime
+				$discount->amount_ht = $discount->amount_ttc = price2num(price2num($total_paiements, 'MT') + price2num($total_creditnote_and_deposit, 'MT') - price2num($object->total_ttc, 'MT'), 'MT');	// InfraS change
 				$discount->amount_tva = 0;
 				$discount->tva_tx = 0;
 				$discount->vat_src_code = '';
@@ -789,6 +810,7 @@ if (empty($reshook)) {
 					$discount->multicurrency_amount_ht = abs((float) $discount->multicurrency_total_ht);
 					$discount->multicurrency_amount_tva = abs((float) $discount->multicurrency_total_tva);
 					$discount->multicurrency_amount_ttc = abs((float) $discount->multicurrency_total_ttc);
+
 					// Clean vat code
 					$reg = array();
 					$vat_src_code = '';
@@ -987,7 +1009,7 @@ if (empty($reshook)) {
 				$object->fk_incoterms       = GETPOSTINT('incoterm_id');
 				$object->location_incoterms	= GETPOST('location_incoterms', 'alpha');
 				$object->multicurrency_code	= GETPOST('multicurrency_code', 'alpha');
-				$object->multicurrency_tx   = GETPOSTINT('originmulticurrency_tx');
+				$object->multicurrency_tx   = GETPOSTFLOAT('originmulticurrency_tx');
 				$object->transport_mode_id	= GETPOSTINT('transport_mode_id');
 
 				// Proprietes particulieres a facture avoir
@@ -1039,10 +1061,12 @@ if (empty($reshook)) {
 				if (GETPOSTINT('invoiceAvoirWithPaymentRestAmount') == 1 && $id > 0) {
 					$facture_source = new FactureFournisseur($db); // fetch origin object if not previously defined
 					if ($facture_source->fetch($object->fk_facture_source) > 0) {
-						$totalpaid = $facture_source->getSommePaiement();
-						$totalcreditnotes = $facture_source->getSumCreditNotesUsed();
-						$totaldeposits = $facture_source->getSumDepositsUsed();
-						$remain_to_pay = abs($facture_source->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits);
+						// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+						$totalpaid = price2num($facture_source->getSommePaiement(), 'MT');
+						$totalcreditnotes = price2num($facture_source->getSumCreditNotesUsed(), 'MT');
+						$totaldeposits = price2num($facture_source->getSumDepositsUsed(), 'MT');
+						$remain_to_pay = abs(price2num($facture_source->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits);
+						// InfraS change end Arrondis
 						$desc = $langs->trans('invoiceAvoirLineWithPaymentRestAmount');
 						$retAddLine = $object->addline($desc, $remain_to_pay, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'TTC');
 
@@ -1090,7 +1114,7 @@ if (empty($reshook)) {
 				$object->fk_incoterms       = GETPOSTINT('incoterm_id');
 				$object->location_incoterms = GETPOST('location_incoterms', 'alpha');
 				$object->multicurrency_code = GETPOST('multicurrency_code', 'alpha');
-				$object->multicurrency_tx   = GETPOSTINT('originmulticurrency_tx');
+				$object->multicurrency_tx   = GETPOSTFLOAT('originmulticurrency_tx');
 
 				// Source facture
 				$object->fac_rec = $fac_recid;
@@ -1157,7 +1181,7 @@ if (empty($reshook)) {
 				$object->fk_incoterms		= GETPOSTINT('incoterm_id');
 				$object->location_incoterms	= GETPOST('location_incoterms', 'alpha');
 				$object->multicurrency_code	= GETPOST('multicurrency_code', 'alpha');
-				$object->multicurrency_tx	= GETPOSTINT('originmulticurrency_tx');
+				$object->multicurrency_tx	= GETPOSTFLOAT('originmulticurrency_tx');
 				$object->transport_mode_id	= GETPOSTINT('transport_mode_id');
 
 				// Auto calculation of date due if not filled by user
@@ -1425,7 +1449,13 @@ if (empty($reshook)) {
 								$object->special_code = $lines[$i]->special_code;
 
 								// FIXME If currency different from main currency, take multicurrency price
-								if ($object->multicurrency_code != $conf->currency || $object->multicurrency_tx != 1) {
+								// Preserve the original entry mode of the line so the total is computed from the typed value (no rounding drift).
+								$line_price_base_type = $lines[$i]->getPriceBaseType();
+								if ($line_price_base_type === 'TTC') {
+									// TTC mode: use the local TTC unit price; the currency price is re-derived (no rounding drift).
+									$pu = (float) $lines[$i]->subprice_ttc;
+									$pu_currency = 0;
+								} elseif ($object->multicurrency_code != $conf->currency || $object->multicurrency_tx != 1) {
 									$pu = 0;
 									$pu_currency = $lines[$i]->multicurrency_subprice;
 								} else {
@@ -1447,7 +1477,7 @@ if (empty($reshook)) {
 									(int) $date_end,
 									0,
 									$lines[$i]->info_bits,
-									'HT',
+									$line_price_base_type,
 									$product_type,
 									$lines[$i]->rang,
 									0,
@@ -1527,12 +1557,28 @@ if (empty($reshook)) {
 		$tva_tx = (GETPOST('tva_tx') ? GETPOST('tva_tx') : 0);
 		$tva_tx = str_replace('*', '', $tva_tx);
 
-		if (GETPOST('price_ht') != '' || GETPOST('multicurrency_subprice') != '') {
-			$up = price2num(GETPOST('price_ht'), '', 2);
-			$price_base_type = 'HT';
-		} else {
-			$up = price2num(GETPOST('price_ttc'), '', 2);
+		$pu_ht = price2num(GETPOST('price_ht'), '', 2);
+		$pu_ttc = price2num(GETPOST('price_ttc'), '', 2);
+
+		// The form JS clears the other field when the user edits one of them: only the modified field is filled.
+		// When both fields are submitted, the user did not change the price - we must preserve the original
+		// storage mode of the line, otherwise a no-op save would shift the total by rounding.
+		$up = $pu_ht;
+		$price_base_type = 'HT';
+		if (empty($pu_ht) && !empty($pu_ttc)) {
+			$up = $pu_ttc;
 			$price_base_type = 'TTC';
+		} elseif (!empty($pu_ht) && !empty($pu_ttc)) {
+			foreach ($object->lines as $line_obj) {
+				if ($line_obj->id == GETPOSTINT('lineid')) {
+					// Line was originally entered in TTC mode (subprice_ttc filled by addline)
+					if ($line_obj->wasEnteredIncludingTax()) {
+						$up = $pu_ttc;
+						$price_base_type = 'TTC';
+					}
+					break;
+				}
+			}
 		}
 
 		if (GETPOST('productid') > 0) {
@@ -1633,18 +1679,22 @@ if (empty($reshook)) {
 		$alldate_end = dol_mktime(GETPOSTINT('alldate_endhour'), GETPOSTINT('alldate_endmin'), 0, GETPOSTINT('alldate_endmonth'), GETPOSTINT('alldate_endday'), GETPOSTINT('alldate_endyear'));
 		foreach ($object->lines as $line) {
 			if ($line->product_type == 1) { // only service line
-				$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, 'HT', $line->info_bits, $line->product_type, $line->remise_percent, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
+				// Preserve the original entry mode of the line so the total is not drifted by rounding.
+				$line_price_base_type = $line->getPriceBaseType();
+				$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
+				$result = $object->updateline($line->id, $line->desc, $line_pu, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, $line_price_base_type, $line->info_bits, $line->product_type, $line->remise_percent, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
 			}
 		}
-		// Osden add begin
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'alpha') && GETPOST('remiseforalllines', 'alpha') !== '' && $usercancreate) {
 		// Define vat_rate
 		$remise_percent = (GETPOST('remiseforalllines') ? GETPOST('remiseforalllines') : 0);
 		$remise_percent = str_replace('*', '', $remise_percent);
 		foreach ($object->lines as $line) {
-			$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, 'HT', $line->info_bits, $line->product_type, $remise_percent, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
+			// Preserve the original entry mode of the line so the total is not drifted by rounding.
+			$line_price_base_type = $line->getPriceBaseType();
+			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
+			$result = $object->updateline($line->id, $line->desc, $line_pu, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, $line_price_base_type, $line->info_bits, $line->product_type, $remise_percent, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
 		}
-		// Osden add end
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && GETPOST('vatforalllines', 'alpha') != '' && $usercancreate) {
 		// Define vat_rate
 		$vat_rate = (GETPOST('vatforalllines') ? GETPOST('vatforalllines') : 0);
@@ -1652,7 +1702,10 @@ if (empty($reshook)) {
 		$localtax1_rate = get_localtax($vat_rate, 1, $object->thirdparty, $mysoc);
 		$localtax2_rate = get_localtax($vat_rate, 2, $object->thirdparty, $mysoc);
 		foreach ($object->lines as $line) {
-			$result = $object->updateline($line->id, $line->desc, $line->subprice, $vat_rate, $localtax1_rate, $localtax2_rate, $line->qty, $line->fk_product, 'HT', $line->info_bits, $line->product_type, $line->remise_percent, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
+			// Preserve the original entry mode of the line so the total is not drifted by rounding.
+			$line_price_base_type = $line->getPriceBaseType();
+			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
+			$result = $object->updateline($line->id, $line->desc, $line_pu, $vat_rate, $localtax1_rate, $localtax2_rate, $line->qty, $line->fk_product, $line_price_base_type, $line->info_bits, $line->product_type, $line->remise_percent, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
 		}
 	} elseif ($action == 'addline' && $usercancreate) {
 		// Add a product line
@@ -1939,16 +1992,18 @@ if (empty($reshook)) {
 			$localtax1_tx = get_localtax($tva_tx, 1, $mysoc, $object->thirdparty);
 			$localtax2_tx = get_localtax($tva_tx, 2, $mysoc, $object->thirdparty);
 
+			// Keep the entry mode chosen by the user so the total is computed from the typed value (no rounding drift).
 			if (GETPOST('price_ht') != '' || GETPOST('multicurrency_price_ht') != '') {
-				$pu_ht = price2num($price_ht, 'MU'); // $pu_ht must be rounded according to settings
+				$price_base_type = 'HT';
+				$pu = price2num($price_ht, 'MU'); // $pu must be rounded according to settings
+				$pu_devise = price2num($price_ht_devise, 'CU');
 			} else {
-				$pu_ttc = price2num(GETPOST('price_ttc'), 'MU');
-				$pu_ht = price2num((float) $pu_ttc / (1 + ((float) $tva_tx / 100)), 'MU'); // $pu_ht must be rounded according to settings
+				$price_base_type = 'TTC';
+				$pu = price2num(GETPOST('price_ttc'), 'MU');
+				$pu_devise = price2num($price_ttc_devise, 'CU');
 			}
-			$price_base_type = 'HT';
-			$pu_devise = price2num($price_ht_devise, 'CU');
 
-			$result = $object->addline($line_desc, (float) $pu_ht, $tva_tx, $localtax1_tx, $localtax2_tx, (float) $qty, 0, $remise_percent, $date_start, $date_end, 0, $tva_npr, $price_base_type, $type, -1, 0, $array_options, $fk_unit, 0, (float) $pu_devise, $ref_supplier);
+			$result = $object->addline($line_desc, (float) $pu, $tva_tx, $localtax1_tx, $localtax2_tx, (float) $qty, 0, $remise_percent, $date_start, $date_end, 0, $tva_npr, $price_base_type, $type, -1, 0, $array_options, $fk_unit, 0, (float) $pu_devise, $ref_supplier);
 		}
 
 		//print "xx".$tva_tx; exit;
@@ -3095,9 +3150,14 @@ if ($action == 'create') {
 
 		$societe = $object->thirdparty;
 
-		$totalpaid = $object->getSommePaiement();
-		$totalcreditnotes = $object->getSumCreditNotesUsed();
-		$totaldeposits = $object->getSumDepositsUsed();
+		// InfraS change begin Arrondis - chaque composant monétaire est arrondi au centime dès son affectation, et
+		// $total_ttc_arrondi (jamais $object->total_ttc lui-même, qui doit rester exact pour les autres usages de la
+		// page) est utilisé pour tout calcul de reste à payer/excédent plus loin dans ce fichier.
+		$totalpaid = price2num($object->getSommePaiement(), 'MT');
+		$totalcreditnotes = price2num($object->getSumCreditNotesUsed(), 'MT');
+		$totaldeposits = price2num($object->getSumDepositsUsed(), 'MT');
+		$total_ttc_arrondi = price2num($object->total_ttc, 'MT');
+		// InfraS change end Arrondis
 		// print "totalpaid=".$totalpaid." totalcreditnotes=".$totalcreditnotes." totaldeposts=".$totaldeposits."
 		// selleruserrevenuestamp=".$selleruserevenustamp;
 
@@ -3105,15 +3165,18 @@ if ($action == 'create') {
 		// For example print 239.2 - 229.3 - 9.9; does not return 0.
 		// $resteapayer=bcadd($object->total_ttc,$totalpaid,$conf->global->MAIN_MAX_DECIMALS_TOT);
 		// $resteapayer=bcadd($resteapayer,$totalavoir,$conf->global->MAIN_MAX_DECIMALS_TOT);
-		$resteapayer = price2num($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+		$resteapayer = price2num($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT'); // InfraS change Arrondis
 
 		// Multicurrency
 		$multicurrency_resteapayer = 0;
 		if (isModEnabled("multicurrency")) {
-			$multicurrency_totalpaid = $object->getSommePaiement(1);
-			$multicurrency_totalcreditnotes = $object->getSumCreditNotesUsed(1);
-			$multicurrency_totaldeposits = $object->getSumDepositsUsed(1);
-			$multicurrency_resteapayer = price2num($object->multicurrency_total_ttc - $multicurrency_totalpaid - $multicurrency_totalcreditnotes - $multicurrency_totaldeposits, 'MT');
+			// InfraS change begin Arrondis
+			$multicurrency_totalpaid = price2num($object->getSommePaiement(1), 'MT');
+			$multicurrency_totalcreditnotes = price2num($object->getSumCreditNotesUsed(1), 'MT');
+			$multicurrency_totaldeposits = price2num($object->getSumDepositsUsed(1), 'MT');
+			$multicurrency_total_ttc_arrondi = price2num($object->multicurrency_total_ttc, 'MT');
+			$multicurrency_resteapayer = price2num($multicurrency_total_ttc_arrondi - $multicurrency_totalpaid - $multicurrency_totalcreditnotes - $multicurrency_totaldeposits, 'MT');
+			// InfraS change end Arrondis
 			// Code to fix case of corrupted data
 			// TODO We should not need this. Also data comes from not reliable value of $object->multicurrency_total_ttc that may be wrong if it was
 			// calculated by summing lines that were in a currency for some of them and into another for others (lines from discount/down payment into another currency for example)
@@ -3969,6 +4032,7 @@ if ($action == 'create') {
 			} else {
 				dol_print_error($db);
 			}
+			$totalpaid = price2num($totalpaid, 'MT'); // InfraS change Arrondis
 
 			if ($object->type != FactureFournisseur::TYPE_CREDIT_NOTE) {
 				// Total already paid
@@ -4029,6 +4093,10 @@ if ($action == 'create') {
 				} else {
 					dol_print_error($db);
 				}
+				// InfraS change begin Arrondis
+				$creditnoteamount = price2num($creditnoteamount, 'MT');
+				$depositamount = price2num($depositamount, 'MT');
+				// InfraS change end Arrondis
 
 				// Paye partiellement 'escompte'
 				if (($object->status == FactureFournisseur::STATUS_CLOSED || $object->status == FactureFournisseur::STATUS_ABANDONED) && $object->close_code == 'discount_vat') {
@@ -4036,7 +4104,7 @@ if ($action == 'create') {
 					print '<span class="opacitymedium">';
 					print $form->textwithpicto($langs->trans("Discount"), $langs->trans("HelpEscompte"), - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					$resteapayeraffiche = 0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4046,7 +4114,7 @@ if ($action == 'create') {
 					print '<span class="opacitymedium">';
 					print $form->textwithpicto($langs->trans("Abandoned"), $langs->trans("HelpAbandonBadCustomer"), - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					// $resteapayeraffiche=0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4056,7 +4124,7 @@ if ($action == 'create') {
 					print '<span class="opacitymedium">';
 					print $form->textwithpicto($langs->trans("ProductReturned"), $langs->trans("HelpAbandonProductReturned"), - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					$resteapayeraffiche = 0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4071,7 +4139,7 @@ if ($action == 'create') {
 					// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 					print $form->textwithpicto($langs->trans("Abandoned"), $text, - 1);
 					print '</span>';
-					print '</td><td class="right">'.price($object->total_ttc - $creditnoteamount - $depositamount - $totalpaid).'</td><td>&nbsp;</td></tr>';
+					print '</td><td class="right">'.price(price2num($total_ttc_arrondi - $creditnoteamount - $depositamount - $totalpaid, 'MT')) /* InfraS change Arrondis */.'</td><td>&nbsp;</td></tr>';
 					$resteapayeraffiche = 0;
 					$cssforamountpaymentcomplete = 'amountpaymentneutral';
 				}
@@ -4311,7 +4379,7 @@ if ($action == 'create') {
 					}
 
 					// For standard invoice with excess paid
-					if ($object->type == FactureFournisseur::TYPE_STANDARD && empty($object->paid) && ($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits) < 0 && $usercancreate && empty($discount->id)) {
+					if ($object->type == FactureFournisseur::TYPE_STANDARD && empty($object->paid) && ($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits) < 0 && $usercancreate && empty($discount->id)) { // InfraS change Arrondis
 						print '<a class="butAction'.($conf->use_javascript_ajax ? ' reposition' : '').'" href="'.$_SERVER["PHP_SELF"].'?facid='.$object->id.'&action=converttoreduc&token='.newToken().'">'.$langs->trans('ConvertExcessPaidToReduc').'</a>';
 					}
 					// For credit note

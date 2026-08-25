@@ -189,8 +189,6 @@ if ($user->socid > 0) {
 if ($user->socid > 0) {
 	$socid = $user->socid;
 }
-// $isdraft = (($object->statut == $object::STATUS_DRAFT) ? 1 : 0);
-// $result = restrictedArea($user, 'uptosign', $object->id, '', '', 'fk_soc', 'rowid');//, $isdraft);
 if (empty($permissiontoaccess)) {
 	accessforbidden();
 }
@@ -198,6 +196,13 @@ foreach ($otherModulesRights as $perm) {
 	if (empty($perm)) {
 		accessforbidden($langs->trans('NeedPerms'));
 	}
+}
+// Entity guard on the uptosignlist object (IDOR across entities in multicompany).
+// restrictedArea() is not used here: the uptosign module right is named 'read' (not the
+// 'lire' restrictedArea expects), so calling it would deny every legitimate user.
+if ($object->id > 0 && isset($object->entity) && !in_array((int) $object->entity, array_map('intval', explode(',', (string) $conf->entity)), true) && empty($user->admin)) {
+	dol_syslog("uptosign: uptosignlist #" . $object->id . " entity " . $object->entity . " not in current entity " . $conf->entity, LOG_WARNING);
+	accessforbidden();
 }
 
 /*
@@ -258,8 +263,24 @@ $error = null;
 
 // Confirmation to sign
 if ($action == 'uptosign') {
+	if (empty($permissiontoadd)) {
+		dol_syslog("uptosign: user lacks 'create' right to launch uptosignlist sign", LOG_WARNING);
+		accessforbidden();
+	}
+	if ((int) $object->status !== (int) UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: uptosignlist #" . $object->id . " not in DRAFT status, sign refused", LOG_WARNING);
+		accessforbidden($langs->trans("UptoSignObjectTypeNotCompatible"));
+	}
 	//Sauvegarder les données du formulaire (?)
 	$pdfFileName = base64_decode((string) GETPOST('pdfFileName', 'alpha'));
+	if (!empty($pdfFileName)) {
+		$pdfFileName = dol_sanitizePathName($pdfFileName);
+		// Reject paths escaping DOL_DATA_ROOT (LFI defense, same guard as uptosign_tab.php)
+		if (strpos(realpath(dirname($pdfFileName)) . '/', realpath(DOL_DATA_ROOT) . '/') !== 0) {
+			dol_syslog("uptosign: pdfFileName outside DOL_DATA_ROOT: $pdfFileName", LOG_ERR);
+			accessforbidden('Invalid file path');
+		}
+	}
 	$countOfContacts = $object->getNbContacts();
 	$error = 0;
 
@@ -499,9 +520,9 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	if ($action == "" || $action =="preseal") {
 		$actionSeal = "<li><b>Sceller (actif)</b></li>\n";
-		$actionSign = "<li><a href='" . $_SERVER["PHP_SELF"] . "?objectType=" . $objectType . "&id=" . $id . "&action=presign&pdfFileChoosed=".$pdfFileChoosed."'>Signer</a></li>\n";
+		$actionSign = "<li><a href='" . dol_escape_htmltag($_SERVER["PHP_SELF"]) . "?objectType=" . urlencode($objectType) . "&id=" . urlencode((string) $id) . "&action=presign&pdfFileChoosed=".urlencode($pdfFileChoosed)."'>Signer</a></li>\n";
 	} else {
-		$actionSeal = "<li><a href='" . $_SERVER["PHP_SELF"] . "?objectType=" . $objectType . "&id=" . $id . "&action=preseal&pdfFileChoosed=".$pdfFileChoosed."'>Sceller</a></li>\n";
+		$actionSeal = "<li><a href='" . dol_escape_htmltag($_SERVER["PHP_SELF"]) . "?objectType=" . urlencode($objectType) . "&id=" . urlencode((string) $id) . "&action=preseal&pdfFileChoosed=".urlencode($pdfFileChoosed)."'>Sceller</a></li>\n";
 		$actionSign = "<li><b>Signer (actif)</b></li>\n";
 	}
 	// print "<p>Action possible : <ul>\n" . $actionSeal . $actionSign . "</ul>\n</p>\n";
@@ -549,7 +570,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$ref_client = $object->ref_client ?? "";
 		$defaultTitle = uptosign_make_document_title($object->ref, $ref_client, $objectType);
 		print "<label for='refTitle'>" . $langs->trans('UptoSignDocumentTitle') . "</label>\n";
-		print "<input type='text' name='refTitle' value='" . $defaultTitle . "' size='40'><br />\n";
+		print "<input type='text' name='refTitle' value='" . dol_escape_htmltag($defaultTitle) . "' size='40'><br />\n";
 	}
 
 	if ($object->getNbContacts() > 30) {

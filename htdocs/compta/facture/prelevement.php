@@ -286,16 +286,20 @@ llxHeader('', $title, $helpurl);
 if ($object->id > 0) {
 	$selleruserevenustamp = $mysoc->useRevenueStamp();
 
-	$totalpaid = $object->getSommePaiement();
-	$totalcreditnotes = $object->getSumCreditNotesUsed();
-	$totaldeposits = $object->getSumDepositsUsed();
+	// InfraS change begin Arrondis - chaque composant monétaire est arrondi au centime dès son affectation, et
+	// $total_ttc_arrondi (jamais $object->total_ttc lui-même) est utilisé pour tout calcul de reste à payer plus loin.
+	$totalpaid = price2num($object->getSommePaiement(), 'MT');
+	$totalcreditnotes = price2num($object->getSumCreditNotesUsed(), 'MT');
+	$totaldeposits = price2num($object->getSumDepositsUsed(), 'MT');
+	$total_ttc_arrondi = price2num($object->total_ttc, 'MT');
+	// InfraS change end Arrondis
 	//print "totalpaid=".$totalpaid." totalcreditnotes=".$totalcreditnotes." totaldeposts=".$totaldeposits;
 
 	// We can also use bcadd to avoid pb with floating points
 	// For example print 239.2 - 229.3 - 9.9; does not return 0.
 	//$resteapayer=bcadd($object->total_ttc,$totalpaid,$conf->global->MAIN_MAX_DECIMALS_TOT);
 	//$resteapayer=bcadd($resteapayer,$totalavoir,$conf->global->MAIN_MAX_DECIMALS_TOT);
-	$resteapayer = price2num($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+	$resteapayer = price2num($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT'); // InfraS change Arrondis
 
 	if ($object->paid) {
 		$resteapayer = 0;
@@ -690,7 +694,7 @@ if ($object->id > 0) {
 	print '</tr>';
 
 
-	$resteapayer = price2num($object->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+	$resteapayer = price2num($total_ttc_arrondi - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT'); // InfraS change Arrondis
 
 	// Hook to change amount for other reasons, e.g. apply cash discount for payment before agreed date
 	$parameters = array('remaintopay' => $resteapayer);

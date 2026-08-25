@@ -98,7 +98,7 @@ print load_fiche_titre($title, '', 'title_setup');
 print '<div class="div-table-responsive-no-min">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><td class="titlefieldcreate">'.$langs->trans("Version").'</td><td></td></tr>'."\n";
-// InfraS chan add
+// InfraS change begin
 if ($infras_version = getDolGlobalString('DOLINFRAS_VERSION')) {
 	print '<tr class="oddeven"><td>'.$langs->trans("Infras").'</td><td>'.$infras_version . '('. $langs->trans('Dolibarr') . ' ' .  DOL_VERSION . ')';
 } else {

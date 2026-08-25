@@ -442,8 +442,14 @@
 			if ($object->type == 2 && !empty($this->credit_note)) {
 				$this->sign	= -1;
 			}
-			$filesufixe		= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_F') ? '' : '_F';
 			$baseDir		= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_F') ? '' : '_F';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_F', '');
+				$filesufixe	= empty($fileprefix) ? '_F' : '';
+			}
 			$this->titlekey	= 'Bill';
 			if (!empty($object->situation_cycle_ref)) {
 				$this->titlekey		= $object->type == 2 ? 'InvoiceAvoir'		: 'PDFSituationTitle';

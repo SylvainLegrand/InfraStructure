@@ -15,6 +15,7 @@
  * Copyright (C) 2022       Gauthier VERDOL     <gauthier.verdol@atm-consulting.fr>
  * Copyright (C) 2024-2025	MDW					<mdeweerd@users.noreply.github.com>
  * Copyright (C) 2024		William Mead		<william.mead@manchenumerique.fr>
+ * Copyright (C) 2026		Lionel Vessiller		<lvessiller@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1103,9 +1104,11 @@ class Commande extends CommonOrder
 						$line->ref_ext = '';
 					}
 
+					// Preserve the original entry mode of the line so the total is computed from the typed value (no rounding drift).
+					$line_price_base_type = $line->getPriceBaseType();
 					$result = $this->addline(
 						$line->desc,
-						$line->subprice,
+						(float) $line->subprice,
 						$line->qty,
 						$vatrate,
 						$line->localtax1_tx,
@@ -1114,8 +1117,8 @@ class Commande extends CommonOrder
 						$line->remise_percent,
 						$line->info_bits,
 						$line->fk_remise_except,
-						'HT',
-						0,
+						$line_price_base_type,
+						(float) $line->subprice_ttc,
 						$line->date_start,
 						$line->date_end,
 						$line->product_type,
@@ -1401,6 +1404,7 @@ class Commande extends CommonOrder
 			$line->desc              = $object->lines[$i]->desc;
 			$line->price             = $object->lines[$i]->price;
 			$line->subprice          = $object->lines[$i]->subprice;
+			$line->subprice_ttc      = $object->lines[$i]->subprice_ttc;	// Preserve the TTC entry mode so create() keeps the typed value (no rounding drift).
 			$line->vat_src_code      = $object->lines[$i]->vat_src_code;
 			$line->tva_tx            = $object->lines[$i]->tva_tx;
 			$line->localtax1_tx      = $object->lines[$i]->localtax1_tx;
@@ -1781,6 +1785,8 @@ class Commande extends CommonOrder
 			$this->line->fk_remise_except = $fk_remise_except;
 			$this->line->remise_percent = $remise_percent;
 			$this->line->subprice = (float) $pu_ht;
+			// Persist the original entry mode of the line so updateline() can preserve it later.
+			$this->line->subprice_ttc = ($price_base_type === 'TTC') ? (float) $pu_ttc : 0;
 			$this->line->rang = $ranktouse;
 			$this->line->info_bits = $info_bits;
 			$this->line->total_ht = (float) $total_ht;
@@ -2204,7 +2210,7 @@ class Commande extends CommonOrder
 		$this->lines = array();
 
 		$sql = 'SELECT l.rowid, l.fk_product, l.fk_parent_line, l.product_type, l.fk_commande, l.label as custom_label, l.description, l.price, l.qty, l.vat_src_code, l.tva_tx, l.ref_ext,';
-		$sql .= ' l.localtax1_tx, l.localtax2_tx, l.localtax1_type, l.localtax2_type, l.fk_remise_except, l.remise_percent, l.subprice, l.fk_product_fournisseur_price as fk_fournprice, l.buy_price_ht as pa_ht, l.rang, l.info_bits, l.special_code,';
+		$sql .= ' l.localtax1_tx, l.localtax2_tx, l.localtax1_type, l.localtax2_type, l.fk_remise_except, l.remise_percent, l.subprice, l.subprice_ttc, l.fk_product_fournisseur_price as fk_fournprice, l.buy_price_ht as pa_ht, l.rang, l.info_bits, l.special_code,';
 		$sql .= ' l.total_ht, l.total_ttc, l.total_tva, l.total_localtax1, l.total_localtax2, l.date_start, l.date_end,';
 		$sql .= ' l.fk_unit, l.extraparams,';
 		$sql .= ' l.fk_multicurrency, l.multicurrency_code, l.multicurrency_subprice, l.multicurrency_total_ht, l.multicurrency_total_tva, l.multicurrency_total_ttc,';
@@ -2252,6 +2258,7 @@ class Commande extends CommonOrder
 				$line->total_localtax1  = $objp->total_localtax1;
 				$line->total_localtax2  = $objp->total_localtax2;
 				$line->subprice         = $objp->subprice;
+				$line->subprice_ttc     = (float) $objp->subprice_ttc;
 				$line->fk_remise_except = $objp->fk_remise_except;
 				$line->remise_percent   = $objp->remise_percent;
 				$line->price            = $objp->price;
@@ -3316,6 +3323,8 @@ class Commande extends CommonOrder
 			$this->line->localtax2_type = empty($localtaxes_type[2]) ? '' : $localtaxes_type[2];
 			$this->line->remise_percent = $remise_percent;
 			$this->line->subprice       = (float) $pu_ht;
+			// Persist the original entry mode of the line so a no-op edit can preserve it later.
+			$this->line->subprice_ttc   = ($price_base_type === 'TTC') ? (float) $pu_ttc : 0;
 			$this->line->info_bits      = $info_bits;
 			$this->line->special_code   = $special_code;
 			$this->line->total_ht       = (float) $total_ht;

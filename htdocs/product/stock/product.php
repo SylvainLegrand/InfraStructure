@@ -76,8 +76,8 @@ $cancel = GETPOST('cancel', 'alpha');
 
 $id = GETPOSTINT('id');
 $ref = GETPOST('ref', 'alpha');
-$stocklimit = GETPOSTFLOAT('seuil_stock_alerte');
-$desiredstock = GETPOSTFLOAT('desiredstock');
+$stocklimit = (GETPOST('seuil_stock_alerte') !== '') ? GETPOSTFLOAT('seuil_stock_alerte') : null;
+$desiredstock = (GETPOST('desiredstock') !== '') ? GETPOSTFLOAT('desiredstock') : null;
 $cancel = GETPOST('cancel', 'alpha');
 $fieldid = GETPOSTISSET("ref") ? 'ref' : 'rowid';
 $d_eatby = dol_mktime(0, 0, 0, GETPOSTINT('eatbymonth'), GETPOSTINT('eatbyday'), GETPOSTINT('eatbyyear'));
@@ -815,12 +815,97 @@ if ($id > 0 || $ref) {
 			print '</td>';
 			print '</tr>';
 
+			$stocktheo = price2num($object->stock_theorique, 'MS');
+
+			$found = 0;
+			$helpondiff = '<strong>'.$langs->trans("StockDiffPhysicTeoric").':</strong><br>';
+			// Number of sales orders running
+			if (isModEnabled('order')) {
+				if ($found) {
+					$helpondiff .= '<br>';
+				} else {
+					$found = 1;
+				}
+				$helpondiff .= $langs->trans("ProductQtyInCustomersOrdersRunning").': '.$object->stats_commande['qty'];
+				$result = $object->load_stats_commande(0, '0', 1);
+				if ($result < 0) {
+					dol_print_error($db, $object->error);
+				}
+				$helpondiff .= ' <span class="opacitymedium">('.$langs->trans("ProductQtyInDraft").': '.$object->stats_commande['qty'].')</span>';
+			}
+
+			// Number of product from sales order already sent (partial shipping)
+			if (isModEnabled("shipping")) {
+				require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+				$filterShipmentStatus = '';
+				if (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT')) {
+					$filterShipmentStatus = Expedition::STATUS_VALIDATED.','.Expedition::STATUS_CLOSED;
+				} elseif (getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT_CLOSE')) {
+					$filterShipmentStatus = Expedition::STATUS_CLOSED;
+				}
+				if ($found) {
+					$helpondiff .= '<br>';
+				} else {
+					$found = 1;
+				}
+				$result = $object->load_stats_sending(0, '2', 1, $filterShipmentStatus);
+				$helpondiff .= $langs->trans("ProductQtyInShipmentAlreadySent").': '.$object->stats_expedition['qty'];
+			}
+
+			// Number of supplier order running
+			if (isModEnabled("supplier_order") || isModEnabled("supplier_invoice")) {
+				if ($found) {
+					$helpondiff .= '<br>';
+				} else {
+					$found = 1;
+				}
+				$result = $object->load_stats_commande_fournisseur(0, '3,4', 1);
+				$helpondiff .= $langs->trans("ProductQtyInSuppliersOrdersRunning").': '.$object->stats_commande_fournisseur['qty'];
+				$result = $object->load_stats_commande_fournisseur(0, '0,1,2', 1);
+				if ($result < 0) {
+					dol_print_error($db, $object->error);
+				}
+				$helpondiff .= ' <span class="opacitymedium">('.$langs->trans("ProductQtyInDraftOrWaitingApproved").': '.$object->stats_commande_fournisseur['qty'].')</span>';
+			}
+
+			// Number of product from supplier order already received (partial receipt)
+			if (isModEnabled("supplier_order") || isModEnabled("supplier_invoice")) {
+				if ($found) {
+					$helpondiff .= '<br>';
+				} else {
+					$found = 1;
+				}
+				$helpondiff .= $langs->trans("ProductQtyInSuppliersShipmentAlreadyRecevied").': '.$object->stats_reception['qty'];
+			}
+
+			// Number of product in production
+			if (isModEnabled('mrp')) {
+				if ($found) {
+					$helpondiff .= '<br>';
+				} else {
+					$found = 1;
+				}
+				$helpondiff .= $langs->trans("ProductQtyToConsumeByMO").': '.$object->stats_mrptoconsume['qty'].'<br>';
+				$helpondiff .= $langs->trans("ProductQtyToProduceByMO").': '.$object->stats_mrptoproduce['qty'];
+			}
+			$parameters = array('found' => &$found, 'id' => $object->id, 'includedraftpoforvirtual' => null);
+			$reshook = $hookmanager->executeHooks('virtualStockHelpOnDiff', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+			if ($reshook > 0) {
+				$helpondiff = $hookmanager->resPrint;
+			} elseif ($reshook == 0) {
+				$helpondiff .= $hookmanager->resPrint;
+			} else {
+				setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+			}
+
+
 			// Calculating a theoretical value
 			print '<tr><td>';
 			print $form->textwithpicto($langs->trans("VirtualStock"), $langs->trans("VirtualStockDesc"));
 			print '</td>';
 			print "<td>";
-			print $formproduct->printTheoreticalStockDetails($object);
+			//print (empty($stocktheo)?0:$stocktheo);
+			print $form->textwithpicto((empty($stocktheo) ? 0 : $stocktheo), $helpondiff);
 			if ($object->seuil_stock_alerte != '' && ($object->stock_theorique < $object->seuil_stock_alerte)) {
 				print ' '.img_warning($langs->trans("StockLowerThanLimit", $object->seuil_stock_alerte));
 			}
@@ -967,10 +1052,8 @@ if (!$variants || getDolGlobalString('VARIANT_ALLOW_STOCK_MOVEMENT_ON_VARIANT_PA
 	$sql .= " FROM ".MAIN_DB_PREFIX."entrepot as e,";
 	$sql .= " ".MAIN_DB_PREFIX."product_stock as ps";
 	$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON p.rowid = ps.fk_product";
-	$sql .= " WHERE ps.fk_entrepot = e.rowid";
-	if (!getDolGlobalInt('STOCK_MOVEMENT_FORCE_DO_NOT_CLEAN_EMPTY_LINES')) {
-		$sql .= " AND ps.reel != 0";
-	}
+	$sql .= " WHERE ps.reel != 0";
+	$sql .= " AND ps.fk_entrepot = e.rowid";
 	$sql .= " AND e.entity IN (".getEntity('stock').")";
 	$sql .= " AND ps.fk_product = ".((int) $object->id);
 	$sql .= " ORDER BY e.ref";

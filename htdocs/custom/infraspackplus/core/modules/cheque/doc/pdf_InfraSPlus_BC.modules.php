@@ -197,18 +197,24 @@
 					$this->db->free($resql);
 				}
 			}
-			$number		= $object->ref;
-			$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BC') ? '' : '_BC';
+			$number			= $object->ref;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BC') ? '' : '_BC';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_BC', '');
+				$filesufixe	= empty($fileprefix) ? '_BC' : '';
+			}
 			$entity		= !empty($object->entity) ? $object->entity : $conf->entity;
 			$baseDir	= (!empty($conf->bank->multidir_output[$entity]) ? $conf->bank->multidir_output[$entity] : $conf->bank->dir_output).'/checkdeposits';
 			// Definition of $dir and $file
 			if (!empty($object->specimen)) {
 				$dir	= $baseDir;
-				$file	= $dir.'/SPECIMEN'.$filesufixe.'.pdf';
+				$file	= $dir.'/SPECIMEN'.$fileprefix.$filesufixe.'.pdf';
 			} else {
 				$objectref	= dol_sanitizeFileName($object->ref);
 				$dir		= $baseDir.'/'.$objectref;
-				$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+				$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 			}
 			if (!is_dir($dir) && dol_mkdir($dir) < 0) {
 				$this->error	= $outputlangs->transnoentities('ErrorCanNotCreateDir', $dir);

@@ -143,7 +143,7 @@ print $langs->trans("UptoSignSignsLongTxt1");
 $listOfCheckUsers = explode(',', utsbackports_getDolGlobalString('UPTOSIGN_DOLIBARR_USERS_SIGN', ''));
 
 print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '" data-submit-once>';
-print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+print '<input type="hidden" name="token" value="' . newToken() . '">';
 print '<input type="hidden" name="action" value="update">';
 
 $i = 0;
@@ -176,6 +176,8 @@ foreach ($user->users as $u) {
 	if ($email == "") {
 		$email = "<font style='color:red;'>" . $langs->trans('UptoSignUserEmailMissing') . "</font>";
 		$disabled = "disabled";
+	} else {
+		$email = dol_escape_htmltag($email);
 	}
 
 	$right = "";
@@ -194,7 +196,7 @@ foreach ($user->users as $u) {
 
 	$style = "''";
 	if ($u->job) {
-		print "<b>" . $u->job . ":</b> ";
+		print "<b>" . dol_escape_htmltag($u->job) . ":</b> ";
 		$style = ""; //"'padding-left: 2em;'";
 	}
 	$remarques = "";
@@ -205,7 +207,7 @@ foreach ($user->users as $u) {
 		$remarques = " (" . $langs->trans("UptosignNotEmployee") . ") ";
 	}
 
-	print "<label for='cbx-" . $u->id . "'><span style=$style>" . $u->firstname . " " . $u->lastname . $remarques . " mail: " . $email . " tel: " . $tel . " " . $right .  "</span></label>";
+	print "<label for='cbx-" . $u->id . "'><span style=$style>" . dol_escape_htmltag($u->firstname) . " " . dol_escape_htmltag($u->lastname) . $remarques . " mail: " . $email . " tel: " . $tel . " " . $right .  "</span></label>";
 	print "</li>";
 	$i++;
 	// print json_encode($u);

@@ -131,6 +131,7 @@ if (empty($source)) {
 
 if (!$action) {
 	if ($source && !$ref) {
+		dol_syslog("uptosign newonlinesign: missing ref for source=$source, abort", LOG_ERR);
 		print $langs->trans('ErrorBadParameters') . " - ref missing";
 		exit;
 	}
@@ -183,6 +184,14 @@ if (!$action) {
 
 $securekeyseed = '';
 $typefix = $type;
+// Only Propal::fetch() exposes a $forceentity parameter. Commande, Contrat, Fichinter,
+// Project, CompanyBankAccount and Expedition filter their fetch on $conf->entity instead.
+// Align $conf->entity with the requested $entity so those fetch() calls are confined to
+// the same entity as the proposal branch (the securekey already embeds the entity).
+if (!empty($entity) && (int) $conf->entity !== (int) $entity) {
+	dol_syslog("uptosign newonlinesign: aligning conf entity ".((int) $conf->entity)." to requested entity ".((int) $entity), LOG_WARNING);
+	$conf->entity = (int) $entity;
+}
 if ($source == 'proposal') {
 	require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
 	$object = new Propal($db);
@@ -637,8 +646,8 @@ if ($source == 'proposal') {
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("Creditor");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $creditor . '</b>';
-	print '<input type="hidden" name="creditor" value="' . $creditor . '">';
+	print '<b>' . dol_escape_htmltag($creditor) . '</b>';
+	print '<input type="hidden" name="creditor" value="' . dol_escape_htmltag($creditor) . '">';
 	print '</td></tr>' . "\n";
 
 	// Debitor
@@ -646,7 +655,7 @@ if ($source == 'proposal') {
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("ThirdParty");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $object->thirdparty->name . '</b>';
+	print '<b>' . dol_escape_htmltag($object->thirdparty->name) . '</b>';
 	print '</td></tr>' . "\n";
 
 	// Amount
@@ -719,7 +728,7 @@ if ($source == 'proposal') {
 	}
 
 	print '<input type="hidden" name="source" value="' . (string) GETPOST("source", 'alpha') . '">';
-	print '<input type="hidden" name="ref" value="' . $object->ref . '">';
+	print '<input type="hidden" name="ref" value="' . dol_escape_htmltag($object->ref) . '">';
 	print '</td></tr>' . "\n";
 } elseif ($source == 'contract' || $source == 'contrat') { // Signature on contract
 	$found = true;
@@ -731,15 +740,15 @@ if ($source == 'proposal') {
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("Proposer");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $creditor . '</b>';
-	print '<input type="hidden" name="creditor" value="' . $creditor . '">';
+	print '<b>' . dol_escape_htmltag($creditor) . '</b>';
+	print '<input type="hidden" name="creditor" value="' . dol_escape_htmltag($creditor) . '">';
 	print '</td></tr>' . "\n";
 
 	// Target
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("ThirdParty");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $object->thirdparty->name . '</b>';
+	print '<b>' . dol_escape_htmltag($object->thirdparty->name) . '</b>';
 	print '</td></tr>' . "\n";
 
 	// Object
@@ -772,7 +781,7 @@ if ($source == 'proposal') {
 	}
 
 	print '<input type="hidden" name="source" value="' . (string) GETPOST("source", 'alpha') . '">';
-	print '<input type="hidden" name="ref" value="' . $object->ref . '">';
+	print '<input type="hidden" name="ref" value="' . dol_escape_htmltag($object->ref) . '">';
 	print '</td></tr>' . "\n";
 } elseif ($source == 'fichinter') { // Signature on fichinter
 	$found = true;
@@ -783,15 +792,15 @@ if ($source == 'proposal') {
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("Proposer");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $creditor . '</b>';
-	print '<input type="hidden" name="creditor" value="' . $creditor . '">';
+	print '<b>' . dol_escape_htmltag($creditor) . '</b>';
+	print '<input type="hidden" name="creditor" value="' . dol_escape_htmltag($creditor) . '">';
 	print '</td></tr>' . "\n";
 
 	// Target
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("ThirdParty");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $object->thirdparty->name . '</b>';
+	print '<b>' . dol_escape_htmltag($object->thirdparty->name) . '</b>';
 	print '</td></tr>' . "\n";
 
 	// Object
@@ -823,7 +832,7 @@ if ($source == 'proposal') {
 	}
 
 	print '<input type="hidden" name="source" value="' . (string) GETPOST("source", 'alpha') . '">';
-	print '<input type="hidden" name="ref" value="' . $object->ref . '">';
+	print '<input type="hidden" name="ref" value="' . dol_escape_htmltag($object->ref) . '">';
 	print '</td></tr>' . "\n";
 } elseif ($source == 'commande') { // Signature on commande(order)
 	$found = true;
@@ -834,15 +843,15 @@ if ($source == 'proposal') {
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("Proposer");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $creditor . '</b>';
-	print '<input type="hidden" name="creditor" value="' . $creditor . '">';
+	print '<b>' . dol_escape_htmltag($creditor) . '</b>';
+	print '<input type="hidden" name="creditor" value="' . dol_escape_htmltag($creditor) . '">';
 	print '</td></tr>' . "\n";
 
 	// Target
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("ThirdParty");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $object->thirdparty->name . '</b>';
+	print '<b>' . dol_escape_htmltag($object->thirdparty->name) . '</b>';
 	print '</td></tr>' . "\n";
 
 	// Object
@@ -877,7 +886,7 @@ if ($source == 'proposal') {
 	}
 
 	print '<input type="hidden" name="source" value="' . (string) GETPOST("source", 'alpha') . '">';
-	print '<input type="hidden" name="ref" value="' . $object->ref . '">';
+	print '<input type="hidden" name="ref" value="' . dol_escape_htmltag($object->ref) . '">';
 	print '</td></tr>' . "\n";
 } elseif ($source == 'project') { // Signature on project
 	$found = true;
@@ -888,15 +897,15 @@ if ($source == 'proposal') {
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("Proposer");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $creditor . '</b>';
-	print '<input type="hidden" name="creditor" value="' . $creditor . '">';
+	print '<b>' . dol_escape_htmltag($creditor) . '</b>';
+	print '<input type="hidden" name="creditor" value="' . dol_escape_htmltag($creditor) . '">';
 	print '</td></tr>' . "\n";
 
 	// Target
 	print '<tr class="CTableRow2"><td class="CTableRow2">' . $langs->trans("ThirdParty");
 	print '</td><td class="CTableRow2">';
 	print img_picto('', 'company', 'class="pictofixedwidth"');
-	print '<b>' . $object->thirdparty->name . '</b>';
+	print '<b>' . dol_escape_htmltag($object->thirdparty->name) . '</b>';
 	print '</td></tr>' . "\n";
 
 	// Object
@@ -921,7 +930,7 @@ if ($source == 'proposal') {
 	}
 
 	print '<input type="hidden" name="source" value="' . (string) GETPOST("source", 'alpha') . '">';
-	print '<input type="hidden" name="ref" value="' . $object->ref . '">';
+	print '<input type="hidden" name="ref" value="' . dol_escape_htmltag($object->ref) . '">';
 	print '<input type="hidden" name="last_main_doc" value="' . $last_main_doc . '">';
 	print '</td></tr>' . "\n";
 }

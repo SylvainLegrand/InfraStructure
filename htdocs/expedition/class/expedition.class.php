@@ -1897,9 +1897,9 @@ class Expedition extends CommonObject
 
 						// We delete PDFs
 						$ref = dol_sanitizeFileName($this->ref);
-						if (!empty($conf->expedition->dir_output)) {
-							$dir = $conf->expedition->dir_output . '/sending/' . $ref;
-							$file = $dir . '/' . $ref . '.pdf';
+						if (!empty($conf->expedition->dir_output) && !empty($ref)) {
+							$dir = $conf->expedition->dir_output.'/sending/'.$ref;
+							$file = $dir.'/'.$ref.'.pdf';
 							if (file_exists($file)) {
 								if (!dol_delete_file($file)) {
 									return 0;
@@ -2903,7 +2903,7 @@ class Expedition extends CommonObject
 			$this->billed = 0;
 
 			// If stock increment is done on closing
-			if (!$error && isModEnabled('stock') && getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT_CLOSE')) {
+			if (isModEnabled('stock') && getDolGlobalString('STOCK_CALCULATE_ON_SHIPMENT_CLOSE')) {
 				require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 
 				$langs->load("agenda");

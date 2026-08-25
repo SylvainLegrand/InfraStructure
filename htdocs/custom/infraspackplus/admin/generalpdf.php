@@ -76,7 +76,7 @@
 	$chgUnits	= false;
 	if (preg_match('/update_(.*)/', $action, $reg)) {
 		$list		= array ('Gen'	=> array('MAIN_PDF_MARGIN_LEFT',				'MAIN_PDF_MARGIN_TOP',				'MAIN_PDF_MARGIN_RIGHT',	'MAIN_PDF_MARGIN_BOTTOM',
-											'MAIN_PDF_FORMAT',						'MAIN_PDF_FORCE_FONT_SIZE',			'PRODUCT_USE_UNITS',		'PDF_HIDE_PRODUCT_REF_IN_SUPPLIER_LINES',
+											'MAIN_PDF_FORMAT',						'PDF_USE_A',						'MAIN_PDF_FORCE_FONT_SIZE',	'PRODUCT_USE_UNITS',		'PDF_HIDE_PRODUCT_REF_IN_SUPPLIER_LINES',
 											'PRODUIT_CUSTOMER_PRICES_PDF_REF_MODE',	'INVOICE_CATEGORY_OF_OPERATION',	'PDF_VAT_LABEL_IS_CODE_OR_RATE'));
 		$confkey	= $reg[1];
 		$error		= 0;
@@ -159,6 +159,8 @@
 	$listVatRateOnly	= array('rateonly' => 'PDFParamVatRateOnly', 'codeonly' => 'PDFParamVatCodeOnly', 'labelonly' => 'PDFParamVatLabelOnly',
 								'ratecode' => 'PDFParamVatRateCode', 'ratelabel' => 'PDFParamVatRateLabel', 'codelabel' => 'PDFParamVatCodeLabel');
 	$vatRateOnly		= getDolGlobalString('PDF_VAT_LABEL_IS_CODE_OR_RATE', '0');
+	$pdfUseA			= getDolGlobalInt('PDF_USE_A', 0);
+	$listPdfUseA		= array(0 => $langs->transnoentitiesnoconv('PDF 1.7'), 1 => $langs->transnoentitiesnoconv('PDF/A-1b'), 3 => $langs->transnoentitiesnoconv('PDF/A-3b'));
 
 	// View *****************************************
 	$page_name			= $langs->trans('infrasplussetup') .' - '. $langs->trans('InfraSPlusParamsGeneralPDF');
@@ -228,9 +230,11 @@
 							</td>
 						</tr>';
 		$num++;
+		$metas				= $form->selectarray('PDF_USE_A', $listPdfUseA, $pdfUseA, 0, 0, 0, '', 1, 0, 0, '', 'centpercent');
+		$num				= infraspackplus_print_input('', 'select', $langs->trans('PDF_USE_A'), '', $metas, 2, 1, '', $num);
 		$metas				= array('type' => 'number', 'class' => 'flat quatrevingtpercent right', 'dir' => 'rtl', 'min' => '2', 'max' => '30');
 		$num				= infraspackplus_print_input('MAIN_PDF_FORCE_FONT_SIZE', 'input', $langs->trans('PDFParamForceFontSize', $default_font_size), '', $metas, 2, 1, '', $num);
-		// $num = 3
+		// $num = 4
 		infraspackplus_print_hr(4);
 		$num				= infraspackplus_print_input('PDF_DISABLE_MYCOMPANY_LOGO', 'on_off', $langs->trans('PDFParamNoMyLogo'), '', [], 2, 1, '', $num);
 		$num				= infraspackplus_print_input('MAIN_PDF_USE_LARGE_LOGO', 'on_off', $langs->trans('PDFParamLargeLogo1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('PDFParamLargeLogo2'), '', [], 2, 1, '', $num);
@@ -240,7 +244,7 @@
 		$num				= infraspackplus_print_input('MAIN_PDF_DISABLESOURCEDETAILS', 'on_off', $langs->trans('PDFParamDisableSourceDetails'), '', [], 2, 1, '', $num);
 		$num				= infraspackplus_print_input('MAIN_PDF_ADDALSOTARGETDETAILS', 'on_off', $langs->trans('PDFParamAddAlsoTargetDetails'), '', [], 2, 1, '', $num);
 		$num				= infraspackplus_print_input('MAIN_TVAINTRA_NOT_IN_ADDRESS', 'on_off', $langs->trans('PDFParamHideVATIntraInAddress'), '', [], 2, 1, '', $num);
-		// $num = 11
+		// $num = 12
 		if (!empty($pid1)) {
 			$num	= infraspackplus_print_input('MAIN_PROFID1_IN_ADDRESS', 'on_off', $langs->trans('PDFParamShowProfIdInAddress').' - '.$pid1, '', [], 2, 1, '', $num);
 		} else {
@@ -266,7 +270,7 @@
 		} else {
 			$num++;
 		}
-		// $num = 16
+		// $num = 17
 		infraspackplus_print_hr(4);
 		$num	= infraspackplus_print_input('MAIN_PDF_DASH_BETWEEN_LINES', 'on_off', $langs->trans('PDFParamShowDashOnPDF'), '', [], 2, 1, '', $num);
 		$num	= infraspackplus_print_input('FCKEDITOR_ENABLE_DETAILS_FULL', 'on_off', $langs->trans('PDFParamFullDetWYSIWYG'), '', [], 2, 1, '', $num);
@@ -277,7 +281,7 @@
 		} else {
 			$num++;
 		}
-		// $num = 21
+		// $num = 22
 		$num	= infraspackplus_print_input('MAIN_DOCUMENTS_DESCRIPTION_FIRST', 'on_off', $langs->trans('PDFParamDescFirst'), '', [], 2, 1, '', $num);
 		$num	= infraspackplus_print_input('MAIN_PRODUCT_DISABLE_CUSTOMCOUNTRYCODE', 'on_off', $langs->trans('PDFParamDisableCustomProductCodeOnPDF'), '', [], 2, 1, '', $num);
 		$num	= infraspackplus_print_input('SHIPPING_PDF_HIDE_WEIGHT_AND_VOLUME', 'on_off', $langs->trans('PDFParamHideWaightAndVolumeOnPDF').' '.$langs->trans('InfraSPlusGenModif'), '', [], 2, 1, '', $num);
@@ -294,7 +298,7 @@
 		} else {
 			$num++;
 		}
-		// $num = 29
+		// $num = 30
 		infraspackplus_print_hr(4);
 		$num	= infraspackplus_print_input('INVOICE_ADD_ZATCA_QR_CODE', 'on_off', $langs->trans('PDFParamUseZatcaQrFac'), '', [], 2, 1, '', $num);
 		$num	= infraspackplus_print_input('INVOICE_ADD_SWISS_QR_CODE', 'on_off', $langs->trans('PDFParamUseSwissQrFac'), '', [], 2, 1, '', $num);
@@ -303,7 +307,7 @@
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('PDFParamCatOpe'), 'PDFParamCatOpeHelp', $metas, 1, 2, '', $num);
 		$num	= infraspackplus_print_input('MAIN_PDF_HIDE_CHQ_ADDRESS', 'on_off', $langs->trans('PDFParamHideChqAddr'), '', [], 2, 1, '', $num);
 		$num	= infraspackplus_print_input('PDF_BANK_HIDE_NUMBER_SHOW_ONLY_BICIBAN', 'on_off', $langs->trans('PDFParamOnlyBICIBAN'), '', [], 2, 1, '', $num);
-		// $num = 35
+		// $num = 36
 		if (isModEnabled('paypal') || isModEnabled('stripe') || isModEnabled('paybox')) {
 			$num	= infraspackplus_print_input('PDF_SHOW_LINK_TO_ONLINE_PAYMENT', 'on_off', $langs->trans('PDFParamShowLinkOnlinePay'), '', [], 2, 1, '', $num);
 		} else {
@@ -316,7 +320,7 @@
 		$num	= infraspackplus_print_input('INVOICE_NO_PAYMENT_DETAILS', 'on_off', $langs->trans('PDFParamNoPayDetInv'), '', [], 2, 1, '', $num);
 		$metas	= $form->selectarray('PDF_VAT_LABEL_IS_CODE_OR_RATE', $listVatRateOnly, $vatRateOnly, 1, 0, 0, '', 1, 0, 0, '', 'centpercent');
 		$num	= infraspackplus_print_input('', 'select', $langs->trans('PDFParamTotalVatDisplay'), '', $metas, 1, 2, '', $num);
-		// $num = 42
+		// $num = 43
 	}
 	print '			</table>';
 	if (!empty($user->admin)) {

@@ -590,9 +590,11 @@ class SupplierInvoices extends DolibarrApi
 			$paymentamount = $amount;
 		} else {
 			// We calculate the remain to pay, and use it as amount
-			$totalpaid = $this->invoice->getSommePaiement();
-			$totaldeposits = $this->invoice->getSumDepositsUsed();
-			$paymentamount = price2num($this->invoice->total_ttc - $totalpaid - $totaldeposits, 'MT');
+			// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+			$totalpaid = price2num($this->invoice->getSommePaiement(), 'MT');
+			$totaldeposits = price2num($this->invoice->getSumDepositsUsed(), 'MT');
+			$paymentamount = price2num(price2num($this->invoice->total_ttc, 'MT') - $totalpaid - $totaldeposits, 'MT');
+			// InfraS change end Arrondis
 		}
 
 		$this->db->begin();
@@ -605,7 +607,15 @@ class SupplierInvoices extends DolibarrApi
 		$amounts[$id] = $paymentamount;
 
 		// Multicurrency
-		$newvalue = (float) price2num($this->invoice->multicurrency_total_ttc, 'MT');
+		// getWay() switches the payment to the invoice currency as soon as a multicurrency amount is set, so
+		// this value must match the partial amount, not always the full invoice TTC. When a partial amount was
+		// requested, convert it at the invoice rate (multicurrency_total_ttc / total_ttc); otherwise use the
+		// full multicurrency TTC (full payment).
+		if (null !== $amount && $amount > 0 && !empty($this->invoice->total_ttc)) {
+			$newvalue = (float) price2num($paymentamount * $this->invoice->multicurrency_total_ttc / $this->invoice->total_ttc, 'MT');
+		} else {
+			$newvalue = (float) price2num($this->invoice->multicurrency_total_ttc, 'MT');
+		}
 		$multicurrency_amounts[$id] = $newvalue;
 
 		// Creation of payment line

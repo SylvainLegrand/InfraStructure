@@ -9,35 +9,35 @@
 class AdminerDarkSwitcher extends Adminer\Plugin {
 
 	function head($dark = null) {
-?>
-		<script <?php echo Adminer\nonce(); ?>>
-			let adminerDark;
-		
-			function adminerDarkSwitch() {
-				adminerDark = !adminerDark;
-				adminerDarkSet();
-			}
-		
-			function adminerDarkSet() {
-				qsa('link[href*="dark.css"]').forEach(link => link.media = (adminerDark ? '' : 'never'));
-				qs('meta[name="color-scheme"]').content = (adminerDark ? 'dark' : 'light');
-				cookie('adminer_dark=' + (adminerDark ? 1 : 0), 30);
-			}
-		
-			const saved = document.cookie.match(/adminer_dark=(\d)/);
-			if (saved) {
-				adminerDark = +saved[1];
-				adminerDarkSet();
-			} else {
-				adminerDark = +matchMedia('(prefers-color-scheme: dark)').matches;
-			}
-		</script>
+		?>
+<script <?php echo Adminer\nonce(); ?>>
+let adminerDark;
+
+function adminerDarkSwitch() {
+	adminerDark = !adminerDark;
+	adminerDarkSet();
+}
+
+function adminerDarkSet() {
+	qsa('link[href*="dark.css"]').forEach(link => link.media = (adminerDark ? '' : 'never'));
+	qs('meta[name="color-scheme"]').content = (adminerDark ? 'dark' : 'light');
+	cookie('adminer_dark=' + (adminerDark ? 1 : 0), 30);
+}
+
+const saved = document.cookie.match(/adminer_dark=(\d)/);
+if (saved) {
+	adminerDark = +saved[1];
+	adminerDarkSet();
+} else {
+	adminerDark = +matchMedia('(prefers-color-scheme: dark)').matches;
+}
+</script>
 <?php
 	}
 
 	function navigation($missing) {
-		echo "<big style='position: fixed; bottom: .5em; right: .5em; cursor: pointer;'>☀</big>"
-			. Adminer\script("adminerDarkSet(); qsl('big').onclick = adminerDarkSwitch;") . "\n"
+		echo "<big style='position: fixed; bottom: .5em; right: .5em; cursor: pointer;'" . Adminer\on('click', 'adminerDarkSwitch') . ">☀</big>"
+			. Adminer\script("adminerDarkSet();") . "\n"
 		;
 	}
 
@@ -51,5 +51,6 @@ class AdminerDarkSwitcher extends Adminer\Plugin {
 		'de' => array('' => 'Umschalten zwischen hellem und dunklem Design erlauben'),
 		'ja' => array('' => 'ダークモードへの切替え'),
 		'pl' => array('' => 'Zezwalaj na przełączanie trybu jasnego i ciemnego'),
+		'hr' => array('' => 'Omogućuje prebacivanje između svijetlog i tamnog izgleda'),
 	);
 }

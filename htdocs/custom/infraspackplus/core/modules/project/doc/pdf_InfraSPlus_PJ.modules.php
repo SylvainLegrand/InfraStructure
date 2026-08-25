@@ -325,10 +325,15 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$timeStamp						= $this->Prj_TimeStamp ? '_'.dol_print_date(dol_now(), '%Y%m%d', false, $outputlangs, true) : '';
-			$filesufixe						= $timeStamp.(empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_PJ') ? '' : '_PJ');
-			$baseDir						= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
-
+			$timeStamp		= $this->Prj_TimeStamp ? '_'.dol_print_date(dol_now(), '%Y%m%d', false, $outputlangs, true) : '';
+			$baseDir		= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= $timeStamp.(empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_PJ') ? '' : '_PJ');
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_PJ', '');
+				$filesufixe	= empty($fileprefix) ? '_PJ' : '';
+			}
 			if (!empty($baseDir)) {
 				$objectref	= dol_sanitizeFileName($object->ref);
 				// Definition of $dir and $file

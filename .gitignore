@@ -51,7 +51,6 @@ dev/build/yarn-error.log
 dev/build/node_modules/
 node_modules/
 
-vendor/
 tmp/
 
 #yarn

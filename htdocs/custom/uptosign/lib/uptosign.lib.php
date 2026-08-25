@@ -44,7 +44,6 @@ dol_include_once('/contact/class/contact.class.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 // dol_include_once('/archivespdf/class/ecmfilesextended.class.php');
 
-// InfraS add begin
 // Force le chargement des classes Smalot\PdfParser embarquées par uptosign
 // avant qu'un autre module livrant sa propre copie de smalot/pdfparser
 // (ex. dalfred) n'enregistre son autoloader composer : composer s'enregistre
@@ -56,7 +55,7 @@ class_exists('Smalot\PdfParser\Parser');
 class_exists('Smalot\PdfParser\Page');
 class_exists('Smalot\PdfParser\PDFObject');
 class_exists('Smalot\PdfParser\RawData\FilterHelper');
-// InfraS add end
+
 /**
  *  Prepare array of tabs for UptoSign
  *
@@ -183,7 +182,7 @@ function uptoSignSearchMobile($mobile, $pro, $countryCode)
  */
 function uptoSignSearchMobileContact($c)
 {
-	$fields = ['phone_mobile', 'phone_pro', 'phonr', 'phone_perso'];
+	$fields = ['phone_mobile', 'phone_pro', 'phone_perso'];
 	foreach ($fields as $f) {
 		if (isset($c->$f) && !empty($c->$f)) {
 			$phone_mobile = uptoSignSearchMobile($c->$f, '', $c->country_code);
@@ -244,6 +243,10 @@ function uptoSignFixMobile($mobileIn, $countryCode)
 			}
 		}
 		if (!preg_match('/^\+(?:[0-9] ?){6,14}[0-9]$/', $mobile)) {
+			// The number could not be normalized to an international format for this
+			// country code (unsupported prefix, not a mobile, unknown country, ...).
+			// Do not fail silently: log the rejected value so the reason is traceable.
+			dol_syslog("uptosign: uptoSignFixMobile rejected number '$mobileIn' (country=$countryCode), could not build a valid international format", LOG_WARNING);
 			$mobile = '';
 		}
 		// dol_syslog("uptosign: uptoSignFixMobile mobile number $mobileIn is not an international one, we try to transform it as $mobile", LOG_WARNING);
@@ -303,15 +306,21 @@ function uptosignApiTryLoginWithAPIKey()
 }
 
 /**
- * try to create a api key on remote server
+ * Try to create an API key on the remote server.
  *
- * @return  bool  [return description]
+ * NOT IMPLEMENTED: the remote DocWizon API does not expose a documented endpoint
+ * to self-provision an API key from the module. Keys are obtained through
+ * uptosignApiCreateAccount() / uptosignApiTryLoginWithUserPass() which return an
+ * access_token stored in UPTOSIGN_KEY_API. This function is intentionally kept as
+ * an explicit "not implemented" so any future caller fails loudly (logged) instead
+ * of silently believing a key was created.
+ *
+ * @return  bool  Always false (feature not available)
  */
 function uptosignApiCreateAPIKey()
 {
-	global $conf, $mesg, $langs, $db;
-	$retour = false;
-	return $retour;
+	dol_syslog("uptosign: uptosignApiCreateAPIKey is not implemented, no remote endpoint available to create an API key", LOG_ERR);
+	return false;
 }
 
 /**
@@ -336,7 +345,15 @@ function uptosignApiCreateAccount()
 
 	if ($response['http_code'] == 200 && !empty($response['content'])) {
 		$json = $response['data'];
+		if (!is_array($json) || !isset($json['access_token'])) {
+			dol_syslog("uptosign: uptosignApiCreateAccount 200 response without an access_token, can not store API key", LOG_ERR);
+			$mesg = $langs->trans('CreateAccountError');
+			setEventMessages($mesg, [], 'errors');
+			return false;
+		}
 		dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json['access_token'], 'chaine', 0, '', $conf->entity);
+		// A fresh key deserves a fresh chance: forget the previous auth failures
+		UptoSignAPIClient::resetCircuit();
 		$mesg = $langs->trans('CreateAccountOK');
 		$mesgType = "mesgs";
 		$retour = true;
@@ -376,7 +393,13 @@ function uptosignApiTryLoginWithUserPass()
 	$retour = $response['http_code'];
 	if ($response['http_code'] == 200 && !empty($response['content'])) {
 		$json = $response['data'];
+		if (!is_array($json) || !isset($json['access_token'])) {
+			dol_syslog("uptosign: uptosignApiTryLoginWithUserPass 200 response without an access_token, can not store API key", LOG_ERR);
+			return $retour;
+		}
 		dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json['access_token'], 'chaine', 0, '', $conf->entity);
+		// A fresh key deserves a fresh chance: forget the previous auth failures
+		UptoSignAPIClient::resetCircuit();
 		$mesg = $langs->trans('CheckConnectOK');
 		$mesgType = "mesgs";
 	}
@@ -440,11 +463,15 @@ function uptosignApiGetInfoAboutWebservice($format = 'html')
 
 	if ($response['http_code'] == 200 && !empty($response['content'])) {
 		$arr = json_decode($response['content']);
-		$json = $arr->data->json;
-		$html = $arr->data->html;
+		if (!is_object($arr) || !isset($arr->data) || !is_object($arr->data)) {
+			dol_syslog("uptosign: uptosignApiGetInfoAboutWebservice 200 response with an unexpected body, can not read data", LOG_ERR);
+			return ($format == 'html') ? '' : '';
+		}
+		$json = $arr->data->json ?? null;
+		$html = $arr->data->html ?? '';
 
 		//check if protocol version is the same
-		if ($json->protocol != $module->protocol) {
+		if (is_object($json) && isset($json->protocol) && $json->protocol != $module->protocol) {
 			$conf->global->UPTOSIGN_PROTOCOL_MISSMATCH = true;
 			$html = "<div id=\"uptosign-account-status\">
 			<h3 align=\"center\"><a href=\"https://app.uptosign.com\" target=\"_blank\">UpToSign WebService</a></h3>
@@ -564,7 +591,7 @@ function uptosign_unify_api_name($string)
 }
 
 /**
- * translate "code" object name to unique code name (ex facture/invoice -> facture).
+ * translate "code" object name to unique code name (ex facture/invoice -> invoice).
  *
  * @param   string  $code  [$code description]
  *
@@ -589,6 +616,10 @@ function uptosign_unify_object_type_from_code($code)
 		case 'contract':
 		case 'contrat':
 			$res = 'contrat';
+			break;
+		case 'supplier_order':
+		case 'order_supplier':
+			$res = 'order_supplier';
 			break;
 		default:
 			$res = $code;
@@ -634,6 +665,7 @@ function uptosign_translate_object_type($code)
 			$res = $langs->trans('Order');
 			break;
 		case 'ficheinter':
+		case 'fichinter':
 			$res = $langs->trans('InterventionCard');
 			break;
 		case 'shipping':
@@ -697,6 +729,127 @@ function uptosign_full_path($path)
 function uptosign_relative_path($path)
 {
 	return trim(str_replace(DOL_DATA_ROOT, '', $path ?? ''), '/\\');
+}
+
+/**
+ * Restrict a list of UptoSign records to a single remote document
+ *
+ * A webhook carries the uuid of one document: only that one must be refreshed or
+ * downloaded. Without this filter every webhook loops over all the documents of the
+ * business object (4 documents x 4 webhooks = 16 downloads instead of 4), and the
+ * slightest configuration problem turns into a burst of rejected requests.
+ *
+ * @param array  $children       List of UptoSign records
+ * @param string $restrictSignId Remote uuid to keep ('' means no filter at all)
+ * @return array                 Filtered list (empty if the uuid is unknown here)
+ */
+function uptosign_restrict_children_to_sign_id($children, $restrictSignId)
+{
+	if (!is_array($children) || (string) $restrictSignId === '') {
+		return $children;
+	}
+
+	$filtered = array();
+	foreach ($children as $child) {
+		if (isset($child->sign_id) && (string) $child->sign_id === (string) $restrictSignId) {
+			$filtered[] = $child;
+		}
+	}
+
+	if (count($filtered) == 0) {
+		dol_syslog('uptosign: uuid ' . $restrictSignId . ' does not match any of the ' . count($children) . ' record(s) of that object', LOG_WARNING);
+	} else {
+		dol_syslog('uptosign: restrict processing to uuid ' . $restrictSignId . ' (' . count($filtered) . '/' . count($children) . ' record)');
+	}
+
+	return $filtered;
+}
+
+/**
+ * Read the entity owning an uptosign record
+ *
+ * Deliberately a direct read on the column: UptoSign::fetch*() disables the "entity"
+ * field when the multicompany module is off, so $uptosign->entity cannot be trusted
+ * there. The webhook needs that value before anything else, whatever the setup.
+ *
+ * @param DoliDB $db    Database handler
+ * @param int    $rowid Id of the uptosign record
+ * @return int          Entity of the record, 0 if unknown
+ */
+function uptosign_get_record_entity($db, $rowid)
+{
+	$rowid = (int) $rowid;
+	if ($rowid <= 0) {
+		dol_syslog('uptosign: can not read entity, invalid record id ' . $rowid, LOG_ERR);
+		return 0;
+	}
+
+	$sql = "SELECT entity FROM " . MAIN_DB_PREFIX . "uptosign WHERE rowid = " . $rowid;
+	$resql = $db->query($sql);
+	if (!$resql) {
+		dol_syslog('uptosign: can not read entity of record ' . $rowid . ' : ' . $db->lasterror(), LOG_ERR);
+		return 0;
+	}
+
+	$obj = $db->fetch_object($resql);
+	$db->free($resql);
+	if (!$obj) {
+		dol_syslog('uptosign: no record with id ' . $rowid . ', entity unknown', LOG_ERR);
+		return 0;
+	}
+
+	return (int) $obj->entity;
+}
+
+/**
+ * Switch the whole Dolibarr configuration to a given entity
+ *
+ * Used by the webhook (public/hook.php), which runs in NOLOGIN context: main.inc.php
+ * has loaded the setup of entity 1 while the signature was started from another one.
+ * The entity is never read from the URL, it is deduced from the uptosign record, so
+ * that constants (UPTOSIGN_KEY_API in particular), data directories and the business
+ * object are all read from the right place.
+ *
+ * @param DoliDB $db     Database handler
+ * @param int    $entity Entity to switch to
+ * @return int           Entity in use after the call, 0 if the switch could not be done
+ */
+function uptosign_switch_to_entity($db, $entity)
+{
+	global $conf, $langs, $mysoc;
+
+	$entity = (int) $entity;
+	if ($entity <= 0) {
+		dol_syslog('uptosign: no entity to switch to, keep current entity ' . $conf->entity, LOG_WARNING);
+		return 0;
+	}
+
+	if ($entity == (int) $conf->entity) {
+		return $entity;
+	}
+
+	dol_syslog('uptosign: switch configuration from entity ' . $conf->entity . ' to entity ' . $entity);
+
+	$res = $conf->setEntityValues($db, $entity);
+	if ($res < 0) {
+		dol_syslog('uptosign: setEntityValues failed for entity ' . $entity, LOG_ERR);
+		return 0;
+	}
+
+	// $mysoc holds the company of the previous entity (name, country, currency, ...)
+	if (isset($mysoc) && is_object($mysoc) && method_exists($mysoc, 'setMysoc')) {
+		require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+		$mysoc = new Societe($db);
+		$mysoc->setMysoc($conf);
+	}
+
+	// Same for the language, which was set from MAIN_LANG_DEFAULT of the previous entity
+	$defaultLang = utsbackports_getDolGlobalString('MAIN_LANG_DEFAULT', '');
+	if ($defaultLang != '' && isset($langs) && is_object($langs) && method_exists($langs, 'setDefaultLang')) {
+		$langs->setDefaultLang($defaultLang);
+	}
+
+	return $entity;
 }
 
 /**
@@ -926,7 +1079,7 @@ function uptosign_resolveMediaBox($pdf, $pageDetails)
  * coordinates are already top-left, hence no flip there.
  *
  * @param   Smalot\PdfParser\Document  $pdf      parsed PDF document
- * @param   string                     $keyword  word to look for (matched even if split across several consecutive text-show tokens) // InfraS change
+ * @param   string                     $keyword  word to look for (matched even if split across several consecutive text-show tokens)
  * @param   array                      $result   appended with [X_mm, Y_mm, humanPage]
  *
  * @return  bool   true if at least one match was found, false otherwise
@@ -961,7 +1114,6 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 		$pageHeightPt = (float) $mediaBox[3] - $originY;
 
 		$data = $page->getDataTm();
-		// InfraS change begin
 		// Some PDFs (e.g. Word/LibreOffice exports where kerning forces extra
 		// positioning operators) split one visual word across several separate
 		// text-show tokens, e.g. UPTOSIGN_STAMP_SIGN_HERE -> [UPTOSIGN][_][ST][AM][P]...
@@ -1004,7 +1156,6 @@ function uptosign_autoFindWordPositionInPage($pdf, $keyword, &$result)
 				$idx += $consumed - 1;
 			}
 		}
-		// InfraS change end
 	}
 	dol_syslog("uptosign: uptosign_autoFindWordPositionInPage result is " . $return . " then resut is " .  json_encode($result));
 	return $return;
@@ -1084,7 +1235,6 @@ function uptosign_auto_position_magic_keywords_smalot($pdffilename, &$arr, $acti
 			}
 		}
 
-		$resB = array();
 		/** @phpstan-ignore-next-line */
 		$keywords = ["SIGN_00" => "UPTOSIGN_SIGN_TO_HERE", "SIGN_00new" => "UPTOSIGN_SIGN_TO_00_HERE", "SIGN_01" => "UPTOSIGN_SIGN_TO_01_HERE", "SIGN_02" => "UPTOSIGN_SIGN_TO_02_HERE"];
 		foreach ($keywords as $key => $keyword) {
@@ -1092,6 +1242,10 @@ function uptosign_auto_position_magic_keywords_smalot($pdffilename, &$arr, $acti
 			if ($key == "SIGN_00new") {
 				$key = "SIGN_00";
 			}
+			// Reset the accumulator on each keyword: uptosign_autoFindWordPositionInPage()
+			// appends to it, so a shared array leaks the positions of the previous
+			// keyword (SIGN_00 -> SIGN_01 -> SIGN_02) and duplicates signature areas.
+			$resB = array();
 			if (!empty(uptosign_autoFindWordPositionInPage($pdf, $keyword, $resB))) {
 				foreach ($resB as $reskeyword) {
 					list($x, $y, $page) = $reskeyword;
@@ -1104,9 +1258,9 @@ function uptosign_auto_position_magic_keywords_smalot($pdffilename, &$arr, $acti
 			}
 		}
 
-		$resC = array();
 		$keywords = ["FROM_00" => "UPTOSIGN_SIGN_FROM_HERE"];
 		foreach ($keywords as $key => $keyword) {
+			$resC = array();
 			if (!empty(uptosign_autoFindWordPositionInPage($pdf, $keyword, $resC))) {
 				foreach ($resC as $reskeyword) {
 					list($x, $y, $page) = $reskeyword;
@@ -1149,7 +1303,13 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 		$cmd = "pdftotext -bbox " . escapeshellarg($pdffilename) . " -";
 		dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext cmd is $cmd");
 		$output = array();
-		if (exec($cmd, $output) !== false) {
+		// exec() only returns false on a failure to start the process; when
+		// pdftotext is missing the shell exits with a non-zero code but exec()
+		// still returns the (empty) last line, so we must inspect $resultCode
+		// to actually detect an unavailable/failed command.
+		$resultCode = 0;
+		exec($cmd, $output, $resultCode);
+		if ($resultCode == 0) {
 			$resA = array();
 			$keywords = ['STAMP' => "UPTOSIGN_STAMP_SIGN_HERE"];
 			if ($action == 'preseal') {
@@ -1167,7 +1327,6 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 			}
 			dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
 
-			$resB = array();
 			/** @phpstan-ignore-next-line */
 			$keywords = ["SIGN_00" => "UPTOSIGN_SIGN_TO_HERE", "SIGN_00new" => "UPTOSIGN_SIGN_TO_00_HERE", "SIGN_01" => "UPTOSIGN_SIGN_TO_01_HERE", "SIGN_02" => "UPTOSIGN_SIGN_TO_02_HERE"];
 			foreach ($keywords as $key => $keyword) {
@@ -1175,6 +1334,9 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 				if ($key == "SIGN_00new") {
 					$key = "SIGN_00";
 				}
+				// Reset the accumulator on each keyword to avoid leaking the
+				// positions of SIGN_00 into SIGN_01/SIGN_02 (see smalot variant).
+				$resB = array();
 				if (!empty(uptosign_autoFindWordPositionInPagepdftotext($output, $keyword, $resB))) {
 					foreach ($resB as $reskeyword) {
 						list($x, $y, $page) = $reskeyword;
@@ -1223,9 +1385,9 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 			// 	$return = true;
 			// }
 
-			$resC = array();
 			$keywords = ["FROM_00" => "UPTOSIGN_SIGN_FROM_HERE"];
 			foreach ($keywords as $key => $keyword) {
+				$resC = array();
 				if (!empty(uptosign_autoFindWordPositionInPagepdftotext($output, $keyword, $resC))) {
 					foreach ($resC as $reskeyword) {
 						list($x, $y, $page) = $reskeyword;
@@ -1293,9 +1455,11 @@ function uptosign_autoFindWordPositionInPagepdftotext($text, $keyword, &$result)
 		$matches = [];
 		if (preg_match_all($regex, $line, $matches)) {
 			// pt -> mm, minus a 2 mm offset. No Y flip: coordinates are
-			// already top-left (see the doc block above).
-			$X = number_format(($matches['x'][0] / $ptPerMm) - 2);
-			$Y = number_format(($matches['y'][0] / $ptPerMm) - 2);
+			// already top-left (see the doc block above). Use round() (not
+			// number_format() which returns a locale-formatted string with a
+			// thousands separator) to stay consistent with the smalot variant.
+			$X = round(($matches['x'][0] / $ptPerMm) - 2);
+			$Y = round(($matches['y'][0] / $ptPerMm) - 2);
 			$result[] = [$X, $Y, $pageNb];
 			$return = true;
 			//stop a la 1ere position trouvée ... plus maintenant
@@ -1408,7 +1572,7 @@ function uptosignSearchThirdpartWithEmail($email)
 	$object = new Societe($db);
 	//$rowid, $ref = '', $ref_ext = '', $barcode = '', $idprof1 = '', $idprof2 = '', $idprof3 = '', $idprof4 = '', $idprof5 = '', $idprof6 = '', $email = '', $ref_alias = '')
 	$result = $object->fetch('', '', '', '', '', '', '', '', '', '', $email);
-	if ($result) {
+	if ($result > 0) {
 		return $object;
 	}
 	//TODO si pas de resultat, chercher dans les contacts ?
@@ -1428,7 +1592,7 @@ function uptosignSearchUptoSignContract($customerid)
 	global $db, $langs, $conf;
 	$object = new Contrat($db);
 	$res = $object->fetch('', '', 'uptosign-' . $customerid);
-	if ($res) {
+	if ($res > 0) {
 		return $object;
 	}
 	return null;
@@ -1490,7 +1654,7 @@ function uptosignCreateContract($customerid, $uptosignid)
 		//duplicate ?
 		$contract = new Contrat($db);
 		$res = $contract->fetch('', '', 'uptosign-' . $customerid);
-		if ($res) {
+		if ($res > 0) {
 			return $contract->id;
 		}
 
@@ -1685,10 +1849,11 @@ function uptosignCreateFactureRec($customerid, $contractid, $factureid)
 
 	$invoicerecid = $invoice_rec->create($user, $factureid);
 	if ($invoicerecid > 0) {
-		$sql = 'UPDATE ' . MAIN_DB_PREFIX . 'facturedet_rec SET date_start_fill = 1, date_end_fill = 1 WHERE fk_facture = ' . $invoice_rec->id;
+		$sql = 'UPDATE ' . MAIN_DB_PREFIX . 'facturedet_rec SET date_start_fill = 1, date_end_fill = 1 WHERE fk_facture = ' . ((int) $invoice_rec->id);
 		$result = $db->query($sql);
-		if (! $error && $result < 0) {
+		if (!$result) {
 			$error++;
+			dol_syslog("uptosign: uptosignCreateFactureRec failed to update facturedet_rec : " . $db->lasterror(), LOG_ERR);
 			setEventMessages($db->lasterror(), [], 'errors');
 		}
 
@@ -1826,7 +1991,10 @@ function uptosignCreateFirstFacture($customerid)
 			if ($lines[$i]->fk_product == utsbackports_getDolGlobalString('UPTOSIGN_RVD_AUTO_DEFAULT_ABO', '')) {
 				$date_start = $now;
 				// $date_end = dol_get_last_day(date('Y'), date('m'));
-				$nbjours = date("d", $date_end - $date_start);
+				// Number of days between the two dates. date("d", diff) would read
+				// the difference as an absolute timestamp (wrong day-of-month, wraps
+				// past 31).
+				$nbjours = round(($date_end - $date_start) / 86400);
 				$price = $price_invoice_template_line * (($nbjours) / 30); //pour le prorata entre ajourd'hui et le 1er à venir
 				$desc .= $langs->trans('uptosignProrataDaysAbo', $nbjours, price($price_invoice_template_line));
 				$lines[$i]->qty = 1;
@@ -1985,7 +2153,10 @@ function uptosignCreateFacture($customerid, $prorataTemporis = false, $validateI
 				if ($prorataTemporis) {
 					$date_start = $now;
 					// $date_end = dol_get_last_day(date('Y'), date('m'));
-					$nbjours = date("d", $date_end - $date_start);
+					// Number of days between the two dates. date("d", diff) would read
+					// the difference as an absolute timestamp (wrong day-of-month, wraps
+					// past 31).
+					$nbjours = round(($date_end - $date_start) / 86400);
 					$price = $price_invoice_template_line * (($nbjours) / 30); //pour le prorata entre ajourd'hui et le 1er à venir
 					$desc .= $langs->trans('uptosignProrataDaysAbo', $nbjours, price($price_invoice_template_line));
 				}
@@ -2107,17 +2278,19 @@ function uptosign_get_config_positions($modelPdf, $modulepart, $signOrSeal, $upt
 			$uptoSignConfig->fetch($configIds[0]);
 
 			if (!$autopositionSeal) {
-				$d = explode(',', $uptoSignConfig->seal_coordinate);
-				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealX'] = $d[0];
-				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealY'] = $d[1];
+				// seal_coordinate is expected to be "x,y". Guard against a malformed
+				// or empty value so a missing second component does not raise a warning.
+				$d = explode(',', (string) $uptoSignConfig->seal_coordinate);
+				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealX'] = isset($d[0]) ? $d[0] : 0;
+				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealY'] = isset($d[1]) ? $d[1] : 0;
 				$positionsSeal[$uptoSignConfig->page_seal]['STAMP']['defaultSealPage'] = $uptoSignConfig->page_seal;
 				$autopositionSeal = true;
 			}
 			if (!$autopositionSign) {
 				if (!empty($uptoSignConfig->page_sign)) {
-					$d = explode(',', $uptoSignConfig->sign_coordinate);
-					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactX'] = $d[0];
-					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactY'] = $d[1];
+					$d = explode(',', (string) $uptoSignConfig->sign_coordinate);
+					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactX'] = isset($d[0]) ? $d[0] : 0;
+					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactY'] = isset($d[1]) ? $d[1] : 0;
 					$positionsSign[$uptoSignConfig->page_sign]['SIGN_00']['defaultSignContactPage'] = $uptoSignConfig->page_sign;
 					$autopositionSign = true;
 				} else {
@@ -2200,23 +2373,31 @@ function uptosign_render_pdf_selector($uploadDir, $pdfFileChoosed, &$pdfFileChoo
 	$filearray = dol_dir_list($uploadDir, "files", 0, '\.pdf$', ['(\.meta|_preview.*\.png)$'], "name", SORT_ASC, 1);
 	$fileInfo = null;
 	if (is_array($filearray) && count($filearray) >= 1) {
+		// Default to the first file; keep it as the value returned to the caller.
 		$fileInfo = reset($filearray);
+		$selectedFileInfo = $fileInfo;
 		$pdfFileChoosedFullPath = dol_osencode(dol_sanitizePathName($fileInfo['fullname']));
 		if (count($filearray) > 1) {
 			print '<p>' . $langs->trans('UptoSignChooseFile') . '</p>' . "\n";
-			print "<select name='pdfFileChoosed' onchange='pdfFileChange();' style='width:100%;max-width:90%;'>";
-			foreach ($filearray as $fileInfo) {
+			print "<select name=\"pdfFileChoosed\" onchange=\"pdfFileChange();\" style=\"width:100%;max-width:90%;\">";
+			foreach ($filearray as $oneFile) {
 				$s = "";
-				if ($pdfFileChoosed != "" && dol_osencode(dol_sanitizePathName($fileInfo['name'])) == $pdfFileChoosed) {
-					$pdfFileChoosedFullPath = dol_osencode($fileInfo['fullname']);
+				$optionValue = dol_osencode(dol_sanitizePathName($oneFile['name']));
+				if ($pdfFileChoosed != "" && $optionValue == $pdfFileChoosed) {
+					$pdfFileChoosedFullPath = dol_osencode($oneFile['fullname']);
+					$selectedFileInfo = $oneFile;
 					$s = "selected";
 				}
-				print "<option value='" . dol_osencode(dol_sanitizePathName($fileInfo['name'])) . "' $s>" . $fileInfo['name'] . "</option>";
+				// Escape both the value and the label: a crafted file name would
+				// otherwise break out of the attribute / inject markup (stored XSS).
+				print "<option value=\"" . dol_escape_htmltag($optionValue) . "\" " . $s . ">" . dol_escape_htmltag($oneFile['name']) . "</option>";
 			}
-			print "<option value=''></option>";
+			print "<option value=\"\"></option>";
 			print "</select>";
+			// Return the file actually selected, not the last one iterated.
+			$fileInfo = $selectedFileInfo;
 		}
-		print '	  <input type="hidden" id="pdfData" value="' . base64_encode(file_get_contents($pdfFileChoosedFullPath)) . '">' . "\n";	// InfraS change : retrait de name="pdfData" pour ne pas POSTer le PDF entier (cause du 413 Request Entity Too Large) ; le champ reste lu côté client par le viewer PDF.js via son id, et le serveur relit le fichier sur disque
+		print '	  <input type="hidden" id="pdfData" value="' . base64_encode(file_get_contents($pdfFileChoosedFullPath)) . '">' . "\n";	// Retrait de name="pdfData" pour ne pas POSTer le PDF entier (cause du 413 Request Entity Too Large) ; le champ reste lu côté client par le viewer PDF.js via son id, et le serveur relit le fichier sur disque
 		print '	  <input type="hidden" id="pdfFileName" name="pdfFileName" value="' . base64_encode($pdfFileChoosedFullPath) . '">' . "\n";
 	} else {
 		print "<p style='color: #f00;font-weight: bold;'>" . $langs->trans('UptoSignNoPdfFilesAssociated') . "</p>";
@@ -2294,7 +2475,7 @@ function uptosignFindFileToUse(CommonObject $obj, $last_main_doc)
 
 	// path depends on type of element ... but franglish is in action
 	$elem = $obj->element ?? '';
-	if (!empty($elem)) {
+	if (!empty($elem) && isset($conf->{$elem}) && is_object($conf->{$elem}) && isset($conf->{$elem}->dir_output)) {
 		$dir = $conf->{$elem}->dir_output;
 	}
 	// special known cases
@@ -2729,7 +2910,7 @@ function uptosignAddActionComm($object, $actioncode, $label, $description, $post
  */
 function uptosign_list_of_elements_with_extrafield()
 {
-	return ['propal', 'commande', 'contrat', 'projet'];
+	return ['propal', 'commande', 'contrat', 'projet', 'supplier_proposal'];
 }
 
 
@@ -2813,6 +2994,14 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		$object = new CommandeFournisseur($db);
 		$modulepart = "supplier_order";
 		$functionHead = 'ordersupplier_prepare_head';
+	} elseif ($objectType == 'supplier_proposal') {
+		require_once DOL_DOCUMENT_ROOT . '/supplier_proposal/class/supplier_proposal.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/supplier_proposal.lib.php';
+		$object = new SupplierProposal($db);
+		$modulepart = "supplier_proposal";
+		$functionHead = 'supplier_proposal_prepare_head';
+		// The module may be disabled on that instance: no output dir then
+		$pdfpath = $conf->supplier_proposal->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'user') {
 		require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/usergroups.lib.php';

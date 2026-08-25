@@ -169,7 +169,7 @@ class CommandeFournisseurLigne extends CommonOrderLine
 	{
 		$sql = 'SELECT cd.rowid, cd.fk_commande, cd.fk_product, cd.product_type, cd.description, cd.qty, cd.tva_tx, cd.special_code,';
 		$sql .= ' cd.localtax1_tx, cd.localtax2_tx, cd.localtax1_type, cd.localtax2_type, cd.ref as ref_supplier,';
-		$sql .= ' cd.remise, cd.remise_percent, cd.subprice,';
+		$sql .= ' cd.remise, cd.remise_percent, cd.subprice, cd.subprice_ttc,';
 		$sql .= ' cd.info_bits, cd.total_ht, cd.total_tva, cd.total_ttc,';
 		$sql .= ' cd.total_localtax1, cd.total_localtax2,';
 		$sql .= ' p.ref as product_ref, p.label as product_label, p.description as product_desc,';
@@ -193,6 +193,7 @@ class CommandeFournisseurLigne extends CommonOrderLine
 				$this->ref_fourn        = $objp->ref_supplier;
 				$this->ref_supplier     = $objp->ref_supplier;
 				$this->subprice         = $objp->subprice;
+				$this->subprice_ttc     = $objp->subprice_ttc;
 				$this->tva_tx           = $objp->tva_tx;
 				$this->localtax1_tx		= $objp->localtax1_tx;
 				$this->localtax2_tx		= $objp->localtax2_tx;
@@ -346,7 +347,7 @@ class CommandeFournisseurLigne extends CommonOrderLine
 		$sql = 'INSERT INTO '.$this->db->prefix().$this->table_element;
 		$sql .= " (fk_commande, label, description, date_start, date_end,";
 		$sql .= " fk_product, product_type, special_code, rang,";
-		$sql .= " qty, vat_src_code, tva_tx, localtax1_tx, localtax2_tx, localtax1_type, localtax2_type, remise_percent, subprice, ref,";
+		$sql .= " qty, vat_src_code, tva_tx, localtax1_tx, localtax2_tx, localtax1_type, localtax2_type, remise_percent, subprice, subprice_ttc, ref,";
 		$sql .= " total_ht, total_tva, total_localtax1, total_localtax2, total_ttc, fk_unit,";
 		$sql .= " fk_multicurrency, multicurrency_code, multicurrency_subprice, multicurrency_total_ht, multicurrency_total_tva, multicurrency_total_ttc,";
 		$sql .= " fk_parent_line)";
@@ -368,7 +369,7 @@ class CommandeFournisseurLigne extends CommonOrderLine
 		$sql .= " ".price2num($this->localtax2_tx).",";
 		$sql .= " '".$this->db->escape($this->localtax1_type)."',";
 		$sql .= " '".$this->db->escape($this->localtax2_type)."',";
-		$sql .= " ".((float) $this->remise_percent).", ".price2num($this->subprice, 8).", '".$this->db->escape($this->ref_supplier)."',"; // InfraS change Arrondis
+		$sql .= " ".((float) $this->remise_percent).", ".price2num($this->subprice, 'MU').", ".price2num($this->subprice_ttc, 'MU').", '".$this->db->escape($this->ref_supplier)."',";
 		$sql .= " ".price2num($this->total_ht).",";
 		$sql .= " ".price2num($this->total_tva).",";
 		$sql .= " ".price2num($this->total_localtax1).",";

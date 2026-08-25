@@ -106,7 +106,7 @@ $ref = GETPOST('ref', 'alpha');
 $limit = GETPOSTINT('limit') ? GETPOSTINT('limit') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'aZ09comma');
 $sortorder = GETPOST('sortorder', 'aZ09comma');
-$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOSTINT('pageplusone') - 1) : GETPOSTINT("page");
 if (empty($page) || $page < 0 || GETPOST('button_search', 'alpha') || GETPOST('button_removefilter', 'alpha')) {
 	// If $page is not defined, or '' or -1 or if we click on clear filters
 	$page = 0;
@@ -150,12 +150,14 @@ foreach ($object->fields as $key => $val) {
 }
 
 // List of fields to search into when doing a "search in all"
+// Kept in sync with uptosign_list.php: without this loop the array stays empty and the
+// quick search box silently matches nothing (the natural_search() call below is skipped).
 $fieldstosearchall = array();
-// foreach ($object->fields as $key => $val) {
-// 	if (!empty($val['searchall'])) {
-// 		$fieldstosearchall['t.'.$key] = $val['label'];
-// 	}
-// }
+foreach ($object->fields as $key => $val) {
+	if (!empty($val['searchall'])) {
+		$fieldstosearchall['t.' . $key] = $val['label'];
+	}
+}
 // $parameters = array('fieldstosearchall'=>$fieldstosearchall);
 // $reshook = $hookmanager->executeHooks('completeFieldsToSearchAll', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 // if ($reshook > 0) {
@@ -338,7 +340,7 @@ foreach ($search as $key => $val) {
 		}
 	}
 }
-if ($search_all) {
+if ($search_all && !empty($fieldstosearchall)) {
 	$sql .= natural_search(array_keys($fieldstosearchall), $search_all);
 }
 //$sql.= dolSqlDateFilter("t.field", $search_xxxday, $search_xxxmonth, $search_xxxyear);

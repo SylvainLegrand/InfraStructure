@@ -67,6 +67,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 
 dol_include_once('/uptosign/core/modules/uptosignlist/uts_thirdparties.modules.php');
+dol_include_once('/uptosign/class/uptosignlist.class.php');
+dol_include_once('/uptosign/lib/uptosign_uptosignlist.lib.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 
 // Load translation files required by the page
@@ -79,7 +81,7 @@ if (isModEnabled('categorie')) {
 $limit = GETPOSTINT('limit') ?GETPOSTINT('limit') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'aZ09comma');
 $sortorder = GETPOST('sortorder', 'aZ09comma');
-$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOSTINT('pageplusone') - 1) : GETPOSTINT("page");
 if (empty($page) || $page == -1) {
 	$page = 0;
 }     // If $page is not defined, or '' or -1
@@ -108,7 +110,10 @@ if (GETPOST('button_removefilter_x', 'alpha')) {
 	$search_email = '';
 }
 $array_query = array();
-$object = new Mailing($db);
+$object = new UptoSignList($db);
+if ($id > 0) {
+	$object->fetch($id);
+}
 $advTarget = new AdvanceTargetingMailing($db);
 
 if (empty($template_id)) {
@@ -152,6 +157,15 @@ if ($action == 'loadfilter') {
 }
 
 if ($action == 'add') {
+	if (!$user->hasRight('uptosign', 'create')) {
+		dol_syslog("uptosign: advcibles add refused, user lacks 'create' right", LOG_WARNING);
+		accessforbidden();
+	}
+	if ($object->status != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: advcibles add refused, list ".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
+		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+		$action = '';
+	} else {
 	$user_contact_query = false;
 
 	$array_query = array();
@@ -229,7 +243,7 @@ if ($action == 'add') {
 			}
 		}
 
-		if ($array_query['type_of_target'] == 2 || $array_query['type_of_target'] == 4) {
+		if (isset($array_query['type_of_target']) && ($array_query['type_of_target'] == 2 || $array_query['type_of_target'] == 4)) {
 			$user_contact_query = true;
 		}
 
@@ -247,7 +261,7 @@ if ($action == 'add') {
 		$advTarget->thirdparty_lines = array ();
 	}*/
 
-	if ($user_contact_query && ($array_query['type_of_target'] == 1 || $array_query['type_of_target'] == 2 || $array_query['type_of_target'] == 4)) {
+	if ($user_contact_query && isset($array_query['type_of_target']) && ($array_query['type_of_target'] == 1 || $array_query['type_of_target'] == 2 || $array_query['type_of_target'] == 4)) {
 		$result = $advTarget->query_contact($array_query, 1);
 		if ($result < 0) {
 			setEventMessages($advTarget->error, $advTarget->errors, 'errors');
@@ -265,7 +279,7 @@ if ($action == 'add') {
 	if ((count($advTarget->thirdparty_lines) > 0) || (count($advTarget->contact_lines) > 0)) {
 		// Add targets into database
 		$obj = new uptosignlist_uts_thirdparties($db);
-		$result = $obj->add_to_target_spec($id, $advTarget->thirdparty_lines, $array_query['type_of_target'], $advTarget->contact_lines);
+		$result = $obj->add_to_target_spec($id, $advTarget->thirdparty_lines, isset($array_query['type_of_target']) ? $array_query['type_of_target'] : 0, $advTarget->contact_lines);
 	} else {
 		$result = 0;
 	}
@@ -283,15 +297,32 @@ if ($action == 'add') {
 		setEventMessages($langs->trans("WarningNoEMailsAdded"), [], 'warnings');
 	}
 	if ($result < 0) {
+		dol_syslog("uptosign: advcibles add_to_target_spec failed: ".($obj ? $obj->error : ''), LOG_ERR);
 		setEventMessages($obj->error, $obj->errors, 'errors');
+	}
 	}
 }
 
 if ($action == 'clear') {
-	// Chargement de la classe
-	$classname = "UptosignListTargets";
-	$obj = new $classname($db);
-	$obj->clear_target($id);
+	// Destructive action: require create right, valid CSRF token and DRAFT status
+	if (!$user->hasRight('uptosign', 'create')) {
+		dol_syslog("uptosign: advcibles clear refused, user lacks 'create' right", LOG_WARNING);
+		accessforbidden();
+	}
+	$sesstoken = empty($_SESSION['token']) ? '' : $_SESSION['token'];
+	if (GETPOST('token', 'alpha') !== $sesstoken || $sesstoken === '') {
+		dol_syslog("uptosign: advcibles clear refused, invalid CSRF token", LOG_WARNING);
+		accessforbidden('Invalid CSRF token');
+	}
+	if ($object->status != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: advcibles clear refused, list ".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
+		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+	} else {
+		// Chargement de la classe
+		$classname = "UptosignListTargets";
+		$obj = new $classname($db);
+		$obj->clear_target($id);
+	}
 
 	header("Location: ".$_SERVER['PHP_SELF']."?id=".$id);
 	exit();
@@ -411,23 +442,34 @@ if ($action == 'deletefilter') {
 }
 
 if ($action == 'delete') {
-	// Ici, rowid indique le destinataire et id le mailing
-	$sql = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers WHERE rowid = ".((int) $rowid);
-	$resql = $db->query($sql);
-	if ($resql) {
-		if (!empty($id)) {
-			$classname = "UptosignListTargets";
-			$obj = new $classname($db);
-			$obj->update_nb($id);
-
-			header("Location: ".$_SERVER['PHP_SELF']."?id=".$id);
-			exit();
-		} else {
-			header("Location: liste.php");
-			exit();
-		}
+	if (!$user->hasRight('uptosign', 'create')) {
+		dol_syslog("uptosign: advcibles delete refused, user lacks 'create' right", LOG_WARNING);
+		accessforbidden();
+	}
+	if ($object->status != UptoSignList::STATUS_DRAFT) {
+		dol_syslog("uptosign: advcibles delete refused, list ".$object->id." is not DRAFT (status=".$object->status.")", LOG_WARNING);
+		setEventMessages($langs->trans("MailNoChangePossible"), [], 'warnings');
+		$action = '';
 	} else {
-		dol_print_error($db);
+		// Ici, rowid indique le destinataire et id le mailing (IDOR guard: recipient must belong to this list)
+		$sql = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignlistmembers WHERE rowid = ".((int) $rowid)." AND fk_uptosignlist = ".((int) $object->id);
+		$resql = $db->query($sql);
+		if ($resql) {
+			if (!empty($id)) {
+				$classname = "UptosignListTargets";
+				$obj = new $classname($db);
+				$obj->update_nb($id);
+
+				header("Location: ".$_SERVER['PHP_SELF']."?id=".$id);
+				exit();
+			} else {
+				header("Location: liste.php");
+				exit();
+			}
+		} else {
+			dol_syslog("uptosign: advcibles delete recipient failed: ".$db->lasterror(), LOG_ERR);
+			dol_print_error($db);
+		}
 	}
 }
 
@@ -485,7 +527,7 @@ if ($object->fetch($id) >= 0) {
 	print "</div>";
 
 	// Show email selectors
-	if ($object->statut == 0 && $user->hasRight('uptosign', 'create')) {
+	if ($object->status == UptoSignList::STATUS_DRAFT && $user->hasRight('uptosign', 'create')) {
 		include DOL_DOCUMENT_ROOT.'/core/tpl/advtarget.tpl.php';
 	}
 }

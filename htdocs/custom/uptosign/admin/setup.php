@@ -320,7 +320,7 @@ if ($resetPasswordLink != "") {
 
 	print '<tr class="oddeven"><td class=""><b>' . $langs->trans("UPTOSIGN_LOGIN") . "</b><br /><i>" . $langs->trans("UPTOSIGN_LOGINTooltip") . '</i></td>';
 	print '<td>';
-	print '<input type="text" name="UPTOSIGN_LOGIN" value="' . $defaultEmail . '" class="minwidth300" onchange="formChange();">';
+	print '<input type="text" name="UPTOSIGN_LOGIN" value="' . dol_escape_htmltag($defaultEmail) . '" class="minwidth300" onchange="formChange();">';
 	print '</td>';
 	print '</tr>';
 

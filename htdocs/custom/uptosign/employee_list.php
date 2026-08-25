@@ -183,8 +183,10 @@ $arrayfields = dol_sort_array($arrayfields, 'position');
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
 $enablepermissioncheck = 1;
 if ($enablepermissioncheck) {
-	$permissiontoread = $user->hasRight('uptosign', 'read');
-	$permissiontodelete = $user->hasRight('uptosign', 'delete');
+	// HR view: use the dedicated 'employee' permission (as employee_card.php does),
+	// not the generic uptosign read/delete rights.
+	$permissiontoread = $user->hasRight('uptosign', 'employee', 'read');
+	$permissiontodelete = $user->hasRight('uptosign', 'employee', 'create');
 } else {
 	$permissiontoread = 1;
 	$permissiontodelete = 1;
@@ -252,8 +254,8 @@ if (empty($reshook)) {
 	$objectlabel = 'UptoSign';
 	$uploaddir = $conf->uptosign->dir_output;
 	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
-	$permtoread = $user->hasRight('uptosign', 'read');
-	$permtodelete = $user->hasRight('uptosign', 'delete');
+	$permtoread = $user->hasRight('uptosign', 'employee', 'read');
+	$permtodelete = $user->hasRight('uptosign', 'employee', 'create');
 	// Delete record from mass action (massaction = 'delete' for direct delete, action/confirm='delete'/'yes' with a confirmation step before)
 	if (!$error && ($massaction == 'delete' || ($action == 'delete' && $confirm == 'yes')) && $permtodelete) {
 		$db->begin();

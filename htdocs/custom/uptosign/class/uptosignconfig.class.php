@@ -199,8 +199,8 @@ class UptoSignConfig extends CommonObject
 
 		$this->db = $db;
 
-		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) {
-			$this->fields['rowid']['visible'] = 1;
+		if (!getDolGlobalInt('MAIN_SHOW_TECHNICAL_ID') && isset($this->fields['rowid'])) {
+			$this->fields['rowid']['visible'] = 0;
 		}
 		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) {
 			$this->fields['entity']['enabled'] = 0;
@@ -478,7 +478,7 @@ class UptoSignConfig extends CommonObject
 	 * @param   string          $modelpdf model pdf, ex strato or azur
 	 * @param   string          $type type of document model, ex contrat or propal
 	 * @param   string          $signOrSeal sign|seal
-	 * @return  int|array       <0 if KO, 0 if not found, >0 if OK
+	 * @return  array           Array of matching config rowids, empty array if none/KO
 	 */
 	public function fetchListId($modelpdf = '', $type = '', $signOrSeal = '')
 	{
@@ -493,7 +493,12 @@ class UptoSignConfig extends CommonObject
 
 		$sql = "SELECT rowid, model_pdf";
 		$sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element;
-		$sql .= " WHERE status = 1";
+		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
+			$sql .= " WHERE entity IN (" . getEntity($this->element) . ")";
+		} else {
+			$sql .= " WHERE 1 = 1";
+		}
+		$sql .= " AND status = 1";
 		if (isset($modelpdf)) {
 			if ($type != '') {
 				$type = uptosign_unify_object_type($type);
@@ -522,22 +527,21 @@ class UptoSignConfig extends CommonObject
 					$i++;
 				}
 				$this->db->free($resql);
-				if (!empty($idList)) {
-					return $idList;
-				} else {
-					$this->db->free($resql);
-					return -2;
-				}
+				// Always return an array so callers can safely use !empty()/foreach.
+				return $idList;
 			} else {
+				$this->db->free($resql);
 				array_push($this->errors, $langs->transnoentitiesnoconv("UptoSignErrorThereIsNoConfig", $modelpdf . ' (' . $type . ')', "<a href='" . dol_buildpath("/uptosign/uptosignconfig_list.php", 1) . "'>", "</a>"));
-				return -1;
+				dol_syslog("uptosign: " . get_class($this) . "::fetchListId no config found for modelpdf=$modelpdf, type=$type, signOrSeal=$signOrSeal", LOG_WARNING);
+				// Nothing matches: return a neutral empty array (not a negative int).
+				return array();
 			}
 		} else {
 			array_push($this->errors, "Error " . $this->db->lasterror());
 			dol_syslog("uptosign: " . get_class($this) . "::fetchListId " .join(',', $this->errors), LOG_ERR);
-			return -1;
+			// On SQL error also return a neutral empty array so callers do not treat -1 as a truthy result.
+			return array();
 		}
-		return 0;
 	}
 
 	/**
@@ -902,24 +906,13 @@ class UptoSignConfig extends CommonObject
 			if ($this->db->num_rows($result)) {
 				$obj = $this->db->fetch_object($result);
 				$this->id = $obj->rowid;
-				if (!empty($obj->fk_user_author)) {
-					$this->fk_user_creat = $obj->fk_user_author;
+				// Read the columns actually selected by the query (fk_user_creat/fk_user_modif).
+				if (!empty($obj->fk_user_creat)) {
+					$this->fk_user_creat = $obj->fk_user_creat;
 				} else {
 					$this->fk_user_creat = utsbackports_getDolGlobalString('UPTOSIGN_DEFAULT_USER');
 				}
-
-				if (!empty($obj->fk_user_valid)) {
-					$vuser = new User($this->db);
-					$vuser->fetch($obj->fk_user_valid);
-					$this->user_validation_id = $vuser->id;
-					$this->user_validation = $vuser;
-				}
-
-				if (!empty($obj->fk_user_cloture)) {
-					$cluser = new User($this->db);
-					$cluser->fetch($obj->fk_user_cloture);
-					// $this->user_cloture = $cluser;
-				}
+				$this->fk_user_modif = $obj->fk_user_modif;
 
 				$this->date_creation     = $this->db->jdate($obj->datec);
 				$this->date_modification = $this->db->jdate($obj->datem);
@@ -1078,7 +1071,7 @@ class UptoSignConfig extends CommonObject
 			while ($i < $num) {
 				$obj = $this->db->fetch_object($resql);
 
-				$transkey = "TypeContact_" . $this->element . "_" . $source . "_" . $obj->code;
+				$transkey = "TypeContact_" . $element . "_" . $source . "_" . $obj->code;
 				$libelle_type = ($langs->trans($transkey) != $transkey ? $langs->trans($transkey) : $obj->libelle);
 				$tab[$obj->rowid] = $libelle_type;
 				$i++;
@@ -1245,7 +1238,8 @@ class UptoSignConfig extends CommonObject
 		} elseif ($key == 'sign_coordinate' || $key == 'seal_coordinate') {
 			if ($object != "") {
 				$t = explode(',', $object);
-				$value = "x=" . $t[0] . ", y=" . $t[1];
+				// Guard against a malformed value without a comma (missing y coordinate).
+				$value = "x=" . (isset($t[0]) ? $t[0] : '') . ", y=" . (isset($t[1]) ? $t[1] : '');
 			} else {
 				$value = "";
 			}
@@ -1304,7 +1298,9 @@ class UptoSignConfig extends CommonObject
 				if ($filter != "") {
 					$sql .= " AND " . $filter;
 				}
-				$sql .= " GROUP BY $label";
+				// Group by every selected non-aggregated column so the query stays
+				// compatible with SQL modes enforcing ONLY_FULL_GROUP_BY.
+				$sql .= " GROUP BY $lakey,$label,type";
 				if (!empty($sortfield)) {
 					$sql .= $this->db->order($sortfield, 'ASC');
 				}

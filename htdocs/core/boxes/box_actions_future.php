@@ -136,7 +136,7 @@ class box_actions_future extends ModeleBoxes
 					$societestatic->name = $objp->name;
 					//$societestatic->name_alias = $objp->name_alias;
 					$societestatic->code_client = $objp->code_client;
-					$societestatic->code_compta = $objp->code_compta;
+					// $societestatic->code_compta = $objp->code_compta; // InfraS change: code_compta is not selected by the SQL (only aliased as code_compta_client) and Societe has no such property
 					$societestatic->code_compta_client = $objp->code_compta_client;
 					$societestatic->client = $objp->client;
 					$societestatic->logo = $objp->logo;

@@ -637,6 +637,9 @@ class UptoSign extends CommonObject
 		}
 		$sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as t";
 		$sql .= " WHERE t.fk_object = '" .  $this->db->escape($objectID) . "'";
+		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
+			$sql .= " AND t.entity IN (" . getEntity($this->element) . ")";
+		}
 		if ($objectType != '') {
 			$sql .= " AND t.object_type = '" .  $this->db->escape(uptosign_unify_object_type($objectType)) . "'";
 		}
@@ -741,6 +744,8 @@ class UptoSign extends CommonObject
 			while ($obj = $this->db->fetch_object($res)) {
 				$ret[] = $obj;
 			}
+		} else {
+			dol_syslog("uptosign: " . __METHOD__ . " SQL error : " . $this->db->lasterror(), LOG_ERR);
 		}
 		return $ret;
 	}
@@ -772,6 +777,9 @@ class UptoSign extends CommonObject
 
 		$sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . $this->table_element . " AS t";
 		$sql .= " WHERE fk_object = " . ((int) $objectId);
+		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
+			$sql .= " AND entity IN (" . getEntity($this->element) . ")";
+		}
 		if (isset($objectType)) {
 			$sql .= " AND object_type = '" . $this->db->escape(uptosign_unify_object_type($objectType)) . "'";
 		}
@@ -857,12 +865,26 @@ class UptoSign extends CommonObject
 		$sqlwhere = array();
 		if (count($filter) > 0) {
 			foreach ($filter as $key => $value) {
-				if ($key == 't.rowid') {
+				// Whitelist the filter key against declared fields (key may be prefixed
+				// with the table alias, e.g. 't.rowid'); reject anything unknown.
+				$plainKey = (strpos($key, '.') !== false) ? substr($key, strpos($key, '.') + 1) : $key;
+				if (!array_key_exists($plainKey, $this->fields)) {
+					dol_syslog("uptosign: " . __METHOD__ . " ignore unknown filter key " . $key, LOG_WARNING);
+					continue;
+				}
+				$fieldType = $this->fields[$plainKey]['type'];
+				if ($plainKey == 'rowid') {
 					$sqlwhere[] = $key . " = " . ((int) $value);
-				} elseif (array_key_exists($key, $this->fields) && in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
+				} elseif (in_array($fieldType, array('date', 'datetime', 'timestamp'))) {
 					$sqlwhere[] = $key . " = '" . $this->db->idate($value) . "'";
 				} elseif (strpos($value, '%') === false) {
-					$sqlwhere[] = $key . " IN (" . $this->db->sanitize($this->db->escape($value)) . ")";
+					// Quote string columns to avoid an unquoted IN() list (SQL injection risk);
+					// keep integer columns unquoted for strict engines like PostgreSQL.
+					if (in_array($fieldType, array('integer', 'real')) || strpos($fieldType, 'double') === 0) {
+						$sqlwhere[] = $key . " IN (" . ((int) $value) . ")";
+					} else {
+						$sqlwhere[] = $key . " IN ('" . $this->db->escape($value) . "')";
+					}
 				} else {
 					$sqlwhere[] = $key . " LIKE '%" . $this->db->escape($value) . "%'";
 				}
@@ -1024,7 +1046,7 @@ class UptoSign extends CommonObject
 	{
 		dol_syslog("uptosign: call delete function");
 		$user = $this->findUserToUse($user, $this);
-		$this->createEvent($this, "Call delete id #" . $this->sign_id ?? '');
+		$this->createEvent($this, "Call delete id #" . ($this->sign_id ?? ''));
 
 		//effacer le fichier
 		$fullFileName = uptosign_full_path($this->path_file_signed);
@@ -1048,7 +1070,7 @@ class UptoSign extends CommonObject
 		dol_syslog("uptosign: call delete function");
 		$error = 0;
 		$user = $this->findUserToUse($user, $this);
-		$this->createEvent($this, "Call delete id #" . $this->sign_id ?? '');
+		$this->createEvent($this, "Call delete id #" . ($this->sign_id ?? ''));
 
 		$notr = $notrigger ? 1 : 0;
 
@@ -1056,6 +1078,11 @@ class UptoSign extends CommonObject
 			$response = $this->apiClient->deleteDocument($this->sign_id);
 
 			dol_syslog("uptosign : remote delete returns code " . $response['http_code']);
+			if ($response['http_code'] == 0) {
+				dol_syslog("uptosign: deleteRemote network error (http_code=0), remote procedure not deleted", LOG_ERR);
+				array_push($this->errors, 'UptoSignApiError deleteRemote network error');
+				return -1;
+			}
 			if ($response['http_code'] > 0) {
 				$resultContent = $response['data'];
 				if (in_array($response['http_code'], [200, 404])) {
@@ -1342,23 +1369,14 @@ class UptoSign extends CommonObject
 			if ($this->db->num_rows($result)) {
 				$obj = $this->db->fetch_object($result);
 				$this->id = $obj->rowid;
-				if (!empty($obj->fk_user_author)) {
-					$this->fk_user_creat = $obj->fk_user_author;
+				if (!empty($obj->fk_user_creat)) {
+					$this->fk_user_creat = $obj->fk_user_creat;
 				} else {
 					$this->fk_user_creat = utsbackports_getDolGlobalString('UPTOSIGN_DEFAULT_USER');
 				}
 
-				if (!empty($obj->fk_user_valid)) {
-					$vuser = new User($this->db);
-					$vuser->fetch($obj->fk_user_valid);
-					$this->user_validation_id = $vuser->id;
-					$this->user_validation = $vuser;
-				}
-
-				if (!empty($obj->fk_user_cloture)) {
-					$cluser = new User($this->db);
-					$cluser->fetch($obj->fk_user_cloture);
-					// $this->user_cloture = $cluser;
+				if (!empty($obj->fk_user_modif)) {
+					$this->fk_user_modif = $obj->fk_user_modif;
 				}
 
 				$this->date_creation     = $this->db->jdate($obj->datec);
@@ -1544,6 +1562,12 @@ class UptoSign extends CommonObject
 		// }
 
 		$uptosignAccount = uptosignApiCheckResellerMode();
+		if (null === $uptosignAccount || !is_array($uptosignAccount) || !isset($uptosignAccount['main_role_level'])) {
+			$this->output = "uptosign doScheduledJob : cannot retrieve uptosign account info (API returned null)";
+			$this->error = $this->output;
+			dol_syslog($this->output, LOG_ERR);
+			return -1;
+		}
 		if ($uptosignAccount['main_role_level'] != UptoSign::ROLE_LEVEL_RESELLER) {
 			$this->output = "uptosign doScheduledJob : your uptosign account is not a reseller one";
 			$this->error = $this->output;
@@ -1727,6 +1751,14 @@ class UptoSign extends CommonObject
 
 			// Signed file missing or never downloaded → re-download from API
 			$response = $this->apiClient->downloadDocument($obj->sign_id);
+
+			// A JSON body on a 200 means the API returned a message/error, not the
+			// binary PDF (getURLContent decoded it into 'data'). Do not archive it.
+			if ($response['http_code'] == 200 && is_array($response['data'])) {
+				dol_syslog("uptosign doScheduledArchive rowid=" . $obj->rowid . " got a JSON response instead of a PDF: " . ($response['data']['message'] ?? ''), LOG_WARNING);
+				$errors++;
+				continue;
+			}
 
 			if ($response['http_code'] == 200 && strlen($response['content']) > 1024) {
 				$fp = fopen($archiveFile, 'w');
@@ -1945,7 +1977,8 @@ class UptoSign extends CommonObject
 		$error = 0;
 		//Sauvegarde locale de dol_hash($hookKEY);
 		//Et utilisation de dol_verifyHash
-		dol_syslog("uptosign document set hook_key to " . $key . " for doc id " . $this->id);
+		// Do not log the hook secret key itself.
+		dol_syslog("uptosign document set hook_key for doc id " . $this->id);
 		$sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element . " SET hook_key='" . $this->db->escape($key) . "' WHERE rowid=" . ((int) $this->id);
 
 		$this->db->begin();
@@ -2050,7 +2083,9 @@ class UptoSign extends CommonObject
 
 			if (isset($arrMagicReturn['STAMP'])) {
 				foreach ($arrMagicReturn['STAMP'] as $page => $value) {
-					$positionsSeal[$page] = array(
+					// Use the same STAMP nesting as the config path and the build loop below,
+					// otherwise the seal is sent without any position.
+					$positionsSeal[$page]['STAMP'] = array(
 						'defaultSealX' => (!empty($value['x']) ? $value['x'] : 0),
 						'defaultSealY' => (!empty($value['y']) ? $value['y'] : 0),
 						'defaultSealPage' => (!empty($value['p']) ? $value['p'] : 0)
@@ -2102,19 +2137,19 @@ class UptoSign extends CommonObject
 					$config->fetch($configIds[0]);
 
 					//C'est là qu'on evite de prendre l'info si le autoposition a retourné qqchose : ces données ont été renseignées par autoconf
-					if (!$autopositionSeal) {
+					if (!$autopositionSeal && !empty($config->seal_coordinate)) {
 						$d = explode(',', $config->seal_coordinate);
 						$positionsSeal[$config->page_seal]['STAMP']['defaultSealX'] = $d[0];
-						$positionsSeal[$config->page_seal]['STAMP']['defaultSealY'] = $d[1];
+						$positionsSeal[$config->page_seal]['STAMP']['defaultSealY'] = isset($d[1]) ? $d[1] : 0;
 						$positionsSeal[$config->page_seal]['STAMP']['defaultSealPage'] = $config->page_seal;
 						$autopositionSeal = true;
 					}
 					//Une seule signature "client" préconfigurée => pour plus de sugnatures utiliser les mots 'magiques'
 					if (!$autopositionSign) {
-						if (!empty($config->page_sign)) {	// test si la signature n'est pas désactivée pour ce type de document
+						if (!empty($config->page_sign) && !empty($config->sign_coordinate)) {	// test si la signature n'est pas désactivée pour ce type de document
 							$d = explode(',', $config->sign_coordinate);
 							$positionsSign[$config->page_sign]['SIGN_00']['defaultSignContactX'] = $d[0];
-							$positionsSign[$config->page_sign]['SIGN_00']['defaultSignContactY'] = $d[1];
+							$positionsSign[$config->page_sign]['SIGN_00']['defaultSignContactY'] = isset($d[1]) ? $d[1] : 0;
 							$positionsSign[$config->page_sign]['SIGN_00']['defaultSignContactPage'] = $config->page_sign;
 							$autopositionSign = true;
 						} else {
@@ -2134,8 +2169,9 @@ class UptoSign extends CommonObject
 		}
 
 		//a cette etape il y a forcément une position, si ce n'est pas le cass -> erreur propre
-		$listofPositions = implode('', $positionsSign);
-		if (empty($listofPositions)) {
+		// $positionsSign is a 2-level array: test its cardinality instead of imploding it
+		// (implode on a nested array raises an "Array to string conversion" warning).
+		if (!is_array($positionsSign) || count($positionsSign) == 0) {
 			dol_syslog("uptosign : signInit there is no positions for that document !", LOG_ERR);
 			array_push($this->errors, "signInit Error there is no sign positions for that document !");
 			return -4;
@@ -2308,6 +2344,19 @@ class UptoSign extends CommonObject
 
 		dol_syslog("uptosign: sealOrSignInitLight started with user=" . ($user->login ?? "(login empty)"));
 
+		// Compute disableSms BEFORE the API call so the per-thirdparty extrafield
+		// (or the global default) is actually sent within the procedure payload.
+		$fksoc = $object->socid;
+		if ($object->element == "societe") {
+			$fksoc = $object->id;
+		}
+		$this->disableSms = $this->_searchDisableSMS($fksoc);
+
+		// Snapshot the error count before the API call: resolveSigners()/signInit()
+		// may already have pushed non-fatal warnings (contact without mobile/name).
+		// Only errors added by the remote call below must abort the local create().
+		$errCountBefore = count($this->errors);
+
 		$resultContent = $this->initProcedureLight($fileToSign, $listMembers, $procedure);
 		// dol_syslog("sealOrSignInitLight retour de initProcedureLight = " . json_encode($resultContent));
 		// dol_syslog("sealOrSignInitLight fileToSign = " . json_encode($fileToSign));
@@ -2316,8 +2365,17 @@ class UptoSign extends CommonObject
 		// dol_syslog("uptosign : sealOrSignInitLight listMembers=" . json_encode($listMembers));
 		dol_syslog("uptosign sealOrSignInitLight : user is = " . json_encode($user));
 
-		if (count($this->errors) > 0) {
-			dol_syslog("uptosign : sealOrSignInitLight return errors");
+		if (count($this->errors) > $errCountBefore) {
+			dol_syslog("uptosign : sealOrSignInitLight return errors (added by API call)", LOG_ERR);
+			return --$error;
+		}
+
+		// A successful HTTP 200 that does not echo back the expected 'action' means the
+		// remote procedure was not created as requested: never treat this as OK (that
+		// would leave a facturable procedure server-side without any local record).
+		if (!is_array($resultContent) || !isset($resultContent['action']) || $resultContent['action'] != $procedure) {
+			dol_syslog("uptosign : sealOrSignInitLight API response has no matching 'action' (expected $procedure), abort local create", LOG_ERR);
+			array_push($this->errors, "UptoSignApiError missing action in response");
 			return --$error;
 		}
 
@@ -2338,10 +2396,7 @@ class UptoSign extends CommonObject
 			}
 
 
-			$fksoc = $object->socid;
-			if ($object->element == "societe") {
-				$fksoc = $object->id;
-			}
+			// $fksoc and $this->disableSms are already computed at the top of this method.
 
 			//list of sign for massive sign
 			if ($object->element == "uptosignlist") {
@@ -2372,7 +2427,6 @@ class UptoSign extends CommonObject
 				$this->fk_uptosignlist = $object->id;
 			}
 			$this->sign_link = $resultContent['url'] ?? '';
-			$this->disableSms = $this->_searchDisableSMS($fksoc);
 
 			dol_syslog("uptosign sealOrSignInitLight : ============================================= 1", LOG_DEBUG);
 
@@ -2453,13 +2507,14 @@ class UptoSign extends CommonObject
 		//backward compatible
 		$migrate = ['sign_page' => 'signPage', 'sign_pos_x' => 'signPosX', 'sign_pos_y' => 'signPosY'];
 		if (isset($listMembers) && is_array($listMembers)) {
-			foreach ($listMembers as $member) {
+			foreach ($listMembers as &$member) {
 				foreach ($migrate as $new => $old) {
 					if (isset($member[$new])) {
 						$member[$old] = $member[$new];
 					}
 				}
 			}
+			unset($member);
 		}
 
 		$data = [
@@ -2485,6 +2540,10 @@ class UptoSign extends CommonObject
 		$dataDebug = $data;
 		if(isset($dataDebug["pdf"]["content"])) {
 			unset($dataDebug["pdf"]["content"]);
+		}
+		// Never log the hook secret key (it authenticates inbound webhooks).
+		if (isset($dataDebug["hook"]["key"])) {
+			$dataDebug["hook"]["key"] = '***';
 		}
 		dol_syslog("uptosign: initProcedureLight send data (without dump pdf) = " . json_encode($dataDebug));
 		dol_syslog("uptosign: initProcedureLight send data TITLE = " . json_encode($fileToSign['title'] ?? ''));
@@ -2623,6 +2682,11 @@ class UptoSign extends CommonObject
 			}
 		}
 
+		if (!isset($positionsSeal['STAMP'])) {
+			dol_syslog("uptosign sealInit error, no STAMP position resolved for that document", LOG_ERR);
+			array_push($this->errors, "There is no seal position for that document");
+			return --$error;
+		}
 		$fileToSign = array(
 			'filename' => basename($file),
 			'fullname' => $file,
@@ -2659,10 +2723,11 @@ class UptoSign extends CommonObject
 	 * @param object    $object             dolibarr object
 	 * @param string    $mode               'sync' or 'info' or 'local'(do not make network requests)
 	 * 										'synchistory' to make refresh on activity list
+	 * @param string    $restrictSignId     remote uuid to process alone ('' = all documents of the object)
 	 *
 	 * @return int with null = no info, lowest status = OK, < 0 if NOK
 	 */
-	public function signInfo($user, $object, $mode = 'sync')
+	public function signInfo($user, $object, $mode = 'sync', $restrictSignId = '')
 	{
 		global $langs, $conf, $mysoc;
 		dol_syslog("uptosign::signInfo $mode");
@@ -2679,6 +2744,14 @@ class UptoSign extends CommonObject
 			dol_syslog("uptosign::signInfo fetch childs returns -1, early return"); // . json_encode($children));
 			return UptoSign::STATUS_NOTHING;
 		}
+
+		// A webhook is about a single document: no need to poll the server for the others
+		$children = uptosign_restrict_children_to_sign_id($children, $restrictSignId);
+		if (count($children) == 0 && (string) $restrictSignId !== '') {
+			dol_syslog("uptosign::signInfo nothing to refresh for uuid " . $restrictSignId, LOG_WARNING);
+			return UptoSign::STATUS_NOTHING;
+		}
+
 		dol_syslog("uptosign::signInfo get children for $objectId / type $objectType"); // . json_encode($children));
 		// if (is_array($children) && count($children) > 0) {
 		//On ne cherche que sur un seul ... ça evite les galeres quand il y a eu des f5 / refresh
@@ -2725,6 +2798,16 @@ class UptoSign extends CommonObject
 				dol_syslog("uptosign::signInfo refresh data from server");
 				$response = $this->apiClient->getDocumentStatus($child->sign_id);
 
+				if ($response['http_code'] == 0) {
+					// Network error (curl failure, empty key, open circuit): do not abort the
+					// whole poll, log it and skip this document so the remaining children are
+					// still refreshed.
+					dol_syslog("uptosign::signInfo network error (http_code=0) for sign_id=" . $child->sign_id, LOG_ERR);
+					array_push($this->errors, 'UptoSignApiError signInfo network error');
+					$error++;
+					continue;
+				}
+
 				if ($response['http_code'] > 0) {
 					$resultContent = $response['data'];
 					if (isset($resultContent['data'])) {
@@ -2738,7 +2821,7 @@ class UptoSign extends CommonObject
 							$signStatus = 'deleted';
 						}
 						$child->sign_status = $signStatus;
-						$child->sign_history = json_encode($resultContent['history']);
+						$child->sign_history = json_encode($resultContent['history'] ?? '');
 						$child->fk_user_modif = $user->id;
 						$res = $child->update($user);
 						$status = 0;
@@ -2748,15 +2831,15 @@ class UptoSign extends CommonObject
 						array_push($this->errors, "Document not yet ready, please wait ...");
 						$signStatus = 'active';
 						$status = UptoSign::STATUS_WAITING;
-						$child->sign_history = json_encode($resultContent['history']);
+						$child->sign_history = json_encode($resultContent['history'] ?? '');
 						$child->sign_status = $signStatus;
 						$child->fk_user_modif = $user->id;
 						$res = $child->update($user);
 						return UptoSign::STATUS_WAITING;
 					} else {
-						dol_syslog("uptosign::signInfo UptoSignApiError (4) : " . $resultContent['message']);
+						dol_syslog("uptosign::signInfo UptoSignApiError (4) : " . ($resultContent['message'] ?? ''), LOG_ERR);
 						array_push($this->errors, 'UptoSignApiError 4 : ' . $response['http_code']);
-						array_push($this->errors, $resultContent['message']);
+						array_push($this->errors, $resultContent['message'] ?? '');
 
 						if (isset($resultContent['status'])) {
 							$signStatus = $resultContent['status'];
@@ -2776,7 +2859,7 @@ class UptoSign extends CommonObject
 						dol_syslog("uptosign::signInfo res negative, return $res");
 						return $res;
 					} else {
-						$signStatus = $resultContent['status'];
+						$signStatus = $resultContent['status'] ?? 'deleted';
 						dol_syslog("uptosign::signInfo res ok, resultContent status = $signStatus");
 						$child->sign_status = $signStatus;
 						if ($signStatus == 'draft') {
@@ -2792,7 +2875,7 @@ class UptoSign extends CommonObject
 								$child->status = UptoSign::STATUS_SEALED;
 								$object->uptosignMessage = $langs->trans("DocumentSealed");
 							}
-						} elseif ($signStatus == 'cancelled') {
+						} elseif ($signStatus == 'cancelled' || $signStatus == 'deleted') {
 							$child->status = UptoSign::STATUS_CANCELED;
 							$object->uptosignMessage = $langs->trans("UptoSignCanceled");
 						} elseif ($signStatus == 'expired') {
@@ -2808,9 +2891,11 @@ class UptoSign extends CommonObject
 						//pour la suite
 						$status = $child->status;
 
-						$dateCreate = new DateTime($resultContent['createdAt'], new DateTimeZone('UTC'));
-						$child->date_creation = $dateCreate->getTimestamp();
-						$dateCreate = null;
+						if (!empty($resultContent['createdAt'])) {
+							$dateCreate = new DateTime($resultContent['createdAt'], new DateTimeZone('UTC'));
+							$child->date_creation = $dateCreate->getTimestamp();
+							$dateCreate = null;
+						}
 
 						//date de signature = date de dernière modification du document sur le serveur
 						if (isset($resultContent['updatedAt'])) {
@@ -2885,10 +2970,11 @@ class UptoSign extends CommonObject
 	 * @param User    		$user               user who gets document
 	 * @param CommonObject  $object             dolibarr object
 	 * @param string    	$signOrSeal         uptosign|uptoseal
+	 * @param string    	$restrictSignId     remote uuid to process alone ('' = all documents of the object)
 	 *
 	 * @return int 0 = OK, < 0 if NOK
 	 */
-	public function signFetch($user, $object, $signOrSeal = '')
+	public function signFetch($user, $object, $signOrSeal = '', $restrictSignId = '')
 	{
 		global $conf, $langs;
 		$langs->loadLangs(array("uptosign@uptosign", "main", "other", "companies", "errors"));
@@ -2914,6 +3000,13 @@ class UptoSign extends CommonObject
 			if (! (is_array($children) && count($children) > 0)) {
 				return -1;
 			}
+		}
+
+		// A webhook is about a single document: replaying the others is pure waste
+		$children = uptosign_restrict_children_to_sign_id($children, $restrictSignId);
+		if (count($children) == 0) {
+			dol_syslog("uptosign signFetch, nothing to download for uuid " . $restrictSignId, LOG_WARNING);
+			return -1;
 		}
 
 		dol_syslog("uptosign signFetch, num children : " . count($children));
@@ -2975,15 +3068,17 @@ class UptoSign extends CommonObject
 				continue;
 			}
 
-			$result = $response;
-
 			$ts = $child->date_sign;
 			//todo check
 			//filename if signed already exists in priority, else original one (path_file)
 			$filename = (trim($child->path_file_signed) != '') ? $child->path_file_signed :  $child->path_file;
 
+			// When $signOrSeal is empty (e.g. uptosealsync/uptosignsync with no param),
+			// pick the suffix from the record itself so a signed file is not named with
+			// the seal suffix (which would break the proof lookup).
+			$effectiveSignOrSeal = ($signOrSeal != '') ? $signOrSeal : ($child->api_name ?? '');
 			$suffix = utsbackports_getDolGlobalString('UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL', '');
-			if ($signOrSeal == "uptosign") {
+			if ($effectiveSignOrSeal == "uptosign" || $effectiveSignOrSeal == "sign") {
 				$suffix = utsbackports_getDolGlobalString('UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN', '');
 			}
 			$fullSignFile = uptosign_rename_file_dolibarr_guidelines(uptosign_full_path($filename), $suffixForMassSignProcess . $suffix);
@@ -2991,7 +3086,7 @@ class UptoSign extends CommonObject
 			// print "<p>Filename = $fullSignFile</p>";// exit;
 			dol_syslog("uptosign signFetch download file $fullSignFile...");
 
-			$resultContent = $result['content'];
+			$resultContent = $response['content'];
 
 			// A JSON body on a 200 means the API returned a message/error, not the
 			// binary PDF (getURLContent decoded it into 'data'). Do not write it as a PDF.
@@ -3010,6 +3105,16 @@ class UptoSign extends CommonObject
 				dol_syslog("uptosign: signFetch download body is less than 1Ko for sign_id=" . $child->sign_id . ", transient error, will retry later", LOG_WARNING);
 				array_push($this->errors, $langs->trans('WaitingUptoSign'));
 				$error = -1;
+				continue;
+			}
+
+			// Concurrency guard against simultaneous webhooks: re-fetch the record right
+			// before writing and skip if another process already downloaded the file
+			// (avoids a double write + double INVOICE_SEALED trigger).
+			$recheck = new UptoSign($this->db);
+			if ($recheck->fetch($child->id) > 0 && !empty($recheck->hash_file_signed)) {
+				dol_syslog("uptosign signFetch child #" . $child->id . " already downloaded by a concurrent process, skip", LOG_WARNING);
+				$result = 1;
 				continue;
 			}
 
@@ -3036,6 +3141,8 @@ class UptoSign extends CommonObject
 				dol_syslog("uptosign signFetch error on update", LOG_ERR);
 				array_push($this->errors, "Error while updating object");
 				$error = $res;
+			} else {
+				$result = 1;
 			}
 
 			// for the moment cas
@@ -3064,7 +3171,7 @@ class UptoSign extends CommonObject
 		dol_syslog("uptosign what about proof file ? signOrSeal=$signOrSeal");
 		if (in_array($signOrSeal, ["sign", "uptosign"])) {
 			dol_syslog("uptosign signFetch call signFetchProof...");
-			$res = $this->signFetchProof($user, $object);
+			$res = $this->signFetchProof($user, $object, $restrictSignId);
 		}
 
 		if ($error) {
@@ -3081,10 +3188,11 @@ class UptoSign extends CommonObject
 	 *
 	 * @param object    $user               user who gets document
 	 * @param object    $object             dolibarr object
+	 * @param string    $restrictSignId     remote uuid to process alone ('' = all documents of the object)
 	 *
 	 * @return int 0 = OK, < 0 if NOK
 	 */
-	public function signFetchProof($user, $object)
+	public function signFetchProof($user, $object, $restrictSignId = '')
 	{
 		dol_syslog("uptosign signFetchProof");
 		// print '<pre>';
@@ -3100,12 +3208,19 @@ class UptoSign extends CommonObject
 			return -1;
 		}
 
+		// A webhook is about a single document: replaying the others is pure waste
+		$children = uptosign_restrict_children_to_sign_id($children, $restrictSignId);
+		if (count($children) == 0) {
+			dol_syslog("uptosign signFetchProof, nothing to download for uuid " . $restrictSignId, LOG_WARNING);
+			return -1;
+		}
+
 		dol_syslog("uptosign signFetchProof, children "); // . json_encode($children));
 		foreach ($children as $child) {
 			dol_syslog("uptosign signFetchProof child"); // . json_encode($child));
 			if (!in_array($child->status, [UptoSign::STATUS_SIGNED, UptoSign::STATUS_SEALED, UptoSign::STATUS_FILE_FETCHED])) {
-				dol_syslog("uptosign signFetchProof status is not signed,sealed or fetched, return");
-				return -1;
+				dol_syslog("uptosign signFetchProof status is not signed,sealed or fetched, skip this child", LOG_WARNING);
+				continue;
 			}
 
 			$res = $this->fetch($child->id);
@@ -3124,8 +3239,10 @@ class UptoSign extends CommonObject
 			}
 
 			//do not re-download file if already here
-			if (!empty($child->hash_file_signed) && !empty($child->path_file_signed)) {
-				$fullFileName = str_replace($conf->global->UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN, $conf->global->UPTOSIGN_FILENAME_SUFFIX_PROOF, uptosign_full_path($child->path_file_signed));
+			$suffixSign = utsbackports_getDolGlobalString('UPTOSIGN_FILENAME_SUFFIX_UPTOSIGN', '');
+			$suffixProof = utsbackports_getDolGlobalString('UPTOSIGN_FILENAME_SUFFIX_PROOF', '');
+			if (!empty($child->hash_file_signed) && !empty($child->path_file_signed) && $suffixSign != '') {
+				$fullFileName = str_replace($suffixSign, $suffixProof, uptosign_full_path($child->path_file_signed));
 				if (file_exists($fullFileName)) {
 					dol_syslog("uptosign signFetchProof file name already downloaded ($fullFileName)");
 					continue;
@@ -3133,7 +3250,7 @@ class UptoSign extends CommonObject
 					dol_syslog("uptosign signFetchProof file name is missing ($fullFileName)");
 				}
 			} else {
-				dol_syslog("uptosign signFetchProof child->hash_file_signed or child->path_file_signed is empty");
+				dol_syslog("uptosign signFetchProof child->hash_file_signed/path_file_signed empty or sign suffix empty, skip dedup");
 			}
 
 			$response = $this->apiClient->downloadProof($child->sign_id);
@@ -3209,7 +3326,7 @@ class UptoSign extends CommonObject
 			}
 			//Evite le F5 sur le download du fichie de preuves
 			$resDup = $this->fetchByObject((int) $this->fk_object, uptosign_unify_object_type($this->object_type), array('hash_file_null' => true));
-			if (count($resDup) != 0) {
+			if (is_array($resDup) && count($resDup) != 0) {
 				dol_syslog("uptosign: signFetchProof uProof object already downloaded");
 				return -1;
 			}
@@ -3217,7 +3334,9 @@ class UptoSign extends CommonObject
 			$uProof = new UptoSign($this->db);
 			$uProof->ref = $uProof->getNextNumRef();
 			$uProof->hash_file = '';
-			$uProof->sign_id = $resultContent['id'];
+			// $resultContent is the decoded proof body and carries no id: reuse the
+			// remote uuid of the child procedure this proof belongs to.
+			$uProof->sign_id = $child->sign_id;
 			$uProof->hash_file_signed = $hashProof;
 			$uProof->path_file_signed = uptosign_relative_path($fullSignFile);
 			$uProof->label = $langs->trans("UptoSignDocumentProof");
@@ -3250,7 +3369,7 @@ class UptoSign extends CommonObject
 	 *
 	 * @param   CommonObject  $object
 	 *
-	 * @return  aray  [return description]
+	 * @return  array|int  List of signatories (may hold a 'noSign' counter), < 0 on error
 	 */
 	public function getListContacts($object)
 	{
@@ -3265,7 +3384,6 @@ class UptoSign extends CommonObject
 			array_push($this->errors, "UptoSignConfigMissingHelp");
 			return -1;
 		}
-		$typeContacts = $config->getTypeContactCode($object->element, 'all');
 		if (is_object($object) && is_array($configIds)) {
 			foreach ($configIds as $configFile => $configId) {
 				$res = $config->fetch($configId);
@@ -3280,14 +3398,17 @@ class UptoSign extends CommonObject
 				}
 
 				if (!empty($config->page_sign)) {	// test si la signature n'est pas désactivée pour ce type de document
-					// InfraS add begin
-					if (empty($config->fk_c_type_contact) || !isset($typeContacts[$config->fk_c_type_contact])) {
+					// The contact role is carried by the config label (CustomerSign,
+					// VendorSign, ...). It used to be looked up from a rowid stored in
+					// $config->fk_c_type_contact, a column that no longer exists: the
+					// lookup always failed and this method returned no signatory at all.
+					$contactCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($config->label);
+					if (!$this->signatoryResolver->isTypeContactCodeDeclared($object->element, $contactCode)) {
+						dol_syslog("uptosign: getListContacts contact type '" . $contactCode . "' is not declared for element " . $object->element, LOG_WARNING);
 						continue;
 					}
-					// InfraS add end
-					$contactCode = $typeContacts[$config->fk_c_type_contact];
-					$contactIds = $object->getIdContact('external', $contactCode['code']);
-					$userIds = $object->getIdContact('internal', $contactCode['code']);
+					$contactIds = $object->getIdContact('external', $contactCode);
+					$userIds = $object->getIdContact('internal', $contactCode);
 
 					//Les contacts
 					if (count($contactIds) > 0) {
@@ -3347,6 +3468,9 @@ class UptoSign extends CommonObject
 						}
 					}
 				} else {
+					if (!isset($listMembers['noSign'])) {
+						$listMembers['noSign'] = 0;
+					}
 					$listMembers['noSign']++;
 				}
 			}
@@ -3594,9 +3718,10 @@ class UptoSign extends CommonObject
 				$ret = (int) $soc->array_options['options_digitalsign_disable_sms'];
 			}
 		}
-		//if not specific value for thirdpart, apply default global one
+		//if not specific value for thirdpart, apply default global one, and return
+		//the effective value so the caller sends the right flag to the API
 		if ($ret == 0) {
-			$this->disableSms = (int) utsbackports_getDolGlobalString('UPTOSIGN_DISABLE_SMS_GLOBAL_SELECT', '0');
+			$ret = (int) utsbackports_getDolGlobalString('UPTOSIGN_DISABLE_SMS_GLOBAL_SELECT', '0');
 		}
 		return (int) $ret;
 	}

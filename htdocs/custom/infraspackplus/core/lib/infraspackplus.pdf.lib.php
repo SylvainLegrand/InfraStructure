@@ -472,7 +472,7 @@
 					if (!is_readable($pdfSource) || filemtime($filigrane) > filemtime($pdfSource)) {
 						include_once TCPDF_PATH.'tcpdf.php';
 						// Création d'un PDF temporaire aux dimensions exactes de la page
-						$tmppdf	= new TCPDF('P', 'mm', array($formatpage['largeur'], $formatpage['hauteur']), true, 'UTF-8', false);
+						$tmppdf	= new TCPDF('P', 'mm', array($formatpage['largeur'], $formatpage['hauteur']), true, 'UTF-8', false, getDolGlobalInt('PDF_USE_A', 0));
 						$tmppdf->setPrintHeader(false);
 						$tmppdf->setPrintFooter(false);
 						$tmppdf->SetMargins(0, 0, 0);

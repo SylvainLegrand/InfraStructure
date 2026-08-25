@@ -624,7 +624,7 @@ function displayPDF($object, $readOnly = true)
 
 	// print '<form id="leform" name="leform" method="POST">';
 	print '      <input type="hidden" id="readonly" value="' . $readOnly . '">' . "\n";
-	print '      <input type="hidden" id="pdfData" value="' . $b64 . '">' . "\n"; // InfraS change
+	print '      <input type="hidden" id="pdfData" value="' . $b64 . '">' . "\n";	// InfraS change
 	print '      <div class="row" id="selectorContainer">' . "\n";
 	print '        <div class="">' . "\n";
 	print '          <div id="pageContainer" class="uptosignPdfViewer singlePageView uptosignDropzone nopadding" style="background-color:transparent">' . "\n";

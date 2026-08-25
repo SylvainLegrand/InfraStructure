@@ -2302,12 +2302,14 @@ function top_menu($head, $title = '', $target = '', $disablejs = 0, $disablehead
 
 		// Version
 		if (!getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER') && getDolGlobalInt('MAIN_HIDE_VERSION') == 0) {
+			// Osden add begin
 			if ($osden_version = getDolGlobalString('OSDEN_VERSION')) {
 				$appli = $langs->trans("Osden") . ' '. $osden_version;
 				$text = '<span class="aversion"><span class="hideonsmartphone small">'.$osden_version.'</span></span>';
 			} else {
 				$text = '<span class="aversion"><span class="hideonsmartphone small">'.DOL_VERSION.'</span></span>';
 			}
+			// Osden add end
 			// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 			$toprightmenu .= $form->textwithtooltip('', $appli, 2, 1, $text, 'login_block_elem', 2);
 		}

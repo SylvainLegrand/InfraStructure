@@ -139,10 +139,12 @@ class Invoices extends DolibarrApi
 		}
 
 		// Get payment details
-		$this->invoice->totalpaid = $this->invoice->getSommePaiement();
-		$this->invoice->totalcreditnotes = $this->invoice->getSumCreditNotesUsed();
-		$this->invoice->totaldeposits = $this->invoice->getSumDepositsUsed();
-		$this->invoice->remaintopay = price2num($this->invoice->total_ttc - $this->invoice->totalpaid - $this->invoice->totalcreditnotes - $this->invoice->totaldeposits, 'MT');
+		// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+		$this->invoice->totalpaid = price2num($this->invoice->getSommePaiement(), 'MT');
+		$this->invoice->totalcreditnotes = price2num($this->invoice->getSumCreditNotesUsed(), 'MT');
+		$this->invoice->totaldeposits = price2num($this->invoice->getSumDepositsUsed(), 'MT');
+		$this->invoice->remaintopay = price2num(price2num($this->invoice->total_ttc, 'MT') - $this->invoice->totalpaid - $this->invoice->totalcreditnotes - $this->invoice->totaldeposits, 'MT');
+		// InfraS change end Arrondis
 
 		if (!DolibarrApi::_checkAccessToResource('facture', $this->invoice->id)) {
 			throw new RestException(403, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
@@ -271,10 +273,12 @@ class Invoices extends DolibarrApi
 				$invoice_static = new Facture($this->db);
 				if ($invoice_static->fetch($obj->rowid) > 0) {
 					// Get payment details
-					$invoice_static->totalpaid = $invoice_static->getSommePaiement();
-					$invoice_static->totalcreditnotes = $invoice_static->getSumCreditNotesUsed();
-					$invoice_static->totaldeposits = $invoice_static->getSumDepositsUsed();
-					$invoice_static->remaintopay = price2num($invoice_static->total_ttc - $invoice_static->totalpaid - $invoice_static->totalcreditnotes - $invoice_static->totaldeposits, 'MT');
+					// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+					$invoice_static->totalpaid = price2num($invoice_static->getSommePaiement(), 'MT');
+					$invoice_static->totalcreditnotes = price2num($invoice_static->getSumCreditNotesUsed(), 'MT');
+					$invoice_static->totaldeposits = price2num($invoice_static->getSumDepositsUsed(), 'MT');
+					$invoice_static->remaintopay = price2num(price2num($invoice_static->total_ttc, 'MT') - $invoice_static->totalpaid - $invoice_static->totalcreditnotes - $invoice_static->totaldeposits, 'MT');
+					// InfraS change end Arrondis
 
 					// Retrieve credit note ids
 					$invoice_static->getListIdAvoirFromInvoice();
@@ -1549,10 +1553,12 @@ class Invoices extends DolibarrApi
 		}
 
 		// Calculate amount to pay
-		$totalpaid = $this->invoice->getSommePaiement();
-		$totalcreditnotes = $this->invoice->getSumCreditNotesUsed();
-		$totaldeposits = $this->invoice->getSumDepositsUsed();
-		$resteapayer = price2num($this->invoice->total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+		// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+		$totalpaid = price2num($this->invoice->getSommePaiement(), 'MT');
+		$totalcreditnotes = price2num($this->invoice->getSumCreditNotesUsed(), 'MT');
+		$totaldeposits = price2num($this->invoice->getSumDepositsUsed(), 'MT');
+		$resteapayer = price2num(price2num($this->invoice->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+		// InfraS change end Arrondis
 
 		$this->db->begin();
 
@@ -1695,10 +1701,12 @@ class Invoices extends DolibarrApi
 			}
 
 			// Calculate amount to pay
-			$totalpaid = $this->invoice->getSommePaiement($is_multicurrency);
-			$totalcreditnotes = $this->invoice->getSumCreditNotesUsed($is_multicurrency);
-			$totaldeposits = $this->invoice->getSumDepositsUsed($is_multicurrency);
-			$remainstopay = $amount = (float) price2num($total_ttc - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+			// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
+			$totalpaid = price2num($this->invoice->getSommePaiement($is_multicurrency), 'MT');
+			$totalcreditnotes = price2num($this->invoice->getSumCreditNotesUsed($is_multicurrency), 'MT');
+			$totaldeposits = price2num($this->invoice->getSumDepositsUsed($is_multicurrency), 'MT');
+			$remainstopay = $amount = (float) price2num(price2num($total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+			// InfraS change end Arrondis
 
 			if (!$is_multicurrency && $amountarray["amount"] != 'remain') {
 				$amount = (float) price2num($amountarray["amount"], 'MT');

@@ -105,10 +105,30 @@ if (!$permissiontoread) {
  */
 
 if ($massaction == "uptosign_fetch") {
+	// signFetch updates status and downloads the signed file: this is a write, require create right
+	if (!$user->hasRight('uptosign', 'create')) {
+		dol_syslog("uptosign: uptosign_fetch mass action refused, user lacks 'create' right", LOG_WARNING);
+		accessforbidden();
+	}
+	// Load the list first so we can verify the selected procedures belong to it
+	$object->fetch($id);
+	$allowedProcIds = array();
+	foreach ($object->getContactsWithProcedures() as $memberrow) {
+		if (!empty($memberrow->uptosign_id)) {
+			$allowedProcIds[(int) $memberrow->uptosign_id] = true;
+		}
+	}
 	foreach ($toselect as $upid) {
+		$upid = (int) $upid;
+		if ($upid <= 0 || empty($allowedProcIds[$upid])) {
+			dol_syslog("uptosign: uptosign_fetch skipped procedure #".$upid." not attached to list #".$id, LOG_WARNING);
+			continue;
+		}
 		$uptosign = new UptoSign($db);
 		if ($uptosign->fetch($upid) > 0) {
 			$uptosign->signFetch($user, $uptosign, "uptosign");
+		} else {
+			dol_syslog("uptosign: uptosign_fetch could not fetch procedure #".$upid, LOG_ERR);
 		}
 	}
 }

@@ -347,9 +347,14 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BR') ? '' : '_BR';
-			$baseDir						= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
-
+			$baseDir		= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_BR') ? '' : '_BR';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_BR', '');
+				$filesufixe	= empty($fileprefix) ? '_BR' : '';
+			}
 			if (!empty($baseDir)) {
 				if (!empty($this->show_ExtraFieldsLines)) {
 					$extrafieldsline	= new ExtraFields($this->db);
@@ -363,7 +368,7 @@
 				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/receipt/'.$objectref;
-					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}
 				if (! file_exists($dir)) {
 					if (dol_mkdir($dir) < 0) {
@@ -1196,11 +1201,11 @@
 			$posytabinfo		= $pdf->GetY() + 1;
 			$pdf->SetFont('', 'B', $default_font_size - 2);
 			if (empty($this->hide_ordered)) {
-				$labelShipped		= $outputlangs->transnoentities('PDFInfraSPlusExpeditionTotalAsked').' : ';
+				$labelShipped	= $outputlangs->transnoentities('PDFInfraSPlusExpeditionTotalAsked').' : ';
 				$pdf->MultiCell($larg_col1info, $tabinfo_hl, $labelShipped, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
 				$pdf->SetFont('', '', $default_font_size - 2);
 				$pdf->MultiCell($larg_col2info, $tabinfo_hl, $this->totaux['asked'], '', 'L', 0, 1, $posxcol2info, $posytabinfo, true, 0, 0, false, 0, 'M', false);
-				$posytabinfo		= $pdf->GetY() + 1;
+				$posytabinfo	= $pdf->GetY() + 1;
 			}
 			if ($object->shipping_method_id > 0) {
 				$pdf->SetFont('', 'B', $default_font_size - 2);

@@ -86,11 +86,11 @@ function adminer_object()
 										new AdminerTableStructure(),
 										new AdminerTableIndexesStructure(),
 										new AdminerBackwardKeys(),
-										new AdminerCollations(),
+										new AdminerCollations(array("utf8mb4_unicode_ci", "utf8mb4_general_ci", "ascii_general_ci")), // InfraS change : aligne les collations proposées sur le standard du serveur (utf8mb4_unicode_ci)
 										new AdminerDumpDate(),
 										new AdminerDumpZip(),
 										new AdminerDumpBz2(),
-										new AdminerDumpPhp(),
+										// new AdminerDumpPhp(), // InfraS change : plugin retiré — supprimé upstream en Adminer 6.0.0 (signature dumpData() incompatible)
 										new AdminerEditCalendar(),
 										new AdminerEditForeign(1000),
 										new AdminerForeignSystem(),

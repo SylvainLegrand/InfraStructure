@@ -341,18 +341,23 @@
 				$outputlangs->charset_output	= 'ISO-8859-1';
 			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$filesufixe								= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FF') ? '' : '_FF';
-
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FF') ? '' : '_FF';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_FF', '');
+				$filesufixe	= empty($fileprefix) ? '_FF' : '';
+			}
 			if ($conf->fournisseur->facture->dir_output) {
 				$object->fetch_thirdparty();
 				// Use of multicurrency for this document
 				$this->use_multicurrency	= (isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? 1 : 0;
-				$this->paid	= $object->getSommePaiement($this->use_multicurrency ? 1 : 0);
+				$this->paid					= $object->getSommePaiement($this->use_multicurrency ? 1 : 0);
 				$this->credit_notes			= $object->getSumCreditNotesUsed($this->use_multicurrency ? 1 : 0);
 				$this->deposits				= $object->getSumDepositsUsed($this->use_multicurrency ? 1 : 0);
 				if (!empty($this->show_ExtraFieldsLines)) {
-					$extrafieldsline	= new ExtraFields($this->db);
-					$extralabelsline	= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
+					$extrafieldsline		= new ExtraFields($this->db);
+					$extralabelsline		= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
 				}
 				// Definition of $dir and $file
 				if (!empty($object->specimen)) {
@@ -360,10 +365,10 @@
 					$dir							= $conf->fournisseur->facture->dir_output;
 					$file							= $dir.'/SPECIMEN.pdf';
 				} else {
-					$objectref								= dol_sanitizeFileName($object->ref);
-					$objectrefsupplier						= dol_sanitizeFileName($object->ref_supplier);
-					$dir									= $conf->fournisseur->facture->dir_output.'/'.get_exdir($object->id, 2, 0, 0, $object, 'invoice_supplier').$objectref;
-					$file									= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$objectref						= dol_sanitizeFileName($object->ref);
+					$objectrefsupplier				= dol_sanitizeFileName($object->ref_supplier);
+					$dir							= $conf->fournisseur->facture->dir_output.'/'.get_exdir($object->id, 2, 0, 0, $object, 'invoice_supplier').$objectref;
+					$file							= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 					if (!empty($this->supplier_ref_name)) {
 						$file	= $dir.'/'.$objectref.($objectrefsupplier ? '_'.$objectrefsupplier : '').'.pdf';
 					}

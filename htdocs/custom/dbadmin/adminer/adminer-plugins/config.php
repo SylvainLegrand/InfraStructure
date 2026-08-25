@@ -20,7 +20,10 @@ class AdminerConfig extends Adminer\Plugin {
 			$config = Adminer\adminer()->config();
 			if (!$config) {
 				// this plugin itself defines config() so this branch is not currently used
-				echo "<p>" . $this->lang('Only some plugins support configuration, e.g. %s.', '<a href="https://github.com/vrana/adminer/blob/master/plugins/menu-links.php"' . Adminer\target_blank() . '>menu-links</a>') . "\n";
+				echo "<p>" . $this->lang(
+					'Only some plugins support configuration, e.g. %s.',
+					'<a href="https://github.com/vrana/adminer/blob/main/plugins/menu-links.php"' . Adminer\target_blank() . '>menu-links</a>'
+				) . "\n";
 			} else {
 				echo "<form action=''>\n";
 				Adminer\hidden_fields_get();
@@ -29,7 +32,7 @@ class AdminerConfig extends Adminer\Plugin {
 					echo "<tr><th>$title<td>$html\n";
 				}
 				echo "</table>\n";
-				echo "<p><input type='submit' value='" . Adminer\lang('Save') . "'>\n";
+				echo "<p><input type='submit' value='" . $this->lang('Save') . "'>\n";
 				echo "</form>\n";
 			}
 			Adminer\page_footer('db');
@@ -53,7 +56,7 @@ class AdminerConfig extends Adminer\Plugin {
 
 	function pluginsLinks() {
 		$link = preg_replace('~\b(db|ns)=[^&]*&~', '', Adminer\ME);
-		echo "<p><a href='" . Adminer\h($link) . "config='>" . $this->lang('Configuration') . "</a>\n";
+		echo "<p class='links hover'><a href='" . Adminer\h($link) . "config='>" . $this->lang('Configuration') . "</a>\n";
 	}
 
 	function screenshot() {
@@ -69,6 +72,7 @@ class AdminerConfig extends Adminer\Plugin {
 			'Design' => 'Design',
 			'Use %s if exists' => 'Utiliser %s s\'il existe',
 			'Use builtin design' => 'Utiliser le design intégré',
+			'Save' => 'Enregistrer',
 		),
 		'cs' => array(
 			'' => 'Konfigurace možností uživateli a jejich uložení do cookie',
@@ -78,6 +82,7 @@ class AdminerConfig extends Adminer\Plugin {
 			'Design' => 'Vzhled',
 			'Use %s if exists' => 'Použít %s, pokud existuje',
 			'Use builtin design' => 'Použít vestavěný vzhled',
+			'Save' => 'Uložit',
 		),
 		'pl' => array(
 			'Configuration' => 'Konfiguracja',
@@ -86,6 +91,7 @@ class AdminerConfig extends Adminer\Plugin {
 			'Design' => 'Wygląd',
 			'Use %s if exists' => 'Użyj %s, jeśli istnieje',
 			'Use builtin design' => 'Użyj wbudowanego wyglądu',
+			'Save' => 'Zapisz zmiany',
 		),
 		'de' => array(
 			'' => 'Optionen durch den Endbenutzer konfigurieren und dies in einem Cookie speichern',
@@ -95,6 +101,7 @@ class AdminerConfig extends Adminer\Plugin {
 			'Design' => 'Design',
 			'Use %s if exists' => '%s verwenden, falls vorhanden',
 			'Use builtin design' => 'Standard Design verwenden',
+			'Save' => 'Speichern',
 		),
 		'ja' => array(
 			'' => 'ユーザオプションを設定し cookie に保存',
@@ -104,6 +111,17 @@ class AdminerConfig extends Adminer\Plugin {
 			'Design' => 'デザイン',
 			'Use %s if exists' => 'あれば %s を使う',
 			'Use builtin design' => '組込みのデザインを使う',
+			'Save' => '保存',
+		),
+		'hr' => array(
+			'' => 'Nikola Radovanović - cobisimo@gmail.com',
+			'Configuration saved.' => 'Konfiguracija je spremljena.',
+			'Configuration' => 'Konfiguracija',
+			'Only some plugins support configuration, e.g. %s.' => 'Samo neki dodaci podržavaju konfiguraciju, npr. %s.',
+			'Use %s if exists' => 'Koristi %s ako postoji',
+			'Use builtin design' => 'Koristi ugrađeni dizajn',
+			'Design' => 'Dizajn',
+			'Save' => 'Spremi',
 		),
 	);
 }
