@@ -276,11 +276,11 @@ class Multismtp
 
 		$this->smtp_id = $resql->smtp_id ?? null;
 		$this->smtp_auth_type = empty($resql->smtp_auth_type ?? null) ? 'LOGIN' : $resql->smtp_auth_type;
-		$this->smtp_pw = $resql->smtp_pw ?? null;
+		$this->smtp_pw = !empty($resql->smtp_pw) ? dolDecrypt($resql->smtp_pw) : ($resql->smtp_pw ?? null);	// InfraS change : was stored/read in clear ; dolDecrypt() is a no-op on old plaintext rows (upgraded to encrypted on next save)
 		$this->smtp_oauth_service = $resql->smtp_oauth_service ?? null;
 		$this->smtp_oauth_provider = $resql->smtp_oauth_provider ?? null;
 		$this->smtp_oauth_id = $resql->smtp_oauth_id ?? null;
-		$this->smtp_oauth_secret = $resql->smtp_oauth_secret ?? null;
+		$this->smtp_oauth_secret = !empty($resql->smtp_oauth_secret) ? dolDecrypt($resql->smtp_oauth_secret) : ($resql->smtp_oauth_secret ?? null);	// InfraS change : same as smtp_pw above
 		$this->smtp_oauth_url_authorize = $resql->smtp_oauth_url_authorize ?? null;
 		$this->smtp_oauth_scope = $resql->smtp_oauth_scope ?? null;
 		$this->smtp_oauth_tenant = $resql->smtp_oauth_tenant ?? null;
@@ -290,11 +290,11 @@ class Multismtp
 		$this->smtp_starttls = (bool) ($resql->smtp_starttls ?? false);
 		$this->imap_id = $resql->imap_id ?? null;
 		$this->imap_auth_type = empty($resql->imap_auth_type ?? null) ? 'LOGIN' : $resql->imap_auth_type;
-		$this->imap_pw = $resql->imap_pw ?? null;
+		$this->imap_pw = !empty($resql->imap_pw) ? dolDecrypt($resql->imap_pw) : ($resql->imap_pw ?? null);	// InfraS change : was stored/read in clear ; dolDecrypt() is a no-op on old plaintext rows (upgraded to encrypted on next save)
 		$this->imap_oauth_service = $resql->imap_oauth_service ?? null;
 		$this->imap_oauth_provider = $resql->imap_oauth_provider ?? null;
 		$this->imap_oauth_id = $resql->imap_oauth_id ?? null;
-		$this->imap_oauth_secret = $resql->imap_oauth_secret ?? null;
+		$this->imap_oauth_secret = !empty($resql->imap_oauth_secret) ? dolDecrypt($resql->imap_oauth_secret) : ($resql->imap_oauth_secret ?? null);	// InfraS change : same as imap_pw above
 		$this->imap_oauth_url_authorize = $resql->imap_oauth_url_authorize ?? null;
 		$this->imap_oauth_scope = $resql->imap_oauth_scope ?? null;
 		$this->imap_oauth_tenant = $resql->imap_oauth_tenant ?? null;
@@ -345,7 +345,7 @@ class Multismtp
 		}
 
 		// if (!$conf->global->MULTISMTP_IMAP_CONF_SERVER) {
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER'))) { // InfraS change
 			$imap_server = $this->imap_server;
 
 			if ($this->imap_tls !== null) {
@@ -353,7 +353,7 @@ class Multismtp
 			}
 		}
 
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_PORT) && $this->imap_port !== null) {
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_PORT')) && $this->imap_port !== null) { // InfraS change
 			$imap_port = (int) $this->imap_port;
 		}
 
@@ -364,11 +364,11 @@ class Multismtp
 			) VALUES (
 			" . ($this->smtp_id ? "'" . $this->db->escape($this->smtp_id) . "'" : "null") . ",
 			" . ($this->smtp_auth_type ? "'" . $this->db->escape($this->smtp_auth_type) . "'" : "null") . ",
-			" . ($this->smtp_pw ? "'" . $this->db->escape($this->smtp_pw) . "'" : "null") . ",
+			" . ($this->smtp_pw ? "'" . $this->db->escape(dolEncrypt($this->smtp_pw)) . "'" : "null") . ",
 			" . ($this->smtp_oauth_service ? "'" . $this->db->escape($this->smtp_oauth_service) . "'" : "null") . ",
 			" . ($this->smtp_oauth_provider ? "'" . $this->db->escape($this->smtp_oauth_provider) . "'" : "null") . ",
 			" . ($this->smtp_oauth_id ? "'" . $this->db->escape($this->smtp_oauth_id) . "'" : "null") . ",
-			" . ($this->smtp_oauth_secret ? "'" . $this->db->escape($this->smtp_oauth_secret) . "'" : "null") . ",
+			" . ($this->smtp_oauth_secret ? "'" . $this->db->escape(dolEncrypt($this->smtp_oauth_secret)) . "'" : "null") . ",
 			" . ($this->smtp_oauth_url_authorize ? "'" . $this->db->escape($this->smtp_oauth_url_authorize) . "'" : "null") . ",
 			" . ($this->smtp_oauth_scope ? "'" . $this->db->escape($this->smtp_oauth_scope) . "'" : "null") . ",
 			" . ($this->smtp_oauth_tenant ? "'" . $this->db->escape($this->smtp_oauth_tenant) . "'" : "null") . ",
@@ -378,11 +378,11 @@ class Multismtp
 			" . ($smtp_starttls ?: "null") . ",
 			" . ($this->imap_id ? "'" . $this->db->escape($this->imap_id) . "'" : "null") . ",
 			" . ($this->imap_auth_type ? "'" . $this->db->escape($this->imap_auth_type) . "'" : "null") . ",
-			" . ($this->imap_pw ? "'" . $this->db->escape($this->imap_pw) . "'" : "null") . ",
+			" . ($this->imap_pw ? "'" . $this->db->escape(dolEncrypt($this->imap_pw)) . "'" : "null") . ",
 			" . ($this->imap_oauth_service ? "'" . $this->db->escape($this->imap_oauth_service) . "'" : "null") . ",
 			" . ($this->imap_oauth_provider ? "'" . $this->db->escape($this->imap_oauth_provider) . "'" : "null") . ",
 			" . ($this->imap_oauth_id ? "'" . $this->db->escape($this->imap_oauth_id) . "'" : "null") . ",
-			" . ($this->imap_oauth_secret ? "'" . $this->db->escape($this->imap_oauth_secret) . "'" : "null") . ",
+			" . ($this->imap_oauth_secret ? "'" . $this->db->escape(dolEncrypt($this->imap_oauth_secret)) . "'" : "null") . ",
 			" . ($this->imap_oauth_url_authorize ? "'" . $this->db->escape($this->imap_oauth_url_authorize) . "'" : "null") . ",
 			" . ($this->imap_oauth_scope ? "'" . $this->db->escape($this->imap_oauth_scope) . "'" : "null") . ",
 			" . ($this->imap_oauth_tenant ? "'" . $this->db->escape($this->imap_oauth_tenant) . "'" : "null") . ",
@@ -397,11 +397,11 @@ class Multismtp
 				$sql = "UPDATE " . MAIN_DB_PREFIX . "user2smtp SET
 		smtp_id = " . ($this->smtp_id ? "'" . $this->db->escape($this->smtp_id) . "'" : "null") . ",
 		smtp_auth_type = " . ($this->smtp_auth_type ? "'" . $this->db->escape($this->smtp_auth_type) . "'" : "null") . ",
-		smtp_pw = " . ($this->smtp_pw ? "'" . $this->db->escape($this->smtp_pw) . "'" : "null") . ",
+		smtp_pw = " . ($this->smtp_pw ? "'" . $this->db->escape(dolEncrypt($this->smtp_pw)) . "'" : "null") . ",
 		smtp_oauth_service = " . ($this->smtp_oauth_service ? "'" . $this->db->escape($this->smtp_oauth_service) . "'" : "null") . ",
 		smtp_oauth_provider = " . ($this->smtp_oauth_provider ? "'" . $this->db->escape($this->smtp_oauth_provider) . "'" : "null") . ",
 		smtp_oauth_id = " . ($this->smtp_oauth_id ? "'" . $this->db->escape($this->smtp_oauth_id) . "'" : "null") . ",
-		smtp_oauth_secret = " . ($this->smtp_oauth_secret ? "'" . $this->db->escape($this->smtp_oauth_secret) . "'" : "null") . ",
+		smtp_oauth_secret = " . ($this->smtp_oauth_secret ? "'" . $this->db->escape(dolEncrypt($this->smtp_oauth_secret)) . "'" : "null") . ",
 		smtp_oauth_url_authorize = " . ($this->smtp_oauth_url_authorize ? "'" . $this->db->escape($this->smtp_oauth_url_authorize) . "'" : "null") . ",
 		smtp_oauth_scope = " . ($this->smtp_oauth_scope ? "'" . $this->db->escape($this->smtp_oauth_scope) . "'" : "null") . ",
 		smtp_oauth_tenant = " . ($this->smtp_oauth_tenant ? "'" . $this->db->escape($this->smtp_oauth_tenant) . "'" : "null") . ",
@@ -411,11 +411,11 @@ class Multismtp
 		smtp_starttls = " . ($smtp_starttls ?: "null") . ",
 		imap_id = " . ($this->imap_id ? "'" . $this->db->escape($this->imap_id) . "'" : "null") . ",
 		imap_auth_type = " . ($this->imap_auth_type ? "'" . $this->db->escape($this->imap_auth_type) . "'" : "null") . ",
-		imap_pw = " . ($this->imap_pw ? "'" . $this->db->escape($this->imap_pw) . "'" : "null") . ",
+		imap_pw = " . ($this->imap_pw ? "'" . $this->db->escape(dolEncrypt($this->imap_pw)) . "'" : "null") . ",
 		imap_oauth_service = " . ($this->imap_oauth_service ? "'" . $this->db->escape($this->imap_oauth_service) . "'" : "null") . ",
 		imap_oauth_provider = " . ($this->imap_oauth_provider ? "'" . $this->db->escape($this->imap_oauth_provider) . "'" : "null") . ",
 		imap_oauth_id = " . ($this->imap_oauth_id ? "'" . $this->db->escape($this->imap_oauth_id) . "'" : "null") . ",
-		imap_oauth_secret = " . ($this->imap_oauth_secret ? "'" . $this->db->escape($this->imap_oauth_secret) . "'" : "null") . ",
+		imap_oauth_secret = " . ($this->imap_oauth_secret ? "'" . $this->db->escape(dolEncrypt($this->imap_oauth_secret)) . "'" : "null") . ",
 		imap_oauth_url_authorize = " . ($this->imap_oauth_url_authorize ? "'" . $this->db->escape($this->imap_oauth_url_authorize) . "'" : "null") . ",
 		imap_oauth_scope = " . ($this->imap_oauth_scope ? "'" . $this->db->escape($this->imap_oauth_scope) . "'" : "null") . ",
 		imap_oauth_tenant = " . ($this->imap_oauth_tenant ? "'" . $this->db->escape($this->imap_oauth_tenant) . "'" : "null") . ",
@@ -567,12 +567,12 @@ class Multismtp
 			return false;
 		}
 
-		if ($conf->global->MAIN_MAIL_SENDMODE == 'smtps') {
+		if (getDolGlobalString('MAIN_MAIL_SENDMODE') == 'smtps') { // InfraS change
 			$header = $mailfile->smtps->getHeader();
 			$body = $mailfile->smtps->getBodyContent();
 
 			$string = $header . $body;
-		} elseif ($conf->global->MAIN_MAIL_SENDMODE == 'swiftmailer') {
+		} elseif (getDolGlobalString('MAIN_MAIL_SENDMODE') == 'swiftmailer') { // InfraS change
 			$string = $mailfile->message->toString();
 		} else {
 			$header = $mailfile->headers;
@@ -686,14 +686,12 @@ smtp_oauth_tenant = NULL";
 		$user_id = !empty($this->fk_user) ? $this->fk_user : $user->id;
 
 		$array = array(
-			// InfraS change begin : getDolGlobalString() au lieu d'accès directs à $conf->global (warning "Undefined property" en PHP 8 quand la constante est absente)
-			'server' => getDolGlobalString('MAIN_MAIL_SMTP_SERVER'),
-			'port' => getDolGlobalString('MAIN_MAIL_SMTP_PORT'),
-			'tls' => getDolGlobalString('MAIN_MAIL_EMAIL_TLS'),
-			'starttls' => getDolGlobalString('MAIN_MAIL_EMAIL_STARTTLS'),
-			// InfraS change end
+			'server' => getDolGlobalString('MAIN_MAIL_SMTP_SERVER'), // InfraS change
+			'port' => getDolGlobalInt('MAIN_MAIL_SMTP_PORT'), // InfraS change
+			'tls' => getDolGlobalInt('MAIN_MAIL_EMAIL_TLS'), // InfraS change
+			'starttls' => getDolGlobalInt('MAIN_MAIL_EMAIL_STARTTLS'), // InfraS change
 			'id' => $this->smtp_id,
-			'auth_type' => getDolGlobalString('MAIN_MAIL_SMTPS_AUTH_TYPE'), // InfraS change : même correctif (constante absente sur cette instance → 172 warnings/jour)
+			'auth_type' => getDolGlobalString('MAIN_MAIL_SMTPS_AUTH_TYPE'), // InfraS change
 			'pw' => $this->smtp_pw,
 			'oauth_service' => getDolGlobalString('MAIN_MAIL_SMTPS_OAUTH_SERVICE'), // InfraS change
 			'oauth_service_user' => '',
@@ -780,21 +778,21 @@ smtp_oauth_tenant = NULL";
 
 		if (empty($array['auth_type'])) $array['auth_type'] = 'LOGIN';
 
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
-			$array['server'] = $conf->global->MULTISMTP_IMAP_CONF_SERVER;
-			$array['tls'] = $conf->global->MULTISMTP_IMAP_CONF_TLS;
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER'))) { // InfraS change
+			$array['server'] = getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER'); // InfraS change
+			$array['tls'] = getDolGlobalInt('MULTISMTP_IMAP_CONF_TLS'); // InfraS change
 		}
 
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_PORT)) {
-			$array['port'] = $conf->global->MULTISMTP_IMAP_CONF_PORT;
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_PORT'))) { // InfraS change
+			$array['port'] = getDolGlobalString('MULTISMTP_IMAP_CONF_PORT'); // InfraS change
 		}
 
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER'))) { // InfraS change
 			$array['auth_type'] = getDolGlobalString('MULTISMTP_IMAP_CONF_AUTH_TYPE');
 		}
 
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE)) {
-			$array['oauth_service'] = $conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE;
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_OAUTH_SERVICE'))) { // InfraS change
+			$array['oauth_service'] = getDolGlobalString('MULTISMTP_IMAP_CONF_OAUTH_SERVICE'); // InfraS change
 			$array['oauth_provider'] = '';
 			$array['oauth_id'] = '';
 			$array['oauth_secret'] = '';
@@ -946,7 +944,7 @@ smtp_oauth_tenant = NULL";
 			*/
 			$act = GETPOST('action', 'alphanohtml');
 			$send_from_card_by_user = $act == 'send' && GETPOST('fromtype', 'alphanohtml') == 'user';
-			$not_sent_from_card = empty($conf->global->MULTISMTP_SENT_ONLY_FROM_CARD) && $act != 'send';
+			$not_sent_from_card = empty(getDolGlobalInt('MULTISMTP_SENT_ONLY_FROM_CARD')) && $act != 'send'; // InfraS change
 			$result = $multismtp->fetch($user);
 			if ($result > 0) {
 				$smtpConfigCheck = $multismtp->checkSmtpConfig();
@@ -968,7 +966,7 @@ smtp_oauth_tenant = NULL";
 					$conf->global->MAIN_MAIL_SMTPS_PW = $smtpCredentials['pw'];
 					$conf->global->MAIN_MAIL_SMTPS_OAUTH_SERVICE = $smtpCredentials['oauth_service_user'];
 
-					if (!empty($conf->global->MULTISMTP_REPLACE_MAIL_EMAIL_FROM)) $conf->global->MAIN_MAIL_EMAIL_FROM = $smtpCredentials['id'];
+					if (!empty(getDolGlobalString('MULTISMTP_REPLACE_MAIL_EMAIL_FROM'))) $conf->global->MAIN_MAIL_EMAIL_FROM = $smtpCredentials['id']; // InfraS change
 				}
 
 				// Manage Oauth2 globals for user

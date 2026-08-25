@@ -101,8 +101,8 @@ if (empty($type) || empty($provider)) {
 				$outjson = array(
 					'error' => $langs->transn('ErrorRecordNotFound'),
 				);
-			} elseif (checkUserAccessToObject($user, array('user'), $id, 'user&user', $user->socid > 0 && $user->rights->user->self->creer ? '' : 'user', '', 'rowid')
-				&& ($user->admin || $user->rights->user->user->lire || $user->id == $id)
+			} elseif (checkUserAccessToObject($user, array('user'), $id, 'user&user', $user->socid > 0 && $user->hasRight('user', 'self', 'creer') ? '' : 'user', '', 'rowid') // InfraS change
+				&& ($user->admin || $user->hasRight('user', 'user', 'lire') || $user->id == $id) // InfraS change
 			) {
 				$multismtp = new Multismtp($db, $conf);
 				$multismtp->fetch($fuser);
@@ -116,7 +116,7 @@ if (empty($type) || empty($provider)) {
 				$supportedoauth2array = getSupportedOauth2Array();
 				$keyforsupportedoauth2array = strtoupper($provider) . '_NAME';
 				if (in_array($keyforsupportedoauth2array, array_keys($supportedoauth2array))) {
-					$allow_change_server = ($type == 'imap' && empty($conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE)) || ($type == 'smtp' && !empty($conf->global->MULTISMTP_ALLOW_CHANGESERVER));
+					$allow_change_server = ($type == 'imap' && empty(getDolGlobalString('MULTISMTP_IMAP_CONF_OAUTH_SERVICE'))) || ($type == 'smtp' && !empty(getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER'))); // InfraS change
 					$supportedoauth2info = $supportedoauth2array[$keyforsupportedoauth2array];
 
 					$content .= '<table class="noborder centpercent">';
@@ -177,6 +177,7 @@ if (empty($type) || empty($provider)) {
 						$content .= !empty($credentials['oauth_secret']) ? '**********' : '';
 					} else {
 						$content .= '<input type="password" size="100" id="' . $type . '_oauth_secret" name="' . strtoupper($type) . '_OAUTH_SECRET" value="' . ($provider == $credentials['oauth_provider'] ? dol_escape_js($credentials['oauth_secret'], 2) : '') . '">';
+					$content .= '<span class="fa fa-eye paddingleft paddingright" onclick="newtype = (jQuery(\'#' . $type . '_oauth_secret\').attr(\'type\') == \'text\' ? \'password\' : \'text\'); jQuery(\'#' . $type . '_oauth_secret\').attr(\'type\', newtype);"></span>';	// InfraS add
 					}
 					$content .= '</td>';
 					$content .= '</tr>';

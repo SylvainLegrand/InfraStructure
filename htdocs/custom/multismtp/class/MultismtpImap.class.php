@@ -238,9 +238,9 @@ class MultismtpImap extends CommonObject
 
 		// Connect to IMAP
 		$flags = '/service=imap'; // IMAP
-		if (!empty($conf->global->IMAP_FORCE_TLS)) {
+		if (!empty(getDolGlobalString('IMAP_FORCE_TLS'))) { // InfraS change
 			$flags .= '/tls';
-		} elseif (empty($this->imap_encryption) || ($this->imap_encryption == 'ssl' && !empty($conf->global->IMAP_FORCE_NOSSL))) {
+		} elseif (empty($this->imap_encryption) || ($this->imap_encryption == 'ssl' && !empty(getDolGlobalString('IMAP_FORCE_NOSSL')))) { // InfraS change
 			$flags .= '';
 		} else {
 			$flags .= '/' . $this->imap_encryption;
@@ -251,7 +251,7 @@ class MultismtpImap extends CommonObject
 		}
 		//$flags.='/readonly';
 		//$flags.='/debug';
-		if (!empty($this->norsh) || !empty($conf->global->IMAP_FORCE_NORSH)) {
+		if (!empty($this->norsh) || !empty(getDolGlobalString('IMAP_FORCE_NORSH'))) { // InfraS change
 			$flags .= '/norsh';
 		}
 		//Used in shared mailbox from Office365

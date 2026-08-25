@@ -35,7 +35,7 @@ class ActionsMultismtp
 			$langs->load('multismtp@multismtp');
 		}
 
-		if (!$conf->global->MULTISMTP_SMTP_ENABLED) {
+		if (!getDolGlobalInt('MULTISMTP_SMTP_ENABLED')) { // InfraS change
 			return 0;
 		}
 

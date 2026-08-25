@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.5.0] - 25-08-2026
+- Ajout d'un nouvel onglet d'administration "SMTP2GO" : saisie de la clé API, création/édition des utilisateurs SMTP2GO liés à un utilisateur Dolibarr, création de sous-comptes.
+- Ajout d'une vérification de la robustesse du mot de passe à la création d'un utilisateur SMTP2GO.
+- Correction (sécurité) : les mots de passe SMTP et IMAP ainsi que les secrets OAuth2 enregistrés pour chaque utilisateur sont désormais chiffrés en base de données au lieu d'être stockés en clair ; la lecture reste compatible avec les valeurs déjà enregistrées en clair, qui sont rechiffrées automatiquement à la prochaine sauvegarde
+- Correction (sécurité) : durcissement du contrôle d'accès du point d'entrée AJAX de configuration OAuth2 (`ajax/oauthsetup.php`)
+
 ## [14.4.18] - 19-03-2026
 - FIX : Multismtp bloquait le fait de déplacer une ligne de propal/commande/etc.
 
