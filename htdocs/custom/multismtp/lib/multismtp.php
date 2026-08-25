@@ -27,6 +27,7 @@
 function multismtp_admin_prepare_head()
 {
     global $langs, $conf, $user;
+    
     $h = 0;
     $head = array();
 
@@ -34,6 +35,13 @@ function multismtp_admin_prepare_head()
     $head[$h][1] = $langs->trans("Parameters");
     $head[$h][2] = 'settings';
     $h++;
+
+    // InfraS add begin
+    $head[$h][0] = dol_buildpath("/multismtp/admin/smtp2go.php", 1);
+    $head[$h][1] = $langs->trans("Smtp2goTab");
+    $head[$h][2] = 'smtp2go';
+    $h++;
+    // InfraS add end
 
     $head[$h][0] = dol_buildpath("/multismtp/admin/about.php", 1);
     $head[$h][1] = $langs->trans("About") . " / " . $langs->trans("Support");

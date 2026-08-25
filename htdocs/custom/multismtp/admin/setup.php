@@ -163,12 +163,12 @@ $token=newToken();
 print '<br><div class="titre">SMTP</div>';
 print '<p>'.$langs->trans('SMTPDescription').'</p>';
 
-if (!empty($conf->global->MAIN_DISABLE_ALL_MAILS)) {
+if (!empty(getDolGlobalString('MAIN_DISABLE_ALL_MAILS'))) { // InfraS change
 	echo info_admin($langs->trans('WarningMailDisabled',
 		'<a href="'.dol_buildpath('/admin/mails.php', 2).'">', '</a>'));
 }
 
-if (empty($conf->global->MAIN_MAIL_SENDMODE) || $conf->global->MAIN_MAIL_SENDMODE == 'mail') {
+if (empty(getDolGlobalString('MAIN_MAIL_SENDMODE')) || getDolGlobalString('MAIN_MAIL_SENDMODE') == 'mail') { // InfraS change
 	echo info_admin($langs->trans('WarningMailSendMode', $langs->transnoentities('MAIN_MAIL_SENDMODE'),
 		'<a href="'.dol_buildpath('/admin/mails.php', 2).'">', '</a>'));
 } else {
@@ -178,33 +178,33 @@ if (empty($conf->global->MAIN_MAIL_SENDMODE) || $conf->global->MAIN_MAIL_SENDMOD
 
 	// Enable/Disable
 	print '<tr class="impair"><td>'.$langs->trans("MULTISMTP_SMTP_ENABLED").'</td><td>';
-	if ($conf->global->MULTISMTP_SMTP_ENABLED == 1) {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=disable&c=MULTISMTP_SMTP_ENABLED&token='.$token.'">'.img_picto($langs->trans("Enabled"),
+	if (getDolGlobalInt('MULTISMTP_SMTP_ENABLED') == 1) { // InfraS change
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=disable&c=MULTISMTP_SMTP_ENABLED&token='.$token.'">'.img_picto($langs->trans("Enabled"), // InfraS change
 				'switch_on').'</a>';
 	} else {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=enable&c=MULTISMTP_SMTP_ENABLED&token='.$token.'">'.img_picto($langs->trans("Disabled"),
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=enable&c=MULTISMTP_SMTP_ENABLED&token='.$token.'">'.img_picto($langs->trans("Disabled"), // InfraS change
 				'switch_off').'</a>';
 	}
 	print '</td></tr>';
 
 	// MultiSMTP only from card
 	print '<tr class="impair"><td>'.$langs->trans("MULTISMTP_SENT_ONLY_FROM_CARD").'</td><td>';
-	if ($conf->global->MULTISMTP_SENT_ONLY_FROM_CARD == 1) {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=disable&c=MULTISMTP_SENT_ONLY_FROM_CARD">'.img_picto($langs->trans("Enabled"),
+	if (getDolGlobalInt('MULTISMTP_SENT_ONLY_FROM_CARD') == 1) { // InfraS change
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=disable&c=MULTISMTP_SENT_ONLY_FROM_CARD">'.img_picto($langs->trans("Enabled"), // InfraS change
 				'switch_on').'</a>';
 	} else {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=enable&c=MULTISMTP_SENT_ONLY_FROM_CARD">'.img_picto($langs->trans("Disabled"),
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=enable&c=MULTISMTP_SENT_ONLY_FROM_CARD">'.img_picto($langs->trans("Disabled"), // InfraS change
 				'switch_off').'</a>';
 	}
 	print '</td></tr>';
 
 	// Allow changing SMTP server
 	print '<tr class="pair"><td>'.$langs->trans("MULTISMTP_ALLOW_CHANGESERVER").'</td><td>';
-	if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=disable&c=MULTISMTP_ALLOW_CHANGESERVER&token='.$token.'">'.img_picto($langs->trans("Enabled"),
+	if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') == 1) { // InfraS change
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=disable&c=MULTISMTP_ALLOW_CHANGESERVER&token='.$token.'">'.img_picto($langs->trans("Enabled"), // InfraS change
 				'switch_on').'</a>';
 	} else {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=enable&c=MULTISMTP_ALLOW_CHANGESERVER&token='.$token.'">'.img_picto($langs->trans("Disabled"),
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=enable&c=MULTISMTP_ALLOW_CHANGESERVER&token='.$token.'">'.img_picto($langs->trans("Disabled"), // InfraS change
 				'switch_off').'</a>';
 	}
 	print '</td></tr>';
@@ -253,9 +253,9 @@ print $langs->trans("MAIN_IMAP_USE_PHPIMAP");
 print '</td>';
 print '<td class="left">';
 if (getDolGlobalString('MAIN_IMAP_USE_PHPIMAP')) {
-	print '<a href="' . $_SERVER['PHP_SELF'] . '?action=disable&c=MAIN_IMAP_USE_PHPIMAP&token=' . $token . '">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+	print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=disable&c=MAIN_IMAP_USE_PHPIMAP&token=' . $token . '">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>'; // InfraS change
 } else {
-	print '<a href="' . $_SERVER['PHP_SELF'] . '?action=enable&c=MAIN_IMAP_USE_PHPIMAP&token='.$token.'">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
+	print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=enable&c=MAIN_IMAP_USE_PHPIMAP&token='.$token.'">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>'; // InfraS change
 }
 print '</td>';
 print '</tr>';
@@ -263,10 +263,10 @@ print '</tr>';
 // Enable/Disable
 print '<tr class="oddeven"><td>'.$langs->trans("MULTISMTP_IMAP_ENABLED").'</td><td>';
 if (MultismtpImap::isEnabled()) {
-	print '<a href="' . $_SERVER['PHP_SELF'] . '?action=disable&c=MULTISMTP_IMAP_ENABLED&token=' . $token . '">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+	print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=disable&c=MULTISMTP_IMAP_ENABLED&token=' . $token . '">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>'; // InfraS change
 } else {
 	if (MultismtpImap::isEnabled(true)) {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=enable&c=MULTISMTP_IMAP_ENABLED&token='.$token.'">'.img_picto($langs->trans("Disabled"),
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=enable&c=MULTISMTP_IMAP_ENABLED&token='.$token.'">'.img_picto($langs->trans("Disabled"), // InfraS change
 				'switch_off').'</a>';
 	} else {
 		print img_warning().' '.$langs->trans('IMAPNotAvailable');
@@ -279,18 +279,18 @@ if (MultismtpImap::isEnabled(true)) {
 
 	// Allow self-signed certificates
 	print '<tr class="oddeven"><td>'.$langs->trans('MULTISMTP_IMAP_NOVALIDATECERT').'</td><td>';
-	if ($conf->global->MULTISMTP_IMAP_NOVALIDATECERT == 1) {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=disable&c=MULTISMTP_IMAP_NOVALIDATECERT&token='.$token.'">'.img_picto($langs->trans("Enabled"),
+	if (getDolGlobalInt('MULTISMTP_IMAP_NOVALIDATECERT') == 1) { // InfraS change
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=disable&c=MULTISMTP_IMAP_NOVALIDATECERT&token='.$token.'">'.img_picto($langs->trans("Enabled"), // InfraS change
 				'switch_on').'</a>';
 	} else {
-		print '<a href="' . $_SERVER['PHP_SELF'] . '?action=enable&c=MULTISMTP_IMAP_NOVALIDATECERT&token='.$token.'">'.img_picto($langs->trans("Disabled"),
+		print '<a href="' . dol_escape_htmltag($_SERVER['PHP_SELF']) . '?action=enable&c=MULTISMTP_IMAP_NOVALIDATECERT&token='.$token.'">'.img_picto($langs->trans("Disabled"), // InfraS change
 				'switch_off').'</a>';
 	}
 	print '</td></tr>';
 
 	// Restrict IMAP server
 	print '<tr class="oddeven"><td>'.$langs->trans("Host").'</td><td>';
-	print '<input type="text" name="MULTISMTP_IMAP_CONF_SERVER" value="'.($conf->global->MULTISMTP_IMAP_CONF_SERVER ?? '').'" class="flat"';
+	print '<input type="text" name="MULTISMTP_IMAP_CONF_SERVER" value="'.getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER').'" class="flat"'; // InfraS change
 	if (!MultismtpImap::isEnabled()) {
 		print 'disabled';
 	}
@@ -299,7 +299,7 @@ if (MultismtpImap::isEnabled(true)) {
 
 	// Restrict IMAP port
 	print '<tr class="oddeven"><td>'.$langs->trans("Port").'</td><td>';
-	print '<input type="text" name="MULTISMTP_IMAP_CONF_PORT" value="'.($conf->global->MULTISMTP_IMAP_CONF_PORT ?? '').'" size="4" class="flat"';
+	print '<input type="text" name="MULTISMTP_IMAP_CONF_PORT" value="'.getDolGlobalString('MULTISMTP_IMAP_CONF_PORT').'" size="4" class="flat"'; // InfraS change
 	if (!MultismtpImap::isEnabled()) {
 		print 'disabled';
 	}
@@ -308,7 +308,7 @@ if (MultismtpImap::isEnabled(true)) {
 
 	// Restrict IMAP tls
 	print '<tr class="oddeven"><td>'.$langs->trans("MULTISMTP_IMAP_CONF_SSL").'</td><td>';
-	print $form->selectyesno('MULTISMTP_IMAP_CONF_TLS', ($conf->global->MULTISMTP_IMAP_CONF_TLS ?? ''), 1, !MultismtpImap::isEnabled());
+	print $form->selectyesno('MULTISMTP_IMAP_CONF_TLS', getDolGlobalInt('MULTISMTP_IMAP_CONF_TLS'), 1, !MultismtpImap::isEnabled()); // InfraS change
 	print '</td></tr>';
 
 	// Restrict IMAP auth mode

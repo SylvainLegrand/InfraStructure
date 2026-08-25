@@ -61,6 +61,7 @@ require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 dol_include_once('/multismtp/lib/oauth.lib.php');
 dol_include_once('/multismtp/class/Multismtp.class.php');
 dol_include_once('/multismtp/lib/multismtp.php');
+dol_include_once('/multismtp/lib/smtp2go.lib.php');	// InfraS add
 
 use OAuth\Common\Storage\DoliStorage;
 
@@ -176,7 +177,7 @@ if ($action == 'update' && empty($_POST["cancel"]) && $caneditfield) {
 		}
 	}
 
-	if ($conf->global->MULTISMTP_SMTP_ENABLED) {
+	if (getDolGlobalInt('MULTISMTP_SMTP_ENABLED')) { // InfraS change
 		$main_mail_smtps_id = GETPOST('MAIN_MAIL_SMTPS_ID');
 		$main_mail_smtps_auth_type = GETPOST('MAIN_MAIL_SMTPS_AUTH_TYPE');
 		$main_mail_smtps_pw = GETPOST('MAIN_MAIL_SMTPS_PW', "none");
@@ -308,10 +309,10 @@ foreach ($list as $key) {
 	$oathProviderOptions[str_replace('_NAME', '', $keyforsupportedoauth2array)] = $supportedoauth2array[$keyforsupportedoauth2array]['name'];
 }
 
-$atlestoneenabled = $conf->global->MULTISMTP_SMTP_ENABLED || MultismtpImap::isEnabled();
+$atlestoneenabled = getDolGlobalInt('MULTISMTP_SMTP_ENABLED') || MultismtpImap::isEnabled(); // InfraS change
 
 if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
-	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'?id='.$id.'">';
+	print '<form method="POST" action="'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?id='.$id.'">'; // InfraS change
 	print '<input type="hidden" name="action" value="update">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 }
@@ -327,7 +328,7 @@ $smtp_credentials = $multismtp->getSmtpCredentials();
 $imap_credentials = $multismtp->getImapCredentials();
 
 if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
-	if ($conf->use_javascript_ajax && ($conf->global->MULTISMTP_SMTP_ENABLED || MultismtpImap::isEnabled())) {
+	if ($conf->use_javascript_ajax && (getDolGlobalInt('MULTISMTP_SMTP_ENABLED') || MultismtpImap::isEnabled())) { // InfraS change
 		$ajaxUrl = dol_buildpath('/multismtp/ajax/oauthsetup.php', 1);
 		print "\n".'<script type="text/javascript" language="javascript">';
 		print 'jQuery(document).ready(function () {
@@ -415,14 +416,14 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 		print '</script>'."\n";
 	}
 
-	if ($conf->global->MULTISMTP_SMTP_ENABLED) {
+	if (getDolGlobalInt('MULTISMTP_SMTP_ENABLED')) { // InfraS change
 		print '<div class="titre">'.$langs->trans('SMTPConfiguration').'</div>';
 		print '<br><table class="border" width="100%">';
 
 		// Server
 		print '<tr class="oddeven"><td>'.$langs->trans("MAIN_MAIL_SMTP_SERVER", $smtp_iniserver).'</td><td>';
 
-		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
+		if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') == 1) { // InfraS change
 			print '<input type="text" class="flat" size="32" name="MAIN_MAIL_SMTP_SERVER" value="'.$smtp_credentials['server'].'">';
 		} else {
 			print dol_htmlentities($smtp_credentials['server']);
@@ -431,7 +432,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 
 		// Port
 		print '<tr class="oddeven"><td>'.$langs->trans("MAIN_MAIL_SMTP_PORT", $smtp_iniport).'</td><td>';
-		if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
+		if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') == 1) { // InfraS change
 			print '<input type="text" class="flat" size="3" name="MAIN_MAIL_SMTP_PORT" value="'.$smtp_credentials['port'].'">';
 		} else {
 			print dol_htmlentities($smtp_credentials['port']);
@@ -441,7 +442,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 		// TLS
 		print '<tr class="oddeven"><td>'.$langs->trans("MAIN_MAIL_EMAIL_TLS").'</td><td>';
 		if (function_exists('openssl_open')) {
-			if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
+			if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') == 1) { // InfraS change
 				print $form->selectyesno('MAIN_MAIL_EMAIL_TLS', $smtp_credentials['tls'], 1);
 			} else {
 				print yn($smtp_credentials['tls']);
@@ -456,7 +457,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 		if (versioncompare(versiondolibarrarray(), array(4,0,-5)) >= 0) {
 			$var = !$var;
 			print '<tr class="oddeven"><td>'.$langs->trans("MAIN_MAIL_EMAIL_STARTTLS").'</td><td>';
-			if ($conf->global->MULTISMTP_ALLOW_CHANGESERVER == 1) {
+			if (getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER') == 1) { // InfraS change
 				print $form->selectyesno('MAIN_MAIL_EMAIL_STARTTLS', $smtp_credentials['starttls'], 1);
 			} else {
 				print yn($smtp_credentials['starttls']);
@@ -465,26 +466,37 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 		}
 
 		// Auth mode
-		$disabled = empty($conf->global->MULTISMTP_ALLOW_CHANGESERVER) ? ' disabled="disabled"' : '';
+		$disabled	= empty(getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER')) ? ' disabled="disabled"' : ''; // InfraS change
+		$userLink	= multismtp_smtp2go_get_user_credentials($id);	// InfraS add
+		$smtp2go_apikey_defined	= getDolGlobalString('MULTISMTP_SMTP2GO_API_KEY') != '';	// InfraS add : when SMTP2GO governs this account, its own settings page is the place to manage the SMTP username/password, not this card
 		print '<tr class="smtp_auth_method oddeven" data-type="smtp"><td>'.$langs->trans("MAIN_MAIL_SMTPS_AUTH_TYPE").'</td><td>';
 		// Note: Default value for MAIN_MAIL_SMTPS_AUTH_TYPE if not defined is 'LOGIN' (but login/pass may be empty and they won't be provided in such a case)
 		print '<input type="radio" class="radio_pw" id="smtp_radio_pw" name="MAIN_MAIL_SMTPS_AUTH_TYPE" value="LOGIN"'.($smtp_credentials['auth_type'] == 'LOGIN' ? ' checked' : '').$disabled.'> ';
 		print '<label for="smtp_radio_pw" >'.$langs->trans("UsePassword").'</label>';
 		print '&nbsp; &nbsp; &nbsp;';
-		$disabledOauth = empty($conf->global->MULTISMTP_ALLOW_CHANGESERVER) || version_compare(DOL_VERSION, '18.0.0') < 0 ? ' disabled="disabled"' : '';
+		$disabledOauth = empty(getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER')) || version_compare(DOL_VERSION, '18.0.0') < 0 ? ' disabled="disabled"' : ''; // InfraS change
 		print '<input type="radio" class="radio_oauth" id="smtp_radio_oauth" name="MAIN_MAIL_SMTPS_AUTH_TYPE" value="XOAUTH2"'.($smtp_credentials['auth_type'] == 'XOAUTH2' ? ' checked' : '').$disabledOauth.'> ';
 		print '<label for="smtp_radio_oauth" >'.$form->textwithpicto($langs->trans("UseOauth"), $langs->trans("OauthNotAvailableForAllAndHadToBeCreatedBefore")).'</label>';
 		print '</td></tr>';
 
 		// SMTPS ID
-		print '<tr class="oddeven"><td>'.$langs->trans("MAIN_MAIL_SMTPS_ID").'</td><td><input type="text" class="flat" size="32" name="MAIN_MAIL_SMTPS_ID" value="'.$smtp_credentials['id'].'"></td></tr>';
+		print '<tr class="oddeven"><td>'.$langs->trans("MAIN_MAIL_SMTPS_ID").'</td><td><input type="text" class="flat" size="32" name="MAIN_MAIL_SMTPS_ID" value="'.dol_escape_htmltag(!empty($userLink['username']) ? $userLink['username'] : $smtp_credentials['id']).'"'.($smtp2go_apikey_defined ? ' readonly' : '').'></td></tr>';	// InfraS change : readonly (but still submitted) once SMTP2GO governs this account, to avoid diverging from the value managed there
 
 		// SMTPS PW
-		print '<tr class="smtp_pw oddeven"><td>'.$langs->trans("MAIN_MAIL_SMTPS_PW").'</td><td><input type="password" class="flat" size="32" name="MAIN_MAIL_SMTPS_PW" value="'.$smtp_credentials['pw'].'"></td></tr>';
+		if ($smtp2go_apikey_defined) {	// InfraS add begin : password is managed on the SMTP2GO settings tab, not editable here anymore
+			print '<tr class="smtp_pw oddeven"><td>'.$langs->trans("MAIN_MAIL_SMTPS_PW").'</td><td>
+				<input type="hidden" name="MAIN_MAIL_SMTPS_PW" value="'.dol_escape_htmltag(!empty($userLink['password']) ? $userLink['password'] : $smtp_credentials['pw']).'">
+				<span class="opacitymedium">'.$langs->trans('Smtp2goPasswordManagedElsewhere').'</span>
+				<a href="'.dol_escape_htmltag(dol_buildpath('/multismtp/admin/smtp2go.php', 1)).'">'.$langs->trans('Smtp2goGoToSettings').'</a>
+			</td></tr>';
+		} else {
+			print '<tr class="smtp_pw oddeven"><td>'.$langs->trans("MAIN_MAIL_SMTPS_PW").'</td><td><input type="password" id="main_mail_smtps_pw" class="flat" size="32" name="MAIN_MAIL_SMTPS_PW" value="'.dol_escape_htmltag(!empty($userLink['password']) ? $userLink['password'] : $smtp_credentials['pw']).'">
+				<span class="fa fa-eye paddingleft paddingright" onclick="newtype = (jQuery(\'#main_mail_smtps_pw\').attr(\'type\') == \'text\' ? \'password\' : \'text\'); jQuery(\'#main_mail_smtps_pw\').attr(\'type\', newtype);"></span></td></tr>';
+		}	// InfraS add end
 
 		// OAUTH service provider
 		print '<tr class="smtp_oauth_service oauth_service oddeven" data-type="smtp"><td>'.$langs->trans("MAIN_MAIL_SMTPS_OAUTH_SERVICE").'</td><td>';
-		if (empty($conf->global->MULTISMTP_ALLOW_CHANGESERVER)) {
+		if (empty(getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER'))) { // InfraS change
 			if (!empty($smtp_credentials['oauth_service'])) {
 				$text = $oauthservices[$smtp_credentials['oauth_service']] ?? '';
 				if (empty($text)) {
@@ -508,7 +520,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 
 		// OAUTH provider
 		print '<tr class="smtp_oauth_provider smtp_oauth_setup oauth_provider oddeven" data-type="smtp"><td>'.$langs->trans("OAuthProvider").'</td><td>';
-		if (empty($conf->global->MULTISMTP_ALLOW_CHANGESERVER)) {
+		if (empty(getDolGlobalInt('MULTISMTP_ALLOW_CHANGESERVER'))) { // InfraS change
 			print $oathProviderOptions[$smtp_credentials['oauth_provider']] ?? '';
 			print '<input type="hidden" id="SMTP_OAUTH_PROVIDER" name="SMTP_OAUTH_PROVIDER" value="'.dol_escape_js($smtp_credentials['oauth_provider'], 2) . '">';
 		} else {
@@ -532,7 +544,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 		print '<tr class="oddeven">
 		<td>'.$langs->trans('IMAP_SERVER').'</td>
 		<td>';
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER'))) { // InfraS change
 			print dol_htmlentities($imap_credentials['server']);
 		} else {
 			print '<input type="text" class="flat" size="32" name="IMAP_SERVER" value="'.$imap_credentials['server'].'">';
@@ -542,7 +554,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 
 		// Port
 		print '<tr class="oddeven"><td>'.$langs->trans('IMAP_PORT').'</td><td>';
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_PORT)) {
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_PORT'))) { // InfraS change
 			print dol_htmlentities($imap_credentials['port']);
 		} else {
 			print '<input type="text" class="flat" size="5" name="IMAP_PORT" value="'.$imap_credentials['port'].'"></td></tr>';
@@ -550,15 +562,15 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 
 		// TLS
 		print '<tr class="oddeven"><td>'.$langs->trans("MAIN_MAIL_EMAIL_TLS").'</td><td>';
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_SERVER)) {
-			print yn($conf->global->MULTISMTP_IMAP_CONF_TLS);
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER'))) { // InfraS change
+			print yn(getDolGlobalInt('MULTISMTP_IMAP_CONF_TLS')); // InfraS change
 		} else {
 			print $form->selectyesno('IMAP_TLS', $imap_credentials['tls'], 1);
 		}
 		print '</td></tr>';
 
 		// Auth mode
-		$disabled = !empty($conf->global->MULTISMTP_IMAP_CONF_SERVER);
+		$disabled = !empty(getDolGlobalString('MULTISMTP_IMAP_CONF_SERVER')); // InfraS change
 		print '<tr class="imap_auth_method oddeven" data-type="imap"><td>'.$langs->trans("IMAP_AUTH_TYPE").'</td><td>';
 		// Note: Default value for IMAP_AUTH_TYPE if not defined is 'LOGIN' (but login/pass may be empty and they won't be provided in such a case)
 		print '<input type="radio" class="radio_pw" id="imap_radio_pw" name="IMAP_AUTH_TYPE" value="LOGIN"'.($imap_credentials['auth_type'] == 'LOGIN' ? ' checked' : '').($disabled ? ' disabled' : '').'> ';
@@ -577,11 +589,12 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 		// IMAP PW
 		print '<tr class="imap_pw oddeven">
 	<td>'.$langs->trans('IMAP_PW').'</td>
-	<td><input type="password" class="flat" size="32" name="IMAP_PW" value="'.$imap_credentials['pw'].'"></td></tr>';
+	<td><input type="password" id="imap_pw" class="flat" size="32" name="IMAP_PW" value="'.$imap_credentials['pw'].'">
+		<span class="fa fa-eye paddingleft paddingright" onclick="newtype = (jQuery(\'#imap_pw\').attr(\'type\') == \'text\' ? \'password\' : \'text\'); jQuery(\'#imap_pw\').attr(\'type\', newtype);"></span></td></tr>';	// InfraS add
 
 		// OAUTH service provider
 		print '<tr class="imap_oauth_service oauth_service oddeven" data-type="imap"><td>'.$langs->trans("IMAP_OAUTH_SERVICE").'</td><td>';
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE)) {
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_OAUTH_SERVICE'))) { // InfraS change
 			if (!empty($imap_credentials['oauth_service'])) {
 				$text = $oauthservices[$imap_credentials['oauth_service']] ?? '';
 				if (empty($text)) {
@@ -605,7 +618,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 
 		// OAUTH provider
 		print '<tr class="imap_oauth_provider imap_oauth_setup oauth_provider oddeven" data-type="imap"><td>'.$langs->trans("OAuthProvider").'</td><td>';
-		if (!empty($conf->global->MULTISMTP_IMAP_CONF_OAUTH_SERVICE)) {
+		if (!empty(getDolGlobalString('MULTISMTP_IMAP_CONF_OAUTH_SERVICE'))) { // InfraS change
 			print $oathProviderOptions[$imap_credentials['oauth_provider']] ?? '';
 			print '<input type="hidden" id="IMAP_OAUTH_PROVIDER" name="IMAP_OAUTH_PROVIDER" value="'.dol_escape_js($imap_credentials['oauth_provider'], 2) . '">';
 		} else {
@@ -629,7 +642,7 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 	print '<input class="button" type="submit" name="cancel" value="'.$langs->trans("Cancel").'">';
 	print '</div></form>';
 } else {
-	if ($conf->global->MULTISMTP_SMTP_ENABLED) {
+	if (getDolGlobalInt('MULTISMTP_SMTP_ENABLED')) { // InfraS change
 		print '<div class="titre">'.$langs->trans('SMTPConfiguration').'</div>';
 
 		print '<br><table class="border" width="100%">';
@@ -747,13 +760,13 @@ if ($action == 'edit' && $atlestoneenabled && $caneditfield) {
 		print $langs->trans('IMAP_FOLDER');
 		print '</td>';
 		if ($action != 'edit_imap_folder' && !empty($imap_folders) && $caneditfield) {
-			print '<td class="right"><a class="editfielda" href="' . $_SERVER["PHP_SELF"] . '?action=edit_imap_folder&token=' . newToken() . '&id=' . $id . '">' .
+			print '<td class="right"><a class="editfielda" href="' . dol_escape_htmltag($_SERVER["PHP_SELF"]) . '?action=edit_imap_folder&token=' . newToken() . '&id=' . $id . '">' . // InfraS change
 				img_edit($langs->transnoentitiesnoconv('MultiSmtpSetImapFolder'), 1) . '</a></td>';
 		}
 		print '</tr></table>';
 		print '</td><td>';
 		if ($action == 'edit_imap_folder' && !empty($imap_folders) && $caneditfield) {
-			print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '">';
+			print '<form method="POST" action="' . dol_escape_htmltag($_SERVER["PHP_SELF"]) . '?id=' . $id . '">'; // InfraS change
 			print '<input type="hidden" name="action" value="set_imap_folder">';
 			print '<input type="hidden" name="token" value="' . newToken() . '">';
 			print $form->selectarray('imap_folder', $imap_folders, $imap_credentials['folder'], true);
@@ -792,7 +805,7 @@ if ($action != 'edit' && $atlestoneenabled && $caneditfield) {
 	// Boutons actions
 	print '<div class="tabsAction">';
 
-	print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$id.'&action=edit">'.$langs->trans("Modify").'</a>';
+	print '<a class="butAction" href="'.dol_escape_htmltag($_SERVER["PHP_SELF"]).'?id='.$id.'&action=edit">'.$langs->trans("Modify").'</a>'; // InfraS change
 
 	print '</div>';
 }

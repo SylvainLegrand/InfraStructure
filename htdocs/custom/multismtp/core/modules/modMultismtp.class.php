@@ -100,9 +100,10 @@ class modMultismtp extends DolibarrModules
 				,'maildao'
 				,'mail'
 			),
+			'tpl'		=> 1,	// InfraS add
 			'triggers' => 1
 		);
-
+		$this->dirs = array('multismtp/sql');	// InfraS add
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
 		$this->config_page_url = array("setup.php@multismtp");
 
@@ -161,6 +162,20 @@ class modMultismtp extends DolibarrModules
 				'status' => 0,
 				'test' => 'isModEnabled("multismtp")',
 				'priority' => 50,
+			),
+			1 => array(
+				'label'         => 'Multismtp - Synchronisation utilisateurs SMTP2GO',
+				'jobtype'       => 'method',
+				'class'         => '/multismtp/class/multismtp_smtp2go.class.php',
+				'objectname'    => 'MultiSMTP_Smtp2go',
+				'method'        => 'cronSyncUsers',
+				'parameters'    => '',
+				'comment'       => 'Synchronise la table locale avec les utilisateurs SMTP existants sur SMTP2GO',
+				'frequency'     => 1,
+				'unitfrequency' => 3600 * 24,
+				'status'        => 1,	// activée par défaut
+				'test'          => 'isModEnabled("multismtp")',	// InfraS change : cohérence avec le job ci-dessus
+				'priority'      => 55,
 			),
 		);
 	}
