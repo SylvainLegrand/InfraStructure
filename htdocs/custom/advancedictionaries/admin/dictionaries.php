@@ -70,11 +70,13 @@ $prevrowid   = GETPOST('prevrowid', 'int');
 $module      = GETPOST('module', 'alpha');
 $name        = GETPOST('name', 'alpha');
 
-$canRead = $user->rights->advancedictionaries->read;
-$canCreate = $user->rights->advancedictionaries->create;
-$canUpdate = $user->rights->advancedictionaries->create;
-$canDelete = $user->rights->advancedictionaries->delete;
-$canDisable = $user->rights->advancedictionaries->disable;
+// InfraS change begin
+$canRead = $user->hasRight('advancedictionaries', 'read');
+$canCreate = $user->hasRight('advancedictionaries', 'create');
+$canUpdate = $user->hasRight('advancedictionaries', 'create');
+$canDelete = $user->hasRight('advancedictionaries', 'delete');
+$canDisable = $user->hasRight('advancedictionaries', 'disable');
+// InfraS change end
 
 require dol_buildpath('/advancedictionaries/core/actions_dictionaries.inc.php');
 
