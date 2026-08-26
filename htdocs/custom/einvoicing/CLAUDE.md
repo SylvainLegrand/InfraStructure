@@ -18,7 +18,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+ (documentation GFDL)
 - Compatibilité Dolibarr : `17.0` minimum, pas de maximum déclaré (branches de code jusqu'à 24.0)
 - Compatibilité PHP : `7.2` minimum
-- Version locale : `1.0.3` (fichier `VERSION`) — le `ChangeLog.md` documente déjà une section `1.0.4` en cours
+- Version locale : `1.1.0` (fichier `VERSION`, alignée sur la dernière section du `ChangeLog.md`)
 - Dépendances obligatoires : `modFacture`, `modFournisseur`
 - Dépôt amont : `https://github.com/Dolibarr/dolibarr-community-modules/tree/main/einvoicing`
 - Emplacement : `htdocs/custom/einvoicing/`
@@ -62,9 +62,6 @@ htdocs/custom/einvoicing/
 │   ├── document.class.php              # Document (CommonObject) : flux échangés + cron cronSyncFlows()
 │   ├── call.class.php                  # Call (CommonObject) : journal des appels API
 │   ├── actions_einvoicing.class.php    # Hooks
-│   ├── helpers/
-│   │   ├── PriceHelper.class.php           # calcul_price_total() avec précision d'arrondi forcée
-│   │   └── SupplierInvoiceHelper.class.php # Cohérence facture fournisseur ↔ e-facture
 │   ├── protocols/
 │   │   ├── AbstractProtocol.class.php      # Classe abstraite (7 méthodes abstraites)
 │   │   ├── CommonProtocol.class.php        # TRAIT (mapping + logique d'import)
@@ -78,14 +75,18 @@ htdocs/custom/einvoicing/
 │   │   ├── SuperPDPProvider.class.php      # SuperPDP (OAuth 2.1 : 3 grants)
 │   │   ├── EsalinkPDPProvider.class.php    # Esalink Hubtimize (client_credentials + api-key)
 │   │   └── TestPDPProvider.class.php       # Implémentation de référence (n'appelle rien)
-│   └── utils/
-│       ├── CtcFrPdfMerger.class.php        # Embarquement XML dans PDF pour URN CTC-FR inconnu de zugferd
+│   └── utils/                              # (pas de répertoire helpers/ séparé : tout est ici)
+│       ├── PriceHelper.class.php           # Copie locale de calcul_price_total() (arrondi forcé multidevise)
+│       ├── SupplierInvoiceHelper.class.php # Cohérence facture fournisseur ↔ e-facture, SupplierInvoiceHelper::findIdByRef()
+│       ├── CtcFrPdfMerger.class.php        # Embarquement XML Factur-X ≥ 24 (URN EXTENDED-CTC-FR inconnu de zugferd)
+│       ├── FacturxTcpdfMerger.class.php    # Embarquement XML Factur-X < 24 via TCPDF direct (contourne la classe FPDF réservée par le core)
 │       ├── XmlPatcher.class.php            # Patch DOM du XML (références d'acompte) — sans Composer
 │       ├── CdarHandler.class.php           # Messages CDAR (cycle de vie XP Z12-012 annexe B)
 │       └── En16931Validator.class.php      # Validation locale EN 16931 (PHP pur, ni XSD ni Schematron)
 ├── compat/
 │   ├── commonhookactions.class.php     # Polyfill CommonHookActions (Dolibarr < 19)
 │   ├── files.lib.php                   # Polyfill dolChmod() (Dolibarr < 18)
+│   ├── functions.lib.php               # Polyfills GETPOSTDATE() (< 18), GETPOSTFLOAT() (< 20), dolPrintHTMLForAttribute() (< 19)
 │   └── profid.lib.php                  # Polyfill isValidSiren()/isValidSiret() (Dolibarr < 20)
 ├── core/
 │   ├── modules/modEInvoicing.class.php
@@ -110,7 +111,8 @@ htdocs/custom/einvoicing/
 │   ├── llx_einvoicing_extlinks.sql     # (pas de .key.sql → aucun index)
 │   ├── llx_einvoicing_routing.sql      # (pas de .key.sql → aucun index)
 │   ├── llx_einvoicing_lifecycle_msg.sql # (pas de .key.sql → aucun index)
-│   ├── dolibarr_allversions.sql / update_v1.0.0.sql / update_v1.0.2.sql / update_v1.0.3.sql
+│   ├── llx_einvoicing_extrafields.sql / .key.sql # Clé/valeur générique par objet (indexée, contrairement aux 3 ci-dessus)
+│   ├── dolibarr_allversions.sql / update_v1.0.0.sql / update_v1.0.2.sql / update_v1.0.3.sql / update_v1.1.0.sql
 │   ├── update_allversion.sql           # Migration pdpconnectfr → einvoicing
 │   └── migration_unstable_dev.sql      # À lancer MANUELLEMENT (volontairement hors _load_tables)
 ├── vendor/                             # horstoeko/zugferd v1.0.123 + dépendances (MIT/LGPL)
@@ -140,7 +142,7 @@ Dans `core/modules/modEInvoicing.class.php` :
 ### Initialisation (Lifecycle : `init()`)
 
 1. `_load_tables('/einvoicing/sql/')` (charge `llx_*.sql`, `.key.sql`, `update_*.sql`, `dolibarr_allversions.sql`)
-2. Création de **9 extrafields Chorus** `d4d_*` sur `facture` (5) et `commande` (4), tous conditionnés par `getDolGlobalInt("EINVOICING_USE_CHORUS")` — TODO amont : migrer vers `llx_einvoicing_extlinks`
+2. Création de **9 extrafields Chorus** `d4d_*` sur `facture` (5) et `commande` (4), tous conditionnés par `getDolGlobalInt("EINVOICING_USE_CHORUS")` ; les 3 champs texte de chaque élément sont déclarés `printable = 2` depuis 1.1.0 (n'apparaissent sur le PDF que s'ils sont renseignés — `CommonDocGenerator::getExtrafieldsInHtml()` ignorait la condition d'activation sur certaines versions, issue #614) — TODO amont : migrer vers `llx_einvoicing_extlinks`
 3. SQL de rattrapage : normalisation de la condition `enabled` des extrafields, purge de la formule calculée obsolète de `d4d_chorus_id` (conflit module openDSI)
 4. Pose `EINVOICING_LIVE = 1` uniquement au premier passage (si `EINVOICING_PDP` vide)
 
@@ -178,7 +180,7 @@ $protocol->generateInvoice() → <ref>_facturx.pdf (FACTURX) ou <ref>_cii.xml (C
     (mapping construit par lib/buildinvoicelines.inc.php, validation locale selon EINVOICING_BR_CHECK)
     ↓ si EINVOICING_AP_PRECHECK == 'auto'
 $provider->validateEInvoiceFile() (pré-contrôle distant par la PA)
-    ↓ si EINVOICING_AUTO_SEND_ON_GENERATION (et facture jamais transmise)
+    ↓ si EINVOICING_AUTO_SEND_ON_GENERATION (facture jamais transmise, et régénération marquée par le trigger BILL_VALIDATE — pas un rebuild quelconque)
 $provider->sendInvoice() → flow_id enregistré dans llx_einvoicing_extlinks → verrou de transmission
     ↓ ensuite
 Polling AJAX (checkinvoicestatus.php) + cron cronSyncFlows() → statuts de cycle de vie (200–213)
@@ -186,11 +188,11 @@ Polling AJAX (checkinvoicestatus.php) + cron cronSyncFlows() → statuts de cycl
 
 ### Flux entrant (PA → facture fournisseur)
 
-`Document::cronSyncFlows()` (cron horaire) ou bouton « Synchroniser » de `document_list.php` → `$provider->syncFlows()` → pour chaque flux : `syncFlow()` selon `flow_type` (`SupplierInvoice`, `CustomerInvoiceLC`, `SupplierInvoiceLC`…) → `$protocol->createSupplierInvoiceFromSource()` (synchro/création tiers, produits, lignes, remises, acomptes) → facture fournisseur brouillon + XML archivé (`xml_data`).
+`Document::cronSyncFlows()` (cron horaire) ou bouton « Synchroniser » de `document_list.php` → `$provider->syncFlows()` → pour chaque flux : `syncFlow()` selon `flow_type` (`SupplierInvoice`, `CustomerInvoiceLC`, `SupplierInvoiceLC`…) → `$protocol->createSupplierInvoiceFromSource()` (synchro/création tiers, produits, lignes, remises, acomptes, rapprochement `ref_supplier` via `SupplierInvoiceHelper::findIdByRef()` — exact, puis tolérant si `EINVOICING_TOLERANT_SUPPLIER_REF_MATCH`) → facture fournisseur brouillon + XML archivé (`xml_data`).
 
 ### Statuts
 
-- **Statuts internes Dolibarr** (constantes `EInvoicing::STATUS_*`) : 0 UNKNOWN, 5 NOT_GENERATED, 10 GENERATED, 15 AWAITING_VALIDATION, 20 AWAITING_ACK, 25 ERROR, 99 IGNORE (98 IGNORE_2 non utilisé).
+- **Statuts internes Dolibarr** (constantes `EInvoicing::STATUS_*`) : 0 UNKNOWN, 5 NOT_GENERATED, 10 GENERATED, 15 AWAITING_VALIDATION, 20 AWAITING_ACK, 25 ERROR, 98 IGNORE_2, 99 IGNORE. Les deux codes « hors périmètre » forment `STATUS_IGNORE_CODES`, lu par `isIgnoredStatus()` — préférer `mustManageEInvoice($object)` / `isIgnoredStatus($status)` à un test de vérité sur `needEInvoiceManagement()`, qui renvoie un code et non un booléen (98/99 sont truthy).
 - **Statuts normalisés PDP/PA (cycle de vie)** : 200 DEPOSITED → 213 REJECTED (dont 205 APPROVED, 207 DISPUTED, 210 REFUSED, 211 PAYMENT_SENT, 212 PAID). `STATUS_REQUIRING_REASONS = [210, 207, 206, 208]` (46 motifs dans `REASONS`).
 - Les statuts sortants (factures fournisseurs) sont transmis en **CDAR** (`CdarHandler`) et historisés dans `llx_einvoicing_lifecycle_msg`.
 
@@ -207,6 +209,7 @@ La classe `ActionsEInvoicing` (contextes `all` + `invoicecard`) implémente :
 | `formConfirm` | Confirmation d'envoi de statut (facture fournisseur) avec sélecteur de motif |
 | `formObjectOptions` | Injecte les blocs e-facture sur les fiches facture / facture fournisseur / produit / tiers |
 | `completeArrayFields`, `printFieldListSelect/From/Where/Option/Title/Value` | Colonnes et filtres e-facture dans les listes factures/tiers (`einvoicegenerated`, `pdp_syncstatus`, `routing_id`…) ; exclut du contexte `accountancysupplierlist` les factures abandonnées `close_code = 'pdp_refused'` |
+| `printFieldListGroupBy` *(1.1.0)* | Ajoute les colonnes du module au `GROUP BY` de la liste factures fournisseurs (`ext.rowid`, `ext.provider`) — nécessaire sous `sql_mode=only_full_group_by` (MySQL, erreur 1055) ; Dolibarr 17 à 21, le core ne construit plus de `GROUP BY` sur cette liste à partir de 22 |
 | `isEditable` | Facture transmise → `result = -100` : blocage de l'édition |
 | `replaceThirdparty` | Fusion de tiers : réaffecte `llx_einvoicing_routing.fk_soc` |
 
@@ -222,32 +225,34 @@ Points d'extension **exposés** par le module :
 | Événement | Action |
 |-----------|--------|
 | `COMPANY_CREATE` / `COMPANY_MODIFY` | Enregistre `routing_id` (type `thirdparty`) et `routing_product_id` (type `product`) depuis le POST de la fiche tiers |
-| `BILL_CREATE` / `BILL_VALIDATE` | Calcule/applique le statut e-facture initial (`needEInvoiceManagement()`) |
+| `BILL_CREATE` / `BILL_VALIDATE` | Calcule/applique le statut e-facture initial (`needEInvoiceManagement()`) ; `BILL_VALIDATE` marque en plus la facture (`EInvoicing::setInvoiceValidatedInThisRequest()`, drapeau statique en mémoire de requête) pour que `afterPDFCreation()` sache que la régénération qui suit vient d'une validation et non d'un rebuild quelconque (paiement, bouton « Générer », mass action…) — condition supplémentaire de `EINVOICING_AUTO_SEND_ON_GENERATION` depuis 1.1.0 |
 | `BILL_UNVALIDATE` / `BILL_DELETE` | **Blocage** si la facture a été transmise (`isTransmittedLockActive()`) |
 | `BILL_MODIFY` | **Blocage** si un champ verrouillé change (ref, dates, totaux, tiers, conditions/mode de règlement) |
-| `PAYMENT_CUSTOMER_CREATE` | Envoi du statut 212 « Encaissée » par encaissement (TVA sur les encaissements, paiements partiels couverts) |
-| `BILL_SUPPLIER_VALIDATE` | Contrôle doublon/cohérence (si option) + clôture de la facture remplacée |
+| `PAYMENT_CUSTOMER_CREATE` | Envoi du statut 212 « Encaissée » par encaissement (TVA sur les encaissements, paiements partiels couverts) ; ignoré avec avertissement si le dernier statut connu est `STATUS_ERROR` (dépôt refusé par la PA — la facture doit être corrigée et renvoyée) |
+| `BILL_SUPPLIER_VALIDATE` | Contrôle doublon/cohérence (si option) + clôture de la facture remplacée ; envoie aussi le statut « Approved » (205) si `EINVOICING_SEND_APPROVED_ON_VALIDATION` (`SupplierInvoiceHelper::shouldSendApprovedOnValidation()` — jamais sur un avoir d'une facture refusée ni si déjà répondu) |
 | `BILL_SUPPLIER_PAYED` | Envoi du statut 211 « Paiement transmis » (si `EINVOICING_SEND_PAYMENT_SENT_STATUS`) |
 | `BILL_SUPPLIER_DELETE` / `DOCUMENT_DELETE` | **Blocage** de la suppression d'une facture fournisseur issue d'une e-facture (ou de son fichier) |
 
 ## Données / SQL (Data model)
 
-5 tables :
+6 tables :
 
 | Table | Rôle |
 |-------|------|
 | `llx_einvoicing_document` | Flux échangés avec la plateforme : `flow_id` (UUID), `call_id`, `flow_type`/`flow_direction`/`flow_syntax`/`flow_profile`, `ack_*`, `cdar_*`, `fk_element_id`/`fk_element_type`, `provider`, `xml_data` (MEDIUMTEXT, XML sans PDF), `document_body`, `response_for_debug` |
-| `llx_einvoicing_call` | Journal des appels API : `call_id` (séquence `Call-%06d`, unique par entité), `call_type`, `method`, `endpoint`, `request_body`/`response` (données sensibles caviardées), `batchlimit`/`totalflow`/`skippedflow`/`successflow`, `status` (0=Failed, 1=Success) |
+| `llx_einvoicing_call` | Journal des appels API : `call_id` (séquence `Call-%06d`, unique par entité), `call_type`, `method`, `endpoint`, `request_body`/`response` (données sensibles caviardées), `batchlimit`/`totalflow`/`skippedflow`/`successflow`, `status` (0=Failed, 1=Success), `provider` |
 | `llx_einvoicing_extlinks` | Lien objet Dolibarr ↔ e-facturation : `element_id`+`element_type` (`facture`, `invoice_supplier`, `product`, `societe`), `provider`, `flow_id`, `syncstatus` (code statut), `syncref`, `synccomment`, `ap_precheck_status`/`ap_precheck_result`, `override_routing_id` (BT-49 par facture) |
 | `llx_einvoicing_routing` | Annuaire de routage par tiers : `fk_soc`, `routing_type` (`thirdparty`/`product`), `routing_id` (SIREN ou `SIREN_suffixe`), `source` (`manual`/`automatic`/`synchronisation`), `active`, `is_default` |
 | `llx_einvoicing_lifecycle_msg` | Historique des statuts de cycle de vie : `element_id`/`element_type`, `flow_id`, `direction` (`IN`/`OUT`), `lc_status` (200–213), `lc_validation_status` (`Ok`/`PENDING`/`ERROR` pour les messages sortants), `lc_reason_code` |
+| `llx_einvoicing_extrafields` *(1.1.0)* | Clé/valeur générique par objet (`element_id`+`element_type`, `name`, `value`) — construite sur le modèle d'`extlinks`, pour ajouter une propriété à conserver sans migration de schéma ; lue/écrite par `EInvoicing::insertOrUpdateExtraField()`/`getExtraFieldValue()`. Sert actuellement à la référence de commande fournisseur BT-13 (`EXTRAFIELD_BUYER_ORDER_REFERENCE`), conservée même sans rapprochement avec une commande Dolibarr |
 
 Fichiers de migration notables :
 
 - `dolibarr_allversions.sql` — rejoué à chaque mise à jour Dolibarr (renommages de permissions, colonnes ajoutées) ;
 - `update_allversion.sql` — migration `pdpconnectfr → einvoicing` (RENAME TABLE ×5, constantes, droits, menus) ;
 - `migration_unstable_dev.sql` — même contenu, **à lancer manuellement** (nommé hors convention `update_*` pour ne pas être rejoué par `_load_tables()` sur installation neuve) ;
-- ⚠️ `extlinks`, `routing` et `lifecycle_msg` n'ont **aucun index** (pas de fichier `.key.sql`).
+- `update_v1.1.0.sql` — création de `llx_einvoicing_extrafields` ;
+- ⚠️ `extlinks`, `routing` et `lifecycle_msg` n'ont **aucun index** (pas de fichier `.key.sql`) ; `extrafields`, ajoutée en 1.1.0, en a un.
 
 ## Pages principales (Main pages)
 
@@ -277,11 +282,11 @@ Fichiers de migration notables :
 | `einvoicingVatPointDateCode($hasProduct, $hasService, $isDeposit)` | Code BT-8 (acompte → `72` toujours ; débits → `5` ; sinon `72` si TVA à l'encaissement ; `29` jamais dérivé, BR-FR-MAP-29) |
 | `einvoicingVatDueOnCollection()` | Vrai si la TVA est due à l'encaissement (déclenche le statut 212) |
 | `removeAllSpaces()` / `getMultidirOutputCompat()` | Utilitaires chaînes / répertoires multi-entité |
-| Polyfills | `GETPOSTFLOAT()`, `getDolGlobalFloat()`, `dolPrintHTML()`, `Societe::findNearest()`, etc. — tous sous `function_exists()` |
+| Polyfills | `require` de `compat/functions.lib.php` (`GETPOSTDATE()`, `GETPOSTFLOAT()`, `dolPrintHTMLForAttribute()` — déplacées de ce fichier vers `compat/` en 1.1.0) ; conserve localement `getDolGlobalFloat()`, `dolPrintHTML()`, `Societe::findNearest()`, etc. — tous sous `function_exists()` |
 
 ### `lib/buildinvoicelines.inc.php`
 
-**Template inclus** (pas une fonction) par `CIIProtocol::generateXML()` / `FacturXProtocol::generateXML()`. Construit `$invoiceData` (~120 clés : parties vendeur/acheteur, totaux, BT-8, mentions PMT/PMD/AAB, facture source pour avoirs/remplacements, factures de situation BT-25/BT-26, IBAN/BIC…) et `$linesData` (+ `$taxBreakdown`, `$globalDiscounts`) depuis l'objet `Facture`. Lève une `Exception` en cas de SIREN/SIRET/TVA invalide (`BADPROFID`, `BADVALUEFORSIRENORSIRET`, `BADVATNUMBER`).
+**Template inclus** (pas une fonction) par `CIIProtocol::generateXML()` / `FacturXProtocol::generateXML()`. Construit `$invoiceData` (~120 clés : parties vendeur/acheteur, totaux, BT-8, mentions PMT/PMD/AAB, facture source pour avoirs/remplacements, factures de situation BT-25/BT-26, IBAN/BIC…) et `$linesData` (+ `$taxBreakdown`, `$globalDiscounts`) depuis l'objet `Facture`. Lève une `Exception` en cas de SIREN/SIRET/TVA invalide (`BADPROFID`, `BADVALUEFORSIRENORSIRET`, `BADVATNUMBER`). Les montants de ligne passent par la fonction core `calcul_price_total()` depuis 1.1.0 (et non plus par une seconde implémentation du module, qui pouvait diverger de quelques centimes — issue #505).
 
 ### `lib/einvoicing_vendorref.lib.php`
 
@@ -307,6 +312,7 @@ Sélection des ~66 constantes réellement lues (liste complète : grep `getDolGl
 | `EINVOICING_SKIP_B2C` | Pas d'e-facture pour les particuliers |
 | `EINVOICING_VAT_POINT_DATE_CODE` | Régime TVA BT-8 : `auto` / `5` / `29` / `72` (remplace `EINVOICING_VAT_ON_DEBITS`, supprimée en 1.1.0) |
 | `EINVOICING_SEND_PAYMENT_SENT_STATUS` | Statut 211 automatique au paiement d'une facture fournisseur |
+| `EINVOICING_SEND_APPROVED_ON_VALIDATION` *(1.1.0)* | Statut 205 « Approved » automatique à la validation d'une facture fournisseur reçue de la PA |
 | `EINVOICING_PMT` / `EINVOICING_PMD` / `EINVOICING_AAB` | Mentions : frais de recouvrement / pénalités de retard / absence d'escompte |
 | `EINVOICING_DISABLE_SYNC_AP_TO_DOLI` / `EINVOICING_DISABLE_SYNC_DOLI_TO_AP` | Désactivation par sens de synchronisation (⚠️ logique **inversée** : l'UI dit « Activer », la constante stocke « Désactiver ») |
 | `EINVOICING_PRODUCTS_AUTO_GENERATION` / `EINVOICING_IMPORT_AS_FREE_LINES` | Import : création auto des produits, ou lignes libres |
@@ -318,6 +324,7 @@ Sélection des ~66 constantes réellement lues (liste complète : grep `getDolGl
 | `EINVOICING_ALLOW_DEVTOOLS` | Cachée — active l'onglet DevTools et le provider TESTPDP |
 | `EINVOICING_SUPERPDP_VIAPARTNER` / `_ONLY` / `_OAUTH_URL` | Cachées — mode opérateur/marque grise SuperPDP (valeur `proxy` = mode proxy OAuth) |
 | `EINVOICING_PREFER_ORIGINAL` | Cachée — préfère le document `Original` au `Converted` à l'import |
+| `EINVOICING_TOLERANT_SUPPLIER_REF_MATCH` / `_MIN_LENGTH` *(1.1.0)* | Cachées — assouplit le rapprochement `ref_supplier` à l'import (référence entourée de texte libre, ex. « PAY123 - FA202610 - dinner ») via `SupplierInvoiceHelper::findIdByRef()` ; longueur minimale avant tolérance (défaut `8`), plusieurs candidats = ambiguïté non tranchée |
 | `EINVOICING_SUPPLIER_INVOICE_CHECK_CONSISTENCY_ON_VALIDATION` | Contrôle de cohérence à la validation — l'en-tête de `SupplierInvoiceHelper` la déclare « seriously bugged. Do not use it. » |
 
 **Credentials par provider** : préfixe = `dol_prefix` du provider (`EINVOICING_SUPERPDP_`, `EINVOICING_ESALINK_`, `EINVOICING_TESTPDP_`…), suffixe `_PROD` si `EINVOICING_LIVE` — ex. `EINVOICING_ESALINK_USERNAME[_PROD]`, `_PASSWORD[_PROD]`, `_API_KEY[_PROD]`, `EINVOICING_SUPERPDP_CLIENT_ID[_PROD]`, `_CLIENT_SECRET[_PROD]`, `<PREFIX>ROUTING_ID`.
@@ -326,8 +333,8 @@ Sélection des ~66 constantes réellement lues (liste complète : grep `getDolGl
 
 - **Module tiers** : tags `// InfraS add` / `// InfraS change` obligatoires sur toute modification (cf. section dédiée en tête).
 - Le module suit les conventions Dolibarr core (ModuleBuilder), **pas** les conventions InfraS (pas d'indentation 1 tab du corps, pas de changelog XML `docs/changelog.xml`, fichiers `.lang` sans alignement des `=`).
-- Compatibilité PHP 7.2+ et Dolibarr 17+ : ne pas utiliser de fonctions core récentes sans polyfill (`compat/`, polyfills de `einvoicing.lib.php`) ni de syntaxe PHP > 7.2.
-- Les appels API passent toujours par `callApi()` du provider (journalisation `logCall()` avec caviardage des secrets, connexion BDD indépendante pour survivre aux rollbacks — issue #291).
+- Compatibilité PHP 7.2+ et Dolibarr 17+ : ne pas utiliser de fonctions core récentes sans polyfill (`compat/`, polyfills de `einvoicing.lib.php`) ni de syntaxe PHP > 7.2. Les fichiers de `compat/` sont chargés par chemin relatif (`__DIR__`), pas via `dol_buildpath()`, pour ne pas rester silencieusement absents sur un déploiement qui ne suit pas l'arborescence standard (issue #565).
+- Les appels API passent toujours par `callApi()` du provider (journalisation `logCall()` avec caviardage des secrets, connexion BDD indépendante `$dbhistory` pour survivre aux rollbacks — issue #291 ; depuis 1.1.0, `Call::getNextCallId()` lit le numéro suivant sur cette même connexion avec une lecture verrouillante `FOR UPDATE`, cf. Watchpoints).
 - Entrées utilisateur via `GETPOST*`, SQL sécurisé (`$db->escape()`, cast `(int)`), multi-entité via `entity`.
 
 ## Workflow recommandé après changements structurels (Recommended workflow)
@@ -335,7 +342,7 @@ Sélection des ~66 constantes réellement lues (liste complète : grep `getDolGl
 Si modification SQL / descripteur / permissions / hooks / extrafields :
 
 1. Désactiver puis réactiver le module (rejoue `_load_tables` + extrafields + `dolibarr_allversions.sql`)
-2. Vérifier les 5 tables `llx_einvoicing_*`
+2. Vérifier les 6 tables `llx_einvoicing_*`
 3. Vérifier les extrafields Chorus `d4d_*` (si `EINVOICING_USE_CHORUS`)
 4. Vérifier `admin/setup.php` (provider sélectionné, token, healthcheck)
 5. Tester une génération d'e-facture (bouton « Générer l'e-facture » sur une facture validée), puis un cycle complet en sandbox (`EINVOICING_LIVE=0`) : génération → pré-contrôle → envoi → synchronisation
@@ -353,7 +360,7 @@ Si modification SQL / descripteur / permissions / hooks / extrafields :
 - 3 tables sans index (`extlinks`, `routing`, `lifecycle_msg`) : surveiller les performances sur gros volumes.
 - La logique des interrupteurs `EINVOICING_DISABLE_SYNC_*` est **inversée** par rapport à l'UI (« Activer » affiché, « Désactiver » stocké).
 - `migration_unstable_dev.sql` ne doit être lancé **qu'une fois, manuellement**, uniquement pour migrer une ancienne installation `pdpconnectfr`.
-- La numérotation `getNextNumRef()` de `Document`/`Call` référence `core/modules/einvoicing/` qui **n'existe pas** — ne pas s'appuyer dessus (les `call_id` utilisent `Call::getNextCallId()`).
+- La numérotation `getNextNumRef()` de `Document`/`Call` référence `core/modules/einvoicing/` qui **n'existe pas** — ne pas s'appuyer dessus (les `call_id` utilisent `Call::getNextCallId()`, qui lit désormais son numéro par une lecture verrouillante `FOR UPDATE` sur `$dbhistory`, la connexion sur laquelle `logCall()` écrit — avant ce correctif 1.1.0, une lecture sur `$db` pouvait rendre le même numéro deux fois sous transaction, et perdre silencieusement toute trace d'appel API après le premier d'une requête, sur `uk_einvoicing_call_callid`).
 - `EINVOICING_SUPPLIER_INVOICE_CHECK_CONSISTENCY_ON_VALIDATION` est documentée dans le code comme buggée — ne pas l'activer.
 - `public/proxy_oauthcallback.php` : la `redirect_uri` n'est **pas validée contre une liste blanche** (TODO amont non implémentés) — vigilance si le mode proxy est activé.
 
@@ -362,7 +369,7 @@ Si modification SQL / descripteur / permissions / hooks / extrafields :
 Voir `ChangeLog.md` (format Markdown, pas de `docs/changelog.xml` InfraS). Faits notables :
 
 - **1.0.3** : profils XML configurables (`EINVOICING_XML_PROFILE`), statut 212 avec ventilation TVA (blocs MEN, BR-FR-CDV-14/16), statut 211, contrôle SIREN sur toutes les parties, BT-8, abandon automatique des factures fournisseurs refusées, contrôle du montant réclamé (#506).
-- **1.0.4** (en cours) : retour du support Dolibarr 17, hook `addPDPProviders` pour providers externes, `EINVOICING_VAT_POINT_DATE_CODE`, TVA NPR exonérée `VATEX-FR-CGI295`, écran « Références fournisseurs mappées », résolution en 4 niveaux de l'adresse fournisseur (CDAR MDT-73).
+- **1.1.0** : retour du support Dolibarr 17 (installation, génération, liste des flux) et correctif Dolibarr 23 (avertissement vs erreur) ; hook `addPDPProviders` pour providers externes ; `EINVOICING_VAT_POINT_DATE_CODE` et TVA NPR exonérée `VATEX-FR-CGI295` ; écran « Références fournisseurs mappées » ; résolution en 4 niveaux de l'adresse fournisseur (CDAR MDT-73) ; ré-authentification Esalink (`grant_type` restauré, `ESALINK_AUTHENT_USING_CLIENT_CREDENTIAL` sans effet désormais) ; auto-send à la génération limité à une régénération issue d'une validation (`BILL_VALIDATE`) et non plus de tout rebuild PDF ; statut « Approved » (205) automatique à la validation d'une facture fournisseur reçue (`EINVOICING_SEND_APPROVED_ON_VALIDATION`) ; refus des avoirs sur facture refusée ; rapprochement tolérant de `ref_supplier` à l'import (`EINVOICING_TOLERANT_SUPPLIER_REF_MATCH`, `SupplierInvoiceHelper::findIdByRef()`) ; nouvelle table `llx_einvoicing_extrafields` (conserve la référence de commande fournisseur BT-13 même sans rapprochement) ; Factur-X < 24 reconstruit via TCPDF direct (`FacturxTcpdfMerger`, contourne la collision de classe `FPDF` du core) pour produire un PDF/A-3 réellement conforme ; `EINVOICING_SKIP_B2C` et le pré-contrôle du tiers s'accordent désormais sur `Societe::isACompany()` (`mustManageEInvoice()`/`isIgnoredStatus()` remplacent les tests de vérité sur `needEInvoiceManagement()`) ; **depuis** : correctif du journal des appels API qui perdait des lignes sous transaction (`Call::getNextCallId()`, cf. Watchpoints).
 
 ## Notes techniques (Technical notes)
 
@@ -376,7 +383,7 @@ CommonProtocol   = TRAIT (malgré le nom de fichier .class.php)
 ProtocolManager  = fabrique (liste en dur : CII actif, FACTURX actif, UBL désactivé)
 ```
 
-- `FacturXProtocol::generateInvoice()` : résolution du PDF porteur en 3 priorités (chemin du hook avec conversion ODT→PDF ; PDF le plus récent ; régénération), puis embarquement du XML par TCPDF/FPDI (Dolibarr < 24) ou `CtcFrPdfMerger` (≥ 24).
+- `FacturXProtocol::generateInvoice()` : résolution du PDF porteur en 3 priorités (chemin du hook avec conversion ODT→PDF ; PDF le plus récent ; régénération), puis embarquement du XML par `FacturxTcpdfMerger` (TCPDF direct, < 24 — contourne la classe `FPDF` que le core réserve sous cette version et qui empêchait le merger `horstoeko/zugferd` de fonctionner) ou `CtcFrPdfMerger` (≥ 24, complète la XMP Factur-X pour l'URN `EXTENDED-CTC-FR` inconnu de zugferd). Sélection par sonde runtime (`class_exists('FPDF', false) && is_subclass_of('FPDF', 'TCPDF')`), pas par un test de version. Le fichier produit est vérifié avant d'être remis à l'appelant (issue #554).
 - Le mapping **sortant** vit dans `lib/buildinvoicelines.inc.php` ; le mapping **entrant** est déclaratif dans le trait (`$invoiceTemplate` ~70 clés, `$lineTemplate` ~40 clés).
 - Import fournisseur (`CIIProtocol::createSupplierInvoiceFromSource()`) : 2 transactions (synchro tiers commitée seule, puis import atomique) ; résolution du tiers en 3 étapes (identifiants structurés → n° TVA → `findNearest()`).
 - **Ajouter un protocole** : créer `<NOM>Protocol.class.php`, étendre `CIIProtocol` ou `AbstractProtocol` + `use CommonProtocol`, implémenter les 7 méthodes abstraites **plus `generateInvoice()`** (appelée partout mais absente du contrat abstrait), puis enregistrer dans `$protocolsList` **et** le `switch` de `ProtocolManager::getProtocol()`, et ajouter une branche à `detectProtocolFromContent()`.
@@ -412,13 +419,12 @@ Cœur : **`horstoeko/zugferd` v1.0.123** (MIT — création/lecture ZUGFeRD/Fact
 
 ### Anomalies connues (upstream)
 
-Recensées lors de l'analyse (2026-08), à connaître avant d'intervenir — la liste complète est dans l'historique du dépôt amont :
+Recensées lors de l'analyse (2026-08), reconfirmées sur le code de la 1.1.0 — à connaître avant d'intervenir (liste complète dans l'historique du dépôt amont) :
 
-- `VERSION` (1.0.3) en retard sur `ChangeLog.md` (1.0.4) ;
-- `Call::$fields['status']['arrayofkeyval']` contredit les constantes `STATUS_*` ;
-- `PDPProviderManager::__construct()` n'affecte jamais `$this->db` (utilisé par `addProvidersFromHooks()`) ;
-- `CIIProtocol` passe `$outputlangs` en 4ᵉ argument à `buildXML()` qui n'en déclare que 3 (langue ignorée) ;
-- `EsalinkPDPProvider::callApi()` sans lectures défensives `??`/`isset()` (correctif SuperPDP non rétroporté, fatal PHP 8 possible) ;
-- `document_card.php` : `tabsAction` désactivée par `if (... && 1 == 0)` ; `call_card.php` : lien vers `call_agenda.php` inexistant ; `ajax/document.php` non branché ;
-- chemin externe Factur-X (`EINVOICING_USE_EXTERNAL_FACTURX_BUILDER`, déprécié) : produit toujours le profil EXTENDED ;
-- `document_list.php` et `getLastSyncDate()` filtrent sur `entity = $conf->entity` (pas de `getEntity()`).
+- `Call::$fields['status']['arrayofkeyval']` contredit toujours les constantes `STATUS_*` (0/1 inversés) — `getLibStatut()` suit les constantes, la liste suit `arrayofkeyval` : les deux ne s'accordent pas ;
+- `PDPProviderManager::__construct()` n'affecte toujours jamais `$this->db`, bien que `$this->db` soit utilisé ensuite (ex. `addProvidersFromHooks()`) ;
+- `CIIProtocol` passe toujours `$outputlangs` en 4ᵉ argument à `buildXML()`, qui n'en déclare que 3 (`AbstractProtocol`/`CommonProtocol` ne déclarent pas `buildXML`) — langue toujours ignorée ;
+- `EsalinkPDPProvider::callApi()` toujours sans lectures défensives `??`/`isset()` (le correctif appliqué à `SuperPDPProvider::callApi()` n'a pas été rétroporté ici — fatal PHP 8 possible) ;
+- `document_card.php` : `tabsAction` toujours désactivée par `if (... && 1 == 0)` ; `call_card.php` : lien vers `call_agenda.php` toujours inexistant ; `ajax/document.php` toujours non branché ;
+- chemin externe Factur-X (`EINVOICING_USE_EXTERNAL_FACTURX_BUILDER`, déprécié) : ne force plus systématiquement EXTENDED depuis 1.1.0 — il choisit EN16931 ou EXTENDED selon `EINVOICING_PROFILE` — mais reste un chemin legacy distinct de `getBuildXmlProfile()` (le chemin natif) ;
+- `document_list.php` et `AbstractPDPProvider::getLastSyncDate()` filtrent sur `entity = $conf->entity` : confirmé **délibéré** depuis 1.1.0, un commentaire explicite l'accompagne désormais (« must always be on 1 entity »), pas un oubli de `getEntity()`.
