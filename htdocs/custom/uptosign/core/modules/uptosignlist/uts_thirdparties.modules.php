@@ -78,8 +78,13 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 		if (($type_of_target == 1) || ($type_of_target == 3)) {
 			// Select the third parties from category
 			if (count($socid) > 0) {
-				$sql = "SELECT s.rowid as id, s.email as email, s.nom as name, null as fk_contact";
+				// The phone is needed: signing sends an SMS code to the target. A company
+				// only carries a single 'phone' column, so it is read as a mobile candidate
+				// and normalized against its country like every other selector does.
+				$sql = "SELECT s.rowid as id, s.email as email, s.nom as name, null as fk_contact,";
+				$sql .= " s.phone as phone, cc.code as country_code";
 				$sql .= " FROM ".MAIN_DB_PREFIX."societe as s LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON se.fk_object=s.rowid";
+				$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_country as cc ON s.fk_pays = cc.rowid";
 				$sql .= " WHERE s.entity IN (".getEntity('societe').")";
 				$sql .= " AND s.rowid IN (".$this->db->sanitize(implode(',', $socid)).")";
 				$sql .= " ORDER BY email";
@@ -97,11 +102,23 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 
 						if (!empty($obj->email) && filter_var($obj->email, FILTER_VALIDATE_EMAIL)) {
 							if (!array_key_exists($obj->email, $cibles)) {
+								$mobile = uptoSignFixMobile($obj->phone, $obj->country_code);
+								if (empty($mobile)) {
+									// Kept as a target anyway: advanced targeting is an explicit
+									// choice, and a list sent with disableSms needs no mobile
+									dol_syslog("uptosign: " . get_class($this)."::add_to_target_spec third party ".$obj->id." has no usable mobile, target kept without one", LOG_WARNING);
+								}
 								$cibles[$obj->email] = array(
 									'email' => $obj->email,
+									'mobile' => $mobile,
 									'fk_contact' => $obj->fk_contact,
-									'name' => $obj->name,
-									'firstname' => $obj->firstname,
+									// A company is a legal person: its name goes to lastname, since
+									// addTargetsToDatabase() only reads lastname/firstname. The former
+									// 'name' key was never read and 'firstname' pointed to a column
+									// absent from the SELECT: every third party target used to land in
+									// base with both names empty.
+									'lastname' => $obj->name,
+									'firstname' => '',
 									'other' => '',
 									'source_url' => $this->url($obj->id, 'thirdparty'),
 									'source_id' => $obj->id,
@@ -123,8 +140,11 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 		if (($type_of_target == 1) || ($type_of_target == 2) || ($type_of_target == 4)) {
 			// Select the third parties from category
 			if (count($socid) > 0 || count($contactid) > 0) {
-				$sql = "SELECT socp.rowid as id, socp.email as email, socp.lastname as lastname, socp.firstname as firstname";
+				$sql = "SELECT socp.rowid as id, socp.email as email, socp.lastname as lastname, socp.firstname as firstname,";
+				// Same phone fields as uptoSignSearchMobileContact(), in the same order
+				$sql .= " socp.phone_mobile, socp.phone_perso, socp.phone as phone_pro, cc.code as country_code";
 				$sql .= " FROM ".MAIN_DB_PREFIX."socpeople as socp";
+				$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_country as cc ON socp.fk_pays = cc.rowid";
 				$sql .= " WHERE socp.entity IN (".getEntity('contact').")";
 				if (count($contactid) > 0) {
 					$sql .= " AND socp.rowid IN (".$this->db->sanitize(implode(',', $contactid)).")";
@@ -147,8 +167,18 @@ class uptosignlist_uts_thirdparties extends UptosignListTargets
 
 						if (!empty($obj->email) && filter_var($obj->email, FILTER_VALIDATE_EMAIL)) {
 							if (!array_key_exists($obj->email, $cibles)) {
+								// Same order as uptoSignSearchMobileContact(): mobile, then pro, then perso
+								$mobile = uptoSignSearchMobile($obj->phone_mobile, $obj->phone_pro, $obj->country_code);
+								if (empty($mobile) && !empty($obj->phone_perso)) {
+									$mobile = uptoSignFixMobile($obj->phone_perso, $obj->country_code);
+								}
+								if (empty($mobile)) {
+									// See the third party branch: the target is kept anyway
+									dol_syslog("uptosign: " . get_class($this)."::add_to_target_spec contact ".$obj->id." has no usable mobile, target kept without one", LOG_WARNING);
+								}
 								$cibles[$obj->email] = array(
 									'email' => $obj->email,
+									'mobile' => $mobile,
 									'fk_contact' =>$obj->id,
 									'lastname' => $obj->lastname,
 									'firstname' => $obj->firstname,

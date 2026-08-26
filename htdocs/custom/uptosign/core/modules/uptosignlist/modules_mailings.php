@@ -187,8 +187,10 @@ class UptosignListTargets // This can't be abstract as it is used for some metho
 				$sql .= " lastname, firstname, email, mobile, other, source_url, source_id,";
 				$sql .= " source_type, status)";
 				$sql .= " VALUES (".((int) $uptosignlist_id).",";
-				$sql .= "'".$this->db->escape($targetarray['lastname'])."',";
-				$sql .= "'".$this->db->escape($targetarray['firstname'])."',";
+				// Tolerant like the neighbouring fields: a selector forgetting one of the
+				// two names must not raise a PHP warning in the middle of an INSERT
+				$sql .= "'".$this->db->escape($targetarray['lastname'] ?? '')."',";
+				$sql .= "'".$this->db->escape($targetarray['firstname'] ?? '')."',";
 				$sql .= "'".$this->db->escape($targetarray['email'])."',";
 				$sql .= "'".$this->db->escape(isset($targetarray['mobile']) ? $targetarray['mobile'] : '')."',";
 				$sql .= "'".$this->db->escape(isset($targetarray['other']) ? $targetarray['other'] : '')."',";
