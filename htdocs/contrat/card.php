@@ -424,7 +424,7 @@ if (empty($reshook)) {
 
 								// Preserve the TTC entry mode of the source line: a line entered including tax must
 								// stay in TTC so its total is computed from the typed value, without rounding drift.
-								$line_price_base_type = $lines[$i]->getPriceBaseType();
+								$line_price_base_type = $lines[$i]->getPriceBaseType();	// Osden add
 								$result = $object->addline(
 									$desc,
 									$lines[$i]->subprice,
@@ -436,8 +436,8 @@ if (empty($reshook)) {
 									$lines[$i]->remise_percent,
 									$lines[$i]->date_start,
 									$lines[$i]->date_end,
-									$line_price_base_type,
-									(float) $lines[$i]->subprice_ttc,
+									$line_price_base_type,	// Osden add
+									(float) $lines[$i]->subprice_ttc,	// Osden add
 									$lines[$i]->info_bits,
 									$lines[$i]->fk_fournprice,
 									$lines[$i]->pa_ht,
@@ -838,11 +838,13 @@ if (empty($reshook)) {
 			$objectline->fk_product = GETPOSTINT('idprod');
 			$objectline->description = GETPOST('product_desc', 'restricthtml');
 			$objectline->subprice = (float) price2num(GETPOST('elprice'), 'MU');
+			// Osden add begin
 			// The contract line edit form is HT-only: if the user actually changed the HT unit price,
 			// the line is no longer in TTC entry mode, so drop the stored TTC value.
 			if (isset($objectline->oldcopy) && (float) $objectline->subprice != (float) $objectline->oldcopy->subprice) {
 				$objectline->subprice_ttc = 0;
 			}
+			// Osden add end
 			$objectline->qty = (float) price2num(GETPOST('elqty'), 'MS');
 			$objectline->remise_percent = $remise_percent;
 			$objectline->tva_tx = ($txtva ? $txtva : 0); // Field may be disabled, so we use vat rate 0
@@ -1441,7 +1443,7 @@ if ($action == 'create') {
 			);
 			$formconfirm = $form->formconfirm($_SERVER['PHP_SELF']."?id=".$object->id, $langs->trans("ActivateAllOnContract"), $langs->trans("ConfirmActivateAllOnContract"), "confirm_activate", $formquestion, 'yes', 1, 280);
 		} elseif ($action == 'clone') {
-			$filter = '(s.client:IN:1,2,3)';
+			$filter = '(s.client:IN:1,2,3) OR (s.fournisseur:=:1)';
 			// Clone confirmation
 			$formquestion = array(array('type' => 'other', 'name' => 'socid', 'label' => $langs->trans("SelectThirdParty"), 'value' => $form->select_company(GETPOSTINT('socid'), 'socid', $filter)));
 			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneContract', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);

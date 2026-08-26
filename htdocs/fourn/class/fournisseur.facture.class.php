@@ -653,20 +653,21 @@ class FactureFournisseur extends CommonInvoice
 					$resql_insert = $this->db->query($sql);
 					if ($resql_insert) {
 						$idligne = $this->db->last_insert_id(MAIN_DB_PREFIX.'facture_fourn_det');
-
+						// Osden add begin
 						// Preserve the original entry mode of the line so the total is computed from the typed value (no rounding drift).
 						$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 						$line_pu = ($line_price_base_type === 'TTC') ? (float) $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
+						// Osden add end
 						$res = $this->updateline(
 							$idligne,
 							$this->lines[$i]->desc ? $this->lines[$i]->desc : $this->lines[$i]->description,
-							$line_pu,
+							$line_pu,	// Osden change
 							$this->lines[$i]->tva_tx.($this->lines[$i]->vat_src_code ? ' ('.$this->lines[$i]->vat_src_code.')' : ''),
 							$this->lines[$i]->localtax1_tx,
 							$this->lines[$i]->localtax2_tx,
 							$this->lines[$i]->qty,
 							$this->lines[$i]->fk_product,
-							$line_price_base_type,
+							$line_price_base_type,	// Osden add
 							(!empty($this->lines[$i]->info_bits) ? $this->lines[$i]->info_bits : ''),
 							$this->lines[$i]->product_type,
 							$this->lines[$i]->remise_percent,
@@ -1229,7 +1230,7 @@ class FactureFournisseur extends CommonInvoice
 					$line->subprice         = $obj->pu_ht;
 					$line->pu_ht            = $obj->pu_ht;
 					$line->pu_ttc			= $obj->pu_ttc;
-					$line->subprice_ttc     = $obj->pu_ttc;
+					$line->subprice_ttc     = $obj->pu_ttc;	// Osden add
 					$line->vat_src_code     = $obj->vat_src_code;
 					$line->tva_tx			= $obj->tva_tx;
 					$line->localtax1_tx		= $obj->localtax1_tx;
@@ -2419,9 +2420,10 @@ class FactureFournisseur extends CommonInvoice
 
 			$supplierinvoiceline->qty = ($this->type == self::TYPE_CREDIT_NOTE ? abs((float) $qty) : (float) $qty); // For credit note, quantity is always positive and unit price negative
 			$supplierinvoiceline->subprice = ($this->type == self::TYPE_CREDIT_NOTE ? -abs((float) $pu_ht) : (float) $pu_ht); // For credit note, unit price always negative, always positive otherwise
+			// Osden add begin
 			// Only keep the TTC unit price when the line was entered including tax, so it acts as a reliable "TTC entry mode" marker.
 			$supplierinvoiceline->subprice_ttc = ($price_base_type === 'TTC') ? ($this->type == self::TYPE_CREDIT_NOTE ? -abs((float) $tabprice[5]) : (float) $tabprice[5]) : 0;
-
+			// Osden add end
 			$supplierinvoiceline->vat_src_code = $vat_src_code;
 			$supplierinvoiceline->tva_tx = $txtva;
 			$supplierinvoiceline->localtax1_tx = ($total_localtax1 ? $localtaxes_type[1] : 0);
@@ -2628,10 +2630,11 @@ class FactureFournisseur extends CommonInvoice
 		$line->qty = ($this->type == self::TYPE_CREDIT_NOTE ? abs((float) $qty) : (float) $qty); // For credit note, quantity is always positive and unit price negative
 		$line->subprice = ($this->type == self::TYPE_CREDIT_NOTE ? -abs((float) $pu_ht) : (float) $pu_ht); // For credit note, unit price always negative, always positive otherwise
 		$line->pu_ht = $line->subprice;  // deprecated
+		// Osden change begin
 		// Only keep the TTC unit price when the line was entered including tax, so it acts as a reliable "TTC entry mode" marker.
 		$line->subprice_ttc = ($price_base_type === 'TTC') ? ($this->type == self::TYPE_CREDIT_NOTE ? -abs((float) $pu_ttc) : (float) $pu_ttc) : 0; // For credit note, unit price always negative, always positive otherwise
 		$line->pu_ttc = $line->subprice_ttc;  // deprecated
-
+		// Osden change end
 		$line->remise_percent = $remise_percent;
 		$line->ref_supplier = $ref_supplier;
 

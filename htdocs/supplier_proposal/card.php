@@ -432,7 +432,7 @@ if (empty($reshook)) {
 
 								// Preserve the TTC entry mode of the source line: a line entered including tax must
 								// stay in TTC so its total is computed from the typed value, without rounding drift.
-								$line_price_base_type = $lines[$i]->getPriceBaseType();
+								$line_price_base_type = $lines[$i]->getPriceBaseType();	// Osden add
 								$result = $object->addline(
 									$desc,
 									$lines[$i]->subprice,
@@ -442,8 +442,8 @@ if (empty($reshook)) {
 									$lines[$i]->localtax2_tx,
 									$lines[$i]->fk_product,
 									$lines[$i]->remise_percent,
-									$line_price_base_type,
-									(float) $lines[$i]->subprice_ttc,
+									$line_price_base_type,	// Osden add
+									(float) $lines[$i]->subprice_ttc,	// Osden add
 									$lines[$i]->info_bits,
 									$product_type,
 									$lines[$i]->rang,
@@ -610,13 +610,15 @@ if (empty($reshook)) {
 		$localtax1_rate = get_localtax($vat_rate, 1, $object->thirdparty, $mysoc);
 		$localtax2_rate = get_localtax($vat_rate, 2, $object->thirdparty, $mysoc);
 		foreach ($object->lines as $line) {
+			// Osden add begin
 			// Preserve the original entry mode of the line so the total is not drifted by rounding.
 			$line_price_base_type = $line->getPriceBaseType();
 			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
 			// In TTC mode, do not forward the HT currency price: under multicurrency updateline() would reset
 			// the local price and recompute from the HT currency amount (read as TTC) -> the TTC value is lost.
 			$line_pu_devise = ($line_price_base_type === 'TTC') ? 0 : (float) $line->multicurrency_subprice;
-			$result = $object->updateline($line->id, $line_pu, $line->qty, $line->remise_percent, (float) $vat_rate, $localtax1_rate, $localtax2_rate, $line->desc, $line_price_base_type, $line->info_bits, $line->special_code, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->product_type, $line->array_options, $line->ref_fourn, $line->fk_unit, $line_pu_devise);
+			// Osden add end
+			$result = $object->updateline($line->id, $line_pu, $line->qty, $line->remise_percent, (float) $vat_rate, $localtax1_rate, $localtax2_rate, $line->desc, $line_price_base_type, $line->info_bits, $line->special_code, $line->fk_parent_line, 0, $line->fk_fournprice, $line->pa_ht, $line->label, $line->product_type, $line->array_options, $line->ref_fourn, $line->fk_unit, $line_pu_devise);	// Osden change
 		}
 	} elseif ($action == 'addline' && $usercancreate) {
 		$langs->load('errors');
@@ -869,7 +871,7 @@ if (empty($reshook)) {
 				// Local Taxes
 				$localtax1_tx = get_localtax($tva_tx, 1, $mysoc, $object->thirdparty);
 				$localtax2_tx = get_localtax($tva_tx, 2, $mysoc, $object->thirdparty);
-
+				// Osden change begin
 				// Keep the entry mode chosen by the user so the total is computed from the typed value (no rounding drift).
 				if (GETPOST('price_ht') != '' || GETPOST('multicurrency_price_ht') != '') {
 					$price_base_type = 'HT';
@@ -882,6 +884,9 @@ if (empty($reshook)) {
 					$pu_ht = 0;
 					$pu_ht_devise = price2num($price_ttc_devise, 'CU');
 				}
+				//$price_base_type = 'HT';
+				//$pu_ht_devise = price2num($price_ht_devise, 'CU');
+				// Osden change end
 				$info_bits = 0;
 
 				$result = $object->addline(
@@ -992,8 +997,8 @@ if (empty($reshook)) {
 	} elseif ($action == 'updateline' && $usercancreate && GETPOST('save') == $langs->trans("Save")) {
 		// Update a line within proposal
 		$vat_rate = (GETPOST('tva_tx') ? GETPOST('tva_tx') : 0);
-		$pu_ht = price2num(GETPOST('price_ht'), '', 2);
-		$pu_ttc = price2num(GETPOST('price_ttc'), '', 2);
+		$pu_ht = price2num(GETPOST('price_ht'), '', 2);	// Osden add
+		$pu_ttc = price2num(GETPOST('price_ttc'), '', 2);	// Osden add
 
 		// Define info_bits
 		$info_bits = 0;
@@ -1008,7 +1013,23 @@ if (empty($reshook)) {
 		$vat_rate = str_replace('*', '', $vat_rate);
 		$localtax1_rate = get_localtax($vat_rate, 1, $mysoc, $object->thirdparty);
 		$localtax2_rate = get_localtax($vat_rate, 2, $mysoc, $object->thirdparty);
+		/* // Osden change begin
+		if (GETPOST('price_ht') != '') {
+			$price_base_type = 'HT';
+			$ht = price2num(GETPOST('price_ht'), '', 2);
+		} else {
+			$reg = array();
+			$vatratecleaned = $vat_rate;
+			if (preg_match('/^(.*)\s*\((.*)\)$/', $vat_rate, $reg)) {      // If vat is "xx (yy)"
+				$vatratecleaned = trim($reg[1]);
+				$vatratecode = $reg[2];
+			}
 
+			$ttc = price2num(GETPOST('price_ttc'), '', 2);
+			$ht = (float) $ttc / (1 + ((float) $vatratecleaned / 100));
+			$price_base_type = 'HT';
+		}
+		*/	// Osden change end
 		$pu_ht_devise = price2num(GETPOST('multicurrency_subprice'), 'CU', 2);
 
 		// Add buying price
@@ -1030,7 +1051,7 @@ if (empty($reshook)) {
 		if (!GETPOST('qty')) {
 			$special_code = 3;
 		}
-
+		// Osden add begin
 		// The form JS clears the other field when the user edits one of them: only the modified field is filled.
 		// When both fields are submitted, the user did not change the price - we must preserve the original
 		// storage mode of the line, otherwise a no-op save would shift the total by rounding.
@@ -1051,7 +1072,7 @@ if (empty($reshook)) {
 				}
 			}
 		}
-
+		// Osden add end
 		// Check minimum price
 		$productid = GETPOSTINT('productid');
 		if (!empty($productid)) {
@@ -1089,16 +1110,16 @@ if (empty($reshook)) {
 
 			$ref_supplier = GETPOST('fourn_ref', 'alpha');
 			$fk_unit = GETPOSTINT('units');
-
+			// Osden add begin
 			// In TTC mode, do not forward the HT currency price: under multicurrency updateline() would reset
 			// the local price and recompute from the HT currency amount (read as TTC) -> the TTC value is lost.
 			if ($price_base_type === 'TTC') {
 				$pu_ht_devise = 0;
 			}
-
+			// Osden add end
 			$result = $object->updateline(
 				GETPOSTINT('lineid'),
-				(float) $ht,
+				(float) $ht,	// Osden change
 				(float) price2num(GETPOST('qty'), 'MS', 2),
 				(float) price2num(GETPOST('remise_percent'), '', 2),
 				(float) $vat_rate,

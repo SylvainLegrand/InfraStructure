@@ -714,7 +714,7 @@ class SupplierInvoiceLine extends CommonObjectLine
 		$sql .= ' '.(!empty($this->fk_remise_except) ? ((int) $this->fk_remise_except) : "null").',';
 		$sql .= " ".price2num($this->subprice).",";
 		// pu_ttc holds the TTC entry mode: the typed TTC unit price when entered including tax, 0 otherwise (like update()).
-		$sql .= " ".price2num($this->subprice_ttc).",";
+		$sql .= " ".price2num($this->subprice_ttc).",";	// Osden add
 		$sql .= " ".(!empty($this->date_start) ? "'".$this->db->idate($this->date_start)."'" : "null").",";
 		$sql .= " ".(!empty($this->date_end) ? "'".$this->db->idate($this->date_end)."'" : "null").",";
 		$sql .= ' '.(!empty($this->fk_code_ventilation) ? $this->fk_code_ventilation : 0).',';

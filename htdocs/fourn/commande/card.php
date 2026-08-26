@@ -402,11 +402,14 @@ if (empty($reshook)) {
 		$alldate_end = dol_mktime(GETPOSTINT('alldate_endhour'), GETPOSTINT('alldate_endmin'), 0, GETPOSTINT('alldate_endmonth'), GETPOSTINT('alldate_endday'), GETPOSTINT('alldate_endyear'));
 		foreach ($object->lines as $line) {
 			if ($line->product_type == 1) { // only service line
+				// Osden add begin
 				// Preserve the original entry mode of the line so the total is not drifted by rounding.
 				$line_price_base_type = $line->getPriceBaseType();
 				$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
-				$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, $line->remise_percent, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line_price_base_type, $line->info_bits, $line->product_type, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier);
+				// Osden add end
+				$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, $line->remise_percent, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line_price_base_type, $line->info_bits, $line->product_type, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier);	// Osden change
 			}
+		// Osden add begin
 		}
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'alpha') && GETPOST('remiseforalllines', 'alpha') !== '' && $usercancreate) {
 		// Define vat_rate
@@ -417,6 +420,7 @@ if (empty($reshook)) {
 			$line_price_base_type = $line->getPriceBaseType();
 			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
 			$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, $remise_percent, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line_price_base_type, $line->info_bits, $line->product_type, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier);
+		// Osden add end
 		}
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && GETPOST('vatforalllines', 'alpha') !== '' && $usercancreate) {
 		// Define new vat_rate for all lines
@@ -425,10 +429,12 @@ if (empty($reshook)) {
 		$localtax1_rate = get_localtax($vat_rate, 1, $object->thirdparty, $mysoc);
 		$localtax2_rate = get_localtax($vat_rate, 2, $object->thirdparty, $mysoc);
 		foreach ($object->lines as $line) {
+			// Osden add begin
 			// Preserve the original entry mode of the line so the total is not drifted by rounding.
 			$line_price_base_type = $line->getPriceBaseType();
 			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
-			$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, $line->remise_percent, (float) $vat_rate, $localtax1_rate, $localtax2_rate, $line_price_base_type, $line->info_bits, $line->product_type, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier);
+			// Osden add end
+			$result = $object->updateline($line->id, $line->desc, $line_pu, $line->qty, $line->remise_percent, (float) $vat_rate, $localtax1_rate, $localtax2_rate, $line_price_base_type, $line->info_bits, $line->product_type, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier);	// Osden change
 		}
 	} elseif ($action == 'addline' && $usercancreate) {
 		$db->begin();
@@ -673,7 +679,7 @@ if (empty($reshook)) {
 			// Local Taxes
 			$localtax1_tx = get_localtax($tva_tx, 1, $mysoc, $object->thirdparty);
 			$localtax2_tx = get_localtax($tva_tx, 2, $mysoc, $object->thirdparty);
-
+			// Osden change begin
 			// Keep the entry mode chosen by the user so the total is computed from the typed value (no rounding drift).
 			if (GETPOST('price_ht') != '' || GETPOST('multicurrency_price_ht') != '') {
 				$price_base_type = 'HT';
@@ -686,7 +692,9 @@ if (empty($reshook)) {
 				$pu_ht = 0;
 				$pu_ht_devise = price2num($price_ttc_devise, 'CU');
 			}
-
+			//$price_base_type = 'HT';
+			//$pu_ht_devise = price2num($price_ht_devise, 'CU');
+			// Osden change end
 			$result = $object->addline($desc, (float) $pu_ht, (float) $qty, $tva_tx, $localtax1_tx, $localtax2_tx, 0, 0, $ref_supplier, $remise_percent, $price_base_type, (float) $pu_ttc, $type, 0, 0, $date_start, $date_end, $array_options, $fk_unit, (float) $pu_ht_devise);
 		}
 
@@ -795,7 +803,7 @@ if (empty($reshook)) {
 		$vat_rate = str_replace('*', '', $vat_rate);
 		$localtax1_rate = get_localtax($vat_rate, 1, $mysoc, $object->thirdparty);
 		$localtax2_rate = get_localtax($vat_rate, 2, $mysoc, $object->thirdparty);
-
+		// Osden change begin
 		$pu_ht = price2num(GETPOST('price_ht'), '', 2);
 		$pu_ttc = price2num(GETPOST('price_ttc'), '', 2);
 
@@ -819,7 +827,7 @@ if (empty($reshook)) {
 				}
 			}
 		}
-
+		// Osden change end
 		$pu_ht_devise = price2num(GETPOST('multicurrency_subprice'), 'CU', 2);
 
 		// Extrafields Lines
@@ -835,7 +843,7 @@ if (empty($reshook)) {
 		$result = $object->updateline(
 			$lineid,
 			GETPOST('product_desc', 'restricthtml'),
-			(float) $ht,
+			(float) $ht,	// Osden change
 			(float) price2num(GETPOST('qty'), 'MS'),
 			(float) price2num(GETPOST('remise_percent'), '', 2),
 			$vat_rate,
@@ -1475,7 +1483,7 @@ if (empty($reshook)) {
 								}
 
 								// Preserve the original entry mode of the line so the total is computed from the typed value (no rounding drift).
-								$line_price_base_type = $lines[$i]->getPriceBaseType();
+								$line_price_base_type = $lines[$i]->getPriceBaseType();	// Osden add
 								$result = $object->addline(
 									$desc,
 									$lines[$i]->subprice,
@@ -1487,8 +1495,8 @@ if (empty($reshook)) {
 									$product_fourn_price_id,
 									$ref_supplier,
 									$lines[$i]->remise_percent,
-									$line_price_base_type,
-									(float) $lines[$i]->subprice_ttc,
+									$line_price_base_type,	// Osden add
+									(float) $lines[$i]->subprice_ttc,	// Osden add
 									$lines[$i]->product_type,
 									0,
 									0,
