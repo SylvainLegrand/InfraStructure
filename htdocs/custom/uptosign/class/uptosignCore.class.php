@@ -465,7 +465,13 @@ class uptosignCore implements ArrayAccess
 	/**
 	 * Return list of contacts who can sign for a given thirdparty and element type
 	 *
-	 * Public API for external modules. Uses UptoSignSignatoryResolver internally.
+	 * Public API for external modules. The selection rules are the ones of
+	 * UptoSignSignatoryResolver, shared with the sign workflow itself: a signatory
+	 * needs a name, an email and a usable mobile, and two people sharing a mobile
+	 * number count as one. Only the roles the uptosign module declares are accepted.
+	 *
+	 * The return contract is kept as is: a bare Contact when there is exactly one
+	 * result, an ArrayObject otherwise.
 	 *
 	 * @param   int    $socid   Thirdparty ID
 	 * @param   string $element Object element (invoice, propal, etc.)
@@ -482,32 +488,15 @@ class uptosignCore implements ArrayAccess
 			return new ArrayObject();
 		}
 
-		$resolver = new UptoSignSignatoryResolver($this->db);
-		$typeContacts = $resolver->getTypeContactCode($element, '', '', ['module' => 'uptosign']);
-		$typeContactsIds = array();
-		if (is_array($typeContacts) && count($typeContacts) > 0) {
-			$typeContactsIds = array_keys($typeContacts);
-		}
-
-		$societe = new Societe($this->db);
-		$societe->fetch($socid);
-		$contacts = $societe->contact_array_objects();
-
 		$result = new ArrayObject();
-		foreach ($contacts as $contact) {
-			$contact->fetchRoles();
-			foreach ($contact->roles as $key => $value) {
-				if ($value['element'] == $element && $value['code'] == $role && in_array($value['id'], $typeContactsIds)) {
-					$numero = uptoSignSearchMobile($contact->phone_mobile, $contact->phone_pro, $contact->country_code);
-					if (empty($contact->email)) {
-						dol_syslog('uptoSignCore whoCanSign contact without email: ' . $contact->id, LOG_DEBUG);
-					} elseif (empty($numero)) {
-						dol_syslog('uptoSignCore whoCanSign contact without mobile: ' . $contact->id, LOG_DEBUG);
-					} else {
-						$result->append($contact);
-					}
-				}
-			}
+		$dedup = array();
+		$resolver = new UptoSignSignatoryResolver($this->db);
+		// 'external': whoCanSign answers about the contacts of a third party, never
+		// about the internal users of the instance
+		$resolver->resolveSignersOfThirdparty($socid, $element, 'external', $role, $result, $dedup, true);
+
+		if (!empty($resolver->errors)) {
+			dol_syslog('uptoSignCore whoCanSign: contacts skipped for socid ' . $socid . ' : ' . implode(', ', $resolver->errors), LOG_DEBUG);
 		}
 
 		dol_syslog('uptoSignCore whoCanSign result count: ' . count($result), LOG_DEBUG);

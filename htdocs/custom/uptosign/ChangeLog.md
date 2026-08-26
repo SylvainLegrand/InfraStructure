@@ -1,5 +1,12 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.12 -- 2026-08-25
+
+ add supplier docs
+ enhance signer checks (name / phone) and code factoring for that
+ fix some warnings
+ better logs for debug / user help
+
 ## 2.4.10 -- 2026-08-24
 
  add more tests (code coverage)

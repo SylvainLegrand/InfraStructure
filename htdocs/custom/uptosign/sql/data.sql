@@ -41,6 +41,28 @@ INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_c
 INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)
     VALUES (__ENTITY__,'DocumentSeal','seal',NOW(),1,1,'initial-setup',1,'order:einstein','',NULL,'82,14','1');
 
+-- supplier proposals and supplier orders
+-- The external signatory is the supplier (VendorSign), and the coordinates are the
+-- ones of the equivalent customer model: pdf_aurore is the clone of pdf_azur for the
+-- supplier proposal, muscadet and cornas follow the layout of einstein.
+-- One sign configuration per model only: signInit() reads the first one.
+
+INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)
+    VALUES (__ENTITY__,'VendorSign','sign',NOW(),1,1,'initial-setup',1,'supplier_proposal:aurore','120,240','-1','120,264','1');
+
+INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)
+    VALUES (__ENTITY__,'DocumentSeal','seal',NOW(),1,1,'initial-setup',1,'supplier_proposal:aurore','',NULL,'82,14','1');
+
+INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)
+    VALUES (__ENTITY__,'VendorSign','sign',NOW(),1,1,'initial-setup',1,'order_supplier:cornas','120,250','-1','60,250','1');
+INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)
+    VALUES (__ENTITY__,'VendorSign','sign',NOW(),1,1,'initial-setup',1,'order_supplier:muscadet','120,250','-1','60,250','1');
+
+INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)
+    VALUES (__ENTITY__,'DocumentSeal','seal',NOW(),1,1,'initial-setup',1,'order_supplier:cornas','',NULL,'82,14','1');
+INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)
+    VALUES (__ENTITY__,'DocumentSeal','seal',NOW(),1,1,'initial-setup',1,'order_supplier:muscadet','',NULL,'82,14','1');
+
 -- fiche inter
 
 INSERT IGNORE INTO llx_uptosign_uptosignconfig (entity,label,sign_or_seal,date_creation,fk_user_creat,fk_user_modif,import_key,status,model_pdf,sign_coordinate,page_sign,seal_coordinate,page_seal)

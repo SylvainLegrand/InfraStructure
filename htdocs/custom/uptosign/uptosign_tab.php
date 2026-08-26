@@ -156,13 +156,17 @@ $ref = $object->ref;
 $upload_dir = $pdfFileChoosedFullPath = "";
 if($objectType == "societe") {
 	$upload_dir = $conf->{$modulepart}->multidir_output[$object->entity] . '/' . $object->id;
-}elseif (isset($conf->{$modulepart}->multidir_output[$object->entity])) {
+} elseif (!empty($hallobj['pdfpath'])) {
+	// pdfpath comes first: it is the only one that knows about the subdirectories some
+	// modules use. A shipment stores its documents in expedition/sending/<ref> and a
+	// delivery receipt in expedition/receipt/<ref>, while multidir_output would send us
+	// to expedition/<ref>, where there is never any PDF. For every other object type
+	// pdfpath IS multidir_output, so this changes nothing.
+	$upload_dir = $hallobj['pdfpath'] . '/' . dol_sanitizeFileName($object->ref);
+} elseif (isset($conf->{$modulepart}->multidir_output[$object->entity])) {
 	$upload_dir = $conf->{$modulepart}->multidir_output[$object->entity] . '/' . dol_sanitizeFileName($object->ref);
 } elseif (isset($conf->{$modulepart}->dir_output)) {
 	$upload_dir = $conf->{$modulepart}->dir_output . '/' . dol_sanitizeFileName($object->ref);
-} elseif (!empty($hallobj['pdfpath'])) {
-	// Fallback: use pdfpath from uptosign_handle_all_type_of_objects (handles ficheinter, etc.)
-	$upload_dir = $hallobj['pdfpath'] . '/' . dol_sanitizeFileName($object->ref);
 }
 if (empty($pdfFileChoosed)) {
 	if (!empty($pdfFileName)) {
@@ -837,6 +841,15 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 			if ($numero == -1 && $email == -1) {
 				dol_syslog("uptosign: continue due to numero=$numero or email=$email " . json_encode($c));
+				continue;
+			}
+
+			// Someone with neither a firstname nor a lastname is refused further down the
+			// chain (resolveSigners, then signInit): keeping it here would let the user
+			// place a signature block for a person the procedure will never submit.
+			// Dropped like the "no mobile and no email" case just above.
+			if (!uptosign_object_has_name($c)) {
+				dol_syslog("uptosign: skip signatory without firstname nor lastname, id=" . ($c->id ?? '') . ", element=" . ($c->element ?? '') . ", email=" . $email, LOG_WARNING);
 				continue;
 			}
 

@@ -453,3 +453,45 @@ function uptosign_migrate_data_before_2_0_38()
 		}
 	}
 }
+
+
+/**
+ * Tell whether a table exists in the current database.
+ *
+ * Needed by modUptoSign::init(), which runs maintenance queries on the module
+ * tables before _load_tables() has had a chance to create them: on a fresh
+ * install those tables do not exist yet and the queries would fail.
+ * DoliDB::DDLListTables() cannot be used here, its sqlite3 implementation
+ * issues a "SHOW TABLES" statement that SQLite does not understand.
+ *
+ * @param	DoliDB	$db		Database handler
+ * @param	string	$table	Table name, database prefix included
+ * @return	bool			True when the table exists
+ */
+function uptosign_table_exists($db, $table)
+{
+	$table = preg_replace('/[^a-z0-9_]/i', '', (string) $table);
+	if ($table === '') {
+		dol_syslog("uptosign: uptosign_table_exists called without a usable table name", LOG_ERR);
+		return false;
+	}
+
+	if ($db->type == 'sqlite3') {
+		$sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = '".$db->escape($table)."'";
+	} elseif ($db->type == 'pgsql') {
+		$sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = '".$db->escape($table)."'";
+	} else {
+		$sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '".$db->escape($table)."'";
+	}
+
+	$resql = $db->query($sql);
+	if (!$resql) {
+		dol_syslog("uptosign: uptosign_table_exists could not check table ".$table.": ".$db->lasterror(), LOG_ERR);
+		return false;
+	}
+
+	$exists = ($db->num_rows($resql) > 0);
+	$db->free($resql);
+
+	return $exists;
+}

@@ -40,6 +40,24 @@ class UptoSignList extends CommonObject
 	public $labelStatusShort;
 	public $labelStatus;
 	public $output;
+
+	/**
+	 * @var string Title of the agenda event, set by the sign/seal workflow
+	 */
+	public $uptosignTitle;
+
+	/**
+	 * @var string Message of the agenda event, set by the sign/seal workflow
+	 */
+	public $uptosignMessage;
+
+	/**
+	 * @var string 'sign'|'seal'|'uptosign'|'uptoseal', set by the sign/seal workflow.
+	 *             Declared because the webhook now hands this object to createEvent()
+	 *             and signFetch(), which write it (PHP 8.2 deprecates dynamic properties).
+	 */
+	public $signOrSeal;
+
 	public $user_validation;
 	public $user_creation_id;
 	public $user_validation_id;

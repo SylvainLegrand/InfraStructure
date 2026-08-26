@@ -80,7 +80,7 @@ class modUptoSign extends DolibarrModules
 		$this->editor_url = 'https://cap-rel.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.4.10';
+		$this->version = '2.4.12';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version . "&d=" . DOL_VERSION . "&h=" . md5(DOL_DATA_ROOT);
 
@@ -654,10 +654,16 @@ class modUptoSign extends DolibarrModules
 		// INSERT IGNORE per Dolibarr sql conventions). These deletes used to live in data.sql
 		// but a data file must not contain DELETE statements, so they are executed here in PHP.
 		// 1. Drop the initial-setup document configurations so the current default coordinates
-		//    are re-inserted for this entity.
-		$sqlDelConf = "DELETE FROM ".MAIN_DB_PREFIX."uptosign_uptosignconfig WHERE import_key = 'initial-setup' AND entity = ".((int) $conf->entity);
+		//    are re-inserted for this entity. The table is missing on a fresh install, where
+		//    _load_tables() below creates it and there is nothing to reset yet.
+		$tableConf = MAIN_DB_PREFIX."uptosign_uptosignconfig";
+		if (uptosign_table_exists($db, $tableConf)) {
+			$sqlDelConf = "DELETE FROM ".$tableConf." WHERE import_key = 'initial-setup' AND entity = ".((int) $conf->entity);
 		if (!$db->query($sqlDelConf)) {
 			dol_syslog("uptosign init: failed to reset initial-setup configs: ".$db->lasterror(), LOG_ERR);
+			}
+		} else {
+			dol_syslog("uptosign init: table ".$tableConf." not created yet, skip initial-setup configs reset", LOG_DEBUG);
 		}
 		// 2. Drop the module email templates that were never customized by the user (datec == tms),
 		//    so the up-to-date wording is re-inserted.

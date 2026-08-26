@@ -42,7 +42,7 @@ dol_include_once('/uptosign/class/uptosign.class.php');
 dol_include_once('/uptosign/class/uptosignconfig.class.php');
 dol_include_once('/contact/class/contact.class.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
-// dol_include_once('/archivespdf/class/ecmfilesextended.class.php');
+
 
 // Force le chargement des classes Smalot\PdfParser embarquées par uptosign
 // avant qu'un autre module livrant sa propre copie de smalot/pdfparser
@@ -193,6 +193,39 @@ function uptoSignSearchMobileContact($c)
 		}
 	}
 	return '';
+}
+
+/**
+ * Tell if a person carries a name we can print on a signature
+ *
+ * The signature block, the SMS and the proof file all identify the signer by name:
+ * someone with neither a first name nor a last name cannot be identified there, and
+ * is almost always the leftover of an import.
+ *
+ * Only ONE of the two is required, never both: Dolibarr itself only makes lastname
+ * mandatory on a contact, its own admin user ships without a first name, and the
+ * module builds signatories out of a company name split on spaces (a one word company
+ * gives an empty lastname). A company signing as itself is identified by its name.
+ *
+ * @param  object $person Contact, User or Societe
+ * @return bool           False when the person has no usable name at all
+ */
+function uptosign_object_has_name($person)
+{
+	if (!is_object($person)) {
+		dol_syslog('uptosign: uptosign_object_has_name called without an object', LOG_WARNING);
+		return false;
+	}
+
+	// A company has no firstname/lastname, its identity is the company name
+	if (isset($person->element) && $person->element == 'societe') {
+		return trim((string) ($person->name ?? '')) !== '';
+	}
+
+	$firstname = trim((string) ($person->firstname ?? ''));
+	$lastname = trim((string) ($person->lastname ?? ''));
+
+	return ($firstname !== '' || $lastname !== '');
 }
 
 /**
@@ -525,19 +558,61 @@ function uptosignStrRand($length = 32)
  */
 function uptosignModel($document)
 {
-	global $conf;
-
 	$model = $document->model_pdf ?? '';
 	if (empty($model)) {
 		$model = $document->modelpdf ?? '';
 	}
 	if (empty($model)) {
-		//try const like FACTURE_ADDON_PDF
-		$key = strtoupper($document->element) . '_ADDON_PDF';
-		if (utsbackports_getDolGlobalString($key, '')  != '') {
-			$model = $conf->global->$key;
-		}
+		// A document whose PDF was never generated from its card has an empty
+		// model_pdf: fall back on the default model of that document type, the very
+		// one Dolibarr would use in generateDocument().
+		$model = uptosignDefaultModel($document->element ?? '');
 	}
+	return $model;
+}
+
+/**
+ * return the default document model configured in Dolibarr for an element
+ *
+ * The constant name cannot always be derived from the element name: a proposal
+ * reads PROPALE_ADDON_PDF and not PROPAL_ADDON_PDF, a contract CONTRACT_ADDON_PDF
+ * and not CONTRAT_ADDON_PDF, a shipment EXPEDITION_ADDON_PDF while its element is
+ * "shipping". Deriving the key blindly returned nothing, so a document without a
+ * model_pdf matched no configuration at all and offered no signature button.
+ *
+ * @param   string  $element  Dolibarr element name, ex propal or order_supplier
+ *
+ * @return  string            Model name, ex azur, empty when nothing is configured
+ */
+function uptosignDefaultModel($element)
+{
+	if (empty($element)) {
+		dol_syslog("uptosign: uptosignDefaultModel called without element, no default model", LOG_WARNING);
+		return '';
+	}
+
+	// Constants read by the generateDocument() method of each Dolibarr class
+	$keys = array(
+		'propal' => 'PROPALE_ADDON_PDF',
+		'contrat' => 'CONTRACT_ADDON_PDF',
+		'contract' => 'CONTRACT_ADDON_PDF',
+		'fichinter' => 'FICHEINTER_ADDON_PDF',
+		'shipping' => 'EXPEDITION_ADDON_PDF',
+		'expedition' => 'EXPEDITION_ADDON_PDF',
+		'order_supplier' => 'COMMANDE_SUPPLIER_ADDON_PDF',
+		'invoice_supplier' => 'INVOICE_SUPPLIER_ADDON_PDF',
+	);
+
+	// Anything else, including the objects of external modules, follows the
+	// ELEMENT_ADDON_PDF convention: facture, commande, project, supplier_proposal
+	$key = $keys[$element] ?? strtoupper($element) . '_ADDON_PDF';
+
+	$model = utsbackports_getDolGlobalString($key, '');
+	if (empty($model)) {
+		dol_syslog("uptosign: uptosignDefaultModel no model in constant " . $key . " for element " . $element, LOG_DEBUG);
+		return '';
+	}
+
 	return $model;
 }
 
@@ -901,6 +976,11 @@ function uptosign_find_duplicate_inflight(UptoSign $uts, $fkObject, $objectType,
 /**
  * create new file name according to dolibarr guidelines
  *
+ * Note: Dolibarr 17 appends a full timestamp to the name of its pseudo signed files.
+ * We deliberately do NOT do the same, the drawbacks are discussed there:
+ * https://www.dolibarr.fr/forum/t/dolibarr-17-suffixe-aux-fichiers-pdf-pseudo-signes/42677
+ * The pattern below only cleans such a timestamp when it is already present.
+ *
  * @param   string $filename	[$filename description]
  * @param   string $suffix  	   [$suffix description]
  * @param   int $ts		  [$ts description]
@@ -909,7 +989,6 @@ function uptosign_find_duplicate_inflight(UptoSign $uts, $fkObject, $objectType,
  */
 function uptosign_rename_file_dolibarr_guidelines($filename, $suffix = '', $ts = null)
 {
-	global $db;
 	dol_syslog("uptosign: uptosign_rename_file_dolibarr_guidelines filename=$filename, suffix=$suffix, ts=$ts");
 
 	$s = '';
@@ -925,36 +1004,6 @@ function uptosign_rename_file_dolibarr_guidelines($filename, $suffix = '', $ts =
 
 	$new =  preg_replace($patterns, $replacements, $filename);
 	return $new;
-
-	// -------------------------------- TODO eventuel ----------------------------------
-
-	// 2023 : dolibarr core add full timestamp to signed filename so we could do the same
-	// but that is a bad idea, more details on
-	// https://www.dolibarr.fr/forum/t/dolibarr-17-suffixe-aux-fichiers-pdf-pseudo-signes/42677
-	// $ecmfile	 = new EcmFilesExtended($db);
-	//Archivage d'une copie du fichier avec étiquette sign / seal
-	// $newfilename = $ecmfile->archiveStore($filename, ['uptosign',$suffix], 'copy');
-	//puis changement du nom du fichier qui est à la racine de l'espace de stockage
-	//dol_move($filename, dirname($filename) . '/' . basename($newfilename));
-
-	// if (null === $ts) {
-	// 	$ts = dol_now();
-	// }
-	// $date = dol_print_date($ts, "%Y%m%d%H%M%S");
-
-	// $s = '';
-	// if ($suffix != '') {
-	// 	$s = '-' . $suffix;
-	// }
-
-	// $patterns = array();
-	// $patterns[0] = '/(' . $s . ')?(-\d{14})?.pdf$/';
-
-	// $replacements = array();
-	// $replacements[0] = $s . '-' . $date . '.pdf';
-
-	// $new =  preg_replace($patterns, $replacements, $filename);
-	// return $new;
 }
 
 /**
@@ -2935,59 +2984,72 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		$object = new Propal($db);
 		$modulepart = "propal";
 		$functionHead = 'propal_prepare_head';
-		$pdfpath = $conf->propal->multidir_output[$conf->entity];
+		$pdfpath = $conf->propal->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'contrat' || $objectType == 'contract') {
 		require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/contract.lib.php';
 		$object = new Contrat($db);
 		$modulepart = "contract";
 		$functionHead = 'contract_prepare_head';
-		$pdfpath = $conf->contract->multidir_output[$conf->entity];
+		$pdfpath = $conf->contract->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'commande' || $objectType == 'order') {
 		require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/order.lib.php';
 		$object = new Commande($db);
 		$modulepart = "commande";
 		$functionHead = 'commande_prepare_head';
-		$pdfpath = $conf->commande->multidir_output[$conf->entity];
+		$pdfpath = $conf->commande->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'invoice' || $objectType == 'facture') {
 		require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/invoice.lib.php';
 		$object = new Facture($db);
 		$modulepart = "facture";
 		$functionHead = 'facture_prepare_head';
-		$pdfpath = $conf->facture->multidir_output[$conf->entity];
+		$pdfpath = $conf->facture->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'delivery') {
 		if (((int) DOL_VERSION) > 12) {
 			require_once DOL_DOCUMENT_ROOT . '/delivery/class/delivery.class.php';
 			/** @phpstan-ignore-next-line */
 			$object = new Delivery($db);
 			$modulepart = "delivery";
-			$pdfpath = $conf->expedition->dir_output . "/receipt";
+			$pdfpath = isset($conf->expedition->dir_output) ? $conf->expedition->dir_output . '/receipt' : '';
 		} else {
 			dol_syslog("uptosign: uptoSignGetSpecimen delivery object is for Dolibarr 13.0", LOG_WARNING);
 		}
-	} elseif ($objectType == 'ficheinter'|| $objectType == 'intervention') {
+	} elseif ($objectType == 'ficheinter' || $objectType == 'intervention' || $objectType == 'fichinter') {
+		// 'fichinter' is the element name, and therefore the value really stored in
+		// llx_uptosign.object_type: without it the manual retry screen could not rebuild
+		// an intervention the webhook had already processed
 		require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/fichinter.lib.php';
 		$object = new Fichinter($db);
 		$modulepart = "fichinter";
-		$pdfpath = $conf->ficheinter->dir_output;
+		$functionHead = 'fichinter_prepare_head';
+		$pdfpath = $conf->ficheinter->dir_output ?? '';
+	} elseif ($objectType == 'expedition' || $objectType == 'shipping') {
+		require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/sendings.lib.php';
+		$object = new Expedition($db);
+		$modulepart = "expedition";
+		$functionHead = 'shipping_prepare_head';
+		// Shipments store their documents under a 'sending' subdirectory, see expedition/card.php
+		$pdfpath = isset($conf->expedition->dir_output) ? $conf->expedition->dir_output . '/sending' : '';
 	} elseif ($objectType == 'invoice_supplier') {
 		require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.facture.class.php';
 		$object = new FactureFournisseur($db);
 		$modulepart = "supplier_invoice";
-		$pdfpath = $conf->fournisseur->facture->dir_output;
+		$pdfpath = $conf->fournisseur->facture->dir_output ?? '';
 	} elseif ($objectType == 'societe') {
 		$object = new Societe($db);
 		$modulepart = "societe";
-		$pdfpath = $conf->societe->multidir_output[$conf->entity];
+		$pdfpath = $conf->societe->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'project' || $objectType == 'projet') {
 		require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/project.lib.php';
 		$object = new Project($db);
 		$modulepart = "project";
 		$functionHead = 'project_prepare_head';
-		$pdfpath = $conf->project->multidir_output[$conf->entity];
+		$pdfpath = $conf->project->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'supplier_order') {
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/fourn.lib.php';
 		require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.class.php';
@@ -3021,18 +3083,18 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		require_once DOL_DOCUMENT_ROOT . '/compta/bank/class/account.class.php';
 		$object = new Account($db);
 		$modulepart = "bank";
-		$pdfpath = $conf->bank->dir_output;
+		$pdfpath = $conf->bank->dir_output ?? '';
 	} elseif ($objectType == 'sepamandate') {
 		//TODO verif
 		require_once DOL_DOCUMENT_ROOT . '/societe/class/companypaymentmode.class.php';
 		$object = new CompanyPaymentMode($db);
 		$modulepart = "bank";
-		$pdfpath = $conf->bank->dir_output;
+		$pdfpath = $conf->bank->dir_output ?? '';
 	} elseif ($objectType == 'order_supplier') {
 		require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.class.php';
 		$object = new CommandeFournisseur($db);
 		$modulepart = "supplier_order";
-		$pdfpath = $conf->fournisseur->commande->dir_output;
+		$pdfpath = $conf->fournisseur->commande->dir_output ?? '';
 	} elseif ($objectType == 'infrassalariescontracts') {
 		dol_include_once('/infrassalariescontracts/class/infrassalariescontracts.class.php');
 		dol_include_once('/infrassalariescontracts/core/lib/infrassalariescontracts.lib.php');
@@ -3065,4 +3127,143 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		'signOrSeal' => $signOrSeal,
 		'pdfpath' => $pdfpath
 	];
+}
+
+/**
+ * Tell which Dolibarr object a webhook callback is about
+ *
+ * public/hook.php only knows the uptosign record the remote service just signed or
+ * sealed. This is where that record is turned into the Dolibarr object whose card
+ * hooks must run, and into the hook context to run them under. Kept out of the
+ * webhook script so the mapping can be tested object type by object type: a missing
+ * branch used to answer 500 and lose the signed document.
+ *
+ * Grouped signatures need a special reading. uptosignlist_tab.php starts one
+ * procedure per member and stores the MEMBER in object_type/fk_object ('contact',
+ * 'thirdparty', 'user', 'member', 'manual', 'file' - see the uts_*.modules.php
+ * selectors), or 'uptosignlist' when the signature is placed on several pages. None
+ * of those values designates the signed document: the only object every member type
+ * has in common is the list, which is what fk_uptosignlist points to. A record
+ * carrying a list is therefore always resolved to its UptoSignList.
+ *
+ * @param   DoliDB    $db        Database handler
+ * @param   UptoSign  $uptoSign  Record the webhook is about, already fetched
+ *
+ * @return  array|null           ['object','id','modulepart','hookcontext'], or null
+ *                               when no Dolibarr object matches that object_type
+ */
+function uptosign_webhook_object_descriptor($db, $uptoSign)
+{
+	$objectType = (string) $uptoSign->object_type;
+	$fkObject = (int) $uptoSign->fk_object;
+	$fkList = (int) $uptoSign->fk_uptosignlist;
+
+	if ($fkList > 0 || $objectType == 'uptosignlist') {
+		dol_include_once('/uptosign/class/uptosignlist.class.php');
+		return array(
+			'object' => new UptoSignList($db),
+			'id' => ($fkList > 0) ? $fkList : $fkObject,
+			'modulepart' => 'uptosignlist',
+			// uptosignlist_tab.php runs its own hooks under 'uptosigncard' (nobody
+			// declares an 'uptosignlistcard'): the webhook must land on the same one
+			'hookcontext' => 'uptosigncard',
+		);
+	}
+
+	$object = null;
+	$modulepart = '';
+	// Card context of the hooks. Dolibarr names some of them differently from the
+	// module part (a supplier order card is 'ordersuppliercard'), and the context is
+	// what decides whether doActions() runs. When no module declares it, HookManager
+	// falls back on 'uptosigncard', which doActions() handles.
+	$hookcontext = '';
+
+	if ($objectType == 'propal') {
+		require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/propal.lib.php';
+		$object = new Propal($db);
+		$modulepart = 'propal';
+		$hookcontext = 'propalcard';
+	} elseif ($objectType == 'contract' || $objectType == 'contrat') {
+		require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/contract.lib.php';
+		$object = new Contrat($db);
+		$modulepart = 'contract';
+		$hookcontext = 'contractcard';
+	} elseif ($objectType == 'invoice' || $objectType == 'facture') {
+		require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/invoice.lib.php';
+		$object = new Facture($db);
+		$modulepart = 'invoice';
+		$hookcontext = 'invoicecard';
+	} elseif ($objectType == 'project') {
+		require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/project.lib.php';
+		$object = new Project($db);
+		$modulepart = 'project';
+		$hookcontext = 'projectcard';
+	} elseif ($objectType == 'supplier_proposal') {
+		require_once DOL_DOCUMENT_ROOT . '/supplier_proposal/class/supplier_proposal.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/supplier_proposal.lib.php';
+		$object = new SupplierProposal($db);
+		$modulepart = 'supplier_proposal';
+		$hookcontext = 'supplier_proposalcard';
+	} elseif ($objectType == 'societe') {
+		require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+		$object = new Societe($db);
+		$modulepart = 'societe';
+		// No module declares 'thirdpartycard' here: declaring it would plug the module
+		// into societe/card.php, a different feature. The call falls back on
+		// 'uptosigncard', which is handled.
+		$hookcontext = 'societecard';
+	} elseif ($objectType == 'order') {
+		require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/order.lib.php';
+		$object = new Commande($db);
+		$modulepart = 'order';
+		// The card of a customer order is commande/card.php, whose context is 'ordercard'
+		$hookcontext = 'ordercard';
+	} elseif ($objectType == 'companypaymentmode') {
+		require_once DOL_DOCUMENT_ROOT . '/societe/class/companypaymentmode.class.php';
+		//sepa mandate
+		$object = new CompanyPaymentMode($db);
+		$modulepart = 'companypaymentmode';
+		$hookcontext = 'companypaymentmodecard';
+	} elseif ($objectType == 'fichinter' || $objectType == 'intervention') {
+		require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/fichinter.lib.php';
+		$object = new Fichinter($db);
+		$modulepart = 'intervention';
+		$hookcontext = 'interventioncard';
+	} elseif ($objectType == 'expedition' || $objectType == 'shipping') {
+		require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/expedition.lib.php';
+		$object = new Expedition($db);
+		$modulepart = 'expedition';
+		$hookcontext = 'expeditioncard';
+	} elseif ($objectType == 'order_supplier' || $objectType == 'supplier_order') {
+		require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/fourn.lib.php';
+		$object = new CommandeFournisseur($db);
+		$modulepart = 'supplier_order';
+		// Dolibarr names that card 'ordersuppliercard', not '<modulepart>card'
+		$hookcontext = 'ordersuppliercard';
+	} elseif ($objectType == 'user') {
+		require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+		$object = new User($db);
+		$modulepart = 'user';
+		$hookcontext = 'usercard';
+	}
+
+	if ($object === null) {
+		dol_syslog("uptosign: uptosign_webhook_object_descriptor has no branch for object type '" . $objectType . "'", LOG_ERR);
+		return null;
+	}
+
+	return array(
+		'object' => $object,
+		'id' => $fkObject,
+		'modulepart' => $modulepart,
+		'hookcontext' => $hookcontext,
+	);
 }

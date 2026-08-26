@@ -155,6 +155,7 @@ DeleteUptoSign=Annuler un processus de signature
 UptoSignConnectError=Erreur de connexion à l'API.
 UptoSignApiError=Erreur Api.
 UptoSignContactEmailMissing=Email du Contact manquant. Cliquez sur l'onglet contact et vérifiez les signataires.
+UptoSignContactNameMissing=Nom et prénom du contact manquants : ce signataire a été écarté car il ne pourrait pas être identifié sur le document signé. Complétez sa fiche contact.
 UptoSignContactPhoneMobileMissing=Numéro de téléphone mobile du contact manquant pour l'envoi sms du code de confirmation de signature.
 UptoSignUserEmailMissing=Email de l'utilisateur manquant.
 UptoSignUserPhoneMobileMissing=Numéro de téléphone mobile de l'utilisateur manquant pour l'envoi sms du code de confirmation de signature.

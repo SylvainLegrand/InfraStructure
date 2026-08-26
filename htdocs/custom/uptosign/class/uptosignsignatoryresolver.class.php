@@ -110,6 +110,11 @@ class UptoSignSignatoryResolver
 				// Do not append a user without a valid mobile (align with societe/contact branches).
 				array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
 				dol_syslog("uptosign: resolveSigners: user element type, without mobile phone or error format, skip", LOG_WARNING);
+			} elseif (!uptosign_object_has_name($object)) {
+				// Checked before the dedup list, otherwise a nameless person burns the
+				// mobile number of a valid namesake sharing it
+				array_push($this->errors, "UptoSignContactNameMissing");
+				dol_syslog("uptosign: resolveSigners: user id " . $object->id . " has no firstname nor lastname, skip", LOG_WARNING);
 			} elseif (!in_array($phone_mobile, $dedup)) {
 				dol_syslog("uptosign: resolveSigners: (u1) put in dedup " . $object->personal_email);
 				array_push($dedup, $phone_mobile);
@@ -126,6 +131,12 @@ class UptoSignSignatoryResolver
 					continue;
 				}
 
+				if (!uptosign_object_has_name($c)) {
+					array_push($this->errors, "UptoSignContactNameMissing");
+					dol_syslog("uptosign: resolveSigners: (1) contact id " . $c->id . " (" . $c->email . ") has no firstname nor lastname, skip", LOG_WARNING);
+					continue;
+				}
+
 				if (!in_array($phone_mobile, $dedup)) {
 					dol_syslog("uptosign: resolveSigners: (1) put in dedup " . $c->email);
 					array_push($dedup, $phone_mobile);
@@ -139,47 +150,14 @@ class UptoSignSignatoryResolver
 		if (count($contactIds) == 0) {
 			dol_syslog("uptosign: resolveSigners: no sign contact linked to object with label=$configLabel, try with societe (socid=$socid)...");
 			if ($internalExternal == 'external') {
-				$societe = new Societe($this->db);
-				$resSoc = $societe->fetch($socid);
-				if ($resSoc) {
-					$cts = $societe->contact_array_objects();
-					foreach ($cts as $c) {
-						$found = false;
-						if ($allContactsCanSign) {
-							$found = true;
-						} elseif ($configLabel != '') {
-							$c->fetchRoles();
-							foreach ($c->roles as $roleid => $role) {
-								if ($role['element'] == $object->element && $role['source'] == $internalExternal && $role['code'] == $configLabel) {
-									$found = true;
-								}
-							}
-						} else {
-							$found = true;
-						}
-						if (!$found) {
-							dol_syslog("uptosign: resolveSigners: contact " . $c->email . " has not $configLabel role");
-							continue;
-						}
-						$phone_mobile = uptoSignSearchMobile($c->phone_mobile, $c->phone_pro, $c->country_code);
-						if (empty($phone_mobile)) {
-							array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-							continue;
-						}
-
-						if (!in_array($phone_mobile, $dedup)) {
-							dol_syslog("uptosign: resolveSigners: (2) put " . $phone_mobile . " (" . $c->email . ") in dedup list");
-							array_push($dedup, $phone_mobile);
-							$storeArray->append($c);
-						}
-					}
-
-					if (count($cts) == 0) {
-						dol_syslog("uptosign: resolveSigners: no sign contact linked to societe [$socid] either");
-					}
-				} else {
-					dol_syslog("uptosign: resolveSigners: can't fetch societe id $socid");
-				}
+				$this->resolveSignersOfThirdparty(
+					$socid,
+					$object->element,
+					$internalExternal,
+					$allContactsCanSign ? '' : $configLabel,
+					$storeArray,
+					$dedup
+				);
 			}
 		} else {
 			dol_syslog("uptosign: resolveSigners: sign contact linked to object found");
@@ -213,6 +191,11 @@ class UptoSignSignatoryResolver
 							array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
 							continue;
 						}
+						if (!uptosign_object_has_name($contact)) {
+							array_push($this->errors, "UptoSignContactNameMissing");
+							dol_syslog("uptosign: resolveSigners: (3) contact id " . $contact->id . " (" . $contact->email . ") has no firstname nor lastname, skip", LOG_WARNING);
+							continue;
+						}
 						if (!in_array($phone_mobile, $dedup)) {
 							dol_syslog("uptosign: resolveSigners: (3) put in dedup $phone_mobile for email=$contact->email");
 							array_push($dedup, $phone_mobile);
@@ -234,6 +217,11 @@ class UptoSignSignatoryResolver
 							array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
 							continue;
 						}
+						if (!uptosign_object_has_name($oneuser)) {
+							array_push($this->errors, "UptoSignContactNameMissing");
+							dol_syslog("uptosign: resolveSigners: (4) user id " . $oneuser->id . " (" . $oneuser->email . ") has no firstname nor lastname, skip", LOG_WARNING);
+							continue;
+						}
 						if (!in_array($phone_mobile, $dedup)) {
 							dol_syslog("uptosign: resolveSigners: (4) put in dedup " . $oneuser->email);
 							array_push($dedup, $phone_mobile);
@@ -248,6 +236,104 @@ class UptoSignSignatoryResolver
 			dol_syslog("uptosign: resolveSigners: return size array = " . count($storeArray));
 		} else {
 			dol_syslog("uptosign: resolveSigners: return size array = " . $storeArray->count());
+		}
+	}
+
+	/**
+	 * Resolve the contacts of a third party who can sign a given kind of document
+	 *
+	 * Single implementation of the "who can sign for that company" question: it is
+	 * used both as the fallback of resolveSigners() (nothing linked to the document
+	 * itself) and as the whole answer of uptosignCore::whoCanSign(), the public API
+	 * external modules call. Same rules everywhere: a signatory needs a name, an
+	 * email and a usable mobile, and one mobile number counts for one person.
+	 *
+	 * @param  int         $socid            Third party the signatories belong to
+	 * @param  string      $element          Object element the role is declared for (propal, facture, ...)
+	 * @param  string      $internalExternal 'internal' or 'external'
+	 * @param  string      $configLabel      Contact role code, empty means every contact can sign
+	 * @param  ArrayObject $storeArray       Result array (modified by reference)
+	 * @param  array       $dedup            Mobile numbers already used (modified by reference)
+	 * @param  bool        $onlyModuleRoles  Keep only the roles brought by the uptosign module
+	 * @return void
+	 */
+	public function resolveSignersOfThirdparty($socid, $element, $internalExternal, $configLabel, ArrayObject &$storeArray, array &$dedup = array(), $onlyModuleRoles = false)
+	{
+		$configLabel = self::roleCodeFromConfigLabel($configLabel);
+
+		$societe = new Societe($this->db);
+		if (!$societe->fetch($socid)) {
+			dol_syslog("uptosign: resolveSignersOfThirdparty: can't fetch societe id $socid", LOG_WARNING);
+			return;
+		}
+
+		// Roles of that element brought by the module, when the caller asks to ignore
+		// the homonym roles another module could declare
+		$moduleRoleIds = array();
+		if ($onlyModuleRoles) {
+			$types = $this->getTypeContactCode($element, '', '', array('module' => 'uptosign'));
+			if (is_array($types)) {
+				$moduleRoleIds = array_keys($types);
+			}
+		}
+
+		$cts = $societe->contact_array_objects();
+		if (count($cts) == 0) {
+			dol_syslog("uptosign: resolveSignersOfThirdparty: no contact linked to societe [$socid]");
+			return;
+		}
+
+		foreach ($cts as $c) {
+			$found = false;
+			if ($configLabel == '') {
+				$found = true;
+			} else {
+				$c->fetchRoles();
+				if (is_array($c->roles)) {
+					foreach ($c->roles as $roleid => $role) {
+						if ($role['element'] != $element || $role['source'] != $internalExternal || $role['code'] != $configLabel) {
+							continue;
+						}
+						if ($onlyModuleRoles && !in_array($role['id'], $moduleRoleIds)) {
+							dol_syslog("uptosign: resolveSignersOfThirdparty: role " . $role['code'] . " of contact " . $c->id . " does not come from the uptosign module, skip");
+							continue;
+						}
+						$found = true;
+					}
+				}
+			}
+			if (!$found) {
+				dol_syslog("uptosign: resolveSignersOfThirdparty: contact " . $c->email . " has not $configLabel role");
+				continue;
+			}
+
+			// The signature link is sent by email: without one the person cannot sign
+			if (empty($c->email)) {
+				array_push($this->errors, "UptoSignContactEmailMissing");
+				dol_syslog("uptosign: resolveSignersOfThirdparty: contact id " . $c->id . " has no email, skip", LOG_WARNING);
+				continue;
+			}
+
+			$phone_mobile = uptoSignSearchMobile($c->phone_mobile, $c->phone_pro, $c->country_code);
+			if (empty($phone_mobile)) {
+				array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
+				dol_syslog("uptosign: resolveSignersOfThirdparty: contact id " . $c->id . " (" . $c->email . ") has no usable mobile, skip", LOG_WARNING);
+				continue;
+			}
+
+			// Checked before the dedup list, otherwise a nameless person burns the
+			// mobile number of a valid namesake sharing it
+			if (!uptosign_object_has_name($c)) {
+				array_push($this->errors, "UptoSignContactNameMissing");
+				dol_syslog("uptosign: resolveSignersOfThirdparty: contact id " . $c->id . " (" . $c->email . ") has no firstname nor lastname, skip", LOG_WARNING);
+				continue;
+			}
+
+			if (!in_array($phone_mobile, $dedup)) {
+				dol_syslog("uptosign: resolveSignersOfThirdparty: put " . $phone_mobile . " (" . $c->email . ") in dedup list");
+				array_push($dedup, $phone_mobile);
+				$storeArray->append($c);
+			}
 		}
 	}
 

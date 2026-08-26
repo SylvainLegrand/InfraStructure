@@ -475,6 +475,10 @@ class UptoSignConfig extends CommonObject
 	/**
 	 * Load list of object id's in memory from the database
 	 *
+	 * The order matters: signInit() and changeSignatureArea() both work on the FIRST
+	 * configuration of the list, so it has to be the same one from one call to the
+	 * next, hence the explicit sort.
+	 *
 	 * @param   string          $modelpdf model pdf, ex strato or azur
 	 * @param   string          $type type of document model, ex contrat or propal
 	 * @param   string          $signOrSeal sign|seal
@@ -511,6 +515,7 @@ class UptoSignConfig extends CommonObject
 			$sql .= " AND sign_or_seal = '" . $this->db->escape($signOrSeal) . "'";
 		}
 		$sql .= " AND status != '" . $this::STATUS_DISABLED . "'";
+		$sql .= " ORDER BY rowid ASC";
 
 		// print "<p>$sql</p>";
 		//exit;
@@ -1376,7 +1381,7 @@ class UptoSignConfig extends CommonObject
 	/**
 	 * dolibarr 10 function setVarsFromFetchObj is protected !
 	 *
-	 * @param   CommonObject  $obj  [$obj description]
+	 * @param   stdClass  $obj  Row read with fetch_object(), as Dolibarr expects it
 	 *
 	 */
 	public function uts_setVarsFromFetchObj(&$obj)

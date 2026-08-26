@@ -764,6 +764,23 @@ class UptoSign extends CommonObject
 
 
 	/**
+	 * Load list of procedures started from a grouped signature list
+	 *
+	 * A grouped signature stores the SIGNER in fk_object/object_type ('contact',
+	 * 'thirdparty', 'user', 'member', 'manual', 'file' or 'uptosignlist' depending on
+	 * the selector the member comes from): fetchChilds() would find nothing from the
+	 * list itself. The link back to the list is fk_uptosignlist.
+	 *
+	 * @param   int     $listId     id of the UptoSignList
+	 * @param   string  $signOrSeal uptosign|uptoseal
+	 * @return  array|int           <0 if KO, array of child objects
+	 */
+	public function fetchChildsOfList($listId, $signOrSeal = '')
+	{
+		return $this->fetchChildsWhere(" AND fk_uptosignlist = " . ((int) $listId), $signOrSeal);
+	}
+
+	/**
 	 * Load list of linked objects
 	 *
 	 * @param   int     $objectId   id object
@@ -773,16 +790,31 @@ class UptoSign extends CommonObject
 	 */
 	public function fetchChilds($objectId, $objectType, $signOrSeal = '')
 	{
+		$where = " AND fk_object = " . ((int) $objectId);
+		if (isset($objectType)) {
+			$where .= " AND object_type = '" . $this->db->escape(uptosign_unify_object_type($objectType)) . "'";
+		}
+
+		return $this->fetchChildsWhere($where, $signOrSeal);
+	}
+
+	/**
+	 * Load the uptosign records matching an already built SQL restriction
+	 *
+	 * @param   string  $where      SQL restriction, starting with " AND ", already escaped
+	 * @param   string  $signOrSeal uptosign|uptoseal
+	 * @return  array|int           <0 if KO, array of child objects
+	 */
+	private function fetchChildsWhere($where, $signOrSeal = '')
+	{
 		$arrayResult = array();
 
 		$sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . $this->table_element . " AS t";
-		$sql .= " WHERE fk_object = " . ((int) $objectId);
+		$sql .= " WHERE 1 = 1";
 		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
 			$sql .= " AND entity IN (" . getEntity($this->element) . ")";
 		}
-		if (isset($objectType)) {
-			$sql .= " AND object_type = '" . $this->db->escape(uptosign_unify_object_type($objectType)) . "'";
-		}
+		$sql .= $where;
 		if ($signOrSeal != "") {
 			$api_name = uptosign_unify_api_name($signOrSeal);
 			$sql .= " AND api_name='" . $this->db->escape($api_name) . "'";
@@ -2234,9 +2266,12 @@ class UptoSign extends CommonObject
 					// print "<p>contacts : " . json_encode($contacts) . "</p>";
 
 					foreach ($contacts as $contact) {
-						if (empty($contact->firstname) && empty($contact->lastname)) {
-							dol_syslog("uptosign : contactToSign contacts supprimé car nom et prénoms vides !");
-							array_push($this->errors, "signInit firstname AND lastname empty, ignore that people " . $contact->email);
+						// Same rule everywhere: a signatory needs at least one of the two
+						// names. Kept here as a last chance filter, whoCanSign already
+						// dropped those people upstream.
+						if (!uptosign_object_has_name($contact)) {
+							dol_syslog("uptosign: signInit signatory " . ($contact->email ?? '') . " has no firstname nor lastname, skip", LOG_WARNING);
+							array_push($this->errors, "UptoSignContactNameMissing");
 							continue 1;
 						}
 						if (empty($contact->country_code)) {
@@ -2993,6 +3028,14 @@ class UptoSign extends CommonObject
 		// si on est déjà sur un objet uptosign on reste dessus
 		if ($object->element == "uptosign") {
 			$children = [$object];
+		} elseif ($object->element == "uptosignlist") {
+			// A grouped signature stores the signer in fk_object/object_type, so the
+			// procedures of a list are only reachable through fk_uptosignlist
+			$children = $this->fetchChildsOfList($object->id, $signOrSeal);
+			if (! (is_array($children) && count($children) > 0)) {
+				dol_syslog("uptosign signFetch, no procedure attached to uptosignlist #" . $object->id, LOG_WARNING);
+				return -1;
+			}
 		} else {
 			//question pourquoi ? on est déjà sur l'objet à fetcher puisqu'on arrive par la signature sur le hook
 			//scorie de l'ancien module a reflechir
@@ -3071,7 +3114,7 @@ class UptoSign extends CommonObject
 			$ts = $child->date_sign;
 			//todo check
 			//filename if signed already exists in priority, else original one (path_file)
-			$filename = (trim($child->path_file_signed) != '') ? $child->path_file_signed :  $child->path_file;
+			$filename = (trim((string) $child->path_file_signed) != '') ? $child->path_file_signed :  $child->path_file;
 
 			// When $signOrSeal is empty (e.g. uptosealsync/uptosignsync with no param),
 			// pick the suffix from the record itself so a signed file is not named with
@@ -3203,8 +3246,17 @@ class UptoSign extends CommonObject
 		$result = 0;
 		$error = 0;
 
-		$children = $this->fetchChilds($object->id, $object->element, 'uptosign');
+		// Same three cases as signFetch(): the record itself, a grouped signature list
+		// reachable only through fk_uptosignlist, or a plain business object
+		if ($object->element == "uptosign") {
+			$children = [$object];
+		} elseif ($object->element == "uptosignlist") {
+			$children = $this->fetchChildsOfList($object->id, 'uptosign');
+		} else {
+			$children = $this->fetchChilds($object->id, $object->element, 'uptosign');
+		}
 		if (! (is_array($children) && count($children) > 0)) {
+			dol_syslog("uptosign signFetchProof, no procedure found for " . $object->element . " #" . $object->id, LOG_WARNING);
 			return -1;
 		}
 
@@ -3367,6 +3419,12 @@ class UptoSign extends CommonObject
 	/**
 	 * get list of contacts for an object
 	 *
+	 * Same rules as the sign workflow itself: the signatories come from
+	 * UptoSignSignatoryResolver, so a person offered here is a person the procedure
+	 * can really be built with (name, email, usable mobile, one mobile per signatory).
+	 * This method used to apply its own: no deduplication, and a single contact
+	 * without an email dropped the whole list.
+	 *
 	 * @param   CommonObject  $object
 	 *
 	 * @return  array|int  List of signatories (may hold a 'noSign' counter), < 0 on error
@@ -3374,109 +3432,120 @@ class UptoSign extends CommonObject
 	public function getListContacts($object)
 	{
 		$listMembers = [];
-		$indexMember = 0;
 
 		$config = new UptoSignConfig($object->db);
 		$model_pdf = uptosignModel($object);
 		$configIds = $config->fetchListId($model_pdf, $object->element, 'sign');
-		if (is_numeric($configIds) && $configIds == -2) {
+		if (!is_object($object) || !is_array($configIds)) {
 			array_push($this->errors, "UptoSignConfigMissing");
 			array_push($this->errors, "UptoSignConfigMissingHelp");
 			return -1;
 		}
-		if (is_object($object) && is_array($configIds)) {
-			foreach ($configIds as $configFile => $configId) {
-				$res = $config->fetch($configId);
-				if ($res < 0) {
-					array_push($this->errors, $config->errors);
-					return -3;
-				}
-				if ($res == 0) {
-					array_push($this->errors, "UptoSignContactMissing");
-					array_push($this->errors, "UptoSignContactMissingHelp");
-					return -4;
-				}
 
-				if (!empty($config->page_sign)) {	// test si la signature n'est pas désactivée pour ce type de document
-					// The contact role is carried by the config label (CustomerSign,
-					// VendorSign, ...). It used to be looked up from a rowid stored in
-					// $config->fk_c_type_contact, a column that no longer exists: the
-					// lookup always failed and this method returned no signatory at all.
-					$contactCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($config->label);
-					if (!$this->signatoryResolver->isTypeContactCodeDeclared($object->element, $contactCode)) {
-						dol_syslog("uptosign: getListContacts contact type '" . $contactCode . "' is not declared for element " . $object->element, LOG_WARNING);
+		// Deduplication spans the configurations: someone carrying two signing roles
+		// is one signatory, and would otherwise receive two signature requests
+		$dedup = [];
+
+		foreach ($configIds as $configId) {
+			$res = $config->fetch($configId);
+			if ($res < 0) {
+				array_push($this->errors, $config->errors);
+				return -3;
+			}
+			if ($res == 0) {
+				array_push($this->errors, "UptoSignContactMissing");
+				array_push($this->errors, "UptoSignContactMissingHelp");
+				return -4;
+			}
+
+			// An empty page_sign means signature disabled for that document type
+			if (empty($config->page_sign)) {
+				if (!isset($listMembers['noSign'])) {
+					$listMembers['noSign'] = 0;
+				}
+				$listMembers['noSign']++;
+				continue;
+			}
+
+			// The contact role is carried by the config label (CustomerSign,
+			// VendorSign, ...). It used to be looked up from a rowid stored in
+			// $config->fk_c_type_contact, a column that no longer exists: the
+			// lookup always failed and this method returned no signatory at all.
+			$contactCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($config->label);
+			if (!$this->signatoryResolver->isTypeContactCodeDeclared($object->element, $contactCode)) {
+				dol_syslog("uptosign: getListContacts contact type '" . $contactCode . "' is not declared for element " . $object->element, LOG_WARNING);
+				continue;
+			}
+
+			foreach (['external', 'internal'] as $source) {
+				$signers = new ArrayObject();
+				$this->signatoryResolver->resolveSigners($object, $source, $config->label, $signers);
+
+				foreach ($signers as $signer) {
+					$member = $this->signatoryToMember($signer);
+					if ($member === null) {
 						continue;
 					}
-					$contactIds = $object->getIdContact('external', $contactCode);
-					$userIds = $object->getIdContact('internal', $contactCode);
-
-					//Les contacts
-					if (count($contactIds) > 0) {
-						foreach ($contactIds as $key => $contactId) {
-							$contact = new Contact($object->db);
-							if ($result = $contact->fetch($contactId) > 0) {
-								if (empty($contact->email)) {
-									array_push($this->errors, "UptoSignContactEmailMissing");
-									return -5;
-								}
-								$mobile = uptoSignSearchMobile($contact->phone_mobile, $contact->phone_pro, $contact->country_code);
-
-								if (empty($mobile)) {
-									array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-									return -6;
-								}
-								$listMembers[] = array(
-									'dolid' => $contact->id,
-									'doltype' => 'contact',
-									'firstname' => $contact->firstname,
-									'lastname' => $contact->lastname,
-									'societe' => $contact->socname,
-									'email' => $contact->email,
-									'mobile' => $mobile,
-								);
-								$indexMember++;
-							}
-						}
+					if (in_array($member['mobile'], $dedup)) {
+						dol_syslog("uptosign: getListContacts " . $member['email'] . " already signs with mobile " . $member['mobile'] . ", skip", LOG_DEBUG);
+						continue;
 					}
-
-					//Les utilisateurs dolibarr
-					if (count($userIds) > 0) {
-						foreach ($userIds as $key => $userId) {
-							$oneuser = new User($object->db);
-							if ($oneuser->fetch($userId) > 0) {
-								if (empty($oneuser->email)) {
-									array_push($this->errors, "UptoSignUserEmailMissing");
-									return -7;
-								}
-								// if ($authMode == 'sms') {
-								$mobile = uptoSignSearchMobile($oneuser->user_mobile, $oneuser->office_phone, $oneuser->country_code);
-
-								if (empty($mobile)) {
-									array_push($this->errors, "UptoSignContactPhoneMobileWrongFormat");
-									return -8;
-								}
-								$listMembers[] = array(
-									'dolid' => $oneuser->id,
-									'doltype' => 'user',
-									'firstname' => $oneuser->firstname,
-									'lastname' => $oneuser->lastname,
-									'email' => $oneuser->email,
-									'mobile' => $mobile,
-								);
-								$indexMember++;
-							}
-						}
-					}
-				} else {
-					if (!isset($listMembers['noSign'])) {
-						$listMembers['noSign'] = 0;
-					}
-					$listMembers['noSign']++;
+					$dedup[] = $member['mobile'];
+					$listMembers[] = $member;
 				}
 			}
 		}
-		// var_dump($listMembers);exit;
+
+		// The resolver reports the people it dropped (no email, no mobile, no name):
+		// "presend" shows them to the user, so they must reach $this->errors
+		if (!empty($this->signatoryResolver->errors)) {
+			foreach ($this->signatoryResolver->errors as $err) {
+				if (!in_array($err, $this->errors)) {
+					array_push($this->errors, $err);
+				}
+			}
+			$this->signatoryResolver->errors = array();
+		}
+
 		return $listMembers;
+	}
+
+	/**
+	 * Turn a signatory resolved by UptoSignSignatoryResolver into a member entry
+	 *
+	 * @param   object  $signer  Contact or User returned by resolveSigners()
+	 *
+	 * @return  array|null       Member entry, or null when the object is not a signatory type
+	 */
+	private function signatoryToMember($signer)
+	{
+		$element = $signer->element ?? '';
+
+		if ($element == 'user') {
+			return array(
+				'dolid' => $signer->id,
+				'doltype' => 'user',
+				'firstname' => $signer->firstname,
+				'lastname' => $signer->lastname,
+				'email' => $signer->email,
+				'mobile' => uptoSignSearchMobile($signer->user_mobile, $signer->office_phone, $signer->country_code),
+			);
+		}
+
+		if ($element == 'contact') {
+			return array(
+				'dolid' => $signer->id,
+				'doltype' => 'contact',
+				'firstname' => $signer->firstname,
+				'lastname' => $signer->lastname,
+				'societe' => $signer->socname ?? '',
+				'email' => $signer->email,
+				'mobile' => uptoSignSearchMobile($signer->phone_mobile, $signer->phone_pro, $signer->country_code),
+			);
+		}
+
+		dol_syslog("uptosign: getListContacts got a signatory of unexpected type '" . $element . "', skip", LOG_WARNING);
+		return null;
 	}
 
 
@@ -3522,7 +3591,7 @@ class UptoSign extends CommonObject
 	/**
 	 * dolibarr 10 function setVarsFromFetchObj is protected !
 	 *
-	 * @param   CommonObject  $obj  [$obj description]
+	 * @param   stdClass  $obj  Row read with fetch_object(), as Dolibarr expects it
 	 *
 	 * @return  void         [return description]
 	 */

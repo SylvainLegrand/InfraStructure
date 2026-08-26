@@ -97,6 +97,11 @@ $action = (string) GETPOST('action', 'aZ09');
 $message = (string) GETPOST('message', 'aZ09');
 $source = (string) GETPOST('source', 'alpha');
 $object = $modulepart = $error = null;
+// Card context of the hooks, resolved with the object itself by
+// uptosign_webhook_object_descriptor(). It is not always $modulepart.'card': Dolibarr
+// names some of them differently (a supplier order card is 'ordersuppliercard'), and
+// the context is what decides whether doActions() runs.
+$hookcontext = null;
 
 $hookmanager = new HookManager($db);
 
@@ -197,16 +202,39 @@ if (stripos($contentType, 'application/json') !== false) {
 
 	$objectType = $uptoSign->object_type;
 	dol_syslog("uptosign object type is $objectType !");
-	// Initialize technical objects and call triggers
-	$fko = $uptoSign->fk_object;
+
+	// Which Dolibarr object this callback is about, and under which context its card
+	// hooks must run. The mapping lives in the library so every object type the module
+	// can sign is covered by a test: a missing branch answers 500 and the signed
+	// document is lost.
+	$descriptor = uptosign_webhook_object_descriptor($db, $uptoSign);
+	if (!is_array($descriptor)) {
+		//no dolibarr object matching this object type: nothing to fetch, abort with a log
+		dol_syslog("uptosign hook: unsupported object type '$objectType' for record id ".((int) $uptoSign->id).", abort", LOG_ERR);
+		http_response_code(500);
+		echo 'Unsupported object type.';
+		exit(-1);
+	}
+
+	$object = $descriptor['object'];
+	$modulepart = $descriptor['modulepart'];
+	$hookcontext = $descriptor['hookcontext'];
+	$fko = $descriptor['id'];
+
+	$resFetch = $object->fetch($fko);
+	if ($resFetch <= 0) {
+		dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
+		http_response_code(403);
+		exit(-1);
+	}
+
+	// Business triggers, once the object is loaded. They are excluded for uptoseal:
+	// sealing a document does not close anything.
 	if ($objectType == 'propal') {
-		require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
-		require_once DOL_DOCUMENT_ROOT.'/core/lib/propal.lib.php';
-		$object = new Propal($db);
-		$object->fetch($fko);
 		//customer is not a user !?! so could we use same user as validation ?
 		$user = $uptoSign->findUserToUse($user, $object);
-		//exclude uptoseal to that auto close process
+		// TODO on a refused signature, PROPAL_CLOSE_REFUSED is deliberately NOT called:
+		// it implies a delete when the proposal was already signed.
 		if ($uptoSign->api_name == 'uptosign') {
 			//try to avoid triple entry on events
 			if (isset($json->status) && $json->status == 'success' && $object->status != Propal::STATUS_SIGNED) {
@@ -216,23 +244,9 @@ if (stripos($contentType, 'application/json') !== false) {
 						++$error;
 					}
 				}
-			} elseif ($object->status != Propal::STATUS_NOTSIGNED) {
-				// TODO pas si sur de devoir absolument lancer ce trigger !
-				// car ça implique un delete dans le cas où le devis était déjà signé par exemple
-				// if (method_exists($object, 'call_trigger')) {
-				// 	$result = $object->call_trigger('PROPAL_CLOSE_REFUSED', $user);
-				// 	if ($result < 0) {
-				// 		++$error;
-				// 	}
-				// }
 			}
 		}
-		$modulepart = 'propal';
 	} elseif ($objectType == 'contract' || $objectType == 'contrat') {
-		require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
-		require_once DOL_DOCUMENT_ROOT.'/core/lib/contract.lib.php';
-		$object = new Contrat($db);
-		$resFetch = $object->fetch($fko);
 		if ($uptoSign->api_name == 'uptosign') {
 			//try to avoid triple entry on events
 			if (isset($json->status) && $json->status == 'success' && $object->status == Contrat::STATUS_VALIDATED) {
@@ -244,23 +258,7 @@ if (stripos($contentType, 'application/json') !== false) {
 				}
 			}
 		}
-		$modulepart = 'contract';
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
 	} elseif ($objectType == 'invoice' || $objectType == 'facture') {
-		require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-		require_once DOL_DOCUMENT_ROOT.'/core/lib/invoice.lib.php';
-		$object = new Facture($db);
-		$resFetch = $object->fetch($fko);
-		$modulepart = 'invoice';
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
 		if ($uptoSign->api_name == 'uptosign') {
 			//try to avoid triple entry on events
 			if (isset($json->status) && $json->status == 'success') {
@@ -272,74 +270,6 @@ if (stripos($contentType, 'application/json') !== false) {
 				}
 			}
 		}
-	} elseif ($objectType == 'project') {
-		require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-		require_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
-		$object = new Project($db);
-		$resFetch = $object->fetch($fko);
-		$modulepart = 'project';
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
-	} elseif ($objectType == 'supplier_proposal') {
-		require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
-		require_once DOL_DOCUMENT_ROOT.'/core/lib/supplier_proposal.lib.php';
-		$object = new SupplierProposal($db);
-		$resFetch = $object->fetch($fko);
-		$modulepart = 'supplier_proposal';
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
-	} elseif ($objectType == 'societe') {
-		$object = new Societe($db);
-		$resFetch = $object->fetch($fko);
-		$modulepart = 'societe';
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
-	} elseif ($objectType == 'order') {
-		require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-		$object = new Commande($db);
-		$resFetch = $object->fetch($fko);
-		$modulepart = 'commande';
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
-	} elseif ($objectType == 'companypaymentmode') {
-		require_once DOL_DOCUMENT_ROOT.'/societe/class/companypaymentmode.class.php';
-		//sepa mandate
-		$object = new CompanyPaymentMode($db);
-		$resFetch = $object->fetch($fko);
-		$modulepart = 'companypaymentmode';
-		// dol_syslog('uptosign CompanyPaymentMode : ' . json_encode($object->id));
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
-	} elseif ($objectType == 'user') {
-		$object = new User($db);
-		$resFetch = $object->fetch($fko);
-		$modulepart = "user";
-		if ($resFetch <= 0) {
-			dol_syslog("uptosign can't fetch $modulepart with id=$fko", LOG_ERR);
-			http_response_code(403);
-			exit(-1);
-		}
-	} else {
-		//no dolibarr object matching this object type: nothing to fetch, abort with a log
-		dol_syslog("uptosign hook: unsupported object type '$objectType' for record id ".((int) $uptoSign->id).", abort", LOG_ERR);
-		http_response_code(500);
-		echo 'Unsupported object type.';
-		exit(-1);
 	}
 
 	//TODO erreur de conception, le retour webhook donne un uuid de document disponible, il ne faut pas aller chercher
@@ -348,7 +278,15 @@ if (stripos($contentType, 'application/json') !== false) {
 	//donc on passe l'uuid dans les parametres
 	// Note: we pass the sign_id of the record we found, NOT $json->id: on a "proof"
 	// callback $json->id is the uuid of the proof file, not the one of the document
-	$parameters = ['currentcontext' => $modulepart.'card', 'uuid' => $uptoSign->sign_id];
+	// Note on the context: HookManager overwrites $parameters['currentcontext'] with the
+	// context the module is registered under (hookmanager.class.php). initHooks() below is
+	// therefore called with two of them: the card context, and 'uptosigncard' as a fallback.
+	// For societe and companypaymentmode no module declares the card context, so the call
+	// legitimately lands on 'uptosigncard', which doActions() does handle. Declaring
+	// 'thirdpartycard' here would also plug the module into societe/card.php, which is a
+	// different feature, not a webhook fix.
+	$cardcontext = $hookcontext;
+	$parameters = ['currentcontext' => $cardcontext, 'uuid' => $uptoSign->sign_id];
 	$api_name = $uptoSign->api_name;
 
 	//First sync
@@ -361,14 +299,14 @@ if (stripos($contentType, 'application/json') !== false) {
 	// payload, not from $action which was just overwritten with the sync action above.
 	$isProofCallback = (isset($json->typeOfDoc) && $json->typeOfDoc == 'proof');
 	if (!$isProofCallback) {
-		$hookmanager->initHooks([$modulepart.'card', 'uptosigncard']);
+		$hookmanager->initHooks([$cardcontext, 'uptosigncard']);
 		$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 
 		//Then fetch
 		$action = 'confirm_'.$api_name.'fetch';
 		$object = $objectSave;
 		dol_syslog('uptosign $action call hook doActions, object is'.json_encode($object->id));
-		$hookmanager->initHooks([$modulepart.'card', 'uptosigncard']);
+		$hookmanager->initHooks([$cardcontext, 'uptosigncard']);
 		$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 	}
 
@@ -376,7 +314,7 @@ if (stripos($contentType, 'application/json') !== false) {
 	if (isset($json->typeOfDoc) && $json->typeOfDoc == 'proof' && $api_name == 'uptosign') {
 		$action = 'confirm_uptosignfetchproof';
 		$object = $objectSave;
-		$hookmanager->initHooks([$modulepart.'card', 'uptosigncard']);
+		$hookmanager->initHooks([$cardcontext, 'uptosigncard']);
 		dol_syslog('uptosign $action call hook doActions, object is'.json_encode($object->id));
 		$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 	}

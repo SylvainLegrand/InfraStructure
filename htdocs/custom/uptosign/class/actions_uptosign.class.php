@@ -628,7 +628,7 @@ class ActionsUptoSign
 		// print json_encode($currentcontext);exit;
 		//print json_encode($object);exit;
 		$uptoSign = new UptoSign($this->db);
-		if ($currentcontext == 'propalcard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		if ($currentcontext == 'propalcard') {
 			$active = true;
 			$minStatus = Propal::STATUS_VALIDATED;
 			$maxStatus = Propal::STATUS_VALIDATED;
@@ -636,15 +636,15 @@ class ActionsUptoSign
 			$active = true;
 			$minStatus = UptoSign::STATUS_ERROR;
 			$maxStatus = UptoSign::STATUS_FILE_FETCHED;
-		} elseif ($currentcontext == 'ordercard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif ($currentcontext == 'ordercard') {
 			$active = true;
 			$minStatus = Commande::STATUS_VALIDATED;
 			$maxStatus = Commande::STATUS_SHIPMENTONPROCESS;
-		} elseif ($currentcontext == 'interventioncard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif ($currentcontext == 'interventioncard') {
 			$active = true;
 			$minStatus = Fichinter::STATUS_VALIDATED;
 			$maxStatus = Fichinter::STATUS_VALIDATED;
-		} elseif ($currentcontext == 'contractcard') { /* && ! empty($config->fetchListId($model_pdf, $object->element))) */
+		} elseif ($currentcontext == 'contractcard') {
 			$active = true;
 			if (((int) DOL_VERSION) < 11) {
 				dol_syslog("uptosign, setStatusCommon is available on dolibarr > 10.0, let use old setStatut...", LOG_WARNING);
@@ -656,29 +656,29 @@ class ActionsUptoSign
 				/** @phpstan-ignore-next-line */
 				$maxStatus = Contrat::STATUS_VALIDATED;
 			}
-		} elseif ($currentcontext == 'expeditioncard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif ($currentcontext == 'expeditioncard') {
 			$active = true;
 			$minStatus = Expedition::STATUS_VALIDATED;
 			$maxStatus = Expedition::STATUS_VALIDATED;
-		} elseif ($currentcontext == 'invoicecard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif ($currentcontext == 'invoicecard') {
 			$active = true;
 			$minStatus = Facture::STATUS_VALIDATED;
 			$maxStatus = Facture::STATUS_CLOSED;
-		} elseif ($currentcontext == 'projectcard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif ($currentcontext == 'projectcard') {
 			$active = true;
 			$minStatus = Project::STATUS_VALIDATED;
 			$maxStatus = Project::STATUS_CLOSED;
-		} elseif (isset($parameters['uptosigncustomcard']) && $parameters['uptosigncustomcard'] == true && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif (isset($parameters['uptosigncustomcard']) && $parameters['uptosigncustomcard'] == true) {
 			dol_include_once($parameters['include_class_file']);
 			$class = $parameters['class_name'];
 			$active = true;
 			$minStatus = $parameters['min_status'];
 			$maxStatus = $parameters['max_status'];
-		} elseif ($currentcontext == 'ordersuppliercard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif ($currentcontext == 'ordersuppliercard') {
 			$active = true;
 			$minStatus = CommandeFournisseur::STATUS_VALIDATED;
 			$maxStatus = CommandeFournisseur::STATUS_ACCEPTED;
-		} elseif ($currentcontext == 'supplier_proposalcard' && ! empty($config->fetchListId($model_pdf, $object->element))) {
+		} elseif ($currentcontext == 'supplier_proposalcard') {
 			$active = true;
 			$minStatus = SupplierProposal::STATUS_VALIDATED;
 			$maxStatus = SupplierProposal::STATUS_SIGNED;
@@ -692,6 +692,22 @@ class ActionsUptoSign
 			$active = false;
 			$minStatus = -100;
 			// $maxStatus = 100;
+		}
+
+		// The presence of a configuration used to condition each branch above, which
+		// silently removed every button as soon as the model could not be resolved (a
+		// document whose PDF was never generated has an empty model_pdf), leaving no
+		// clue at all on the card. The buttons know how to show up disabled with the
+		// reason, so only stay out of the way when that card did not pick uptosign as
+		// its signature system either. The evidence file card and the two contract
+		// cards never asked for a configuration at all, keep it that way.
+		$contextsWithoutConfigCheck = array('uptosigncard', 'contractcard', 'infrassalariescontractscard');
+		if ($active && !in_array($currentcontext, $contextsWithoutConfigCheck) && !$objectExtraFieldUptoSignEnabled) {
+			if (empty($config->fetchListId($model_pdf, $object->element))) {
+				dol_syslog("uptosign addMoreActionsButtons: no config for model '" . $model_pdf . "' of " . $object->element
+					. " #" . $object->id . " and uptosign not selected on that card, no button", LOG_DEBUG);
+				$active = false;
+			}
 		}
 
 		$status = $object->statut ?? $object->status;
@@ -829,14 +845,31 @@ class ActionsUptoSign
 							$roleCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($uptoSignConfig->label);
 							$contacts = new ArrayObject();
 							$uptoSign = new UptoSign($this->db);
+							// Same lookups as the page this button opens (uptosign_tab.php with
+							// action=presign), otherwise the button and the page disagree. The
+							// role-less internal lookup matters: on a propal the internal role
+							// shipped in data.sql is VendorSign while the config label is
+							// CustomerSign, so looking up internal signatories by role alone
+							// never matches anybody.
 							$uptoSign->whoCanSign($object, 'internal', "", $contacts);
 							$uptoSign->whoCanSign($object, 'internal', $roleCode, $contacts);
 							$uptoSign->whoCanSign($object, 'external', $roleCode, $contacts);
-							if (count($contacts) > 1) {
+
+							// whoCanSign only dedups within a single call, so the same person can
+							// be appended twice: count distinct people. One signatory is enough,
+							// signInit() itself only refuses an empty list.
+							$distinctSigners = array();
+							foreach ($contacts as $oneSigner) {
+								$distinctSigners[($oneSigner->element ?? 'unknown') . '#' . ($oneSigner->id ?? '0')] = true;
+							}
+
+							if (count($distinctSigners) > 0) {
+								// Several sign configs may apply to the same model: keep the button
+								// as soon as ONE of them has a signatory, do not let the last
+								// config overwrite the answer of the previous ones.
 								$signbtn = true;
 							} else {
-								dol_syslog("uptosign _availableButtonSignSeal: not enough signatories with role " . $roleCode . " on " . $object->element . " #" . $object->id . ", no sign button", LOG_DEBUG);
-								$signbtn = false;
+								dol_syslog("uptosign _availableButtonSignSeal: no signatory with role " . $roleCode . " on " . $object->element . " #" . $object->id . ", no sign button", LOG_DEBUG);
 							}
 						}
 						if ($uptoSignConfig->sign_or_seal == "seal") {
@@ -1261,6 +1294,56 @@ class ActionsUptoSign
 		return 0;                                    // or return 1 to replace standard code
 	}
 
+	/**
+	 * Add the UptoSign tab on the cards whose tab type is shared with another object
+	 *
+	 * A shipment is the only signable object whose tab cannot be declared through
+	 * $this->tabs: Dolibarr builds its card head with the 'delivery' tab type
+	 * (shipping_prepare_head() in core/lib/sendings.lib.php), the very same type the
+	 * delivery receipts use. A declared tab would therefore also show up on a delivery
+	 * receipt, pointing at the shipment carrying the same id, that is at somebody
+	 * else's document. This hook receives the object, so the tab can be added on
+	 * shipments only.
+	 *
+	 * @param   array           $parameters     Hook metadatas (object, mode, head...)
+	 * @param   CommonObject    $object         The object whose card is being built
+	 * @param   string          $action         Current action (if set)
+	 * @param   HookManager     $hookmanager    Hook manager
+	 * @return  int                             < 0 on error, 0 on success
+	 */
+	public function completeTabsHead($parameters, &$object, &$action, $hookmanager)
+	{
+		global $langs, $user;
+
+		// Never leave the tab of a previous call behind: HookManager merges whatever
+		// this property holds into the head of the card being built
+		$this->results = array();
+
+		// Called once to add tabs and once to remove some: only the first pass interests us
+		if (($parameters['mode'] ?? 'add') == 'remove') {
+			return 0;
+		}
+		// The element of the Expedition class is 'shipping', not 'expedition'
+		if (!is_object($object) || !in_array($object->element ?? '', array('shipping', 'expedition')) || empty($object->id)) {
+			return 0;
+		}
+		if (!$user->hasRight('uptosign', 'create')) {
+			return 0;
+		}
+
+		$langs->load('uptosign@uptosign');
+		// HookManager reads ->results, and complete_head_from_modules() merges it into $head
+		$this->results = array(
+			array(
+				dol_buildpath('/uptosign/uptosign_tab.php', 1) . '?objectType=expedition&id=' . ((int) $object->id),
+				$langs->trans('UptoSignTab'),
+				'tabUptoSign',
+			),
+		);
+
+		return 0;
+	}
+
 	private function _getMoreInfoFor($object)
 	{
 		$out = "";
@@ -1308,33 +1391,61 @@ class ActionsUptoSign
 		$resolver = new UptoSignSignatoryResolver($object->db);
 
 		// fetchListId returns an array of ids, or a negative int when nothing matches.
-		// Guard so we never foreach over an int (warning + no area added).
-		if (!is_array($configIds)) {
+		// Guard so we never read an id out of an int (warning + no area added).
+		if (!is_array($configIds) || count($configIds) == 0) {
 			dol_syslog("uptosign changeSignatureArea: no config available for " . $model_pdf . " / " . $object->element, LOG_DEBUG);
 			return 0;
 		}
 
-		//Parcourt les ID de configuration
-		foreach ($configIds as $configId) {
-			//Récupére les configurations disponible
-			$res = $config->fetch($configId);
-
-			//Si le nombre de configuration est en dessous de 0 retourne une erreur
-			if ($res <= 0) {
-				array_push($this->errors, 'changeSignatureArea: no config available for that file');;
-				return --$error;
-			}
-
-			// The contact role is carried by the config label (CustomerSign,
-			// VendorSign, ...), not by a rowid of llx_c_type_contact: the former
-			// $config->fk_c_type_contact column does not exist anymore.
-			$contactCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($config->label);
-			if (!$resolver->isTypeContactCodeDeclared($object->element, $contactCode, $contactSource)) {
-				dol_syslog("uptosign changeSignatureArea: contact type '" . $contactCode . "' is not declared as " . $contactSource . " for element " . $object->element, LOG_WARNING);
-				continue;
-			}
-			$signCount += count($object->getIdContact($contactSource, $contactCode));
+		// One configuration only, the first one, exactly like signInit(): whatever a
+		// second configuration would describe is never sent to the remote service, so
+		// reserving an area for it would print a signature box nobody can ever fill.
+		// fetchListId() sorts by rowid so both methods pick the same one.
+		if (count($configIds) > 1) {
+			dol_syslog("uptosign changeSignatureArea: " . count($configIds) . " sign configurations for "
+				. $model_pdf . ", only the first one is used, as signInit() does", LOG_WARNING);
 		}
+		$configId = reset($configIds);
+
+		//Récupére la configuration disponible
+		$res = $config->fetch($configId);
+
+		//Si le nombre de configuration est en dessous de 0 retourne une erreur
+		if ($res <= 0) {
+			array_push($this->errors, 'changeSignatureArea: no config available for that file');
+			return --$error;
+		}
+
+		// An empty page_sign means signature disabled for that document type,
+		// same reading as getListContacts() and signInit()
+		if (empty($config->page_sign)) {
+			dol_syslog("uptosign changeSignatureArea: config " . $configId . " has no sign page, skip", LOG_DEBUG);
+			return 0;
+		}
+
+		// The contact role is carried by the config label (CustomerSign,
+		// VendorSign, ...), not by a rowid of llx_c_type_contact: the former
+		// $config->fk_c_type_contact column does not exist anymore.
+		$contactCode = UptoSignSignatoryResolver::roleCodeFromConfigLabel($config->label);
+		if (!$resolver->isTypeContactCodeDeclared($object->element, $contactCode, $contactSource)) {
+			dol_syslog("uptosign changeSignatureArea: contact type '" . $contactCode . "' is not declared as " . $contactSource . " for element " . $object->element, LOG_WARNING);
+			return 0;
+		}
+
+		// Count the people who will really be sent to the API, not the raw contact
+		// links: a contact without a name, without an email or with an unusable mobile
+		// is dropped by the resolver, and two people sharing a mobile count once. The
+		// reserved areas must match, otherwise the PDF prints empty signature boxes.
+		$signers = new ArrayObject();
+		$resolver->resolveSigners($object, $contactSource, $config->label, $signers);
+		// The resolver reports missing emails and mobiles through its own error
+		// stack. Generating a PDF must never fail on that, so drain it to the log.
+		if (!empty($resolver->errors)) {
+			dol_syslog("uptosign changeSignatureArea: signatories skipped for " . $object->element . " #" . $object->id . " : " . implode(', ', $resolver->errors), LOG_WARNING);
+			$resolver->errors = array();
+		}
+
+		$signCount = count($signers);
 
 		$height = $parameters['tab'] * 3;
 
@@ -1345,7 +1456,7 @@ class ActionsUptoSign
 			$parameters['posy'] += $height + 4;
 		}
 
-		return $i;
+		return $signCount;
 	}
 
 
