@@ -88,7 +88,7 @@ class PDPProviderManager
 		);
 
 		// An implementation that only generate documents (no network access). It talks to no platform. This can be used by some countries like Germany or user that push files to a platformmanually.
-		if (!isset($mysoc->country_code) || $mysoc->country_code != 'FR' || getDolGlobalString('EINVOICING_ALLOW_DEVTOOLS')) { // InfraS change
+		if (!isset($mysoc->country_code) || $mysoc->country_code != 'FR' || getDolGlobalString('EINVOICING_ALLOW_DEVTOOLS')) {
 			$this->providersList['TESTPDP'] = array(
 				'class' => 'TestPDPProvider',
 				'position' => 100,

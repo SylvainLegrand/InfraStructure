@@ -2,6 +2,26 @@
 
 ## 1.1.0
 
+FIX: The remote information of the SuperPDP setup page now describes the e-invoice address the module
+really sends with. A company can hold several entries in the French directory at once - one per
+document family, '<siren>_Invoice' or '<siren>_Status', beside the bare identifier - and the screen
+reported whichever one the platform returned first, that is the oldest one, whatever the routing
+identifier configured in the module. An installation sending with '<siren>_Status' was told its
+address was '<siren>_Invoice'. The entry that matches the routing identifier of the module is now the
+one reported, the other addresses of the company are listed beside it, and an address that has no
+directory entry at all is called out: invoices sent with it are refused for an unknown address, which
+nothing announced before the first refusal. The list of the entries also carried the status and the
+effective date of the first one on every line, so two entries out of three were shown with a date that
+was not theirs.
+
+NEW: The remote information of the SuperPDP setup page now shows the identity the Access Point holds
+for your company - name, company number and address - and compares it with the company set up in
+Dolibarr. A company number that differs is reported as an error, because an invoice issued for a
+company other than the one of the session is refused at sending time, and that refusal was only
+discovered on the first transmission. A name or an address that differs is reported as a note. The
+information comes from the directory entries, which the page already read: the session endpoint of the
+platform returns nothing but the verification statuses.
+
 FIX: The module can obtain an access token from the Esalink access point again. The token request had
 lost its grant_type parameter, which RFC 6749 requires whatever the client authentication method is,
 so the access point answered 400 Bad Request - "must not be blank" - before it ever looked at the
@@ -19,10 +39,28 @@ than one authentication method in the same request. An installation that set
 ESALINK_AUTHENT_USING_CLIENT_CREDENTIAL as a workaround keeps working: the constant is now without
 effect, and the request it used to select is the default.
 
+CHANGE: the backport of getMultidirVersion() is removed. That function entered the core in Dolibarr 20
+and the module carried a copy of it for the versions below, but it calls it nowhere - not once in the
+whole repository - so the copy was never reached on any version.
+
 CHANGE: GETPOSTFLOAT(), a function the core gained in Dolibarr 20 and that the module backports for the
 versions below, moves from the library of the module to compat/functions.lib.php, where the module keeps
 what it copies from the core. Pure move, guard included: the library requires that file, so the two call
 sites of admin/setup.php keep finding the function where they used to.
+CHANGE: getDolGlobalFloat(), a function the core gained in Dolibarr 21 and that the module backports for
+the versions below, moves from the library of the module to compat/functions.lib.php, where the module
+keeps what it copies from the core. Pure move, guard included: the library requires that file, so the
+eight call sites of PriceHelper - the rounding rule of the totals - keep finding the function where they
+used to.
+CHANGE: getMultidirTemp(), a function the core gained in Dolibarr 20 and that the module backports for the
+versions below, moves from the library of the module to compat/functions.lib.php, where the module keeps
+what it copies from the core. Pure move, guard included: the library requires that file, so the two call
+sites - the temporary directory the providers write a retrieved test invoice into - keep finding the
+function where they used to.
+CHANGE: dolPrintHTML(), a function the core gained in Dolibarr 18 and that the module backports for
+Dolibarr 17, moves from the library of the module to compat/functions.lib.php, where the module keeps
+what it copies from the core. Pure move, guard included: the library requires that file, so the seven
+call sites keep finding the function where they used to.
 
 CHANGE: dolPrintHTMLForAttribute(), a function the core only gained in Dolibarr 19, was backported in
 the library of the module, among its own functions. It now sits in compat/functions.lib.php, next to the
