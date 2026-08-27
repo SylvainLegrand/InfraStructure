@@ -195,7 +195,7 @@ class ActionsListExportImport
                                                     "Yes": function() {
                                                             // Envoi de la requête HTTP en mode synchrone
                                                             $.ajax({
-                                                                    url: '<?php echo dol_buildpath('/listexportimport/ajax/ajax.php', 1); ?>',
+                                                                    url: '<?php echo dol_buildpath('/listexportimport/ajax/ajax.php?token=' . newToken(), 1); ?>', // InfraS change
                                                                     type: 'post',
                                                                     data: data,
                                                                     async: false
@@ -261,7 +261,7 @@ class ActionsListExportImport
                                             buttons: {},
                                             open : function(event, ui) {
                                                     // Importation du fichier
-                                                    var ajax_url = '<?php echo dol_buildpath('/listexportimport/ajax/ajax.php', 1); ?>';
+                                                    var ajax_url = '<?php echo dol_buildpath('/listexportimport/ajax/ajax.php?token=' . newToken(), 1); ?>'; // InfraS change
                                                     readFile(fileinput.files[0], filetype, $form.attr('action'), filename, ajax_url);
                                             }
                                     });
