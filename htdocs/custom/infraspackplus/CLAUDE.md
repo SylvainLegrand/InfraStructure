@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.2` (2026-08)
+- Dernière version locale : `21.8.3` (2026-08)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -691,6 +691,12 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 - **Cause** : les constantes de couleur de texte `INFRASPLUS_PDF_HEADER_TEXT_COLOR`, `INFRASPLUS_PDF_FRM_E_TEXT_COLOR` et `INFRASPLUS_PDF_FRM_R_TEXT_COLOR` étaient enregistrées en base avec la valeur `"0"` au lieu du triplet attendu `"0,0,0"` (vérifié en base sur cette instance). Le code lisait la constante via `getDolGlobalString($key, '0,0,0')` puis faisait un `explode(',', ...)` brut, sans valider le nombre de parties obtenues — sur `"0"`, `explode()` ne retourne qu'un tableau à 1 élément, d'où les avertissements sur les index 1/2 lus ensuite par `SetTextColor()`.
 - **Correctif** : remplacement des deux `getDolGlobalString(...); explode(',', ...)` par `colorStringToArray(getDolGlobalString(...), array(0, 0, 0))` (fonction native Dolibarr, `core/lib/functions2.lib.php`) — dans `pdf_InfraSPlus_getValues()` pour `headertxtcolor` (propriété alimentant tous les modèles PDF du module, pas seulement `pdf_InfraSPlus_D`) et dans `pdf_InfraSPlus_writeFrame()` pour `frmeTxtColor`/`frmrTxtColor`. `colorStringToArray()` garantit toujours un tableau à 3 entiers, avec repli sur le défaut fourni en cas de valeur vide ou malformée — même pattern déjà utilisé dans ce module pour `INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR` (cf. changelog).
 - **Portée non couverte** : `core/lib/infraspackplus.pdf.lib.php` contient une trentaine d'autres `explode(',', ...)` du même type sur d'autres constantes de couleur (`bg_color`, `tblLineColor`, `verLineColor`, `horLineColor`, couleurs de sous-titre/sous-total, etc.) — non corrigées ici faute de symptôme observé en log sur cette instance (leurs constantes contiennent actuellement des triplets valides). **Règle à retenir** : si un nouvel avertissement `Undefined array key` apparaît sur l'une de ces variables, appliquer le même remplacement par `colorStringToArray($valeur, $repli3entiers)` plutôt que de raisonner au cas par cas — c'est le même défaut structurel, latent tant que la constante correspondante reste valide en base.
+
+### Jeton CSRF manquant sur les liens de suppression d'adresse (fix v21.8.3)
+
+- **Symptôme** : avec `MAIN_SECURITY_CSRF_WITH_TOKEN` ≥ 2 (protection CSRF étendue aux actions GET sensibles), le bouton « Supprimer » d'une adresse (`comm/address.php`) et le picto de suppression de la liste des adresses du tiers (`infraspackplus.lib.php`) étaient bloqués par un 403 `die` de `main.inc.php` — leur action `delete` matche la regex des actions GET sensibles du core.
+- **Correctif** : ajout de `&token='.newToken()` aux deux liens. Les liens voisins `create`/`edit` figurent dans la liste d'exclusion du core et n'ont pas besoin de jeton.
+- **Règle à retenir** : tout nouveau lien GET dont l'action matche `^(confirm_)?(add|classify|close|confirm|copy|del|disable|enable|remove|set|unset|update|save)` doit inclure `&token='.newToken()` — sans lui, il casse dès que l'instance active `MAIN_SECURITY_CSRF_WITH_TOKEN` à 2 ou plus.
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 

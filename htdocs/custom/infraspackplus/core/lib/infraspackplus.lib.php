@@ -1080,7 +1080,7 @@
 					$actions	.= '<a class = "editfielda marginrightonly" href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=edit&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">'.img_edit().'</a>';
 				}
 				if (!empty($user->hasRight('societe', 'supprimer'))) {
-					$actions	.= '<a class = "reposition" href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=delete&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">'.img_delete().'</a>';
+					$actions	.= '<a class = "reposition" href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=delete&token='.newToken().'&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">'.img_delete().'</a>';
 				}
 				$actionCell		= !empty($actions) ? '<td>'.$actions.'</td>' : '<td></td>';
 				print '			<tr class = "oddeven infraspackplus_address_row">';

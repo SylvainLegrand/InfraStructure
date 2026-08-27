@@ -1995,7 +1995,10 @@
 	<Version Number="21.8.2" MonthVersion="2026-08">
 		<change type='fix'><![CDATA[Avertissements PHP "Undefined array key" à la génération de documents (pdf_InfraSPlus_writeFrame() et pdf_InfraSPlus_getValues(), core/lib/infraspackplus.pdf.lib.php), constatés sur pdf_InfraSPlus_D mais couvrant potentiellement tous les modèles PDF du module : quand une constante de couleur de texte (INFRASPLUS_PDF_HEADER_TEXT_COLOR, INFRASPLUS_PDF_FRM_E_TEXT_COLOR, INFRASPLUS_PDF_FRM_R_TEXT_COLOR) est enregistrée en base avec une valeur incomplète (ex. "0" au lieu de "0,0,0"), l'ancien explode(',', ...) ne retournait qu'un tableau à un seul élément, et les index 1/2 lus ensuite par SetTextColor() déclenchaient l'avertissement. Remplacement par colorStringToArray(..., [0, 0, 0]) — fonction native Dolibarr déjà utilisée dans ce module pour le même type de problème sur INFRASPLUS_PDF_CUSTOMER_SIGNING_COLOR — qui garantit toujours un tableau à 3 entiers avec repli sur le défaut en cas de valeur vide ou malformée. headertxtcolor étant alimentée par pdf_InfraSPlus_getValues(), commune à tous les modèles, le correctif s'applique à l'ensemble des documents générés, pas seulement aux devis.]]></change>
 	</Version>
-	<InfraS Downloaded="20260825"/>
+	<Version Number="21.8.3" MonthVersion="2026-08">
+		<change type='fix'>Compatibilité CSRF (MAIN_SECURITY_CSRF_WITH_TOKEN niveau 2 et plus) : ajout du jeton de sécurité (paramètre token, newToken()) aux liens de suppression d'adresse — bouton « Supprimer » de comm/address.php et picto de suppression de la liste des adresses du tiers (infraspackplus.lib.php). Sans lui, ces liens GET avec action=delete étaient bloqués (403) par la protection CSRF de main.inc.php dès l'activation de la constante ; les liens voisins create/edit figurent dans la liste d'exclusion du core et ne nécessitent pas de jeton</change>
+	</Version>
+	<InfraS Downloaded="20260827"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -530,7 +530,7 @@
 			}
 			if (!empty($user->hasRight('societe', 'supprimer')) && !empty($id) && !empty($objectLine)) {
 				print '				<div class = "inline-block divButAction">
-										<a class = "butActionDelete" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.'&action=delete&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
+										<a class = "butActionDelete" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.'&action=delete&token='.newToken().'&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
 									</div>';
 			}
 		}
