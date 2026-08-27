@@ -84,7 +84,11 @@
 	<Version Number="18.1.5" MonthVersion="2026-06">
 		<change type='chg'>Changement de la source de téléchargement du changelog : infras.fr remplacé par le dépôt GitHub (InfraS-SARL/modules-versions)</change>
 	</Version>
-	<InfraS Downloaded="20260619"/>
+	<Version Number="18.1.6" MonthVersion="2026-08">
+		<change type='fix'>Compatibilité CSRF (MAIN_SECURITY_CSRF_WITH_TOKEN niveau 2 et plus) : ajout du jeton de sécurité (paramètre token, newToken()) aux boutons « Supprimer les prix » (action deleteCustPrices) et « Déployer les prix parent » (action updateCustPrices) injectés par addMoreActionsButtons() — ces liens GET déclenchant une écriture directe étaient bloqués (403) dès l'activation de la constante, et constituaient une exposition CSRF réelle même constante désactivée</change>
+		<change type='fix'>Pages de substitution societe/price.php (5 branches dlb180x à dlb220x) : ajout du jeton de sécurité au bouton « Ajouter un prix client » (action add_customer_price), à l'identique du core Dolibarr — sans lui, le bouton était bloqué (403) dès que MAIN_SECURITY_CSRF_WITH_TOKEN est à 2 ou plus</change>
+	</Version>
+	<InfraS Downloaded="20260827"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

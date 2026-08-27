@@ -16,7 +16,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.5` (2026-06)
+- Dernière version locale : `18.1.6` (2026-08)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrascusprice/`
 
@@ -293,6 +293,12 @@ Pour supporter une nouvelle version majeure de Dolibarr (ex. 25.x) :
    - Tester le bouton « Déployer les prix parent » sur une filiale
    - Tester le bouton « Supprimer les prix » sur une filiale
    - Vérifier que les recherches de prix fonctionnent (champs `search_price`, `search_price_ttc`)
+
+### Jeton CSRF sur les liens d'action GET (fix 18.1.6)
+
+- **Symptôme** : avec `MAIN_SECURITY_CSRF_WITH_TOKEN` ≥ 2, les boutons « Supprimer les prix » / « Déployer les prix parent » (hook `addMoreActionsButtons()`) et « Ajouter un prix client » (5 pages de substitution `societe/price.php`) étaient bloqués (403 `die` de `main.inc.php`) — leurs actions (`deleteCustPrices`, `updateCustPrices`, `add_customer_price`) matchent la regex des actions GET sensibles du core. Les deux premières déclenchant une écriture directe sans écran de confirmation, l'absence de token constituait aussi une exposition CSRF réelle même constante désactivée.
+- **Correctif** : ajout de `&token='.newToken()` aux trois liens (classe hook + les 5 branches de substitution), à l'identique du core Dolibarr 22 qui porte déjà le token sur `add_customer_price` dans `societe/price.php`.
+- **Règle à retenir** : tout nouveau lien GET dont l'action matche `^(confirm_)?(add|classify|close|confirm|copy|del|disable|enable|remove|set|unset|update|save)` doit inclure `&token='.newToken()` ; pour les pages de substitution, comparer systématiquement avec la page core d'origine, qui peut avoir reçu des tokens depuis la version copiée.
 
 ## Cas d'usage courants (Common use cases)
 

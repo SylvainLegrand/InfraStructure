@@ -666,7 +666,7 @@ if (getDolGlobalString('PRODUIT_CUSTOMER_PRICES') || getDolGlobalString('PRODUIT
 		if (empty($reshook))
 		{
 			if ($user->hasRight('produit', 'creer') || $user->hasRight('service', 'creer')) {
-				print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=add_customer_price&amp;socid='.$object->id.'">'.$langs->trans("AddCustomerPrice").'</a></div>';
+				print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=add_customer_price&token='.newToken().'&amp;socid='.$object->id.'">'.$langs->trans("AddCustomerPrice").'</a></div>';
 			}
 		}
 		// InfraS add hook end
