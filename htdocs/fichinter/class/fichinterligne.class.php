@@ -130,7 +130,6 @@ class FichinterLigne extends CommonObjectLine
 
 		$resql = $this->db->query($sql);
 		if ($resql) {
-			// InfraS change begin
 			if ($this->db->num_rows($resql)) {
 				$objp = $this->db->fetch_object($resql);
 				$this->rowid          	= $objp->rowid;
@@ -152,7 +151,6 @@ class FichinterLigne extends CommonObjectLine
 			}
 
 			return 0;
-			// InfraS change end
 		} else {
 			$this->error = $this->db->error().' sql='.$sql;
 			return -1;
