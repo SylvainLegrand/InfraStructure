@@ -1174,6 +1174,10 @@ function GETPOST($paramname, $check = 'alphanohtml', $method = 0, $filter = null
 		}
 	}
 
+	if ($paramname == 'hashp' && $out == 'shared') {
+		$out = ''; // We refuse to have hashp=shared as a parameter
+	}
+
 	return $out;
 }
 
@@ -1413,11 +1417,13 @@ function sanitizeVal($out = '', $check = 'alphanohtml', $filter = null, $options
 		case 'restricthtmlallowiframe':
 		case 'restricthtmlallowlinkscript':	// Allow link and script tag for head section.
 		case 'restricthtmlallowunvalid':
+			// Osden add begin
 			if (dol_textishtml($out)) {
 				$out = dol_htmlwithnojs($out, 1, $check);
 			} else {
 				$out = dol_string_nohtmltag($out, 0);
 			}
+			// Osden add end
 			break;
 		case 'custom':
 			if (!empty($out)) {

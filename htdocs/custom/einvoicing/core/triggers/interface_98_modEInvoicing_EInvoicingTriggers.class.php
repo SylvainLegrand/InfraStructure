@@ -388,10 +388,30 @@ class InterfaceEInvoicingTriggers extends DolibarrTriggers
 			'@phan-var-force Document $object';
 			$duplicate = false;
 			if ($object->fk_element_type == 'invoice_supplier' && SupplierInvoiceHelper::isEInvoice($object->fk_element_id, true, $duplicate)) {
-				$this->errors[] = $duplicate
-					? $langs->trans('EinvoicingDuplicateDocumentForSupplierInvoice', $object->fk_element_id)
-					: $langs->trans('EinvoicingCantDeleteADocumentLinkedToAnExistingSupplierInvoice', $object->id, $object->fk_element_id);
-				return -1;
+				$lastid = 0;
+
+				// Test if einvoice is the last one(in this case, we may accept to delete the document, record will be loaded at next sync
+				// If not, we refuse to delete the document.
+				// Restricted to the entities the deletion is made from: on a multicompany setup the highest
+				// rowid of the whole table usually belongs to another entity, and the flow being deleted
+				// would then be refused (or accepted) on the strength of a record its owner cannot even see.
+				$sqlgetlast = "SELECT rowid FROM ".MAIN_DB_PREFIX."einvoicing_document";
+				$sqlgetlast .= " WHERE entity IN (".getEntity($object->element).")";
+				$sqlgetlast .= " ORDER BY rowid DESC LIMIT 1";
+				$resql = $this->db->query($sqlgetlast);
+				if ($resql) {
+					$obj = $this->db->fetch_object($resql);
+					if ($obj) {
+						$lastid = $obj->rowid;
+					}
+				}
+
+				if ($object->id != $lastid) {	// If not the last one,
+					$this->errors[] = $duplicate
+						? $langs->trans('EinvoicingDuplicateDocumentForSupplierInvoice', $object->fk_element_id)
+						: $langs->trans('EinvoicingCantDeleteADocumentLinkedToAnExistingSupplierInvoice', $object->id, $object->fk_element_id);
+					return -1;
+				}
 			}
 		}
 
