@@ -443,11 +443,11 @@ class FactureLigne extends CommonInvoiceLine
 		if (empty($this->subprice)) {
 			$this->subprice = 0;
 		}
-		// InfraS add begin
+		// Osden add begin
 		if (empty($this->subprice_ttc)) {
 			$this->subprice_ttc = 0;
 		}
-		// InfraS add end
+		// Osden add end
 		if (empty($this->ref_ext)) {
 			$this->ref_ext = '';
 		}

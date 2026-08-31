@@ -473,6 +473,11 @@ class SupplierInvoiceLine extends CommonObjectLine
 		}
 
 		// Clean parameters
+		// Osden add begin
+		if (empty($this->pu_ttc)) {
+			$this->pu_ttc = 0;
+		}
+		// Osden add end
 		if (empty($this->remise_percent)) {
 			$this->remise_percent = 0;
 		}
@@ -639,11 +644,11 @@ class SupplierInvoiceLine extends CommonObjectLine
 		if (empty($this->subprice)) {
 			$this->subprice = 0;
 		}
-		// InfraS add begin
+		// Osden add begin
 		if (empty($this->subprice_ttc)) {
 			$this->subprice_ttc = 0;
 		}
-		// InfraS add end
+		// Osden add end
 		if (empty($this->special_code)) {
 			$this->special_code = 0;
 		}

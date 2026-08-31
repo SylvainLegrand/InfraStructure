@@ -425,6 +425,11 @@ class OrderLine extends CommonOrderLine
 		if (empty($this->remise_percent)) {
 			$this->remise_percent = 0;
 		}
+		// Osden add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// Osden add end
 		if (empty($this->info_bits)) {
 			$this->info_bits = 0;
 		}
@@ -437,11 +442,6 @@ class OrderLine extends CommonOrderLine
 		if (empty($this->ref_ext)) {
 			$this->ref_ext = '';
 		}
-		// InfraS add begin
-		if (empty($this->subprice_ttc)) {
-			$this->subprice_ttc = 0;
-		}
-		// InfraS add end
 
 		// if buy price not defined (if = ''), we set the buyprice as configured in margin admin setup
 		if ($this->pa_ht == 0 && $pa_ht_isemptystring) {
@@ -582,6 +582,11 @@ class OrderLine extends CommonOrderLine
 		if (empty($this->qty)) {
 			$this->qty = 0;
 		}
+		// Osden add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// Osden add end
 		if (empty($this->total_localtax1)) {
 			$this->total_localtax1 = 0;
 		}
@@ -618,11 +623,6 @@ class OrderLine extends CommonOrderLine
 		if (empty($this->ref_ext)) {
 			$this->ref_ext = '';
 		}
-		// InfraS add begin
-		if (empty($this->subprice_ttc)) {
-			$this->subprice_ttc = 0;
-		}
-		// InfraS add end
 
 		// if buy price not defined, define buyprice as configured in margin admin
 		if ($this->pa_ht == 0 && $pa_ht_isemptystring) {

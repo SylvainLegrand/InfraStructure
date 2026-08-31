@@ -1624,7 +1624,7 @@ class Contrat extends CommonObject
 			$sql .= " '".$this->db->escape($localtax2_type)."',";
 			$sql .= " ".price2num($remise_percent).",";
 			$sql .= " ".price2num($pu_ht).",";
-			$sql .= " ".($price_base_type === 'TTC' ? price2num($pu_ttc) : "0").",";	// Osden add
+			$sql .= " ".($price_base_type === 'TTC' ? (float) price2num($pu_ttc) : 0).",";	// Osden add
 			$sql .= " ".price2num($total_ht).",".price2num($total_tva).",".price2num($total_localtax1).",".price2num($total_localtax2).",".price2num($total_ttc).",";
 			$sql .= " ".((int) $info_bits).",";
 			if (isset($fk_fournprice)) {

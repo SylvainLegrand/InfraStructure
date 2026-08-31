@@ -313,6 +313,11 @@ class CommandeFournisseurLigne extends CommonOrderLine
 		if (empty($this->remise_percent)) {
 			$this->remise_percent = 0;
 		}
+		// Osden add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// Osden add end
 		if (empty($this->info_bits)) {
 			$this->info_bits = 0;
 		}
@@ -325,11 +330,6 @@ class CommandeFournisseurLigne extends CommonOrderLine
 		if (empty($this->pa_ht)) {
 			$this->pa_ht = 0;
 		}
-		// InfraS add begin
-		if (empty($this->subprice_ttc)) {
-			$this->subprice_ttc = 0;
-		}
-		// InfraS add end
 
 		// Multicurrency
 		if (!empty($this->multicurrency_code)) {
