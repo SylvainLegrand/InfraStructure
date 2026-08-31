@@ -443,6 +443,11 @@ class FactureLigne extends CommonInvoiceLine
 		if (empty($this->subprice)) {
 			$this->subprice = 0;
 		}
+		// InfraS add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// InfraS add end
 		if (empty($this->ref_ext)) {
 			$this->ref_ext = '';
 		}
@@ -658,6 +663,11 @@ class FactureLigne extends CommonInvoiceLine
 		if (empty($this->ref_ext)) {
 			$this->ref_ext = '';
 		}
+		// InfraS add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// InfraS add end
 		if (empty($this->tva_tx)) {
 			$this->tva_tx = 0;
 		}

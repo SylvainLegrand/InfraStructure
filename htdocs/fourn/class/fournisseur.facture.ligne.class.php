@@ -639,6 +639,11 @@ class SupplierInvoiceLine extends CommonObjectLine
 		if (empty($this->subprice)) {
 			$this->subprice = 0;
 		}
+		// InfraS add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// InfraS add end
 		if (empty($this->special_code)) {
 			$this->special_code = 0;
 		}

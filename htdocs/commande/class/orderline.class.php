@@ -437,6 +437,11 @@ class OrderLine extends CommonOrderLine
 		if (empty($this->ref_ext)) {
 			$this->ref_ext = '';
 		}
+		// InfraS add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// InfraS add end
 
 		// if buy price not defined (if = ''), we set the buyprice as configured in margin admin setup
 		if ($this->pa_ht == 0 && $pa_ht_isemptystring) {
@@ -613,6 +618,11 @@ class OrderLine extends CommonOrderLine
 		if (empty($this->ref_ext)) {
 			$this->ref_ext = '';
 		}
+		// InfraS add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// InfraS add end
 
 		// if buy price not defined, define buyprice as configured in margin admin
 		if ($this->pa_ht == 0 && $pa_ht_isemptystring) {

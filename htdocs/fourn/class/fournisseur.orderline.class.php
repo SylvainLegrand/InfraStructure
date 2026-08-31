@@ -325,6 +325,11 @@ class CommandeFournisseurLigne extends CommonOrderLine
 		if (empty($this->pa_ht)) {
 			$this->pa_ht = 0;
 		}
+		// InfraS add begin
+		if (empty($this->subprice_ttc)) {
+			$this->subprice_ttc = 0;
+		}
+		// InfraS add end
 
 		// Multicurrency
 		if (!empty($this->multicurrency_code)) {
