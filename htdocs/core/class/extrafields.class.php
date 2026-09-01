@@ -1410,7 +1410,7 @@ class ExtraFields
 										search: params.term,
 										page: params.page || 1,
 										objecttype: '".$extrafieldsobjectkey."',
-										objectid: '".$object->id."',
+										objectid: '".$objectid."',	// InfraS change
 										objectkey: '".$key."',
 										mode: '".$mode."',
 										value: '".$value."'
