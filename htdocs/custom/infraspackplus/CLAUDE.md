@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.3` (2026-08)
+- Dernière version locale : `21.8.4` (2026-09)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -697,6 +697,13 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 - **Symptôme** : avec `MAIN_SECURITY_CSRF_WITH_TOKEN` ≥ 2 (protection CSRF étendue aux actions GET sensibles), le bouton « Supprimer » d'une adresse (`comm/address.php`) et le picto de suppression de la liste des adresses du tiers (`infraspackplus.lib.php`) étaient bloqués par un 403 `die` de `main.inc.php` — leur action `delete` matche la regex des actions GET sensibles du core.
 - **Correctif** : ajout de `&token='.newToken()` aux deux liens. Les liens voisins `create`/`edit` figurent dans la liste d'exclusion du core et n'ont pas besoin de jeton.
 - **Règle à retenir** : tout nouveau lien GET dont l'action matche `^(confirm_)?(add|classify|close|confirm|copy|del|disable|enable|remove|set|unset|update|save)` doit inclure `&token='.newToken()` — sans lui, il casse dès que l'instance active `MAIN_SECURITY_CSRF_WITH_TOKEN` à 2 ou plus.
+
+### Avertissement PHP sur le test d'activation de multicompany dans l'extrait de compte tiers (fix v21.8.4)
+
+- **Symptôme** : avertissement PHP `Undefined property: stdClass::$enabled` à chaque génération du modèle `pdf_InfraSPlus_account_statut` (`core/modules/societe/doc/pdf_InfraSPlus_account_statut.modules.php`), sur le test `$conf->multicompany->enabled` (2 occurrences : chargement conditionnel de `dao_multicompany.class.php` en tête de fichier, et suffixe du nom de fichier PDF avec le libellé de l'entité en cas de partage inter-entités du tiers).
+- **Cause** : `$conf->multicompany` n'est pas garanti d'exposer une propriété `enabled` quand le module `multicompany` n'est pas activé — c'est un `stdClass` générique dans cet état, contrairement au test générique attendu par la convention Dolibarr.
+- **Correctif** : remplacement des deux occurrences par `isModEnabled('multicompany')`, la fonction native Dolibarr de contrôle d'activation d'un module (cf. règle globale *Projets Dolibarr — privilégier les méthodes natives*).
+- **Règle à retenir** : ne jamais tester l'activation d'un module via `$conf->nommodule->enabled` — toujours passer par `isModEnabled('nommodule')`.
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 

@@ -35,7 +35,7 @@
 	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
-	if ($conf->multicompany->enabled) {
+	if (isModEnabled('multicompany')) {
 		dol_include_once('/multicompany/class/dao_multicompany.class.php');
 	}
 
@@ -363,7 +363,7 @@
 					$thirdparty_code		= $this->export_type == 'Customer' ? $object->code_client : ($this->export_type == 'Supplier' ? $object->code_fournisseur : '');
 					$export_type_lang		= $langs->transnoentitiesnoconv($this->export_type);
 					$file_name				= trim($langs->transnoentitiesnoconv('ExtraitCompteClientPDFAccountStatutFileName', $export_type_lang, $thirdparty_code, $datefile));
-					if (class_exists('DaoMulticompany') && $conf->multicompany->enabled && !empty($mc->sharings) && !empty($mc->sharings['thirdparty'])) {
+					if (class_exists('DaoMulticompany') && isModEnabled('multicompany') && !empty($mc->sharings) && !empty($mc->sharings['thirdparty'])) {
 						$ent = new DaoMulticompany($this->db);
 						$ent->fetch($conf->entity);
 						$file_name	.= '_'.$ent->label;
