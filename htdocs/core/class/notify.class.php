@@ -758,7 +758,7 @@ class Notify
 						$appli = $mysoc->name;
 
 						$subject = '['.$appli.'] '.$outputlangs->transnoentitiesnoconv("DolibarrNotification").($projtitle ? ' '.$projtitle : '');
-
+						$mailtemplatetype = ''; // InfraS add
 						switch ($notifcode) {
 							case 'BILL_CANCEL':
 								$link = '<a href="'.$urlwithroot.'/compta/facture/card.php?facid='.$object->id.'&entity='.$object->entity.'">'.$newref.'</a>';
@@ -938,6 +938,7 @@ class Notify
 								$context_info = array_key_exists('signature', $object->context) ? $object->getLibSignedStatus() : '';
 								$dir_output = $conf->contract->multidir_output;
 								$object_type = 'contract';
+								$mailtemplatetype = 'contract';	// InfraS add
 								$mesg = $outputlangs->transnoentitiesnoconv("EMailTextContractModified", $link, $context_info);
 								break;
 							default:
@@ -956,6 +957,10 @@ class Notify
 						$labeltouse = getDolGlobalString($template);
 						if (!empty($labeltouse)) {
 							$arraydefaultmessage = $formmail->getEMailTemplate($this->db, $object_type.'_send', $user, $outputlangs, 0, 1, $labeltouse);
+							// InfraS add begin
+							$tpltype				= !empty($mailtemplatetype) ? $mailtemplatetype : $object_type.'_send';
+							$arraydefaultmessage	= $formmail->getEMailTemplate($this->db, $tpltype, $user, $outputlangs, 0, 1, $labeltouse);
+							// InfraS add end
 						}
 						if (!empty($labeltouse) && is_object($arraydefaultmessage) && $arraydefaultmessage->id > 0) {
 							if (method_exists($object, 'fetch_thirdparty') && empty($object->thirdparty)) {
@@ -1259,7 +1264,7 @@ class Notify
 						$link = '<a href="'.$urlwithroot.'/contrat/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newref.'</a>';
 						$context_info = array_key_exists('signature', $object->context) ? $object->getLibSignedStatus() : '';
 						$dir_output = $conf->contract->multidir_output;
-						$object_type = 'contrat';
+						$object_type = 'contract';	// InfraS change
 						$mesg = $langs->transnoentitiesnoconv("EMailTextContractModified", $link, $context_info);
 						break;
 					default:
