@@ -53,6 +53,7 @@ class doc_account_statut_csv
     var $name;
     var $description;
     var $type;
+    var $scandir; // InfraS add
 
     var $phpmin = array(4,3,0); // Minimum version of PHP required by module
     var $version = 'dolibarr';
