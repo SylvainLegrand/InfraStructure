@@ -283,7 +283,10 @@
 		<change type='fix'>Page de substitution projet/element.php (dlb220x-DolInfraS) : avertissement "Undefined array key 1" sur $tmp[1] issu d'un explode('_', ...) ne contenant parfois qu'un seul élément (pas d'utilisateur lié). Alignement sur le garde déjà utilisé ailleurs dans le même fichier (isset($tmp[1]) ? (int) $tmp[1] : 0).</change>
 		<change type='fix'>Page de substitution projet/element.php (dlb220x-DolInfraS) : sur les commandes fournisseur / devis sans facture liée, la lecture de $element->linkedObjects[$linkname] (clé absente) provoquait un avertissement "Undefined array key facture" puis un "foreach() argument must be of type array|object, null given" fatal en pratique pour l'affichage du reste à payer. Le test porte désormais sur !empty($element->linkedObjects[$linkname]) au lieu de !empty($element->linkedObjects).</change>
 	</Version>
-	<InfraS Downloaded="20260723"/>
+	<Version Number="21.1.10" MonthVersion="2026-09">
+		<change type='chg'>Compatibilité avec Dolibarr v22 à 24</change>
+	</Version>
+	<InfraS Downloaded="20260901"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -236,7 +236,7 @@ $coldisplay++;
 					print '<input type="hidden" id="fournprice" name="fournprice"  class="" value="'.$line->fk_fournprice.'">';
 	}
 
-	include __DIR__.'/_columns/refproject.tpl.php';
+	include __DIR__.'/_columns/refproject.tpl.php';	// InfraS add
 	// VAT Rate
 	$coldisplay++;
 	$type_tva = null;
@@ -268,7 +268,7 @@ $coldisplay++;
 	if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {
 		$coldisplay++;
 		$upinctax = isset($line->pu_ttc) ? $line->pu_ttc : null;
-		if (getDolGlobalInt('MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES') && $line->qty) {
+		if (getDolGlobalInt('MAIN_UNIT_PRICE_WITH_TAX_IS_FOR_ALL_TAXES') && $line->qty) {	// InfraS change
 			$upinctax = price2num($line->total_ttc / (float) $line->qty, 'MU');
 		}
 		print '<td class="right"><input type="text" class="flat right width50" id="price_ttc" name="price_ttc" value="'.(GETPOSTISSET('price_ttc') ? GETPOST('price_ttc') : (isset($upinctax) ? price($upinctax, 0, '', 0) : '')).'"';
@@ -291,7 +291,7 @@ $coldisplay++;
 		// for example always visible on invoice but must be visible only if stock module on and stock decrease option is on invoice validation and status is not validated
 		// must also not be output for most entities (proposal, intervention, ...)
 		//if($line->qty > $line->stock) print img_picto($langs->trans("StockTooLow"),"warning", 'style="vertical-align: bottom;"')." ";
-		print '<input size="3" type="text" class="flat right" name="qty" id="qty" value="'.(GETPOSTISSET('qty') ? GETPOST('qty') : $line->qty).'"';
+		print '<input size="3" type="text" class="flat right" name="qty" id="qty" value="'.(GETPOSTISSET('qty') ? GETPOST('qty') : price($line->qty, 0, '', 0, 0)).'"';
 		if ($situationinvoicelinewithparent) {	// Do not allow editing during a situation cycle
 			print ' readonly';
 		}
