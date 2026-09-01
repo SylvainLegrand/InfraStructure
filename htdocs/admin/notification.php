@@ -328,6 +328,7 @@ foreach ($listofnotifiedevents as $notifiedevent) {
 		$model = 'member';
 	} elseif ($notifiedevent['elementtype'] == 'contrat') {
 		$model = 'contract_send';
+		$model = 'contract';	// InfraS add
 	}
 
 	$constantes[$notifiedevent['code'].'_TEMPLATE'] = array('type'=>'emailtemplate:'.$model, 'label'=>$label);
