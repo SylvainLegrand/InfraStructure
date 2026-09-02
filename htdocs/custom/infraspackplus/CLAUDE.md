@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.4` (2026-09)
+- Dernière version locale : `21.8.5` (2026-09)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -704,6 +704,13 @@ if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
 - **Cause** : `$conf->multicompany` n'est pas garanti d'exposer une propriété `enabled` quand le module `multicompany` n'est pas activé — c'est un `stdClass` générique dans cet état, contrairement au test générique attendu par la convention Dolibarr.
 - **Correctif** : remplacement des deux occurrences par `isModEnabled('multicompany')`, la fonction native Dolibarr de contrôle d'activation d'un module (cf. règle globale *Projets Dolibarr — privilégier les méthodes natives*).
 - **Règle à retenir** : ne jamais tester l'activation d'un module via `$conf->nommodule->enabled` — toujours passer par `isModEnabled('nommodule')`.
+
+### Messages parasites « Mauvaise valeur de paramètre » en double quand une validation échoue dans un trigger (fix v21.8.5)
+
+- **Symptôme** : quand la validation d'un document interceptée par le hook `doActions` (mode `INFRASPLUS_PDF_SEMIAUTOUPDATE=1`) échoue à cause d'un trigger tiers qui retourne -1 **sans renseigner** `$object->error` ni `$object->errors` (cas réel : trigger `BILL_VALIDATE` d'infras2bridge en erreur suite à un refus HTTP 400 de l'API Bridge), deux messages parasites identiques s'affichent : « Mauvaise valeur de paramètre. Ceci arrive lors d'une tentative de traduction d'une clé non renseignée. » — masquant la cause réelle de l'échec.
+- **Cause** : le schéma `setEventMessages($langs->trans($object->error), null, 'errors')` (branche `else` quand `count($object->errors) == 0`) était répété en 11 exemplaires — 10 branches `instanceof` de `ActionsInfraSPackPlus::doActions()` (`actions_infraspackplus.class.php`) et la fin de `infraspackplus_semiauto_update()` (`infraspackplus.lib.php`). Avec `$object->error` à `null`, `$langs->trans(null)` renvoie la clé littérale `ErrorBadValueForParamNotAString` (`Translate::getTradFromKey()`, garde `!is_string($key)`), poussée en session puis **retraduite** à l'affichage par `get_htmloutput_mesg()` (qui repasse chaque message stocké dans `$langs->trans()`) — d'où le texte français complet. Le doublon vient de l'empilement des deux niveaux (`semiauto_update()` pousse son message, retourne -1, puis `doActions()` pousse le sien).
+- **Correctif** : les 11 occurrences testent désormais la valeur avant traduction — `$langs->trans(!empty($object->error) ? $object->error : 'ErrorUnknown')` — avec repli sur la clé core `ErrorUnknown` (`main.lang`, « Erreur inconnue ») pour qu'un échec silencieux reste visible sans message trompeur.
+- **Règle à retenir** : ne jamais passer à `$langs->trans()` une valeur potentiellement `null`/non-string (`$object->error` après un échec de trigger n'est pas garanti renseigné — `CommonObject::call_trigger()` ne remplit que `$this->errors`, et seulement si le trigger a peuplé les siens). Tester la valeur et replier sur une clé de traduction réelle ; le résultat de `trans()` étant réaffiché via un second `trans()` par `get_htmloutput_mesg()`, une clé brute stockée en session ressort traduite à l'écran, ce qui rend ce type de défaut difficile à tracer.
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 

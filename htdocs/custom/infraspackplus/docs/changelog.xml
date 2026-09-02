@@ -2001,7 +2001,10 @@
 	<Version Number="21.8.4" MonthVersion="2026-09">
 		<change type='fix'>Modèle PDF pdf_InfraSPlus_account_statut (extrait de compte tiers) : avertissement PHP "Undefined property: stdClass::$enabled" à chaque génération, provoqué par le test $conf->multicompany->enabled (le module multicompany n'initialise pas nécessairement cette propriété quand il n'est pas activé). Remplacement des deux occurrences par isModEnabled('multicompany'), la méthode native Dolibarr de contrôle d'activation d'un module.</change>
 	</Version>
-	<InfraS Downloaded="20260901"/>
+	<Version Number="21.8.5" MonthVersion="2026-09">
+		<change type='fix'><![CDATA[Génération semi-automatique (INFRASPLUS_PDF_SEMIAUTOUPDATE) : quand la validation d'un document échouait dans un trigger sans renseigner $object->error ni $object->errors (ex. trigger BILL_VALIDATE d'infras2bridge en erreur suite à un refus de l'API Bridge), le hook doActions (10 branches instanceof d'actions_infraspackplus.class.php) et la fin d'infraspackplus_semiauto_update() appelaient setEventMessages($langs->trans($object->error), ...) avec $object->error à null. $langs->trans(null) renvoie la clé littérale ErrorBadValueForParamNotAString, retraduite à l'affichage en « Mauvaise valeur de paramètre. Ceci arrive lors d'une tentative de traduction d'une clé non renseignée. » — message parasite affiché en double, masquant la cause réelle de l'échec. Les 11 occurrences testent désormais $object->error et replient sur la clé core ErrorUnknown (« Erreur inconnue ») quand il est vide.]]></change>
+	</Version>
+	<InfraS Downloaded="20260902"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -2278,7 +2278,7 @@
 			if (count($object->errors) > 0) {
 				setEventMessages($object->error, $object->errors, 'errors');
 			} else {
-				setEventMessages($langs->trans($object->error), null, 'errors');
+				setEventMessages($langs->trans(!empty($object->error) ? $object->error : 'ErrorUnknown'), null, 'errors');
 			}
 			return -1;
 		}
