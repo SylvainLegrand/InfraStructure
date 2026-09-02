@@ -272,8 +272,8 @@ if (!$permissiontoread) {
 // AbstractProtocol::cleanupIncomingTempFiles(): one per protocol (einvoice.xml for a CII flow,
 // einvoice.pdf for a Factur-X one), plus the readable view when the platform provided one.
 $protocolManager = new ProtocolManager($db);
-$diagFileNames = $protocolManager->getIncomingDiagnosticFileNames();
-$diagReadableFileName = AbstractProtocol::INCOMING_DIAGNOSTIC_READABLE_FILE_NAME;
+$diagFileNames = $protocolManager->getIncomingDiagnosticFileNames();				// Return the document Converted in format of the default Protocol.
+$diagReadableFileName = AbstractProtocol::INCOMING_DIAGNOSTIC_READABLE_FILE_NAME;	// Return the document Readable (a generated PDF)
 
 
 
@@ -812,20 +812,20 @@ foreach ($diagFileNames as $f) {
 }
 
 if ($diagFileName) {
-	$urlOriginalFile = DOL_URL_ROOT . '/document.php?modulepart=einvoicing&file=' . urlencode('temp/' . $diagFileName);
+	$urlConvertedFile = DOL_URL_ROOT . '/document.php?modulepart=einvoicing&file=' . urlencode('temp/' . $diagFileName);
 
 	$last_supplier_invoice_error = '<span class="opacitylowx">'.img_picto('', 'times', 'class="pictofixedwidth"');
 	$last_supplier_invoice_error .= ' ' . $langs->trans("LastSupplierInvoiceCouldNotBeProcessed");
 	$last_supplier_invoice_error .= '<i class="fas fa-info-circle em088 opacityhigh classfortooltip" title="'. $langs->trans("LastSupplierInvoiceCouldNotBeProcessedInfo") .'"></i>';
 	$last_supplier_invoice_error .= ' : </span>';
-	$last_supplier_invoice_error .= '<a href="'.$urlOriginalFile.'">' . $langs->trans("facturXDownloadOriginal") . ' ' . img_picto('', 'download', 'class="pictofixedwidth"') . '</a>';
+	$last_supplier_invoice_error .= '<a href="'.$urlConvertedFile.'" target="_blank">' . $langs->trans("DocDownloadConverted") . ' ' . img_picto('', 'download', 'class="pictofixedwidth"') . '</a>';
 
 	// The readable view is only stored when the platform provided one with the flow
 	if (file_exists($conf->einvoicing->dir_temp . '/' . $diagReadableFileName)) {
-		$urlConvertedFile = DOL_URL_ROOT . '/document.php?modulepart=einvoicing&file=' . urlencode('temp/' . $diagReadableFileName);
+		$urlReadableFile = DOL_URL_ROOT . '/document.php?modulepart=einvoicing&file=' . urlencode('temp/' . $diagReadableFileName);
 
 		$last_supplier_invoice_error .= ' <span class="opacitylow">|</span> ';
-		$last_supplier_invoice_error .= '<a href="'.$urlConvertedFile.'">' . $langs->trans("facturXDownloadConverted") . ' ' . img_picto('', 'download', 'class="pictofixedwidth"') . '</a>';
+		$last_supplier_invoice_error .= '<a href="'.$urlReadableFile.'" target="_blank">' . $langs->trans("DocDownloadReadable") . ' ' . img_picto('', 'download', 'class="pictofixedwidth"') . '</a>';
 	}
 }
 
@@ -837,7 +837,7 @@ if ($provider) {
 	print '<div class="formconsumeproduce" style="padding: 10px;">'."\n";
 
 	print '<div class="div-table-responsive">'; // You can use div-table-responsive-no-min if you don't need reserved height for your table
-	print '<table>'."\n";
+	print '<table class="inline-block valignmiddle marginrightonly">'."\n";
 
 	print '<tr>';
 	print '<td class="syncFormLabel">'.$langs->trans("StartSynchronizationFrom").'</td>';
@@ -877,15 +877,6 @@ if ($provider) {
 
 	print '</td>';
 
-	$rowspan = getDolGlobalInt('EINVOICING_FLOWS_SYNC_CALL_LIMIT') ? 2 : 1;
-	print '<td style="padding-left: 40px; padding-right: 40px"'.($rowspan > 1 ? ' rowspan="'.$rowspan.'"' : '').'>';
-
-	// Button to submit (sync manage both in and update of out invoices)
-	print '<a href="#" id="runSyncBtn" class="butAction small" style="margin: 0;">';
-	print img_picto('', 'refresh', 'class="pictofixedwidth"').' '.$langs->trans("RUN_SYNC");
-	print '</a>'."\n";
-
-	print '</td>';
 	print '</tr>';
 
 	if (getDolGlobalInt('EINVOICING_FLOWS_SYNC_CALL_LIMIT')) {
@@ -901,6 +892,12 @@ if ($provider) {
 	}
 
 	print '</table>'."\n";
+
+	// Button to submit (sync manage both in and update of out invoices)
+	print '<a class="inline-block valignmiddle butAction small margintoponly marginbottomonly" href="#" id="runSyncBtn" style="margin: 0;">';
+	print img_picto('', 'refresh', 'class="pictofixedwidth"').' '.$langs->trans("RUN_SYNC");
+	print '</a>'."\n";
+
 	print '</div>';
 	print '</div>'."\n";
 
