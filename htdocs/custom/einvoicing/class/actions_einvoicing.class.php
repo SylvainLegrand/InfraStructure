@@ -504,7 +504,8 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					} elseif ((float) DOL_VERSION < 22) {
 						print dolGetButtonAction($langs->trans('einvoice'), '', 'default', $url_button, '', true);
 					} else {
-						print dolGetButtonAction('', $langs->trans('einvoice'), 'default', $url_button, '', true);
+						$params = array('forceDropdownButtons' => true);	// This is supported on v24+ only
+						print dolGetButtonAction('', $langs->trans('einvoice'), 'default', $url_button, '', true, $params);
 					}
 				}
 			}
@@ -542,6 +543,7 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 		}
 
 		//dol_syslog(__METHOD__ . " Hook doActions called for object " . get_class($object) . " action=" . $action);
+		$redirectto = '';
 
 		$einvoicing = new EInvoicing($db);
 		$checkConfig = $einvoicing->checkModulePrerequisites();
@@ -724,9 +726,8 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 				$pdpstatuscode = GETPOSTINT('pdpstatuscode') ?: 0;
 				$statusRaison = GETPOST('statusRaison', 'alpha');
 
-				// The card stops offering it, but the card is not what sends: a status travels here as a
-				// parameter of an URL, so this is where a credit note crediting an invoice we refused is
-				// actually kept from being accepted (issue #594).
+				// If the status we try to set is Approved, check that the invoice we try to approve is not a credit note to correct a supplier invoice that were already refused.
+				// If parent invoice was refused, we must block the Approval because we need to refuse the credit note also.
 				if (in_array($pdpstatuscode, EInvoicing::STATUSES_ACCEPTING_A_DOCUMENT, true)) {
 					dol_include_once('einvoicing/class/utils/SupplierInvoiceHelper.class.php');
 					$refusedSourceId = SupplierInvoiceHelper::refusedSourceOfCreditNote((int) $object->id);
@@ -788,8 +789,7 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 						$result = $object->setValueFrom('entity', $newEntity);
 						if ($result > 0) {
 							setEventMessages($langs->trans('EntityChangedSuccess', $newEntity), null, 'mesgs');
-							header("Location: " . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
-							exit;
+							$redirectto = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
 						} else {
 							$error++;
 							setEventMessages($object->error, $object->errors, 'errors');
@@ -884,6 +884,11 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 			$db->rollback();
 			return -1;
 		} else {
+			if ($redirectto) {
+				header("Location: " . $redirectto);
+				exit;
+			}
+
 			$db->commit();
 			return 0;
 		}
@@ -900,7 +905,7 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 	 */
 	public function addMoreMassActions($parameters, $object, &$action, $hookmanager)
 	{
-		global $langs, $user;
+		global $langs;
 
 		if (!$this->isMassSendAvailable($parameters)) {
 			return 0;
@@ -933,7 +938,7 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 	 */
 	public function doMassActions($parameters, $object, &$action, $hookmanager)
 	{
-		global $db, $langs, $user;
+		global $db, $langs;
 
 		$massaction = empty($parameters['massaction']) ? '' : $parameters['massaction'];
 		if (!in_array($massaction, array('einvoicing_send_to_pdp', 'einvoicing_generate'))) {
@@ -1249,7 +1254,7 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					// @phan-suppress-next-line PhanUndeclaredClassMethod DaoMulticompany is an external module class not analyzed by phan
 					$mc = new DaoMulticompany($db);
 					// @phan-suppress-next-line PhanUndeclaredClassMethod DaoMulticompany is an external module class not analyzed by phan
-					if ($mc->getEntities(false, false, true) > 0) {
+					if ($mc->getEntities(false, false, true, true) > 0) {
 						// @phan-suppress-next-line PhanUndeclaredClassProperty DaoMulticompany is an external module class not analyzed by phan
 						foreach ($mc->entities as $entityId => $entityObj) {
 							if ($entityId == $object->entity) {
@@ -1504,6 +1509,13 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 			if (in_array('thirdpartylist', $contexts, true)) {
 				$this->resprints .= ' LEFT JOIN ' . $db->prefix() . "einvoicing_extlinks as ext ON ext.element_id = s.rowid AND ext.element_type = 'societe'" . self::getExtLinkJoinCondition('societe');
 				$this->resprints .= ' LEFT JOIN ' . $db->prefix() . "einvoicing_routing rt ON rt.fk_soc = s.rowid";
+				// A thirdparty can hold several routing identifiers, and a routing row for its default product
+				// on top of them, so joining on fk_soc alone repeats the thirdparty in the list as many times.
+				// The active default routing of type 'thirdparty' is the single row the list must show: it is
+				// the one the card of the thirdparty displays at the top of its list, and the one
+				// EInvoicing::fetchDefaultRouting() answers. The column stays empty for a thirdparty holding
+				// no routing identifier, so no row leaves the list.
+				$this->resprints .= " AND rt.routing_type = 'thirdparty' AND rt.active = 1 AND rt.is_default = 1";
 			}
 
 			if (in_array('invoicelist', explode(':', $parameters['context']))) {

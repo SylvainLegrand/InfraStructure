@@ -60,16 +60,16 @@ class CIIProtocol extends AbstractProtocol
 	use CommonProtocol;
 
 	/** @const string Invoice file extension (without the dot, example 'xml') */
-	protected const INVOICE_FILE_EXTENSION = 'xml';
+	const INVOICE_FILE_EXTENSION = 'xml';
 
 	/** @const string Generated invoice file name */
-	protected const GENERATED_INVOICE_XML_FILE_NAME = 'einvoice.xml';
+	const GENERATED_INVOICE_XML_FILE_NAME = 'einvoice.xml';
 
 	/** @const string Default profile used to generate XML, overridable with EINVOICING_XML_PROFILE */
-	protected const BUILD_XML_PROFILE = 'EN16931';
+	const BUILD_XML_PROFILE = 'EN16931';
 
 	/** @var string[] Profiles buildXML() knows how to emit, and accepted values of EINVOICING_XML_PROFILE */
-	public const SUPPORTED_XML_PROFILES = ['MINIMUM', 'BASICWL', 'BASIC', 'EN16931', 'EXTENDED', 'EXTENDEDFR'];
+	const SUPPORTED_XML_PROFILES = ['MINIMUM', 'BASICWL', 'BASIC', 'EN16931', 'EXTENDED', 'EXTENDEDFR'];
 
 	/**
 	 * Maximum number of decimals allowed for the unit prices: Item net price (BT-146),
@@ -84,7 +84,7 @@ class CIIProtocol extends AbstractProtocol
 	 *
 	 * @const int
 	 */
-	protected const MAX_DECIMALS_UNIT_PRICE = 6;
+	const MAX_DECIMALS_UNIT_PRICE = 6;
 
 	/**
 	 * Maximum number of decimals allowed for the quantities: Invoiced quantity (BT-129) and
@@ -92,7 +92,7 @@ class CIIProtocol extends AbstractProtocol
 	 *
 	 * @const int
 	 */
-	protected const MAX_DECIMALS_QUANTITY = 4;
+	const MAX_DECIMALS_QUANTITY = 4;
 
 	/**
 	 * @var array<string,string>
@@ -1400,6 +1400,14 @@ class CIIProtocol extends AbstractProtocol
 			}
 
 			$supplierInvoice->lines[] = $line;
+
+			// An invoice line charge (BG-28) is part of BT-131 but has no room in a Dolibarr line, which
+			// holds a quantity, a unit price and a discount and nothing else. It follows its line, the way
+			// it would be keyed in by hand, so the unit price stored stays the one the document gives
+			// (BT-146) and the two together are worth what BT-131 announces. See issue #735.
+			foreach ($this->buildLineChargeLines($parsedLine) as $chargeLine) {
+				$supplierInvoice->lines[] = $chargeLine;
+			}
 		}
 
 		if (!$this->createSupplierInvoiceLinesIntoDatabase($supplierInvoice)) {
@@ -1532,7 +1540,7 @@ class CIIProtocol extends AbstractProtocol
 	 * @param  string|null 	$raw	Raw date string
 	 * @return string|null  YYYY-MM-DD or null if input is null/empty/unparsable
 	 */
-	private function normDate(?string $raw): ?string
+	private function normDate($raw)
 	{
 		if ($raw === null || trim($raw) === '')
 			return null;
@@ -1557,7 +1565,7 @@ class CIIProtocol extends AbstractProtocol
 	 *  @param string|null $v Input string, e.g. "1234.56" or "1 234,56"
 	 *  @return float|null Parsed float or null
 	 */
-	private function toFloat(?string $v): ?float
+	private function toFloat($v)
 	{
 		if ($v === null || $v === '')
 			return null;
@@ -3347,6 +3355,73 @@ class CIIProtocol extends AbstractProtocol
 	}
 
 	/**
+	 * Turn the charges of one received line (BG-28) into the invoice lines that carry them.
+	 *
+	 * EN 16931 mirrors at line level what it has at document level: BG-27, an allowance, and BG-28, a
+	 * charge. A Dolibarr line holds a quantity, a unit price and a discount percentage - it can express
+	 * an allowance and has nowhere to put a charge - so the charge follows its line instead, the way it
+	 * would be keyed in by hand. The unit price stored then stays the one the document gives (BT-146),
+	 * and the two lines together are worth the BT-131 the document announces.
+	 *
+	 * The VAT rate is the one of the line: in CII a line level allowance or charge carries none of its
+	 * own, CII-SR-191 forbidding ram:CategoryTradeTax there.
+	 *
+	 * @param	array<string,mixed>		$parsedLine		One line as parseInvoiceLines() returns it
+	 * @return	SupplierInvoiceLine[]					One line per charge, in the order of the document
+	 */
+	protected function buildLineChargeLines(array $parsedLine)
+	{
+		global $db, $langs;
+
+		if (empty($parsedLine['lineAllowances']) || !is_array($parsedLine['lineAllowances'])) {
+			return array();
+		}
+
+		// The import runs from a cron job as well as from a page, so the language file of the module is
+		// not necessarily loaded: without this the label of a charge would be its own translation key.
+		$langs->load('einvoicing@einvoicing');
+
+		$chargeLines = array();
+
+		foreach ($parsedLine['lineAllowances'] as $allowanceCharge) {
+			// Charges only. The allowances become the discount percentage of the line itself.
+			if (($allowanceCharge['indicator'] ?? '') !== 'true') {
+				continue;
+			}
+
+			$actualAmount = (float) ($allowanceCharge['actualAmount'] ?? 0);
+			if ($actualAmount == 0.0) {
+				continue;
+			}
+
+			$reason = trim((string) ($allowanceCharge['reason'] ?? ''));
+			$reasonCode = trim((string) ($allowanceCharge['reasonCode'] ?? ''));
+			if ($reason === '') {
+				// BR-44 accepts a reason code alone, and a bare code says nothing to whoever reads the
+				// invoice, so it is labelled.
+				$reason = $langs->transnoentitiesnoconv('EInvoicingLineCharge');
+				if ($reasonCode !== '') {
+					$reason .= ' (' . $reasonCode . ')';
+				}
+			}
+			$reason .= ' - ' . $langs->transnoentitiesnoconv('EInvoicingLineChargeOfLine', (string) ($parsedLine['lineid'] ?? '?'));
+
+			$line = new SupplierInvoiceLine($db);
+			$line->desc = $reason;
+			$line->qty = 1;
+			$line->subprice = $actualAmount;
+			$line->tva_tx = (float) ($parsedLine['rateApplicablePercent'] ?? 0);
+			$line->product_type = 1;	// A charge is a service, never a stocked good
+			$line->remise_percent = 0;
+
+			$chargeLines[] = $line;
+		}
+
+		return $chargeLines;
+	}
+
+
+	/**
 	 * Resolve multiple line allowances into a single percentage for Dolibarr.
 	 *
 	 * Dolibarr only supports percentage discounts on lines, so fixed amounts
@@ -3357,13 +3432,19 @@ class CIIProtocol extends AbstractProtocol
 	 * @param float|null $lineTotalAmount BT-131 net line amount (base ht)
 	 * @return false|array{percent: float, base: float, discountAmount: float, priceWithoutDiscount: float}
 	 */
-	protected function resolveLineDiscountPercent(array $lineAllowances, ?float $lineTotalAmount)
+	protected function resolveLineDiscountPercent(array $lineAllowances, $lineTotalAmount)
 	{
-		// Keep only allowances (indicator = "false"), ignore charges (indicator = "true")
+		// Allowances (indicator "false") drive the discount percentage; the charges (indicator "true") are
+		// carried by their own line, but their amount has to be taken out of BT-131 here: the line total
+		// the document gives already contains them, and using it as the after-discount amount would fold
+		// a charge into the base the percentage is applied to (issue #735).
 		$allowances = array();
+		$totalChargeAmount = 0.0;
 		foreach ($lineAllowances as $allowance) {
 			if (($allowance['indicator'] ?? '') === 'false') {
 				$allowances[] = $allowance;
+			} elseif (($allowance['indicator'] ?? '') === 'true') {
+				$totalChargeAmount += (float) ($allowance['actualAmount'] ?? 0);
 			}
 		}
 
@@ -3392,7 +3473,7 @@ class CIIProtocol extends AbstractProtocol
 			'percent'              => round(($totalDiscountAmount / $base) * 100, 4),
 			'base'                 => (float) $base,
 			'discountAmount'       => $totalDiscountAmount,
-			'priceWithoutDiscount' => (float) $lineTotalAmount + $totalDiscountAmount,
+			'priceWithoutDiscount' => (float) $lineTotalAmount - $totalChargeAmount + $totalDiscountAmount,
 		];
 	}
 
