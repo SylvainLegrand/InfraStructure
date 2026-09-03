@@ -621,8 +621,8 @@
 			$pdf->MultiCell($w, $tab_hl, $txtNumCli, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			$posy		+= $tab_hl - 0.5;
 		}
-		if (!empty($show_code_cli_compt) && !empty($code_cli_compt_frm) && $object->thirdparty->code_compta) {
-			$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset($object->thirdparty->code_compta);
+		if (!empty($show_code_cli_compt) && !empty($code_cli_compt_frm) && pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty)) {
+			$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty));
 			$pdf->MultiCell($w, $tab_hl, $txtCodeCliCompt, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			$posy				+= $tab_hl - 0.5;
 		}

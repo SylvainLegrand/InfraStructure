@@ -209,9 +209,9 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***38-39*** Choisir la couleur de fond et l'opacité du cadre d'adresse destinataire (choix graphique ou par code RVB, hexa, ou HSV pour la couleur)
 		* ***40*** Choisir la couleur du texte dans le cadre d'adresse destinataire (choix graphique ou par code RVB, hexa, ou HSV)
 		* ***41*** Afficher les informations société dans l'en-tête des fiches produits
-		* ***42*** Afficher le numéro client dans les documents de la chaîne des ventes (devis, commandes, fiches d'intervention, contrats, bons de livraison, factures client)
+		* ***42*** Afficher le numéro client (champ « Code client » de la fiche tiers, ex. CU2511-03048) dans les documents de la chaîne des ventes (devis, commandes, fiches d'intervention, contrats, bons de livraison, factures client)
 		* ***43*** Afficher le numéro client dans l'en-tête sous la référence client au lieu du cadre d'adresse destinataire (si l'option précédente est activée)
-		* ***44*** Afficher le code comptable client dans les documents de la chaîne des ventes (devis, commandes, fiches d'intervention, contrats, bons de livraison, factures client)
+		* ***44*** Afficher le code comptable client (champ « Code comptable client » de la fiche tiers, distinct du numéro client de l'option 42) dans les documents de la chaîne des ventes (devis, commandes, fiches d'intervention, contrats, bons de livraison, factures client)
 		* ***45*** Afficher le code comptable client dans l'en-tête sous la référence client au lieu du cadre d'adresse destinataire (si l'option précédente est activée)
 		* ***46*** Afficher la date d'ouverture du projet associé dans les notes des Ordres de Fabrication (OF) => modèle de commande client
 		* ***47*** Afficher les informations concernant le commercial dans les notes

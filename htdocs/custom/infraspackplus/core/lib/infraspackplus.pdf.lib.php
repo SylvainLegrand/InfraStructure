@@ -1296,8 +1296,8 @@
 						}
 					}
 					if (in_array($object->element, $listElementsCli) && $showCodeCliCompt && $mode != 'targetwithnodetails') {
-						if (!empty($object->thirdparty->code_compta)) {
-							$stringaddress .= ($stringaddress ? "\n" : '') . $outputlangs->transnoentities('CustomerAccountancyCode') . ' : ' . $outputlangs->convToOutputCharset($object->thirdparty->code_compta);
+						if (!empty(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty))) {
+							$stringaddress .= ($stringaddress ? "\n" : '') . $outputlangs->transnoentities('CustomerAccountancyCode') . ' : ' . $outputlangs->convToOutputCharset(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty));
 						}
 					}
 					// Intra VAT
@@ -1394,6 +1394,26 @@
 		return $profID;
 	}
 
+	/**
+	*	Returns the customer accountancy code of a thirdparty.
+	*	Societe::$code_compta is deprecated and no more filled by Societe::fetch() on recent Dolibarr versions (only $code_compta_client is)
+	*
+	*	@param	Societe		$thirdparty		Thirdparty
+	*	@return	string						Customer accountancy code or empty string
+	**/
+	function pdf_InfraSPlus_getCustomerAccountancyCode($thirdparty)
+	{
+		if (! is_object($thirdparty)) {
+			return '';
+		}
+		if (!empty($thirdparty->code_compta_client)) {
+			return $thirdparty->code_compta_client;
+		}
+		if (!empty($thirdparty->code_compta)) {	// Backward compatibility with old Dolibarr versions
+			return $thirdparty->code_compta;
+		}
+		return '';
+	}
 	/**
 	*	Returns the name of the thirdparty
 	*
