@@ -424,7 +424,7 @@
 					$listlinetoshow			= [];
 					$objproduct				= new Product($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						$isSubATM				= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal') ? 1 : 0;	// Ligne ATM
+						$isSubATM				= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element) ? 1 : 0;	// Ligne ATM
 						if (!empty($isSubATM)) {
 							continue;
 						}

@@ -549,7 +549,7 @@
 							}
 						}
 						$isOuvrage			= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine		= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isSubTotalLine		= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element);
 						$isProd				= !empty($object->lines[$i]->fk_product) && empty($isOuvrage) && empty($isSubTotalLine) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						// determine category of operation
 						$this->hasProduct	+= $object->lines[$i]->product_type == Product::TYPE_PRODUCT ? 1 : 0;	// Products
@@ -966,12 +966,12 @@
 						$pageposbefore												= $pdf->getPage();
 						$showpricebeforepagebreak									= 1;
 						// We don't want a title line alone at the end of the page (just before a page break)
-						$isSubTotalLine												= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isSubTotalLine												= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element);
 						$isInfraSLine	= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
 						$isInfraSTotal	= infraspackplus_isInfrastructureTotal($object->lines[$i]) ? 1 : 0;	// Sous-total infrastructure (qty 91..99)
 						$colYOffset		= !empty($isInfraSTotal) ? 1.0 : 0;	// pdfAddTotal applique setCellPaddings T=1 au libellé du sous-total. Les MultiCell des colonnes voisines ne respectent pas ce padding (hauteur explicite + valign 'M'), d'où un décalage visuel de ~1mm. On compense en décalant manuellement le Y des MultiCell pour les sous-totaux infrastructure.
-						$isSubTitle													= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
-						$isSubTotal													= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
+						$isSubTitle													= infraspackplus_isSubtotalTitle($object->lines[$i], $object->element) ? 1 : 0;	// Sous-titre ATM ou natif
+						$isSubTotal													= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
 						if (!empty($isSubTitle)) {
 							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : [];	// Define size of image if we need it
 							if (empty($this->picture_under) && empty($this->picture_after) && isset($nextimglinesize['height'])) {

@@ -495,14 +495,17 @@
 					$listObjBib				= [];
 					$objproduct				= new Product($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						$this->totaux['asked']		+= $object->lines[$i]->qty_asked;
-						$this->totaux['shipped']	+= $object->lines[$i]->qty_shipped;
+						$isSubModLine			= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element);	// Titre / sous-total / texte libre (ATM ou natif) : qty = niveau, hors totaux de quantités
 						$qtyexpeditions = 0;
 						if (!empty($this->show_rel_col) && !empty($object->commande->expeditions[$object->lines[$i]->fk_elementdet])) {
 							$qtyexpeditions = $object->commande->expeditions[$object->lines[$i]->fk_elementdet];
 						}
-						$qty_rel[$i]			= $object->lines[$i]->qty_asked - $qtyexpeditions;
+						$qty_rel[$i]			= !empty($isSubModLine) ? 0 : $object->lines[$i]->qty_asked - $qtyexpeditions;
+						if (empty($isSubModLine)) {
+							$this->totaux['asked']		+= $object->lines[$i]->qty_asked;
+							$this->totaux['shipped']	+= $object->lines[$i]->qty_shipped;
 						$this->totaux['rel']	+= $qty_rel[$i];
+						}
 						$isProd					= !empty($object->lines[$i]->fk_product) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						if (!empty($this->show_efl) && $isProd > 0) {
 							$extrafieldsprod	= new ExtraFields($this->db);
@@ -944,8 +947,9 @@
 							$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails);
 							$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY + $colYOffset, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
 						}
-						$isSubFreeT	= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal') && $object->lines[$i]->qty	== 50 ? 1 : 0;	// Ligne libre ATM
-						if (empty($isSubFreeT)) {
+						$isSubFreeT	= infraspackplus_isSubtotalFreeText($object->lines[$i], $object->element) ? 1 : 0;	// Ligne libre ATM
+						$isSubTiTo	= infraspackplus_isSubtotalTitle($object->lines[$i], $object->element) || infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Titre ou sous-total (ATM ou natif) : colonnes de quantités et total vides
+						if (empty($isSubFreeT) && empty($isSubTiTo)) {
 							// Qty ordered
 							if (empty($this->hide_ordered)) {
 								$pdf->MultiCell($this->tableau['ordered']['larg'], $this->heightline, $object->lines[$i]->qty_asked, '', 'C', 0, 1, $this->tableau['ordered']['posx'], $curY, true, 0, 0, false, 0, 'M', false);

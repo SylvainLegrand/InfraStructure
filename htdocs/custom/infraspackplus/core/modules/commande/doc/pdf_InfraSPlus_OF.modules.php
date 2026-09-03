@@ -440,11 +440,11 @@
 					$objproduct					= new Product($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						$isOuvrage		= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine	= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isSubTotalLine	= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element);
 						$isProd			= !empty($object->lines[$i]->fk_product) && empty($isOuvrage) && empty($isSubTotalLine) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						// Test des options Sous-total
 						if (!empty($isSubTotalLine)) {	// ATM lines
-							if ($object->lines[$i]->qty < 10) {	// Sous-titres ATM
+							if (infraspackplus_isSubtotalTitle($object->lines[$i], $object->element)) {	// Sous-titres ATM ou natifs
 								// Titre / sous titre à afficher sous forme de liste
 								if (!empty($object->lines[$i]->array_options['options_print_as_list']) && $object->lines[$i]->array_options['options_print_as_list'] > 0) {
 									$isTitleToList	= $object->lines[$i]->id;
@@ -758,10 +758,10 @@
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Gestion des ouvrages, titres, sous-titres et sous-totaux
 						$isOuvrage		= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine	= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isSubTotalLine	= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element);
 						$isInfraSLine	= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
-						$isSubTitle		= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
-						$isSubTotal		= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
+						$isSubTitle		= infraspackplus_isSubtotalTitle($object->lines[$i], $object->element) ? 1 : 0;	// Sous-titre ATM ou natif
+						$isSubTotal		= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
 						if (!empty($isSubTotal) && !empty($this->subti_with_subto)) {
 							continue;	// Sous-totaux fusionnés avec les sous-titres
 						}

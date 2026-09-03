@@ -79,7 +79,17 @@ if (empty($object) || !is_object($object)) {
 
 // Handle subtotals line view
 if (defined('SUBTOTALS_SPECIAL_CODE') && $line->special_code == SUBTOTALS_SPECIAL_CODE) {
+	// Le template core subtotal_view.tpl.php utilise $this pour l'objet metier (getSubtotalColors(),
+	// status, id...). Inclus depuis le hook printObjectLine(), $this serait la classe de hook
+	// Actionsinfraspackplus, qui ne possede pas ces methodes : erreur fatale. La closure est
+	// executee avec $this = $object (Closure::call) et recoit toutes les variables locales du
+	// template (line, i, num, form...) exactement comme lors de l'inclusion par le core.
+	$subtotalTplVars	= get_defined_vars();
+	$subtotalRenderer	= function () use ($subtotalTplVars) {
+		extract($subtotalTplVars);
 	return require DOL_DOCUMENT_ROOT.'/core/tpl/subtotal_view.tpl.php';
+	};
+	return $subtotalRenderer->call($object);
 }
 
 global $mysoc, $db;	// InfraS change

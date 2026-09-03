@@ -259,6 +259,22 @@
 	}
 
 	/**
+	*	Flag "an InfraSPlus PDF model is generating" : set by pdf_InfraSPlus_getInstance() when a model instantiates its PDF,
+	*	reset by the beforePDFCreation / afterPDFCreation hooks. Read by the pdf_getline* hooks of the module, which fill
+	*	the columns of the native Subtotals module lines (this module has no hook of its own, unlike the ATM Subtotal module).
+	*
+	*	@param	boolean|null	$set		true / false to set the flag, null to only read it
+	*	@return	boolean						current flag value
+	**/
+	function infraspackplus_isInfraSPlusPdfGeneration($set = null)
+	{
+		static $generating	= false;
+		if ($set !== null) {
+			$generating	= (bool) $set;
+		}
+		return $generating;
+	}
+	/**
 	*	Return a PDF instance object. We create a FPDI instance that instantiate TCPDF.
 	*
 	*	@param	array{float|int,float|int}|array{}|''	$format		Array(width,height). Keep empty to use default setup.
@@ -271,6 +287,9 @@
 	{
 		global $conf;
 
+		if (empty($onlyConf)) {
+			infraspackplus_isInfraSPlusPdfGeneration(true);	// An InfraSPlus model instantiates its PDF : enable the pdf_getline* hooks of the module (native Subtotals lines)
+		}
 		if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {	// Define constant for TCPDF
 			define('K_TCPDF_EXTERNAL_CONFIG', 1); // this avoid using tcpdf_config file
 			define('K_PATH_CACHE', DOL_DATA_ROOT.'/admin/temp/');
@@ -3024,17 +3043,22 @@
 		$reshook				= 0;
 		$result					= '';
 		$labelproductservice	= '';
-		if (isModEnabled('subtotal')) {	// Ligne ATM
-			$isATMLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
-			$isSubTitle	= $isATMLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
-			$isSubTotal	= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
-			$isSubFreeT	= $isATMLine && $object->lines[$i]->qty == 50 ? 1 : 0;	// Ligne libre ATM
-		} else {
-			$isATMLine	= 0;
-			$isSubTitle	= 0;
-			$isSubTotal	= 0;
-			$isSubFreeT	= 0;
+		$isATMLine		= 0;	// Ligne du module ATM Subtotal
+		$isSubTitle		= 0;	// Sous-titre (ATM ou natif)
+		$isSubTotal		= 0;	// Sous-total (ATM ou natif) : numéro du module ATM ou SUBTOTALS_SPECIAL_CODE
+		$isSubFreeT		= 0;	// Ligne libre ATM
+		$subSource		= infraspackplus_getSubtotalLineSource($object->lines[$i], $object->element);	// 'atm', 'native' ou ''
+		$subLevel		= infraspackplus_getSubtotalLevel($object->lines[$i], $object->element);	// Niveau du titre / sous-total (1 = premier niveau)
+		if ($subSource == 'atm') {	// Ligne ATM
+			$isATMLine	= 1;
+			$isSubTitle	= $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
+			$isSubTotal	= $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
+			$isSubFreeT	= $object->lines[$i]->qty == 50 ? 1 : 0;	// Ligne libre ATM
+		} elseif ($subSource == 'native') {	// Ligne du module natif Sous-totaux de Dolibarr (qty signée = niveau)
+			$isSubTitle	= $object->lines[$i]->qty > 0 ? 1 : 0;	// Titre natif
+			$isSubTotal	= $object->lines[$i]->qty < 0 ? SUBTOTALS_SPECIAL_CODE : 0;	// Sous-total natif
 		}
+		$isSubModLine	= !empty($subSource) ? 1 : 0;	// Ligne d'un module de sous-totaux, ATM ou natif
 		// Texte libre Infrastructure : aligne le comportement sur celui du module Subtotal pour l'option INFRASPLUS_PDF_DESC_FULL_LINE et la mise en forme générique de pdf_InfraSPlus_getlinedesc
 		$isInfraFreeT	= infraspackplus_isInfrastructureFreeText($object->lines[$i]);
 		if (empty($isSubFreeT) && !empty($isInfraFreeT)) {
@@ -3054,7 +3078,7 @@
 				$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h--, 0.001, '1111', $frm, $frmstyle, $bodybgsubticolor);
 			}
 		}
-		if (is_object($hookmanager) && empty($isATMLine) && empty($isMilestoneLine) && empty($isInfraFreeT)) {	// Skip hook pour les textes libres Infrastructure : actions_infrastructure::pdf_writelinedesc dessinerait en largeur de cellule, masquant l'option INFRASPLUS_PDF_DESC_FULL_LINE — on délègue le rendu à pdf_InfraSPlus_getlinedesc (cas $isSubFreeT) qui sait étendre la cellule en pleine largeur.
+		if (is_object($hookmanager) && empty($isSubModLine) && empty($isMilestoneLine) && empty($isInfraFreeT)) {	// Skip hook pour les lignes ATM / natives et pour les textes libres Infrastructure : actions_infrastructure::pdf_writelinedesc dessinerait en largeur de cellule, masquant l'option INFRASPLUS_PDF_DESC_FULL_LINE — on délègue le rendu à pdf_InfraSPlus_getlinedesc (cas $isSubFreeT) qui sait étendre la cellule en pleine largeur.
 			$special_code	= empty($object->lines[$i]->special_code) ? '' : $object->lines[$i]->special_code;
 			if (!empty($object->lines[$i]->fk_parent_line)) {
 				$special_code	= $object->getSpecialCode($object->lines[$i]->fk_parent_line);
@@ -3096,8 +3120,8 @@
 			// matches text color) is now fixed via TCPDF_InfraS / TCPDI_InfraS subclasses
 			// that force ColorFlag = true (see tcpdf_infrasplus.class.php).
 
-			// Ligne ATM - Saut de page
-			if (!empty($isATMLine) && $object->lines[$i]->info_bits > 0) {
+			// Saut de page avant un titre : ATM (info_bits) ou natif (option titleforcepagebreak, jamais sur la première ligne du document)
+			if ((!empty($isATMLine) && $object->lines[$i]->info_bits > 0) || ($subSource == 'native' && !empty($isSubTitle) && $i > 0 && infraspackplus_getNativeSubtotalOption($object->lines[$i], 'titleforcepagebreak'))) {
 				$pdf->addPage();
 				$posy	= $pdf->GetY();
 			}
@@ -3155,12 +3179,12 @@
 				$h					= $pdf->getStringHeight($w, $labelproductservice);
 				$frmstyle			= array('width'=>'0.2', 'dash'=>'0', 'cap'=>'butt', 'color'=>'255, 255, 255');
 				if (!empty($isSubTitle)) {	// Sous-titre ATM
-					$style			= getDolGlobalString('SUBTOTAL_TITLE_STYLE', $object->lines[$i]->qty == 1 ? 'BU' : 'BUI');
+					$style			= getDolGlobalString('SUBTOTAL_TITLE_STYLE', $subLevel == 1 ? 'BU' : 'BUI');
 					$bodybgsubcolor	= colorStringToArray($bodysubticolor);
 					$frm			= implode(',', $bodybgsubcolor) == '255, 255, 255' ? '' : 'F';
 					$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);
 					$pdf->SetFont('', $style);
-					$tmpAlpha		= ($object->lines[$i]->qty - 1) * 0.25;
+					$tmpAlpha		= ($subLevel - 1) * 0.25;	// Opacité du fond décroissante avec le niveau
 					$pdf->SetAlpha(1 - ($tmpAlpha >= 0 ? $tmpAlpha : 1));
 					// desc_full_line: use full page width for subtitle
 					$subTiX			= !empty($desc_full_line) ? $formatpage['mgauche'] : $posx;
@@ -3191,10 +3215,10 @@
 						if (!empty($bgSubToColor) && $bgSubToColor != '255,255,255') {	// Personalized background color for subtotals
 							$bodybgsubcolor	= explode(',', $bgSubToColor);
 						} else {	// Coordinate the background color (highlighting) of subtotals with that of subtitles
-							$bodybgsubcolor	= colorStringToArray(!empty($bgSubToColorSubTi) ? $bodysubticolor : ($object->lines[$i]->qty == 99 ? '220, 220, 220' : ($object->lines[$i]->qty == 98 ? '230, 230, 230' : '240, 240, 240')));
+							$bodybgsubcolor	= colorStringToArray(!empty($bgSubToColorSubTi) ? $bodysubticolor : ($subLevel == 1 ? '220, 220, 220' : ($subLevel == 2 ? '230, 230, 230' : '240, 240, 240')));
 						}
 						$frm		= implode(',', $bodybgsubcolor) == '255,255,255' ? '' : 'F';
-						$tmpAlpha	= (100 - $object->lines[$i]->qty - 1) * 0.25;
+						$tmpAlpha	= ($subLevel - 1) * 0.25;	// Opacité du fond décroissante avec le niveau
 						$pdf->SetAlpha(!empty($bgSubToColorSubTi) ? 1 - ($tmpAlpha >= 0 ? $tmpAlpha : 1) : 1);
 						if ($frm == 'F') {
 							$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h, 1, '1111', $frm, $frmstyle, $bodybgsubcolor);
@@ -3339,7 +3363,17 @@
 			if (!empty($desc)) {
 				$desc	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $desc);
 			}
-			if (!empty($titleInSubT) && !empty($isSubTotal)) {
+			if (!empty($isSubTotal) && infraspackplus_isNativeSubtotalLine($object->lines[$i])) {	// Sous-total natif : libellé "Sous-total de <titre> :" comme les modèles PDF du core
+				$outputlangs->loadLangs(array('subtotals', 'main'));
+				if (getDolGlobalString('SUBTOTAL_LINE_TEXT_DOES_NOT_INCLUDE_TITLE_TEXT')) {
+					$libelleproduitservice	= $outputlangs->transnoentities('SubTotal');
+				} else {
+					$libelleproduitservice	= $outputlangs->transnoentities('SubtotalOf', $label);
+					if ($libelleproduitservice == 'SubtotalOf') {	// Clé absente (version Dolibarr sans le fichier subtotals.lang) : repli sur la clé core
+						$libelleproduitservice	= $outputlangs->transnoentities('SubTotal').' '.$label;
+					}
+				}
+			} elseif (!empty($titleInSubT) && !empty($isSubTotal)) {	// Sous-total ATM avec rappel du titre
 				$libelleproduitservice	= (infraspackplus_getTitle($object, $object->lines[$i], $isSubTotal) != '' ? infraspackplus_getTitle($object, $object->lines[$i], $isSubTotal).' : ' : '').$label;
 			} else {
 				$libelleproduitservice	= $label;
@@ -3915,11 +3949,9 @@
 		}
 		$result			= '';
 		$reshook		= 0;
-		$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
-		$isATMLine		= isModEnabled('subtotal') && $isSubTotalLine ? true : false;
-		$isSubTitle		= $isATMLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
-		$isSubTotal		= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
-		if (!empty($isSubTitle)) {	// Sous-titre ATM
+		$isSubTitle		= infraspackplus_isSubtotalTitle($object->lines[$i], $object->element) ? 1 : 0;	// Sous-titre ATM ou natif
+		$isSubTotal		= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
+		if (!empty($isSubTitle)) {	// Sous-titre ATM ou natif
 			$bodytxtsubticolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '0,0,0');
 			$bodytxtsubticolor	= explode(',', $bodytxtsubticolor);
 			$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);
@@ -4369,10 +4401,8 @@
 		$sign				= isset($object->type) && $object->type == 2 && getDolGlobalString('INVOICE_POSITIVE_CREDIT_NOTE', '') ? -1 : 1;
 		$reshook			= 0;
 		$result				= '';
-		$isSubTotalLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
-		$isATMLine			= isModEnabled('subtotal') && $isSubTotalLine ? true : false;
-		$isSubTotal			= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
-		if (!empty($isSubTotal)) {	// Sous-total ATM
+		$isSubTotal			= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
+		if (!empty($isSubTotal)) {	// Sous-total ATM ou natif
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
 			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
@@ -4455,10 +4485,8 @@
 		$sign				= isset($object->type) && $object->type == 2 && getDolGlobalString('INVOICE_POSITIVE_CREDIT_NOTE', '') ? -1 : 1;
 		$reshook			= 0;
 		$result				= '';
-		$isSubTotalLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
-		$isATMLine			= isModEnabled('subtotal') && $isSubTotalLine ? true : false;
-		$isSubTotal			= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
-		if (!empty($isSubTotal)) {	// Sous-total ATM
+		$isSubTotal			= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
+		if (!empty($isSubTotal)) {	// Sous-total ATM ou natif
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
 			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
@@ -5460,8 +5488,9 @@
 	{
 		$line				= $object->lines[$i];
 		$isATMSubtotal		= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($line, $object->element, 'modSubtotal') && $line->qty > 90;
+		$isNativeSubtotal	= infraspackplus_isNativeSubtotalLine($line) && $line->qty < 0;
 		$isInfraSubtotal	= infraspackplus_isInfrastructureTotal($line);
-		if (empty($isATMSubtotal) && empty($isInfraSubtotal)) {
+		if (empty($isATMSubtotal) && empty($isNativeSubtotal) && empty($isInfraSubtotal)) {
 			return $subtotalRecap;
 		}
 		$titleRang	= 0;
@@ -5475,6 +5504,18 @@
 				}
 				$isATMTitle	= infraspackplus_isLineFromExternalModule($candidate, $object->element, 'modSubtotal') && $candidate->qty < 10 ? 1 : 0;
 				if (!empty($isATMTitle) && $candidate->qty == $level) {
+					$titleRang	= $candidate->rang;
+					$titleLine	= $k;
+				}
+			}
+		} elseif (!empty($isNativeSubtotal)) {
+			// Convention native Dolibarr : niveau = abs(qty) ; le titre parent est le dernier titre natif de même niveau situé avant le sous-total
+			$level	= (int) abs($line->qty);
+			foreach ($object->lines as $k => $candidate) {
+				if ($candidate->id == $line->id) {
+					break;
+				}
+				if (infraspackplus_isNativeSubtotalLine($candidate) && $candidate->qty == $level) {
 					$titleRang	= $candidate->rang;
 					$titleLine	= $k;
 				}
@@ -5778,16 +5819,12 @@
 					}
 				}
 			}
-		} elseif (isModEnabled('subtotal')) {
-			// Is the current line an ATM subtitle/subtotal?
-			$isATMLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
-			// The rule changes if it is a text line (qty == 50)
-			$isATMLine		= $isATMLine && ($object->lines[$i]->qty != 50);
-			// Is the following line an ATM subtitle/subtotal?
-			$isATMLineNext	= !empty($object->lines[$i + 1]) ? infraspackplus_isLineFromExternalModule($object->lines[$i + 1], $object->element, 'modSubtotal') : false;
-			// The rule changes if it is a text line (qty == 50)
-			$isATMLineNext	= $isATMLineNext && ($object->lines[$i + 1]->qty != 50);
-			return !empty($isATMLine) || !empty($isATMLineNext) ? 1 : -1;
+		} elseif (isModEnabled('subtotal') || isModEnabled('subtotals')) {
+			// Is the current line a subtitle/subtotal (ATM or native Subtotals module)? The rule changes if it is an ATM text line (qty == 50)
+			$isSubLine		= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element) && !infraspackplus_isSubtotalFreeText($object->lines[$i], $object->element);
+			// Is the following line a subtitle/subtotal?
+			$isSubLineNext	= !empty($object->lines[$i + 1]) ? infraspackplus_isSubtotalModuleLine($object->lines[$i + 1], $object->element) && !infraspackplus_isSubtotalFreeText($object->lines[$i + 1], $object->element) : false;
+			return !empty($isSubLine) || !empty($isSubLineNext) ? 1 : -1;
 		}
 		return -1;
 	}

@@ -1237,6 +1237,7 @@ EOJS;
 		{
 			global $conf, $db, $mysoc, $user;
 
+			infraspackplus_isInfraSPlusPdfGeneration(false);	// Reset : set again by pdf_InfraSPlus_getInstance() only if the model is an InfraSPlus one
 			$_SESSION['InfraSPackPlus_model']	= true;	// Write a session variable to indicate that we are using an InfraSPackPlus template
 			$manualPrint						= GETPOST('action', 'alpha') == 'builddoc' ? 1 : 0;	// from html.formfile.class.php => showdocuments
 			pdf_InfraSPlus_getInstance([], 'mm', 'P', true);
@@ -1468,6 +1469,7 @@ EOJS;
 		public function afterPDFCreation($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			unset($_SESSION['InfraSPackPlus_model']);	// Destroys the session variable that indicates that we are using an InfraSPackPlus template
+			infraspackplus_isInfraSPlusPdfGeneration(false);	// End of generation : disable the pdf_getline* hooks of the module
 			// Documentation technique des produits / services dans un PDF séparé (option 'docseparate' avant génération)
 			// Nota : l'objet métier est dans $parameters['object'] et le chemin du PDF principal dans $parameters['file'] ($object reçu = instance du modèle PDF)
 			$docseparate	= GETPOST('docseparate', 'alpha');
@@ -1769,6 +1771,166 @@ EOJS;
 			return 0;
 		}
 
+		// Native Subtotals module (Dolibarr >= 22) : PDF columns of its title / subtotal lines *********
+		// The ATM Subtotal module fills the pdf_getline* hooks itself ; the native module has no hook at all, so InfraSPackPlus
+		// plays this role, only while an InfraSPlus PDF model is generating (flag set by pdf_InfraSPlus_getInstance()).
+		/**
+		*	Cell content of a PDF column for the lines of the native Subtotals module
+		*	- title / subtotal line : empty cell, except the amount of a subtotal when its native option "print the amount" is active
+		*	- ordinary line inside a native block : empty unit price / total cells when the title options say so
+		*
+		*	@param	string		$column			Column : 'qty', 'up', 'vat', 'discount', 'unit', 'progress', 'totalht', 'totalttc'
+		*	@param	array		$parameters		Hook metadatas ('i', 'outputlangs', 'hidedetails', 'sign'...)
+		*	@param	object		$object			Document object
+		*	@return	int							0 = keep standard rendering, 1 = cell replaced by $this->resprints
+		**/
+		private function nativeSubtotalPdfCell($column, $parameters, $object)
+		{
+			global $langs;
+			if (!infraspackplus_isInfraSPlusPdfGeneration() || !isset($parameters['i']) || empty($object->lines[$parameters['i']])) {
+				return 0;
+			}
+			$i		= $parameters['i'];
+			$line	= $object->lines[$i];
+			if (infraspackplus_isNativeSubtotalLine($line)) {	// Title or subtotal line
+				$this->resprints	= '';
+				$showAmount			= $line->qty < 0 && in_array($column, array('totalht', 'totalttc')) && infraspackplus_getNativeSubtotalOption($line, 'subtotalshowtotalexludingvatonpdf');
+				if ($showAmount && (empty($parameters['hidedetails']) || $parameters['hidedetails'] > 1)) {
+					$amounts			= infraspackplus_getNativeSubtotalAmounts($object, $i);
+					$multicurrency		= isModEnabled('multicurrency') && !empty($object->multicurrency_tx) && $object->multicurrency_tx != 1;
+					$key				= ($multicurrency ? 'multicurrency_' : '').($column == 'totalht' ? 'total_ht' : 'total_ttc');
+					$sign				= isset($parameters['sign']) ? $parameters['sign'] : 1;
+					$outputlangs		= !empty($parameters['outputlangs']) ? $parameters['outputlangs'] : $langs;
+					$this->resprints	= pdf_InfraSPlus_price($object, $sign * $amounts[$key], $outputlangs, 0, 0, 'T');
+				}
+				return 1;
+			}
+			if (in_array($column, array('up', 'totalht'))) {	// Ordinary line inside a native block : options of the enclosing title
+				$options	= infraspackplus_getNativeBlockOptions($object, $i);
+				if ($options !== null && empty($options[$column == 'up' ? 'titleshowuponpdf' : 'titleshowtotalexludingvatonpdf'])) {
+					$this->resprints	= '';
+					return 1;
+				}
+			}
+			return 0;
+		}
+		/**
+		*	Hook pdf_getlineqty : quantity column
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlineqty($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('qty', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlineupexcltax : unit price excl. tax column
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlineupexcltax($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('up', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlineupwithtax : unit price incl. tax column
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlineupwithtax($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('up', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlinevatrate : VAT rate column
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlinevatrate($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('vat', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlineremisepercent : discount column
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlineremisepercent($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('discount', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlineunit : unit column
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlineunit($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('unit', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlineprogress : situation progress column
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlineprogress($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('progress', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlinetotalexcltax : total excl. tax column (amount of a native subtotal)
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlinetotalexcltax($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('totalht', $parameters, $object);
+		}
+		/**
+		*	Hook pdf_getlinetotalwithtax : total incl. tax column (amount of a native subtotal)
+		*
+		*	@param	array		$parameters		Hook metadatas
+		*	@param	object		$object			Document object
+		*	@param	string		$action			Current action
+		*	@param	HookManager	$hookmanager	Hook manager
+		*	@return	int							0 = keep standard, 1 = replaced by $this->resprints
+		**/
+		public function pdf_getlinetotalwithtax($parameters, &$object, &$action, HookManager $hookmanager)
+		{
+			return $this->nativeSubtotalPdfCell('totalttc', $parameters, $object);
+		}
 		/**
 		* When we show a line
 		*

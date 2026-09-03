@@ -1230,7 +1230,7 @@
 		} else {
 			$num++;
 		}
-		if (isModEnabled('subtotal')) {
+		if (isModEnabled('subtotal') || isModEnabled('subtotals')) {	// Module ATM Subtotal ou module natif Sous-totaux de Dolibarr : mêmes réglages de rendu
 			// $num = 13
 			infraspackplus_print_hr(4);
 			$metas	= colorArrayToHex(getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '') ? explode(',', getDolGlobalString('INFRASPLUS_PDF_BODY_SUBTI_COLOR', '')) : []);

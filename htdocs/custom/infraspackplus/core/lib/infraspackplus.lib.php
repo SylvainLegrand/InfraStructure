@@ -423,6 +423,205 @@
 		return $res;
 	}
 
+	// Subtotal lines detection (ATM Subtotal module + Dolibarr native Subtotals module) ******
+	// Native convention (modSubtotals, Dolibarr >= 22) : special_code = SUBTOTALS_SPECIAL_CODE (81), product_type = 9,
+	// qty = signed level (> 0 title, < 0 subtotal), amounts = 0, label in desc, options in $line->extraparams['subtotal'].
+	// ATM convention (modSubtotal) : special_code = module number, product_type = 9, qty 1..9 title, 91..99 subtotal, 50 free text.
+	/**
+	*	Is the line a title or a subtotal line of the Dolibarr native "Subtotals" module ?
+	*
+	*	@param		object		$line			line we work on
+	*	@return		boolean						true if the line belongs to the native Subtotals module
+	**/
+	function infraspackplus_isNativeSubtotalLine($line)
+	{
+		if (!defined('SUBTOTALS_SPECIAL_CODE') || !isModEnabled('subtotals') || empty($line) || !is_object($line)) {
+			return false;
+		}
+		return !empty($line->special_code) && $line->special_code == SUBTOTALS_SPECIAL_CODE && $line->product_type == 9;
+	}
+	/**
+	*	Which subtotal module owns the line ?
+	*
+	*	@param		object		$line			line we work on
+	*	@param		string		$element		line object element (for special case like shipping)
+	*	@return		string						'native' (Dolibarr Subtotals module), 'atm' (ATM Subtotal module) or '' (ordinary line)
+	**/
+	function infraspackplus_getSubtotalLineSource($line, $element)
+	{
+		if (infraspackplus_isNativeSubtotalLine($line)) {
+			return 'native';
+		}
+		if (isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($line, $element, 'modSubtotal')) {
+			return 'atm';
+		}
+		return '';
+	}
+	/**
+	*	Is the line a title, a subtotal or a free text line of a subtotal module (ATM or native) ?
+	*
+	*	@param		object		$line			line we work on
+	*	@param		string		$element		line object element (for special case like shipping)
+	*	@return		boolean						true if the line belongs to a subtotal module
+	**/
+	function infraspackplus_isSubtotalModuleLine($line, $element)
+	{
+		return infraspackplus_getSubtotalLineSource($line, $element) != '' ? true : false;
+	}
+	/**
+	*	Is the line a title (subtitle) of a subtotal module (ATM or native) ?
+	*
+	*	@param		object		$line			line we work on
+	*	@param		string		$element		line object element (for special case like shipping)
+	*	@return		boolean						true if the line is a title
+	**/
+	function infraspackplus_isSubtotalTitle($line, $element)
+	{
+		$source	= infraspackplus_getSubtotalLineSource($line, $element);
+		if ($source == 'native') {
+			return $line->qty > 0;
+		} elseif ($source == 'atm') {
+			return $line->qty < 10;
+		}
+		return false;
+	}
+	/**
+	*	Is the line a subtotal of a subtotal module (ATM or native) ?
+	*
+	*	@param		object		$line			line we work on
+	*	@param		string		$element		line object element (for special case like shipping)
+	*	@return		boolean						true if the line is a subtotal
+	**/
+	function infraspackplus_isSubtotalTotal($line, $element)
+	{
+		$source	= infraspackplus_getSubtotalLineSource($line, $element);
+		if ($source == 'native') {
+			return $line->qty < 0;
+		} elseif ($source == 'atm') {
+			return $line->qty > 90;
+		}
+		return false;
+	}
+	/**
+	*	Is the line a free text line of a subtotal module ? (ATM only, no native equivalent)
+	*
+	*	@param		object		$line			line we work on
+	*	@param		string		$element		line object element (for special case like shipping)
+	*	@return		boolean						true if the line is a free text
+	**/
+	function infraspackplus_isSubtotalFreeText($line, $element)
+	{
+		return infraspackplus_getSubtotalLineSource($line, $element) == 'atm' && $line->qty == 50;
+	}
+	/**
+	*	Level (depth) of a title or subtotal line, whatever the subtotal module (ATM or native)
+	*
+	*	@param		object		$line			line we work on
+	*	@param		string		$element		line object element (for special case like shipping)
+	*	@return		int							1 = first level, 2 = second level... 0 if not a title / subtotal
+	**/
+	function infraspackplus_getSubtotalLevel($line, $element)
+	{
+		$source	= infraspackplus_getSubtotalLineSource($line, $element);
+		if ($source == 'native') {
+			return (int) abs($line->qty);
+		} elseif ($source == 'atm') {
+			if ($line->qty > 90) {
+				return (int) (100 - $line->qty);
+			} elseif ($line->qty < 10) {
+				return (int) $line->qty;
+			}
+		}
+		return 0;
+	}
+	/**
+	*	Options of a native title / subtotal line (extraparams['subtotal'] : titleshowuponpdf, titleshowtotalexludingvatonpdf,
+	*	titleforcepagebreak, subtotalshowtotalexludingvatonpdf). An option is active when its key is present.
+	*
+	*	@param		object		$line			line we work on
+	*	@return		array						options array (empty if none)
+	**/
+	function infraspackplus_getNativeSubtotalOptions($line)
+	{
+		if (empty($line->extraparams)) {
+			return array();
+		}
+		$extraparams	= $line->extraparams;
+		if (is_string($extraparams)) {	// Not yet decoded by fetch_lines()
+			$extraparams	= json_decode($extraparams, true);
+		}
+		return !empty($extraparams['subtotal']) && is_array($extraparams['subtotal']) ? $extraparams['subtotal'] : array();
+	}
+	/**
+	*	Is a native option active on a title / subtotal line ?
+	*
+	*	@param		object		$line			line we work on
+	*	@param		string		$key			option key
+	*	@return		boolean						true if the option is active
+	**/
+	function infraspackplus_getNativeSubtotalOption($line, $key)
+	{
+		$options	= infraspackplus_getNativeSubtotalOptions($line);
+		return !empty($options[$key]);
+	}
+	/**
+	*	Amounts of a native subtotal line, computed on the fly like CommonSubtotal::getSubtotalLineAmount() but returned as numbers :
+	*	sum of the lines located above the subtotal, up to the first native title of a level lower or equal to the subtotal level.
+	*
+	*	@param		object		$object			Object we work on (lines must be loaded)
+	*	@param		int			$i				Index of the subtotal line in $object->lines
+	*	@return		array						array('total_ht', 'total_tva', 'total_ttc', 'multicurrency_total_ht', 'multicurrency_total_ttc')
+	**/
+	function infraspackplus_getNativeSubtotalAmounts($object, $i)
+	{
+		$amounts	= array('total_ht' => 0, 'total_tva' => 0, 'total_ttc' => 0, 'multicurrency_total_ht' => 0, 'multicurrency_total_ttc' => 0);
+		if (empty($object->lines[$i]) || !infraspackplus_isNativeSubtotalLine($object->lines[$i]) || $object->lines[$i]->qty >= 0) {
+			return $amounts;
+		}
+		$level	= abs($object->lines[$i]->qty);
+		for ($k = $i - 1; $k >= 0; $k--) {
+			$line	= $object->lines[$k];
+			if (empty($line)) {
+				continue;
+			}
+			if (infraspackplus_isNativeSubtotalLine($line)) {
+				if ($line->qty > 0 && $line->qty <= $level) {
+					break;	// Title of the block : stop
+				}
+				continue;	// Other native title / subtotal : amounts are 0
+			}
+			$amounts['total_ht']				+= (float) $line->total_ht;
+			$amounts['total_tva']				+= (float) $line->total_tva;
+			$amounts['total_ttc']				+= (float) $line->total_ttc;
+			$amounts['multicurrency_total_ht']	+= (float) (!empty($line->multicurrency_total_ht) ? $line->multicurrency_total_ht : 0);
+			$amounts['multicurrency_total_ttc']	+= (float) (!empty($line->multicurrency_total_ttc) ? $line->multicurrency_total_ttc : 0);
+		}
+		return $amounts;
+	}
+	/**
+	*	Options of the native title which encloses an ordinary line (nearest title still open at this line).
+	*	Used to hide the unit price / total columns of the lines of a block (native options titleshowuponpdf / titleshowtotalexludingvatonpdf).
+	*
+	*	@param		object		$object			Object we work on (lines must be loaded)
+	*	@param		int			$i				Index of the line in $object->lines
+	*	@return		array|null					options array of the enclosing title, null if the line is not inside a native block
+	**/
+	function infraspackplus_getNativeBlockOptions($object, $i)
+	{
+		$minClosedLevel	= PHP_INT_MAX;	// Lowest level of the subtotals met while going up : every title of a level >= this one is closed
+		for ($k = $i - 1; $k >= 0; $k--) {
+			$line	= $object->lines[$k];
+			if (empty($line) || !infraspackplus_isNativeSubtotalLine($line)) {
+				continue;
+			}
+			if ($line->qty < 0) {
+				$minClosedLevel	= min($minClosedLevel, abs($line->qty));
+			} elseif ($line->qty < $minClosedLevel) {
+				return infraspackplus_getNativeSubtotalOptions($line);	// Still open title : it encloses the line
+			}
+		}
+		return null;
+	}
 	/**
 	*	Change directory name for Dolibarr 12
 	*
