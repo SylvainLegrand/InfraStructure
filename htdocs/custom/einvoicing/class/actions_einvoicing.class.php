@@ -58,20 +58,6 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 	public $warnings = array();
 
 	/**
-	 * systemMessage
-	 *
-	 * @param array<string,mixed> 	$parameters		Array of parameters
-	 * @param CommonObject			$object			Object invoice
-	 * @param string		 		$action			Code action
-	 * @param Hookmanager			$hookmanager	Hookmanager
-	 * @return int									Result
-	 */
-	public function messageOfTheDay($parameters, $object, &$action, $hookmanager)
-	{
-		return 0;
-	}
-
-	/**
 	 * Hook called after a PDF is created
 	 *
 	 * @param 	array   		$parameters 	Hook parameters
@@ -320,8 +306,8 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 		}
 
 		$forcedisabling = '';
-		// Add buttons in invoice card
-		if (in_array($object->element, ['facture']) && !getDolGlobalString('EINVOICING_DISABLE_SYNC_DOLI_TO_AP')) {
+		// Add buttons in invoice card (we test context invoicescard but also main for old versions of module)
+		if (in_array($object->element, ['facture']) && !getDolGlobalString('EINVOICING_DISABLE_SYNC_DOLI_TO_AP') && preg_match('/invoicecard|main/', $parameters['currentcontext'] ?? '')) {
 			// Get current status of e-invoice
 			$currentStatusDetails = $einvoicing->fetchLastknownInvoiceStatus($object->id, $object->ref);
 
@@ -460,8 +446,10 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 		}
 
 
-		// Add buttons in supplier invoice card
-		if (in_array($object->element, ['invoice_supplier']) && !getDolGlobalString('EINVOICING_DISABLE_SYNC_AP_TO_DOLI')) {
+		// Add buttons in supplier invoice card (we test context invoicesuppliercard but also main for old versions of module)
+		if (in_array($object->element, ['invoice_supplier']) && !getDolGlobalString('EINVOICING_DISABLE_SYNC_AP_TO_DOLI') && preg_match('/invoicesuppliercard|main/', $parameters['currentcontext'] ?? '')) {
+			$url_button = array();
+
 			// Check if this invoice is present into einvoicing_extlinks table to know if it is an imported invoice from PDP or not
 			$sql = "SELECT rowid, provider FROM " . $db->prefix() . "einvoicing_extlinks";
 			$sql .= " WHERE element_type = '" . $db->escape($object->element) . "'";
@@ -487,7 +475,6 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					print '<div class="info">' . $langs->trans('EInvoiceCreditNoteOfRefusedInvoice', $sourceRef) . '</div>';
 				}
 
-				$url_button = array();
 				foreach ($availableStatuses as $code => $label) {
 					$url_button[] = array(
 						'lang' => 'einvoicing',
@@ -497,22 +484,52 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 						'url' => '/fourn/facture/card.php?id=' . $object->id . '&action=sendStatusMessage&pdpstatuscode=' . $code . '&token=' . newToken()
 					);
 				}
+			}
 
-				if (!empty($url_button)) {
-					if ((float) DOL_VERSION < 18) {
-						print einvoicingDolGetButtonActionDropdown($langs->trans('einvoice'), $url_button);
-					} elseif ((float) DOL_VERSION < 22) {
-						print dolGetButtonAction($langs->trans('einvoice'), '', 'default', $url_button, '', true);
+			// Offer to import a received document again, on the invoice it was booked on: this is where
+			// a wrong vendor is noticed, and the vendor of an existing supplier invoice cannot be changed.
+			// The action itself lives on the flow card, which is also where a flow whose draft has already
+			// been deleted is picked up again.
+			// TODO Move this in the section of the "Join files".
+			if (!empty($object->id) && $user->hasRight('einvoicing', 'write')) {
+				$sql = "SELECT rowid FROM " . $db->prefix() . "einvoicing_document";
+				$sql .= " WHERE fk_element_type = 'invoice_supplier'";
+				$sql .= " AND fk_element_id = " . ((int) $object->id);
+				$sql .= " AND flow_direction = 'In'";
+				$sql .= " AND flow_type = 'SupplierInvoice'";
+				$sql .= " AND entity IN (" . getEntity('document') . ")";
+				$sql .= " LIMIT 1";
+
+				$resql = $db->query($sql);
+				if ($resql && ($objdoc = $db->fetch_object($resql))) {
+					$reimporturl = dol_buildpath('/einvoicing/document_card.php', 1) . '?id=' . ((int) $objdoc->rowid) . '&action=reimport&token=' . newToken();
+					if ((int) $object->status === FactureFournisseur::STATUS_DRAFT) {
+						print '<a class="butAction" href="' . $reimporturl . '">' . $langs->trans('EInvoiceReimport') . '</a>';
 					} else {
-						$params = array('forceDropdownButtons' => true);	// This is supported on v24+ only
-						print dolGetButtonAction('', $langs->trans('einvoice'), 'default', $url_button, '', true, $params);
+						print '<span class="butActionRefused classfortooltip" title="' . dol_escape_htmltag($langs->trans('EInvoiceReimportOnlyOnADraft')) . '">'
+							. $langs->trans('EInvoiceReimport') . '</span>';
 					}
+				}
+				if ($resql) {
+					$db->free($resql);
+				}
+			}
+
+			if (!empty($url_button)) {
+				if ((float) DOL_VERSION < 18) {
+					print einvoicingDolGetButtonActionDropdown($langs->trans('einvoice'), $url_button);
+				} elseif ((float) DOL_VERSION < 22) {
+					print dolGetButtonAction($langs->trans('einvoice'), '', 'default', $url_button, '', true);
+				} else {
+					$params = array('forceDropdownButtons' => true);	// This is supported on v24+ only
+					print dolGetButtonAction('', $langs->trans('einvoice'), 'default', $url_button, '', true, $params);
 				}
 			}
 		}
 
-		// Add button to change the entity (multi-company) of a supplier invoice
-		if (getDolGlobalString('EINVOICING_ALLOW_MULTICOMPANY_INVOICE_MOVE') && isModEnabled('multicompany') && in_array($object->element, ['invoice_supplier']) && !empty($object->id) && $user->hasRight('fournisseur', 'facture', 'creer')) {
+		// Add button to change the entity (multi-company) of a supplier invoice (we test context invoicesuppliercard but also main for old versions of module)
+		if (getDolGlobalString('EINVOICING_ALLOW_MULTICOMPANY_INVOICE_MOVE') && isModEnabled('multicompany') && in_array($object->element, ['invoice_supplier'])
+			&& !empty($object->id) && $user->hasRight('fournisseur', 'facture', 'creer') && preg_match('/invoicesuppliercard|main/', $parameters['currentcontext'] ?? '')) {
 			if ($object->isEditable()) {
 				print '<a class="butAction" href="' . DOL_URL_ROOT . '/fourn/facture/card.php?id=' . $object->id . '&action=change_entity&token=' . newToken() . '">'
 					. $langs->trans('ChangeEntity') . '</a>';
@@ -568,11 +585,11 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 			return 0;
 		}
 
-		$db->begin();
-
 		if ($isFactureContext) {
 			'@phan-var-force Facture $object';
 			$permissiontoedit = $user->hasRight('facture', 'write');
+
+			$db->begin();
 
 			if ($action == 'add') {
 				// On create, we can do nothing here. We will update the einvoice status into the CREATE trigger.
@@ -714,6 +731,14 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					setEventMessages($langs->trans("InvoicePrecheckFailed"), array(), 'errors');
 				}
 			}
+
+			if ($error) {
+				$db->rollback();
+				return -1;
+			} else {
+				$db->commit();
+				return 0;
+			}
 		}
 
 
@@ -721,6 +746,8 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 			$permissiontoedit = $user->hasRight('fournisseur', 'facture', 'creer');
 
 			if ($action == 'confirm_sendStatusMessage' && $permissiontoedit) {
+				$db->begin();
+
 				$PDPManager = new PDPProviderManager($db);
 				$provider = $PDPManager->getProvider(getDolGlobalString('EINVOICING_PDP'));
 				$pdpstatuscode = GETPOSTINT('pdpstatuscode') ?: 0;
@@ -739,6 +766,8 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 						setEventMessages($message, array(), 'errors');
 						$this->errors[] = $message;
 
+						$db->commit();
+
 						return 0;
 					}
 				}
@@ -752,10 +781,20 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					$this->errors = array_merge($this->errors, $provider->errors);
 					setEventMessages($result['message'], $provider->errors, 'errors');
 				}
+
+				if ($error) {
+					$db->rollback();
+					return -1;
+				} else {
+					$db->commit();
+					return 0;
+				}
 			}
 
 			// Action to change the entity (multi-company) of a supplier invoice
 			if ($action == 'confirm_change_entity' && $permissiontoedit) {
+				$db->begin();
+
 				$newEntity = GETPOSTINT('new_entity');
 				if ($newEntity > 0) {
 					// Check that the supplier (fk_soc) is visible in the target entity
@@ -786,10 +825,25 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 						$error++;
 						setEventMessages($langs->trans('ErrorSupplierNotVisibleInEntity', $object->thirdparty->name ?? $socId, $newEntity), null, 'errors');
 					} else {
+						$oldEntity = (int) ($object->entity > 0 ? $object->entity : $conf->entity);
+
 						$result = $object->setValueFrom('entity', $newEntity);
 						if ($result > 0) {
-							setEventMessages($langs->trans('EntityChangedSuccess', $newEntity), null, 'mesgs');
-							$redirectto = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
+							// Move the invoice files to the new entity's directory
+							$fileMoveResult = $this->moveSupplierInvoiceFilesToEntity($object, $oldEntity, $newEntity);
+							if ($fileMoveResult < 0) {
+								$error++;
+								setEventMessages($langs->trans('WarningEntityChangedFileMoveFailed'), null, 'warnings');
+							} else {
+								dol_include_once('/multicompany/class/actions_multicompany.class.php');
+								// @phan-suppress-next-line PhanUndeclaredClassMethod ActionsMulticompany is an external module class not analyzed by phan
+								$actionsmulticompany = new ActionsMulticompany($db);
+								// @phan-suppress-next-line PhanUndeclaredClassMethod ActionsMulticompany is an external module class not analyzed by phan
+								$actionsmulticompany->switchEntity($newEntity);
+
+								setEventMessages($langs->trans('EntityChangedSuccess', $newEntity), null, 'mesgs');
+								$redirectto = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
+							}
 						} else {
 							$error++;
 							setEventMessages($object->error, $object->errors, 'errors');
@@ -799,10 +853,25 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					$error++;
 					setEventMessages($langs->trans('ErrorEntityRequired'), null, 'errors');
 				}
+
+				if ($error) {
+					$db->rollback();
+					return -1;
+				} else {
+					$db->commit();
+
+					if ($redirectto) {
+						header("Location: " . $redirectto);
+						exit;
+					}
+					return 0;
+				}
 			}
 		}
 
 		if ($isThirdpartyContext) {
+			$db->begin();
+
 			$permissiontoedit = $user->hasRight('societe', 'creer');
 
 			// $object->id may be empty at hook time if core hasn't fetched the object yet
@@ -878,20 +947,17 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					}
 				}
 			}
-		}
 
-		if ($error) {
-			$db->rollback();
-			return -1;
-		} else {
-			if ($redirectto) {
-				header("Location: " . $redirectto);
-				exit;
+			if ($error) {
+				$db->rollback();
+				return -1;
+			} else {
+				$db->commit();
+				return 0;
 			}
-
-			$db->commit();
-			return 0;
 		}
+
+		return 0;
 	}
 
 	/**
@@ -1875,7 +1941,7 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 
 			// E-invoice sync status
 			if (empty($parameters['arrayfields']['pdp_syncstatus']) || !empty($parameters['arrayfields']['pdp_syncstatus']['checked'])) {
-				$currentStatusDetails = $obj->pdp_syncstatus ? $einvoicing->getStatusLabel($obj->pdp_syncstatus) : '-';
+				$currentStatusDetails = $obj->pdp_syncstatus ? $einvoicing->getStatusLabel($obj->pdp_syncstatus) : '';
 				print '<td class="center tdoverflowmax100" title="' . dolPrintHTMLForAttribute($currentStatusDetails) . '">';
 				print $currentStatusDetails;
 				print '</td>';
@@ -1999,5 +2065,92 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Move the physical files of a supplier invoice from one entity's directory to another,
+	 * and update the ecm_files index accordingly.
+	 *
+	 * Uses dol_move() for each file so that the ecm_files index (filepath, filename, ref hash)
+	 * is updated by Dolibarr core. A final SQL UPDATE corrects the entity column, which
+	 * dol_move() does not change on an existing record.
+	 *
+	 * @param CommonObject $object     The supplier invoice object
+	 * @param int          $oldEntity  Source entity ID
+	 * @param int          $newEntity  Target entity ID
+	 * @return int                      1 on success, -1 on error
+	 */
+	private function moveSupplierInvoiceFilesToEntity($object, $oldEntity, $newEntity)
+	{
+		global $conf, $db;
+
+		$folderPart = get_exdir($object->id, 2, 0, 0, $object, 'invoice_supplier');
+		$ref = dol_sanitizeFileName($object->ref);
+
+		// Source directory (old entity) - dir_output already points to the current (old) entity's root
+		$sourceDir = $conf->fournisseur->facture->dir_output . '/' . $folderPart . $ref;
+
+		// Target directory (new entity) - build manually since multidir_output only has the current entity
+		$targetRoot = DOL_DATA_ROOT;
+		if (isModEnabled('multicompany') && $newEntity > 1) {
+			$targetRoot .= '/' . $newEntity;
+		}
+		$targetDir = $targetRoot . '/fournisseur/facture/' . $folderPart . $ref;
+
+		// If source directory does not exist, there is nothing to move
+		if (!is_dir($sourceDir)) {
+			return 1;
+		}
+
+		// Create the target directory structure if needed
+		if (!is_dir($targetDir)) {
+			if (!dol_mkdir($targetDir)) {
+				dol_syslog(__METHOD__ . " Failed to create target directory: " . $targetDir, LOG_ERR);
+				return -1;
+			}
+		}
+
+		// List all files recursively (including subdirectories like thumbs/)
+		$fileList = dol_dir_list($sourceDir, 'files', 1);
+
+		$moveError = 0;
+		foreach ($fileList as $fileEntry) {
+			$relativePath = substr($fileEntry['fullname'], strlen($sourceDir) + 1);
+			$destFile = $targetDir . '/' . $relativePath;
+
+			// Ensure the target subdirectory exists (for files inside subdirectories)
+			$destParent = dirname($destFile);
+			if (!is_dir($destParent)) {
+				dol_mkdir($destParent);
+			}
+
+			// dol_move handles the physical move and updates ecm_files (filepath, filename, ref hash)
+			$result = dol_move($fileEntry['fullname'], $destFile, '0', 1, 0, 1);
+			if (!$result) {
+				dol_syslog(__METHOD__ . " Failed to move file " . $fileEntry['fullname'] . " to " . $destFile, LOG_ERR);
+				$moveError++;
+			}
+		}
+
+		if ($moveError > 0) {
+			return -1;
+		}
+
+		// Remove now-empty source directory tree
+		dol_delete_dir_recursive($sourceDir);
+
+		// dol_move updated filepath/filename in ecm_files but kept the old entity.
+		// Fix the entity column for all records of this invoice.
+		$sql = "UPDATE " . $db->prefix() . "ecm_files";
+		$sql .= " SET entity = " . ((int) $newEntity);
+		$sql .= " WHERE src_object_type = '" . $db->escape($object->table_element) . "' AND src_object_id = " . ((int) $object->id);
+
+		$resql = $db->query($sql);
+		if (!$resql) {
+			dol_syslog(__METHOD__ . " Failed to update ecm_files entity: " . $db->lasterror(), LOG_ERR);
+			return -1;
+		}
+
+		return 1;
 	}
 }
