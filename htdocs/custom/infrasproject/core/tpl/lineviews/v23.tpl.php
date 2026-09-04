@@ -387,7 +387,7 @@ if (!getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
 	$tooltiponpriceendmultiprice = '</span>';
 }
 
-include __DIR__.'/_columns/refproject.tpl.php';
+include __DIR__.'/_columns/refproject.tpl.php';	// InfraS add
 // VAT Rate
 print '<td class="linecolvat nowrap right">';
 $coldisplay++;
@@ -415,6 +415,7 @@ print $tooltiponpriceend;
 	<td class="linecoluht_currency nowraponall right"><?php $coldisplay++; ?><?php print price($sign * $line->multicurrency_subprice); ?></td>
 <?php }
 
+// Multicurrency HT
 if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
 	<td class="linecoluttc nowraponall right"><?php $coldisplay++; ?><?php
 	$upinctax = isset($line->subprice_ttc) ? $line->subprice_ttc : null;
@@ -422,7 +423,7 @@ if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH
 		$upinctax = price2num($line->total_ttc / (float) $line->qty, 'MU');
 	}
 	if (!$upinctax) {
-		$upinctax = price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
+		$multicurrency_upinctax = price2num($line->multicurrency_subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
 	}
 	print (isset($upinctax) ? price($sign * $upinctax) : price($sign * $line->subprice));	// if upinctax can't be known, we show subprice excl ta
 	?></td>
@@ -511,10 +512,13 @@ if ($usemargins && isModEnabled('margin') && empty($user->socid)) {
 if ($line->special_code == 3) {
 	print '<td class="linecolht nowrap right">'.$langs->trans('Option').'</td>'; // InfraS change
 	$coldisplay++;
-	if (isModEnabled('multicurrency') && $object->multicurrency_code != $conf->currency) { // InfraS change
+	$colspanOptions	= '';
+	if (isModEnabled('multicurrency') && $object->multicurrency_code != $conf->currency) {
 		print '<td class="linecoltotalht_currency nowrap right">'.$langs->trans('Option').'</td>'; // InfraS change
 		$coldisplay++;
+		$colspanOptions	= ' colspan="2"';
 	}
+	print '<td class="linecoloption nowrap right"'.$colspanOptions.'>'.$langs->trans('Option').'</td>';
 } else {
 	print '<td class="linecolht nowrap right">';
 	$coldisplay++;

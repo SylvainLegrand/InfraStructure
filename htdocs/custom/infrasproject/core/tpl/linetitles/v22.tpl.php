@@ -21,18 +21,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
- *
- * Need to have the following variables defined:
- * $object (invoice, order, ...)
- * $conf
- * $langs
- * $element     (used to test $user->rights->$element->creer)
- * $permtoedit  (used to replace test $user->rights->$element->creer)
- * $inputalsopricewithtax (0 by default, 1 to also show column with unit price including tax)
- * $outputalsopricetotalwithtax
- * $usemargins (0 to disable all margins columns, 1 to show according to margin setup)
- *
- * $type, $text, $description, $line
  */
 
 /**
@@ -44,6 +32,11 @@
  * @var Translate $langs
  * @var Conf $conf
  * @var User $user
+ *
+ * @var int $disableedit
+ * @var int $inputalsopricewithtax (0 by default, 1 to also show column with unit price including tax)
+ * @var int $outputalsopricetotalwithtax
+ * @var int $usemargins (0 to disable all margins columns, 1 to show according to margin setup)
  */
 
  // Protection to avoid direct call of template
@@ -88,11 +81,11 @@ if (in_array($object->element, array('propal', 'commande', 'facture', 'order_sup
 print '</th>';
 
 // Supplier ref
-if ($object->element == 'supplier_proposal' || $object->element == 'order_supplier' || $object->element == 'invoice_supplier' || $object->element == 'invoice_supplier_rec') {
+if ($object->element == 'supplier_proposal' || $object->element == 'order_supplier' || $object->element == 'invoice_supplier' || $object->element == 'invoice_supplier_rec') {	// InfraS change
 	print '<th class="linerefsupplier maxwidth125"><span id="title_fourn_ref">'.$langs->trans("SupplierRef").'</span></th>';
 }
 
-include __DIR__.'/_columns/refproject.tpl.php';
+include __DIR__.'/_columns/refproject.tpl.php';	// InfraS add
 // VAT
 print '<th class="linecolvat right nowraponall">';
 if (getDolGlobalString('FACTURE_LOCAL_TAX1_OPTION') || getDolGlobalString('FACTURE_LOCAL_TAX2_OPTION')) {
@@ -122,12 +115,14 @@ print '</th>';
 print '<th class="linecoluht right nowraponall">'.$langs->trans('PriceUHT').'</th>';
 
 // Multicurrency
-if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {
-	print '<th class="linecoluht_currency right" style="width: 80px">'.$langs->trans('PriceUTTC').' ('.$langs->getCurrencySymbol($object->multicurrency_code).')</th>';
+if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {	// InfraS change
+	print '<th class="linecoluht_currency right" style="width: 80px">'.$langs->trans('PriceUHT');
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';
 }
 
+// Price TTC
 if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {
-	print '<th class="right nowraponall">'.$langs->trans('PriceUTTC').'</th>';
+	print '<th class="linecoluttc right nowraponall">'.$langs->trans('PriceUTTC').'</th>';
 }
 
 // Qty
@@ -160,7 +155,7 @@ if (in_array($object->element, array('propal', 'commande', 'facture')) && $objec
 print '</th>';
 
 // Fields for situation invoice
-if (isset($object->situation_cycle_ref) && $object->situation_cycle_ref) {
+if (isset($object->situation_cycle_ref) && $object->situation_cycle_ref) {	// InfraS change
 	print '<th class="linecolcycleref right">'.$langs->trans('CumulativeProgression').'</th>';
 	if (getDolGlobalInt('INVOICE_USE_SITUATION') == 2) {
 		print '<th class="linecolcycleref2 right">' . $langs->trans('SituationInvoiceProgressCurrent') . '</th>';
@@ -211,8 +206,9 @@ if ($usemargins && isModEnabled('margin') && empty($user->socid)) {
 print '<th class="linecolht right">'.$langs->trans('TotalHTShort').'</th>';
 
 // Multicurrency
-if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {
-	print '<th class="linecoltotalht_currency right">'.$langs->trans('TotalHTShort').' ('.$langs->getCurrencySymbol($object->multicurrency_code).')</th>';
+if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {	// InfraS change
+	print '<th class="linecoltotalht_currency right">'.$langs->trans('TotalHTShort');
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($this->multicurrency_code).')</span></th>';
 }
 
 if ($outputalsopricetotalwithtax) {

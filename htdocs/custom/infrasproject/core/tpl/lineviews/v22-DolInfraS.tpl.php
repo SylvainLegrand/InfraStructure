@@ -385,7 +385,7 @@ if (!getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER')) {
 	$tooltiponpriceendmultiprice = '</span>';
 }
 
-include __DIR__.'/_columns/refproject.tpl.php';
+include __DIR__.'/_columns/refproject.tpl.php';	// InfraS add
 // VAT Rate
 print '<td class="linecolvat nowrap right">';
 $coldisplay++;
@@ -405,6 +405,7 @@ if (empty($positiverates)) {
 print $tooltiponprice;
 print vatrate($positiverates.($line->vat_src_code ? ' ('.$line->vat_src_code.')' : ''), true, $line->info_bits);
 print $tooltiponpriceend;
+// Osden change begin
 ?></td>
 
 <td class="linecoluht nowraponall right">
@@ -429,14 +430,14 @@ if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH
 		$upinctax = price2num($line->total_ttc / (float) $line->qty, 'MU');
 	}
 	if (!$upinctax) {
-		$upinctax = price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
+		$upinctax = price2num($line->subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax // InfraS change
 	}
 	if (empty($line->fk_remise_except)) print (isset($upinctax) ? price($sign * $upinctax) : price($sign * $line->subprice));	// if upinctax can't be known, we show subprice excl ta
 	?></td>
 <?php }
 
 // Multicurrency TTC
-if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
+if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?> <!-- InfraS change -->
 	<td class="linecoluttc_currency nowraponall right"><?php $coldisplay++; ?><?php
 	$multicurrency_upinctax = isset($line->multicurrency_subprice_ttc) ? $line->multicurrency_subprice_ttc : null;
 	if (!$multicurrency_upinctax && $line->multicurrency_total_ttc && $line->qty) {
@@ -446,6 +447,7 @@ if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->mul
 		$multicurrency_upinctax = price2num($line->multicurrency_subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
 	}
 	if (empty($line->fk_remise_except)) print (isset($multicurrency_upinctax) ? price($sign * $multicurrency_upinctax) : price($sign * $line->multicurrency_subprice));		// if upinctax can't be known, we show subprice excl ta
+// Osden change end
 	?></td>
 <?php } ?>
 
@@ -517,12 +519,14 @@ if ($usemargins && isModEnabled('margin') && empty($user->socid)) {
 
 // Price total without tax
 if ($line->special_code == 3) {
-	print '<td class="linecolht nowrap right">'.$langs->trans('Option').'</td>'; // InfraS change
+	// InfraS change begin
+	print '<td class="linecolht nowrap right">'.$langs->trans('Option').'</td>';
 	$coldisplay++;
-	if (isModEnabled('multicurrency') && $object->multicurrency_code != $conf->currency) { // InfraS change
-		print '<td class="linecoltotalht_currency nowrap right">'.$langs->trans('Option').'</td>'; // InfraS change
+	if (isModEnabled('multicurrency') && $object->multicurrency_code != $conf->currency) {
+		print '<td class="linecoltotalht_currency nowrap right">'.$langs->trans('Option').'</td>';
 		$coldisplay++;
 	}
+	// InfraS change end
 } else {
 	print '<td class="linecolht nowrap right">';
 	$coldisplay++;

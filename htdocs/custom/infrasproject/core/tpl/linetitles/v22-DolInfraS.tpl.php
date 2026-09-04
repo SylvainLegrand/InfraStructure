@@ -81,11 +81,11 @@ if (in_array($object->element, array('propal', 'commande', 'facture', 'order_sup
 print '</th>';
 
 // Supplier ref
-if ($object->element == 'supplier_proposal' || $object->element == 'order_supplier' || $object->element == 'invoice_supplier' || $object->element == 'invoice_supplier_rec') {
+if ($object->element == 'supplier_proposal' || $object->element == 'order_supplier' || $object->element == 'invoice_supplier' || $object->element == 'invoice_supplier_rec') {	// InfraS change
 	print '<th class="linerefsupplier maxwidth125"><span id="title_fourn_ref">'.$langs->trans("SupplierRef").'</span></th>';
 }
 
-include __DIR__.'/_columns/refproject.tpl.php';
+include __DIR__.'/_columns/refproject.tpl.php';	// InfraS add
 // VAT
 print '<th class="linecolvat right nowraponall">';
 if (getDolGlobalString('FACTURE_LOCAL_TAX1_OPTION') || getDolGlobalString('FACTURE_LOCAL_TAX2_OPTION')) {
@@ -115,9 +115,9 @@ print '</th>';
 print '<th class="linecoluht right nowraponall">'.$langs->trans('PriceUHT').'</th>';
 
 // Multicurrency
-if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {
+if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {	// InfraS change
 	print '<th class="linecoluht_currency right" style="width: 80px">'.$langs->trans('PriceUHT');
-	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($object->multicurrency_code).')</span></th>';
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($object->multicurrency_code).')</span></th>';	// InfraS change
 }
 
 // Price TTC
@@ -127,9 +127,9 @@ if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH
 
 // InfraS add begin (fix : header column missing, aligned with the « Multicurrency TTC » block in objectline_view.tpl.php lines 437-449)
 // Multicurrency TTC
-if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {
+if (isModEnabled("multicurrency") && $object->multicurrency_code && $object->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) {	// InfraS change
 	print '<th class="linecoluttc_currency right nowraponall">'.$langs->trans('PriceUTTC');
-	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($object->multicurrency_code).')</span></th>';
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($object->multicurrency_code).')</span></th>';	// InfraS change
 }
 // InfraS add end
 
@@ -146,7 +146,7 @@ print '<th class="linecoldiscount right nowraponall">';
 print $langs->trans('ReductionShort');
 
 // @phan-suppress-next-line PhanUndeclaredConstantOfClass
-if (in_array($object->element, array('propal', 'commande', 'facture', 'order_supplier', 'invoice_supplier')) && $object->status == $object::STATUS_DRAFT) {
+if (in_array($object->element, array('propal', 'commande', 'facture', 'order_supplier', 'invoice_supplier')) && $object->status == $object::STATUS_DRAFT) {	// Osden change
 	global $mysoc;
 
 	if (empty($disableedit) && GETPOST('mode', 'aZ09') != 'remiseforalllines') {
@@ -163,7 +163,7 @@ if (in_array($object->element, array('propal', 'commande', 'facture', 'order_sup
 print '</th>';
 
 // Fields for situation invoice
-if (isset($object->situation_cycle_ref) && $object->situation_cycle_ref) {
+if (isset($object->situation_cycle_ref) && $object->situation_cycle_ref) {	// InfraS change
 	print '<th class="linecolcycleref right">'.$langs->trans('CumulativeProgression').'</th>';
 	if (getDolGlobalInt('INVOICE_USE_SITUATION') == 2) {
 		print '<th class="linecolcycleref2 right">' . $langs->trans('SituationInvoiceProgressCurrent') . '</th>';
@@ -214,9 +214,9 @@ if ($usemargins && isModEnabled('margin') && empty($user->socid)) {
 print '<th class="linecolht right">'.$langs->trans('TotalHTShort').'</th>';
 
 // Multicurrency
-if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {
+if (isModEnabled("multicurrency") && $object->multicurrency_code != $conf->currency) {	// InfraS change
 	print '<th class="linecoltotalht_currency right">'.$langs->trans('TotalHTShort');
-	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($object->multicurrency_code).')</span></th>';
+	print '&nbsp;<span class="opacitymedium">('.$langs->getCurrencySymbol($object->multicurrency_code).')</span></th>';	// InfraS change
 }
 
 if ($outputalsopricetotalwithtax) {
