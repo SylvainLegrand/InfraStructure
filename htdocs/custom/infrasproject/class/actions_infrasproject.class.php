@@ -420,6 +420,10 @@
 					$text			.= ' - '.(!empty($line->label) ? $line->label : $label);
 					$description	.= getDolGlobalInt('PRODUIT_DESC_IN_FORM_ACCORDING_TO_DEVICE') ? '' : (!empty($line->description) ? dol_htmlentitiesbr($line->description) : '');
 				}
+				// subprice_ttc est lu depuis une colonne DOUBLE(24,8) : le pilote MariaDB le renvoie en chaîne (« 0.00000000 »
+				// pour une ligne saisie en HT), non vide au sens de PHP — le repli sur total_ttc / qty n'était jamais appliqué
+				// et la colonne « P.U TTC » affichait 0,00. Conversion en nombre avant le test.
+				$line->subprice_ttc	= isset($line->subprice_ttc) ? (float) $line->subprice_ttc : 0.0;
 				if (empty($line->subprice_ttc) && $line->qty) {
 					$line->subprice_ttc	= (float) price2num($line->total_ttc / $line->qty, 'MU');
 				}

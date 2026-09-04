@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.1.10` (2026-09)
+- Dernière version locale : `21.1.11` (2026-09)
 - Dépendances obligatoires : `modProjet`, `modStock`
 - Emplacement : `htdocs/custom/infrasproject/`
 
@@ -233,6 +233,7 @@ Si modification SQL / descripteur / permissions / hooks / templates / trigger :
 - **Co-activation avec InfraSPackPlus** : le hook `printObjectLine` d'infrasproject teste `isModEnabled('infraspackplus')` en mode view et retourne 0 (laisse IPP gérer). Si la stratégie est inversée par erreur (les deux modules rendent la ligne), l'affichage est dupliqué. Garder cet ordre de priorité IPP > infrasproject en mode view.
 - **Co-activation avec infrastructure et autres modules à lignes spéciales** : `printObjectLine` filtre `$line->special_code > 3` et retourne 0 — ne pas tenter de rendre les lignes spéciales infrastructure (titres / sous-totaux / textes libres, special_code = 550090), infrasdiscount, etc. Sans ce filtre, ces lignes seraient rendues deux fois dans le DOM (notre tpl `lineviews/v*.tpl.php` + le tpl propriétaire du module). Cf. section *Sous-hooks d'enrichissement* pour le mécanisme propre permettant à ces modules d'ajouter des colonnes.
 - **Ne pas implémenter `printObjectLineTitle` / `printObjectLine` dans un autre module** quand infrasproject est actif : préférer les sous-hooks `infrasprojectEnrichObjectLineTitle` / `infrasprojectEnrichObjectLine` qui s'agrègent proprement via `resprints`. Implémenter `printObjectLineTitle` côté tiers émet un second `<thead>` (le HookManager n'arrête pas l'exécution sur retour positif).
+- **Valeurs `DOUBLE` lues en base** : le pilote mysqli renvoie les colonnes `DOUBLE(24,8)` (montants, prix, taux) en **chaîne** — un zéro arrive comme `"0.00000000"`, vrai en PHP. Caster en `(float)` avant tout `empty()` / `!$x` / `?:` sur une valeur issue d'un `fetch_object()` (cf. colonne « P.U. TTC » à 0,00, fix v21.8.8 / InfraSProject 21.1.11).
 
 ## Dernières mises à jour (Recent updates)
 
@@ -311,6 +312,8 @@ else return ''; // Dolibarr < 21 plus supporté
 **Quantité masquée sur les lignes « Option » quand infrastructure est actif (fix 21.1.7, affinée en 21.1.8)** : les 5 variantes `lineviews` reprennent la logique cosmétique native Dolibarr qui vide la cellule `linecolqty` (`&nbsp;`) dès que `$line->special_code == 3` (marqueur natif « Option »), y compris pour les lignes marquées optionnelles via la case « Opt » du module infrastructure (qui pose ce même `special_code = 3`, cf. CLAUDE.md du module infrastructure, section *Colonne « Opt »*). Le module infrastructure exclut désormais le montant de ces lignes du sous-total du bloc (`infrastructure_get_totalLineFromObject()`) mais veut pouvoir conserver leur quantité visible individuellement — la condition devient `$line->special_code != 3 || (isModEnabled('infrastructure') && getDolGlobalString('INFRASTRUCTURE_OL_SHOW_DETAILS'))` : la quantité reste affichée quand infrastructure est actif **et** que son option `INFRASTRUCTURE_OL_SHOW_DETAILS` (désactivée par défaut) est cochée, quelle que soit l'origine du `special_code = 3` (case Opt du module ou marquage natif Dolibarr manuel). Sans infrastructure actif, ou avec l'option désactivée, le masquage natif reste inchangé. Même correctif dans les 5 `lineviews` d'InfraSPackPlus (21.5.6/21.5.7, ses lineviews priment en mode view).
 
 **Accès non protégés aux clés `margin`/`provmargin`/`project_field` de `infrasproject_getListOfReferent()` (fix 21.1.9)** : chaque entrée du tableau retourné par `infrasproject_getListOfReferent()` ne définit pas systématiquement toutes les clés — `margin`/`provmargin` ne sont posées que sur certains types d'éléments (cf. section *Liste des éléments référents* ci-dessus), `project_field` seulement quand l'élément référence le projet via un champ différent de `fk_projet`. Plusieurs lectures directes de ces clés (sans `isset()`/`empty()` préalable) émettaient un avertissement PHP « Undefined array key » à chaque affichage de la vue d'ensemble projet — dans le hook `completeListOfReferent` (`actions_infrasproject.class.php`, filtrage `PROJECT_ELEMENTS_FOR_PLUS_MARGIN` / `_MINUS_MARGIN`) et dans la page de substitution `projet/element.php` (dlb220x-DolInfraS ; mêmes filtrages, plus `INFRASPROJECT_ELEMENTS_FOR_PLUS_MARGIN_PROV` / `_MINUS_MARGIN_PROV`, plus la lecture de `$value['provmargin']` / `$value['project_field']` dans les boucles d'agrégation du bénéfice réel et provisoire). Un garde `!empty(...)` (ou l'opérateur `??`, ou le pattern `empty(...) ? '' : ...` déjà utilisé ailleurs dans le même fichier) protège désormais chacune de ces lectures. Deux avertissements connexes corrigés dans le même fichier : `$tmp[1]` (résultat d'un `explode('_', ...)` parfois sans second élément) et `$element->linkedObjects[$linkname]` (clé absente quand aucune facture n'est liée à une commande fournisseur/devis, provoquant ensuite un `foreach()` sur `null`).
+
+**Colonne « P.U. TTC » à 0,00 sur les lignes saisies en HT — `subprice_ttc` lu en chaîne (fix 21.1.11)** : le hook `printObjectLine` (mode view, quand InfraSPackPlus est inactif) normalise `subprice_ttc` avant d'inclure la variante `lineviews` — si la valeur est vide, il la recalcule via `total_ttc / qty`, puis l'expose en `pu_ttc`. Or le champ `subprice_ttc` (ajout Osden dans la distribution LTS, colonne `DOUBLE(24,8)`, laissé à `0` pour les lignes saisies en HT) arrive du pilote mysqli sous forme de **chaîne** `"0.00000000"`, vraie en PHP : `empty()` ne détectait jamais le cas « non renseigné », le repli était sauté et les templates affichaient `0,00` (leur propre test `!$upinctax` échouant pour la même raison). Le hook caste désormais la valeur en `(float)` avant le test (`$line->subprice_ttc = isset($line->subprice_ttc) ? (float) $line->subprice_ttc : 0.0;`) ; les 5 variantes `lineviews` sont inchangées et reçoivent un float. Même correctif dans le hook homologue d'InfraSPackPlus (21.8.8) et, avec tags `// InfraS change`, dans le template core `core/tpl/objectline_view.tpl.php` de l'instance. Le repli hérité `total_ttc / qty` donne un PU TTC après remise de ligne (comportement upstream conservé). **Règle à retenir** : caster en `(float)` toute valeur numérique lue en base avant un `empty()` / `!$x` / `?:`.
 
 ### Hooks — récapitulatif des comportements
 
@@ -470,12 +473,12 @@ La génération de la référence projet utilise le modèle de numérotation con
 
 ```xml
 <changelog>
-  <Version Number="21.1.10" MonthVersion="2026-09">
+  <Version Number="21.1.11" MonthVersion="2026-09">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
   </Version>
-  <InfraS Downloaded="20260901"/>
+  <InfraS Downloaded="20260904"/>
   <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
   <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
@@ -489,7 +492,7 @@ La génération de la référence projet utilise le modèle de numérotation con
 La fonction `infrasproject_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.1.10",         // Version courante
+    0 => "21.1.11",         // Version courante
     1 => "21.0.0",          // Version min Dolibarr
     2 => 0,                 // Flag erreur (-1 = KO, 0 = OK)
     3 => "24.x.x",          // Version max Dolibarr
