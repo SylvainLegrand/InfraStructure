@@ -404,6 +404,7 @@ if (empty($positiverates)) {
 print $tooltiponprice;
 print vatrate($positiverates.($line->vat_src_code ? ' ('.$line->vat_src_code.')' : ''), true, $line->info_bits);
 print $tooltiponpriceend;
+// Osden change begin
 ?></td>
 
 <td class="linecoluht nowraponall right">
@@ -445,6 +446,7 @@ if (isModEnabled("multicurrency") && $this->multicurrency_code && $this->multicu
 		$multicurrency_upinctax = price2num($line->multicurrency_subprice * (1 + ($line->tva_tx / 100)), 'MU'); // one tax
 	}
 	if (empty($line->fk_remise_except)) print (isset($multicurrency_upinctax) ? price($sign * $multicurrency_upinctax) : price($sign * $line->multicurrency_subprice));		// if upinctax can't be known, we show subprice excl ta
+// Osden change end
 	?></td>
 <?php } ?>
 
