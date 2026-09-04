@@ -80,7 +80,7 @@ if (defined('SUBTOTALS_SPECIAL_CODE') && $line->special_code == SUBTOTALS_SPECIA
 	return require DOL_DOCUMENT_ROOT.'/core/tpl/subtotal_view.tpl.php';
 }
 
-global $mysoc;
+global $mysoc, $db;	// InfraS change
 global $forceall, $senderissupplier, $inputalsopricewithtax, $outputalsopricetotalwithtax;
 
 $usemargins = 0;
@@ -424,7 +424,7 @@ print $tooltiponpriceend;
 
 if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
 	<td class="linecoluttc nowraponall right"><?php $coldisplay++; ?><?php
-	$upinctax = isset($line->subprice_ttc) ? $line->subprice_ttc : null;
+	$upinctax = (isset($line->subprice_ttc) && (float) $line->subprice_ttc != 0) ? (float) $line->subprice_ttc : null; // InfraS change : DOUBLE(24,8) is fetched as string "0.00000000" (truthy), fallbacks below were never reached
 	if (!$upinctax && $line->total_ttc && $line->qty) {
 		$upinctax = price2num($line->total_ttc / (float) $line->qty, 'MU');
 	}
@@ -438,7 +438,7 @@ if (!empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH
 // Multicurrency TTC
 if (isModEnabled("multicurrency") && $this->multicurrency_code && $this->multicurrency_code != $conf->currency && !empty($inputalsopricewithtax) && !getDolGlobalInt('MAIN_NO_INPUT_PRICE_WITH_TAX')) { ?>
 	<td class="linecoluttc_currency nowraponall right"><?php $coldisplay++; ?><?php
-	$multicurrency_upinctax = isset($line->multicurrency_subprice_ttc) ? $line->multicurrency_subprice_ttc : null;
+	$multicurrency_upinctax = (isset($line->multicurrency_subprice_ttc) && (float) $line->multicurrency_subprice_ttc != 0) ? (float) $line->multicurrency_subprice_ttc : null; // InfraS change : same string-truthiness fix as for subprice_ttc
 	if (!$multicurrency_upinctax && $line->multicurrency_total_ttc && $line->qty) {
 		$multicurrency_upinctax = price2num($line->multicurrency_total_ttc / (float) $line->qty, 'MU');
 	}
