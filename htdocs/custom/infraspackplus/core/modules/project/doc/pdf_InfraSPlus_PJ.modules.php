@@ -24,52 +24,28 @@
 	************************************************/
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/modules/project/modules_project.php';
-	include_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	if (isModEnabled('propal')) {
-		include_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
-	}
-	if (isModEnabled('facture')) {
-		include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	}
-	if (isModEnabled('facture')) {
-		include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture-rec.class.php';
-	}
-	if (isModEnabled('commande')) {
-		include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-	}
-	if (isModEnabled('fournisseur')) {
-		include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
-	}
-	if (isModEnabled('fournisseur')) {
-		include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
-	}
-	if (isModEnabled('contrat')) {
-		include_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
-	}
-	if (isModEnabled('ficheinter')) {
-		include_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
-	}
-	if (isModEnabled('deplacement')) {
-		include_once DOL_DOCUMENT_ROOT.'/compta/deplacement/class/deplacement.class.php';
-	}
-	if (isModEnabled('expensereport')) {
-		include_once DOL_DOCUMENT_ROOT.'/expensereport/class/expensereport.class.php';
-	}
-	if (isModEnabled('agenda')) {
-		include_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-	}
-	if (isModEnabled('ndfp')) {
-		dol_include_once('/ndfp/class/ndfp.class.php');
-	}
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/project/modules_project.php';
+	require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	if (isModEnabled('propal'))			require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
+	if (isModEnabled('facture'))		require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	if (isModEnabled('facture'))		require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture-rec.class.php';
+	if (isModEnabled('commande'))		require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	if (isModEnabled('fournisseur'))	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
+	if (isModEnabled('fournisseur'))	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+	if (isModEnabled('contrat'))		require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
+	if (isModEnabled('ficheinter'))		require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
+	if (isModEnabled('deplacement'))	require_once DOL_DOCUMENT_ROOT.'/compta/deplacement/class/deplacement.class.php';
+	if (isModEnabled('expensereport'))	require_once DOL_DOCUMENT_ROOT.'/expensereport/class/expensereport.class.php';
+	if (isModEnabled('agenda'))			require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+	if (isModEnabled('ndfp'))			dol_include_once('/ndfp/class/ndfp.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 	/************************************************
 	*	Class to generate PDF order InfraS
@@ -79,205 +55,18 @@
 		public $db;
 		public $name;
 		public $description;
-		public $titlekey;
-		public $defaulttemplate;
-		public $option_logo;
-		public $option_tva;
-		public $option_codeproduitservice;
-		public $option_multilang;
 		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
 		public $type;
-		public $emetteur;
-		public $atleastonediscount;
-		public $tva;
-		public $tva_array;
-		public $localtax1;
-		public $localtax2;
-		public $atleastoneratenotnull;
-		public $use_fpdf;
-		public $main_umask;
+		public $phpmin	= array(7, 4);
+		public $version	= 'dolibarr';
 		public $page_largeur;
 		public $page_hauteur;
 		public $format;
 		public $marge_gauche;
-		public $marge_haute;
 		public $marge_droite;
+		public $marge_haute;
 		public $marge_basse;
-		public $formatpage;
-		public $use_iso_location;
-		public $dash_between_line;
-		public $product_use_unit;
-		public $hide_vat_ifnull;
-		public $vat_label_code_or_rate;
-		public $chq_num;
-		public $diffsize_title;
-		public $hidechq_address;
-		public $rib_num;
-		public $text_TVA_auto;
-		public $multi_files;
-		public $font;
-		public $headertxtcolor;
-		public $bodytxtcolor;
-		public $datesbold;
-		public $ref_from_cust;
-		public $first_page_empty;
-		public $small_head2;
-		public $title_size;
-		public $height_header_sep;
-		public $left_recep_corner;
-		public $top_recep_corner;
-		public $height_top_table;
-		public $hide_top_table;
-		public $Rounded_rect;
-		public $bg_color;
-		public $txtcolor;
-		public $title_bg;
-		public $header_after_addr;
-		public $space_headerafter;
-		public $header_align_left;
-		public $dates_br;
-		public $show_num_cli;
-		public $num_cli_frm;
-		public $show_code_cli_compt;
-		public $code_cli_compt_frm;
-		public $add_creator_in_header;
-		public $fold_mark;
-		public $hide_info_cur;
-		public $tblLineW;
-		public $tblLineDash;
-		public $tblLineColor;
-		public $showtblline;
-		public $verLineColor;
-		public $showverline;
-		public $horLineColor;
-		public $subti_with_subto;
-		public $lineSep_hight;
-		public $show_num_col;
-		public $force_align_left_ref;
-		public $picture_in_ref;
-		public $picture_replace_ref;
-		public $force_align_left_unit;
-		public $desc_full_line;
-		public $show_desc;
-		public $hidden_ouv;
-		public $only_one_desc;
-		public $hide_qty;
-		public $hide_up;
-		public $show_up_discounted;
-		public $discount_auto;
-		public $show_ttc_col;
-		public $hide_vat_col;
-		public $show_ttc_vat_tot;
-		public $hide_vat;
-		public $only_ttc;
-		public $larg_ref;
-		public $larg_qty;
-		public $larg_unit;
-		public $larg_up;
-		public $larg_tva;
-		public $larg_discount;
-		public $larg_updisc;
-		public $larg_progress;
-		public $larg_totalht;
-		public $larg_totalttc;
-		public $num_ref;
-		public $num_desc;
-		public $num_qty;
-		public $num_unit;
-		public $num_up;
-		public $num_tva;
-		public $num_discount;
-		public $num_updisc;
-		public $num_progress;
-		public $num_totalht;
-		public $num_totalttc;
-		public $ht_space_info;
-		public $ht_space_tot;
-		public $show_paymenttermcond_2l;
-		public $show_qty_prod_tot;
-		public $efPaySpec;
-		public $IBAN_with_CB;
-		public $IBAN_All;
-		public $bank_only_number;
-		public $invert_bg_ht_ttc;
-		public $show_disc_tot;
-		public $show_disc_ttc;
-		public $show_tot_local_cur;
-		public $show_tot_Cur_Symb;
-		public $number_words;
-		public $listPrefixEcotax;
-		public $exfEcoTax;
-		public $ht_signarea;
-		public $signLineW;
-		public $signLineDash;
-		public $signLineColor;
-		public $e_signing;
-		public $free_text_end;
-		public $type_foot;
-		public $hidepagenum;
-		public $maxsizeimgfoot;
-		public $only_one_picture;
-		public $picture_after;
-		public $picture_under;
-		public $picture_padding;
-		public $linkpictureurl;
-		public $old_path_photo;
-		public $cat_hq_image;
-		public $alpha;
-		public $exftxtcolor;
-		public $exfltxtcolor;
-		public $logo;
-		public $adr;
-		public $customerAddrSelect;
-		public $include_alias;
-		public $adrlivr;
-		public $listnotep;
-		public $pied;
-		public $files;
-		public $stdLineW = 0.2; // Default line width in TCPDF = 0.2
-		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
-		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = [];
-		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
-		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
-		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = [];
-		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = [];
-		public $verLineStyle = [];
-		public $horLineStyle = [];
-		public $only_ht;
-		public $larg_util_cadre;
-		public $larg_util_txt;
-		public $posx_G_txt;
-		public $posxcol1;
-		public $posxcol2;
-		public $posxcol3;
-		public $posxcol4;
-		public $posxcol5;
-		public $posxcol6;
-		public $largcol1;
-		public $largcol2;
-		public $largcol3;
-		public $largcol4;
-		public $largcol5;
-		public $largcol6;
-		public $tableau = [];	// Array of table to print
-		public $tab_hl = 4;
-		public $decal_round = 0;
-		public $ht_top_table;
-		public $heightline;
-		public $Prj_TimeStamp;
-		public $deposit_are_payment;
-		public $larg_date;
-		public $larg_status;
-		public $larg_tiers;
-		public $num_date;
-		public $num_status;
-		public $num_tiers;
-		public $typeadr;
+		public $emetteur;
 
 		/**
 		*	Constructor
@@ -286,12 +75,11 @@
 		**/
 		public function __construct($db)
 		{
-			global $langs;
+			global $conf, $langs, $mysoc;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'projects', 'trips', 'agenda', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
-			$this->db 							= $db;
 			$this->name							= $langs->trans('PDFInfraSPlusProjectName');
 			$this->description					= $langs->trans('PDFInfraSPlusProjectDescription');
 			$this->titlekey						= 'Project';
@@ -308,39 +96,31 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		object		$object					Object to generate
+		*	@param		Object		$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@return	int							1 = OK, <= 0 KO
 		**/
-		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
+		public function write_file($object, $outputlangs)
 		{
-			global $user, $langs, $conf, $hookmanager, $nblignes;
+			global $user, $langs, $conf, $db, $hookmanager, $nblignes;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs)) {
-				$outputlangs	= $langs;
-			}
+			if (! is_object($outputlangs))	$outputlangs					= $langs;
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf)) {
-				$outputlangs->charset_output	= 'ISO-8859-1';
-			}
+			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$timeStamp		= $this->Prj_TimeStamp ? '_'.dol_print_date(dol_now(), '%Y%m%d', false, $outputlangs, true) : '';
-			$baseDir		= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
-			$fileprefix		= '';
-			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
-				$filesufixe	= $timeStamp.(empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_PJ') ? '' : '_PJ');
-			} else {
-				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_PJ', '');
-				$filesufixe	= empty($fileprefix) ? '_PJ' : '';
-			}
+			$timeStamp						= $this->Prj_TimeStamp ? '_'.dol_print_date(dol_now(), '%Y%m%d', false, $outputlangs, true) : '';
+			$filesufixe						= $timeStamp.(empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_PJ') ? '' : '_PJ');
+			$baseDir						= !empty($conf->projet->multidir_output[$conf->entity]) ? $conf->projet->multidir_output[$conf->entity] : $conf->projet->dir_output;
+
 			if (!empty($baseDir)) {
 				$objectref	= dol_sanitizeFileName($object->ref);
 				// Definition of $dir and $file
 				if (preg_match('/specimen/i', $objectref)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
-				} else {
+				}
+				else {
 					$dir	= $baseDir.'/'.$objectref;
 					$file	= $dir.'/'.$objectref.$filesufixe.'.pdf';
 				}
@@ -353,7 +133,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($this->db);
+						$hookmanager	= new HookManager($db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters				= array('file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs);
@@ -363,13 +143,10 @@
 					$this->listnotep		= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied				= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
 					$this->files			= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
-					$this->include_alias	= !empty($hookmanager->resArray['includealias']) ? $hookmanager->resArray['includealias'] : '';
-					$task					= new Task($this->db);
-					$tasksarray				= [];
-					$tasksarray				= $task->getTasksArray(null, null, $object->id);
-					if (! $object->id > 0) {
-						$tasksarray	= array_slice($tasksarray, 0, min(5, count($tasksarray)));	// Special case when used with object = specimen, we may return all lines
-					}
+					$task					= new Task($db);
+					$tasksarray				= array();
+					$tasksarray				= $task->getTasksArray(0, 0, $object->id);
+					if (! $object->id > 0)	$tasksarray	= array_slice($tasksarray, 0, min(5, count($tasksarray)));	// Special case when used with object = specimen, we may return all lines
 					$object->lines			= $tasksarray;
 					$nblignes				= count($object->lines);
 					// Create pdf instance
@@ -395,7 +172,6 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
-					$watermarkedPages		= array($pdf->getPage() => true);
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineW			= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -412,7 +188,7 @@
 					$this->tblLineStyle		= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>(!empty($this->title_bg) && empty($this->showtblline) ? $this->bg_color : $this->tblLineColor));
 					$this->horLineStyle		= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>$this->horLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Define width and position of notes frames
 					$this->larg_util_txt	= $this->page_largeur - ($this->marge_gauche + $this->marge_droite + ($this->Rounded_rect * 2) + 2);
@@ -439,19 +215,12 @@
 													'status'	=> array('col' => $this->num_status,	'larg' => $this->larg_status,	'posx' => 0)
 													);
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1) {
-							$this->largcol1	= $ncol_array['larg'];
-						} elseif ($ncol_array['col'] == 2) {
-							$this->largcol2	= $ncol_array['larg'];
-						} elseif ($ncol_array['col'] == 3) {
-							$this->largcol3	= $ncol_array['larg'];
-						} elseif ($ncol_array['col'] == 4) {
-							$this->largcol4	= $ncol_array['larg'];
-						} elseif ($ncol_array['col'] == 5) {
-							$this->largcol5	= $ncol_array['larg'];
-						} elseif ($ncol_array['col'] == 6) {
-							$this->largcol6	= $ncol_array['larg'];
-						}
+						if ($ncol_array['col'] == 1)		$this->largcol1	= $ncol_array['larg'];
+						elseif ($ncol_array['col'] == 2)	$this->largcol2	= $ncol_array['larg'];
+						elseif ($ncol_array['col'] == 3)	$this->largcol3	= $ncol_array['larg'];
+						elseif ($ncol_array['col'] == 4)	$this->largcol4	= $ncol_array['larg'];
+						elseif ($ncol_array['col'] == 5)	$this->largcol5	= $ncol_array['larg'];
+						elseif ($ncol_array['col'] == 6)	$this->largcol6	= $ncol_array['larg'];
 					}
 					$this->posxcol1	= $this->marge_gauche;
 					$this->posxcol2	= $this->posxcol1	+ $this->largcol1;
@@ -460,19 +229,12 @@
 					$this->posxcol5	= $this->posxcol4	+ $this->largcol4;
 					$this->posxcol6	= $this->posxcol5	+ $this->largcol5;
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1) {
-							$this->tableau[$ncol]['posx']	= $this->posxcol1;
-						} elseif ($ncol_array['col'] == 2) {
-							$this->tableau[$ncol]['posx']	= $this->posxcol2;
-						} elseif ($ncol_array['col'] == 3) {
-							$this->tableau[$ncol]['posx']	= $this->posxcol3;
-						} elseif ($ncol_array['col'] == 4) {
-							$this->tableau[$ncol]['posx']	= $this->posxcol4;
-						} elseif ($ncol_array['col'] == 5) {
-							$this->tableau[$ncol]['posx']	= $this->posxcol5;
-						} elseif ($ncol_array['col'] == 6) {
-							$this->tableau[$ncol]['posx']	= $this->posxcol6;
-						}
+						if ($ncol_array['col'] == 1)		$this->tableau[$ncol]['posx']	= $this->posxcol1;
+						elseif ($ncol_array['col'] == 2)	$this->tableau[$ncol]['posx']	= $this->posxcol2;
+						elseif ($ncol_array['col'] == 3)	$this->tableau[$ncol]['posx']	= $this->posxcol3;
+						elseif ($ncol_array['col'] == 4)	$this->tableau[$ncol]['posx']	= $this->posxcol4;
+						elseif ($ncol_array['col'] == 5)	$this->tableau[$ncol]['posx']	= $this->posxcol5;
+						elseif ($ncol_array['col'] == 6)	$this->tableau[$ncol]['posx']	= $this->posxcol6;
 					}
 					// Calculs de positions
 					$this->tab_hl		= 4;
@@ -495,29 +257,23 @@
 					$nexY							= $pdf->GetY() + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
 					$tab_height						= $this->ht_top_table + ($this->tab_hl * 2);
 					$curY							= $nexY;
-					if (!empty($this->title_bg)) {
-						$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
-					} else if ($this->showtblline) {
-						$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-					}
-					if ($this->showtblline) {
-						$pdf->RoundedRect($this->marge_gauche, $curY + $this->ht_top_table + $this->bgLineW, $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $this->bgLineW), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-					} else {
-						$pdf->line($this->marge_gauche, $curY + $tab_height, $this->marge_gauche + $this->larg_util_cadre, $curY + $tab_height, $this->horLineStyle);
-					}
+					if (!empty($this->title_bg))	$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
+					else if ($this->showtblline)	$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					if ($this->showtblline)			$pdf->RoundedRect($this->marge_gauche, $curY + $this->ht_top_table + $this->bgLineW, $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $this->bgLineW), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					else							$pdf->line($this->marge_gauche, $curY + $tab_height, $this->marge_gauche + $this->larg_util_cadre, $curY + $tab_height, $this->horLineStyle);
 					if ($this->showtblline) {
 						// Colonnes
 						$pdf->line($this->marge_gauche + $largCol,			$curY, $this->marge_gauche + $largCol,			$curY + $tab_height, $this->tblLineStyle);
 						$pdf->line($this->marge_gauche + ($largCol * 2),	$curY, $this->marge_gauche + ($largCol * 2),	$curY + $tab_height, $this->tblLineStyle);
 					}
 					$pdf->SetFont('', 'B', $default_font_size - 1);
-					!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 					$pdf->MultiCell($largCol, $this->ht_top_table, 'Montant opportunité', '', 'C', 0, 1, $this->marge_gauche, $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($largCol, $this->ht_top_table, 'Budget', '', 'C', 0, 1, $this->marge_gauche + $largCol, $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($largCol, $this->ht_top_table, 'Marge', '', 'C', 0, 1, $this->marge_gauche + ($largCol * 2), $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$curY	+= $this->ht_top_table;
 					$pdf->SetFont('', '', $default_font_size - 1);
-					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 					$pdf->MultiCell($largCol, $this->tab_hl * 2, pdf_InfraSPlus_price($object, $oppAmount, $outputlangs, 0, 0, 'T'), '', 'C', 0, 1, $this->marge_gauche, $curY, true, 0, 0, true, $this->tab_hl * 2, 'M', false);
 					$pdf->MultiCell($largCol, $this->tab_hl * 2, pdf_InfraSPlus_price($object, $budgetAmount, $outputlangs, 0, 0, 'T'), '', 'C', 0, 1, $this->marge_gauche + $largCol, $curY, true, 0, 0, true, $this->tab_hl * 2, 'M', false);
 					$pdf->MultiCell($largCol, $this->tab_hl * 2, pdf_InfraSPlus_price($object, $marge, $outputlangs, 0, 0, 'T'), '', 'C', 0, 1, $this->marge_gauche + ($largCol * 2), $curY, true, 0, 0, true, $this->tab_hl * 2, 'M', false);
@@ -647,11 +403,9 @@
 					$nbLines			= 0;
 					$previdofelement	= 0;
 					foreach ($listofreferent as $key => $referent) {
-						if (! $referent['test'] || ! $referent['list1']) {
-							continue;
-						}
+						if (! $referent['test'] || ! $referent['list1'])	continue;
 						$listKeyOk[]										= $key;
-						$element											= new $referent['class']($this->db);
+						$element											= new $referent['class']($db);
 						$elementarray										= $object->get_element_list($key, $referent['table'], $referent['datefieldname'], $dates, $datee, !empty($referent['fk_projet']) ? $referent['fk_projet'] : 'fk_projet');
 						$num												= count($elementarray);
 						if (is_array($elementarray) && $num > 0) {
@@ -663,45 +417,31 @@
 							for ($i = 0; $i < $num; $i ++) {
 								$idofelement	= $elementarray[$i];
 								if ($referent['class'] == 'ExpenseReport') {	// We get id of expense report
-									$expensereportline						= new ExpenseReportLine($this->db);
+									$expensereportline						= new ExpenseReportLine($db);
 									$expensereportline->fetch($idofelement);
 									$idofelement							= $expensereportline->fk_expensereport;
-									if ($idofelement == $previdofelement) {
-										continue;
-									}
+									if ($idofelement == $previdofelement)	continue;
 									$previdofelement						= $expensereportline->fk_expensereport;
 								}
 								$element->fetch($idofelement);
 								$qualifiedfortotal	= true;
 								if ($key == 'invoice') {
-									if ($element->close_code == 'replaced') {
-										$qualifiedfortotal	= false;	// Replacement invoice
-									}
-									if (!empty($this->deposit_are_payment) && $element->type == Facture::TYPE_DEPOSIT) {
-										$qualifiedfortotal	= false;	// If hidden option to use deposits as payment deposits are not included
-									}
+									if ($element->close_code == 'replaced')												$qualifiedfortotal	= false;	// Replacement invoice
+									if (!empty($this->deposit_are_payment) && $element->type == Facture::TYPE_DEPOSIT) $qualifiedfortotal	= false;	// If hidden option to use deposits as payment deposits are not included
 								}
 								if ($key == 'propal')
-									if ($element->statut == Propal::STATUS_NOTSIGNED) {
-										$qualifiedfortotal	= false;	// Refused proposal must not be included in total
-									}
+									if ($element->statut == Propal::STATUS_NOTSIGNED)	$qualifiedfortotal	= false;	// Refused proposal must not be included in total
 								// Define $total_ht_by_line
-								if ($referent['table'] == 'fichinter') {
-									$total_ht_by_line	= $element->getAmount();
-								} elseif ($referent['table'] == 'projet_task') {
+								if ($referent['table'] == 'fichinter')	$total_ht_by_line	= $element->getAmount();
+								elseif ($referent['table'] == 'projet_task') {
 									$tmp				= $element->getSumOfAmount('', $dates, $datee);
 									$total_ht_by_line	= price2num($tmp['amount'], 'MT');
-								} else {
-									$total_ht_by_line	= $element->total_ht;
 								}
+								else	$total_ht_by_line						= $element->total_ht;
 								// Define $total_ttc_by_line
-								if ($referent['table'] == 'fichinter') {
-									$total_ttc_by_line	= $element->getAmount();
-								} elseif ($referent['table'] == 'projet_task') {
-									$total_ttc_by_line	= price2num($total_ht_by_line, 'MT');
-								} else {
-									$total_ttc_by_line	= $element->total_ttc;
-								}
+								if ($referent['table'] == 'fichinter')			$total_ttc_by_line	= $element->getAmount();
+								elseif ($referent['table'] == 'projet_task')	$total_ttc_by_line	= price2num($total_ht_by_line, 'MT');
+								else	$total_ttc_by_line						= $element->total_ttc;
 								if ($qualifiedfortotal) {
 									$name[$key]			= $referent['name'];
 									$total_ht[$key]		+= $sign * $total_ht_by_line;
@@ -716,37 +456,25 @@
 					$nexY 							+= $this->tab_hl;
 					$tab_height						= $this->ht_top_table * ($nbLines + 2);
 					$curY							= $nexY;
-					if (!empty($this->title_bg)) {
-						$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
-					} else if ($this->showtblline) {
-						$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-					}
-					if ($this->showtblline) {
-						$pdf->RoundedRect($this->marge_gauche, $curY + $this->ht_top_table + $this->bgLineW, $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $this->bgLineW), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-					} else {
-						$pdf->line($this->marge_gauche, $curY + $tab_height, $this->marge_gauche + $this->larg_util_cadre, $curY + $tab_height, $this->horLineStyle);
-					}
+					if (!empty($this->title_bg))	$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
+					else if ($this->showtblline)	$pdf->RoundedRect($this->marge_gauche, $curY, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					if ($this->showtblline)			$pdf->RoundedRect($this->marge_gauche, $curY + $this->ht_top_table + $this->bgLineW, $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $this->bgLineW), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					else							$pdf->line($this->marge_gauche, $curY + $tab_height, $this->marge_gauche + $this->larg_util_cadre, $curY + $tab_height, $this->horLineStyle);
 					if ($this->showtblline) {
 						// Colonnes
-						if ($this->posxcol4 > $this->posxcol3) {
-							$pdf->line($this->posxcol4,	$curY, $this->posxcol4,	$curY + $tab_height, $this->tblLineStyle);
-						}
-						if ($this->posxcol5 > $this->posxcol4) {
-							$pdf->line($this->posxcol5,	$curY, $this->posxcol5,	$curY + $tab_height, $this->tblLineStyle);
-						}
-						if ($this->posxcol6 > $this->posxcol5) {
-							$pdf->line($this->posxcol6,	$curY, $this->posxcol6,	$curY + $tab_height, $this->tblLineStyle);
-						}
+						if ($this->posxcol4 > $this->posxcol3)	$pdf->line($this->posxcol4,	$curY, $this->posxcol4,	$curY + $tab_height, $this->tblLineStyle);
+						if ($this->posxcol5 > $this->posxcol4)	$pdf->line($this->posxcol5,	$curY, $this->posxcol5,	$curY + $tab_height, $this->tblLineStyle);
+						if ($this->posxcol6 > $this->posxcol5)	$pdf->line($this->posxcol6,	$curY, $this->posxcol6,	$curY + $tab_height, $this->tblLineStyle);
 					}
 					// En-tête tableau
 					$totalLarg	= $this->tableau['ref']['larg'] + $this->tableau['date']['larg'] + $this->tableau['tiers']['larg'];
-					!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 					$pdf->MultiCell($totalLarg, $this->ht_top_table, $outputlangs->transnoentities("element"), '', 'C', 0, 1, $this->tableau['ref']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['totalht']['larg'], $this->ht_top_table, $outputlangs->transnoentities("AmountHTShort"), '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['totalttc']['larg'], $this->ht_top_table, $outputlangs->transnoentities("AmountTTCShort"), '', 'R', 0, 1, $this->tableau['totalttc']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['status']['larg'], $this->ht_top_table, $outputlangs->transnoentities("Nombre"), '', 'C', 0, 1, $this->tableau['status']['posx'], $curY, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->SetFont('', '', $default_font_size - 1);
-					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 					$totalHT	= 0;
 					$totalTTC	= 0;
 					foreach ($listKeyOk as $keyOk) {
@@ -769,10 +497,8 @@
 					// Loop on each tables
 					$previdofelement	= 0;
 					foreach ($listofreferent as $key => $referent) {
-						if (! $referent['test'] || ! $referent['list2']) {
-							continue;
-						}
-						$element		= new $referent['class']($this->db);
+						if (! $referent['test'] || ! $referent['list2'])	continue;
+						$element		= new $referent['class']($db);
 						$elementarray	= $object->get_element_list($key, $referent['table'], $referent['datefieldname'], $dates, $datee, !empty($referent['fk_projet']) ? $referent['fk_projet'] : 'fk_projet');
 						$num			= count($elementarray);
 						if ($num >= 0) {
@@ -788,43 +514,30 @@
 								for ($i = 0; $i < $num; $i ++) {
 									$curY								= $nexY;
 									$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-									$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
-									if (empty($this->hide_top_table)) {
-										$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
-									} else {
-										$pdf->setTopMargin($tab_top_newpage);
-									}
+									$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+									if (empty($this->hide_top_table))	$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
+									else								$pdf->setTopMargin($tab_top_newpage);
 									$pdf->setPageOrientation('', 1, $heightforfooter);	// Edit the bottom margin of current page to set it.
 									$pageposbefore						= $pdf->getPage();
 									$showpricebeforepagebreak			= 1;
 									$idofelement						= $elementarray[$i];
 									if ($referent['class'] == 'ExpenseReport') {	// We get id of expense report
-										$expensereportline						= new ExpenseReportLine($this->db);
+										$expensereportline						= new ExpenseReportLine($db);
 										$expensereportline->fetch($idofelement);
 										$idofelement							= $expensereportline->fk_expensereport;
-										if ($idofelement == $previdofelement) {
-											continue;
-										}
+										if ($idofelement == $previdofelement)	continue;
 										$previdofelement						= $expensereportline->fk_expensereport;
 										$nbExpRep++;
 									}
 									$element->fetch($idofelement);
-									if (method_exists($element, 'fetch_thirdparty')) {
-										$element->fetch_thirdparty();
-									}
+									if (method_exists($element, 'fetch_thirdparty'))	$element->fetch_thirdparty();
 									$qualifiedfortotal									= true;
 									if ($key == 'invoice') {
-										if ($element->close_code == 'replaced') {
-											$qualifiedfortotal	= false;	// Replacement invoice
-										}
-										if (!empty($this->deposit_are_payment) && $element->type == Facture::TYPE_DEPOSIT) {
-											$qualifiedfortotal	= false;	// If hidden option to use deposits as payment deposits are not included
-										}
+										if ($element->close_code == 'replaced')												$qualifiedfortotal	= false;	// Replacement invoice
+										if (!empty($this->deposit_are_payment) && $element->type == Facture::TYPE_DEPOSIT) $qualifiedfortotal	= false;	// If hidden option to use deposits as payment deposits are not included
 									}
 									if ($key == 'propal')
-										if ($element->statut == Propal::STATUS_NOTSIGNED) {
-											$qualifiedfortotal	= false;	// Refused proposal must not be included in total
-										}
+										if ($element->statut == Propal::STATUS_NOTSIGNED)	$qualifiedfortotal	= false;	// Refused proposal must not be included in total
 									// label
 									$pageposdesc	= $pdf->getPage();
 									$pdf->MultiCell($this->tableau['ref']['larg'], $this->heightline, $element->ref, '', 'L', 0, 1, $this->tableau['ref']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
@@ -836,9 +549,8 @@
 												$pdf->AddPage('', '', true);
 												$pdf->setPage($pageposafter + 1);
 											}
-										} else {
-											$showpricebeforepagebreak	= 0;
 										}
+										else	$showpricebeforepagebreak	= 0;
 									}
 									elseif ($posyafter > ($this->page_hauteur - $heightforfooter)) {	// There is no space left for total + page foot
 										if ($i == ($num - 1)) {	// No more lines, and no space left to show total, so we create a new page
@@ -855,77 +567,56 @@
 										if ($curY > ($this->page_hauteur - $heightforfooter - $this->tab_hl)) {
 											$pdf->setPage($pageposafter);
 											$curY	= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
-										} else {
-											$pdf->setPage($pageposdesc);
 										}
+										else	$pdf->setPage($pageposdesc);
 									}
 									$pdf->SetFont('', '', $default_font_size - 1);	// On repositionne la police par defaut
 									// Date
-									if ($referent['table'] == 'commande_fournisseur' || $referent['table'] == 'supplier_order') {
-										$date = $element->date_commande;
-									} else {
-										$date	= $element->date;
-										if (empty($date)) {
-											$date	= $element->datep;
-										}
-										if (empty($date)) {
-											$date	= $element->date_contrat;
-										}
-										if (empty($date)) {
-											$date	= $element->datev; // Fiche inter
-										}
-										if (empty($date)) {
-											$date	= $element->date_create; // Expense report
-										}
+									if ($referent['table'] == 'commande_fournisseur' || $referent['table'] == 'supplier_order')	$date = $element->date_commande;
+									else {
+										$date				= $element->date;
+										if (empty($date))	$date	= $element->datep;
+										if (empty($date))	$date	= $element->date_contrat;
+										if (empty($date))	$date	= $element->datev; // Fiche inter
+										if (empty($date))	$date	= $element->date_create; // Expense report
 									}
 									$date	= $referent['table'] == 'projet_task' ? convertSecondToTime($element->duration_effective, 'allhourmin') : dol_print_date($date, 'day');
 									$pdf->MultiCell($this->tableau['date']['larg'], $this->heightline, $date, '', 'C', 0, 1, $this->tableau['date']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
 									// Name
 									if ($referent['class'] == 'ExpenseReport') {
-										$fuser		= new User($this->db);
+										$fuser		= new User($db);
 										$fuser->fetch($element->fk_user_author);
 										$txtName	= $fuser->getFullName($outputlangs);
-									} else {
-										$txtName	= $referent['table'] == 'projet_task' ? $element->label : (is_object($element->thirdparty) ? $element->thirdparty->name : '');
 									}
+									else	$txtName	= $referent['table'] == 'projet_task' ? $element->label : (is_object($element->thirdparty) ? $element->thirdparty->name : '');
 									$pdf->MultiCell($this->tableau['tiers']['larg'], $this->heightline, $txtName, '', 'C', 0, 1, $this->tableau['tiers']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
 									// Amount without tax
 									if (empty($referent['disableamount'])) {
 										// Define $total_ht_by_line
-										if ($referent['table'] == 'fichinter') {
-											$total_ht_by_line	= $element->getAmount();
-										} elseif ($referent['table'] == 'projet_task') {
+										if ($referent['table'] == 'fichinter')	$total_ht_by_line	= $element->getAmount();
+										elseif ($referent['table'] == 'projet_task') {
 											$tmp				= $element->getSumOfAmount('', $dates, $datee);
 											$total_ht_by_line	= price2num($tmp['amount'], 'MT');
-										} else {
-											$total_ht_by_line	= $element->total_ht;
 										}
+										else	$total_ht_by_line						= $element->total_ht;
 										// Define $total_ttc_by_line
-										if ($referent['table'] == 'fichinter') {
-											$total_ttc_by_line	= $element->getAmount();
-										} elseif ($referent['table'] == 'projet_task') {
-											$total_ttc_by_line	= price2num($total_ht_by_line, 'MT');
-										} else {
-											$total_ttc_by_line	= $element->total_ttc;
-										}
+										if ($referent['table'] == 'fichinter')			$total_ttc_by_line	= $element->getAmount();
+										elseif ($referent['table'] == 'projet_task')	$total_ttc_by_line	= price2num($total_ht_by_line, 'MT');
+										else	$total_ttc_by_line						= $element->total_ttc;
 										$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, (isset($total_ht_by_line) ? price($total_ht_by_line) : ''), '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
 										$pdf->MultiCell($this->tableau['totalttc']['larg'], $this->heightline, (isset($total_ttc_by_line) ? price($total_ttc_by_line) : ''), '', 'R', 0, 1, $this->tableau['totalttc']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
-									} else {
+									}
+									else {
 										if ($key == 'agenda') {
 											$textforamount	= dol_trunc($element->label, 26);
 											$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $textforamount, '', 'L', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
-										} else {
-											$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, '', '', 'L', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
 										}
+										else	$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, '', '', 'L', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, true, $this->heightline, 'M', false);
 									}
 									// Status
-									if ($element instanceof CommonInvoice) {
-										$outputstatut	= $element->getLibStatut(1, $element->getSommePaiement());	// This applies for Facture and FactureFournisseur
-									} elseif ($element instanceof ndfp) {
-										$outputstatut	= $element->get_lib_statut(1);
-									} else {
-										$outputstatut	= $element->getLibStatut(1);
-									}
+									if ($element instanceof CommonInvoice)	$outputstatut	= $element->getLibStatut(1, $element->getSommePaiement());	// This applies for Facture and FactureFournisseur
+									elseif ($element instanceof ndfp)		$outputstatut	= $element->get_lib_statut(1);
+									else									$outputstatut	= $element->getLibStatut(1);
 									$pdf->MultiCell($this->tableau['status']['larg'], $this->heightline, $outputstatut, '', 'R', 0, 1, $this->tableau['status']['posx'], $curY, true, 0, true, true, $this->heightline, 'M', false);
 									if ($qualifiedfortotal) {
 										$total_ht	+= $total_ht_by_line;
@@ -936,9 +627,8 @@
 										$pdf->setPage($pageposafter);
 										$pdf->line($this->marge_gauche, $nexY + 1, $this->page_largeur - $this->marge_droite, $nexY + 1, $this->horLineStyle);
 										$nexY	+= 2;
-									} else {
-										$nexY	+= $this->lineSep_hight;
 									}
+									else	$nexY	+= $this->lineSep_hight;
 								}
 								if (empty($referent['disableamount'])) {
 									$curY		= $nexY;
@@ -975,35 +665,16 @@
 								$pagenb++;
 								$pdf->setPage($pagenb);
 								$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-								// Save auto-break content so watermark goes behind it (z-order fix)
-								$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-								if (empty($watermarkedPages[$pagenb])) {
-									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
-									$watermarkedPages[$pdf->getPage()] = true;
-								}
-								if (empty($this->small_head2)) {
-									$this->_pagehead($pdf, $object, 0, $outputlangs);
-								} else {
-									$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
-								}
-								// Restore auto-break content after watermark/header
-								if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
-									$pdf->dropPageContent($savedContent);
-								}
-								// Restore grayscale FillColor after _pagehead to keep ColorFlag true
-								$pdf->SetFillColor(255);
-								$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								if (empty($this->small_head2))	$this->_pagehead($pdf, $object, 0, $outputlangs);
+								else							$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
 						}
 					}
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
-					if (method_exists($pdf, 'AliasNbPages')) {
-						$pdf->AliasNbPages();
-					}
+					if (method_exists($pdf, 'AliasNbPages'))	$pdf->AliasNbPages();
 					// if merge files is active
-					if (!empty($this->files)) {
-						pdf_InfraSPlus_files($pdf, $this->files, $this->hidepagenum, $object, $outputlangs, $this->formatpage);
-					}
+					if (!empty($this->files))					pdf_InfraSPlus_files($pdf, $this->files, $this->hidepagenum, $object, $outputlangs, $this->formatpage);
 					$pdf->Close();
 					$pdf->Output($file, 'F');
 					// Add pdfgeneration hook
@@ -1015,16 +686,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask)) {
-						@chmod($file, octdec($this->main_umask));
-					}
+					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				} else {
+				}
+				else {
 					$this->error=$outputlangs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			} else {
+			}
+			else {
 				$this->error=$outputlangs->trans('ErrorConstantNotDefined','PROJECT_OUTPUTDIR');
 				return 0;
 			}
@@ -1033,11 +704,11 @@
 		/**
 		*	Show top header of page.
 		*
-		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		object		$object			Object to show
+		*	@param		PDF			$pdf			Object PDF
+		*	@param		Object		$object		Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= height of header
+		*	@return		array		$hauteurhead	'totalhead'		= hight of header
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
@@ -1049,11 +720,11 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												$this->header_after_addr, $this->title_size, $this->titlekey, $this->ref_from_cust, $this->datesbold, $this->dates_br, $this->show_num_cli, $this->num_cli_frm,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, $this->add_creator_in_header, $this->use_iso_location, $this->adr, $this->typeadr, $this->adrlivr, $this->Rounded_rect,
-												$this->customerAddrSelect, -2, -2, '', 0, [], '', -2, 0, 0, 0, 0);
+												$this->customerAddrSelect, -2, -2, '', 0, array(), '', -2, 0, 0, 0, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
+			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
 			$w					= $this->header_align_left ? 92 - $this->decal_round : 100;
 			$align				= $this->header_align_left ? 'L' : 'R';
@@ -1073,7 +744,7 @@
 				$txtref .= ' - '.$outputlangs->transnoentities("NotValidated");
 			}
 			$pdf->MultiCell($w, $this->tab_hl, $txtref, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
-			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
+			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
 			$pdf->SetFont('', ($this->datesbold ? 'B' : ''), $default_font_size - 2);
 			$posy	+= $this->tab_hl;
 			$txtdtS	= $outputlangs->transnoentities("DateStart").' : '.dol_print_date($object->date_start, "day", false, $outputlangs, true);
@@ -1084,7 +755,7 @@
 			$pdf->SetFont('', '', $default_font_size - 2);
 			if (is_object($object->thirdparty)) {
 				$posy	+= $this->tab_hl;
-				$pdf->MultiCell($w, $this->tab_hl, $outputlangs->transnoentities("ThirdParty").' : '.pdf_InfraSPlus_Build_Third_party_Name($object->thirdparty, $outputlangs, $this->include_alias), '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
+				$pdf->MultiCell($w, $this->tab_hl, $outputlangs->transnoentities("ThirdParty").' : '.$object->thirdparty->getFullName($outputlangs), '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			}
 			$posy	+= $this->tab_hl;
 			$pdf->SetFont('', 'B', $default_font_size * $this->title_size);
@@ -1097,8 +768,8 @@
 		/**
 		*	Show top small header of page.
 		*
-		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		object		$object			Object to show
+		*	@param		PDF			$pdf			Object PDF
+		*	@param		Object		$object		Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		void
@@ -1115,8 +786,8 @@
 		/**
 		*	Show table for lines
 		*
-		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		object		$object			Object to show
+		*	@param		PDF			$pdf			Object PDF
+		*	@param		Object		$object		Object to show
 		*	@param		string		$tab_top		Top position of table
 		*	@param		string		$tab_height		Height of table (rectangle)
 		*	@param		Translate	$outputlangs	Langs object
@@ -1130,53 +801,33 @@
 
 			// Force to disable hidetop and hidebottom
 			$hidebottom				= 0;
-			if (!empty($hidetop)) {
-				$hidetop	= -1;
-			}
+			if (!empty($hidetop))	$hidetop	= -1;
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size - 1);
 			$pdf->setPage($pagenb);
 			// Output Rounded Rectangle
 			if (empty($hidetop) || $pagenb == 1) {
 				$pdf->MultiCell($this->larg_util_txt, $this->tab_hl, $outputlangs->transnoentities($referent['title']), '', 'L', 0, 1, $this->posx_G_txt, $tab_top - $this->tab_hl, true, 0, 0, true, $this->tab_hl, 'M', false);
 				// Table header
-				if (!empty($this->title_bg)) {
-					$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
-				} else if (!empty($this->showtblline)) {
-					$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-				}
+				if (!empty($this->title_bg))			$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
+				else if (!empty($this->showtblline))	$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
 				// Table frame
-				if (!empty($this->showtblline)) {
-					$pdf->RoundedRect($this->marge_gauche, $tab_top + $this->ht_top_table + $this->bgLineW, $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $this->bgLineW), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-				} else {
-					$pdf->line($this->marge_gauche, $tab_top + $tab_height, $this->marge_gauche + $this->larg_util_cadre, $tab_top + $tab_height, $this->horLineStyle);
-				}
+				if (!empty($this->showtblline))			$pdf->RoundedRect($this->marge_gauche, $tab_top + $this->ht_top_table + $this->bgLineW, $this->larg_util_cadre, $tab_height - ($this->ht_top_table + $this->bgLineW), $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+				else									$pdf->line($this->marge_gauche, $tab_top + $tab_height, $this->marge_gauche + $this->larg_util_cadre, $tab_top + $tab_height, $this->horLineStyle);
 			}
 			else
-				if ($this->showtblline) {
-					$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $tab_height, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
-				}
+				if ($this->showtblline)	$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $tab_height, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
 			if (!empty($this->showverline)) {
 				// Colonnes
-				if ($this->posxcol2 > $this->posxcol1 && $this->posxcol2 < ($this->marge_gauche + $this->larg_util_cadre)) {
-					$pdf->line($this->posxcol2, $tab_top, $this->posxcol2,	$tab_top + $tab_height, $this->verLineStyle);
-				}
-				if ($this->posxcol3 > $this->posxcol2 && $this->posxcol3 < ($this->marge_gauche + $this->larg_util_cadre)) {
-					$pdf->line($this->posxcol3, $tab_top, $this->posxcol3,	$tab_top + $tab_height, $this->verLineStyle);
-				}
-				if ($this->posxcol4 > $this->posxcol3 && $this->posxcol4 < ($this->marge_gauche + $this->larg_util_cadre)) {
-					$pdf->line($this->posxcol4, $tab_top, $this->posxcol4,	$tab_top + $tab_height, $this->verLineStyle);
-				}
-				if ($this->posxcol5 > $this->posxcol4 && $this->posxcol5 < ($this->marge_gauche + $this->larg_util_cadre)) {
-					$pdf->line($this->posxcol5, $tab_top, $this->posxcol5,	$tab_top + $tab_height, $this->verLineStyle);
-				}
-				if ($this->posxcol6 > $this->posxcol5 && $this->posxcol6 < ($this->marge_gauche + $this->larg_util_cadre)) {
-					$pdf->line($this->posxcol6, $tab_top, $this->posxcol6,	$tab_top + $tab_height, $this->verLineStyle);
-				}
+				if ($this->posxcol2 > $this->posxcol1 && $this->posxcol2 < ($this->marge_gauche + $this->larg_util_cadre))		$pdf->line($this->posxcol2,		$tab_top, $this->posxcol2,	$tab_top + $tab_height, $this->verLineStyle);
+				if ($this->posxcol3 > $this->posxcol2 && $this->posxcol3 < ($this->marge_gauche + $this->larg_util_cadre))		$pdf->line($this->posxcol3,		$tab_top, $this->posxcol3,	$tab_top + $tab_height, $this->verLineStyle);
+				if ($this->posxcol4 > $this->posxcol3 && $this->posxcol4 < ($this->marge_gauche + $this->larg_util_cadre))		$pdf->line($this->posxcol4,		$tab_top, $this->posxcol4,	$tab_top + $tab_height, $this->verLineStyle);
+				if ($this->posxcol5 > $this->posxcol4 && $this->posxcol5 < ($this->marge_gauche + $this->larg_util_cadre))		$pdf->line($this->posxcol5,		$tab_top, $this->posxcol5,	$tab_top + $tab_height, $this->verLineStyle);
+				if ($this->posxcol6 > $this->posxcol5 && $this->posxcol6 < ($this->marge_gauche + $this->larg_util_cadre))		$pdf->line($this->posxcol6,		$tab_top, $this->posxcol6,	$tab_top + $tab_height, $this->verLineStyle);
 			}
 			// En-tête tableau
-			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 			if (empty($hidetop) || $pagenb == 1) {
 				$pdf->MultiCell($this->tableau['ref']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Ref'), '', 'C', 0, 1, $this->tableau['ref']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 				$pdf->MultiCell($this->tableau['date']['larg'], $this->ht_top_table, $outputlangs->transnoentities(($referent['table'] == 'projet_task' ? 'Time' : 'Date')), '', 'C', 0, 1, $this->tableau['date']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
@@ -1184,9 +835,8 @@
 				if (empty($referent['disableamount'])) {
 					$pdf->MultiCell($this->tableau['totalht']['larg'], $this->ht_top_table, $outputlangs->transnoentities("AmountHTShort"), '', 'R', 0, 1, $this->tableau['totalht']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['totalttc']['larg'], $this->ht_top_table, $outputlangs->transnoentities("AmountTTCShort"), '', 'R', 0, 1, $this->tableau['totalttc']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
-				} else {
-					$pdf->MultiCell($this->tableau['totalht']['larg'], $this->ht_top_table, '', '', 'R', 0, 1, $this->tableau['totalht']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 				}
+				else	$pdf->MultiCell($this->tableau['totalht']['larg'], $this->ht_top_table, '', '', 'R', 0, 1, $this->tableau['totalht']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 				$pdf->MultiCell($this->tableau['status']['larg'], $this->ht_top_table, $outputlangs->transnoentities("Status"), '', 'C', 0, 1, $this->tableau['status']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 			}
 		}
@@ -1194,8 +844,8 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		TCPDF		$pdf			The PDF factory
-		*	@param		object		$object				Object shown in PDF
+		*	@param		PDF			$pdf			The PDF factory
+		*	@param		Object		$object			Object shown in PDF
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text

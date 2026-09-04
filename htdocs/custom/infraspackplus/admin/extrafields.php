@@ -27,13 +27,13 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
 	// Translations *********************************
@@ -130,7 +130,7 @@
 		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
 	// Update buttons management
-	$errors	= [];
+	$errors	= array();
 	if (preg_match('/update_(.*)/', $action, $reg)) {
 		$list		= array('EXF'	=> array('INFRASPLUS_PDF_EXF_PAY_SPEC', 'INFRASPLUS_PDF_EXF_DEPOSIT', 'INFRASPLUS_PDF_EXF_ECOTAX', 'INFRASPLUS_PDF_EXF_PROPALPROV'));
 		$listcolor	= array('EXF'	=> array('INFRASPLUS_PDF_EXF_VALUE_TEXT_COLOR', 'INFRASPLUS_PDF_EXFL_VALUE_TEXT_COLOR'));
@@ -140,10 +140,10 @@
 			if ($constname == 'INFRASPLUS_PDF_EXF_PAY_SPEC') {
 				// Paiements spéciaux
 				$oldListPaySpec	= getDolGlobalString('INFRASPLUS_PDF_EXF_PAY_SPEC', '');
-				$oldListPaySpec	= !empty($oldListPaySpec) ? explode(',', $oldListPaySpec) : [];
+				$oldListPaySpec	= !empty($oldListPaySpec) ? explode(',', $oldListPaySpec) : array();
 				if (!empty($constvalue)) {
 					$listPaySpec	= explode(',', preg_replace('/(\s*,?\s*)*$/', '', $constvalue));	// clean the string from the last comma
-					$newListPaySpec	= [];
+					$newListPaySpec	= array();
 					// Contrôle du code utilisé pour l'attribut (longueur, caractères spéciaux, etc...)
 					foreach ($listPaySpec as $paySpec) {
 						if (infraspackplus_check_extf_name ($paySpec) < 0) {
@@ -231,7 +231,7 @@
 		if (!empty($listPaySpec)) {
 			$listPaySpec	= explode(',', $listPaySpec);
 			if ($action == 'setExfPaySpec') {
-				$listExfPaySpec	= [];
+				$listExfPaySpec	= array();
 				foreach ($listPaySpec as $paySpec) {
 					$resPaySpec	= infraspackplus_search_extf (0, $paySpec, '', $langs->trans('InfraSPlusParamLabelExfPaySpec',  strtoupper($paySpec)), array('facture'), $listParamsExfPrice);	// check => 0 nothing found, 1 found
 					if (!empty($resPaySpec)) {
@@ -246,7 +246,7 @@
 					}
 				}
 			} else {	// $action == 'setDictPaySpec'
-				$listDictPaySpec	= [];
+				$listDictPaySpec	= array();
 				foreach ($listPaySpec as $paySpec) {
 					$resPaySpec	= getDictionaryValue($db->prefix().'c_paiement', 'code', strtoupper($paySpec), true, 'code');
 					if (!empty($resPaySpec)) {
@@ -291,8 +291,8 @@
 	$listPaySpec	= getDolGlobalString('INFRASPLUS_PDF_EXF_PAY_SPEC', '');
 	if (!empty($listPaySpec)) {
 		$listPaySpec		= explode(',', $listPaySpec);
-		$listExfPaySpec		= [];
-		$listDictPaySpec	= [];
+		$listExfPaySpec		= array();
+		$listDictPaySpec	= array();
 		foreach ($listPaySpec as $paySpec) {
 			$resPaySpec	= infraspackplus_search_extf (0, $paySpec, '', $langs->trans('InfraSPlusParamLabelExfPaySpec',  strtoupper($paySpec)), array('facture'), $listParamsExfPrice);	// check => 0 nothing found, 1 found
 			if (!empty($resPaySpec)) {
@@ -359,7 +359,7 @@
 		infraspackplus_print_backup_restore();
 	}
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamExtraFieldsSetup').'</span>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "noborder centpercent">';
+	print '			<table class = "infrasplusnoborder centpercent">';
 	$metas	= array('30px', '*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -369,10 +369,10 @@
 		infraspackplus_print_btn_action('EXF', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 3);
 		$metas				= colorArrayToHex(explode(',', getDolGlobalString('INFRASPLUS_PDF_EXF_VALUE_TEXT_COLOR', '')));
 		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_VALUE_TEXT_COLOR', 'color', $langs->trans('InfraSPlusParamEXFValueTextColor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_EXF_VALUE_TEXT_COLOR', '')), '', $metas, 1, 1, '', $num);
-		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_PAY_SPEC', 'input', $descPaySpec, '', [], 1, 1, '', $num);
-		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_DEPOSIT', 'input', $descDeposit, '', [], 1, 1, '', $num);
-		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_ECOTAX', 'input', $descEcoTax, '', [], 1, 1, '', $num);
-		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_PROPALPROV', 'input', $descPropalProv, '', [], 1, 1, '', $num);
+		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_PAY_SPEC', 'input', $descPaySpec, '', array(), 1, 1, '', $num);
+		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_DEPOSIT', 'input', $descDeposit, '', array(), 1, 1, '', $num);
+		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_ECOTAX', 'input', $descEcoTax, '', array(), 1, 1, '', $num);
+		$num				= infraspackplus_print_input('INFRASPLUS_PDF_EXF_PROPALPROV', 'input', $descPropalProv, '', array(), 1, 1, '', $num);
 		// $num = 6
 		$showExfBulleted	= 0;
 		foreach ($listExfNotes as $exfNote) {
@@ -382,36 +382,36 @@
 			}
 		}
 		if (!empty($showExfBulleted)) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_BULLETED', 'on_off', $langs->trans('InfraSPlusParamEXFBulleted'), '', [], 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_BULLETED', 'on_off', $langs->trans('InfraSPlusParamEXFBulleted'), '', array(), 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		infraspackplus_print_hr(3);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_D', 'on_off', $langs->trans('InfraSPlusParamEXFD'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_C', 'on_off', $langs->trans('InfraSPlusParamEXFC'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_CT', 'on_off', $langs->trans('InfraSPlusParamEXFCT'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_FI', 'on_off', $langs->trans('InfraSPlusParamEXFFI'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_E', 'on_off', $langs->trans('InfraSPlusParamEXFE'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_F', 'on_off', $langs->trans('InfraSPlusParamEXFF'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_MRP', 'on_off', $langs->trans('InfraSPlusParamEXFMRP'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_B', 'on_off', $langs->trans('InfraSPlusParamEXFB'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_DF', 'on_off', $langs->trans('InfraSPlusParamEXFDF'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_CF', 'on_off', $langs->trans('InfraSPlusParamEXFCF'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_FF', 'on_off', $langs->trans('InfraSPlusParamEXFFF'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_D', 'on_off', $langs->trans('InfraSPlusParamEXFD'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_C', 'on_off', $langs->trans('InfraSPlusParamEXFC'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_CT', 'on_off', $langs->trans('InfraSPlusParamEXFCT'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_FI', 'on_off', $langs->trans('InfraSPlusParamEXFFI'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_E', 'on_off', $langs->trans('InfraSPlusParamEXFE'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_F', 'on_off', $langs->trans('InfraSPlusParamEXFF'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_MRP', 'on_off', $langs->trans('InfraSPlusParamEXFMRP'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_B', 'on_off', $langs->trans('InfraSPlusParamEXFB'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_DF', 'on_off', $langs->trans('InfraSPlusParamEXFDF'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_CF', 'on_off', $langs->trans('InfraSPlusParamEXFCF'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXF_FF', 'on_off', $langs->trans('InfraSPlusParamEXFFF'), '', array(), 1, 1, '', $num);
 		// $num = 18
 		infraspackplus_print_hr(3);
 		$metas	= colorArrayToHex(explode(',', getDolGlobalString('INFRASPLUS_PDF_EXFL_VALUE_TEXT_COLOR', '')));
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_VALUE_TEXT_COLOR', 'color', $langs->trans('InfraSPlusParamEXFLValueTextcolor').' '.$langs->trans('InfraSPlusParamActualRVB', getDolGlobalString('INFRASPLUS_PDF_EXFL_VALUE_TEXT_COLOR', '')), '', $metas, 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_D', 'on_off', $langs->trans('InfraSPlusParamEXFLD'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_C', 'on_off', $langs->trans('InfraSPlusParamEXFLC'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_CT', 'on_off', $langs->trans('InfraSPlusParamEXFLCT'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_FI', 'on_off', $langs->trans('InfraSPlusParamEXFLFI'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_E', 'on_off', $langs->trans('InfraSPlusParamEXFLE'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_F', 'on_off', $langs->trans('InfraSPlusParamEXFLF'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_B', 'on_off', $langs->trans('InfraSPlusParamEXFLB'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_DF', 'on_off', $langs->trans('InfraSPlusParamEXFLDF'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_CF', 'on_off', $langs->trans('InfraSPlusParamEXFLCF'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_FF', 'on_off', $langs->trans('InfraSPlusParamEXFLFF'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_D', 'on_off', $langs->trans('InfraSPlusParamEXFLD'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_C', 'on_off', $langs->trans('InfraSPlusParamEXFLC'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_CT', 'on_off', $langs->trans('InfraSPlusParamEXFLCT'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_FI', 'on_off', $langs->trans('InfraSPlusParamEXFLFI'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_E', 'on_off', $langs->trans('InfraSPlusParamEXFLE'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_F', 'on_off', $langs->trans('InfraSPlusParamEXFLF'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_B', 'on_off', $langs->trans('InfraSPlusParamEXFLB'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_DF', 'on_off', $langs->trans('InfraSPlusParamEXFLDF'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_CF', 'on_off', $langs->trans('InfraSPlusParamEXFLCF'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_EXFL_FF', 'on_off', $langs->trans('InfraSPlusParamEXFLFF'), '', array(), 1, 1, '', $num);
 		// $num = 29
 	}
 	print '			</table>

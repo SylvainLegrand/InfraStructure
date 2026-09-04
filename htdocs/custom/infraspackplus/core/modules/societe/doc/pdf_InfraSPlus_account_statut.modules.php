@@ -25,17 +25,17 @@
 	************************************************/
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/class/commondocgenerator.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/commondocgenerator.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
-	if (isModEnabled('multicompany')) {
+	if ($conf->multicompany->enabled) {
 		dol_include_once('/multicompany/class/dao_multicompany.class.php');
 	}
 
@@ -47,25 +47,26 @@
 		public $db;
 		public $name;
 		public $description;
+		public $export_type;
+		public $factCodeExf;
+		public $orderby;
 		public $titlekey;
 		public $defaulttemplate;
+		public $exportparameters;
 		public $draft_watermark;
 		public $option_logo;
 		public $option_tva;
 		public $option_modereg;
 		public $option_condreg;
 		public $option_multilang;
+		public $option_escompte;
+		public $option_credit_note;
 		public $option_freetext;
 		public $option_draft_watermark;
 		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
 		public $type;
+		public $phpmin = array(7, 4);
 		public $emetteur;
-		public $atleastonediscount;
-		public $tva;
-		public $tva_array;
-		public $localtax1;
-		public $localtax2;
-		public $atleastoneratenotnull;
 		public $use_fpdf;
 		public $main_umask;
 		public $page_largeur;
@@ -78,21 +79,11 @@
 		public $formatpage;
 		public $use_iso_location;
 		public $dash_between_line;
-		public $product_use_unit;
-		public $hide_vat_ifnull;
-		public $vat_label_code_or_rate;
-		public $chq_num;
-		public $diffsize_title;
-		public $hidechq_address;
-		public $rib_num;
-		public $text_TVA_auto;
 		public $multi_files;
 		public $font;
 		public $headertxtcolor;
 		public $bodytxtcolor;
 		public $datesbold;
-		public $ref_from_cust;
-		public $first_page_empty;
 		public $small_head2;
 		public $title_size;
 		public $height_header_sep;
@@ -104,15 +95,9 @@
 		public $bg_color;
 		public $txtcolor;
 		public $title_bg;
-		public $header_after_addr;
-		public $space_headerafter;
 		public $header_align_left;
-		public $dates_br;
-		public $show_num_cli;
-		public $num_cli_frm;
 		public $show_code_cli_compt;
 		public $code_cli_compt_frm;
-		public $add_creator_in_header;
 		public $fold_mark;
 		public $hide_info_cur;
 		public $tblLineW;
@@ -122,82 +107,19 @@
 		public $verLineColor;
 		public $showverline;
 		public $horLineColor;
-		public $subti_with_subto;
 		public $lineSep_hight;
-		public $show_num_col;
-		public $force_align_left_ref;
-		public $picture_in_ref;
-		public $picture_replace_ref;
-		public $force_align_left_unit;
 		public $desc_full_line;
-		public $show_desc;
-		public $hidden_ouv;
-		public $only_one_desc;
-		public $hide_qty;
-		public $hide_up;
-		public $show_up_discounted;
-		public $discount_auto;
-		public $show_ttc_col;
-		public $hide_vat_col;
-		public $show_ttc_vat_tot;
-		public $hide_vat;
-		public $only_ttc;
-		public $larg_ref;
-		public $larg_qty;
-		public $larg_unit;
-		public $larg_up;
-		public $larg_tva;
-		public $larg_discount;
-		public $larg_updisc;
-		public $larg_progress;
-		public $larg_totalht;
 		public $larg_totalttc;
-		public $num_ref;
 		public $num_desc;
-		public $num_qty;
-		public $num_unit;
-		public $num_up;
-		public $num_tva;
-		public $num_discount;
-		public $num_updisc;
-		public $num_progress;
-		public $num_totalht;
 		public $num_totalttc;
-		public $ht_space_info;
 		public $ht_space_tot;
-		public $show_paymenttermcond_2l;
-		public $show_qty_prod_tot;
-		public $efPaySpec;
-		public $IBAN_with_CB;
-		public $IBAN_All;
-		public $bank_only_number;
-		public $invert_bg_ht_ttc;
-		public $show_disc_tot;
-		public $show_disc_ttc;
-		public $show_tot_local_cur;
 		public $show_tot_Cur_Symb;
-		public $number_words;
-		public $listPrefixEcotax;
-		public $exfEcoTax;
-		public $ht_signarea;
 		public $signLineW;
 		public $signLineDash;
 		public $signLineColor;
-		public $e_signing;
-		public $free_text_end;
 		public $type_foot;
 		public $hidepagenum;
 		public $maxsizeimgfoot;
-		public $only_one_picture;
-		public $picture_after;
-		public $picture_under;
-		public $picture_padding;
-		public $linkpictureurl;
-		public $old_path_photo;
-		public $cat_hq_image;
-		public $alpha;
-		public $exftxtcolor;
-		public $exfltxtcolor;
 		public $logo;
 		public $listfreet;
 		public $pied;
@@ -206,23 +128,31 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = [];
+		public $stdLineStyle = array();
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = [];
+		public $bgLineStyle = array();
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = [];
-		public $verLineStyle = [];
-		public $horLineStyle = [];
+		public $tblLineStyle = array();
+		public $verLineStyle = array();
+		public $horLineStyle = array();
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = [];
-		public $only_ht;
+		public $signLineStyle = array();
+		public $colorLine;
 		public $larg_util_cadre;
 		public $larg_util_txt;
+		public $larg_date;
+		public $larg_datelim;
+		public $larg_totalpaid;
+		public $larg_remaining;
 		public $posx_G_txt;
 		public $larg_desc;
+		public $num_date;
+		public $num_datelim;
+		public $num_totalpaid;
+		public $num_remaining;
 		public $posxcol1;
 		public $posxcol2;
 		public $posxcol3;
@@ -234,8 +164,7 @@
 		public $largcol3;
 		public $largcol4;
 		public $largcol5;
-		public $largcol6;
-		public $tableau = [];	// Array of table to print
+		public $tableau = array();	// Array of table to print
 		public $heightforfooter;
 		public $larg_tabtotal;
 		public $posxtabtotal;
@@ -243,31 +172,15 @@
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
-		public $add_multicurrency;
-		public $colorLine;
 		public $currency;
-		public $export_type;
-		public $exportparameters;
-		public $factCodeExf;
-		public $larg_date;
-		public $larg_datelim;
-		public $larg_remaining;
-		public $larg_totalpaid;
-		public $num_date;
-		public $num_datelim;
-		public $num_remaining;
-		public $num_totalpaid;
-		public $orderby;
-		public $show_payment_deadline;
-		public $total_amountrule;
-		public $total_balance;
-		public $total_multicurrencyamountrule;
-		public $total_multicurrencybalance;
-		public $total_multicurrencytotalamount;
 		public $total_totalamount;
-		public $defaultRefSupplier;
-		public $depositJustPay;
-		public $typeadr;
+		public $show_payment_deadline;
+		public $total_multicurrencytotalamount;
+		public $total_amountrule;
+		public $total_multicurrencyamountrule;
+		public $total_balance;
+		public $total_multicurrencybalance;
+		public $add_multicurrency;
 
 		/**
 		*	Constructor
@@ -363,7 +276,7 @@
 					$thirdparty_code		= $this->export_type == 'Customer' ? $object->code_client : ($this->export_type == 'Supplier' ? $object->code_fournisseur : '');
 					$export_type_lang		= $langs->transnoentitiesnoconv($this->export_type);
 					$file_name				= trim($langs->transnoentitiesnoconv('ExtraitCompteClientPDFAccountStatutFileName', $export_type_lang, $thirdparty_code, $datefile));
-					if (class_exists('DaoMulticompany') && isModEnabled('multicompany') && !empty($mc->sharings) && !empty($mc->sharings['thirdparty'])) {
+					if (class_exists('DaoMulticompany') && $conf->multicompany->enabled && !empty($mc->sharings) && !empty($mc->sharings['thirdparty'])) {
 						$ent = new DaoMulticompany($this->db);
 						$ent->fetch($conf->entity);
 						$file_name	.= '_'.$ent->label;
@@ -395,7 +308,7 @@
 					$add_product_tags				= !empty($this->exportparameters['add_product_tags']);
 					$show_thirdparty_ref			= !empty($this->exportparameters['show_thirdparty_ref']);
 					$this->add_multicurrency		= !empty($conf->multicurrency->enabled) && !empty($this->exportparameters['add_multicurrency']);
-					$idssubsidiaries				= [];
+					$idssubsidiaries				= array();
 					if (!empty($show_subsidiaries)) {
 						$sql	= 'SELECT s.rowid, s.client, s.fournisseur, s.nom AS name, s.name_alias, s.email, s.address, s.zip, s.town, s.code_client,';
 						$sql	.= ' s.code_fournisseur, s.code_compta, s.code_compta_fournisseur, s.canvas';
@@ -415,7 +328,7 @@
 					if ($this->export_type == 'Customer') {	// Get lines of the customer account statut
 						$sql	= 'SELECT f.datef AS date';
 						$sql	.= ', f.ref AS label';
-						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '';
+						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '');
 						$sql	.= ', f.ref_client AS label_externe';
 						$sql	.= ', f.total_ttc AS total_amount';
 						$sql	.= ', COALESCE(f.multicurrency_code, "'.$conf->currency.'") AS facture_multicurrency_code';
@@ -432,8 +345,8 @@
 						$sql	.= ', rc.multicurrency_amount_creditnote';
 						$sql	.= ', rc2.amount_creditused';
 						$sql	.= ', rc2.multicurrency_amount_creditused';
-						$sql	.= !empty($add_product_tags) ? ', pt.tags AS product_tags' : '';
-						$sql	.= !empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf.' AS extrafield_invoice' : '';
+						$sql	.= (!empty($add_product_tags) ? ', pt.tags AS product_tags' : '');
+						$sql	.= (!empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf.' AS extrafield_invoice' : '');
 						$sql	.= ' FROM '.$this->db->prefix().'facture AS f';
 						$sql	.= !empty($this->factCodeExf) ? ' LEFT JOIN '.$this->db->prefix().'facture_extrafields AS ef ON f.rowid = ef.fk_object' : '';
 						$sql	.= ' LEFT JOIN (';
@@ -495,7 +408,7 @@
 						$sql	.= ' GROUP BY f.rowid';
 						$sql	.= ', f.datef';
 						$sql	.= ', f.ref';
-						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '';
+						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '');
 						$sql	.= ', f.ref_client';
 						$sql	.= ', f.total_ttc';
 						$sql	.= ', f.multicurrency_code';
@@ -508,14 +421,14 @@
 						$sql	.= ', rc.multicurrency_amount_creditnote';
 						$sql	.= ', rc2.amount_creditused';
 						$sql	.= ', rc2.multicurrency_amount_creditused';
-						$sql	.= !empty($add_product_tags) ? ', pt.tags' : '';
-						$sql	.= !empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf : '';
+						$sql	.= (!empty($add_product_tags) ? ', pt.tags' : '');
+						$sql	.= (!empty($this->factCodeExf) ? ', ef.'.$this->factCodeExf : '');
 						$sql	.= ' ORDER BY f.datef '.$this->orderby.', f.ref '.$this->orderby;
 					} else if ($this->export_type == 'Supplier') {	// Get lines of the supplier account statut
 						$sql	= 'SELECT f.datef AS date';
 						$sql	.= ', f.ref AS label';
 						$sql	.= ', f.ref_supplier AS label_externe';
-						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '';
+						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '');
 						$sql	.= ', f.total_ttc AS total_amount';
 						$sql	.= ', COALESCE(f.multicurrency_code, "'.$conf->currency.'") AS facture_multicurrency_code';
 						$sql	.= ', f.multicurrency_tx AS facture_multicurrency_tx';
@@ -529,7 +442,7 @@
 						$sql	.= ', rc.multicurrency_amount_creditnote';
 						$sql	.= ', rc2.amount_creditused';
 						$sql	.= ', rc2.multicurrency_amount_creditused';
-						$sql	.= !empty($add_product_tags) ? ', pt.tags AS product_tags' : '';
+						$sql	.= (!empty($add_product_tags) ? ', pt.tags AS product_tags' : '');
 						$sql	.= ' FROM '.$this->db->prefix().'facture_fourn AS f';
 						$sql	.= ' LEFT JOIN (';
 						$sql	.= '	SELECT sre.fk_facturefourn AS fk_facture_source, SUM(sre.amount) as amount_payed, sre.multicurrency_code,';
@@ -579,7 +492,7 @@
 						$sql	.= ' , f.datef';
 						$sql	.= ' , f.ref';
 						$sql	.= ' , f.ref_supplier';
-						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '';
+						$sql	.= (!empty($this->show_payment_deadline) ? ', f.date_lim_reglement' : '');
 						$sql	.= ', f.total_ttc';
 						$sql	.= ', f.multicurrency_code';
 						$sql	.= ', f.multicurrency_tx';
@@ -619,7 +532,6 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
-					$watermarkedPages		= array($pdf->getPage() => true);	// Track pages with watermark to avoid double rendering in while loops
 					$pagenb					= 1;
 					// Default PDF parameters
 					$this->stdLineW			= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -647,16 +559,14 @@
 					} else {
 						$color_back	= false;
 					}
-					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Define width and position of notes frames
 					$this->larg_util_txt	= $this->page_largeur - ($this->marge_gauche + $this->marge_droite + ($this->Rounded_rect * 2) + 2);
 					$this->larg_util_cadre	= $this->page_largeur - ($this->marge_gauche + $this->marge_droite);
 					$this->posx_G_txt		= $this->marge_gauche + $this->Rounded_rect + 1;
 					// Define width and position of main table columns
-					if (empty($this->show_payment_deadline)) {
-						$this->larg_datelim	= 0;
-					}
+					if (empty($this->show_payment_deadline))	$this->larg_datelim	= 0;
 					// Largeur variable suivant la place restante
 					$this->larg_desc		= $this->larg_util_cadre - ($this->larg_date + $this->larg_datelim + $this->larg_totalttc + $this->larg_totalpaid + $this->larg_remaining);
 					$this->tableau			= array('date'		=> array('col' => $this->num_date,		'larg' => $this->larg_date,			'posx' => 0),
@@ -731,7 +641,7 @@
 						$line					= $this->db->fetch_object($resql);
 						$invoice_ref			= $line->label;
 						$nblignes_d				= 0;	// Payment details
-						$paiement_detail_list	= [];	// paiement detail list
+						$paiement_detail_list	= array();	// paiement detail list
 						if (!empty($show_payment_details)) {
 							$datepayment	= '';
 							$payment_label	= '';
@@ -772,7 +682,7 @@
 						}
 						$line->label						.= !empty($add_product_tags) && !empty($line->product_tags) ? ' - ['.$line->product_tags.']' : '';
 						$line->label						.= !empty($line->extrafield_invoice) ? ' - ('.$line->extrafield_invoice.')' : '';
-						$paiement_detail_list[$invoice_ref]	= [];
+						$paiement_detail_list[$invoice_ref]	= array();
 						if (!empty($show_payment_details)) {
 							for ($j = 0; $j < $nblignes_d; $j++) {
 								$line_d	= $this->db->fetch_object($resql_d);
@@ -824,7 +734,7 @@
 						$this->total_multicurrencybalance		+= $multicurrency_balance;
 						$curY									= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+						$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 						if (empty($this->hide_top_table)) {
 							$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
 						} else {
@@ -906,7 +816,7 @@
 								$multicurrency_montant_rglt	= $paiement_detail['montant_multicurrency'];
 								$curY						= $nexY;
 								$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-								$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+								$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 								if (empty($this->hide_top_table)) {
 									$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
 								} else {
@@ -978,24 +888,12 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-							// Save auto-break content so watermark goes behind it (z-order fix)
-							$savedContent = method_exists($pdf, 'liftPageContent') ? $pdf->liftPageContent() : '';
-							if (empty($watermarkedPages[$pagenb])) {
-								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
-								$watermarkedPages[$pdf->getPage()] = true;
-							}
+							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
-							// Restore auto-break content after watermark/header
-							if ($savedContent !== '' && method_exists($pdf, 'dropPageContent')) {
-								$pdf->dropPageContent($savedContent);
-							}
-							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
-							$pdf->SetFillColor(255);
-							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
 						if (isset($object->lines[$i + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
 							$this->heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 0);
@@ -1007,16 +905,12 @@
 							// New page
 							$pdf->AddPage();
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
-							$watermarkedPages[$pdf->getPage()] = true;
 							$pagenb++;
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
-							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
-							$pdf->SetFillColor(255);
-							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 							$nexY	= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
 						}
 					}
@@ -1027,7 +921,7 @@
 						$this->_tableau($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 0, $pagenb);
 					}
 					$posytot	= $this->_tableau_tot($pdf, $object, $bottomlasttab, $outputlangs, 0);
-					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 					$posy		= pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $posytot, $outputlangs, $this->emetteur, $this->listfreet, 0, 0, $this->horLineStyle);
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
 					if (method_exists($pdf, 'AliasNbPages')) {
@@ -1066,22 +960,24 @@
 		*	@param		Societe		$object			Object shown in PDF
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= height of header
-		*											'hauteurcadre'	= height of frame
+		*	@return		array		$hauteurhead	'totalhead'		= hight of header
+		*											'hauteurcadre	= hight of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
+			global $conf, $hookmanager;
+
 			$specialHead	= infraspackplus_fetchAllSpecialHeads(array($object->element));
 			if (!empty($specialHead['rootFileName'])) {
 				$specialhead	= 'pdf_'.$specialHead['rootFileName'].'_pagehead';
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												0, $this->title_size, $this->titlekey, 0, $this->datesbold, 0, 1, 1,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, 0, $this->use_iso_location, '', $this->typeadr, '', $this->Rounded_rect,
-												'', -2, -2, '', 0, [], '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
+												'', -2, -2, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
+			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
 			$dimCadres			= array ('S' => ($this->page_largeur - ($this->marge_gauche + 6 + $this->left_recep_corner + $this->marge_droite)), 'R' => $this->left_recep_corner);	// page width = 210 (A4) 92 + 92  = 184 => keep 210 - 184 for margins => 26 ; 10 right and left and 6 on the middle
 			$w					= $this->header_align_left ? 92 - $this->decal_round : 100;
@@ -1123,7 +1019,7 @@
 										'E' => '',
 										'L' => ''
 										);
-				$addresses		= [];
+				$addresses		= array();
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, '', 0, $this->emetteur, 0, 'accountStatus', 0, 0, -2, -2, '', 0);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}
@@ -1146,6 +1042,8 @@
 		**/
 		protected function _pagesmallhead(&$pdf, $object, $showaddress, $outputlangs)
 		{
+			global $conf, $hookmanager;
+
 			$fromcompany	= $this->emetteur;
 			$title			= $outputlangs->transnoentities($this->titlekey);
 			pdf_InfraSPlus_pagesmallhead($pdf, $object, $showaddress, $outputlangs, $title, $fromcompany, $this->formatpage, $this->decal_round, $this->logo, $this->headertxtcolor);
@@ -1161,18 +1059,19 @@
 		*	@param		Translate	$outputlangs	Langs object
 		*	@param		int			$hidetop		1=Hide top bar of array and title, 0=Hide nothing, -1=Hide only title
 		*	@param		int			$hidebottom		Hide bottom bar of array
-		*	@param		int			$pagenb			Number of page where we are
 		*	@return		void
 		**/
 		protected function _tableau(&$pdf, $object, $tab_top, $tab_height, $outputlangs, $hidetop = 0, $hidebottom = 0, $pagenb)
 		{
+			global $conf;
+
 			// Force to disable hidetop and hidebottom
 			$hidebottom	= 0;
 			if (!empty($hidetop)) {
 				$hidetop	= -1;
 			}
 			$default_font_size		= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
 			// Output Rounded Rectangle
 			if (empty($hidetop) || $pagenb == 1) {
@@ -1203,7 +1102,7 @@
 				} else {
 					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
 				}
-				$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+				$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 			}
 			// Show Folder mark
 			if (!empty($this->fold_mark)) {
@@ -1230,7 +1129,7 @@
 			}
 			// En-tête tableau
 			$pdf->SetFont('', 'B', $default_font_size - 1);
-			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 			if (empty($hidetop) || $pagenb == 1) {
 				$pdf->MultiCell($this->tableau['date']['larg'], $this->ht_top_table, $outputlangs->transnoentities('ExtraitCompteClientPDFAccountStatutDate'), '', 'C', 0, 1, $this->tableau['date']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 				$pdf->MultiCell($this->tableau['desc']['larg'], $this->ht_top_table, $outputlangs->transnoentities('ExtraitCompteClientPDFAccountStatutLabel'), '', 'C', 0, 1, $this->tableau['desc']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
@@ -1250,17 +1149,18 @@
 		*	@param		Societe		$object			Object shown in PDF
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
-		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Position pour suite
 		**/
 		protected function _tableau_tot(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)
 		{
+			global $conf;
+
 			$pdf->startTransaction();
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$posytabtot			= $posy + $this->ht_space_tot;
 			$tabtot_hl			= $this->tab_hl;
 			$pdf->SetFont('', '', $default_font_size - 1);
-			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
 			// Tableau total
 			$larg_tabtotal		= $this->larg_tabtotal;
 			$posxtabtotal		= $this->posxtabtotal;
@@ -1290,9 +1190,15 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		TCPDF			$pdf			The PDF factory
 		*	@param		Translate	$outputlangs	Object lang for output
+		*	@param		Societe		$fromcompany	Object company
+		*	@param		int			$marge_basse	Margin bottom we use for the autobreak
+		*	@param		int			$marge_gauche	Margin left
+		*	@param		int			$page_hauteur	Page height
 		*	@param		Societe		$object			Object shown in PDF
+		*	@param		int			$showdetails	Show company details into footer
+		*	@param		int			$hidesupline	Completly hide the line up to footer (for some edition with only table)
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text
 		**/

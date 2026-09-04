@@ -27,13 +27,13 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
 	// Translations *********************************
@@ -101,7 +101,7 @@
 		$list		= array('Img'	=> array('MAIN_DOCUMENTS_LOGO_HEIGHT',			'INFRASPLUS_PDF_LOGO_SMALL_HEAD_HEIGHT',	'INFRASPLUS_PDF_PICTURE_FOOT_WIDTH',
 											'INFRASPLUS_PDF_PICTURE_FOOT_HEIGHT',	'INFRASPLUS_PDF_LINK_PICTURE_URL',			'INFRASPLUS_PDF_PICTURE_PADDING',
 											'INFRASPLUS_PDF_PICTURE_WIDTH',			'INFRASPLUS_PDF_PICTURE_HEIGHT',			'INFRASPLUS_PDF_T_WATERMARK_OPACITY',
-											'INFRASPLUS_PDF_I_WATERMARK_OPACITY',	'INFRASPLUS_PDF_SIGNATURE_EMET_WIDTH',	'INFRASPLUS_URL_IMG_TIMEOUT'
+											'INFRASPLUS_PDF_I_WATERMARK_OPACITY',	'INFRASPLUS_PDF_SIGNATURE_EMET_WIDTH'
 											)
 							);
 		$confkey	= $reg[1];
@@ -122,12 +122,12 @@
 				$imgThumbSmall	= vignette($dest_path.$dest_file, $maxwidthsmall, $maxheightsmall, '_mini', $quality);
 				$imgThumbSmall	= vignette($dest_path.$dest_file, $maxwidthsmall, $maxheightsmall, '_small', $quality);
 			}
-			setEventMessages($dest_file.' : '.$langs->trans('FileSaved'), [], 'mesgs');
+			setEventMessages($dest_file.' : '.$langs->trans('FileSaved'), array(), 'mesgs');
 		} else if ($moved !== 1) {	// errors
 			if ($moved < 0) {
-				setEventMessages('UknownFileUploadError', [], 'errors');	// API documented error
+				setEventMessages('UknownFileUploadError', array(), 'errors');	// API documented error
 			} else {
-				setEventMessages($moved, [], 'errors');	// We got an error string /o\
+				setEventMessages($moved, array(), 'errors');	// We got an error string /o\
 			}
 		}
 	}
@@ -159,21 +159,21 @@
 		$b					= dol_delete_file($logodir.'/logos/thumbs/'.$urlfile_small, 1);
 		$c					= dol_delete_file($logodir.'/logos/thumbs/'.$urlfile_mini, 1);
 		if (!empty($a) && !empty($b) && !empty($c)) {
-			setEventMessages($urlfile_filename.'.'.$urlfile_ext.' '.$langs->trans('Deleted'), [], 'mesgs');
+			setEventMessages($urlfile_filename.'.'.$urlfile_ext.' '.$langs->trans('Deleted'), array(), 'mesgs');
 		} else {
-			setEventMessages($langs->trans('ErrorFailToDeleteFile', $urlfile), [], 'errors');
+			setEventMessages($langs->trans('ErrorFailToDeleteFile', $urlfile), array(), 'errors');
 		}
 	}
 
 	if ($result == 1) {
-		setEventMessages($langs->trans('SetupSaved'), [], 'mesgs');
+		setEventMessages($langs->trans('SetupSaved'), array(), 'mesgs');
 	}
 	if ($result == -1) {
-		setEventMessages($langs->trans('Error'), [], 'errors');
+		setEventMessages($langs->trans('Error'), array(), 'errors');
 	}
 
 	// init variables *******************************
-	$logos				= [];
+	$logos				= array();
 	foreach (glob($logodir.'/logos/*.jpg') as $file) {
 		$logos[]	= dol_basename($file);
 	}
@@ -202,9 +202,6 @@
 	}
 	if (!getDolGlobalString('INFRASPLUS_PDF_LOGO_SMALL_HEAD_HEIGHT', '')) {
 		dolibarr_set_const($db, 'INFRASPLUS_PDF_LOGO_SMALL_HEAD_HEIGHT', '6', 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
-	}
-	if (!getDolGlobalString('INFRASPLUS_URL_IMG_TIMEOUT', '')) {
-		dolibarr_set_const($db, 'INFRASPLUS_URL_IMG_TIMEOUT', '10', 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
 	$rowInnerSpan	= getDolGlobalString('INFRASPLUS_PDF_WITH_REF_COLUMN', '') ? 5 : 4;
 
@@ -271,7 +268,7 @@
 	}
 	print '			<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionLogos').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/Tools.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblGF" class = "noborder toggle_bloc centpercent">';
+	print '				<table name = "tblGF" class = "infrasplusnoborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '350px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 3), 'NumberingShort', 'InfraSPlusParamNewLogo');
@@ -332,7 +329,7 @@
 					<input type = "hidden" name = "token" value = "'.newToken().'">
 					<div class = "foldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamImagesSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title cursorpointer');
-	print '				<table name = "tblOPT" class = "noborder toggle_bloc centpercent">';
+	print '				<table name = "tblOPT" class = "infrasplusnoborder toggle_bloc centpercent">';
 	$metas	= array('30px', '*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -343,10 +340,9 @@
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '5', 'max' => $maxhlogo, $disabledLogoHeight => 'true');
 		$num	= infraspackplus_print_input('MAIN_DOCUMENTS_LOGO_HEIGHT', 'input', $langs->trans('InfraSPlusParamLogoHeight', $maxhlogo), '', $metas, 1, 1, '&nbsp;mm', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_SMALL_HEAD_2', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LOGO_SECONDARY_SMALL_HEAD', 'on_off', $langs->trans('InfraSPlusParamLogoSecondarySmallHead'), '', [], 1, 1, '', $num);
-		} else {
-			$num++;
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LOGO_SECONDARY_SMALL_HEAD', 'on_off', $langs->trans('InfraSPlusParamLogoSecondarySmallHead'), '', array(), 1, 1, '', $num);
 		}
+		else	$num++;
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '6', 'max' => '20');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_LOGO_SMALL_HEAD_HEIGHT', 'input', $langs->trans('InfraSPlusParamLogoSmallHeadHeight'), '', $metas, 1, 1, '&nbsp;mm', $num);
 		// $num = 3
@@ -354,57 +350,50 @@
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_FOOT_WIDTH', 'input', $langs->trans('InfraSPlusParamPictureFootWidth'), '', $metas, 1, 1, '&nbsp;mm', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '4', 'max' => '30');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_FOOT_HEIGHT', 'input', $langs->trans('InfraSPlusParamPictureFootHeight'), '', $metas, 1, 1, '&nbsp;mm', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SET_LOGO_EMET_TIERS', 'on_off', $langs->trans('InfraSPlusParamSetLogoEmetTiers'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SET_LOGO_EMET_TIERS', 'on_off', $langs->trans('InfraSPlusParamSetLogoEmetTiers'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 1, 1, '', $num);
 		// $num = 7
 		if (getDolGlobalString('INFRASPLUS_PDF_WITH_PICTURE', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_FROM_URL', 'on_off', $langs->trans('InfraSPlusParamPictureFromUrl'), '', [], 1, 1, '', $num);
-			if (getDolGlobalString('INFRASPLUS_PDF_PICTURE_FROM_URL', '')) {
-				$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '60');
-				$num	= infraspackplus_print_input('INFRASPLUS_URL_IMG_TIMEOUT', 'input', $langs->trans('InfraSPlusParamUrlImgTimeout'), '', $metas, 1, 1, '&nbsp;s', $num);
-			} else {
-				$num++;
-			}
 			if (getDolGlobalString('INFRASPLUS_PDF_WITH_REF_COLUMN', '') || getDolGlobalString('INFRASPLUS_PDF_WITH_NUM_COLUMN', '')) {
-				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_IN_REF', 'on_off', $langs->trans('InfraSPlusParamPictureInRef'), '', [], 1, 1, '', $num);
+				$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_IN_REF', 'on_off', $langs->trans('InfraSPlusParamPictureInRef'), '', array(), 1, 1, '', $num);
 				if (getDolGlobalString('INFRASPLUS_PDF_PICTURE_IN_REF', '')) {
-					$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_REPLACE_REF', 'on_off', $langs->trans('InfraSPlusParamPictureReplaceRef'), '', [], 1, 1, '', $num);
+					$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_REPLACE_REF', 'on_off', $langs->trans('InfraSPlusParamPictureReplaceRef'), '', array(), 1, 1, '', $num);
 				} else {
 					$num++;
 				}
 			} else {
 				$num	+= 2;
 			}
-		// $num = 11
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_ONE_PICTURE', 'on_off', $langs->trans('InfraSPlusParamOnlyOnePicture1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamOnlyOnePicture2').'</span> '.$langs->trans('InfraSPlusParamOnlyOnePicture3'), '', [], 1, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_AFTER', 'on_off', $langs->trans('InfraSPlusParamPictureAfter1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureAfter2').'</span> '.$langs->trans('InfraSPlusParamPictureAfter3'), '', [], 1, 1, '', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_UNDER', 'on_off', $langs->trans('InfraSPlusParamPictureUnder1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureUnder2').'</span> '.$langs->trans('InfraSPlusParamPictureUnder3'), '', [], 1, 1, '', $num);
+		// $num = 9
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_ONLY_ONE_PICTURE', 'on_off', $langs->trans('InfraSPlusParamOnlyOnePicture1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamOnlyOnePicture2').'</span> '.$langs->trans('InfraSPlusParamOnlyOnePicture3'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_AFTER', 'on_off', $langs->trans('InfraSPlusParamPictureAfter1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureAfter2').'</span> '.$langs->trans('InfraSPlusParamPictureAfter3'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_UNDER', 'on_off', $langs->trans('InfraSPlusParamPictureUnder1').' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusParamPictureUnder2').'</span> '.$langs->trans('InfraSPlusParamPictureUnder3'), '', array(), 1, 1, '', $num);
 			$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '0', 'max' => '15');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_PADDING', 'input', $langs->trans('InfraSPlusParamPicturePadding'), '', $metas, 1, 1, '&nbsp;mm', $num);
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LINK_PICTURE_URL', 'input', $langs->trans('InfraSPlusParamLinkPictureUrl'), '', [], 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_LINK_PICTURE_URL', 'input', $langs->trans('InfraSPlusParamLinkPictureUrl'), '', array(), 1, 1, '', $num);
 		} else {
-			$num	+= 9;
+			$num	+= 7;
 		}
-		// $num = 16
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SUPPLIER_ORDER_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamSupplierOrderWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', [], 1, 1, '', $num);
+		// $num = 14
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SUPPLIER_ORDER_WITH_PICTURE', 'on_off', $langs->trans('InfraSPlusParamSupplierOrderWithPicture').' '.$langs->trans('InfraSPlusGenModif'), '', array(), 1, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '16', 'max' => '160');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_WIDTH', 'input', $langs->trans('InfraSPlusParamPictureWidth').$modifWidth, '', $metas, 1, 1, '&nbsp;mm', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '16', 'max' => '160');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_PICTURE_HEIGHT', 'input', $langs->trans('InfraSPlusParamPictureHeight'), '', $metas, 1, 1, '&nbsp;mm', $num);
-		$num	= infraspackplus_print_input('PRODUCT_USE_OLD_PATH_FOR_PHOTO', 'on_off', $langs->trans('InfraSPlusParamOldPathPhoto'), '', [], 1, 1, '', $num);
-		$num	= infraspackplus_print_input('CAT_HIGH_QUALITY_IMAGES', 'on_off', $langs->trans('InfraSPlusParamHQPicture'), '', [], 1, 1, '', $num);
+		$num	= infraspackplus_print_input('PRODUCT_USE_OLD_PATH_FOR_PHOTO', 'on_off', $langs->trans('InfraSPlusParamOldPathPhoto'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('CAT_HIGH_QUALITY_IMAGES', 'on_off', $langs->trans('InfraSPlusParamHQPicture'), '', array(), 1, 1, '', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '100');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_T_WATERMARK_OPACITY', 'input', $langs->trans('InfraSPlusParamWatermarkTOpacity'), '', $metas, 1, 1, '&nbsp;%', $num);
 		$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '1', 'max' => '100');
 		$num	= infraspackplus_print_input('INFRASPLUS_PDF_I_WATERMARK_OPACITY', 'input', $langs->trans('InfraSPlusParamWatermarkIOpacity'), '', $metas, 1, 1, '&nbsp;%', $num);
-		// $num = 23
+		// $num = 21
 		if (!empty($selected_signemet) && $selected_signemet != '-1') {
 			$metas	= array('type' => 'number', 'class' => 'flat soixantepercent right', 'dir' => 'rtl', 'min' => '16', 'max' => '160');
 			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SIGNATURE_EMET_WIDTH', 'input', $langs->trans('InfraSPlusParamSignatureEmetWidth').$modifWidth, '', $metas, 1, 1, '&nbsp;mm', $num);
 		} else {
 			$num++;
 		}
-		// $num = 24
+		// $num = 22
 	}
 	print '				</table>
 					</div>

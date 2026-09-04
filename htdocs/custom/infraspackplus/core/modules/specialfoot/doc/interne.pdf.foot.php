@@ -59,7 +59,7 @@
 	{
 		global $conf;
 
-		$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
+		$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
 		$pdf->SetFont('', '', 7);
 		$alignL1	= 'R';
 		$posx		= 85;

@@ -23,22 +23,21 @@
 	************************************************/
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formbank.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formbank.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	include_once DOL_DOCUMENT_ROOT.'/product/class/productcustomerprice.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 	if (isModEnabled('ouvrage')) {
 		dol_include_once('/ouvrage/class/ouvrage.class.php');
 		dol_include_once('/ouvrage/core/modules/modouvrage.class.php');
@@ -49,9 +48,6 @@
 	}
 	if (isModEnabled('milestone')) {
 		dol_include_once('/milestone/core/modules/modMilestone.class.php');
-	}
-	if (isModEnabled('infrastructure')) {
-		dol_include_once('/infrastructure/class/infrastructure.class.php');
 	}
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
@@ -76,10 +72,10 @@
 			$template->emetteur->country_code	= substr($langs->defaultlang, -2);
 		}
 		$template->atleastonediscount		= 0;
-		$template->tva						= [];
-		$template->tva_array				= [];
-		$template->localtax1				= [];
-		$template->localtax2				= [];
+		$template->tva						= array();
+		$template->tva_array				= array();
+		$template->localtax1				= array();
+		$template->localtax2				= array();
 		$template->credit_note				= getDolGlobalInt('INVOICE_POSITIVE_CREDIT_NOTE', 0);
 		$template->atleastoneratenotnull	= 0;
 		$template->situationinvoice			= False;
@@ -113,7 +109,8 @@
 		$template->text_TVA_auto			= getDolGlobalInt('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', 0);
 		$template->multi_files				= getDolGlobalInt('INFRASPLUS_PDF_MULTI_FILES', 0);
 		$template->font						= getDolGlobalString('INFRASPLUS_PDF_FONT', 'centurygothic');
-		$template->headertxtcolor			= colorStringToArray(getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '0,0,0'), array(0, 0, 0));
+		$template->headertxtcolor			= getDolGlobalString('INFRASPLUS_PDF_HEADER_TEXT_COLOR', '0,0,0');
+		$template->headertxtcolor			= explode(',', $template->headertxtcolor);
 		$template->bodytxtcolor				= getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '0,0,0');
 		$template->bodytxtcolor				= explode(',', $template->bodytxtcolor);
 		$template->datesbold				= getDolGlobalInt('INFRASPLUS_PDF_DATES_BOLD', 0);
@@ -170,7 +167,6 @@
 		$template->show_desc				= getDolGlobalInt('INFRASPLUS_PDF_SHOW_DESC_DEV', 0);
 		$template->hidden_ouv				= getDolGlobalInt('INFRASPLUS_PDF_HIDDEN_OUV', 0);
 		$template->only_one_desc			= getDolGlobalInt('INFRASPLUS_PDF_ONLY_ONE_DESC', 0);
-		$template->wvcc_no_hr				= getDolGlobalInt('INFRASPLUS_PDF_WVCC_NO_HR', 0);
 		$template->hide_qty					= getDolGlobalInt('INFRASPLUS_PDF_HIDE_QTY', 0);
 		$template->hide_up					= getDolGlobalInt('INFRASPLUS_PDF_HIDE_UP', 0);
 		$template->show_up_discounted		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_UP_DISCOUNTED', 0);
@@ -259,37 +255,18 @@
 	}
 
 	/**
-	*	Flag "an InfraSPlus PDF model is generating" : set by pdf_InfraSPlus_getInstance() when a model instantiates its PDF,
-	*	reset by the beforePDFCreation / afterPDFCreation hooks. Read by the pdf_getline* hooks of the module, which fill
-	*	the columns of the native Subtotals module lines (this module has no hook of its own, unlike the ATM Subtotal module).
-	*
-	*	@param	boolean|null	$set		true / false to set the flag, null to only read it
-	*	@return	boolean						current flag value
-	**/
-	function infraspackplus_isInfraSPlusPdfGeneration($set = null)
-	{
-		static $generating	= false;
-		if ($set !== null) {
-			$generating	= (bool) $set;
-		}
-		return $generating;
-	}
-	/**
 	*	Return a PDF instance object. We create a FPDI instance that instantiate TCPDF.
 	*
-	*	@param	array{float|int,float|int}|array{}|''	$format		Array(width,height). Keep empty to use default setup.
-	*	@param	string									$metric		Unit of format ('mm')
-	*	@param	string									$pagetype	'P' or 'l'
-	*	@param	boolean									$onlyConf	true, only for defining constants || false, to also create the PDF object
-	*	@return	TCPDF|TCPDI|int										PDF object or 1 if we just need to define constants
+	*	@param	array		$format			Array(width,height). Keep empty to use default setup.
+	*	@param	string		$metric			Unit of format ('mm')
+	*	@param	string		$pagetype		'P' or 'l'
+	*	@param	boolean		$onlyConf		true, only for defining constants || false, to also create the PDF object
+	*	@return	TCPDF|int					PDF object or 1 if we just need to define constants
 	**/
-	function pdf_InfraSPlus_getInstance($format = [], $metric = 'mm', $pagetype = 'P', $onlyConf = false)
+	function pdf_InfraSPlus_getInstance($format = array(), $metric = 'mm', $pagetype = 'P', $onlyConf = false)
 	{
 		global $conf;
 
-		if (empty($onlyConf)) {
-			infraspackplus_isInfraSPlusPdfGeneration(true);	// An InfraSPlus model instantiates its PDF : enable the pdf_getline* hooks of the module (native Subtotals lines)
-		}
 		if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {	// Define constant for TCPDF
 			define('K_TCPDF_EXTERNAL_CONFIG', 1); // this avoid using tcpdf_config file
 			define('K_PATH_CACHE', DOL_DATA_ROOT.'/admin/temp/');
@@ -328,22 +305,16 @@
 				define('K_TCPDF_THROW_EXCEPTION_ERROR', false);
 			}
 		}
-		include_once TCPDF_PATH.'tcpdf.php';	// Load TCPDF
+		require_once TCPDF_PATH.'tcpdf.php';	// Load TCPDF
 		// We need to instantiate tcpdi object (instead of tcpdf) to use merging features. But we can disable it (this will break all merge features).
 		if (!getDolGlobalString('MAIN_DISABLE_TCPDI', '')) {
-			include_once TCPDI_PATH.'tcpdi.php';
+			require_once TCPDI_PATH.'tcpdi.php';
 		}
-		// Load InfraS subclasses that fix TCPDF ColorFlag bug (text color lost on page breaks)
-		dol_include_once('/infraspackplus/class/tcpdf_infrasplus.class.php');
 		if (!empty($onlyConf)) {
 			return 1;
 		}
 		$pdfa	= getDolGlobalString('PDF_USE_A', false);	// PDF/A-1 ou PDF/A-3
-		if (class_exists('TCPDI_InfraS')) {
-			$pdf	= new TCPDI_InfraS($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
-		} elseif (class_exists('TCPDF_InfraS')) {
-			$pdf	= new TCPDF_InfraS($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
-		} elseif (class_exists('TCPDI')) {
+		if (class_exists('TCPDI')) {
 			$pdf	= new TCPDI($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
 		} else {
 			$pdf	= new TCPDF($pagetype, $metric, $format, true, 'UTF-8', false, $pdfa);
@@ -461,74 +432,31 @@
 	{
 		global $conf;
 
-		// --- Configuration des filigranes ---
 		$image_watermark		= !empty($useLogo) ? $useLogo : getDolGlobalString('INFRASPLUS_PDF_IMAGE_WATERMARK', '');
 		$test_watermark			= getDolGlobalString('INFRASPLUS_PDF_ENABLE_TEST_WATERMARK', '');
 		$watermark_i_opacity	= getDolGlobalInt('INFRASPLUS_PDF_I_WATERMARK_OPACITY', 1);
-		// --- Résolution du chemin du fichier filigrane ---
 		$logodir				= !empty($conf->mycompany->multidir_output[$objEntity]) ? $conf->mycompany->multidir_output[$objEntity] : $conf->mycompany->dir_output;
 		$filigrane				= $logodir.'/logos/'.$image_watermark;
-		// --- Détermination des filigranes à appliquer ---
-		// Filigrane image : le fichier doit exister, être lisible, et le PDF doit supporter TCPDI (setSourceFile)
-		$hasImageWatermark		= !empty($image_watermark) && is_readable($filigrane) && method_exists($pdf, 'setSourceFile');
-		$hasTextWatermark		= !empty($test_watermark) && !empty($outputlangs);
-		// --- Bloc unifié de rendu des filigranes ---
-		if ($hasImageWatermark || $hasTextWatermark) {
-			$bMargin			= $pdf->getBreakMargin();	// Sauvegarde des paramètres de saut de page pour restauration ultérieure
-			$auto_page_break	= $pdf->getAutoPageBreak();
-			$pdf->SetAutoPageBreak(false, 0);	// désactivation temporaire du saut de page automatique pour éviter qu'un saut ne se déclenche pendant le dessin de l'arrière-plan
-			// --- Filigrane image/PDF (arrière-plan) ---
-			// Stratégie : tout fichier est importé via TCPDI (setSourceFile/importPage/useTemplate) pour un rendu correct en arrière-plan. Les images (JPG, PNG...) sont d'abord converties en PDF temporaire avant import.
-			if ($hasImageWatermark) {
-				$ext		= strtolower(pathinfo($filigrane, PATHINFO_EXTENSION));
-				$pdfSource	= $filigrane;
-				// Conversion image → PDF temporaire si le fichier n'est pas déjà un PDF Le PDF temporaire est mis en cache dans DOL_DATA_ROOT/admin/temp/ avec un hash MD5 du chemin source. Il est régénéré si le fichier source est plus récent.
-				if ($ext != 'pdf') {
-					$tmpdir		= DOL_DATA_ROOT.'/admin/temp/';
-					$pdfSource	= $tmpdir.'watermark_'.md5($filigrane).'.pdf';
-					// Régénération uniquement si le cache n'existe pas ou est obsolète
-					if (!is_readable($pdfSource) || filemtime($filigrane) > filemtime($pdfSource)) {
-						include_once TCPDF_PATH.'tcpdf.php';
-						// Création d'un PDF temporaire aux dimensions exactes de la page
-						$tmppdf	= new TCPDF('P', 'mm', array($formatpage['largeur'], $formatpage['hauteur']), true, 'UTF-8', false, getDolGlobalInt('PDF_USE_A', 0));
-						$tmppdf->setPrintHeader(false);
-						$tmppdf->setPrintFooter(false);
-						$tmppdf->SetMargins(0, 0, 0);
-						$tmppdf->SetAutoPageBreak(false, 0);
-						$tmppdf->AddPage();
-						// Calcul des dimensions proportionnelles de l'image pour tenir dans la page
-						$imgsize	= pdf_InfraSPlus_getSizeForImage($filigrane, $formatpage['largeur'], $formatpage['hauteur']);
-						if (isset($imgsize['width']) && isset($imgsize['height'])) {
-							// Centrage de l'image sur la page
-							$posxpicture	= ($formatpage['largeur'] - $imgsize['width']) / 2;
-							$posypicture	= ($formatpage['hauteur'] - $imgsize['height']) / 2;
-							$tmppdf->Image($filigrane, $posxpicture, $posypicture, $imgsize['width'], $imgsize['height'], '', '', '', false, 300, '', false, false, 0);
-						}
-						// Sauvegarde du PDF temporaire sur disque
-						$tmppdf->Output($pdfSource, 'F');
-						unset($tmppdf);
-					}
-				}
-				// Import du PDF (source ou converti) via TCPDI comme template d'arrière-plan
-				if (is_readable($pdfSource)) {
-					$pdf->SetAlpha($watermark_i_opacity / 100);	// Application de l'opacité configurée (valeur 1-100 → 0.01-1.00)
-					$pdf->setSourceFile($pdfSource);	// Import de la première page du PDF source comme template
-					$tplidx	= $pdf->importPage(1);
-					$pdf->useTemplate($tplidx, 0, 0, $formatpage['largeur'], $formatpage['hauteur']);	// Placement du template sur toute la surface de la page
-					$pdf->SetAlpha(1);	// Restauration de l'opacité à 100%
-				}
+		if (!empty($image_watermark) && is_readable($filigrane)) {
+			$imgsize	= array();
+			$imgsize	= pdf_InfraSPlus_getSizeForImage($filigrane, $formatpage['largeur'], $formatpage['hauteur']);
+			if (isset($imgsize['width']) && isset($imgsize['height'])) {
+				$pdf->SetAlpha($watermark_i_opacity / 100);
+				$bMargin			= $pdf->getBreakMargin();	// get the current page break margin
+				$auto_page_break	= $pdf->getAutoPageBreak();	// get current auto-page-break mode
+				$pdf->SetAutoPageBreak(false, 0);	// disable auto-page-break
+				$posxpicture		= ($formatpage['largeur'] - $imgsize['width']) / 2;	// centre l'image dans la page
+				$posypicture		= ($formatpage['hauteur'] - $imgsize['height']) / 2;	// centre l'image dans la page
+				$pdf->Image($filigrane, $posxpicture, $posypicture, $imgsize['width'], $imgsize['height'], '', '', '', false, 300, '', false, false, 0);	// set bacground image
+				$pdf->SetAutoPageBreak($auto_page_break, $bMargin);	// restore auto-page-break status
+				$pdf->SetAlpha(1);	// restore full opacity before page mark so subsequent content inserted at intmrk is not affected by watermark alpha
+				$pdf->setPageMark();	// set the starting point for the page content
 			}
-			// --- Filigrane texte (superposé au filigrane image si présent) ---
-			// Affiche un texte en diagonale (ex: "TEST") en rouge semi-transparent via la fonction pdf_InfraSPlus_watermark() qui utilise une matrice de transformation
-			if ($hasTextWatermark) {
-				// Calcul de la zone utile (page moins marges) pour centrer le texte
-				$larg_util_cadre	= $formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']);
-				$ht_util_cadre		= $formatpage['hauteur'] - ($formatpage['mhaute'] + $formatpage['mbasse']);
-				// Positionnement vertical au milieu de la zone utile
-				pdf_InfraSPlus_watermark($pdf, $outputlangs, $test_watermark, $ht_util_cadre / 2, $larg_util_cadre, $ht_util_cadre, 'mm');
-			}
-			$pdf->SetAutoPageBreak($auto_page_break, $bMargin);	// Restauration des paramètres de saut de page automatique
-			$pdf->setPageMark();	// Marque tout le contenu précédent comme arrière-plan pour que le contenu suivant (texte, tableaux, etc.) soit rendu par-dessus les filigranes
+		}
+		if (!empty($test_watermark) && !empty($outputlangs)) {
+			$larg_util_cadre	= $formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']);
+			$ht_util_cadre		= $formatpage['hauteur'] - ($formatpage['mhaute'] + $formatpage['mbasse']);
+			pdf_InfraSPlus_watermark($pdf, $outputlangs, $test_watermark, $ht_util_cadre / 2, $larg_util_cadre, $ht_util_cadre, 'mm');
 		}
 	}
 
@@ -542,7 +470,7 @@
 	*	@param		boolean		$multicurrency	use multicurrency values
 	*	@return		string						Return the difference between standart price and discounted one
 	**/
-	function pdf_InfraSPlus_getTotRem($object, $i, $only_ht = 0, $pricesObjProd = [], $multicurrency = 0)
+	function pdf_InfraSPlus_getTotRem($object, $i, $only_ht = 0, $pricesObjProd = array(), $multicurrency = 0)
 	{
 		global $conf;
 
@@ -553,7 +481,7 @@
 			$tvalignebrut		= $TotBrutLine * $object->lines[$i]->tva_tx / 100;
 			$localtax1lignebrut	= $TotBrutLine * $object->lines[$i]->localtax1_tx / 100;
 			$localtax2lignebrut	= $TotBrutLine * $object->lines[$i]->localtax2_tx / 100;
-			return $TotBrutLine + $tvalignebrut + $localtax1lignebrut + $localtax2lignebrut - (!empty($multicurrency) ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc);
+			return ($TotBrutLine + $tvalignebrut + $localtax1lignebrut + $localtax2lignebrut) - (!empty($multicurrency) ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc);
 		} else {
 			return $TotBrutLine - (!empty($multicurrency) ? $object->lines[$i]->multicurrency_total_ht : $object->lines[$i]->total_ht);
 		}
@@ -600,19 +528,19 @@
 				$heightLogo	= pdf_getHeightForLogo($logo);
 				if (!empty($forceWidth) || !empty($center)) {
 					$logosize	= pdf_InfraSPlus_getSizeForImage($logo, $w, $heightLogo, 1);
-					$posxlogo	= !empty($center) ? $posx + ($w - $logosize['width']) / 2 : (!empty($left)  ? $posx + $w - $logosize['width'] : $posx);	// positionne l'image dans la colonne => centre | gauche | $posx
+					$posxlogo	= !empty($center) ? $posx + (($w - $logosize['width']) / 2) : (!empty($left)  ? $posx + ($w - $logosize['width']) : $posx);	// positionne l'image dans la colonne => centre | gauche | $posx
 					$pdf->Image($logo, $posxlogo, $posy, $logosize['width'], 0);	// height = 0 (auto)
 					$heightLogo	= $logosize['height'];
 				} else {
 					$logosize	= pdf_InfraSPlus_getSizeForImage($logo, $w, $heightLogo, 0);
-					$pdf->Image($logo, !empty($left)  ? $posx + $w - $logosize['width'] : $posx, $posy, 0, $heightLogo);	// width = 0 (auto)
+					$pdf->Image($logo, (!empty($left)  ? $posx + ($w - $logosize['width']) : $posx), $posy, 0, $heightLogo);	// width = 0 (auto)
 				}
 			} else {
 				$pdf->SetTextColor(200, 0, 0);
 				$pdf->SetFont('', 'B', $default_font_size - 2);
 				$pdf->MultiCell($w, $tab_hl, $outputlangs->transnoentities('PDFInfraSPlusLogoFileNotFound', $logo), '', 'L', 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 				$pdf->MultiCell($w, $tab_hl, $outputlangs->transnoentities('ErrorGoToGlobalSetup'), '', 'L', 0, 1, $posx, $pdf->getY() + 1, true, 0, 0, false, 0, 'M', false);
-				$pdf->SetTextColor((int) $headertxtcolor[0], (int) $headertxtcolor[1], (int) $headertxtcolor[2]);
+				$pdf->SetTextColor($headertxtcolor[0], $headertxtcolor[1], $headertxtcolor[2]);
 				$heightLogo	= $pdf->getY() + 1;
 			}
 		} else {
@@ -692,7 +620,7 @@
 				}
 			}
 		}
-		return empty($header_after_addr) ? $pdf->getY() : $refstoshow;
+		return (empty($header_after_addr) ? $pdf->getY() : $refstoshow);
 	}
 
 	/**
@@ -716,7 +644,7 @@
 		$fichinterlinked	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_REF_FICHINTER', 0);
 		$projectlinked		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_REF_PROJECT', 0);
 		$projectdesc		= getDolGlobalInt('INFRASPLUS_PDF_SHOW_DESC_PROJECT', 0);
-		$linkedobjects		= [];
+		$linkedobjects		= array();
 		$object->fetchObjectLinked();
 		foreach($object->linkedObjects as $objecttype => $objects) {
 			if ($objecttype == 'facture') {
@@ -737,7 +665,8 @@
 					$linkedobjects[$objecttype]['date_title']	= $outputlangs->transnoentities('OrderDate');
 					$linkedobjects[$objecttype]['date_value']	= dol_print_date($elementobject->date, 'day', '', $outputlangs);
 				}
-			} elseif ($object->element != 'contrat' && $objecttype == 'contrat' && $contractlinked) {
+			}
+			elseif ($object->element != 'contrat' && $objecttype == 'contrat' && $contractlinked) {
 				$outputlangs->load('contracts');
 				foreach($objects as $elementobject) {
 					$linkedobjects[$objecttype]['ref_title']	= $outputlangs->transnoentities('RefContract');
@@ -745,7 +674,8 @@
 					$linkedobjects[$objecttype]['date_title']	= $outputlangs->transnoentities('DateContract');
 					$linkedobjects[$objecttype]['date_value']	= dol_print_date($elementobject->date_contrat, 'day', '', $outputlangs);
 				}
-			} elseif ($object->element != 'fichinter' && $objecttype == 'fichinter' && $fichinterlinked) {
+			}
+			elseif ($object->element != 'fichinter' && $objecttype == 'fichinter' && $fichinterlinked) {
 				$outputlangs->load('interventions');
 				foreach($objects as $elementobject) {
 					$linkedobjects[$objecttype]['ref_title']	= $outputlangs->transnoentities('PDFInfraSPlusRefInter');
@@ -753,7 +683,8 @@
 					$linkedobjects[$objecttype]['date_title']	= $outputlangs->transnoentities('Date');
 					$linkedobjects[$objecttype]['date_value']	= dol_print_date($elementobject->datec, 'day', '', $outputlangs);
 				}
-			} elseif ($object->element != 'shipping' && $objecttype == 'shipping' && $shippinglinked) {
+			}
+			elseif ($object->element != 'shipping' && $objecttype == 'shipping' && $shippinglinked) {
 				foreach($objects as $x => $elementobject) {
 					$order	= null;
 					if (empty($object->linkedObjects['commande']) && $object->element != 'commande') {	// There is not already a link to order and object is not the order, so we show also info with order
@@ -817,13 +748,13 @@
 	{
 		global $conf, $db;
 
-		$linkedshippings	= [];
+		$linkedshippings	= array();
 		$sql				= 'SELECT *';
 		$sql				.= ' FROM '.$db->prefix().'element_element AS ee';
 		$sql				.= ' INNER JOIN '.$db->prefix().'expedition AS e';
 		$sql				.= ' ON ee.fk_source = e.rowid';
 		$sql				.= ' WHERE ee.sourcetype = "shipping"';
-		$sql				.= ' AND ee.fk_target = '.((int) $object->id);
+		$sql				.= ' AND ee.fk_target = "'.$object->id.'"';
 		$resql				= $db->query($sql);
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
@@ -897,17 +828,12 @@
 		if (!empty($free_addr_livr)) {
 			$extrafields	= new ExtraFields($db);
 			$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
-			if (isset($extrafields->attributes[$object->table_element]['label'][$free_addr_livr])) {
-				$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
-				$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr] ?? '', '', $object->table_element));
-				$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
-			} else {
-				$free_addr_livr	= '';	// extrafield configured (INFRASPLUS_PDF_FREE_LIVR_EXF) but not defined for this table_element
-			}
+			$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
+			$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr], '', $object->table_element));
+			$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
 		}
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		$doli_addr_livr_recep	= empty($use_doli_addr_livr) ? 0 : getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0);
-		$use_doli_addr_fact		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 0);
 		$showadrSsT				= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 		if (!empty($showadrSsT)) {
 			if (!empty($adrSst) && $adrSst > 0) {
@@ -933,16 +859,16 @@
 			$carac_emetteur	.= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";
 		}
 		if (!empty($addresslivrstatic) && $typeadr == 'supplierInvoice') {
-			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $object->client, '', 0, $show_emet_details ? 'source' : 'sourcewithnodetails', $object, 1, $ticket);
+			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $object->client, '', 0, ($show_emet_details ? 'source' : 'sourcewithnodetails'), $object, 1, $ticket);
 		} elseif (!empty($adr)) {
 			$addressstatic	= new Address($db);
 			$addressfound	= $addressstatic->fetch($adr);
 			if ($addressfound == 1) {
 				$sender_Alias	= $show_sender_alias ? $addressstatic->name : '';
-				$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $addressstatic, $thirdparty, '', 0, $show_emet_details ? 'source' : 'sourcewithnodetails', $object, 1, $ticket);
+				$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $addressstatic, $thirdparty, '', 0, ($show_emet_details ? 'source' : 'sourcewithnodetails'), $object, 1, $ticket);
 			}
 		} else {
-			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_emet_details ? 'source' : 'sourcewithnodetails', $object, 1, $ticket);
+			$carac_emetteur .= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, ($show_emet_details ? 'source' : 'sourcewithnodetails'), $object, 1, $ticket);
 		}
 		// Recipient properties
 		if (!empty($arrayidcontact['U']) && is_object ($arrayidcontact['U'])) {	// Expense report
@@ -984,18 +910,15 @@
 				$adrfactfound	= $adrfactstatic->fetch(0, $client->id, $adrfact);
 			}
 			if ($adrfactfound == 1) {
-				$carac_client	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $adrfactstatic, '', false, $show_recep_details ? 'targetwithdetails' : 'target', $object, 2, $ticket);
+				$carac_client	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $adrfactstatic, '', false, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 2, $ticket);
 				if (!empty($carac_client)) {
 					$carac_client_name	= $outputlangs->convToOutputCharset($adrfactstatic->name);
 				}
 			} else {
 				$usecontact		= false;
-				if (!empty($use_doli_addr_fact) && $object->element == 'facture' && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
+				if (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0 && $object->element == 'commande') {
 					$usecontact	= true;
-					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
-				} elseif (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0 && $object->element == 'commande') {
-					$usecontact	= true;
-					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
+					$result		= $object->fetch_contact($arrayidcontact['L'][0]);
 				} elseif (in_array($customerAddr, array('C', 'A')) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
 					$usecontact	= true;
 					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
@@ -1004,26 +927,13 @@
 				}
 				$thirdpartystatic	= $typeadr == 'supplierInvoice' ? $addresslivrstatic : ($typeadr == 'accountStatus' ? $thirdparty : infraspackplus_check_parent_addr_fact ($object));
 				$carac_client_name	= pdf_InfraSPlus_Build_Third_party_Name($thirdpartystatic, $outputlangs, $includealias, $object->contact, $customerAddr);
-				$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdpartystatic, $usecontact ? $object->contact : '', $usecontact, $show_recep_details ? 'targetwithdetails' : 'target', $object, 1, $ticket);
+				$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdpartystatic, ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 1, $ticket);
 			}
 			// Shipping address
-			// Priority 1 : static InfraSPlus address (adrlivrfour selected), 2 : internal SHIPPING contact, 3 : external SHIPPING contact
-			if (!empty($use_doli_addr_livr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
-				if ($addresslivrstatic == 'Default') {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
-				} else {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
-				}
-			} elseif (!empty($use_doli_addr_livr) && isset($arrayidcontact['LI']) && is_array($arrayidcontact['LI']) && count($arrayidcontact['LI']) > 0) {
-				$result	= $object->fetch_user($arrayidcontact['LI'][0]);
-				if ($result > 0 && is_object($object->user)) {
-					$livrshow_name	= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
-					$livrshow		= $outputlangs->convToOutputCharset(dol_format_address($object->user, 0, "\n", $outputlangs));
-				}
-			} elseif (!empty($use_doli_addr_livr) && isset($arrayidcontact['L']) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
+			if (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
 				$companyDiff	= 0;
 				$result			= $object->fetch_contact($arrayidcontact['L'][0]);
-				$usecontact		= in_array($customerAddr, getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON') ? array('C', 'A', 'T', 'B') : array('C', 'A')) ? true : false;
+				$usecontact		= in_array($customerAddr, array('C', 'A')) ? true : false;
 				if ($object->contact->socid != $thirdparty->id) {
 					$companyDiff	= 1;
 					if ($object->contact->socid > 0) {
@@ -1035,17 +945,17 @@
 					}
 				}
 				$livrshow_name	= pdf_InfraSPlus_Build_Third_party_Name(($companyDiff ? $object->contact->thirdparty : $thirdparty), $outputlangs, $includealias, $object->contact, $customerAddr);
-				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $companyDiff ? $object->contact->thirdparty : $thirdparty, $usecontact ? $object->contact : '', $usecontact, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, -1, $ticket);
+				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, ($companyDiff ? $object->contact->thirdparty : $thirdparty), ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, -1, $ticket);
 			} elseif (!empty($showadrlivr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
 				if ($addresslivrstatic == 'Default') {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
 				} else {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetlivrwithdetails' : 'target', $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
 				}
 			}
 			// Subcontractor address
 			if (!empty($showadrSsT) && $addresssststatic) {
-				$SsTshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresssststatic, '', 0, $show_recep_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
+				$SsTshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresssststatic, '', 0, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
 			}
 		}
 		return	array(	'sender_Alias'		=> $sender_Alias,
@@ -1110,11 +1020,6 @@
 		$targetDetFax		= getDolGlobalInt('INFRASPLUS_PDF_TARGET_DETAIL_FAX', 0);
 		$targetDetEmail		= getDolGlobalInt('INFRASPLUS_PDF_TARGET_DETAIL_MAIL', 0);
 		$targetDetWeb		= getDolGlobalInt('INFRASPLUS_PDF_TARGET_DETAIL_WEB', 0);
-		$targetLivrDetPhone	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_PHONE', 0);
-		$targetLivrDetFax	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_FAX', 0);
-		$targetLivrDetEmail	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_MAIL', 0);
-		$targetLivrDetWeb	= getDolGlobalInt('INFRASPLUS_PDF_TARGET_LIVR_DETAIL_WEB', 0);
-		$targetDetNative	= !empty($targetDet) && !in_array($mode, array('targetwithdetails', 'targetlivrwithdetails'));	// MAIN_PDF_ADDALSOTARGETDETAILS n'est décisif que hors sélection InfraS par détail, qui doit primer
 		$showNumCli			= getDolGlobalInt('INFRASPLUS_PDF_SHOW_NUM_CLI', 0);
 		$numCliFrm			= getDolGlobalInt('INFRASPLUS_PDF_NUM_CLI_FRM', 0);
 		$showCodeCliCompt	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_CODE_CLI_COMPT', 0);
@@ -1134,7 +1039,7 @@
 			$stringaddress	.= $hookmanager->resPrint;
 		}
 		if (empty($reshook)) {
-			$withCountry	= !empty($sourceaddress->country_code) && !empty($targetcompany->country_code) && $targetcompany->country_code != $sourceaddress->country_code || $forceWithCountry ? 1 : 0;	// Country
+			$withCountry	= ((!empty($sourceaddress->country_code) && !empty($targetcompany->country_code) && ($targetcompany->country_code != $sourceaddress->country_code)) || $forceWithCountry) ? 1 : 0;	// Country
 			if ($mode == 'source' || $mode == 'sourcewithnodetails') {
 				$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->convToOutputCharset(dol_format_address($sourceaddress, $withCountry, "\n", $outputlangs)).($ticket ? '' : "\n");
 				if ($mode != 'sourcewithnodetails') {
@@ -1158,7 +1063,7 @@
 					}
 				}
 				if ($profids > 0) {
-					$reg	= [];
+					$reg	= array();
 					if ((!empty($tvaInSourceAddr) || !empty($ticket)) && !empty($sourcecompany->tva_intra)) {
 						$tmpID			= pdf_InfraSPlus_build_IDs('TVA', $outputlangs->convToOutputCharset($sourcecompany->tva_intra), $sourcecompany->country_code);
 						$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('VATIntraShort').' : '.$tmpID;
@@ -1216,7 +1121,7 @@
 					$stringaddress	.= ($stringaddress ? "\n" : '').$moreInSourceAddr;
 				}
 			}
-			if (in_array($mode, array('target', 'targetwithnodetails', 'targetlivrwithdetails')) || preg_match('/targetwithdetails/',$mode)) {
+			if ($mode == 'target' || $mode == 'targetwithnodetails' || preg_match('/targetwithdetails/',$mode)) {
 				if (!empty($usecontact)) {
 					if (is_object($targetcontact)) {
 						if (!empty($targetcontact->address)) {
@@ -1229,9 +1134,9 @@
 							}
 							$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->convToOutputCharset(dol_format_address($companytouseforaddress, $withCountry, "\n", $outputlangs))."\n";
 						}
-						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode) || preg_match('/targetlivrwithdetails/', $mode)) {
+						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode)) {
 							// Phone
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone))) {
 								if (!empty($targetcontact->phone_pro) || !empty($targetcontact->phone_mobile)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
 								}
@@ -1246,19 +1151,19 @@
 								}
 							}
 							// Fax
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax))) {
 								if (!empty($targetcontact->fax)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcontact->fax)));
 								}
 							}
 							// EMail
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail))) {
 								if (!empty($targetcontact->email)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($targetcontact->email);
 								}
 							}
 							// Web
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb))) {
 								if (!empty($targetcontact->url)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Web').' : '.$outputlangs->convToOutputCharset($targetcontact->url);
 								}
@@ -1268,36 +1173,28 @@
 				} else {
 					if (is_object($targetcompany)) {
 						$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->convToOutputCharset(dol_format_address($targetcompany, $withCountry, "\n", $outputlangs)).($ticket ? '' : "\n");
-						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode) || preg_match('/targetlivrwithdetails/', $mode)) {
+						if (!empty($targetDet) || preg_match('/targetwithdetails/', $mode)) {
 							// Phone
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetPhone))) {
-								if (!empty($targetcompany->phone) || !empty($targetcompany->phone_mobile)) {
-									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
-								}
-								if (!empty($targetcompany->phone)) {
-									$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone)));
-								}
-								if (!empty($targetcompany->phone) && !empty($targetcompany->phone_mobile)) {
-									$stringaddress	.= ' / ';
-								}
-								if (!empty($targetcompany->phone_mobile)) {
-									$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone_mobile)));
-								}
+							if (!empty($targetDet) || preg_match('/targetwithdetails_phone/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetPhone))) {
+								if (!empty($targetcompany->phone) || !empty($targetcompany->phone_mobile))	$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('PhoneShort').' : ';
+								if (!empty($targetcompany->phone))											$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone)));
+								if (!empty($targetcompany->phone) && !empty($targetcompany->phone_mobile))	$stringaddress	.= ' / ';
+								if (!empty($targetcompany->phone_mobile))									$stringaddress	.= $outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->phone_mobile)));
 							}
 							// Fax
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetFax))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_fax/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetFax))) {
 								if (!empty($targetcompany->fax)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($targetcompany->fax)));
 								}
 							}
 							// EMail
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetEmail))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_email/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetEmail))) {
 								if (!empty($targetcompany->email)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($targetcompany->email);
 								}
 							}
 							// Web
-							if (!empty($targetDetNative) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb)) || ($mode == 'targetlivrwithdetails' && !empty($targetLivrDetWeb))) {
+							if (!empty($targetDet) || preg_match('/targetwithdetails_url/', $mode) || ($mode == 'targetwithdetails' && !empty($targetDetWeb))) {
 								if (!empty($targetcompany->url)) {
 									$stringaddress	.= ($stringaddress ? "\n" : '' ).$outputlangs->transnoentities('Web').' : '.$outputlangs->convToOutputCharset($targetcompany->url);
 								}
@@ -1315,8 +1212,8 @@
 						}
 					}
 					if (in_array($object->element, $listElementsCli) && $showCodeCliCompt && $mode != 'targetwithnodetails') {
-						if (!empty(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty))) {
-							$stringaddress .= ($stringaddress ? "\n" : '') . $outputlangs->transnoentities('CustomerAccountancyCode') . ' : ' . $outputlangs->convToOutputCharset(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty));
+						if (!empty($object->thirdparty->code_compta)) {
+							$stringaddress .= ($stringaddress ? "\n" : '') . $outputlangs->transnoentities('CustomerAccountancyCode') . ' : ' . $outputlangs->convToOutputCharset($object->thirdparty->code_compta);
 						}
 					}
 					// Intra VAT
@@ -1414,26 +1311,6 @@
 	}
 
 	/**
-	*	Returns the customer accountancy code of a thirdparty.
-	*	Societe::$code_compta is deprecated and no more filled by Societe::fetch() on recent Dolibarr versions (only $code_compta_client is)
-	*
-	*	@param	Societe		$thirdparty		Thirdparty
-	*	@return	string						Customer accountancy code or empty string
-	**/
-	function pdf_InfraSPlus_getCustomerAccountancyCode($thirdparty)
-	{
-		if (! is_object($thirdparty)) {
-			return '';
-		}
-		if (!empty($thirdparty->code_compta_client)) {
-			return $thirdparty->code_compta_client;
-		}
-		if (!empty($thirdparty->code_compta)) {	// Backward compatibility with old Dolibarr versions
-			return $thirdparty->code_compta;
-		}
-		return '';
-	}
-	/**
 	*	Returns the name of the thirdparty
 	*
 	*	@param	Societe|Contact		$thirdparty		Contact or thirdparty
@@ -1445,7 +1322,7 @@
 	**/
 	function pdf_InfraSPlus_Build_Third_party_Name($thirdparty, $outputlangs, $includealias = 0, $contact = '', $customerAddr = '')
 	{
-		$contactname	= '';
+		$useContactName	= !empty($contact) && in_array($customerAddr, array('C', 'B', 'A')) ? 1 : 0;
 		$statusWithName	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_STATUS_WITH_CLIENT_NAME', 0);
 		$statusWithName	= !empty($statusWithName) && $thirdparty->forme_juridique_code ? ' '.$outputlangs->convToOutputCharset(getFormeJuridiqueLabel($thirdparty->forme_juridique_code)) : '';
 		if ($thirdparty instanceof Societe) {
@@ -1454,7 +1331,7 @@
 		if ($contact instanceof Contact) {
 			$contactname	= $outputlangs->convToOutputCharset($contact->getFullName($outputlangs, 1, -1));
 		}
-		return $outputlangs->convToOutputCharset($customerAddr == 'C' ? $contactname : ($customerAddr == 'B' ? ($contactname !== '' ? $socname."\n".$contactname : $socname) : ($customerAddr == 'A' ? ($contactname !== '' ? $contactname."\n".$socname : $socname) : $socname)));
+		return $outputlangs->convToOutputCharset($customerAddr == 'C' && !empty($contactname) ? $contactname : (in_array($customerAddr, array('B', 'A')) ? $socname.(!empty($contactname) ? "\n".$contactname : '') : $socname));
 	}
 
 	/**
@@ -1562,15 +1439,16 @@
 	{
 		global $conf;
 
-		$frmeTxtColor	= colorStringToArray(getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '0,0,0'), array(0, 0, 0));
-		$frmrTxtColor	= colorStringToArray(getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '0,0,0'), array(0, 0, 0));
+		$frmeTxtColor	= getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '0,0,0');
+		$frmeTxtColor	= explode(',', $frmeTxtColor);
+		$frmrTxtColor	= getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '0,0,0');
+		$frmrTxtColor	= explode(',', $frmrTxtColor);
 		$statusWithName	= getDolGlobalString('INFRASPLUS_PDF_SHOW_STATUS_WITH_SENDER_NAME', '') && !empty($emetteur->forme_juridique_code) ? ' '.$outputlangs->convToOutputCharset(getFormeJuridiqueLabel($emetteur->forme_juridique_code))	: '';
-		$posyendsender	= $dimCadres['Y'];	// Default when sender frame is hidden (no sender block rendered below to update it)
 		if (empty($hide_recep_frame)) {
 			// Show sender
 			$posy	= $dimCadres['Y'];
 			if (empty($ticket)) {
-				$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
+				$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
 			}
 			// Show sender name
 			$pdf->SetFont('', 'B', $default_font_size - ($ticket ? 2 : 0));
@@ -1589,7 +1467,7 @@
 			$posy	= $posyendsender;
 		}
 		if (empty($ticket)) {
-			$pdf->SetTextColor((int) $frmrTxtColor[0], (int) $frmrTxtColor[1], (int) $frmrTxtColor[2]);
+			$pdf->SetTextColor($frmrTxtColor[0], $frmrTxtColor[1], $frmrTxtColor[2]);
 		}
 		// Show recipient name
 		$pdf->SetFont('', 'B', $default_font_size - ($ticket ? 2 : 0));
@@ -1599,7 +1477,7 @@
 		$pdf->SetFont('', '', $default_font_size - ($ticket ? 3 : 1));
 		$pdf->MultiCell($dimCadres['R'] - 4, $tab_hl, $addresses['carac_client'], '', 'L', 0, 1, $dimCadres['xR'] + 2, $posy, true, 0, 0, false, 0, 'M', false);
 		$posyendrecipient	= $pdf->getY();
-		return $posyendsender > $posyendrecipient ? $posyendsender - $dimCadres['Y'] + 1 : $posyendrecipient - $dimCadres['Y'] + 1;
+		return $posyendsender > $posyendrecipient ? ($posyendsender - $dimCadres['Y']) + 1 : ($posyendrecipient - $dimCadres['Y']) + 1;
 	}
 
 	/**
@@ -1625,7 +1503,7 @@
 		$logosmallheadheight	= getDolGlobalInt('INFRASPLUS_PDF_LOGO_SMALL_HEAD_HEIGHT', 6);
 		$logo					= !empty($logosheader2) && !empty($logosecondarysmallhead) ? $logosheader2 : $logo;
 		$default_font_size		= pdf_getPDFFontSize($outputlangs);
-		$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
+		$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
 		$pdf->SetFont('','', $default_font_size - 2);
 		$posy					= $formatpage['mhaute'];
 		$posx					= $formatpage['largeur'] - $formatpage['mdroite'] - 100 - $decal_round;
@@ -1640,7 +1518,7 @@
 				$pdf->SetFont('', 'B', $default_font_size - 2);
 				$pdf->MultiCell(100, 4, $outputlangs->transnoentities('PDFInfraSPlusLogoFileNotFound', $logo), '', 'L', 0, 1, $formatpage['mgauche'], $posy, true, 0, 0, false, 0, 'M', false);
 				$pdf->MultiCell(100, 4, $outputlangs->transnoentities('ErrorGoToGlobalSetup'), '', 'L', 0, 1, $formatpage['mgauche'], $posy + 8, true, 0, 0, false, 0, 'M', false);
-				$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
+				$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
 			}
 		} else {
 			$text	= $fromcompany->name;
@@ -1651,176 +1529,45 @@
 	}
 
 	/**
-	 *	Function which returns VAT statements to display on the document
-	 *	(according to seller, buyer, lines nature and delivery context).
-	 *
-	 *	Rules applied (France-based ERP):
-	 *		1. Seller under VAT franchise (FR art. 293 B CGI)				=> statement F (n°1)
-	 *		2. Seller not subject to VAT for other reasons					=> no mention
-	 *		3. Service B2B, buyer in another EU country with valid VATn		=> statement S (n°2) reverse charge
-	 *		4. Service B2B, buyer outside EU								=> statement S (n°3) art. 259-1° CGI
-	 *		5. Goods delivered to another EU country, B2B with valid VATn	=> statement P (n°4) art. 262 ter I CGI
-	 *		6. Goods delivered outside EU (export)							=> statement P (n°5) art. 262-I CGI
-	 *		7. Seller and buyer same country AND delivery domestic			=> no mention (standard domestic VAT)
-	 *		8. BTP auto-liquidation (domestic B2B construction works)		=> statement B (n°6) if flag set
-	 *
-	 *	Note: the function returns mentions per line category ('S' for services, 'P' for goods) so that a mixed invoice displays all relevant mentions.
-	 *
-	 *	@param	object		$object			Object shown in PDF (invoice, proposal, order...)
-	 *	@param	object		$seller			Seller company object
-	 *	@param	object		$buyer			Buyer thirdparty object
-	 *	@param	array		$arrayidcontact	Array of contact IDs involved in the document (e.g. billing, shipping, other contacts)
-	*	@param	int			$adrlivr		Shipping address ID
-	 *	@param	boolean		$hasService		TRUE if the document contains at least one service line
-	 *	@param	boolean		$hasProduct		TRUE if the document contains at least one goods line
-	 *	@param	boolean		$show_tva_btp	TRUE to force display of the BTP auto-liquidation mention
-	 *	@return	array|int					0 if no mention, otherwise array keyed by:
-	 *										'F' => franchise mention
-	 *										'S' => service mention
-	 *										'P' => goods mention
-	 *										'B' => BTP mention
-	 */
-	function pdf_InfraSPlus_VAT_auto($object, $seller, $buyer, $arrayidcontact, $adrlivr, $hasService = 0, $hasProduct = 0, $show_tva_btp = 0)
+	*	Function whitch returns vat statement (according to the seller, the buyer and the products present in the document)
+	*	If the seller is in france and not subject to VAT => statement n° 1 => End of rule.
+	*	If the seller is not subject to VAT => End of rule.
+	*	If the seller and the buyer are from the same country => End of rule.
+	*	If the seller and the buyer are from different countries from the EEC and there are services on the document => statement n° 2 => End of rule.
+	*	If the seller is from the EEC but not the buyer and there are services on the document => statement n° 3 => End of rule.
+	*	If the seller and the buyer are from different countries from the EEC and there are products on the document => statement n° 4 => End of rule.
+	*	If the seller is from the EEC but not the buyer and there are products on the document => statement n° 5 => End of rule.
+	*
+	*	@param	object		$object			Object shown in PDF
+	*	@param	object		$seller			Object seller
+	*	@param	object		$buyer			Object buyer
+	*	@param	boolean		$hasService		there are services on the document
+	*	@param	boolean		$hasProduct		there are products on the document
+	*	@param	boolean		$show_tva_btp	we show the BTP mention
+	*	@return array						0 = no mention or array of mention (keys are 'F' => franchise, 'S' => services, 'P' => products)
+	**/
+	function pdf_InfraSPlus_VAT_auto($object, $seller, $buyer, $hasService = 0, $hasProduct = 0, $show_tva_btp = 0)
 	{
-		global $db;
-
-		$result				= [];
-		$use_doli_addr_livr	= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
-		// ----- Seller status -----
-		$franchise			= ((is_numeric($seller->tva_assuj) && empty($seller->tva_assuj)) || (!is_numeric($seller->tva_assuj) && $seller->tva_assuj == 'franchise')) ? 1 : 0;
-		$sellerCC			= $seller->country_code;
-		$sellerInEEC		= isInEEC($seller);
-		// ----- Buyer status -----
-		$buyerCC			= $buyer->country_code;
-		$buyerInEEC			= isInEEC($buyer);
-		// B2B requires a non-empty intra-community VAT number.
-		// Ideally this number should have been validated against VIES beforehand.
-		$buyerIsB2B			= !empty(trim((string) ($buyer->tva_intra ?? ''))) ? 1 : 0;
-		// Country prefix of the intra-community VAT number actually provided by the buyer (e.g. 'FR', 'DE').
-		// Used so an intra-community supply is only claimed when this number belongs to the delivery country.
-		$buyerVatCC			= strtoupper(substr(trim((string) ($buyer->tva_intra ?? '')), 0, 2));
-		// ----- Delivery country and postal code for goods/services -----
-		// Priority: explicit shipping address on the document, else buyer's country.
-		$deliveryCC			= $buyerCC;
-		$deliveryZip		= isset($buyer->zip) ? $buyer->zip : '';
-		$adrlivr			= (int) $adrlivr;
-		// Use of a Dolibarr delivery address (if the flag is activated): we first look to see if a delivery contact is attached to the document, then we use the country code of this contact if it exists and is provided.
-		if (!empty($use_doli_addr_livr) && isset($arrayidcontact['L']) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
-			$res	= $object->fetch_contact($arrayidcontact['L'][0]);
-			if ($res > 0 && is_object($object->contact)) {
-				$deliveryCC		= $object->contact->country_code;
-				$deliveryZip	= isset($object->contact->zip) ? $object->contact->zip : '';
-			}
-		} elseif ($adrlivr > 0) {	// fallback to direct use of delivery address ID if provided (InfraSPackPlus standard field on order, proposal, invoice...)
-			$addresslivrstatic	= new Address($db);
-			$addresslivrfound	= $addresslivrstatic->fetch($adrlivr, 0, '');
-			if ($addresslivrfound == 1) {
-				$deliveryCC		= $addresslivrstatic->country_code;
-				$deliveryZip	= isset($addresslivrstatic->zip) ? $addresslivrstatic->zip : '';
-			}
-		}
-		$deliveryInEEC	= pdf_InfraSPlus_isInEECByCountryCode($deliveryCC); // helper; see note below
-		// ----- French overseas departments (DOM) -----
-		// La Réunion, Guadeloupe, Martinique... keep country_code 'FR' but are export territories for VAT (art. 294 CGI).
-		// A sale dispatched from metropolitan France to a DOM must not be treated as a domestic metropolitan sale.
-		// DOM handling is opt-in: it is only active when INFRASPLUS_PDF_SHOW_DOM_MENTIONS is enabled.
-		$domEnabled			= getDolGlobalInt('INFRASPLUS_PDF_SHOW_DOM_MENTIONS', 0);
-		$sellerIsDOM		= pdf_InfraSPlus_isDOM($sellerCC, isset($seller->zip) ? $seller->zip : '');
-		$deliveryIsDOM		= pdf_InfraSPlus_isDOM($deliveryCC, $deliveryZip);
-		$toDOMfromMetropole	= (!empty($domEnabled) && !empty($sellerInEEC) && $sellerCC == 'FR' && empty($sellerIsDOM) && !empty($deliveryIsDOM)) ? 1 : 0;
-		// =========================================================
-		// RULE 1 — Seller under French VAT franchise (art. 293 B CGI)
-		// =========================================================
+		$result			= array();
+		$franchise		= ((is_numeric($seller->tva_assuj) && empty($seller->tva_assuj)) || (!is_numeric($seller->tva_assuj) && $seller->tva_assuj == 'franchise')) ? 1 : 0;
+		$sellerCC		= $seller->country_code;
+		$sellerInEEC	= isInEEC($seller);
+		$buyerCC		= $buyer->country_code;
+		$buyerInEEC		= isInEEC($buyer);
+		// ($franchise && $sellerCC != 'FR') || $sellerCC == $buyerCC => nothing to do
 		if ($sellerCC == 'FR' && !empty($franchise)) {
-			$result['F'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_1');
-			// Franchise invoices don't carry further VAT mentions.
-			if (!empty($show_tva_btp)) {
-				$result['B'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_6');
-			}
-			return count($result) > 0 ? $result : 0;
+			$result['F']	= pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_1');
+		} elseif (!empty($sellerInEEC) && !empty($buyerInEEC) && $sellerCC != $buyerCC) {
+			$result['S']	= !empty($hasService) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_2') : '';
+			$result['P']	= !empty($hasProduct) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_4') : '';
+		} elseif (!empty($sellerInEEC) && empty($buyerInEEC)) {
+			$result['S']	= !empty($hasService) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_3') : '';
+			$result['P']	= !empty($hasProduct) ? pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_5') : '';
 		}
-		// =========================================================
-		// SERVICES — rule based on the place of delivery/performance (delivery address)
-		// =========================================================
-		if (!empty($hasService)) {
-			if (!empty($toDOMfromMetropole) && $buyerIsB2B) {
-				// Service B2B performed in a French overseas department => reverse charge by the customer (art. 259-1 CGI)
-				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_8');
-			} elseif (!empty($sellerInEEC) && !empty($deliveryInEEC) && $sellerCC != $deliveryCC && $buyerIsB2B) {
-				// Service B2B intra-UE => reverse charge
-				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_2');
-			} elseif (!empty($sellerInEEC) && empty($deliveryInEEC)) {
-				// Service performed outside the EU (B2B or B2C of "immaterial" services)
-				// => not taxable in France
-				$result['S'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_3');
-			}
-			// Other service cases (performed in metropolitan France, or B2C intra-UE below OSS threshold)
-			// => standard VAT of the seller, no special mention.
-		}
-		// =========================================================
-		// GOODS — rule based on DELIVERY country, not buyer's siège
-		// =========================================================
-		if (!empty($hasProduct)) {
-			if (!empty($toDOMfromMetropole)) {
-				// Goods dispatched from metropolitan France to a French overseas department
-				// => assimilated to an export, exemption art. 294, 2 CGI
-				$result['P'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_7');
-			} elseif (!empty($sellerInEEC) && !empty($deliveryInEEC) && $sellerCC != $deliveryCC && $buyerIsB2B && $buyerVatCC == $deliveryCC) {
-				// Intra-community supply of goods B2B => exemption art. 262 ter I CGI.
-				// Only when the VAT number provided belongs to the delivery country (a FR VAT number
-				// shipped to another EU country is NOT an intra-community supply => standard French VAT).
-				$result['P'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_4');
-			} elseif (!empty($sellerInEEC) && empty($deliveryInEEC)) {
-				// Export outside the EU => exemption art. 262-I CGI
-				$result['P'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_5');
-			}
-			// Other goods cases (delivered domestically, or B2C intra-UE below OSS threshold)
-			// => standard domestic VAT, no special mention.
-		}
-		// =========================================================
-		// BTP — domestic B2B auto-liquidation (French construction works)
-		// =========================================================
 		if (!empty($show_tva_btp)) {
-			$result['B'] = pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_6');
+			$result['B']	= pdf_InfraSPlus_get_VAT_mention($object, 'INFRASPLUS_PDF_FREETEXT_TVA_6');
 		}
-		return count($result) > 0 ? $result : 0;
-	}
-
-	/**
-	 *  Helper: check whether a country code belongs to the EU.
-	 *  Wraps isInEEC() which in Dolibarr expects an object with ->country_code.
-	 */
-	function pdf_InfraSPlus_isInEECByCountryCode($country_code)
-	{
-		if (empty($country_code)) {
-			return 0;
-		}
-		$fake				= new stdClass();
-		$fake->country_code	= $country_code;
-		return isInEEC($fake);
-	}
-
-	/**
-	 *  Helper: check whether an address belongs to a French overseas department (DOM).
-	 *  DOM keep the country code 'FR' in Dolibarr, so detection mainly relies on the postal code (97xxx).
-	 *  Explicit overseas country codes are also accepted in case the instance uses them.
-	 *
-	 *  @param	string	$country_code	Country code (e.g. 'FR', 'RE')
-	 *  @param	string	$zip			Postal code (e.g. '97400')
-	 *  @return	int						1 if the address is in a DOM, 0 otherwise
-	 */
-	function pdf_InfraSPlus_isDOM($country_code, $zip = '')
-	{
-		// Explicit overseas country codes (rarely used; Dolibarr usually keeps 'FR' + a 97xxx postal code).
-		$domcc	= array('RE', 'GP', 'MQ', 'GF', 'YT');
-		if (!empty($country_code) && in_array($country_code, $domcc)) {
-			return 1;
-		}
-		// France with an overseas postal code: 971 Guadeloupe, 972 Martinique, 973 Guyane, 974 Réunion, 976 Mayotte.
-		if ($country_code == 'FR' && !empty($zip) && preg_match('/^97[1-46]/', (string) $zip)) {
-			return 1;
-		}
-		return 0;
+		return (is_array($result) && count($result) > 0 ? $result : 0);
 	}
 
 	/**
@@ -1918,7 +1665,7 @@
 			$posy	= $pdf->GetY() + 1;
 		}
 		if (!empty($calculseul)) {
-			$heightforfreetext	= $posy - $posy0;
+			$heightforfreetext	= ($posy - $posy0);
 			$pdf->rollbackTransaction(true);
 			return $heightforfreetext;
 		} else {
@@ -2012,7 +1759,7 @@
 		$height_note	= 0;
 		$salesrep		= !empty($show_sales_rep_in_notes) && $typeNotes > -1 ? pdf_InfraSPlus_SalesRepInNotes($object, $outputlangs) : '';
 		if ($listnotep != 'None' && is_array($listnotep) && count($listnotep) > 0) {
-			$notesptoshow	= [];
+			$notesptoshow	= array();
 			foreach ($listnotep as $noteP) {
 				$notePub	= getDolGlobalString($noteP, '');
 				if (!empty($notePub)) {
@@ -2036,7 +1783,7 @@
 				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $txtDateoPrj, $horLineStyle, ($salesrep || !empty($notesptoshow) || $notetoshow || $extraDet || $serialEquip ? 1 : 0));
 			}
 			if (!empty($salesrep)) {
-				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $salesrep, $horLineStyle, !empty($notesptoshow) || $notetoshow || $extraDet || $serialEquip ? 1 : 0);
+				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $salesrep, $horLineStyle, (!empty($notesptoshow) || $notetoshow || $extraDet || $serialEquip ? 1 : 0));
 			}
 			if (!empty($notesptoshow)) {
 				foreach ($notesptoshow as $noteptoshow) {
@@ -2047,7 +1794,7 @@
 				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $notetoshow, $horLineStyle, ($extraDet || $serialEquip ? 1 : 0));
 			}
 			if (!empty($extraDet)) {
-				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $extraDet, $horLineStyle, $serialEquip ? 1 : 0);
+				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $extraDet, $horLineStyle, ($serialEquip ? 1 : 0));
 			}
 			if (!empty($serialEquip)) {
 				$nexY	= pdf_InfraSPlus_writeNotes($pdf, $larg_util_txt, $tab_hl, $posx_G_txt, $nexY, $serialEquip, $horLineStyle, 0);
@@ -2110,13 +1857,13 @@
 			$tmpuser	= new User($db);
 			$tmpuser->fetch($arrayidcontact[0]);
 			$salesrep	.= $outputlangs->transnoentities('CaseFollowedBy').' '.(!empty($show_sales_rep_bold) ? '<b>'.$tmpuser->getFullName($outputlangs).'</b>' : $tmpuser->getFullName($outputlangs));
-			if (!empty($tmpuser->email) && !getDolGlobalInt('INFRASPLUS_PDF_FIRST_SALES_DONT_SHOW_EMAIL')) {
+			if (!empty($tmpuser->email)) {
 				$salesrep	.= ', '.$outputlangs->transnoentities('Email').' : '.$outputlangs->convToOutputCharset($tmpuser->email);
 			}
-			if (!empty($tmpuser->office_phone) && !getDolGlobalInt('INFRASPLUS_PDF_FIRST_SALES_DONT_SHOW_PHONE')) {
+			if (!empty($tmpuser->office_phone)) {
 				$salesrep	.= ', '.$outputlangs->transnoentities('PhoneShort').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($tmpuser->office_phone)));
 			}
-			if (!empty($tmpuser->user_mobile) && !getDolGlobalInt('INFRASPLUS_PDF_FIRST_SALES_DONT_SHOW_MOBILE')) {
+			if (!empty($tmpuser->user_mobile)) {
 				$salesrep	.= ', '.$outputlangs->transnoentities('PhoneMobile').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($tmpuser->user_mobile)));
 			}
 		}
@@ -2133,191 +1880,21 @@
 	**/
 	function pdf_InfraSPlus_formatNotes($object, $outputlangs, $notes)
 	{
-		global $dolibarr_main_url_root, $conf;
+		global $dolibarr_main_url_root;
 
-		// Cache du substitutionarray et de urlwithroot par (object, outputlangs).
-		// pdf_getSubstitutionArray + complete_substitutions_array sont coûteuses et indépendantes de $notes ;
-		// elles étaient recalculées à chaque ligne (228 fois) lors d'une génération PDF (gain mesuré ~25s / 228 lignes).
-		static $__ipp_fn_cache	= [];
-		$__ipp_cacheKey			= (is_object($object) ? spl_object_hash($object) : 'no_obj').'|'.(is_object($outputlangs) ? spl_object_hash($outputlangs) : 'no_lg');
-		if (!isset($__ipp_fn_cache[$__ipp_cacheKey])) {
-			$__sa								= pdf_getSubstitutionArray($outputlangs, null, $object);
-			complete_substitutions_array($__sa, $outputlangs, $object);
-			$__urlwithouturlroot				= preg_replace('/'.preg_quote(DOL_URL_ROOT, '/').'$/i', '', trim($dolibarr_main_url_root));
-			$__ipp_fn_cache[$__ipp_cacheKey]	= array('substitutionarray'	=> $__sa,
-														'urlwithroot'		=> $__urlwithouturlroot.DOL_URL_ROOT,
-														);
-		}
-		$substitutionarray	= $__ipp_fn_cache[$__ipp_cacheKey]['substitutionarray'];
-		$urlwithroot		= $__ipp_fn_cache[$__ipp_cacheKey]['urlwithroot'];
+		$substitutionarray	= pdf_getSubstitutionArray($outputlangs, null, $object);
+		complete_substitutions_array($substitutionarray, $outputlangs, $object);
 		$html				= make_substitutions($notes, $substitutionarray, $outputlangs);
-		// Clean variables not found. Dolibarr substitution keys are always __UPPERCASE_WORDS__ (see
-		// pdf_getSubstitutionArray()/complete_substitutions_array()), so the pattern is restricted to
-		// that alphabet. The previous /__(.+)_(.+)__/ was unanchored and greedy: any free text using
-		// long runs of underscores as a fill-in-the-blank line (e.g. "Nom : _______________") matched
-		// from its first "__" to the last "__" found anywhere later in the string, silently wiping out
-		// everything in between (labels, other blanks...) instead of leaving the untouched text alone.
-		$reg				= [];
-		while (preg_match('/__[A-Z0-9]+(?:_[A-Z0-9]+)*__/', $html, $reg)) {
+		// Clean variables not found
+		$reg				= array();
+		while (preg_match('/__(.+)_(.+)__/', $html, $reg)) {
 			$html	= str_replace($reg[0], '', $html);
 		}
-		// Convert medias images to a local file path instead of an absolute HTTP URL.
-		// A remote fetch of viewimage.php is blocked by the security layer, so the image would not appear in the PDF.
-		// <img ... src=".../viewimage.php?modulepart=medias&file=image/foo.png" ...>  =>  src="file:/DOL_DATA_ROOT/medias/image/foo.png"
-		//$html				= preg_replace('/(<img[^>]*src=")[^"]*viewimage\.php[^"]*modulepart=medias[^"]*file=([^"]*)(")/', '\1file:/'.DOL_DATA_ROOT.'/medias/\2\3', preg_replace('#amp;#', '', $html));
-		$html				= preg_replace_callback('/<img\b[^>]*\bsrc="([^"]*viewimage\.php[^"]*)"[^>]*>/i', function ($m) {
-			global $conf;
-			$tag	= $m[0];
-			// CKEditor HTML-entity-encodes the '&' separators (&amp;) and typographic chars in the src
-			// (e.g. &rsquo; for the macOS screenshot apostrophe, &eacute; ...). Decode first, otherwise a
-			// stray '&' coming from an entity would truncate the file= parameter at parse time.
-			$src	= html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-			if (strpos($src, 'modulepart=medias') === false) {
-				return $tag;
-			}
-			$qs		= parse_url($src, PHP_URL_QUERY);
-			$params	= [];
-			parse_str(!empty($qs) ? $qs : $src, $params);	// parse_str url-decodes file= (e.g. accented names)
-			$file	= !empty($params['file']) ? $params['file'] : '';
-			if (empty($file) || strpos($file, '..') !== false) {	// guard against path traversal
-				return $tag;
-			}
-			$entity		= !empty($params['entity']) ? (int) $params['entity'] : (int) $conf->entity;
-			$basedir	= !empty($conf->medias->multidir_output[$entity]) ? $conf->medias->multidir_output[$entity] : (!empty($conf->medias->dir_output) ? $conf->medias->dir_output : DOL_DATA_ROOT.'/medias');
-			// The medias folder may mix UTF-8 and ISO-8859-1 file names (legacy uploads via the file manager),
-			// while the src stored by CKEditor is URL-encoded in a single charset. Resolve tolerantly so an
-			// encoding mismatch on accented names does not silently drop the image from the PDF.
-			$fullpath	= pdf_InfraSPlus_resolveMediaPath($basedir, $file);
-			if ($fullpath === false) {
-				dol_syslog('pdf_InfraSPlus_formatNotes: media image not found on disk for file='.$file, LOG_WARNING);
-				return $tag;
-			}
-			$data	= file_get_contents($fullpath);
-			if ($data === false) {
-				return $tag;
-			}
-			$imgsize	= @getimagesize($fullpath);
-			$mime		= !empty($imgsize['mime']) ? $imgsize['mime'] : dol_mimetype($fullpath, 'image/png', 0);
-			return str_replace('"'.$m[1].'"', '"data:'.$mime.';base64,'.base64_encode($data).'"', $tag);
-		}, $html);
-		// Checkbox glyphs pasted from Word (U+2610/2611/2612) are missing not only from the module's
-		// TrueType fonts (Century Gothic...) but also from any font-family the WYSIWYG editor may have
-		// set inline on the text (Calibri, Cambria, Corbel... all converted here without the Geometric
-		// Shapes/Miscellaneous Symbols Unicode blocks), so TCPDF renders a missing-glyph box regardless
-		// of a same-font substitute glyph. Force these characters through TCPDF's bundled DejaVu Sans
-		// (full Unicode coverage) via an inline font-family span, overriding whatever font surrounds them.
-		$html	= str_replace(
-			['☐', '☑', '☒'],
-			['<span style="font-family:dejavusans">☐</span>', '<span style="font-family:dejavusans">☑</span>', '<span style="font-family:dejavusans">☒</span>'],
-			$html
-		);
+		// the code below came from a Dolibarr v10 native function (convertBackOfficeMediasLinksToPublicLinks()) on functions2.lib.php
+		$urlwithouturlroot	= preg_replace('/'.preg_quote(DOL_URL_ROOT, '/').'$/i', '', trim($dolibarr_main_url_root));	// Define $urlwithroot
+		$urlwithroot		= $urlwithouturlroot.DOL_URL_ROOT;		// This is to use external domain name found into config file
+		$html				= preg_replace('/src="[a-zA-Z0-9_\/\-\.]*(viewimage\.php\?modulepart=medias[^"]*)"/', 'src="'.$urlwithroot.'/\1"', preg_replace('#amp;#', '', $html));
 		return $html;
-	}
-
-	/**
-	*	Resolve a medias-relative file path to a real, readable absolute path, tolerant to the
-	*	inconsistent encodings found in legacy medias folders. Over the years the file manager stored
-	*	the same names under different forms (UTF-8, ISO-8859-1, untranslatable chars replaced by '?',
-	*	literal '%20' baked into directory names, Unicode NFD vs NFC), and the src kept by CKEditor may
-	*	be partially double-url-encoded. A plain exact match (what dol_check_secure_access_document does)
-	*	therefore fails, so we walk the path one segment at a time: exact match first, then a fuzzy match
-	*	by encoding/accent-insensitive signature among the entries of the current directory.
-	*
-	*	@param		string			$basedir	Absolute medias base directory (no trailing slash)
-	*	@param		string			$file		Medias-relative file path (already url-decoded once)
-	*	@return		string|false				Absolute path if found and readable, false otherwise
-	**/
-	function pdf_InfraSPlus_resolveMediaPath($basedir, $file)
-	{
-		$file	= ltrim($file, '/');
-		if (strpos($file, '..') !== false) {	// guard against path traversal
-			return false;
-		}
-		$current	= $basedir;
-		foreach (explode('/', $file) as $segment) {
-			if ($segment === '') {
-				continue;
-			}
-			// Exact segment first (clean names resolve here with no directory scan).
-			if (file_exists($current.'/'.$segment)) {
-				$current	.= '/'.$segment;
-				continue;
-			}
-			// Fuzzy: find the directory entry whose signature matches this segment.
-			$match	= pdf_InfraSPlus_matchDirEntry($current, $segment);
-			if ($match === false) {
-				return false;
-			}
-			$current	.= '/'.$match;
-		}
-		return (is_file($current) && is_readable($current)) ? $current : false;
-	}
-
-	/**
-	*	Find, inside directory $dir, the entry whose signature matches $segment (encoding/accent
-	*	insensitive). Results are cached per directory so a PDF with many images in the same folder
-	*	only scans it once.
-	*
-	*	@param		string			$dir		Absolute directory to scan
-	*	@param		string			$segment	Wanted path segment (any encoding)
-	*	@return		string|false				Real entry name on disk, or false if none matches
-	**/
-	function pdf_InfraSPlus_matchDirEntry($dir, $segment)
-	{
-		static $cache	= array();	// $dir => array(signature => real entry name)
-		if (!isset($cache[$dir])) {
-			$map	= array();
-			$dh		= @opendir($dir);
-			if ($dh) {
-				while (($e = readdir($dh)) !== false) {
-					if ($e === '.' || $e === '..') {
-						continue;
-					}
-					$sig	= pdf_InfraSPlus_mediaNameSignature($e);
-					if ($sig !== '' && !isset($map[$sig])) {	// first match wins
-						$map[$sig]	= $e;
-					}
-				}
-				closedir($dh);
-			}
-			$cache[$dir]	= $map;
-		}
-		$want	= pdf_InfraSPlus_mediaNameSignature($segment);
-		return ($want !== '' && isset($cache[$dir][$want])) ? $cache[$dir][$want] : false;
-	}
-
-	/**
-	*	Build an encoding/accent-insensitive signature of a path segment for fuzzy comparison.
-	*	Residual url-encoding is decoded ('%20', double-encoded '%2520'...), the value is normalized to
-	*	UTF-8 then to Unicode NFC (so decomposed macOS names match precomposed ones), transliterated to
-	*	ASCII (accents removed) and reduced to its lowercase alphanumeric characters. Thus the same
-	*	logical name stored under different forms ("Axopen%20" vs "Axopen ", "d’écran" UTF-8 vs latin1
-	*	vs "d?e?cran", NFD vs NFC) yields the same signature.
-	*
-	*	@param		string	$name	Path segment (any encoding)
-	*	@return		string			Lowercase alphanumeric signature ('' if it cannot be built)
-	**/
-	function pdf_InfraSPlus_mediaNameSignature($name)
-	{
-		$name	= rawurldecode($name);	// neutralize literal %20 / double-encoded %2520 in names
-		if (function_exists('mb_check_encoding') && !mb_check_encoding($name, 'UTF-8')) {
-			$name	= mb_convert_encoding($name, 'UTF-8', 'ISO-8859-1');	// assume legacy latin1 on disk
-		}
-		if (class_exists('Normalizer')) {
-			$nfc	= Normalizer::normalize($name, Normalizer::FORM_C);	// NFD (e + combining accent) -> NFC
-			if ($nfc !== false) {
-				$name	= $nfc;
-			}
-		}
-		if (function_exists('iconv')) {
-			$ascii	= @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name);
-			if ($ascii !== false) {
-				$name	= $ascii;
-			}
-		}
-		$name	= strtolower($name);
-		$name	= preg_replace('/[^a-z0-9]+/', '', $name);
-		return $name !== null ? $name : '';
 	}
 
 	/**
@@ -2339,7 +1916,7 @@
 		$efDeposit		= explode(',', preg_replace('/\s+/', '', $efDeposit));	// string without any space to array
 		$ef				= array_merge($efPaySpec, $efDeposit);
 		$free_addr_livr	= getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', '');
-		$listEF			= [];
+		$listEF			= array();
 		$extraDet		= '';
 		$extrafields	= new ExtraFields($db);
 		$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
@@ -2347,7 +1924,7 @@
 		foreach ($extralabels as $key => $label) {
 			$printable	= intval($extrafields->attributes[$object->table_element]['printable'][$key]);
 			// check extrafield atribute printable (0 = no ; 1 = always ; 2 = if not empty) || key to avoid printing extra field for special payment || key to avoid printing extra field for delivery address
-			if (empty($printable) || in_array($key, $ef) || !empty($free_addr_livr) && $key == $free_addr_livr) {
+			if (empty($printable) || in_array($key, $ef) || (!empty($free_addr_livr) && $key == $free_addr_livr)) {
 				continue;
 			}
 			$options_key	= $object->array_options['options_'.$key];
@@ -2362,7 +1939,7 @@
 			}
 		}
 		if (!empty($listEF)) {
-			uasort($listEF, function ($a, $b) { return	$a->rank > $b->rank ? 1 : -1; });
+			uasort($listEF, function ($a, $b) { return	($a->rank > $b->rank) ? 1 : -1; });
 			foreach ($listEF as $EF) {
 				$value		= '<span style = "color: rgb('.$exftxtcolor[0].', '.$exftxtcolor[1].', '.$exftxtcolor[2].')">'.$EF->value.'</span>';
 				$extraDet	.= !empty($bulleted) ? (empty($extraDet) ? '<ul><li>' : '<li>') : (!empty($extraDet) ? '<br/>' : '');
@@ -2387,7 +1964,7 @@
 	{
 		global $db;
 
-		$idprod	= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
+		$idprod	= (!empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false);
 		$space	= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 		$retStr	= '';
 		if (!empty($idprod) || $typedoc == 'intervention') {
@@ -2396,21 +1973,21 @@
 				$sql	.= ' FROM '.$db->prefix().'equipement AS eq, '.$db->prefix().'equipementevt_equipement AS eqevteq, '.$db->prefix().'equipementevt_element AS eqevtel';
 				$sql	.= ' WHERE eqevteq.fk_equipementevt = eqevtel.fk_equipementevt';
 				$sql	.= ' AND eq.rowid = eqevteq.fk_equipement';
-				$sql	.= ' AND eqevtel.fk_element = '.((int) $object->id);
+				$sql	.= ' AND eqevtel.fk_element = "'.$object->id.'"';
 				$sql	.= ' AND eqevtel.elementtype = "shipping"';
-				$sql	.= ' AND eq.fk_product = '.((int) $idprod);
+				$sql	.= ' AND eq.fk_product = "'.$idprod.'"';
 			} elseif ($typedoc == 'facture') {
 				$sql	= 'SELECT eq.ref';
 				$sql	.= ' FROM '.$db->prefix().'equipement AS eq';
-				$sql	.= ' WHERE eq.fk_facture = '.((int) $object->id);
-				$sql	.= ' AND eq.fk_product = '.((int) $idprod);
+				$sql	.= ' WHERE eq.fk_facture = "'.$object->id.'"';
+				$sql	.= ' AND eq.fk_product = "'.$idprod.'"';
 			} elseif ($typedoc == 'intervention') {
 				$sql	= 'SELECT eq.ref, p.ref as refproduct';
 				$sql	.= ' FROM '.$db->prefix().'equipement AS eq, '.$db->prefix().'equipementevt_equipement AS eqevteq, '.$db->prefix().'equipementevt_element AS eqevtel,'.$db->prefix().'product AS p';
 				$sql	.= ' WHERE eqevteq.fk_equipementevt = eqevtel.fk_equipementevt';
 				$sql	.= ' AND eq.rowid = eqevteq.fk_equipement';
 				$sql	.= ' AND p.rowid = eq.fk_product';
-				$sql	.= ' AND eqevtel.fk_element = '.((int) $object->id);
+				$sql	.= ' AND eqevtel.fk_element = "'.$object->id.'"';
 				$sql	.= ' AND eqevtel.elementtype = "fichinter"';
 				$sql	.= ' ORDER BY eq.fk_product';
 			} else {
@@ -2448,13 +2025,13 @@
 	{
 		global $db;
 
-		$prodfichinter	= [];
+		$prodfichinter	= array();
 		$sql	= 'SELECT fid.total_ht, fid.subprice, fid.fk_product, fid.tva_tx, fid.localtax1_tx, fid.localtax1_type, fid.localtax2_tx, fid.localtax2_type, fid.qty,';
 		$sql	.= ' fid.remise_percent, fid.remise, fid.fk_remise_except, fid.price, fid.total_tva, fid.total_localtax1, fid.total_localtax2, fid.total_ttc,';
 		$sql	.= ' fid.product_type, fid.info_bits, fid.buy_price_ht, fid.fk_product_fournisseur_price, p.ref, p.label';
 		$sql	.= ' FROM '.$db->prefix().'fichinterdet AS fid';
 		$sql	.= ' LEFT JOIN '.$db->prefix().'product AS p ON fid.fk_product = p.rowid';
-		$sql	.= ' WHERE fid.fk_fichinter = '.((int) $object->id).' AND fid.rowid = '.((int) $object->lines[$i]->id);
+		$sql	.= ' WHERE fid.fk_fichinter = '.$object->id.' AND fid.rowid = '.$object->lines[$i]->id;
 		$resql	= $db->query($sql);
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
@@ -2530,7 +2107,7 @@
 			}
 			return array('width' => $width, 'height' => $height);
 		}
-		return [];
+		return array();
 	}
 
 	/**
@@ -2544,7 +2121,7 @@
 	{
 		global $db;
 
-		$idprod		= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
+		$idprod		= (!empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false);
 		$prodser	= new Product($db);
 		$prodser->fetch($idprod);
 
@@ -2560,7 +2137,7 @@
 	*	@param	int			$hidedetails		Hide details (0=no, 1=yes, 2=just special lines)
 	*	@return	string
 	**/
-	function pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = [])
+	function pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = array())
 	{
 		global $db, $hookmanager;
 
@@ -2600,7 +2177,7 @@
 			$bold_num_col	= getDolGlobalInt('INFRASPLUS_PDF_BOLD_REF', 0);
 			$with_gencode	= getDolGlobalInt('INFRASPLUS_PDF_REF_WITH_GENCODE', 0);
 		} else	$bold_num_col	= getDolGlobalInt('INFRASLOC_PDF_RET_BOLD_REF', 0);	// pour module de location InfraS
-		if (!empty($with_gencode) && $i > -1 || $object->element == 'reception' && empty($ref_prodserv)) {
+		if ((!empty($with_gencode) && $i > -1) || ($object->element == 'reception' && empty($ref_prodserv))) {
 			if (empty($ref_prodserv)) {
 				$ref_prodserv	= $prodser->ref;
 			}
@@ -2646,13 +2223,13 @@
 		$prodRefSupp	= getDolGlobalInt('PDF_HIDE_PRODUCT_REF_IN_SUPPLIER_LINES', 0);
 		$bold_num_col	= getDolGlobalInt('INFRASPLUS_PDF_BOLD_REF', 0);
 		$idprod			= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
-		$ref_supplier	= !empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : '');
+		$ref_supplier	= (!empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : ''));
 		if (empty($ref_supplier)) {
 			$ref	= $object->lines[$i]->ref;
 			$sql	= 'SELECT pfp.ref_fourn ';
 			$sql	.= 'FROM '.$db->prefix().'product AS p ';
 			$sql	.= 'LEFT JOIN '.$db->prefix().'product_fournisseur_price AS pfp ON p.rowid = pfp.fk_product ';
-			$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = '.((int) $object->thirdparty->id);
+			$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = "'.$object->thirdparty->id.'"';
 			$resql	= $db->query($sql);
 			if (!empty($resql)) {
 				$obj	= $db->fetch_object($resql);
@@ -2844,7 +2421,7 @@
 			if (preg_match('#<img.*src=.*\/>#', $value)) {
 				$value	= preg_replace('#src=\"\/viewimage.*modulepart=#', 'src="'.DOL_DATA_ROOT.'/', preg_replace('#&amp;entity=[0-9]*&amp;file=#', '/', $value));
 			}
-			if (in_array($printable, array(1, 3)) || (!empty($options_key) && $printable == 4)) {	// check if something is writting for this extrafield according to the extrafield management
+			if (in_array($printable, array(1, 3)) || (!empty($value) && $printable == 4)) {	// check if something is writting for this extrafield according to the extrafield management
 				$value		= '<span style = "color: rgb('.$exfltxtcolor[0].', '.$exfltxtcolor[1].', '.$exfltxtcolor[2].')">'.$value.'</span>';
 				$extraDet	.= (empty($extraDet) ? '' : '<br/>').$outputlangs->trans($label).' : <b>'.$value.'</b>';
 			}
@@ -2882,7 +2459,7 @@
 			if (preg_match('#<img.*src=.*\/>#', $value)) {
 				$value	= preg_replace('#src=\"\/viewimage.*modulepart=#', 'src="'.DOL_DATA_ROOT.'/', preg_replace('#&amp;entity=[0-9]*&amp;file=#', '/', $value));
 			}
-			if ($printable == 1 || (!empty($options_key) && $printable == 2)) {	// check if something is writting for this extrafield according to the extrafield management
+			if ($printable == 1 || (!empty($value) && $printable == 2)) {	// check if something is writting for this extrafield according to the extrafield management
 				$value		= '<span style = "color: rgb('.$exfltxtcolor[0].', '.$exfltxtcolor[1].', '.$exfltxtcolor[2].')">'.$value.'</span>';
 				$extraProd	.= (empty($extraProd) ? '' : '<br/>').$outputlangs->trans($label).' : <b>'.$value.'</b>';
 			}
@@ -2894,7 +2471,7 @@
 	*	Return line weight volume dimensions and Customs code into array
 	*
 	*	@param	object		$object			Object shown in PDF
-	*	@param	int|string	$i				Current line number (0 = first line, 1 = second line, ...) or 'P' to get product info instead of line info
+	*	@param	int			$i				Current line number (0 = first line, 1 = second line, ...)
 	*	@param	Translate	$outputlangs	Object langs for output
 	*	@param	object		$emetteur		Object company
 	*	@return string						html code with elements found
@@ -2908,7 +2485,7 @@
 		$notForCustomerSameCountry	= getDolGlobalInt('INFRASPLUS_PDF_NO_SHOW_WVCC_SAME_COUNTRY', 0);
 		if (!empty($notForCustomerSameCountry)) {
 			$thirdparty		= !empty($object->thirdparty) ? $object->thirdparty : '';
-			$sameCountry	= !empty($emetteur->country_code) && !empty($thirdparty->country_code) && $thirdparty->country_code == $emetteur->country_code ? 1 : 0;
+			$sameCountry	= (!empty($emetteur->country_code) && !empty($thirdparty->country_code) && ($thirdparty->country_code == $emetteur->country_code)) ? 1 : 0;
 			if (!empty($sameCountry)) {
 				return '';
 			}
@@ -2917,7 +2494,7 @@
 			$idprod	= $object->id;
 			$type	= $object->fk_product_type;
 		} else {
-			$idprod	= !empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false;
+			$idprod	= (!empty($object->lines[$i]->fk_product) ? $object->lines[$i]->fk_product : false);
 			$type	= $object->lines[$i]->product_type;
 		}
 		$prodser	= new Product($db);
@@ -3024,7 +2601,7 @@
 	*	@param	string			$exfEcoTax			extrafield used for product ecotax
 	*	@return	string
 	**/
-	function pdf_InfraSPlus_writelinedesc(&$pdf, $object, $i, $outputlangs, $formatpage, $LineStyle, $w, $h, $posx, $posy, $hideref = 0, $hidedesc = 0, $issupplierline = 0, $extraDet = '', $prodfichinter = null, $desc_full_line = 0, $isRecap = 0, $with_picture = 0, $realpatharray = [], $imglinesize = [], $linkpictureurl = '', $tab_hl = 4, $ht_url = 4, $picture_padding = 0, $exfEcoTax = '')
+	function pdf_InfraSPlus_writelinedesc(&$pdf, $object, $i, $outputlangs, $formatpage, $LineStyle, $w, $h, $posx, $posy, $hideref = 0, $hidedesc = 0, $issupplierline = 0, $extraDet = '', $prodfichinter = null, $desc_full_line = 0, $isRecap = 0, $with_picture = 0, $realpatharray = array(), $imglinesize = array(), $linkpictureurl = '', $tab_hl = 4, $ht_url = 4, $picture_padding = 0, $exfEcoTax = '')
 	{
 		global $db, $hookmanager;
 
@@ -3043,26 +2620,16 @@
 		$reshook				= 0;
 		$result					= '';
 		$labelproductservice	= '';
-		$isATMLine		= 0;	// Ligne du module ATM Subtotal
-		$isSubTitle		= 0;	// Sous-titre (ATM ou natif)
-		$isSubTotal		= 0;	// Sous-total (ATM ou natif) : numéro du module ATM ou SUBTOTALS_SPECIAL_CODE
-		$isSubFreeT		= 0;	// Ligne libre ATM
-		$subSource		= infraspackplus_getSubtotalLineSource($object->lines[$i], $object->element);	// 'atm', 'native' ou ''
-		$subLevel		= infraspackplus_getSubtotalLevel($object->lines[$i], $object->element);	// Niveau du titre / sous-total (1 = premier niveau)
-		if ($subSource == 'atm') {	// Ligne ATM
-			$isATMLine	= 1;
-			$isSubTitle	= $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
-			$isSubTotal	= $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
-			$isSubFreeT	= $object->lines[$i]->qty == 50 ? 1 : 0;	// Ligne libre ATM
-		} elseif ($subSource == 'native') {	// Ligne du module natif Sous-totaux de Dolibarr (qty signée = niveau)
-			$isSubTitle	= $object->lines[$i]->qty > 0 ? 1 : 0;	// Titre natif
-			$isSubTotal	= $object->lines[$i]->qty < 0 ? SUBTOTALS_SPECIAL_CODE : 0;	// Sous-total natif
-		}
-		$isSubModLine	= !empty($subSource) ? 1 : 0;	// Ligne d'un module de sous-totaux, ATM ou natif
-		// Texte libre Infrastructure : aligne le comportement sur celui du module Subtotal pour l'option INFRASPLUS_PDF_DESC_FULL_LINE et la mise en forme générique de pdf_InfraSPlus_getlinedesc
-		$isInfraFreeT	= infraspackplus_isInfrastructureFreeText($object->lines[$i]);
-		if (empty($isSubFreeT) && !empty($isInfraFreeT)) {
-			$isSubFreeT	= 1;
+		if (isModEnabled('subtotal')) {	// Ligne ATM
+			$isATMLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+			$isSubTitle	= $isATMLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
+			$isSubTotal	= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
+			$isSubFreeT	= $isATMLine && $object->lines[$i]->qty == 50 ? 1 : 0;	// Ligne libre ATM
+		} else {
+			$isATMLine	= 0;
+			$isSubTitle	= 0;
+			$isSubTotal	= 0;
+			$isSubFreeT	= 0;
 		}
 		$isOuvrage	= pdf_InfraSPlus_escapeEns ($object, $i, 2);	// Ouvrage Inovea
 		if (isModEnabled('milestone')) {	// ligne Milestone - Jalon
@@ -3072,13 +2639,13 @@
 				$bodytxtsubticolor	= explode(',', $bodytxtsubticolor);
 				$bodybgsubticolor	= getDolGlobalString('MILESTONE_BACKGROUND_COLOR', 'e6e6e6');
 				$bodybgsubticolor	= colorStringToArray($bodybgsubticolor);
-				$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);	// Sous-titre Milestone/Jalon
+				$pdf->SetTextColor($bodytxtsubticolor[0], $bodytxtsubticolor[1], $bodytxtsubticolor[2]);	// Sous-titre Milestone/Jalon
 				$frm				= implode(',', $bodybgsubticolor) == '255, 255, 255' ? '' : 'F';
 				$frmstyle			= array('width'=>'0.2', 'dash'=>'0', 'cap'=>'butt', 'color'=>'255, 255, 255');
 				$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h--, 0.001, '1111', $frm, $frmstyle, $bodybgsubticolor);
 			}
 		}
-		if (is_object($hookmanager) && empty($isSubModLine) && empty($isMilestoneLine) && empty($isInfraFreeT)) {	// Skip hook pour les lignes ATM / natives et pour les textes libres Infrastructure : actions_infrastructure::pdf_writelinedesc dessinerait en largeur de cellule, masquant l'option INFRASPLUS_PDF_DESC_FULL_LINE — on délègue le rendu à pdf_InfraSPlus_getlinedesc (cas $isSubFreeT) qui sait étendre la cellule en pleine largeur.
+		if (is_object($hookmanager) && empty($isATMLine) && empty($isMilestoneLine)) {
 			$special_code	= empty($object->lines[$i]->special_code) ? '' : $object->lines[$i]->special_code;
 			if (!empty($object->lines[$i]->fk_parent_line)) {
 				$special_code	= $object->getSpecialCode($object->lines[$i]->fk_parent_line);
@@ -3104,34 +2671,32 @@
 					}
 				}
 			}
+			$labelproductservice	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $labelproductservice);	// enable the use of an image in description
 			// Fix bug of some HTML editors that replace links <img src="http://localhostgit/viewimage.php?modulepart=medias&file=image/efd.png" into <img src="http://localhostgit/viewimage.php?modulepart=medias&amp;file=image/efd.png"
 			// We make the reverse, so PDF generation has the real URL.
-			// IMPORTANT: this MUST run before pdf_InfraSPlus_formatNotes(). Once formatNotes() inlines the medias images as
-			// base64 data URIs the img src becomes ~1 MB long; the greedy [^"]* groups below then exhaust the PCRE backtrack
-			// limit, preg_replace() returns null, the whole line label becomes empty and the image silently disappears
-			// (this is why large images were missing from the PDF while small ones rendered fine).
 			$labelproductservice	= preg_replace('/(<img[^>]*src=")([^"]*)(&amp;)([^"]*")/', '\1\2&\4', $labelproductservice, -1, $nbrep);
-			$labelproductservice	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $labelproductservice);	// enable the use of an image in description
 			if (!empty($cleanFont)) {
 				$labelproductservice	= dol_string_neverthesehtmltags($labelproductservice, $disallowed_tags = array('span'));
 			}
-			// Note: background-color CSS is no longer stripped here.
-			// The TCPDF ColorFlag bug (text color lost on page breaks when background-color
-			// matches text color) is now fixed via TCPDF_InfraS / TCPDI_InfraS subclasses
-			// that force ColorFlag = true (see tcpdf_infrasplus.class.php).
-
-			// Saut de page avant un titre : ATM (info_bits) ou natif (option titleforcepagebreak, jamais sur la première ligne du document)
-			if ((!empty($isATMLine) && $object->lines[$i]->info_bits > 0) || ($subSource == 'native' && !empty($isSubTitle) && $i > 0 && infraspackplus_getNativeSubtotalOption($object->lines[$i], 'titleforcepagebreak'))) {
+			// Strip background-color CSS to prevent TCPDF ColorFlag bug: when an HTML element's
+			// background-color matches the body text color, TCPDF stops wrapping text in q/Q color
+			// operators, causing text after page breaks to render in default black instead of bodytxtcolor
+			$labelproductservice	= preg_replace('/background-color\s*:\s*[^;"\']+;?/i', '', $labelproductservice);
+			if (!empty($fulllabel['subdesc'])) {
+				$fulllabel['subdesc']	= preg_replace('/background-color\s*:\s*[^;"\']+;?/i', '', $fulllabel['subdesc']);
+			}
+			// Ligne ATM - Saut de page
+			if (!empty($isATMLine) && $object->lines[$i]->info_bits > 0) {
 				$pdf->addPage();
 				$posy	= $pdf->GetY();
 			}
 			// Description
 			// Open-DSI -- NEW full line description -- Begin
-			if ((!empty($desc_full_line) || !empty($with_picture) && !empty($picture_under)) && empty($isSubTotal) && empty($isSubTitle) && $isOuvrage < 2 && empty($isMilestoneLine) && $object->lines[$i]->info_bits == 0) {
+			if ((!empty($desc_full_line) || (!empty($with_picture) && !empty($picture_under))) && empty($isSubTotal) && empty($isSubTitle) && $isOuvrage < 2 && empty($isMilestoneLine) && $object->lines[$i]->info_bits == 0) {
 				$pageposbefore			= $pdf->getPage();
 				$xPos					= $picture_in_ref ? $posx : $formatpage['mgauche'];
 				$wd						= $formatpage['largeur'] - $xPos - $formatpage['mdroite'];
-				$decal					= $wd * ((1 - $descFullLineWitdh / 100) / 2);
+				$decal					= $wd * ((1 - ($descFullLineWitdh / 100)) / 2);
 				$labelproductservice	= (!empty($isSubTotalLine) && $object->lines[$i]->qty == 50 ? '<br />' : '').$labelproductservice;	// Free text of SubTotal
 				$splitResult			= infraspackplus_splitLabelDescription($labelproductservice);
 				$pos					= $splitResult !== false ? $splitResult['pos'] : false;
@@ -3179,12 +2744,12 @@
 				$h					= $pdf->getStringHeight($w, $labelproductservice);
 				$frmstyle			= array('width'=>'0.2', 'dash'=>'0', 'cap'=>'butt', 'color'=>'255, 255, 255');
 				if (!empty($isSubTitle)) {	// Sous-titre ATM
-					$style			= getDolGlobalString('SUBTOTAL_TITLE_STYLE', $subLevel == 1 ? 'BU' : 'BUI');
+					$style			= getDolGlobalString('SUBTOTAL_TITLE_STYLE', ($object->lines[$i]->qty == 1 ? 'BU' : 'BUI'));
 					$bodybgsubcolor	= colorStringToArray($bodysubticolor);
 					$frm			= implode(',', $bodybgsubcolor) == '255, 255, 255' ? '' : 'F';
-					$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);
+					$pdf->SetTextColor($bodytxtsubticolor[0], $bodytxtsubticolor[1], $bodytxtsubticolor[2]);
 					$pdf->SetFont('', $style);
-					$tmpAlpha		= ($subLevel - 1) * 0.25;	// Opacité du fond décroissante avec le niveau
+					$tmpAlpha		= ($object->lines[$i]->qty - 1) * 0.25;
 					$pdf->SetAlpha(1 - ($tmpAlpha >= 0 ? $tmpAlpha : 1));
 					// desc_full_line: use full page width for subtitle
 					$subTiX			= !empty($desc_full_line) ? $formatpage['mgauche'] : $posx;
@@ -3194,7 +2759,7 @@
 					}
 					$pdf->SetAlpha(1);
 					$pdf->writeHTMLCell($subTiW, $h, $subTiX, $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1, false, true, 'L', true);
-					$pdf->SetTextColor((int) $bodydescsubticolor[0], (int) $bodydescsubticolor[1], (int) $bodydescsubticolor[2]);
+					$pdf->SetTextColor($bodydescsubticolor[0], $bodydescsubticolor[1], $bodydescsubticolor[2]);
 					$pdf->SetFont('', '', pdf_getPDFFontSize($outputlangs) - 1);	// On repositionne la police par defaut
 					if (!empty($fulllabel['subdesc'])) {
 						$pdf->writeHTMLCell($subTiW, $h, $subTiX, $posy + $h, $outputlangs->convToOutputCharset($fulllabel['subdesc']), 0, 1, false, true, 'L', true);
@@ -3209,23 +2774,23 @@
 					$style				= getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B');
 					$txt				= $outputlangs->convToOutputCharset($labelproductservice);
 					$txt				= $isRecap && !empty($subTotNewF) ? substr($txt, 0, strlen($txt) - 13) : $txt;
-					$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
+					$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
 					$pdf->SetFont('', $style);
 					if (empty($hideBg)) {
 						if (!empty($bgSubToColor) && $bgSubToColor != '255,255,255') {	// Personalized background color for subtotals
 							$bodybgsubcolor	= explode(',', $bgSubToColor);
 						} else {	// Coordinate the background color (highlighting) of subtotals with that of subtitles
-							$bodybgsubcolor	= colorStringToArray(!empty($bgSubToColorSubTi) ? $bodysubticolor : ($subLevel == 1 ? '220, 220, 220' : ($subLevel == 2 ? '230, 230, 230' : '240, 240, 240')));
+							$bodybgsubcolor	= colorStringToArray((!empty($bgSubToColorSubTi) ? $bodysubticolor : ($object->lines[$i]->qty == 99 ? '220, 220, 220' : ($object->lines[$i]->qty == 98 ? '230, 230, 230' : '240, 240, 240'))));
 						}
 						$frm		= implode(',', $bodybgsubcolor) == '255,255,255' ? '' : 'F';
-						$tmpAlpha	= ($subLevel - 1) * 0.25;	// Opacité du fond décroissante avec le niveau
+						$tmpAlpha	= (100 - $object->lines[$i]->qty - 1) * 0.25;
 						$pdf->SetAlpha(!empty($bgSubToColorSubTi) ? 1 - ($tmpAlpha >= 0 ? $tmpAlpha : 1) : 1);
 						if ($frm == 'F') {
 							$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h, 1, '1111', $frm, $frmstyle, $bodybgsubcolor);
 						}
 						$pdf->SetAlpha(1);
 					}
-					$pdf->writeHTMLCell($w, $h, $posx, $posy, $txt, 0, 1, false, true, $isRecap ? 'L' : 'R', true);
+					$pdf->writeHTMLCell($w, $h, $posx, $posy, $txt, 0, 1, false, true, ($isRecap ? 'L' : 'R'), true);
 					$pdf->SetFont('', '', pdf_getPDFFontSize($outputlangs) - 1);	// On repositionne la police par defaut
 					$pdf->SetFillColor(255);
 					$pdf->SetTextColor((int) $bodytxtcolor[0], (int) $bodytxtcolor[1], (int) $bodytxtcolor[2]);	// Restore default text color after subtotal
@@ -3241,7 +2806,7 @@
 				$bodyouvcolor	= colorStringToArray($bodyouvcolor);
 				$h				= $pdf->getStringHeight($w, $labelproductservice);
 				$frm			= implode(',', $bodyouvcolor) == '255, 255, 255' ? '' : 'F';
-				$pdf->SetTextColor((int) $txtouvcolor[0], (int) $txtouvcolor[1], (int) $txtouvcolor[2]);
+				$pdf->SetTextColor($txtouvcolor[0], $txtouvcolor[1], $txtouvcolor[2]);
 				$pdf->SetFont('', $txtouvstyle);
 				if ($frm == 'F') {
 					$pdf->RoundedRect($formatpage['mgauche'], $posy, $formatpage['largeur'] - $formatpage['mdroite'] - $formatpage['mgauche'], $h, 1, '1111', $frm, $frmstyle, $bodyouvcolor);
@@ -3319,15 +2884,9 @@
 		$idprod			= $prodfichinter ? $prodfichinter['fk_product'] : (!empty($object->lines[$i]->fk_product)	? $object->lines[$i]->fk_product	: false);
 		$label			= $prodfichinter ? $prodfichinter['label']		: (!empty($object->lines[$i]->label)		? $object->lines[$i]->label			: (!empty($object->lines[$i]->product_label) ? $object->lines[$i]->product_label : ''));
 		dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_getlinedesc $object->lines[$i]->label = '.$object->lines[$i]->label.' $object->lines[$i]->product_label = '.$object->lines[$i]->product_label);
-		$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
-		// For discount lines (info_bits & 2), when line's own label is empty, use line description as label instead of product label
-		// Exclude core special placeholders ((DEPOSIT), (CREDIT_NOTE), ...) so they keep going through their dedicated translation below
-		if (!empty($object->lines[$i]->info_bits) && ($object->lines[$i]->info_bits & 2) && empty($object->lines[$i]->label) && !in_array($desc, array('(DEPOSIT)', '(CREDIT_NOTE)', '(EXCESS RECEIVED)', '(EXCESS PAID)'))) {
-			$label		= $desc;
-			$desc		= '';
-		}
-		$note			= !empty($object->lines[$i]->note) ? $object->lines[$i]->note : '';
-		$dbatch			= !empty($object->lines[$i]->detail_batch) ? $object->lines[$i]->detail_batch : false;
+		$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+		$note			= (!empty($object->lines[$i]->note) ? $object->lines[$i]->note : '');
+		$dbatch			= (!empty($object->lines[$i]->detail_batch) ? $object->lines[$i]->detail_batch : false);
 		$subTotalNewF	= getDolGlobalInt('SUBTOTAL_USE_NEW_FORMAT', 0);
 		$titleInSubT	= getDolGlobalInt('CONCAT_TITLE_LABEL_IN_SUBTOTAL_LABEL', 0);
 		$isMultilangs	= getDolGlobalInt('MAIN_MULTILANGS', 0);
@@ -3363,33 +2922,23 @@
 			if (!empty($desc)) {
 				$desc	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $desc);
 			}
-			if (!empty($isSubTotal) && infraspackplus_isNativeSubtotalLine($object->lines[$i])) {	// Sous-total natif : libellé "Sous-total de <titre> :" comme les modèles PDF du core
-				$outputlangs->loadLangs(array('subtotals', 'main'));
-				if (getDolGlobalString('SUBTOTAL_LINE_TEXT_DOES_NOT_INCLUDE_TITLE_TEXT')) {
-					$libelleproduitservice	= $outputlangs->transnoentities('SubTotal');
-				} else {
-					$libelleproduitservice	= $outputlangs->transnoentities('SubtotalOf', $label);
-					if ($libelleproduitservice == 'SubtotalOf') {	// Clé absente (version Dolibarr sans le fichier subtotals.lang) : repli sur la clé core
-						$libelleproduitservice	= $outputlangs->transnoentities('SubTotal').' '.$label;
-					}
-				}
-			} elseif (!empty($titleInSubT) && !empty($isSubTotal)) {	// Sous-total ATM avec rappel du titre
+			if (!empty($titleInSubT) && !empty($isSubTotal)) {
 				$libelleproduitservice	= (infraspackplus_getTitle($object, $object->lines[$i], $isSubTotal) != '' ? infraspackplus_getTitle($object, $object->lines[$i], $isSubTotal).' : ' : '').$label;
 			} else {
 				$libelleproduitservice	= $label;
 			}
 			$decal	= empty($object->lines[$i]->fk_parent_line) ? 0 : 3;
-			return array('main' => $libelleproduitservice, 'subdesc' => !empty($isSubTitle) || $isOuvrage > 1 ? $desc.pdf_InfraSPlus_formatNotes($object, $outputlangs, $extraDet) : '', 'decal' => $decal);
+			return array('main' => $libelleproduitservice, 'subdesc' => ((!empty($isSubTitle) || $isOuvrage > 1) ? $desc.pdf_InfraSPlus_formatNotes($object, $outputlangs, $extraDet) : ''), 'decal' => $decal);
 		}
 		// Ligne produit fournisseur
 		if (!empty($issupplierline)) {
-			$ref_supplier	= !empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : '');
+			$ref_supplier	= (!empty($object->lines[$i]->ref_supplier) ? $object->lines[$i]->ref_supplier : (!empty($object->lines[$i]->ref_fourn) ? $object->lines[$i]->ref_fourn : ''));
 			if (empty($ref_supplier)) {
 				$ref	= $object->lines[$i]->ref;
 				$sql	= 'SELECT pfp.ref_fourn ';
 				$sql	.= 'FROM '.$db->prefix().'product AS p ';
 				$sql	.= 'LEFT JOIN '.$db->prefix().'product_fournisseur_price AS pfp ON p.rowid = pfp.fk_product ';
-				$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = '.((int) $object->thirdparty->id);
+				$sql	.= 'WHERE p.ref = "'.$ref.'" AND pfp.fk_soc = "'.$object->thirdparty->id.'"';
 				$resql	= $object->db->query($sql);
 				if (!empty($resql)) {
 					$obj	= $db->fetch_object($resql);
@@ -3408,7 +2957,7 @@
 			// If a predefined product and multilang and on other lang, we renamed label with label translated
 			dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_getlinedesc $isMultilangs = '.$isMultilangs.' $outputlangs->defaultlang = '.$outputlangs->defaultlang.' $langs->defaultlang = '.$langs->defaultlang);
 			if (!empty($isMultilangs) && ($outputlangs->defaultlang != $langs->defaultlang)) {
-				$translatealsoifmodified	= !empty($forceTranslate);	// By default if value was modified manually, we keep it (no translation because we don't have it)
+				$translatealsoifmodified	= (!empty($forceTranslate));	// By default if value was modified manually, we keep it (no translation because we don't have it)
 				// TODO Instead of making a compare to see if param was modified, check that content contains reference translation. If yes, add the added part to the new translation
 				// ($textwasnotmodified is replaced with $textwasmodifiedorcompleted and we add completion).
 				// Set label
@@ -3628,7 +3177,7 @@
 				if (empty($detail->qty) || $detail->qty == 0) {
 					continue;
 				}
-				$dte=[];
+				$dte=array();
 				if (!empty($detail->eatby)) {
 					$dte[]	= $outputlangs->transnoentitiesnoconv('printEatby', dol_print_date($detail->eatby, 'day', false, $outputlangs));
 				}
@@ -3669,190 +3218,11 @@
 		if ($w - 2 < $wpicture) {
 			$wpicture	= $w - 2;	// corrige la largeur maximal de l'image pour être au plus égale à la largeur colonne
 		}
-		$imglinesize	= [];
+		$imglinesize	= array();
 		if (!empty($realpath)) {
 			$imglinesize	= pdf_InfraSPlus_getSizeForImage($realpath, $wpicture, $hpicture);
 		}
 		return $imglinesize;
-	}
-
-	/**
-	*	Fallback used when a catalog product/service line has no photo of its own : look for the first
-	*	medias-library image embedded in the line's HTML description and resolve it to a readable
-	*	absolute disk path, so pdf_InfraSPlus_writelineimg() can display it like a normal product photo.
-	*	Same <img src=".../viewimage.php?modulepart=medias&file=...">extraction as pdf_InfraSPlus_formatNotes()
-	*	(only that source is supported here too), reusing pdf_InfraSPlus_resolveMediaPath() so both call
-	*	sites share the same tolerant path resolution.
-	*
-	*	@param	object	$line	Document line object (->desc / ->description)
-	*	@return	string			Absolute disk path to the first embedded medias image found, '' if none
-	**/
-	function pdf_InfraSPlus_getLineDescriptionImage($line)
-	{
-		global $conf;
-
-		$desc	= !empty($line->desc) ? $line->desc : (!empty($line->description) ? $line->description : '');
-		if (empty($desc) || strpos($desc, 'viewimage.php') === false) {
-			return '';
-		}
-		$reg	= [];
-		if (!preg_match('/<img\b[^>]*\bsrc="([^"]*viewimage\.php[^"]*)"[^>]*>/i', $desc, $reg)) {
-			return '';
-		}
-		$src	= html_entity_decode($reg[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-		if (strpos($src, 'modulepart=medias') === false) {
-			return '';
-		}
-		$qs		= parse_url($src, PHP_URL_QUERY);
-		$params	= [];
-		parse_str(!empty($qs) ? $qs : $src, $params);	// parse_str url-decodes file= (e.g. accented names)
-		$file	= !empty($params['file']) ? $params['file'] : '';
-		if (empty($file) || strpos($file, '..') !== false) {	// guard against path traversal
-			return '';
-		}
-		$entity		= !empty($params['entity']) ? (int) $params['entity'] : (int) $conf->entity;
-		$basedir	= !empty($conf->medias->multidir_output[$entity]) ? $conf->medias->multidir_output[$entity] : (!empty($conf->medias->dir_output) ? $conf->medias->dir_output : DOL_DATA_ROOT.'/medias');
-		$fullpath	= pdf_InfraSPlus_resolveMediaPath($basedir, $file);
-		return $fullpath !== false ? $fullpath : '';
-	}
-
-	/**
-	*	Return the path of the product/service photo to show onto PDF for a document line.
-	*	Photos attached to the product are matched against the ECM index, sorted by ECM position,
-	*	and the first sorted photo is used. When the product has no photo of its own, falls back
-	*	to the image link posted onto the product (native Dolibarr links, image downloaded from its
-	*	URL — pdf_InfraSPlus_getLineExternalImage()), then to the first medias-library image embedded
-	*	in the line description (pdf_InfraSPlus_getLineDescriptionImage()).
-	*
-	*	@param	DoliDB	$db					Database handler
-	*	@param	Product	$objproduct			Product/service of the line (already fetched)
-	*	@param	object	$line				Document line object
-	*	@param	int		$old_path_photo		1 = old path style for photos (PRODUCT_USE_OLD_PATH_FOR_PHOTO)
-	*	@param	int		$cat_hq_image		1 = use original photo instead of thumb (CAT_HIGH_QUALITY_IMAGES)
-	*	@param	int		$only_one_picture	1 = show only one picture per product for the whole document
-	*	@param	array	&$listObjBib		Ids of products whose picture is already shown (updated)
-	*	@return	string						Absolute photo path, 'done' marker, description image path or ''
-	**/
-	function pdf_InfraSPlus_getLineProductImage($db, $objproduct, $line, $old_path_photo, $cat_hq_image, $only_one_picture, &$listObjBib)
-	{
-		global $conf;
-
-		$ecmfile	= new EcmFiles($db);
-		if (!empty($old_path_photo)) {
-			$pdir[0]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';
-			$pdir[1]	= get_exdir(0, 0, 0, 0, $objproduct, 'product').dol_sanitizeFileName($objproduct->ref).'/';
-		} else {
-			$pdir[0]	= get_exdir(0, 0, 0, 0, $objproduct, 'product'); // default
-			$pdir[1]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';		// alternative
-		}
-		$realpath	= '';
-		$arephoto	= false;
-		$onlyOne	= $only_one_picture ? (in_array($objproduct->id, $listObjBib) ? 1 : 0) : 0;
-		foreach ($pdir as $midir) {
-			if (!$arephoto && !$onlyOne) {
-				$dir		= ($objproduct->entity != $conf->entity ? $conf->product->multidir_output[$objproduct->entity] : $conf->product->dir_output).'/'.$midir;
-				$listPhotos	= [];
-				// We recover all the photos attached to the product and we find their position in the ECM
-				foreach ($objproduct->liste_photos($dir, 0) as $key => $obj) {
-					$relpath	= ($objproduct->entity == 1 ? '' : $objproduct->entity.'/').'produit/'.$midir.$obj['photo'];
-					$hasecmfile	= $ecmfile->fetch(0, '', $relpath, '', '', $objproduct->table_element, $objproduct->id);
-					if ($hasecmfile > 0) {
-						$obj['position']	= $ecmfile->position;
-						$listPhotos[]		= $obj;
-					}
-				}
-				// Sort the photos by position
-				if (!empty($listPhotos)) {
-					usort($listPhotos, function($a, $b) {
-						return intval($a['position']) - intval($b['position']);
-					});
-					// Use the first sorted photo
-					// TODO we could use a configuration to choose if we want the first, the last or more than one photo
-					$obj	= $listPhotos[0];
-					if (empty($cat_hq_image)) {	// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
-						if (!empty($obj['photo_vignette'])) {
-							$filename	= $obj['photo_vignette'];
-						} else {
-							$filename	= $obj['photo'];
-						}
-					} else {
-						$filename	= $obj['photo'];
-					}
-					$realpath		= $dir.$filename;
-					$listObjBib[]	= $objproduct->id;
-					$arephoto		= true;
-				}
-			}
-		}
-		if (!empty($realpath) && !empty($arephoto)) {
-			return $realpath;
-		} elseif (!empty($onlyOne)) {
-			return 'done';
-		}
-		$urlimage	= pdf_InfraSPlus_getLineExternalImage($db, $objproduct);	// Priorité 2 : lien image externe posé sur le produit (llx_links)
-		if ($urlimage !== '') {
-			$listObjBib[]	= $objproduct->id;
-			return $urlimage;
-		}
-		return pdf_InfraSPlus_getLineDescriptionImage($line);	// Repli : image insérée dans la description si le produit catalogué n'a pas de photo
-	}
-
-	/**
-	*	Resolve the external image of a catalog product : first image link posted onto the product
-	*	(native Dolibarr links, llx_links — first link whose URL path owns an image extension, see
-	*	infraspackplus_get_product_links()). The image is downloaded (timeout INFRASPLUS_URL_IMG_TIMEOUT,
-	*	10s by default), checked (JPEG/PNG/GIF/WebP) and written in the module temp directory, so that
-	*	TCPDF and the existing sizing functions can use it as a regular disk path. Per-request cache :
-	*	a same URL is downloaded only once for the whole PDF generation. On failure the link is
-	*	silently ignored (syslog warning) and the caller falls back to the next image source.
-	*	The whole feature is enabled by the INFRASPLUS_PDF_PICTURE_FROM_URL constant (module Images
-	*	setup page, disabled by default).
-	*
-	*	@param	DoliDB	$db				Database handler
-	*	@param	Product	$objproduct		Product/service of the line (already fetched)
-	*	@return	string					Absolute path to the downloaded image, '' if disabled, no image link or failure
-	**/
-	function pdf_InfraSPlus_getLineExternalImage($db, $objproduct)
-	{
-		global $conf;
-		static $urlcache	= [];
-
-		if (!getDolGlobalInt('INFRASPLUS_PDF_PICTURE_FROM_URL', 0)) {
-			return '';
-		}
-		$extlinks	= infraspackplus_get_product_links($db, $objproduct->id);
-		$url		= $extlinks['img_url'];
-		if (empty($url)) {
-			return '';
-		}
-		if (isset($urlcache[$url])) {
-			return $urlcache[$url];
-		}
-		$urlcache[$url]	= '';	// Cache négatif : ne pas retenter une URL en échec dans la même génération
-		$fetcherror		= '';
-		$content		= infraspackplus_fetch_url_content($url, $fetcherror);
-		if ($content === false) {
-			dol_syslog(__FUNCTION__.' : product '.$objproduct->id.' external image KO ('.$url.') : '.$fetcherror, LOG_WARNING);
-			return '';
-		}
-		$allowed	= [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_GIF => 'gif', IMAGETYPE_WEBP => 'webp'];
-		$imginfos	= getimagesizefromstring($content);
-		if (empty($imginfos[2]) || empty($allowed[$imginfos[2]])) {
-			dol_syslog(__FUNCTION__.' : product '.$objproduct->id.' external image KO ('.$url.') : unsupported content type', LOG_WARNING);
-			return '';
-		}
-		$dir	= (!empty($conf->infraspackplus->dir_temp) ? $conf->infraspackplus->dir_temp : DOL_DATA_ROOT.'/infraspackplus/temp').'/urlimg';
-		if (dol_mkdir($dir) < 0) {
-			dol_syslog(__FUNCTION__.' : unable to create dir '.$dir, LOG_ERR);
-			return '';
-		}
-		$filepath	= $dir.'/'.md5($url).'.'.$allowed[$imginfos[2]];
-		if (file_put_contents($filepath, $content) === false) {
-			dol_syslog(__FUNCTION__.' : unable to write file '.$filepath, LOG_ERR);
-			return '';
-		}
-		$urlcache[$url]	= $filepath;
-		return $filepath;
 	}
 
 	/**
@@ -3877,7 +3247,7 @@
 		$lineurl	= pdf_InfraSPlus_getlineurl($object, $i);
 		$linkurl	= !empty($lineurl) && !empty($linkpictureurl) ? '<a href = "'.$lineurl.'" target = "_blank">'.pdf_InfraSPlus_formatNotes($object, $outputlangs, $linkpictureurl).'</a>' : '&nbsp;';
 		if (!empty($imglinesize['width']) && !empty($imglinesize['height'])) {
-			$posxpicture	= $posx + ($w - $imglinesize['width']) / 2;	// centre l'image dans la colonne
+			$posxpicture	= $posx + (($w - $imglinesize['width']) / 2);	// centre l'image dans la colonne
 			$pdf->Image($realpatharray[$i], $posxpicture, $posy, $imglinesize['width'], $imglinesize['height']);	// Use 300 dpi
 			$pdf->writeHTMLCell($w, $tab_hl, $posxpicture, $posy + $imglinesize['height'] - ($linkurl == '&nbsp;' ? $tab_hl : 0), dol_htmlentitiesbr($linkurl), 0, 1);
 			return $posy + $imglinesize['height'] - ($linkurl == '&nbsp;' ? $tab_hl : $ht_url * -1);
@@ -3949,17 +3319,19 @@
 		}
 		$result			= '';
 		$reshook		= 0;
-		$isSubTitle		= infraspackplus_isSubtotalTitle($object->lines[$i], $object->element) ? 1 : 0;	// Sous-titre ATM ou natif
-		$isSubTotal		= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
-		if (!empty($isSubTitle)) {	// Sous-titre ATM ou natif
+		$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+		$isATMLine		= isModEnabled('subtotal') && $isSubTotalLine ? true : false;
+		$isSubTitle		= $isATMLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
+		$isSubTotal		= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
+		if (!empty($isSubTitle)) {	// Sous-titre ATM
 			$bodytxtsubticolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTI_COLOR', '0,0,0');
 			$bodytxtsubticolor	= explode(',', $bodytxtsubticolor);
-			$pdf->SetTextColor((int) $bodytxtsubticolor[0], (int) $bodytxtsubticolor[1], (int) $bodytxtsubticolor[2]);
+			$pdf->SetTextColor($bodytxtsubticolor[0], $bodytxtsubticolor[1], $bodytxtsubticolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		} elseif (!empty($isSubTotal)) {	// Sous-total ATM
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
-			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
+			$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		}
 		if (is_object($hookmanager)) {
@@ -4009,7 +3381,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string
 	**/
-	function pdf_InfraSPlus_getlineremisepercent($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
+	function pdf_InfraSPlus_getlineremisepercent($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
 	{
 		global $conf, $hookmanager;
 
@@ -4065,7 +3437,7 @@
 		$rounding		= empty($priceType) || ($priceType == 'U' && empty($roundingUP)) || ($priceType == 'T' && empty($roundingTot)) ? $roundingDol : ($priceType == 'U' ? $roundingUP : ($priceType == 'T' ? $roundingTot : ''));
 		$currency		= !empty($object->multicurrency_code) && empty($local) ? $object->multicurrency_code : $conf->currency;
 		$showCurSymb	= !empty($forceSymb) ? 1 : getDolGlobalInt('INFRASPLUS_PDF_SHOW_CUR_SYMB', 0);
-		return price($price, 0, $outputlangs, 1, $rounding, $rounding, !empty($showCurSymb) ? $currency : '');
+		return price($price, 0, $outputlangs, 1, $rounding, $rounding, (!empty($showCurSymb) ? $currency : ''));
 	}
 	/**
 	*	Return line unit price excluding tax
@@ -4078,7 +3450,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price excluding tax
 	**/
-	function pdf_InfraSPlus_getlineupexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
+	function pdf_InfraSPlus_getlineupexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
 	{
 		global $hookmanager;
 
@@ -4131,7 +3503,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price including tax
 	**/
-	function pdf_InfraSPlus_getlineupincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
+	function pdf_InfraSPlus_getlineupincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
 	{
 		global $hookmanager;
 
@@ -4167,7 +3539,7 @@
 					break;
 				}
 				$tva_tx		= $prodfichinter ? $prodfichinter['tva_tx'] : $object->lines[$i]->tva_tx;
-				$ttcPrice	= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : $subprice + $subprice * $tva_tx / 100;
+				$ttcPrice	= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : ($subprice + ($subprice * $tva_tx / 100));
 				$result		.= pdf_InfraSPlus_price($object, $sign * $ttcPrice, $outputlangs, 0, 0, 'U');
 			}
 		}
@@ -4185,7 +3557,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price with discount and excluding tax
 	**/
-	function pdf_InfraSPlus_getlineincldiscountexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
+	function pdf_InfraSPlus_getlineincldiscountexcltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
 	{
 		global $hookmanager;
 
@@ -4240,7 +3612,7 @@
 				if ($special_code == 3) {
 					$remise_percent	= $prodfichinter ? $prodfichinter['remise_percent'] : $object->lines[$i]->remise_percent;
 					$remise_percent	= empty($remise_percent) && !empty($pricesObjProd['remise']) ? $pricesObjProd['remise'] : $remise_percent;
-					$total_ht		= !empty($remise_percent) ? $total_ht * (1 - $remise_percent / 100) : $total_ht;
+					$total_ht		= !empty($remise_percent) ? $total_ht * (1 - ($remise_percent / 100)) : $total_ht;
 				}
 				$isSitFac	= !empty($object->lines[$i]->situation_percent) && $object->lines[$i]->situation_percent > 0 ? $object->lines[$i]->situation_percent / 100 : 1;	// use this to find the real unit price on situation invoice
 				$qty		= $prodfichinter ? $prodfichinter['qty'] : $object->lines[$i]->qty;
@@ -4262,7 +3634,7 @@
 	*	@param	array		$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string							Line unit price with discount and including tax
 	**/
-	function pdf_InfraSPlus_getlineincldiscountincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
+	function pdf_InfraSPlus_getlineincldiscountincltax($object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
 	{
 		global $hookmanager;
 
@@ -4274,47 +3646,34 @@
 		$result			= '';
 		$special_code	= $object->lines[$i]->special_code;
 		if (is_object($hookmanager)) {
-			if (!empty($object->lines[$i]->fk_parent_line)) {
-				$special_code	= $object->getSpecialCode($object->lines[$i]->fk_parent_line);
-			}
+			if (!empty($object->lines[$i]->fk_parent_line))	$special_code	= $object->getSpecialCode($object->lines[$i]->fk_parent_line);
 			$parameters										= array('i' => $i, 'outputlangs' => $outputlangs, 'hidedetails' => $hidedetails, 'special_code' => $special_code, 'sign' => $sign);
 			$action											= '';
 			$reshook										= $hookmanager->executeHooks('pdf_getlineupwithtax', $parameters, $object, $action);	// Note that $action and $object may have been modified by some hooks
-			if(!empty($hookmanager->resPrint)) {
-				$result			.= $hookmanager->resPrint;
-			}
+			if(!empty($hookmanager->resPrint))				$result			.= $hookmanager->resPrint;
 		}
 		if (empty($reshook)) {
 			if (empty($hidedetails) || $hidedetails > 1) {
 				switch ($object->element) {
 					case 'contrat':
-						if ($special_code == 3) {
-							$subprice	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_subprice != 0 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
-						} else {
-							$total_ttc	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_total_ttc != 0 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
-						}
+						if ($special_code == 3)	$subprice	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_subprice != 0 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
+						else					$total_ttc	= isModEnabled('multicurrency') && $object->lines[$i]->multicurrency_total_ttc != 0 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
 					break;
 					case 'fichinter':
-						if ($special_code == 3) {
-							$subprice	= $subprice	= $prodfichinter ? $prodfichinter['subprice'] : 0;
-						} else {
-							$total_ttc	= $prodfichinter ? $prodfichinter['total_ttc'] : 0;
-						}
+						if ($special_code == 3)	$subprice	= $subprice	= $prodfichinter ? $prodfichinter['subprice'] : 0;
+						else					$total_ttc	= $prodfichinter ? $prodfichinter['total_ttc'] : 0;
 					break;
 					default:
-						if ($special_code == 3) {
-							$subprice	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
-						} else {
-							$total_ttc	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
-						}
+						if ($special_code == 3)	$subprice	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_subprice : $object->lines[$i]->subprice;
+						else					$total_ttc	= isModEnabled('multicurrency') && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc;
 					break;
 				}
 				if ($special_code == 3) {
 					$tva_tx			= $prodfichinter ? $prodfichinter['tva_tx'] : $object->lines[$i]->tva_tx;
-					$ttcPrice		= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : $subprice + $subprice * $tva_tx / 100;
+					$ttcPrice		= !empty($pricesObjProd['pu_ttc']) ? $pricesObjProd['pu_ttc'] : ($subprice + ($subprice * $tva_tx / 100));
 					$remise_percent	= $prodfichinter												? $prodfichinter['remise_percent']	: $object->lines[$i]->remise_percent;
 					$remise_percent	= empty($remise_percent) && !empty($pricesObjProd['remise'])	? $pricesObjProd['remise']			: $remise_percent;
-					$total_ttc		= !empty($remise_percent) ? $ttcPrice * (1 - $remise_percent / 100) : $ttcPrice;
+					$total_ttc		= !empty($remise_percent) ? $ttcPrice * (1 - ($remise_percent / 100)) : $ttcPrice;
 				}
 				$isSitFac	= !empty($object->lines[$i]->situation_percent) && $object->lines[$i]->situation_percent > 0 ? $object->lines[$i]->situation_percent / 100 : 1;	// use this to find the real unit price on situation invoice
 				$qty		= $prodfichinter ? $prodfichinter['qty'] : $object->lines[$i]->qty;
@@ -4337,9 +3696,7 @@
 	**/
 	function pdf_InfraSPlus_getlineprogress($object, $i, $outputlangs, $hidedetails = 0, $hookmanager = null)
 	{
-		if (empty($hookmanager)) {
-			global $hookmanager;
-		}
+		if (empty($hookmanager)) global $hookmanager;
 
 		if (!empty(pdf_InfraSPlus_escapeEns($object, $i))) {
 			return '';
@@ -4390,7 +3747,7 @@
 	*	@param	array			$pricesObjProd		price datas from product (need if we use customer prices for product and automatic discount)
 	*	@return	string								Total of line excluding tax
 	**/
-	function pdf_InfraSPlus_getlinetotalexcltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
+	function pdf_InfraSPlus_getlinetotalexcltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
 	{
 		global $db, $hookmanager;
 
@@ -4401,11 +3758,13 @@
 		$sign				= isset($object->type) && $object->type == 2 && getDolGlobalString('INVOICE_POSITIVE_CREDIT_NOTE', '') ? -1 : 1;
 		$reshook			= 0;
 		$result				= '';
-		$isSubTotal			= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
-		if (!empty($isSubTotal)) {	// Sous-total ATM ou natif
+		$isSubTotalLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+		$isATMLine			= isModEnabled('subtotal') && $isSubTotalLine ? true : false;
+		$isSubTotal			= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
+		if (!empty($isSubTotal)) {	// Sous-total ATM
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
-			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
+			$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		}
 		if (is_object($hookmanager)) {
@@ -4453,7 +3812,7 @@
 						$prev_progress	= $object->lines[$i]->get_prev_progress($object->id);
 						$progress		= ($object->lines[$i]->situation_percent - $prev_progress) / 100;
 					}
-					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ht / ($object->lines[$i]->situation_percent / 100) * $progress, $outputlangs, 0, 0, 'T');
+					$result	.= pdf_InfraSPlus_price($object, $sign * ($total_ht / ($object->lines[$i]->situation_percent / 100)) * $progress, $outputlangs, 0, 0, 'T');
 				} else {
 					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ht, $outputlangs, 0, 0, 'T');
 				}
@@ -4474,7 +3833,7 @@
 	*	@param	array			$prodfichinter		intervention Line
 	*	@return	string								Total of line including tax
 	**/
-	function pdf_InfraSPlus_getlinetotalincltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = [])
+	function pdf_InfraSPlus_getlinetotalincltax(&$pdf, $object, $i, $outputlangs, $hidedetails = 0, $prodfichinter = null, $pricesObjProd = array())
 	{
 		global $hookmanager;
 
@@ -4485,11 +3844,13 @@
 		$sign				= isset($object->type) && $object->type == 2 && getDolGlobalString('INVOICE_POSITIVE_CREDIT_NOTE', '') ? -1 : 1;
 		$reshook			= 0;
 		$result				= '';
-		$isSubTotal			= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
-		if (!empty($isSubTotal)) {	// Sous-total ATM ou natif
+		$isSubTotalLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+		$isATMLine			= isModEnabled('subtotal') && $isSubTotalLine ? true : false;
+		$isSubTotal			= $isATMLine && $object->lines[$i]->qty > 90 ? infraspackplus_get_mod_number('modSubtotal') : 0;	// Sous-total ATM
+		if (!empty($isSubTotal)) {	// Sous-total ATM
 			$bodytxtsubtocolor	= getDolGlobalString('INFRASPLUS_PDF_TEXT_SUBTO_COLOR', '0,0,0');
 			$bodytxtsubtocolor	= explode(',', $bodytxtsubtocolor);
-			$pdf->SetTextColor((int) $bodytxtsubtocolor[0], (int) $bodytxtsubtocolor[1], (int) $bodytxtsubtocolor[2]);
+			$pdf->SetTextColor($bodytxtsubtocolor[0], $bodytxtsubtocolor[1], $bodytxtsubtocolor[2]);
 			$pdf->SetFont('', getDolGlobalString('SUBTOTAL_SUBTOTAL_STYLE', 'B'));
 		}
 		if (is_object($hookmanager)) {
@@ -4528,7 +3889,7 @@
 						$prev_progress	= $object->lines[$i]->get_prev_progress($object->id);
 						$progress		= ($object->lines[$i]->situation_percent - $prev_progress) / 100;
 					}
-					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ttc / ($object->lines[$i]->situation_percent / 100) * $progress, $outputlangs, 0, 0, 'T');
+					$result	.= pdf_InfraSPlus_price($object, $sign * ($total_ttc / ($object->lines[$i]->situation_percent / 100)) * $progress, $outputlangs, 0, 0, 'T');
 				} else {
 					$result	.= pdf_InfraSPlus_price($object, $sign * $total_ttc, $outputlangs, 0, 0, 'T');
 				}
@@ -4547,10 +3908,10 @@
 	{
 		global $db;
 
-		$pricefichinter	= [];
+		$pricefichinter	= array();
 		$sql	= 'SELECT fi.total_ht, fi.total_ttc, fi.total_tva, fi.total_localtax1, fi.total_localtax2';
 		$sql	.= ' FROM '.$db->prefix().'fichinter AS fi';
-		$sql	.= ' WHERE fi.rowid = '.((int) $object->id);
+		$sql	.= ' WHERE fi.rowid = '.$object->id;
 		$resql	= $db->query($sql);
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
@@ -4705,10 +4066,10 @@
 	{
 		global $db, $conf;
 
-		$list			= [];
+		$list			= array();
 		$efPaySpec		= getDolGlobalString('INFRASPLUS_PDF_EXF_PAY_SPEC', '');
 		$efDeposit		= getDolGlobalString('INFRASPLUS_PDF_EXF_DEPOSIT', '');
-		$ef				= explode(',', preg_replace('/\s+/', '', $deposit ? $efDeposit : $efPaySpec));	// string without any space to array
+		$ef				= explode(',', preg_replace('/\s+/', '', ($deposit ? $efDeposit : $efPaySpec)));	// string without any space to array
 		$extrafields	= new ExtraFields($db);
 		$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
 		$object->fetch_optionals();
@@ -4745,229 +4106,6 @@
 	}
 
 	/**
-	*	Download the PDF technical datasheet pointed by an external URL and make it available as a disk
-	*	file in the module temp directory (content checked : %PDF signature). Per-request cache : a same
-	*	URL is downloaded only once for the whole PDF generation.
-	*
-	*	@param	string	$url		URL of the PDF to download
-	*	@param	string	&$error		Error message on failure
-	*	@return	string				Absolute path of the downloaded file, '' on failure
-	**/
-	function pdf_InfraSPlus_getProductDatasheetFile($url, &$error = '')
-	{
-		global $conf;
-		static $urlcache	= [];
-
-		$error	= '';
-		if (isset($urlcache[$url])) {
-			return $urlcache[$url];
-		}
-		$fetcherror	= '';
-		$content	= infraspackplus_fetch_url_content($url, $fetcherror);
-		if ($content === false) {
-			$error	= $fetcherror;
-			return '';
-		}
-		if (strncmp($content, '%PDF-', 5) !== 0) {
-			$error	= 'not a PDF';
-			return '';
-		}
-		$dir	= (!empty($conf->infraspackplus->dir_temp) ? $conf->infraspackplus->dir_temp : DOL_DATA_ROOT.'/infraspackplus/temp').'/urlpdf';
-		if (dol_mkdir($dir) < 0) {
-			$error	= 'unable to create dir '.$dir;
-			return '';
-		}
-		$filepath	= $dir.'/'.md5($url).'.pdf';
-		if (file_put_contents($filepath, $content) === false) {
-			$error	= 'unable to write file '.$filepath;
-			return '';
-		}
-		$urlcache[$url]	= $filepath;
-		return $filepath;
-	}
-
-	/**
-	*	Try to resolve a product link with no recognizable file extension (ex : Nextcloud/ownCloud
-	*	"public share" URL, such as https://host/index.php/s/<token>) as a PDF technical datasheet.
-	*	Unlike pdf_InfraSPlus_getProductDatasheetFile(), the URL is not assumed to already point to the
-	*	raw file : two strategies are attempted, in order, and the URL is silently discarded (no error
-	*	message, since there is no positive signal it was ever meant to be a datasheet) if none matches :
-	*		1. HTTP HEAD probe (infraspackplus_probe_url_content_type()) : if the Content-Type header is
-	*		   'application/pdf', the URL is downloaded as-is.
-	*		2. Nextcloud/ownCloud share link pattern (path ending in '/s/<token>' or '/index.php/s/<token>') :
-	*		   retried with '/download' appended, which is the standard convention of these tools to force
-	*		   the raw file instead of the HTML preview page.
-	*	Both strategies finish with the same %PDF signature check as pdf_InfraSPlus_getProductDatasheetFile()
-	*	(itself reused for the actual download), so a false-positive Content-Type never produces a merged
-	*	non-PDF file.
-	*
-	*	@param	string	$url		Product link URL with no recognizable extension
-	*	@param	string	&$error		Error message when a positive signal was found but the download still failed
-	*	@return	string				Absolute path of the downloaded file, '' when not resolved (silently ignored)
-	**/
-	function pdf_InfraSPlus_resolveAmbiguousDatasheetLink($url, &$error = '')
-	{
-		$error			= '';
-		$probeerror		= '';
-		$contenttype	= infraspackplus_probe_url_content_type($url, $probeerror);
-		if ($contenttype === 'application/pdf') {
-			return pdf_InfraSPlus_getProductDatasheetFile($url, $error);
-		}
-		if (preg_match('/\/(?:index\.php\/)?s\/[^\/?]+\/?$/i', (string) parse_url($url, PHP_URL_PATH))) {
-			$downloadurl	= (strpos($url, '?') !== false)
-				? preg_replace('/\?/', '/download?', $url, 1)
-				: rtrim($url, '/').'/download';
-			return pdf_InfraSPlus_getProductDatasheetFile($downloadurl, $error);
-		}
-		dol_syslog('infraspackplus.pdf.lib.php::pdf_InfraSPlus_resolveAmbiguousDatasheetLink discarded url='.$url.' contenttype='.$contenttype.' probeerror='.$probeerror, LOG_DEBUG);
-		return '';
-	}
-
-	/**
-	*	Collect, following the document lines order, the products / services technical documentation to
-	*	merge : files selected onto the product card (native Propalmergepdfproduct class) and / or all
-	*	external PDF links posted onto the product card (llx_links, downloaded through
-	*	pdf_InfraSPlus_getProductDatasheetFile() when the URL has a .pdf extension, or resolved through
-	*	pdf_InfraSPlus_resolveAmbiguousDatasheetLink() otherwise, ex : cloud file-sharing links). Each
-	*	product is handled only once ; duplicated file names (option
-	*	INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2) and duplicated URLs are skipped.
-	*
-	*	@param	DoliDB			$db					Database handler
-	*	@param	CommonObject	$object				Source document (lines loaded)
-	*	@param	Translate		$outputlangs		Output language (multilang file selection)
-	*	@param	int				$withlocalfiles		1 = include the product card selected files (Propalmergepdfproduct)
-	*	@param	int				$withlinks			1 = include the products external PDF links
-	*	@param	int				$multilangs			1 = select the files matching the document language
-	*	@param	int				$old_path_photo		1 = old storage path (PRODUCT_USE_OLD_PATH_FOR_PHOTO)
-	*	@param	int				$checkduplicates	1 = merge only once the files sharing the same name
-	*	@param	array			&$warnings			Warning messages (links in error)
-	*	@return	array								Absolute paths of the files, following the lines order
-	**/
-	function infraspackplus_collect_product_documentation($db, $object, $outputlangs, $withlocalfiles, $withlinks, $multilangs, $old_path_photo, $checkduplicates, &$warnings = [])
-	{
-		global $conf;
-
-		include_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
-		$result		= [];
-		$already	= array('products' => [], 'files' => [], 'urls' => []);
-		if (empty($object->lines) || !is_array($object->lines)) {
-			return $result;
-		}
-		foreach ($object->lines as $line) {
-			if (empty($line->fk_product) || in_array($line->fk_product, $already['products'])) {
-				continue;
-			}
-			$already['products'][]	= $line->fk_product;
-			$product				= new Product($db);
-			if ($product->fetch($line->fk_product) <= 0) {
-				continue;
-			}
-			$entity_product_file	= $product->entity != $conf->entity ? $product->entity : $conf->entity;
-			if (!empty($withlocalfiles)) {
-				$filetomerge	= new Propalmergepdfproduct($db);
-				if (!empty($multilangs)) {
-					$filetomerge->fetch_by_product($product->id, $outputlangs->defaultlang);
-				} else {
-					$filetomerge->fetch_by_product($product->id);
-				}
-				if (count($filetomerge->lines) > 0) {
-					foreach ($filetomerge->lines as $linefile) {
-						if (!empty($linefile->id) && !empty($linefile->file_name)) {
-							if (!empty($old_path_photo)) {
-								if (isModEnabled('product')) {
-									$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
-								} elseif (isModEnabled('service')) {
-									$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
-								}
-							} else {
-								if (isModEnabled('product')) {
-									$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');
-								} elseif (isModEnabled('service')) {
-									$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');
-								}
-							}
-							if (empty($checkduplicates) || !in_array($linefile->file_name, $already['files'])) {
-								$result[]			= preg_replace('/[\\/]$/', '', $filetomerge_dir).'/'.$linefile->file_name;
-								$already['files'][]	= $linefile->file_name;
-							}
-						}
-					}
-				}
-			}
-			if (!empty($withlinks)) {
-				$extlinks	= infraspackplus_get_product_links($db, $product->id);
-				foreach ($extlinks['datasheet_urls'] as $datasheeturl) {
-					if (empty($datasheeturl) || in_array($datasheeturl, $already['urls'])) {
-						continue;
-					}
-					$already['urls'][]	= $datasheeturl;
-					$dserror			= '';
-					$dsfile				= pdf_InfraSPlus_getProductDatasheetFile($datasheeturl, $dserror);
-					if ($dsfile !== '') {
-						$result[]	= $dsfile;
-					} else {
-						$warnings[]	= $outputlangs->trans('InfraSPlusDatasheetWarning', $product->ref, $dserror);
-					}
-				}
-				foreach ($extlinks['other_urls'] as $otherurl) {
-					if (empty($otherurl) || in_array($otherurl, $already['urls'])) {
-						continue;
-					}
-					$already['urls'][]	= $otherurl;
-					$amberror			= '';
-					$ambfile			= pdf_InfraSPlus_resolveAmbiguousDatasheetLink($otherurl, $amberror);
-					if ($ambfile !== '') {
-						$result[]	= $ambfile;
-					} elseif (!empty($amberror)) {
-						// A positive signal was found (Content-Type or share link pattern) but the download still failed : warn, unlike the fully ambiguous case
-						$warnings[]	= $outputlangs->trans('InfraSPlusDatasheetWarning', $product->ref, $amberror);
-					}
-				}
-			}
-		}
-		return $result;
-	}
-
-	/**
-	*	Build the separate PDF gathering the products / services technical documentation of a document
-	*	(pre-generation option 'docseparate') : same sources as the inline merge (files selected onto
-	*	the product cards and, when INFRASPLUS_PDF_MERGE_PRODUCT_LINKS is enabled, external PDF links).
-	*	The <ref>_documentation.pdf file is written next to the main PDF (overwritten when existing)
-	*	and indexed into the ECM. The main PDF is never modified.
-	*
-	*	@param	CommonObject	$object			Source document (lines loaded)
-	*	@param	string			$mainpdfpath	Absolute path of the generated main PDF
-	*	@param	Translate		$outputlangs	Output language
-	*	@param	array			&$warnings		Warning messages (links in error)
-	*	@return	string|false					Path of the documentation PDF, false when no documentation
-	**/
-	function infraspackplus_build_documentation_pdf($object, $mainpdfpath, $outputlangs, &$warnings = [])
-	{
-		global $conf, $db;
-
-		include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-		$docfiles	= infraspackplus_collect_product_documentation($db, $object, $outputlangs, 1, getDolGlobalInt('INFRASPLUS_PDF_MERGE_PRODUCT_LINKS', 0), getDolGlobalInt('MAIN_MULTILANGS', 0), getDolGlobalInt('PRODUCT_USE_OLD_PATH_FOR_PHOTO', 0), getDolGlobalInt('INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2', 0), $warnings);
-		if (empty($docfiles)) {
-			return false;
-		}
-		$formats	= pdf_getFormat($outputlangs);
-		$formatpage	= array('largeur' => $formats['width'], 'hauteur' => $formats['height'], 'mgauche' => getDolGlobalInt('MAIN_PDF_MARGIN_LEFT', 10), 'mdroite' => getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT', 10), 'mhaute' => getDolGlobalInt('MAIN_PDF_MARGIN_TOP', 10), 'mbasse' => getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM', 10));
-		$pdf		= pdf_InfraSPlus_getInstance(array($formatpage['largeur'], $formatpage['hauteur']), 'mm', 'P', false);
-		$pagecount	= 0;
-		foreach ($docfiles as $docfile) {
-			$pagecount	+= pdf_InfraSPlus_Merge($pdf, $docfile, 1, $object, $outputlangs, $formatpage, 0);
-		}
-		if (empty($pagecount)) {
-			return false;
-		}
-		$target	= dirname($mainpdfpath).'/'.basename($mainpdfpath, '.pdf').'_documentation.pdf';
-		$pdf->Close();
-		$pdf->Output($target, 'F');
-		addFileIntoDatabaseIndex(dirname($target), basename($target), '', 'generated', 0, $object, '');
-		return $target;
-	}
-
-	/**
 	*	Show files for PDF generation
 	*
 	*	@param	TCPDF|TCPDI		$pdf			The PDF factory
@@ -4992,8 +4130,8 @@
 			foreach ($files as $fileID) {
 				$sql	= ' SELECT filename, filepath';
 				$sql	.= ' FROM '.$db->prefix().'ecm_files';
-				$sql	.= ' WHERE rowid = '.((int) $fileID);
-				$sql	.= ' AND entity = '.((int) $conf->entity);
+				$sql	.= ' WHERE rowid = '.$fileID;
+				$sql	.= ' AND entity = '.$conf->entity;
 				$resql	= $db->query($sql);
 				if (!empty($resql)) {
 					$objFile	= $db->fetch_object($resql);
@@ -5004,9 +4142,7 @@
 						if (is_array($paramspecialfiles) && in_array(substr($filename, 0, -4), $paramspecialfiles)) {
 							dol_include_once('/infraspackplus/core/modules/specialfiles/'.substr($filename, 0, -4).'.php');
 							$function						= 'pdf_InfraSPlus_Merge_'.substr($filename, 0, -4);
-							if (function_exists($function)) {
-								$function($pdf, $file, $hidepagenum, $object, $outputlangs, $formatpage);
-							}
+							if (function_exists($function))	$function($pdf, $file, $hidepagenum, $object, $outputlangs, $formatpage);
 						} else {
 							$pagecount	+= pdf_InfraSPlus_Merge($pdf, $file, $hidepagenum, $object, $outputlangs, $formatpage, $noteBills);
 						}
@@ -5054,7 +4190,7 @@
 								$pdf->SetFont($prevFont);
 							}
 							if (getDolGlobalString('INFRASPLUS_PDF_REFDATE_MERGE', '')) {
-								pdf_InfraSPlus_pagesrefdate($pdf, $object, $outputlangs, !empty($noteBills) ? 'noteBills' : '', $formatpage['mhaute'], !empty($noteBills) ? $formatpage['largeur'] / 2 - 50 : $formatpage['largeur'] - $formatpage['mdroite'] - 100);
+								pdf_InfraSPlus_pagesrefdate($pdf, $object, $outputlangs, (!empty($noteBills) ? 'noteBills' : ''), $formatpage['mhaute'], (!empty($noteBills) ? $formatpage['largeur'] / 2 - 50 : $formatpage['largeur'] - $formatpage['mdroite'] - 100));
 							}
 						} else {
 							setEventMessages(null, array($outputlangs->trans('PDFInfraSPlusPdfFileError1', $infile)), 'warnings');
@@ -5116,13 +4252,13 @@
 	/**
 	*	Add a draft watermark on PDF files
 	*
-	*	@param	TCPDF_InfraS|TCPDI_InfraS	$pdf			The PDF factory
-	*	@param	Translate					$outputlangs	Object lang
-	*	@param	string						$text			Text to show
-	*	@param	int							$center_y		Y center of rotation
-	*	@param	int							$w				Width of table
-	*	@param	int							$hp				Height of page
-	*	@param	string						$unit			Unit of height (mm, pt, ...)
+	*	@param	TCPDF|TCPDI|TCPDI	$pdf			The PDF factory
+	*	@param	Translate			$outputlangs	Object lang
+	*	@param	string				$text			Text to show
+	*	@param	int					$center_y		Y center of rotation
+	*	@param	int					$w				Width of table
+	*	@param	int					$hp				Height of page
+	*	@param	string				$unit			Unit of height (mm, pt, ...)
 	*	@return	void
 	**/
 	function pdf_InfraSPlus_watermark(&$pdf, $outputlangs, $text, $center_y, $w, $hp, $unit)
@@ -5138,9 +4274,11 @@
 		} elseif ($unit=='in') {
 			$k = 72;
 		}
-		// Sauvegarde complète de l'état graphique (position, police, couleurs)
-		// Les opérateurs bruts q/Q désynchronisent l'état interne de TCPDF par rapport au flux PDF : il faut donc restaurer explicitement chaque propriété.
-		$gvars				= $pdf->saveGraphicVars();
+		$savx				= $pdf->getX();
+		$savy				= $pdf->getY();
+		$savFont			= $pdf->getFontFamily();
+		$savFontStyle		= $pdf->getFontStyle();
+		$savFontSizePt		= $pdf->getFontSizePt();
 		$watermark_angle	= 20 / 180 * pi();	// angle de rotation 20° en radian
 		$center_x			= $w / 2;			// x centre
 		$pdf->SetFont('', 'B', 40);
@@ -5154,16 +4292,9 @@
 		$pdf->Cell($w, 20, $outputlangs->convToOutputCharset($text), '', 2, 'C', 0);
 		//antirotate
 		$pdf->_out('Q');
-		// Restauration complète de l'état graphique interne de TCPDF
-		// restoreGraphicVars() restaure position, police, couleurs et émet les opérateurs PDF nécessaires pour resynchroniser le flux.
+		$pdf->SetXY($savx, $savy);
 		$pdf->SetAlpha(1);
-		if (method_exists($pdf, 'restoreGraphicVars')) {
-			$pdf->restoreGraphicVars($gvars);
-		} else {
-			// Fallback pour TCPDF/TCPDI sans la sous-classe InfraS
-			$pdf->SetXY($gvars['x'], $gvars['y']);
-			$pdf->SetFont($gvars['FontFamily'], $gvars['FontStyle'], $gvars['FontSizePt']);
-		}
+		$pdf->SetFont($savFont, $savFontStyle, $savFontSizePt);
 	}
 
 	/**
@@ -5185,7 +4316,7 @@
 		$fileSign	= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/tmp/tmp.png';
 		file_put_contents($fileSign, base64_decode($imgSign64));
 		if (!empty($fileSign) && is_readable($fileSign)) {
-			$imgsize	= [];
+			$imgsize	= array();
 			$imgsize	= pdf_InfraSPlus_getSizeForImage($fileSign, $larg_signarea, $ht_signarea);
 			if (isset($imgsize['width']) && isset($imgsize['height'])) {
 				$posxSign	= ($larg_signarea - $imgsize['width']) / 2;	// centre l'image dans la zone
@@ -5230,42 +4361,18 @@
 	{
 		global $conf, $user;
 
-		// Footer base style (color, bold option, font size)
-		$pdf->SetTextColor((int) $txtcolor[0], (int) $txtcolor[1], (int) $txtcolor[2]);
+		$pdf->SetTextColor($txtcolor[0], $txtcolor[1], $txtcolor[2]);
 		$footer_bold	= getDolGlobalInt('INFRASPLUS_PDF_REFD_FROM_CUSTOMER', 0);
 		$noendline		= !empty($noendline) || getDolGlobalInt('INFRASPLUS_PDF_NO_LINE_FOOTER') ? 1 : 0;
 		$pdf->SetFont('', $footer_bold ? 'B' : '', 7);
-		// Sauvegarde des cell-paddings courants puis remise à zéro.
-		$savedFootPaddings	= $pdf->getCellPaddings();
-		$pdf->setCellPaddings(0, 0, 0, 0);
-		$alignL1			= 'C';
-		// Line 1 content: either a custom HTML free text (INFRASPLUS_PDF_FOOTER_FREETEXT) or built from company data (below)
+		$alignL1		= 'C';
+		// First line of company infos
 		if (getDolGlobalString('INFRASPLUS_PDF_FOOTER_FREETEXT', '')) {
 			$footer_freeText	= getDolGlobalString('INFRASPLUS_PDF_FOOTER_FREETEXT', '');
 			$line1				= pdf_InfraSPlus_formatNotes($object, $outputlangs, $footer_freeText);
-			$largeurLine1		= $formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']);
-			$htmlLine1			= dol_htmlentitiesbr($line1);
-			// Measure the REAL rendered height of HTML content: getStringHeight() only accounts for raw text,
-			// ignoring HTML tags (<a>, <b>, <br>, etc.) which produce a different height in writeHTMLCell().
-			// We render it on a PDF transaction (virtual write), read the Y delta, then rollback.
-			$pdf->startTransaction();
-			$y_before			= $pdf->GetY();
-			$page_before		= $pdf->getPage();
-			$pdf->writeHTMLCell($largeurLine1, 0, $formatpage['mgauche'], $y_before, $htmlLine1, 0, 1, false, true, '', true);
-			$y_after			= $pdf->GetY();
-			$page_after			= $pdf->getPage();
-			if ($page_after == $page_before) {
-				$htLine1		= $y_after - $y_before;
-			} else {
-				// The virtual write triggered a page break: fallback to text-based estimate
-				$htLine1		= $pdf->getStringHeight($largeurLine1, $htmlLine1, true, false, [], 0);
-			}
-			// rollbackTransaction(true) restores the current object in place (no reassignment needed)
-			$pdf->rollbackTransaction(true);
-			$alignL1	= '';
+			$htLine1			= $pdf->getStringHeight($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), dol_htmlentitiesbr($line1), true, false, array(), 0);
+			$alignL1			= '';
 		} else {
-			// Automatic mode: build line1 (company address), line2 (contacts), line3 (juridical/capital), line4 (prof IDs / VAT)
-			// from $fromcompany data, based on $showdetails bitmask digits.
 			$line1 = ''; $htLine1 = 3; $line2 = ''; $line3 = ''; $line4 = ''; $line5 = 0;
 			if (substr($showdetails, 0, 1) == 1 || substr($showdetails, 0, 1) == 3) {
 				if (!empty($fromcompany->name)) {
@@ -5285,24 +4392,17 @@
 				}
 			}
 			if (substr($showdetails, 0, 1) == 2 || substr($showdetails, 0, 1) == 3) {
-				// Phone/Fax: plain text, HTML-escaped so special chars don't break writeHTMLCell rendering
 				if (!empty($fromcompany->phone)) {
-					$line2	.= ($line2 ? ' - ' : '').'<span style = "font-family:dejavusans;">&#x260E;</span> '.dol_escape_htmltag($outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->phone)))); // Phone (Unicode BLACK TELEPHONE)
+					$line2	.= ($line2 ? ' - ' : '').$outputlangs->transnoentities('PhoneShort').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->phone))); // Phone
 				}
 				if (!empty($fromcompany->fax)) {
-					$line2	.= ($line2 ? ' - ' : '').dol_escape_htmltag($outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->fax)))); // Fax
+					$line2	.= ($line2 ? ' - ' : '').$outputlangs->transnoentities('Fax').' : '.$outputlangs->convToOutputCharset(dol_string_nohtmltag(dol_print_phone($fromcompany->fax))); // Fax
 				}
-				// URL: wrap as <a href> so it becomes a clickable link in the PDF (add http:// if scheme is missing)
 				if (!empty($fromcompany->url)) {
-					$urlHref	= $fromcompany->url;
-					if (!preg_match('/^https?:\/\//i', $urlHref)) {
-						$urlHref	= 'http://'.$urlHref;
-					}
-					$line2	.= ($line2 ? ' - ' : '').'<a href = "'.dol_escape_htmltag($urlHref).'" target = "_blank" rel = "noopener">'.dol_escape_htmltag($fromcompany->url).'</a>'; // URL (clickable, opens in new tab)
+					$line2	.= ($line2 ? ' - ' : '').$fromcompany->url; // URL
 				}
-				// Email: wrap as mailto: link
 				if (!empty($fromcompany->email)) {
-					$line2	.= ($line2 ? ' - ' : '').'<b>@</b> <a href = "mailto:'.dol_escape_htmltag($fromcompany->email).'">'.dol_escape_htmltag($fromcompany->email).'</a>'; // Email (clickable, Unicode ENVELOPE, subscript alignment)
+					$line2	.= ($line2 ? ' - ' : '').$fromcompany->email; // Email
 				}
 			}
 			if (substr($showdetails, 1, 1) == 1 || ($fromcompany->country_code == 'DE')) {
@@ -5378,10 +4478,9 @@
 				}
 			}
 		}
-		// Line 5 content: optional partner logo at the bottom of the footer (height depends on the actual image ratio)
 		if (substr($showdetails, 4, 1) == 1) {
 			$logodir	= !empty($conf->mycompany->multidir_output[$objEntity]) ? $conf->mycompany->multidir_output[$objEntity] : $conf->mycompany->dir_output;
-			$logospied	= $logodir.'/logos/'.$image_foot;
+			$logospied	= $logodir.'/logos/'.$image_foot;	// Logos partenaires en ligne 5
 			if (is_readable($logospied)) {
 				include_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 				$imglinesize	= pdf_InfraSPlus_getSizeForImage($logospied, $maxsizeimgfoot['largeur'], $maxsizeimgfoot['hauteur']);
@@ -5390,34 +4489,25 @@
 				}
 			}
 		}
-		// Compute total footer height (separator + line1..4 + line5 logo + bottom margin)
-		// This is used to position the footer block at the bottom of the page
+		// The start of the bottom of this page footer is positioned according to # of lines
 		$nopage				= $pdf->PageNo();
 		$nbpage				= $pdf->getNumPages();
-		$marginwithfooter	= ($nopage == $nbpage && empty($hidesupline) ? 1 : 0) + (!empty($line1) ? $htLine1 : 0) + (!empty($line2) ? 3 : 0) + (!empty($line3) ? 3 : 0) + (!empty($line4) ? 3 : 0) + $line5 + $formatpage['mbasse'];
-		// Compute-only mode: caller just wants to know the footer height to reserve space above
+		$marginwithfooter	= (($nopage == $nbpage) && empty($hidesupline) ? 1 : 0) + (!empty($line1) ? $htLine1 : 0) + (!empty($line2) ? 3 : 0) + (!empty($line3) ? 3 : 0) + (!empty($line4) ? 3 : 0) + $line5 + $formatpage['mbasse'];
 		if ($calculseul == 1) {
-			$pdf->setCellPaddings($savedFootPaddings['L'], $savedFootPaddings['T'], $savedFootPaddings['R'], $savedFootPaddings['B']);
 			return $marginwithfooter;
 		}
-		// Drawing phase: position cursor at the top of the footer block
 		$posy	= $formatpage['hauteur'] - $marginwithfooter;
 		$pdf->SetY($posy);
-		// Horizontal separator above the footer (only on the last page, unless disabled)
 		if (empty($noendline) && $nopage == $nbpage && empty($hidesupline)) {
 			$pdf->line($formatpage['mgauche'], $posy, $formatpage['largeur']-$formatpage['mdroite'], $posy, $LineStyle);
 			$posy++;
 		}
-		// Line 1 (HTML-capable): freetext or company address. Advance by real measured height ($htLine1)
-		// or fallback 3mm (6mm if a gap with next line is requested by showdetails digit 4)
 		if (!empty($line1)) {
 			$pdf->writeHTMLCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), $htLine1, $formatpage['mgauche'], $posy, dol_htmlentitiesbr($line1), 0, 1, false, true, $alignL1, true);
 			$posy	+= $htLine1 == 3 ? (substr($showdetails, 3, 1) == 1 ? 6 : 3) : $htLine1;
 		}
-		// Line 2 (HTML): contacts including clickable URL / email links (rendered via writeHTMLCell)
-		// Lines 3-4 (plain text): juridical status / capital, professional IDs / VAT number
 		if (!empty($line2)) {
-			$pdf->writeHTMLCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), 3, $formatpage['mgauche'], $posy, $line2, 0, 1, false, true, 'C', true);
+			$pdf->MultiCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), 2, $line2, 0, 'C', 0, 1, $formatpage['mgauche'], $posy, true, 0, 0, false, 0, 'M', false);
 			$posy	+= 3;
 		}
 		if (!empty($line3)) {
@@ -5427,26 +4517,22 @@
 		if (!empty($line4)) {
 			$pdf->MultiCell($formatpage['largeur'] - ($formatpage['mgauche'] + $formatpage['mdroite']), 2, $line4, 0, 'C', 0, 1, $formatpage['mgauche'], $posy, true, 0, 0, false, 0, 'M', false);
 		}
-		// Line 5: partner logo, horizontally centered in the column
 		if (!empty($logospied) && is_readable($logospied) && !empty($line5)) {
 			$posy			+= $htLine1 == 3 ? 3 : 0;
-			$posxpicture	= $formatpage['mgauche'] + (($formatpage['largeur'] - $formatpage['mgauche'] - $formatpage['mdroite'] - $imglinesize['width']) / 2);
-			$pdf->Image($logospied, $posxpicture, $posy, $imglinesize['width'], $line5);
+			$posxpicture	= $formatpage['mgauche'] + (($formatpage['largeur'] - $formatpage['mgauche'] - $formatpage['mdroite'] - $imglinesize['width']) / 2);	// centre l'image dans la colonne
+			$pdf->Image($logospied, $posxpicture, $posy, $imglinesize['width'], $line5);	// width = 0 or height = 0 (auto)
 		}
-		// Page number in the bottom-right corner (forced to Helvetica for ISO compatibility)
 		$pdf->SetFont('', '', 7);
-		if (empty($hidepagenum)) {
+		if (empty($hidepagenum)) { // Show page nb only on iso languages (so default Helvetica font)
 			$prevFont									= $pdf->getFontFamily();
 			$pdf->SetFont('Helvetica');
 			if (!getDolGlobalString('MAIN_USE_FPDF', '')) {
 				$pdf->MultiCell(26, 2, $pdf->PageNo().' / '.$pdf->getAliasNbPages(), 0, 'R', 0, 1, $formatpage['largeur'] - ($formatpage['mdroite'] + 20), $formatpage['hauteur'] - $formatpage['mbasse'], true, 0, 0, false, 0, 'M', false);
 			} else {
-				// FPDF fallback: {nb} placeholder is resolved by FPDF at page close
 				$pdf->MultiCell(26, 2, $pdf->PageNo().' / {nb}', 0, 'R', 0, 1, $formatpage['largeur'] - ($formatpage['mdroite'] + 20), $formatpage['hauteur'] - $formatpage['mbasse'], true, 0, 0, false, 0, 'M', false);
 			}
 			$pdf->SetFont($prevFont);
 		}
-		$pdf->setCellPaddings($savedFootPaddings['L'], $savedFootPaddings['T'], $savedFootPaddings['R'], $savedFootPaddings['B']);
 		return $marginwithfooter;
 	}
 
@@ -5461,17 +4547,17 @@
 	function pdf_InfraSPlus_rgba_to_rgb(&$color, $bgcolor = '255, 255, 255', $alpha = 1)
 	{
 		$tmpcol		= explode(',', $color);
-		$tmpcol[0]	= !empty($tmpcol[0]) ? $tmpcol[0] : 0;
-		$tmpcol[1]	= !empty($tmpcol[1]) ? $tmpcol[1] : 0;
-		$tmpcol[2]	= !empty($tmpcol[2]) ? $tmpcol[2] : 0;
+		$tmpcol[0]	= (!empty($tmpcol[0]) ? $tmpcol[0] : 0);
+		$tmpcol[1]	= (!empty($tmpcol[1]) ? $tmpcol[1] : 0);
+		$tmpcol[2]	= (!empty($tmpcol[2]) ? $tmpcol[2] : 0);
 		$tmpbg		= explode(',', $bgcolor);
-		$tmpbg[0]	= !empty($tmpbg[0]) ? $tmpbg[0] : 0;
-		$tmpbg[1]	= !empty($tmpbg[1]) ? $tmpbg[1] : 0;
-		$tmpbg[2]	= !empty($tmpbg[2]) ? $tmpbg[2] : 0;
-		$alpha		= !empty($alpha) && 0 < $alpha && $alpha < 1 ? $alpha : 1;
-		$tmpvalr	= (1 - $alpha) * $tmpbg[0] + $alpha * $tmpcol[0];
-		$tmpvalg	= (1 - $alpha) * $tmpbg[1] + $alpha * $tmpcol[1];
-		$tmpvalb	= (1 - $alpha) * $tmpbg[2] + $alpha * $tmpcol[2];
+		$tmpbg[0]	= (!empty($tmpbg[0]) ? $tmpbg[0] : 0);
+		$tmpbg[1]	= (!empty($tmpbg[1]) ? $tmpbg[1] : 0);
+		$tmpbg[2]	= (!empty($tmpbg[2]) ? $tmpbg[2] : 0);
+		$alpha		= (!empty($alpha) && 0 < $alpha && $alpha < 1 ? $alpha : 1);
+		$tmpvalr	= ((1 - $alpha) * $tmpbg[0]) + ($alpha * $tmpcol[0]);
+		$tmpvalg	= ((1 - $alpha) * $tmpbg[1]) + ($alpha * $tmpcol[1]);
+		$tmpvalb	= ((1 - $alpha) * $tmpbg[2]) + ($alpha * $tmpcol[2]);
 		$tmpval		= $tmpvalr.', '.$tmpvalg.', '.$tmpvalb;
 		return $tmpval;
 	}
@@ -5486,88 +4572,25 @@
 	**/
 	function pdf_InfraSPlus_subtotal_getrecap ($object, $i, $subtotalRecap)
 	{
-		$line				= $object->lines[$i];
-		$isATMSubtotal		= isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($line, $object->element, 'modSubtotal') && $line->qty > 90;
-		$isNativeSubtotal	= infraspackplus_isNativeSubtotalLine($line) && $line->qty < 0;
-		$isInfraSubtotal	= infraspackplus_isInfrastructureTotal($line);
-		if (empty($isATMSubtotal) && empty($isNativeSubtotal) && empty($isInfraSubtotal)) {
-			return $subtotalRecap;
+		// TODO contrôles en double ?
+		$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+		$isSubTitle		= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
+		$isSubTotal		= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
+		if (!empty($isSubTotal)) {	// Sous-total trouvé
+			foreach ($object->lines as $line) {	// Parcours des lignes depuis le début
+				if ($line->id == $object->lines[$i]->id) {
+					break;	// Ligne de sous-total courant trouvée on arrête le parcours
+				}
+				$qty_search		= 100 - $object->lines[$i]->qty;	// calcul de la qty du sous-titre correspondant au sous-total courant (niveau)
+				$isSubTotalLine	= infraspackplus_isLineFromExternalModule($line, $object->element, 'modSubtotal');
+				$isSubTitle		= $isSubTotalLine && $line->qty < 10 ? 1 : 0;	// Sous-titre ATM
+				if (!empty($isSubTitle) && $line->qty == $qty_search) {
+					$titleRang	= $line->rang;	// ligne de sous-titre correspondant au sous-total courant trouvée
+				}
+			}
+			$subtotalRecap[]	= array('line' => $i, 'type' => 'subtotal', 'rang' => $titleRang, 'level' => $qty_search);	// Enregistrement du lien entre le sous-total ($i) et son sous-titre associé ($titleRang)
 		}
-		$titleRang	= 0;
-		$titleLine	= $i;	// Fallback si aucun titre n'est trouvé (cas dégénéré) : on retombera sur le libellé du sous-total
-		if (!empty($isATMSubtotal)) {
-			// Convention ATM Subtotal : sous-total qty=99 ferme titre qty=1, donc qty_titre = 100 - qty_sous_total
-			$level	= 100 - $line->qty;
-			foreach ($object->lines as $k => $candidate) {
-				if ($candidate->id == $line->id) {
-					break;
-				}
-				$isATMTitle	= infraspackplus_isLineFromExternalModule($candidate, $object->element, 'modSubtotal') && $candidate->qty < 10 ? 1 : 0;
-				if (!empty($isATMTitle) && $candidate->qty == $level) {
-					$titleRang	= $candidate->rang;
-					$titleLine	= $k;
-				}
-			}
-		} elseif (!empty($isNativeSubtotal)) {
-			// Convention native Dolibarr : niveau = abs(qty) ; le titre parent est le dernier titre natif de même niveau situé avant le sous-total
-			$level	= (int) abs($line->qty);
-			foreach ($object->lines as $k => $candidate) {
-				if ($candidate->id == $line->id) {
-					break;
-				}
-				if (infraspackplus_isNativeSubtotalLine($candidate) && $candidate->qty == $level) {
-					$titleRang	= $candidate->rang;
-					$titleLine	= $k;
-				}
-			}
-		} elseif (!empty($isInfraSubtotal)) {
-			// Convention Infrastructure : niveau = qty - 90 ; le titre parent porte qty = niveau
-			$level	= TInfrastructure::getNiveau($line);
-			foreach ($object->lines as $k => $candidate) {
-				if ($candidate->id == $line->id) {
-					break;
-				}
-				if (TInfrastructure::isTitle($candidate, $level)) {
-					$titleRang	= $candidate->rang;
-					$titleLine	= $k;
-				}
-			}
-		}
-		$subtotalRecap[]	= array('line' => $i, 'titleLine' => $titleLine, 'type' => 'subtotal', 'rang' => $titleRang, 'level' => $level);
 		return $subtotalRecap;
-	}
-
-	/**
-	*	Reconstruit $subtotalRecap depuis les sous-totaux Infrastructure retirés par infrastructure_applyTitleWithTotal
-	*	(option INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL active). Appelé après la boucle de préparation dans write_file()
-	*	quand $subtotalRecap est encore vide et que le contexte contient des totaux sauvegardés par infrastructure.
-	*
-	*	@param		object		$object			Object shown in PDF
-	*	@param		array		$subtotalRecap	list of subtotal lines (modifié par référence)
-	*	@return		void
-	**/
-	function pdf_InfraSPlus_subtotal_getrecap_from_context ($object, &$subtotalRecap)
-	{
-		if (!empty($subtotalRecap) || empty($object->context['infrastructureCache']['removedTotals'])) {
-			return;
-		}
-		if (!class_exists('TInfrastructure')) {
-			dol_include_once('/infrastructure/class/infrastructure.class.php');
-		}
-		foreach ($object->context['infrastructureCache']['removedTotals'] as $removedItem) {
-			$level				= (int) $removedItem['level'];
-			$parentTitleRang	= (int) $removedItem['parentTitleRang'];
-			$titleLine			= 0;
-			// Trouver le titre parent dans $object->lines courant (toujours présent après applyTitleWithTotal)
-			foreach ($object->lines as $k => $candidate) {
-				if ($candidate->rang == $parentTitleRang && class_exists('TInfrastructure') && TInfrastructure::isTitle($candidate)) {
-					$titleLine	= $k;
-					break;
-				}
-			}
-			// 'line' pointe sur le titre qui porte infrastructure_title_total_ht — géré dans pdf_InfraSPlus_subtotal_recap
-			$subtotalRecap[]	= ['line' => $titleLine, 'titleLine' => $titleLine, 'type' => 'subtotal', 'rang' => $parentTitleRang, 'level' => $level];
-		}
 	}
 
 	/**
@@ -5594,7 +4617,7 @@
 	*	@param		Translate	$outputlangs		Object lang for output
 	*	@param		array		$subtotalRecap		array of lines to print
 	*	@param		object		$template			object template we work on
-	*	@param		integer		$ht_coltotal		height reserved for info table
+	*	@param		integer		$heightforinfotot	height reserved for info table
 	*	@param		integer		$heightforfooter	height reserved for footer
 	*	@return		integer							next Y position
 	**/
@@ -5606,70 +4629,32 @@
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$pdf->MultiCell($template->formatpage['largeur'] - $template->formatpage['mgauche'] - $template->formatpage['mdroite'], $template->heightline * 2, $outputlangs->transnoentities('PDFInfraSPlusRecap'), '', 'C', 0, 1, $template->formatpage['mgauche'], $tab_top + 10, true, 0, 0, false, 0, 'M', false);
 		$pdf->SetFont('', '', $default_font_size - 1);
-		// Cohérence visuelle : aligner le style du libellé sur celui des totaux. Le hook infrastructure pdf_getlinetotalexcltax applique SetFont/SetTextColor (style + couleur des sous-totaux) avant chaque rendu de cellule total, ce qui fuite sur le writeHTMLCell du libellé de l'itération suivante. Sans ce pré-alignement, le 1er libellé apparaît en style/couleur par défaut, les suivants en style sous-total. On applique explicitement le même style avant chaque libellé.
-		if (isModEnabled('infrastructure')) {
-			dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
-		}
 		$posy				= $tab_top + 30;
 		$nblignes			= count($subtotalRecap);
 		for ($i = 0 ; $i < $nblignes ; $i++) {
-			$pageposbefore		= $pdf->getPage();
-			$posx				= $template->tableau['desc']['posx'] + ($subtotalRecap[$i]['level'] > 1 ? $subtotalRecap[$i]['level'] * 4 : 0);
-			$titleLine			= isset($subtotalRecap[$i]['titleLine']) ? $subtotalRecap[$i]['titleLine'] : $subtotalRecap[$i]['line'];	// Libellé du titre parent (et non du sous-total qui peut être vide ou générique)
-			// Rendu direct du libellé : on évite pdf_InfraSPlus_writelinedesc qui appliquerait les options de la ligne titre (saut de page via info_bits, print_as_list, hideblock, ...) au récap
-			$titleObj			= !empty($object->lines[$titleLine]) ? $object->lines[$titleLine] : null;
-			$titleLabel			= $titleObj && !empty($titleObj->label) ? $titleObj->label : ($titleObj && !empty($titleObj->desc) ? $titleObj->desc : ($titleObj && !empty($titleObj->description) ? $titleObj->description : ''));
-			$titleLabel			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $titleLabel);
-			// Cas INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL : le sous-total a été retiré de $object->lines, le montant est porté par le titre via infrastructure_title_total_ht.
-			$recapLineObj		= !empty($object->lines[$subtotalRecap[$i]['line']]) ? $object->lines[$subtotalRecap[$i]['line']] : null;
-			$isRecapFromTitle	= $recapLineObj && class_exists('TInfrastructure') && TInfrastructure::isTitle($recapLineObj) && isset($recapLineObj->infrastructure_title_total_ht);
-			// Applique le style + fond sous-total Infrastructure.
-			$infraRecapFill		= false;
-			$infraRecapBg		= [];
-			if (isModEnabled('infrastructure') && function_exists('infrastructure_getPdfBackgroundStyle') && function_exists('infrastructure_setPdfTextColor')) {
-				$infraRecapLine	= !$isRecapFromTitle && $recapLineObj ? $recapLineObj : null;
-				$bgStyle		= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TOTAL_BACKGROUND_COLOR', '', '', $infraRecapLine);
-				$infraRecapFill	= !empty($bgStyle['fill']);
-				$infraRecapBg	= !empty($bgStyle['color']) ? $bgStyle['color'] : [];
-				$pdf->SetFont('', getDolGlobalString('INFRASTRUCTURE_PDF_TOTAL_STYLE', ''), $default_font_size - 1);
-				infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
-			}
-			if ($infraRecapFill && !empty($infraRecapBg)) {
-				$pdf->SetFillColor((int) $infraRecapBg[0], (int) $infraRecapBg[1], (int) $infraRecapBg[2]);
-				$pdfMarginsForBg	= $pdf->getMargins();
-				$bgStartX			= isset($pdfMarginsForBg['left']) ? $pdfMarginsForBg['left'] : $posx;
-				$bgRight			= isset($pdfMarginsForBg['right']) ? $pdfMarginsForBg['right'] : 0;
-				$bgWidth			= $pdf->getPageWidth() - $bgStartX - $bgRight;
-				$pdf->SetXY($bgStartX, $posy);
-				$pdf->MultiCell($bgWidth, $template->heightline, '', 0, '', 1);
-				// Rétablit la couleur de texte après le fond (le MultiCell fill peut réinitialiser l'état graphique)
-				infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
-			}
-			$pdf->writeHTMLCell($template->tableau['desc']['larg'], $template->heightline, $posx, $posy, $outputlangs->convToOutputCharset($titleLabel), 0, 1, false, true, 'L', true);
+			$pageposbefore	= $pdf->getPage();
+			$posx			= $template->tableau['desc']['posx'] + ($subtotalRecap[$i]['level'] > 1 ? $subtotalRecap[$i]['level'] * 4 : 0);
+			pdf_InfraSPlus_writelinedesc($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs, $template->formatpage, $template->horLineStyle, $template->tableau['desc']['larg'], $template->heightline, $posx, $posy, 0, 0, 0, '', null, 0, 1);
 			// Total line
-			if ($isRecapFromTitle) {
-				$total_line	= price($recapLineObj->infrastructure_title_total_ht, 0, $outputlangs, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_UNIT'), -1, $object->multicurrency_code);
-			} elseif (empty($template->hide_vat)) {
+			if (empty($template->hide_vat)) {
 				$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
 			} else {
 				$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
 			}
 			$pdf->MultiCell($template->tableau['totalht']['larg'], $template->heightline, $total_line, '', 'R', 0, 1, $template->tableau['totalht']['posx'], $posy, true, 0, 0, false, 0, 'M', false);
 			if ($template->show_ttc_col) {
-				$totalTTC_line	= $isRecapFromTitle
-					? price(!empty($recapLineObj->infrastructure_title_total_ttc) ? $recapLineObj->infrastructure_title_total_ttc : 0, 0, $outputlangs, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_UNIT'), -1, $object->multicurrency_code)
-					: pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
+				$totalTTC_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $subtotalRecap[$i]['line'], $outputlangs);
 				$pdf->MultiCell($template->tableau['totalttc']['larg'], $template->heightline, $totalTTC_line, '', 'R', 0, 1, $template->tableau['totalttc']['posx'], $posy, true, 0, 0, false, 0, 'M', false);
 			}
 			$pageposafter	= $pdf->getPage();
 			$posyafter		= $pdf->GetY();
 			if ($pageposafter > $pageposbefore) {	// There is a pagebreak
-				if ($posyafter > $template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal)) {	// There is no space left for total+free text
+				if ($posyafter > ($template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal))) {	// There is no space left for total+free text
 					$pdf->AddPage('', '', true);
 					$pdf->setPage($pageposafter + 1);
 					$posy	= $tab_top + ($template->hide_top_table ? $template->decal_round : $template->ht_top_table + $template->decal_round);
 				}
-			} elseif ($posyafter > $template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal)) {	// There is no space left for total+free text
+			} elseif ($posyafter > ($template->formatpage['hauteur'] - ($heightforfooter + $ht_coltotal))) {	// There is no space left for total+free text
 				$pdf->AddPage('', '', true);
 				$pdf->setPage($pageposafter + 1);
 				$posy	= $tab_top + ($template->hide_top_table ? $template->decal_round : $template->ht_top_table + $template->decal_round);
@@ -5698,7 +4683,7 @@
 	{
 		global $db;
 
-		if (isModEnabled('subtotal') && $mode < 0 && class_exists('TSubtotal')) {
+		if (isModEnabled('subtotal') && $mode < 0) {
 			$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal') ? 1 : 0;
 			if (empty($isSubTotalLine)) {	// not a title nor a subtotal
 				//	Check if a title exist for this line && if this title has subtotal
@@ -5707,24 +4692,20 @@
 					switch ($mode) {
 						case '-4':
 							// Titre / sous titre à afficher condensé
-							if (!empty($hasTitle->array_options['options_print_condensed']) && $hasTitle->array_options['options_print_condensed'] > 0) {
-								return $hasTitle->id;
-							}
+							if (!empty($hasTitle->array_options['options_print_condensed']) && $hasTitle->array_options['options_print_condensed'] > 0)	return $hasTitle->id;
 						break;
 						case '-3':
 							// Titre / sous titre à afficher sous forme de liste
-							if (!empty($hasTitle->array_options['options_print_as_list']) && $hasTitle->array_options['options_print_as_list'] > 0) {
-								return $hasTitle->id;
-							}
+							if (!empty($hasTitle->array_options['options_print_as_list']) && $hasTitle->array_options['options_print_as_list'] > 0)	return $hasTitle->id;
 						break;
 					}
 				}
 				return empty($hasTitle) || empty(TSubtotal::titleHasTotalLine($object, $hasTitle, true)) ? 1 : 0;	// Pas de titre au-dessus ou ce titre n'est pas associé à un sous-total
 			}
 		} elseif (isModEnabled('ouvrage') && class_exists('Ouvrage') && $mode >= 0) {
-			$ouvHideMnt		= GETPOSTINT('OUVRAGE_HIDE_MONTANT');	// Cacher le montant des ouvrages/forfaits
-			$ouvHideDet		= GETPOSTINT('OUVRAGE_HIDE_PRODUCT_DETAIL');	// Afficher uniquement l'ouvrage/forfait
-			$ouvHideDesc	= GETPOSTINT('OUVRAGE_HIDE_PRODUCT_DESCRIPTION');	// Cacher les détails tarifaires des produits/services
+			$ouvHideMnt		= GETPOST('OUVRAGE_HIDE_MONTANT', 'int');	// Cacher le montant des ouvrages/forfaits
+			$ouvHideDet		= GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL', 'int');	// Afficher uniquement l'ouvrage/forfait
+			$ouvHideDesc	= GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION', 'int');	// Cacher les détails tarifaires des produits/services
 			$isOuvrage		= Ouvrage::isOuvrage($object->lines[$i]) ? 2 : 0;	// ligne d'ouvrage Inovea
 			if ($isOuvrage == 2 && !empty($ouvHideMnt) && empty($mode)) {
 				return 1;	// ligne d'ouvrage + mode 1 => on cache le montant
@@ -5797,7 +4778,7 @@
 
 		if (isModEnabled('ouvrage') && class_exists('Ouvrage')) {
 			$detailSep_hight	= getDolGlobalInt('INFRASPLUS_PDF_OUVRAGE_DETAILSEP_HIGHT', 0);
-			$ouvHideDet			= GETPOSTINT('OUVRAGE_HIDE_PRODUCT_DETAIL');	// Afficher uniquement l'ouvrage/forfait
+			$ouvHideDet			= GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL', 'int');	// Afficher uniquement l'ouvrage/forfait
 			if (!empty($ouvHideDet)) {
 				return -1;	// each line can be processed as usual because we hide all the details of the works
 			} elseif (Ouvrage::isOuvrage($object->lines[$i])) {
@@ -5819,12 +4800,16 @@
 					}
 				}
 			}
-		} elseif (isModEnabled('subtotal') || isModEnabled('subtotals')) {
-			// Is the current line a subtitle/subtotal (ATM or native Subtotals module)? The rule changes if it is an ATM text line (qty == 50)
-			$isSubLine		= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element) && !infraspackplus_isSubtotalFreeText($object->lines[$i], $object->element);
-			// Is the following line a subtitle/subtotal?
-			$isSubLineNext	= !empty($object->lines[$i + 1]) ? infraspackplus_isSubtotalModuleLine($object->lines[$i + 1], $object->element) && !infraspackplus_isSubtotalFreeText($object->lines[$i + 1], $object->element) : false;
-			return !empty($isSubLine) || !empty($isSubLineNext) ? 1 : -1;
+		} elseif (isModEnabled('subtotal')) {
+			// Is the current line an ATM subtitle/subtotal?
+			$isATMLine		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+			// The rule changes if it is a text line (qty == 50)
+			$isATMLine		= $isATMLine && ($object->lines[$i]->qty != 50);
+			// Is the following line an ATM subtitle/subtotal?
+			$isATMLineNext	= !empty($object->lines[$i + 1]) ? infraspackplus_isLineFromExternalModule($object->lines[$i + 1], $object->element, 'modSubtotal') : false;
+			// The rule changes if it is a text line (qty == 50)
+			$isATMLineNext	= $isATMLineNext && ($object->lines[$i + 1]->qty != 50);
+			return !empty($isATMLine) || !empty($isATMLineNext) ? 1 : -1;
 		}
 		return -1;
 	}
@@ -6073,99 +5058,14 @@
 		$ht_signarea	-= $template->Rounded_rect;
 		$pdf->SetAlpha(0);
 		if ($object->element != 'facture' || $type != 'stamp') {
-			$pdf->MultiCell($larg_signarea, $ht_signarea, $type == 'customer' ? 'UPTOSIGN_SIGN_TO_00_HERE' : 'UPTOSIGN_SIGN_FROM_HERE', '', 'L', 0, 1, $posxsignarea, $posysignarea, true, 0, 0, false, 0, 'M', false);
-			if ($object->element == 'contrat' || $object->element == 'fichinter' && !empty($template->show_sign_area_emet) || $object->element == 'commande' && !empty($template->show_2sign_area)) {
-				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, $template->page_largeur / 2 - 32.5, $template->posystamp, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell($larg_signarea, $ht_signarea, ($type == 'customer' ? 'UPTOSIGN_SIGN_TO_HERE' : 'UPTOSIGN_SIGN_FROM_HERE'), '', 'L', 0, 1, $posxsignarea, $posysignarea, true, 0, 0, false, 0, 'M', false);
+			if ($object->element == 'contrat' || ($object->element == 'fichinter' && !empty($template->show_sign_area_emet)) || ($object->element == 'commande' && !empty($template->show_2sign_area))) {
+				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, ($template->page_largeur / 2) - 32.5, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 			} else {
 				$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SIGN_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 			}
 		} else {
-			$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_SEAL_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
+			$pdf->MultiCell(65, 10, 'UPTOSIGN_STAMP_HERE', '', 'L', 0, 1, $template->marge_gauche, $template->posystamp, true, 0, 0, false, 0, 'M', false);
 		}
 		$pdf->SetAlpha(1);
-	}
-
-	/**
-	*	Check if a document line belongs to the Infrastructure module (title, subtotal or free text)
-	*
-	*	@param		object		$line	Line object to test
-	*	@return		bool				true if the line is an Infrastructure special line
-	**/
-	function infraspackplus_isInfrastructureLine ($line)
-	{
-		if (!isModEnabled('infrastructure')) {
-			return false;
-		}
-		if (!class_exists('TInfrastructure')) {
-			dol_include_once('/infrastructure/class/infrastructure.class.php');
-		}
-		return class_exists('TInfrastructure') && TInfrastructure::isModInfrastructureLine($line);
-	}
-
-	/**
-	*	Check if a document line is an Infrastructure subtotal line (qty 91..99)
-	*
-	*	@param		object		$line	Line object to test
-	*	@return		bool				true if the line is an Infrastructure subtotal
-	**/
-	function infraspackplus_isInfrastructureTotal ($line)
-	{
-		if (!isModEnabled('infrastructure')) {
-			return false;
-		}
-		if (!class_exists('TInfrastructure')) {
-			dol_include_once('/infrastructure/class/infrastructure.class.php');
-		}
-		return class_exists('TInfrastructure') && TInfrastructure::isTotal($line);
-	}
-
-	/**
-	*	Check if a document line is an Infrastructure free text line (qty == 50)
-	*
-	*	@param		object		$line	Line object to test
-	*	@return		bool				true if the line is an Infrastructure free text
-	**/
-	function infraspackplus_isInfrastructureFreeText ($line)
-	{
-		if (!isModEnabled('infrastructure')) {
-			return false;
-		}
-		if (!class_exists('TInfrastructure')) {
-			dol_include_once('/infrastructure/class/infrastructure.class.php');
-		}
-		return class_exists('TInfrastructure') && TInfrastructure::isFreeText($line);
-	}
-
-	/**
-	*	Applique, si actif, le style/couleur PDF des lignes optionnelles du module infrastructure (case « Opt »,
-	*	extrafield options_infrastructure_ol, constantes INFRASTRUCTURE_PDF_OL_STYLE / INFRASTRUCTURE_PDF_OL_COLOR)
-	*	sur la colonne Num/Réf, qui n'est rendue par aucun hook Dolibarr standard (contrairement aux autres
-	*	colonnes, déjà couvertes côté module infrastructure via ses hooks pdf_getline*).
-	*
-	*	@param		TCPDF|TCPDF_InfraS	$pdf		Instance PDF courante
-	*	@param		CommonObject		$object		Document en cours de génération
-	*	@param		int					$i			Index de la ligne dans $object->lines
-	*	@return		bool								true si le style a été appliqué
-	**/
-	function infraspackplus_applyInfrastructureOlPdfStyle(&$pdf, &$object, $i)
-	{
-		if (!isModEnabled('infrastructure') || empty($object->lines[$i]) || !getDolGlobalInt('INFRASTRUCTURE_PDF_OL_SHOW_DETAILS')) {
-			return false;
-		}
-		$line	= $object->lines[$i];
-		if (empty($line->array_options)) {
-			$line->fetch_optionals();
-		}
-		if (empty($line->array_options['options_infrastructure_ol'])) {
-			return false;
-		}
-		if (!function_exists('infrastructure_setPdfTextColor')) {
-			dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
-		}
-		if (!function_exists('infrastructure_setPdfTextColor') || !is_object($pdf)) {
-			return false;
-		}
-		$pdf->SetFont('', getDolGlobalString('INFRASTRUCTURE_PDF_OL_STYLE'));
-		infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_OL_COLOR');
-		return true;
 	}

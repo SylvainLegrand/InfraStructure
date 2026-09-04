@@ -161,47 +161,12 @@ InfraSPlusParamUpdateOnExfChange               = Attiva la generazione semiautom
 InfraSPlusParamUpdateOnFieldsChange            = Abilita la generazione semi-automatica di PDF durante il salvataggio dei campi modificabili dopo la convalida del documento (Data di scadenza, Condizioni di pagamento, Metodo di pagamento, Data di spedizione/consegna, Ora di consegna, Conto bancario)
 InfraSPlusParamAutoUpdate                      = Disattivare la generazione automatica ("al volo") di PDF
 InfraSPlusParamMultiFiles                      = Permettere il salvataggio di più file PDF per un singolo documento quando sono disponibili più modelli (un file per modello per documento)
-InfraSPlusPDFAddPrefixToTemplateName           = Aggiungere un prefisso al nome dei modelli di documento.
-InfraSPlusPDFAddPrefixToBLC                    = Prefisso da aggiungere al nome del modello di ordine pdf_InfraSPlus_BLC (Bolla di consegna speciale a partire da un ordine)
-InfraSPlusPDFAddPrefixToC                      = Prefisso da aggiungere al nome del modello di ordine pdf_InfraSPlus_C (Conferma d'ordine)
-InfraSPlusPDFAddPrefixToCBC                    = Prefisso da aggiungere al nome del modello di ordine pdf_InfraSPlus_CBC (Conferma d'ordine con codice a barre)
-InfraSPlusPDFAddPrefixToCBL                    = Prefisso da aggiungere al nome del modello di ordine pdf_InfraSPlus_CBL (Bolla di consegna dell'ordine)
-InfraSPlusPDFAddPrefixToCP                     = Prefisso da aggiungere al nome del modello di ordine pdf_InfraSPlus_CP (Fattura proforma di un ordine)
-InfraSPlusPDFAddPrefixToOF                     = Prefisso da aggiungere al nome del modello di ordine pdf_InfraSPlus_OF (Ordine di produzione a partire da un ordine)
-InfraSPlusPDFAddPrefixToOM                     = Prefisso da aggiungere al nome del modello di ordine pdf_InfraSPlus_OM (Ordine di montaggio a partire da un ordine)
-InfraSPlusPDFAddPrefixToCF                     = Prefisso da aggiungere al nome del modello di ordine fornitore pdf_InfraSPlus_CF (Ordine fornitore)
-InfraSPlusPDFAddPrefixToCFBL                   = Prefisso da aggiungere al nome del modello di ordine fornitore pdf_InfraSPlus_CFBL (Bolla di ricezione dell'ordine fornitore)
-InfraSPlusPDFAddPrefixToF                      = Prefisso da aggiungere al nome del modello di fattura pdf_InfraSPlus_F (Fattura)
-InfraSPlusPDFAddPrefixToFL                     = Prefisso da aggiungere al nome del modello di fattura pdf_InfraSPlus_FL (Bolla di consegna valorizzata di una fattura)
-InfraSPlusPDFAddPrefixToFR                     = Prefisso da aggiungere al nome del modello di fattura pdf_InfraSPlus_FR (Estratto conto fatture)
-InfraSPlusPDFAddPrefixToFT                     = Prefisso da aggiungere al nome del modello di fattura fornitore pdf_InfraSPlus_FT (Fattura PDF in formato scontrino)
-InfraSPlusPDFAddPrefixToFF                     = Prefisso da aggiungere al nome del modello di fattura fornitore pdf_InfraSPlus_FF (Fattura fornitore)
-InfraSPlusPDFAddPrefixToD                      = Prefisso da aggiungere al nome del modello di preventivo pdf_InfraSPlus_D (Richiesta di prezzo)
-InfraSPlusPDFAddPrefixToDP                     = Prefisso da aggiungere al nome del modello di preventivo pdf_InfraSPlus_DP (Fattura proforma di un preventivo)
-InfraSPlusPDFAddPrefixToDST                    = Prefisso da aggiungere al nome del modello di preventivo pdf_InfraSPlus_DST (Preventivo di subappalto)
-InfraSPlusPDFAddPrefixToDF                     = Prefisso da aggiungere al nome del modello di preventivo fornitore pdf_InfraSPlus_DF (Richiesta di prezzo fornitore)
-InfraSPlusPDFAddPrefixToPJ_Dossier             = Prefisso da aggiungere al nome del modello di progetto pdf_InfraSPlus_PJ_Dossier (Fascicolo tecnico del progetto)
-InfraSPlusPDFAddPrefixToPJ                     = Prefisso da aggiungere al nome del modello di progetto pdf_InfraSPlus_PJ (Progetto)
-InfraSPlusPDFAddPrefixToBL                     = Prefisso da aggiungere al nome del modello di spedizione pdf_InfraSPlus_BL (Bolla di consegna)
-InfraSPlusPDFAddPrefixToBLX                    = Prefisso da aggiungere al nome del modello di spedizione pdf_InfraSPlus_BLX (Bolla di consegna multipla)
-InfraSPlusPDFAddPrefixToET                     = Prefisso da aggiungere al nome del modello di spedizione pdf_InfraSPlus_ET (Etichetta di trasporto)
-InfraSPlusPDFAddPrefixToBR                     = Prefisso da aggiungere al nome del modello di consegna pdf_InfraSPlus_BR (Bolla di ricezione)
-InfraSPlusPDFAddPrefixToCT                     = Prefisso da aggiungere al nome del modello di contratto pdf_InfraSPlus_CT (Contratto)
-InfraSPlusPDFAddPrefixToCTS                    = Prefisso da aggiungere al nome del modello di contratto pdf_InfraSPlus_CTS (Contratto specifico)
-InfraSPlusPDFAddPrefixToRE                     = Prefisso da aggiungere al nome del modello di ricezioni pdf_InfraSPlus_RE (Ricezioni)
-InfraSPlusPDFAddPrefixToMRP                    = Prefisso da aggiungere al nome del modello di MRP pdf_InfraSPlus_MRP (MRP)
-InfraSPlusPDFAddPrefixToFI                     = Prefisso da aggiungere al nome del modello di rapporti di intervento pdf_InfraSPlus_FI (Rapporti di intervento)
-InfraSPlusPDFAddPrefixToNDF                    = Prefisso da aggiungere al nome del modello di note spese pdf_InfraSPlus_NDF (Note spese)
-InfraSPlusPDFAddPrefixToBC                     = Prefisso da aggiungere al nome del modello di distinte di assegno pdf_InfraSPlus_BC (Distinte di assegno)
-InfraSPlusPDFAddPrefixToBOM                    = Prefisso da aggiungere al nome del modello di distinte base pdf_InfraSPlus_BOM (Distinte base)
 InfraSPlusParamFilesFromProject                = Proporre anche gli allegati del progetto (caso) associati al documento come file unibili
 InfraSPlusParamFilesFromBom                    = Negli ordini di produzione Proporre anche gli allegati della nomenclatura associata al documento come file unificabili
 InfraSPlusParamFilesFromExpensereport          = Unisci gli allegati associati alle note spese
 InfraSPlusParamPropalWithRawPrices             = Preventivo => Creazione di un documento aggiuntivo nel prezzo grezzo (I prezzi non tengono conto degli sconti e/o delle tariffe dei clienti; provengono dal prezzo di vendita predefinito della libreria articoli)
 InfraSPlusParamProduitMergePropal              = Gestisci l'unione della documentazione del prodotto/servizio con i preventivi dalle impostazioni finali (casella di controllo)
 InfraSPlusParamCheckProduitMergePropalX2       = Verifica la presenza di file duplicati (file con lo stesso nome associati a diverse referenze di prodotto/servizio) => il file verrà unito una sola volta
-InfraSPlusParamMergeProductLinks               = Utilizzare anche i link esterni di tipo PDF (URL, scheda File allegati del prodotto) come fonte di documentazione tecnica da unire
-InfraSPlusParamDocSeparate                     = Proporre di raggruppare la documentazione tecnica dei prodotti / servizi in un PDF separato dal documento principale dai parametri finali (casella di controllo)
 InfraSPlusParamFilesFromAttestationTVA         = Nei preventivi proporre anche il certificato IVA associato al documento come file unificabile
 InfraSPlusParamRoundingUP                      = Forza il numero di decimali visualizzati per i prezzi unitari a
 InfraSPlusParamRoundingTot                     = Forzare il numero di decimali visualizzati per i prezzi totali (righe e documento) a
@@ -259,7 +224,6 @@ InfraSPlusParamshowEmetFDetails                = Mostra tutti i dettagli di cont
 InfraSPlusParamSourceDetailsList               = Seleziona i dettagli dell'emittente da aggiungere ai PDF generati
 InfraSPlusParamshowRecepFDetails               = Mostra tutti i dettagli di contatto del destinatario disponibili (solo Indirizzo di default, abilitato = + Telefono + Fax + Email + Web)
 InfraSPlusParamTargetDetailsList               = Seleziona i dettagli del destinatario da aggiungere ai PDF generati
-InfraSPlusParamTargetLivrDetailsList           = Seleziona i dettagli dell'indirizzo di spedizione da aggiungere ai PDF generati
 InfraSPlusParamshowNumCli                      = Visualizzare il numero del cliente nei documenti della catena di vendita (preventivi, ordini, fogli di lavoro, contratti, bolle di consegna, fatture dei clienti)
 InfraSPlusParamNumCliFrm                       = Se questa opzione è attivata, il numero del cliente sarà visualizzato nell'intestazione sotto il riferimento del cliente (altrimenti sarà nella cornice dell'indirizzo del destinatario)
 InfraSPlusParamshowCodeCliComp                 = Visualizzare il codice contabile del cliente nei documenti della catena di vendita (preventivi, ordini, carte di lavoro, contratti, bolle di consegna, fatture clienti)
@@ -409,8 +373,6 @@ InfraSPlusParamMRP                             = <b>Opzioni riguardanti solo gli
 InfraSPlusParamMrpWithDimColumns               = Visualizzare la colonna delle dimensioni sugli ordini di produzione
 InfraSPlusParamHeightMrpControlTable           = L'altezza del pannello di controllo => <b>deve essere compresa tra 20 e 90</b>
 PDFInfraSPlusMergeProduct                      = Unire la documentazione dei prodotti/servizi presenti al Preventivo
-PDFInfraSPlusDocSeparate                       = Raggruppare la documentazione tecnica dei prodotti / servizi in un PDF separato (il documento principale non viene modificato)
-InfraSPlusDatasheetWarning                     = Scheda tecnica non recuperata per il prodotto %s: %s
 PDFInfraSPlusUseNtAsCover                      = Visualizzare la copertina
 PDFInfraSPlusFiles                             = File da unire
 InfraSPlusParamHideUP                          = Nascondere il prezzo unitario nei documenti della catena di vendita (preventivi, ordini e fatture dei clienti)
@@ -431,7 +393,6 @@ InfraSPlusParamHideQty                         = Nascondere la quantità per rig
 InfraSPlusParamShowWVCC1                       = Visualizzare informazioni di peso, volume e/o nomenclatura doganale (codice HS) sui documenti di vendita (preventivi, ordini, bolle di consegna, fatture)
 InfraSPlusParamShowWVCC2                       = <b>Disabilita la funzione nativa di copiare le informazioni doganali nella descrizione della riga del documento interessato!</b>
 InfraSPlusParamNoShowWVCCsameCountry           = Non visualizzare informazioni su peso, volume e/o nomenclatura doganale (codice HS) sui documenti di vendita quando i paesi del cliente e del venditore sono gli stessi
-InfraSPlusParamWVCCnoHR                        = Nascondere le linee di separazione tra la descrizione lunga e le informazioni doganali / peso / volume
 InfraSPlusParamShowWVCCbyDef                   = (Visualizzazione delle informazioni doganali selezionata per impostazione predefinita)
 InfraSPlusParamShowSerialOnInvoice             = Quando una fattura cliente è collegata a una bolla di consegna, visualizzare i numeri di serie dei prodotti presenti nella bolla di consegna
 InfraSPlusParamShowSerialOnMRP                 = Mostra i numeri di serie dei prodotti utilizzati nell'ordine di produzione
@@ -486,7 +447,6 @@ InfraSPlusParamShowSignatureNameFunction       = Visualizzare il nome completo e
 InfraSPlusParamShowSignatureCom                = Visualizzare l'area  della firma del cliente negli ordini
 InfraSPlusParamShow2SignaturesCom              = Visualizzare l'area della firma di terzi (subappaltatore) negli ordini di produzione (WO creati da ordini) e nelle bolle di consegna (spedizioni)
 InfraSPlusParamShowSignatureCtr                = Visualizzare l'area della firma del cliente sui contratti
-InfraSPlusParamShowSignatureNameFunctionCtr    = Visualizzare il nome completo e il titolo (se disponibile) del contatto di follow-up del cliente e del commerciale interno prima della rispettiva area di firma
 InfraSPlusParamShowSignatureExp                = Visualizzare l'area della firma del cliente nelle bolle di consegna (spedizione)
 InfraSPlusParamShowSignatureFi                 = Visualizzare l'area della firma del cliente sui fogli di lavoro
 InfraSPlusParamShowSignatureFiEmet             = Visualizzare l'area della firma dell'emittente sui fogli di lavoro
@@ -544,8 +504,6 @@ InfraSPlusParamDeleted                          = Cancellato
 InfraSPlusParamImagesSetup                      = <b>Opzioni riguardanti l'uso di immagini nelle edizioni dei pacchetti</b>.
 InfraSPlusParamSetLogoEmetTiers                 = Registrare nei terzi l'associazione di un logo dell'emittente (questo logo sarà proposto di default alla creazione di qualsiasi documento riguardante questo terzo)
 InfraSPlusParamWithPicture                      = Nei documenti della catena di vendita visualizzare l'immagine di ogni prodotto/servizio contenente almeno un'immagine (la prima)
-InfraSPlusParamPictureFromUrl                   = Utilizzare il primo link di tipo immagine (URL che termina con jpg, jpeg, png, gif o webp) della scheda File allegati del prodotto come immagine del prodotto / servizio senza foto
-InfraSPlusParamUrlImgTimeout                    = Tempo massimo di download di un'immagine tramite URL esterno
 InfraSPlusParamPictureInRef                     = Visualizza l'immagine nella colonna di riferimento (o numero di riga)
 InfraSPlusParamPictureReplaceRef                = Non visualizzare il riferimento (o il numero di riga) => l'immagine <b>SOSTITUISCE</b> i valori (altrimenti il ​​riferimento o il numero di riga verranno visualizzati sotto l'immagine)
 InfraSPlusParamAvertissementCalculImage         = <b>L'altezza ha la precedenza sulla larghezza!</b> (il calcolo cerca di applicare la maggiore altezza possibile)
@@ -607,14 +565,13 @@ InfraSPlusParamShowSenderAlias       = Utilizzare il nome alternativo dell'azien
 InfraSPlusParamFactureParentAddrFact = Utilizzare l'indirizzo di fatturazione della società madre (se dato) invece dell'indirizzo del cliente => l'intera configurazione degli automatismi si applica alla società madre
 InfraSPlusParamAddrLivrSyst          = Visualizza sempre un indirizzo di consegna (anche se l'indirizzo di fatturazione automatico è inattivo)
 InfraSPlusParamAddrLivrSiFact        = Visualizza automaticamente (impostazione predefinita) un indirizzo di consegna quando l'indirizzo di fatturazione automatico è attivo
-InfraSPlusParamUseDoliAdrLivr        = Utilizza la gestione nativa degli indirizzi di consegna (tipo interno / esterno 'SHIPPING') tramite i contatti di tracciamento della consegna
-InfraSPlusParamDoliAdrLivrRecep      = Negli ordini clienti sostituire le informazioni sul destinatario con quelle del contatto di consegna selezionato
-InfraSPlusParamUseDoliAdrFact        = Usa il contatto di fatturazione Dolibarr (tipo esterno 'BILLING') come indirizzo destinatario
+InfraSPlusParamUseDoliAdrLivr        = Utilizza la gestione nativa degli indirizzi di consegna (tramite contatti di tracciamento della consegna)
+InfraSPlusParamDoliAdrLivrRecep      = Negli ordini (clienti o fornitori) sostituire le informazioni sul destinatario con quelle del contatto di consegna selezionato
 InfraSPlusParamShowAdrLivr           = Visualizzare l'indirizzo di consegna sui documenti dei fornitori (preventivi, ordini) => Questo indirizzo può essere selezionato prima che il documento sia generato
 InfraSPlusParamshowLivrFDetails      = Mostra tutti i dettagli di consegna disponibili (solo indirizzo di default, abilitato = + telefono + fax + email + web)
 InfraSPlusParamFreeLivrExf           = Codice dell'attributo aggiuntivo dedicato all'inserimento manuale di un indirizzo di consegna
 InfraSPlusParamLabelExfFreeAddrLivr  = Indirizzo di consegna (manuale)
-InfraSPlusParamShowAdrRecep          = Visualizzare l'indirizzo di consegna sui documenti del cliente (preventivi, ordini) => Questo indirizzo può essere selezionato prima che il documento sia generato (attiva automaticamente l'opzione nascosta di gestione di più indirizzi di terzi)
+InfraSPlusParamShowAdrRecep          = Visualizzare l'indirizzo di consegna sui documenti del cliente (preventivi, ordini, fatture) => Questo indirizzo può essere selezionato prima che il documento sia generato (attiva automaticamente l'opzione nascosta di gestione di più indirizzi di terzi)
 InfraSPlusParamAdrLivrMixte          = Se l'indirizzo di consegna sui documenti del fornitore (preventivi, ordini) è attivato, permette di scegliere la consegna direttamente a un indirizzo del cliente (primario o secondario)
 InfraSPlusParamAdrTiersSsT           = Visualizzare l'indirizzo del contatto esterno di un cliente (modulo "CustomLink") come indirizzo di un subappaltatore negli ordini di produzione (PO creati da ordini)
 InfraSPlusParamTypeContactSsT        = Tipo di contatto usato come identificatore di subappaltatore nei contatti esterni di terze parti
@@ -668,13 +625,12 @@ InfraSPlusParamEXFLFF                 = Visualizzare gli attributi aggiuntivi de
 
 ### Mentions page ###
 InfraSPlusParamTVAauto                       = Gestione delle menzioni relative all'IVA
-InfraSPlusTxtTvaVPE                          = Esenzione IVA, articolo 262-I del codice fiscale francese (CGI)
-InfraSPlusTxtTvaVPI                          = Esenzione IVA, articolo 262 ter I del codice fiscale francese (CGI)
-InfraSPlusTxtTvaVSE                          = IVA non applicabile — art. 259-1° del codice fiscale francese (CGI)
-InfraSPlusTxtTvaVSI                          = Autoliquidazione — art. 196 direttiva 2006/112/CE
+InfraSPlusTxtTvaVPE                          = Esenzione IVA, articolo 262, I del Codice Generale delle Imposte
+InfraSPlusTxtTvaVPI                          = Esenzione IVA, articolo 262 ter, I del Codice Generale delle Imposte
+InfraSPlusTxtTvaVSE                          = IVA non applicabile, articolo 259-1 del Codice Generale delle Imposte
+InfraSPlusTxtTvaVSI                          = Esenzione IVA, articolo 283-2 del Codice Generale delle Imposte
 InfraSPlusTxtTvaBTP                          = Autoliquidazione
-InfraSPlusTxtTvaDOM                          = Esenzione IVA, articolo 294, 2 del codice fiscale francese (CGI)
-InfraSPlusTxtTvaDOMS                         = Inversione contabile — IVA dovuta dal committente (art. 259-1 CGI)
+InfraSPlusTxtTvaFranchise                    = IVA non applicabile, articolo 293 B del Codice Generale delle Imposte
 InfraSPlusParamConfirmSetTVAauto             = Confermate l'attivazione della gestione automatica delle menzioni IVA?
 InfraSPlusParamGestionMentions               = <b>Gestire gli avalli aggiuntivi nelle edizioni dei pacchetti</b>
 InfraSPlusParamNewMention                    = Aggiungere/modificare una menzione complementare alle edizioni di InfraS Pack
@@ -702,8 +658,6 @@ InfraSPlusParamFreeTextFactorAuto            = Gestione automatizzata delle menz
 InfraSPlusParamFactorPrefix                  = Prefisso dei codici dei tipi di menzioni relative alle banche (dizionario dei tipi di menzioni supplementari). Questi codici devono essere composti dal prefisso qui definito e dal codice bancario associato.
 InfraSPlusParamFreeTextTVAauto               = Gestione automatizzata delle informazioni obbligatorie relative all'IVA (esenzione IVA di base, reverse charge, esportazione) 
 InfraSPlusParamFreeTextTVAautoHelp           = Nel dizionario dei tipi di informazioni supplementari, i codici riguardanti l'IVA devono avere la maschera 'VAT_XX' o 'XX' è lasciato alla vostra discrezione 
-InfraSPlusParamShowDomMentions               = Gestire le diciture IVA per i dipartimenti d'oltremare (DOM)
-InfraSPlusParamShowDomMentionsHelp           = Attiva il rilevamento delle vendite verso i DOM e rende disponibili le diciture TVA_DOM / TVA_DOMS nella corrispondenza sopra
 InfraSPlusParamFreeTextTVA_1                 = Menzione complementare utilizzata per l'"esenzione IVA di base" (microimpresa)
 InfraSPlusParamFreeTextTVA_2                 = Dichiarazione supplementare utilizzata per la vendita di servizi intracomunitari (reverse charge)
 InfraSPlusParamFreeTextTVA_3                 = Menzione aggiuntiva usata per la vendita di servizi di esportazione
@@ -728,7 +682,6 @@ InfraSPlusParamBkpPerDocument  = Registrazione<br>per documento
 InfraSPlusParamBkpPerType      = Registrazione<br>per tipologia<br>(preventivo, ordine, ...)
 InfraSPlusParamBkpPerCustomer  = Registrazione<br>per cliente
 InfraSPlusParamBkpNone         = Nessuna registrazione
-InfraSPlusParamPinVisible      = Sempre<br>visibile
 
 ### About page ###
 
@@ -1099,10 +1052,6 @@ PDFInfraSPlusSocieteDescription = File aziendale modello PDF InfraS. Modello PDF
 PDFInfraSPlusExpenseName        = InfraSPlus_NDF
 PDFInfraSPlusExpenseDescription = Modello di nota spese PDF InfraS. Modello completo di nota spese in PDF (logo, …)
 
-### pdf_InfraS_chequereceipt ###
-PDFInfraSPlusChequeReceiptName        = InfraSPlus_BC
-PDFInfraSPlusChequeReceiptDescription = Distinta di versamento assegni PDF modello InfraS. Modello completo (logo, filigrana, firma, piè di pagina InfraS, …)
-
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT
 PDFInfraSPlusUserContratDescription = Contratto dipendente modello InfraS, Necessario utilizzo di file speciali (Associazione di un PDF con un file PHP di riempimento)!
@@ -1113,4 +1062,3 @@ PDFInfraSPlusUserStickerDescription = PDF tessera identificativa modello InfraS.
 PDFInfraSPlusGenerateAccountStatutModelsPDF = Modello PDF InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = Estratto conto di terzi. Modello PDF completo di estratto conto di terzi (logo, ecc.)
-WarningNoSpecialFilePDFGenerated            = Nessun documento PDF è stato generato per il contratto %s: nessun specialfile corrisponde alle condizioni del contratto.

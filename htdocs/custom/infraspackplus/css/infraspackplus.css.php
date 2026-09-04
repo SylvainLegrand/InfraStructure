@@ -47,7 +47,7 @@
 	session_cache_limiter('public');
 
 	require '../config.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 	// Define css type
 	header('Content-type: text/css');
@@ -290,7 +290,7 @@ img.infraspluswidthpictotitle {
 	padding: 0px !important;
 }
 
-.noborder {
+.infrasplusnoborder {
 	border: none;
 }
 
@@ -310,13 +310,15 @@ button.infraspluscopyParamsBtn, .infraspluscopyParamsBtn:hover {
 	padding: 8px 25px 8px 25px;
 }
 
-#infraspackplus_addresses_table .dropdown dd ul.infraspackplusselectedfields,
-#infraspackplus_addresses_table .dropdown dd ul.infraspackplusselectedfieldsleft {
-	top: 30px;
-	min-width: 250px;
-	z-index: 1005;
+/* Dark background overrides (class set by infraspackplus.js) */
+.infras-dark-bg .infrasplusneuropolinfras {
+	color: #c8b0e0;
 }
 
-#infraspackplus_addresses_table .dropdown dd ul.infraspackplusselectedfieldsleft {
-	right: auto;
+.infras-dark-bg .infraspluscolor {
+	color: #c8b0e0;
+}
+
+.infras-dark-bg .infrasplusblack {
+	color: #e0e0e0;
 }

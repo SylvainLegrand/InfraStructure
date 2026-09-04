@@ -24,7 +24,7 @@
 	************************************************/
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
@@ -70,19 +70,21 @@
 	*	@param	int			$left_recep_corner		x position for left top corner of recepient frame
 	*	@param	int			$top_recep_corner		y position for left top corner of recepient frame
 	*	@param	int			$cf_show_creation_date	0=no, 1=yes
-	*	@return	array								Return height of header and height of address frame
+	*	@return	array		$hauteurhead			'totalhead'		= hight of header
+	*												'hauteurcadre	= hight of frame
 	**/
 	function pdf_interne_pagehead(&$pdf, $object, $showaddress, $outputlangs, $headertxtcolor, $header_align_left, $decal_round, $formatpage, $logo, $emetteur, $tab_hl, $header_after_addr, $title_size, $titlekey,
 									$ref_from_cust, $datesbold, $dates_br, $show_num_cli, $num_cli_frm, $show_code_cli_compt, $code_cli_compt_frm, $add_creator_in_header, $use_iso_location, $adr, $typeadr, $adrlivr, $Rounded_rect,
-									$customerAddrSelect, $Sst = -2, $adrSst = -2, $qrcodestring = '', $deposits = 0, $lines_deposits = [], $title_if_deposit = '', $adrfact = '', $includealias = 0, $left_recep_corner = 92, $top_recep_corner = 40,
+									$customerAddrSelect, $Sst = -2, $adrSst = -2, $qrcodestring = '', $deposits = 0, $lines_deposits = array(), $title_if_deposit = '', $adrfact = '', $includealias = 0, $left_recep_corner = 92, $top_recep_corner = 40,
 									$cf_show_creation_date = 0)
 	{
+		global $conf, $hookmanager;
 
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
 		$doli_addr_livr_recep	= getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP') && !empty($use_doli_addr_livr) ? getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0) : 0;
 		$hide_recep_frame		= getDolGlobalInt('INFRASPLUS_PDF_HIDE_RECEP_FRAME', 0);
 		$default_font_size		= pdf_getPDFFontSize($outputlangs);
-		$pdf->SetTextColor((int) $headertxtcolor[0], (int) $headertxtcolor[1], (int) $headertxtcolor[2]);
+		$pdf->SetTextColor($headertxtcolor[0], $headertxtcolor[1], $headertxtcolor[2]);
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$dimCadres				= array ('S' => ($formatpage['largeur'] - ($formatpage['mgauche'] + 6 + $left_recep_corner + $formatpage['mdroite'])), 'R' => $left_recep_corner);	// page width = 210 (A4) 92 + 92  = 184 => keep 210 - 184 for margins => 26 ; 10 right and left and 6 on the middle
 		$w						= $header_align_left ? 92 - $decal_round : 92;
@@ -129,17 +131,15 @@
 										'L' => ''
 										);
 				$typeadr		= 'accountStatus';
-			} elseif (in_array($object->element, array('propal', 'supplier_proposal'))) {
-				$arrayidcontact	= array('I'  => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'LI' => $object->element == 'supplier_proposal' ? $object->getIdContact('internal', 'SHIPPING') : [],
-										'E'  => $object->getIdContact('external', 'CUSTOMER'),
-										'L'  => $object->getIdContact('external', 'SHIPPING')
+			} elseif (in_array($object->element, array('propal'))) {
+				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
+										'E' => $object->getIdContact('external', 'CUSTOMER'),
+										'L' => $object->getIdContact('external', 'SHIPPING')
 										);
 			} elseif (in_array($object->element, array('commande', 'order_supplier'))) {
-				$arrayidcontact	= array('I'  => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'LI' => $object->element == 'order_supplier' ? $object->getIdContact('internal', 'SHIPPING') : [],
-										'E'  => $object->getIdContact('external', (!empty($doli_addr_livr_recep) ? 'SHIPPING' : 'CUSTOMER')),
-										'L'  => (empty($doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : [])
+				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
+										'E' => $object->getIdContact('external', (!empty($doli_addr_livr_recep) ? 'SHIPPING' : 'CUSTOMER')),
+										'L' => (empty($doli_addr_livr_recep) ? $object->getIdContact('external', 'SHIPPING') : '')
 										);
 			} elseif (in_array($object->element, array('facture'))) {
 				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
@@ -151,7 +151,7 @@
 										'E' => $object->getIdContact('external', 'CUSTOMER'),
 										);
 			}
-			$addresses			= [];
+			$addresses			= array();
 			$dimCadres['yR']	= $use_iso_location && $posy <= $top_recep_corner ? $top_recep_corner : ($heightLogo > $posy + $tab_hl ? $heightLogo : $posy + $tab_hl);
 			$dimCadres['yS']	= $heightLogo + $tab_hl <= $dimCadres['yR'] ? $dimCadres['yR'] : $heightLogo;
 			$dimCadres['Y']		= $dimCadres['yR'] > $dimCadres['yS'] ? $dimCadres['yR'] : $dimCadres['yS'];
@@ -225,16 +225,11 @@
 		if (!empty($free_addr_livr)) {
 			$extrafields	= new ExtraFields($db);
 			$extralabels	= $extrafields->fetch_name_optionals_label($object->table_element);
-			if (isset($extrafields->attributes[$object->table_element]['label'][$free_addr_livr])) {
-				$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
-				$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr] ?? '', '', $object->table_element));
-				$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
-			} else {
-				$free_addr_livr	= '';	// extrafield configured (INFRASPLUS_PDF_FREE_LIVR_EXF) but not defined for this table_element
-			}
+			$printable		= intval($extrafields->attributes[$object->table_element]['printable'][$free_addr_livr]);
+			$value			= pdf_InfraSPlus_formatNotes($object, $outputlangs, $extrafields->showOutputField($free_addr_livr, $object->array_options['options_'.$free_addr_livr], '', $object->table_element));
+			$free_addr_livr	= $printable == 1 || (!empty($value) && $printable == 2) ? $value : '';	// check if something is writting for this extrafield according to the extrafield management
 		}
 		$use_doli_addr_livr		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON', 0);
-		$use_doli_addr_fact		= getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_FACTURATION', 0);
 		$doli_addr_livr_recep	= getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0) && !empty($use_doli_addr_livr) ? getDolGlobalInt('INFRASPLUS_PDF_DOLI_ADRESSE_LIVRAISON_RECEP', 0) : 0;
 		$showadrSsT				= getDolGlobalInt('INFRASPLUS_PDF_ADRESSE_SOUS_TRAITANT', 0);
 		if (!empty($showadrSsT)) {
@@ -318,57 +313,37 @@
 				}
 			} else {
 				$usecontact		= false;
-				if (!empty($use_doli_addr_fact) && $object->element == 'facture' && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
+				if (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0 && $object->element == 'commande') {
 					$usecontact	= true;
-					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
-				} elseif (!empty($doli_addr_livr_recep) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0 && $object->element == 'commande') {
-					$usecontact	= true;
-					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
+					$result		= $object->fetch_contact($arrayidcontact['L'][0]);
 				} elseif (in_array($customerAddr, array('C', 'A')) && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
 					$usecontact	= true;
 					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
 				} elseif ($customerAddr == 'B' && is_array($arrayidcontact['E']) && count($arrayidcontact['E']) > 0) {
-					$result		= $object->fetch_contact($arrayidcontact['E'][0]);
+					$result	= $object->fetch_contact($arrayidcontact['E'][0]);
 				}
 				$thirdpartystatic	= $typeadr == 'supplierInvoice' ? $addresslivrstatic : ($typeadr == 'accountStatus' ? $thirdparty : infraspackplus_check_parent_addr_fact ($object));
 				$carac_client_name	= pdf_InfraSPlus_Build_Third_party_Name($thirdpartystatic, $outputlangs, $includealias, $object->contact, $customerAddr);
 				$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdpartystatic, ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, 1, $ticket);
 			}
 			// Shipping address
-			// Priority 1 : static InfraSPlus address (adrlivrfour selected), 2 : internal SHIPPING contact, 3 : external SHIPPING contact
-			if (!empty($use_doli_addr_livr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
-				if ($addresslivrstatic == 'Default') {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
-				} else {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
-				}
-			} elseif (!empty($use_doli_addr_livr) && isset($arrayidcontact['LI']) && is_array($arrayidcontact['LI']) && count($arrayidcontact['LI']) > 0) {
-				$result	= $object->fetch_user($arrayidcontact['LI'][0]);
-				if ($result > 0 && is_object($object->user)) {
-					$livrshow_name	= $outputlangs->convToOutputCharset($object->user->getFullName($outputlangs));
-					$livrshow		= $outputlangs->convToOutputCharset(dol_format_address($object->user, 0, "\n", $outputlangs));
-				}
-			} elseif (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
-				$companyDiff	= 0;
-				$result			= $object->fetch_contact($arrayidcontact['L'][0]);
-				$usecontact		= in_array($customerAddr, getDolGlobalInt('INFRASPLUS_PDF_USE_DOLI_ADRESSE_LIVRAISON') ? array('C', 'A', 'T', 'B') : array('C', 'A')) ? true : false;
+			if (!empty($use_doli_addr_livr) && is_array($arrayidcontact['L']) && count($arrayidcontact['L']) > 0) {
+				$result		= $object->fetch_contact($arrayidcontact['L'][0]);
+				$usecontact	= in_array($customerAddr, array('C', 'A')) ? true : false;
 				if ($object->contact->socid != $thirdparty->id) {
+					$object->contact->fetch_thirdparty();
 					$companyDiff	= 1;
-					if ($object->contact->socid > 0) {
-						$object->contact->fetch_thirdparty();
-					}
-					if (!is_object($object->contact->thirdparty)) {	// it's a contact not linked to a third party
-						$usecontact						= true; // force to use contact address
-						$object->contact->thirdparty	= new Societe($db); // not to have error in building address from target company
-					}
 				}
 				$livrshow_name	= pdf_InfraSPlus_Build_Third_party_Name(($companyDiff ? $object->contact->thirdparty : $thirdparty), $outputlangs, $includealias, $object->contact, $customerAddr);
-				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $companyDiff ? $object->contact->thirdparty : $thirdparty, $usecontact ? $object->contact : '', $usecontact, $show_recep_details ? 'targetwithdetails' : 'target', $object, -1, $ticket);
+				$livrshow		= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, ($companyDiff ? $object->contact->thirdparty : $thirdparty), ($usecontact ? $object->contact : ''), $usecontact, ($show_recep_details ? 'targetwithdetails' : 'target'), $object, -1, $ticket);
+			} elseif (!empty($def_adrlivrfour) && $def_adrlivrfour == $adrlivr) {
+				// Si def_adrlivrfour égale adrlivr, afficher l'adresse de la société courante
+				$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $emetteur, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
 			} elseif (!empty($showadrlivr) && !empty($addresslivrstatic) && empty($free_addr_livr)) {
 				if ($addresslivrstatic == 'Default') {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $thirdparty, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
 				} else {
-					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, $show_livr_details ? 'targetwithdetails' : 'target', $object, 0, $ticket);
+					$livrshow	= pdf_InfraSPlus_build_address($outputlangs, $emetteur, $emetteur, $addresslivrstatic, '', 0, ($show_livr_details ? 'targetwithdetails' : 'target'), $object, 0, $ticket);
 				}
 			}
 			// Subcontractor address
@@ -417,21 +392,21 @@
 	{
 		global $conf;
 
-		$invert_sender_recipient	= getDolGlobalInt('MAIN_INVERT_SENDER_RECIPIENT', 0);
-		$frmeLineW					= getDolGlobalFloat('INFRASPLUS_PDF_FRM_E_LINE_WIDTH', 0.2);
-		$frmeLineDash				= getDolGlobalInt('INFRASPLUS_PDF_FRM_E_LINE_DASH', 0);
-		$frmeLineColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_E_LINE_COLOR', '128,128,128');
+		$invert_sender_recipient	= !empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)		? $conf->global->MAIN_INVERT_SENDER_RECIPIENT		: 0;
+		$frmeLineW					= !empty($conf->global->INFRASPLUS_PDF_FRM_E_LINE_WIDTH)	? $conf->global->INFRASPLUS_PDF_FRM_E_LINE_WIDTH	: 0.2;
+		$frmeLineDash				= !empty($conf->global->INFRASPLUS_PDF_FRM_E_LINE_DASH)		? $conf->global->INFRASPLUS_PDF_FRM_E_LINE_DASH		: '0';
+		$frmeLineColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_E_LINE_COLOR)	? $conf->global->INFRASPLUS_PDF_FRM_E_LINE_COLOR	: '';
 		$frmeLineColor				= explode(',', $frmeLineColor);
-		$frmeBgColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_E_BG_COLOR', '109,70,140');
+		$frmeBgColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_E_BG_COLOR)		? $conf->global->INFRASPLUS_PDF_FRM_E_BG_COLOR		: '';
 		$frmeBgColor				= explode(',', $frmeBgColor);
-		$frmeAlpha					= getDolGlobalInt('INFRASPLUS_PDF_FRM_E_OPACITY', 30);
-		$frmrLineW					= getDolGlobalFloat('INFRASPLUS_PDF_FRM_R_LINE_WIDTH', 0.2);
-		$frmrLineDash				= getDolGlobalInt('INFRASPLUS_PDF_FRM_R_LINE_DASH', 0);
-		$frmrLineColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_R_LINE_COLOR', '128,128,128');
+		$frmeAlpha					= !empty($conf->global->INFRASPLUS_PDF_FRM_E_OPACITY)		? $conf->global->INFRASPLUS_PDF_FRM_E_OPACITY		: 30;
+		$frmrLineW					= !empty($conf->global->INFRASPLUS_PDF_FRM_R_LINE_WIDTH)	? $conf->global->INFRASPLUS_PDF_FRM_R_LINE_WIDTH	: 0.2;
+		$frmrLineDash				= !empty($conf->global->INFRASPLUS_PDF_FRM_R_LINE_DASH)		? $conf->global->INFRASPLUS_PDF_FRM_R_LINE_DASH		: '0';
+		$frmrLineColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_R_LINE_COLOR)	? $conf->global->INFRASPLUS_PDF_FRM_R_LINE_COLOR	: '';
 		$frmrLineColor				= explode(',', $frmrLineColor);
-		$frmrBgColor				= getDolGlobalString('INFRASPLUS_PDF_FRM_R_BG_COLOR', '109,70,140');
+		$frmrBgColor				= !empty($conf->global->INFRASPLUS_PDF_FRM_R_BG_COLOR)		? $conf->global->INFRASPLUS_PDF_FRM_R_BG_COLOR		: '';
 		$frmrBgColor				= explode(',', $frmrBgColor);
-		$frmrAlpha					= getDolGlobalInt('INFRASPLUS_PDF_FRM_R_OPACITY', 30);
+		$frmrAlpha					= !empty($conf->global->INFRASPLUS_PDF_FRM_R_OPACITY)		? $conf->global->INFRASPLUS_PDF_FRM_R_OPACITY		: 30;
 		$frmeLineCap				= 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		$frmeLineStyle				= array('width'=>$frmeLineW, 'dash'=>$frmeLineDash, 'cap'=>$frmeLineCap, 'color'=>$frmeLineColor);
 		$frmrLineCap				= 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
@@ -489,31 +464,31 @@
 	*	@param	int			$code_cli_compt_frm		0=no, 1=yes
 	*	@param	int			$add_creator_in_header	0=no, 1=yes
 	*	@param	int			$cf_show_creation_date	0=no, 1=yes
-	*	@return	float		Return frame height
+	*	@param	float		return frame height
 	**/
 	function pdf_interne_writeFrame(&$pdf, $object, $outputlangs, $default_font_size, $tab_hl, $dimCadres, $emetteur, $addresses, $ticket = 0, $hide_recep_frame, $formatpage, $title_size, $ref_from_cust, $datesbold, $dates_br,
 									$show_num_cli, $num_cli_frm, $show_code_cli_compt, $code_cli_compt_frm, $add_creator_in_header, $cf_show_creation_date)
 	{
 		global $conf;
 
-		$frmeTxtColor		= getDolGlobalString('INFRASPLUS_PDF_FRM_E_TEXT_COLOR', '0,0,0');
+		$frmeTxtColor		= !empty($conf->global->INFRASPLUS_PDF_FRM_E_TEXT_COLOR) ? $conf->global->INFRASPLUS_PDF_FRM_E_TEXT_COLOR : '';
 		$frmeTxtColor		= explode(',', $frmeTxtColor);
-		$frmrTxtColor		= getDolGlobalString('INFRASPLUS_PDF_FRM_R_TEXT_COLOR', '0,0,0');
+		$frmrTxtColor		= !empty($conf->global->INFRASPLUS_PDF_FRM_R_TEXT_COLOR) ? $conf->global->INFRASPLUS_PDF_FRM_R_TEXT_COLOR : '';
 		$frmrTxtColor		= explode(',', $frmrTxtColor);
-		$dateduetxtcolor	= getDolGlobalString('INFRASPLUS_PDF_FACT_DATEDUE_COLOR', '0,0,0');
+		$dateduetxtcolor	= !empty($conf->global->INFRASPLUS_PDF_FACT_DATEDUE_COLOR) ? $conf->global->INFRASPLUS_PDF_FACT_DATEDUE_COLOR : 0;
 		$dateduetxtcolor	= explode(',', $dateduetxtcolor);
 		$w					= $dimCadres['S'];
 		$posx				= $formatpage['mgauche'];
 		$posy				= $dimCadres['yS'];
 		$align				= 'L';
-		$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
+		$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
 		$pdf->SetFont('', 'B', $default_font_size * $title_size / 2);
 		$refDoc				= !empty($ref_from_cust) ? $object->ref_client : $object->ref;
 		$refCli				= !empty($ref_from_cust) ? '' : ($object->element == 'shipping' ? $object->ref_customer : $object->ref_client);
 		$txtref				= pdf_interne_refInvoice($pdf, $object, $outputlangs);
 		$pdf->MultiCell($w, $tab_hl, $txtref, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 		$posy				= $pdf->getY();
-		$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
+		$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
 		$pdf->SetFont('', ($datesbold ? 'B' : ''), $default_font_size - 1);
 		if ($object->element == 'societe') {
 			$txtdt	= $outputlangs->transnoentities('Date').' : '.dol_print_date(dol_now(), 'day', false, $outputlangs, true);
@@ -566,11 +541,11 @@
 			$posy	+= $tab_hl - 0.5;
 			if (!empty($dates_br) && $object->type != 2) {
 				$txtdt	= '';
-				$pdf->SetTextColor((int) $dateduetxtcolor[0], (int) $dateduetxtcolor[1], (int) $dateduetxtcolor[2]);
+				$pdf->SetTextColor($dateduetxtcolor[0], $dateduetxtcolor[1], $dateduetxtcolor[2]);
 				$txtdt	= $outputlangs->transnoentities('DateDue').' : '.dol_print_date($object->date_lim_reglement, 'day', false, $outputlangs, true);
 				$pdf->MultiCell($w, $tab_hl, $txtdt, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 				$posy	+= $tab_hl - 0.5;
-				$pdf->SetTextColor((int) $frmeTxtColor[0], (int) $frmeTxtColor[1], (int) $frmeTxtColor[2]);
+				$pdf->SetTextColor($frmeTxtColor[0], $frmeTxtColor[1], $frmeTxtColor[2]);
 				$posy	+= $tab_hl - 0.5;
 			}
 		} elseif ($object->element == 'contrat') {
@@ -621,8 +596,8 @@
 			$pdf->MultiCell($w, $tab_hl, $txtNumCli, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			$posy		+= $tab_hl - 0.5;
 		}
-		if (!empty($show_code_cli_compt) && !empty($code_cli_compt_frm) && pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty)) {
-			$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty));
+		if (!empty($show_code_cli_compt) && !empty($code_cli_compt_frm) && $object->thirdparty->code_compta) {
+			$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset($object->thirdparty->code_compta);
 			$pdf->MultiCell($w, $tab_hl, $txtCodeCliCompt, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			$posy				+= $tab_hl - 0.5;
 		}
@@ -641,7 +616,7 @@
 		//Show Recipient
 		$posy			= $dimCadres['yR'];
 		if (empty($ticket)) {
-			$pdf->SetTextColor((int) $frmrTxtColor[0], (int) $frmrTxtColor[1], (int) $frmrTxtColor[2]);
+			$pdf->SetTextColor($frmrTxtColor[0], $frmrTxtColor[1], $frmrTxtColor[2]);
 		}
 		// Show recipient name
 		$pdf->SetFont('', 'B', $default_font_size - ($ticket ? 2 : 0));
@@ -658,13 +633,12 @@
 		/**
 		*	Set invoice reference.
 		*
-		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		TCPDF			$pdf			Object PDF
 		*	@param		object		$object		Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		string						Reference to show
 		**/
 		function pdf_interne_refInvoice(&$pdf, $object, $outputlangs) {
-
 			global $db;
 
 			if ($object->element == 'societe') {

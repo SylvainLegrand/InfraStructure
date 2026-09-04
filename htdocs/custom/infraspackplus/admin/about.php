@@ -26,8 +26,8 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/parsemd.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/parsemd.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
 	// Translations *********************************

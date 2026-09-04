@@ -18,27 +18,29 @@
 	************************************************/
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/modules/fichinter/modules_fichinter.php';
-	include_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/modules/fichinter/modules_fichinter.php';
+	require_once DOL_DOCUMENT_ROOT.'/delivery/class/delivery.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/reception/class/reception.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
-
+	// For retrocompatibility Dolibarr < 20.0
+	if (floatval(DOL_VERSION) < 20.0 && (!function_exists('GETPOSTFLOAT'))) {
+		dol_include_once('/infraspackplus/backport/v20/core/lib/functions.lib.php');
+	}
 
 	/**
 	*	Get all files for special head
@@ -47,7 +49,7 @@
 	*	@param	string				$modelfile		suffix used to apply a special head only for certain models, among all those intended for the same type of document
 	*	@return	integer | string					0 if Ko or no special header wanted, otherwise the name used for the special header
 	**/
-	function infraspackplus_fetchAllSpecialHeads($modelslist = [], $modelfile = '')
+	function infraspackplus_fetchAllSpecialHeads($modelslist = array(), $modelfile = '')
 	{
 		global $conf, $db, $langs;
 
@@ -123,7 +125,7 @@
 					}
 				}
 			} else {
-				include_once $filefound;
+				require_once $filefound;
 				$rootFileName	.= !empty($modelhead) ? '_'.$modelhead : '';
 				$functionList	= array ('pdf_'.$rootFileName.'_pagehead', 'pdf_'.$rootFileName.'_writeAddresses', 'pdf_'.$rootFileName.'_writeFrame', 'pdf_'.$rootFileName.'_getAddresses');
 				foreach ($functionList as $function) {
@@ -153,7 +155,7 @@
 	*	@param	string				$modelfile		suffix used to apply a special Foot only for certain models, among all those intended for the same type of document
 	*	@return	integer | string					0 if Ko or no special Footer wanted, otherwise the name used for the special Footer
 	**/
-	function infraspackplus_fetchAllSpecialFooters($modelslist = [], $modelfile = '')
+	function infraspackplus_fetchAllSpecialFooters($modelslist = array(), $modelfile = '')
 	{
 		global $conf, $db, $langs;
 
@@ -229,7 +231,7 @@
 					}
 				}
 			} else {
-				include_once $filefound;
+				require_once $filefound;
 				$rootFileName	.= !empty($modelFoot) ? '_'.$modelFoot : '';
 				$functionList	= array ('pdf_'.$rootFileName.'_pagefoot');
 				foreach ($functionList as $function) {
@@ -343,12 +345,8 @@
 				$moved	= dol_copy($fileactions, $fileactions.'.old'.$i);
 				dol_syslog('infraspackplus.lib::infraspackplus_test_module fileactions = '.$fileactions.' moved = '.$moved);
 				if ($moved > 0) {
-					if ($tReg == 'R') {
-						$result	= file_put_contents ($fileactions, preg_replace ($reg, file_get_contents ($filereplace), $actions));
-					}
-					if ($tReg == 'F') {
-						$result	= file_put_contents ($fileactions, str_replace ($reg, file_get_contents ($filereplace), $actions));
-					}
+					if ($tReg == 'R')	$result	= file_put_contents ($fileactions, preg_replace ($reg, file_get_contents ($filereplace), $actions));
+					if ($tReg == 'F')	$result	= file_put_contents ($fileactions, str_replace ($reg, file_get_contents ($filereplace), $actions));
 				} else {
 					$result	= false;
 				}
@@ -386,7 +384,7 @@
 	/**
 	*	Find module number
 	*
-	*	@param		string		$modName		module name we look for
+	*	@param		string		$searchName		module name we look for
 	*	@return		integer						-1 if KO, 0 not found or module number if Ok
 	**/
 	function infraspackplus_get_mod_number ($modName)
@@ -423,205 +421,6 @@
 		return $res;
 	}
 
-	// Subtotal lines detection (ATM Subtotal module + Dolibarr native Subtotals module) ******
-	// Native convention (modSubtotals, Dolibarr >= 22) : special_code = SUBTOTALS_SPECIAL_CODE (81), product_type = 9,
-	// qty = signed level (> 0 title, < 0 subtotal), amounts = 0, label in desc, options in $line->extraparams['subtotal'].
-	// ATM convention (modSubtotal) : special_code = module number, product_type = 9, qty 1..9 title, 91..99 subtotal, 50 free text.
-	/**
-	*	Is the line a title or a subtotal line of the Dolibarr native "Subtotals" module ?
-	*
-	*	@param		object		$line			line we work on
-	*	@return		boolean						true if the line belongs to the native Subtotals module
-	**/
-	function infraspackplus_isNativeSubtotalLine($line)
-	{
-		if (!defined('SUBTOTALS_SPECIAL_CODE') || !isModEnabled('subtotals') || empty($line) || !is_object($line)) {
-			return false;
-		}
-		return !empty($line->special_code) && $line->special_code == SUBTOTALS_SPECIAL_CODE && $line->product_type == 9;
-	}
-	/**
-	*	Which subtotal module owns the line ?
-	*
-	*	@param		object		$line			line we work on
-	*	@param		string		$element		line object element (for special case like shipping)
-	*	@return		string						'native' (Dolibarr Subtotals module), 'atm' (ATM Subtotal module) or '' (ordinary line)
-	**/
-	function infraspackplus_getSubtotalLineSource($line, $element)
-	{
-		if (infraspackplus_isNativeSubtotalLine($line)) {
-			return 'native';
-		}
-		if (isModEnabled('subtotal') && infraspackplus_isLineFromExternalModule($line, $element, 'modSubtotal')) {
-			return 'atm';
-		}
-		return '';
-	}
-	/**
-	*	Is the line a title, a subtotal or a free text line of a subtotal module (ATM or native) ?
-	*
-	*	@param		object		$line			line we work on
-	*	@param		string		$element		line object element (for special case like shipping)
-	*	@return		boolean						true if the line belongs to a subtotal module
-	**/
-	function infraspackplus_isSubtotalModuleLine($line, $element)
-	{
-		return infraspackplus_getSubtotalLineSource($line, $element) != '' ? true : false;
-	}
-	/**
-	*	Is the line a title (subtitle) of a subtotal module (ATM or native) ?
-	*
-	*	@param		object		$line			line we work on
-	*	@param		string		$element		line object element (for special case like shipping)
-	*	@return		boolean						true if the line is a title
-	**/
-	function infraspackplus_isSubtotalTitle($line, $element)
-	{
-		$source	= infraspackplus_getSubtotalLineSource($line, $element);
-		if ($source == 'native') {
-			return $line->qty > 0;
-		} elseif ($source == 'atm') {
-			return $line->qty < 10;
-		}
-		return false;
-	}
-	/**
-	*	Is the line a subtotal of a subtotal module (ATM or native) ?
-	*
-	*	@param		object		$line			line we work on
-	*	@param		string		$element		line object element (for special case like shipping)
-	*	@return		boolean						true if the line is a subtotal
-	**/
-	function infraspackplus_isSubtotalTotal($line, $element)
-	{
-		$source	= infraspackplus_getSubtotalLineSource($line, $element);
-		if ($source == 'native') {
-			return $line->qty < 0;
-		} elseif ($source == 'atm') {
-			return $line->qty > 90;
-		}
-		return false;
-	}
-	/**
-	*	Is the line a free text line of a subtotal module ? (ATM only, no native equivalent)
-	*
-	*	@param		object		$line			line we work on
-	*	@param		string		$element		line object element (for special case like shipping)
-	*	@return		boolean						true if the line is a free text
-	**/
-	function infraspackplus_isSubtotalFreeText($line, $element)
-	{
-		return infraspackplus_getSubtotalLineSource($line, $element) == 'atm' && $line->qty == 50;
-	}
-	/**
-	*	Level (depth) of a title or subtotal line, whatever the subtotal module (ATM or native)
-	*
-	*	@param		object		$line			line we work on
-	*	@param		string		$element		line object element (for special case like shipping)
-	*	@return		int							1 = first level, 2 = second level... 0 if not a title / subtotal
-	**/
-	function infraspackplus_getSubtotalLevel($line, $element)
-	{
-		$source	= infraspackplus_getSubtotalLineSource($line, $element);
-		if ($source == 'native') {
-			return (int) abs($line->qty);
-		} elseif ($source == 'atm') {
-			if ($line->qty > 90) {
-				return (int) (100 - $line->qty);
-			} elseif ($line->qty < 10) {
-				return (int) $line->qty;
-			}
-		}
-		return 0;
-	}
-	/**
-	*	Options of a native title / subtotal line (extraparams['subtotal'] : titleshowuponpdf, titleshowtotalexludingvatonpdf,
-	*	titleforcepagebreak, subtotalshowtotalexludingvatonpdf). An option is active when its key is present.
-	*
-	*	@param		object		$line			line we work on
-	*	@return		array						options array (empty if none)
-	**/
-	function infraspackplus_getNativeSubtotalOptions($line)
-	{
-		if (empty($line->extraparams)) {
-			return array();
-		}
-		$extraparams	= $line->extraparams;
-		if (is_string($extraparams)) {	// Not yet decoded by fetch_lines()
-			$extraparams	= json_decode($extraparams, true);
-		}
-		return !empty($extraparams['subtotal']) && is_array($extraparams['subtotal']) ? $extraparams['subtotal'] : array();
-	}
-	/**
-	*	Is a native option active on a title / subtotal line ?
-	*
-	*	@param		object		$line			line we work on
-	*	@param		string		$key			option key
-	*	@return		boolean						true if the option is active
-	**/
-	function infraspackplus_getNativeSubtotalOption($line, $key)
-	{
-		$options	= infraspackplus_getNativeSubtotalOptions($line);
-		return !empty($options[$key]);
-	}
-	/**
-	*	Amounts of a native subtotal line, computed on the fly like CommonSubtotal::getSubtotalLineAmount() but returned as numbers :
-	*	sum of the lines located above the subtotal, up to the first native title of a level lower or equal to the subtotal level.
-	*
-	*	@param		object		$object			Object we work on (lines must be loaded)
-	*	@param		int			$i				Index of the subtotal line in $object->lines
-	*	@return		array						array('total_ht', 'total_tva', 'total_ttc', 'multicurrency_total_ht', 'multicurrency_total_ttc')
-	**/
-	function infraspackplus_getNativeSubtotalAmounts($object, $i)
-	{
-		$amounts	= array('total_ht' => 0, 'total_tva' => 0, 'total_ttc' => 0, 'multicurrency_total_ht' => 0, 'multicurrency_total_ttc' => 0);
-		if (empty($object->lines[$i]) || !infraspackplus_isNativeSubtotalLine($object->lines[$i]) || $object->lines[$i]->qty >= 0) {
-			return $amounts;
-		}
-		$level	= abs($object->lines[$i]->qty);
-		for ($k = $i - 1; $k >= 0; $k--) {
-			$line	= $object->lines[$k];
-			if (empty($line)) {
-				continue;
-			}
-			if (infraspackplus_isNativeSubtotalLine($line)) {
-				if ($line->qty > 0 && $line->qty <= $level) {
-					break;	// Title of the block : stop
-				}
-				continue;	// Other native title / subtotal : amounts are 0
-			}
-			$amounts['total_ht']				+= (float) $line->total_ht;
-			$amounts['total_tva']				+= (float) $line->total_tva;
-			$amounts['total_ttc']				+= (float) $line->total_ttc;
-			$amounts['multicurrency_total_ht']	+= (float) (!empty($line->multicurrency_total_ht) ? $line->multicurrency_total_ht : 0);
-			$amounts['multicurrency_total_ttc']	+= (float) (!empty($line->multicurrency_total_ttc) ? $line->multicurrency_total_ttc : 0);
-		}
-		return $amounts;
-	}
-	/**
-	*	Options of the native title which encloses an ordinary line (nearest title still open at this line).
-	*	Used to hide the unit price / total columns of the lines of a block (native options titleshowuponpdf / titleshowtotalexludingvatonpdf).
-	*
-	*	@param		object		$object			Object we work on (lines must be loaded)
-	*	@param		int			$i				Index of the line in $object->lines
-	*	@return		array|null					options array of the enclosing title, null if the line is not inside a native block
-	**/
-	function infraspackplus_getNativeBlockOptions($object, $i)
-	{
-		$minClosedLevel	= PHP_INT_MAX;	// Lowest level of the subtotals met while going up : every title of a level >= this one is closed
-		for ($k = $i - 1; $k >= 0; $k--) {
-			$line	= $object->lines[$k];
-			if (empty($line) || !infraspackplus_isNativeSubtotalLine($line)) {
-				continue;
-			}
-			if ($line->qty < 0) {
-				$minClosedLevel	= min($minClosedLevel, abs($line->qty));
-			} elseif ($line->qty < $minClosedLevel) {
-				return infraspackplus_getNativeSubtotalOptions($line);	// Still open title : it encloses the line
-			}
-		}
-		return null;
-	}
 	/**
 	*	Change directory name for Dolibarr 12
 	*
@@ -655,13 +454,13 @@
 		$CGFromPro		= getDolGlobalString('INFRASPLUS_PDF_CGV_FROM_PRO', '') ? 1 : 0;
 		$labelFromPro	= empty($CGFromPro) ? '' : getDolGlobalString('INFRASPLUS_PDF_CGV_FROM_PRO_LABEL', '');
 		$myCompDir		= !empty($conf->mycompany->multidir_output[$entity]) ? $conf->mycompany->multidir_output[$entity] : $conf->mycompany->dir_output;
-		$CGs			= [];
+		$CGs			= array();
 		$labelToSearch	= !empty($labelFromPro) && is_object($object) ? ($object->thirdparty->typent_code == $labelFromPro ? $labelFromPro : '') : '';
 		if (glob($myCompDir.'/'.$type.'_*.pdf')) {
 			foreach (glob($myCompDir.'/'.$type.'_*'.$labelToSearch.'*.pdf') as $file)	$CGs[]	= dol_basename($file);
 		}
 		if (!empty($CGFromPro) && empty($labelToSearch) && !empty($labelFromPro) && !empty($CGs)) {
-			$exclude	= [];
+			$exclude	= array();
 			foreach (glob($myCompDir.'/'.$type.'_*'.$labelFromPro.'*.pdf') as $file)	$exclude[]	= dol_basename($file);
 			$CGs		= array_diff($CGs, $exclude);
 		}
@@ -737,9 +536,9 @@
 		if (!defined('K_PATH_FONTS')) {
 			define('K_PATH_FONTS', DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/fonts/');
 		}
-		include_once TCPDF_PATH.'tcpdf.php';
-		include_once TCPDF_PATH.'include/tcpdf_fonts.php';
-		$options	= [];
+		require_once TCPDF_PATH.'tcpdf.php';
+		require_once TCPDF_PATH.'include/tcpdf_fonts.php';
+		$options	= array();
 		$typefont	= array('TrueTypeUnicode', 'TrueType', 'Type1', 'CID0JP', 'CID0KR', 'CID0CS', 'CID0CT');
 		if (in_array($type, $typefont)) {
 			$options['type']	= $type;
@@ -774,7 +573,7 @@
 		$logo_emet			= '';
 		$sql_logo_emet		= 'SELECT s.logo_emet';
 		$sql_logo_emet		.= ' FROM '.$db->prefix().'societe AS s';
-		$sql_logo_emet		.= ' WHERE s.rowid = '.((int) $socid);
+		$sql_logo_emet		.= ' WHERE s.rowid = '.$socid;
 		$result_logo_emet	= $db->query($sql_logo_emet);
 		if (!empty($result_logo_emet)) {
 			$obj_logo_emet	= $db->fetch_object($result_logo_emet);
@@ -796,7 +595,7 @@
 
 		$sql_upt	= 'UPDATE '.$db->prefix().'societe';
 		$sql_upt	.= ' SET logo_emet = "'.$logo.'"';
-		$sql_upt	.= ' WHERE rowid = '.((int) $socid);
+		$sql_upt	.= ' WHERE rowid = '.$socid;
 		$result_upt	= $db->query($sql_upt);
 		if (!empty($result_upt)) {
 			$db->free($result_upt);
@@ -807,43 +606,18 @@
 	}
 
 	/**
-	* Function called to generate PDF of bordereau de cheque with specific model for infraspackplus module
-	* @param	object		$object			Object we work on
-	* @param	string		$model			Model to use for PDF generation
-	* @param	object		$outputlangs	Object Langs to use for PDF generation
-	* @return	string						File name of generated PDF or empty string if KO
-	*/
-	function infraspackplus_bc_generatePdf($object, $model, $outputlangs)
-	{
-		global $conf;
-
-		if (empty($model)) {
-			$model = 'blochet';
-		}
-		$customfile = dol_buildpath('/infraspackplus/core/modules/cheque/doc/pdf_'.$model.'.modules.php', 0);
-		if (!file_exists($customfile)) {
-			return $object->generatePdf($model, $outputlangs);	// modèle natif (blochet, ...)
-		}
-		require_once $customfile;
-		$classname = 'pdf_'.$model;
-		$docmodel = new $classname($object->db);
-
-		return $docmodel->write_file($object, $conf->bank->dir_output.'/checkdeposits', $object->ref, $outputlangs);
-	}
-	/**
 	*	Return list of mention
 	*
-	*	@param	string			$dict			SQL table name
-	*	@param	string			$selected		Preselected type
-	*	@param	string			$htmlname		Name of field in html form
-	* 	@param	int				$showempty		Add an empty field
-	*	@param	string			$onChange		JavaScript for onchange event
-	*	@param	int				$hasLabel		Show label before select
-	*	@param	string			$filter			MySQL filter (example : 'code LIKE "TVA\_%"')
-	*	@param	int				$needArray		Ask for an array instead of a html string
-	*	@return	string | array					Select html tag with all mention labels found
+	*	@param	string	$dict			SQL table name
+	*	@param	string	$selected		Preselected type
+	*	@param	string	$htmlname		Name of field in html form
+	* 	@param	int		$showempty		Add an empty field
+	*	@param	string	$onChange		JavaScript for onchange event
+	*	@param	int		$hasLabel		Show label before select
+	*	@param	string	$filter			MySQL filter (example : 'code LIKE "TVA\_%"')
+	*	@return	string					Select html tag with all mention labels found
 	**/
-	function select_infraspackplus_dict($dict, $selected = '', $htmlname = 'fk_infraspackplus_dict', $showempty = 0, $onChange = '', $hasLabel = 1, $filter = '', $needArray = 0)
+	function select_infraspackplus_dict($dict, $selected = '', $htmlname = 'fk_infraspackplus_dict', $showempty = 0, $onChange = '', $hasLabel = 1, $filter = '')
 	{
 		global $db, $conf, $langs;
 
@@ -851,7 +625,7 @@
 		$result		= '';
 		$sql		= 'SELECT rowid, code, libelle';
 		$sql		.= ' FROM '.$db->prefix().$dict;
-		$sql		.= ' WHERE active = 1 AND entity = '.((int) $conf->entity);
+		$sql		.= ' WHERE active = 1 AND entity = "'.$conf->entity.'"';
 		$sql		.= !empty($filter) ? ' AND '.$filter : '';
 		$sql		.= ' ORDER BY pos ASC';
 		$resql		= $db->query($sql);
@@ -859,18 +633,9 @@
 		if (!empty($resql)) {
 			$num	= $db->num_rows($resql);
 			$i		= 0;
-			if ($needArray) {
-				$result	= [];
-				while ($obj = $db->fetch_object($resql)) {
-					if (getDolGlobalString('PROPOSAL_FREE_TEXT_'.$obj->code, '') && getDolGlobalString('INVOICE_FREE_TEXT_'.$obj->code, '')) {
-						$result[$obj->code]	= $obj->libelle;
-					}
-				}
-				return $result;
-			}
 			if (!empty($num)) {
 				$result	.= $hasLabel ? '&nbsp;'.$langs->trans('InfraSPlusParam'.$typeDict.'3').'&nbsp;' : '';
-				$result	.= '<select class = "flat minwidth300 maxwidth400" name="'.$htmlname.'"'.($onChange ? ' onchange = "'.$onChange.';"' : '').'>';
+				$result	.= '<select class = "flat" name="'.$htmlname.'" style = "max-width:270px;"'.($onChange ? 'onchange = "'.$onChange.';"' : '').'>';
 				if (!empty($showempty)) {
 					$result	.= '<option value = "-1"';
 					if ($selected == -1) {
@@ -885,7 +650,7 @@
 					if ($obj->code == $selected) {
 						$result	.= ' selected';
 					}
-					$result	.= '>'.dol_trunc($libelle, 38, 'middle').'</option>';
+					$result	.= '>'.dol_trunc($libelle, 32, 'middle').'</option>';
 					$i++;
 				}
 				$result	.= '</select>';
@@ -911,7 +676,7 @@
 		dol_syslog('infraspackplus.Lib::infraspackplus_modify_paiement_spec idPaySpec = '.$idPaySpec);
 		if (!empty($idPaySpec)) {
 			$sqldict	= 'UPDATE '.$db->prefix().'c_paiement SET type = 3';
-			$sqldict	.= ' WHERE id = '.((int) $idPaySpec).' AND entity = '.((int) $conf->entity);
+			$sqldict	.= ' WHERE id = '.$idPaySpec.' AND entity = "'.$conf->entity.'"';
 			$resqldict	= $db->query($sqldict);
 			if (!empty($resqldict)) {
 				$result	= dolibarr_del_const($db, 'INFRASPLUS_PDF_PAY_SPEC', $conf->entity);
@@ -1069,7 +834,7 @@
 	*										-1	= not enough parameters
 	*										-2	= on error
 	**/
-	function infraspackplus_search_extf ($set = 0, $tempName = '', $constKey = '', $langKey = '', $listElem = [], $listParams = [])
+	function infraspackplus_search_extf ($set = 0, $tempName = '', $constKey = '', $langKey = '', $listElem = array(), $listParams = array())
 	{
 		global $db, $conf;
 
@@ -1077,7 +842,7 @@
 		if ((!empty($tempName) || !empty($constKey)) && !empty($langKey) && !empty($listElem)) {
 			$name	= getDolGlobalString($constKey, $tempName);
 			if (!empty($name)) {
-				$sql		= 'SELECT elementtype FROM '.$db->prefix().'extrafields WHERE name LIKE "'.$db->escapeforlike($name).'" AND entity = '.((int) $conf->entity);
+				$sql		= 'SELECT elementtype FROM '.$db->prefix().'extrafields WHERE name LIKE "'.$name.'" AND entity = '.$conf->entity;
 				$resql		= $db->query($sql);
 				if (!empty($resql)) {
 					$num	= $db->num_rows($resql);
@@ -1092,7 +857,7 @@
 						}
 						return $results;
 					}
-					$arr	= [];
+					$arr	= array();
 					while ($obj = $db->fetch_object($resql)) {
 						$arr[]	= $obj->elementtype;
 					}
@@ -1204,19 +969,21 @@
 	/**
 	*	Show html area for list of addresses
 	*
+	*	@param	Conf		$conf		Object conf
+	*	@param	Translate	$langs		Object langs
+	*	@param	DoliDB		$db			Database handler
 	*	@param	Societe		$object		Third party object
 	*	@param	string		$backtopage	Url to go once address is created
 	*	@return	integer					Number of addresses
 	**/
-	function infraspackplus_show_addresses($object, $backtopage = '')
+	function infraspackplus_show_addresses($conf, $langs, $db, $object, $backtopage = '')
 	{
-		global $db, $langs, $user;
+		global $user;
 
 		dol_include_once('/infraspackplus/class/address.class.php');
 
 		$langs->load('infraspackplus@infraspackplus');
 
-		$form			= new Form($db);
 		$addresses		= new Address($db);
 		$num			= $addresses->fetch_lines($object->id);
 		$newcardbutton	= '';
@@ -1225,216 +992,84 @@
 									<span class = "fa fa-plus-circle valignmiddle"></span>
 								</a>';
 		}
-		$arrayfields	= array(
-			'label'		=> array('label' => $langs->trans('InfraSPlusParamAdressAlias'),	'checked' => 1, 'position' => 10),
-			'name'		=> array('label' => $langs->trans('CompanyName'),					'checked' => 1, 'position' => 20),
-			'address'	=> array('label' => $langs->trans('Address'),						'checked' => 1, 'position' => 25),
-			'town'		=> array('label' => $langs->trans('Town'),							'checked' => 1, 'position' => 30),
-			'country'	=> array('label' => $langs->trans('Country'),						'checked' => 1, 'position' => 40),
-			'phone'		=> array('label' => $langs->trans('Phone'),						'checked' => 1, 'position' => 50),
-			'fax'		=> array('label' => $langs->trans('Fax'),							'checked' => 1, 'position' => 60),
-			'email'		=> array('label' => $langs->trans('Email'),						'checked' => 1, 'position' => 70),
-			'url'		=> array('label' => $langs->trans('url'),							'checked' => 1, 'position' => 80),
-			'note'		=> array('label' => $langs->trans('Note'),							'checked' => 1, 'position' => 90),
-		);
-		$arrayfields	= dol_sort_array($arrayfields, 'position');
-		$selectedfields	= $form->multiSelectArrayWithCheckbox('infraspackplusselectedfields', $arrayfields, 'infraspackplus_addresses', getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN'));
-		$actionLeft		= getDolGlobalInt('MAIN_CHECKBOX_LEFT_COLUMN');
 		print load_fiche_titre($langs->trans('AddressesForCompany'), $newcardbutton, '');
-		print '			<form id = "form_filter_addresses" method = "GET" action = "#" onsubmit = "return false;">
-							<table id = "infraspackplus_addresses_table" class = "noborder" width = "100%">
-								<tr class = "liste_titre_filter">';
-		if ($actionLeft) {
-			print '					<td class = "liste_titre center maxwidthsearch actioncolumn">'.$form->showFilterButtons('left').'</td>';
-		}
-		foreach ($arrayfields as $fkey => $fval) {
-			if (!empty($fval['checked'])) {
-				print '				<td class = "liste_titre" data-field = "'.dol_escape_htmltag($fkey).'"><input type = "text" class = "flat width75" oninput = "infraspackplusFilterAddresses();" data-field = "'.dol_escape_htmltag($fkey).'"></td>';
-			}
-		}
-		if (!$actionLeft) {
-			print '					<td class = "liste_titre center maxwidthsearch actioncolumn">'.$form->showFilterButtons().'</td>';
-		}
-		print '					</tr>
-								<tr class = "liste_titre">';
-		if ($actionLeft) {
-			print '					<th class = "center maxwidthsearch actioncolumn">'.$selectedfields.'</th>';
-		}
-		foreach ($arrayfields as $fkey => $fval) {
-			if (!empty($fval['checked'])) {
-				print '				<th data-field = "'.dol_escape_htmltag($fkey).'">'.$fval['label'].'</th>';
-			}
-		}
-		if (!$actionLeft) {
-			print '					<th class = "center maxwidthsearch actioncolumn">'.$selectedfields.'</th>';
-		}
-		print '					</tr>';
+		print '		<table class = "infrasplusnoborder" width = "100%">
+						<tr class = "liste_titre">
+							<th>'.$langs->trans('InfraSPlusParamAdressAlias').'</th>
+							<th>'.$langs->trans('CompanyName').'</th>
+							<th>'.$langs->trans('Town').'</th>
+							<th>'.$langs->trans('Country').'</th>
+							<th>'.$langs->trans('Phone').'</th>
+							<th>'.$langs->trans('Fax').'</th>
+							<th>'.$langs->trans('Email').'</th>
+							<th>'.$langs->trans('url').'</th>
+							<th>&nbsp;</th>
+						</tr>';
 		if ($num > 0) {
 			foreach ($addresses->lines as $address) {
 				$addressstatic	= new Address($db);
 				$addressstatic->fetch($address->id);
-				$img			= picto_from_langcode($address->country_code);
-				$actions		= '';
+				$img	= picto_from_langcode($address->country_code);
+				print '	<tr class = "oddeven">
+							<td>'.$addressstatic->getNomUrl(1, '&backtopage='.urlencode($backtopage)).'</td>
+							<td>'.$addressstatic->name.'</td>
+							<td>'.$addressstatic->town.'</td>
+							<td>'.($img ? $img.' ' : '').$addressstatic->country.'</td>
+							<td>';
+				print dol_print_phone($addressstatic->phone, $addressstatic->country_code, $addressstatic->id, $object->id,'AC_TEL');	// Lien click to dial
+				print '		</td>
+							<td>';
+				print dol_print_phone($addressstatic->fax, $addressstatic->country_code, $addressstatic->id, $object->id, 'AC_FAX');	// Lien click to dial
+				print '		</td>
+							<td>'.$addressstatic->email.'</td>
+							<td>'.$addressstatic->url.'</td>';
 				if (!empty($user->hasRight('societe', 'creer'))) {
-					$actions	.= '<a class = "editfielda marginrightonly" href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=edit&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">'.img_edit().'</a>';
+					print '	<td align = "right">
+								<a href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=edit&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">';
+					print img_edit();
+					print '		</a>
+							</td>';
 				}
-				if (!empty($user->hasRight('societe', 'supprimer'))) {
-					$actions	.= '<a class = "reposition" href = "'.dol_buildpath('infraspackplus', 1).'/comm/address.php?action=delete&token='.newToken().'&id='.$addressstatic->id.'&socid='.$object->id.'&backtopage='.urlencode($backtopage).'">'.img_delete().'</a>';
-				}
-				$actionCell		= !empty($actions) ? '<td>'.$actions.'</td>' : '<td></td>';
-				print '			<tr class = "oddeven infraspackplus_address_row">';
-				if ($actionLeft) {
-					print $actionCell;
-				}
-				foreach ($arrayfields as $fkey => $fval) {
-					if (empty($fval['checked'])) {
-						continue;
-					}
-					switch ($fkey) {
-						case 'label':
-							print '	<td data-field = "label">'.$addressstatic->getNomUrl(1, '&backtopage='.urlencode($backtopage)).'</td>';
-							break;
-						case 'name':
-							print '	<td data-field = "name">'.dol_escape_htmltag($addressstatic->name).'</td>';
-							break;
-						case 'address':
-							print '	<td data-field = "address">'.dol_nl2br(dol_escape_htmltag($addressstatic->address, 0, 1)).'</td>';
-							break;
-						case 'town':
-							print '	<td data-field = "town">'.dol_escape_htmltag($addressstatic->town).'</td>';
-							break;
-						case 'country':
-							print '	<td data-field = "country">'.($img ? $img.' ' : '').dol_escape_htmltag($addressstatic->country).'</td>';
-							break;
-						case 'phone':
-							print '	<td data-field = "phone">'.dol_print_phone($addressstatic->phone, $addressstatic->country_code, $addressstatic->id, $object->id, 'AC_TEL').'</td>';
-							break;
-						case 'fax':
-							print '	<td data-field = "fax">'.dol_print_phone($addressstatic->fax, $addressstatic->country_code, $addressstatic->id, $object->id, 'AC_FAX').'</td>';
-							break;
-						case 'email':
-							print '	<td data-field = "email">'.dol_escape_htmltag($addressstatic->email).'</td>';
-							break;
-						case 'url':
-							print '	<td data-field = "url">'.dol_escape_htmltag($addressstatic->url).'</td>';
-							break;
-						case 'note':
-							print '	<td data-field = "note">'.dol_nl2br(dol_escape_htmltag($addressstatic->note, 0, 1)).'</td>';
-							break;
-					}
-				}
-				if (!$actionLeft) {
-					print $actionCell;
-				}
-				print '			</tr>';
+				print '	</tr>';
 			}
 		}
-		print '				</table>
-						</form>
-						<br />';
-		print '			<script type = "text/javascript">
-							function infraspackplusFilterAddresses() {
-								var table	= document.getElementById(\'infraspackplus_addresses_table\');
-								if (!table) return;
-								var inputs	= table.querySelectorAll(\'tr.liste_titre_filter input[data-field]\');
-								var rows	= table.querySelectorAll(\'tr.infraspackplus_address_row\');
-								rows.forEach(function(row) {
-									var show	= true;
-									inputs.forEach(function(inp) {
-										var filter	= inp.value.toLowerCase().trim();
-										if (!filter) return;
-										var field	= inp.getAttribute(\'data-field\');
-										var cell	= row.querySelector(\'td[data-field="\' + field + \'"]\');
-										if (!cell || cell.textContent.toLowerCase().indexOf(filter) === -1) {
-											show = false;
-										}
-									});
-									row.style.display	= show ? \'\' : \'none\';
-								});
-							}
-							function infraspackplusResetFilterAddresses() {
-								var table	= document.getElementById(\'infraspackplus_addresses_table\');
-								if (!table) return;
-								var inputs	= table.querySelectorAll(\'tr.liste_titre_filter input[data-field]\');
-								inputs.forEach(function(inp) { inp.value = \'\'; });
-								infraspackplusFilterAddresses();
-							}
-							(function() {
-								var formFilter	= document.getElementById(\'form_filter_addresses\');
-								if (!formFilter) return;
-								formFilter.addEventListener(\'click\', function(e) {
-									var btn	= e.target.closest(\'button.button_removefilter\');
-									if (btn) {
-										e.preventDefault();
-										infraspackplusResetFilterAddresses();
-										return;
-									}
-									btn	= e.target.closest(\'button.button_search\');
-									if (btn) {
-										e.preventDefault();
-										infraspackplusFilterAddresses();
-									}
-								});
-								var table	= document.getElementById(\'infraspackplus_addresses_table\');
-								if (!table) return;
-								var dropdown	= table.querySelector(\'.multiselectcheckboxinfraspackplusselectedfields\');
-								if (!dropdown) return;
-								dropdown.addEventListener(\'click\', function(e) {
-									var cb	= e.target.closest(\'input[type="checkbox"]\');
-									if (!cb) return;
-									setTimeout(function() {
-										var hidden	= table.querySelector(\'input.infraspackplusselectedfields\');
-										if (!hidden) return;
-										var data	= new FormData();
-										data.append(\'varpage\', \'infraspackplus_addresses\');
-										data.append(\'selectedfields\', hidden.value);
-										data.append(\'token\', \''.newToken().'\');
-										fetch(\''.dol_escape_js(dol_buildpath('/infraspackplus/ajax/save_selectedfields.php', 1)).'\', {
-											method: \'POST\',
-											body: data,
-											credentials: \'same-origin\'
-										}).then(function() {
-											window.location.reload();
-										});
-									}, 50);
-								});
-							})();
-						</script>';
+		print '		</table>
+					<br>';
 		return $num;
 	}
 
 	/**
 	*	get the Qty already received by order lines
 	*
-	*	@param	int		$origin_id		Object Origin ID
-	*	@return	array					Array of order lines with qty already received or [] if no order lines found
+	*	@param	int			$origin_id		Object Origin ID
+	*	@return	array|int					Array of order lines with qty already received or 0 if no order lines found
 	**/
 	function infraspackplus_get_alreadyreceived($origin_id)
 	{
 		global $db;
 
-		$alreadyreceived	= [];
+		$alreadyreceived	= array();
 		if ($origin_id > 0) {
-			$sql	= 'SELECT rlb.fk_elementdet, SUM(rlb.qty) AS qty';
-			$sql	.= ' FROM '.$db->prefix().'receptiondet_batch AS rlb';
-			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = rlb.fk_reception';
+			$sql	= 'SELECT det.rowid, SUM(disp.qty) AS qty';
+			$sql	.= ' FROM '.$db->prefix().'commande_fournisseur_dispatch AS disp';
+			$sql	.= ' LEFT JOIN '.$db->prefix().'commande_fournisseurdet AS det ON det.rowid = disp.fk_commandefourndet';
+			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = disp.fk_reception';
 			$sql	.= ' WHERE r.entity IN ('.getEntity('reception').')';
-			$sql	.= ' AND rlb.fk_element = '.((int) $origin_id);
-			$sql	.= " AND rlb.element_type = 'supplier_order'";
-			$sql	.= ' GROUP BY rlb.fk_elementdet';
+			$sql	.= ' AND disp.fk_commande = '.((int) $origin_id);
+			$sql	.= ' GROUP BY det.rowid';
 			dol_syslog('infraspackplus.lib.php::infraspackplus_get_alreadyreceived $sql = '.$sql, LOG_DEBUG);
 			$resql	= $db->query($sql);
 			if (!empty($resql)) {
 				for ($i = 0 ; $i < $db->num_rows($resql) ; $i++) {
 					$obj	= $db->fetch_object($resql);
 					if (!empty($obj)) {
-						$alreadyreceived[$obj->fk_elementdet]	= $obj->qty;
+						$alreadyreceived[$obj->rowid]	= $obj->qty;
 					}
 				}
 				return $alreadyreceived;
 			}
 		}
-		return [];
+		return 0;
 	}
 
 	/**
@@ -1448,136 +1083,28 @@
 	{
 		global $db;
 
-		$serialreceived	= [];
+		$serialreceived	= array();
 		if ($origin_id > 0 && $object_id > 0) {
-			$sql	= 'SELECT rlb.fk_elementdet, rlb.batch, rlb.qty';
-			$sql	.= ' FROM '.$db->prefix().'receptiondet_batch AS rlb';
-			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = rlb.fk_reception';
+			$sql	= 'SELECT det.rowid, disp.batch, disp.qty';
+			$sql	.= ' FROM '.$db->prefix().'commande_fournisseur_dispatch AS disp';
+			$sql	.= ' LEFT JOIN '.$db->prefix().'commande_fournisseurdet AS det ON det.rowid = disp.fk_commandefourndet';
+			$sql	.= ' LEFT JOIN '.$db->prefix().'reception AS r ON r.rowid = disp.fk_reception';
 			$sql	.= ' WHERE r.entity IN ('.getEntity('reception').')';
-			$sql	.= ' AND rlb.fk_reception = '.((int) $object_id);
-			$sql	.= ' AND rlb.fk_element = '.((int) $origin_id);
-			$sql	.= " AND rlb.element_type = 'supplier_order'";
+			$sql	.= ' AND disp.fk_reception = '.((int) $object_id);
+			$sql	.= ' AND disp.fk_commande = '.((int) $origin_id);
 			dol_syslog('infraspackplus.lib.php::infraspackplus_get_serialreceived $sql = '.$sql, LOG_DEBUG);
 			$resql	= $db->query($sql);
 			if (!empty($resql)) {
 				for ($i = 0 ; $i < $db->num_rows($resql) ; $i++) {
 					$obj	= $db->fetch_object($resql);
 					if (!empty($obj)) {
-						$serialreceived[$obj->fk_elementdet][$obj->batch]	= $obj->qty;
+						$serialreceived[$obj->rowid][$obj->batch]	= $obj->qty;
 					}
 				}
 				return $serialreceived;
 			}
 		}
 		return 0;
-	}
-
-	/**
-	*	Return the external URLs associated to a product through the native Dolibarr links (llx_links,
-	*	"Add link" feature of the product "Linked files" tab). Links are classified from the extension
-	*	of the URL path : image (jpg/jpeg/png/gif/webp) or PDF datasheet. For the image, only the first
-	*	link found (creation order) is kept, next ones are silently ignored. All PDF links are kept
-	*	(creation order, duplicated URLs collapsed). Links whose extension matches neither category
-	*	(ex : cloud file-sharing links such as Nextcloud/ownCloud "public share" URLs, which carry no
-	*	file extension) are returned separately as candidates for infraspackplus_get_product_links()
-	*	callers doing content-based resolution (see pdf_InfraSPlus_resolveAmbiguousDatasheetLink()).
-	*
-	*	@param	DoliDB	$db				Database handler
-	*	@param	int		$fk_product		Product id
-	*	@return	array					['img_url' => string, 'datasheet_urls' => array, 'other_urls' => array]
-	**/
-	function infraspackplus_get_product_links($db, $fk_product)
-	{
-		include_once DOL_DOCUMENT_ROOT.'/core/class/link.class.php';
-
-		$imgExts		= ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-		$imgUrl			= '';
-		$datasheetUrls	= [];
-		$otherUrls		= [];
-		$links			= [];
-		$linkobj		= new Link($db);
-		$result			= $linkobj->fetchAll($links, 'product', (int) $fk_product, 'rowid', 'ASC');
-		if ($result > 0 && is_array($links)) {
-			foreach ($links as $link) {
-				$ext	= strtolower(pathinfo((string) parse_url($link->url, PHP_URL_PATH), PATHINFO_EXTENSION));
-				if ($imgUrl === '' && in_array($ext, $imgExts)) {
-					$imgUrl	= $link->url;
-				} elseif ($ext === 'pdf') {
-					if (!in_array($link->url, $datasheetUrls)) {
-						$datasheetUrls[]	= $link->url;
-					}
-				} elseif ($ext === '' && !in_array($link->url, $otherUrls)) {
-					$otherUrls[]	= $link->url;
-				}
-			}
-		}
-		return ['img_url' => $imgUrl, 'datasheet_urls' => $datasheetUrls, 'other_urls' => $otherUrls];
-	}
-
-	/**
-	*	Probe the MIME type of a public external URL (http/https) with a lightweight HTTP HEAD request
-	*	(no body downloaded), through the native Dolibarr getURLContent(). Used to decide whether a
-	*	product link with no recognizable file extension (ex : cloud file-sharing "public share" URL)
-	*	is actually serving a PDF, before attempting a full download. Connection/response timeouts are
-	*	driven by the shared INFRASPLUS_URL_IMG_TIMEOUT constant. Local/internal URLs are refused
-	*	(getURLContent() SSRF protection).
-	*
-	*	@param	string	$url		URL to probe
-	*	@param	string	&$error		Error message on failure
-	*	@return	string|false		Content-Type, lowercase, without charset/parameters (ex : 'application/pdf'), or false on failure
-	**/
-	function infraspackplus_probe_url_content_type($url, &$error = '')
-	{
-		include_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
-
-		$error		= '';
-		$timeout	= getDolGlobalInt('INFRASPLUS_URL_IMG_TIMEOUT', 10);
-		$result		= getURLContent($url, 'HEAD', '', 1, array(), array('http', 'https'), 0, -1, $timeout, $timeout);
-		if (!empty($result['curl_error_no'])) {
-			$error	= $result['curl_error_msg'];
-			return false;
-		}
-		if (empty($result['http_code']) || $result['http_code'] < 200 || $result['http_code'] >= 300) {
-			$error	= 'HTTP '.(empty($result['http_code']) ? '?' : $result['http_code']);
-			return false;
-		}
-		if (empty($result['content_type'])) {
-			$error	= 'No Content-Type header';
-			return false;
-		}
-		$contenttype	= explode(';', $result['content_type']);
-		return strtolower(trim($contenttype[0]));
-	}
-
-	/**
-	*	Download the binary content of a public external URL (http/https), through the native Dolibarr
-	*	getURLContent() (cURL). Connection and response timeouts are driven by the INFRASPLUS_URL_IMG_TIMEOUT
-	*	constant (seconds, 10 by default). Local/internal URLs are refused (getURLContent() SSRF protection).
-	*
-	*	@param	string	$url		URL to download
-	*	@param	string	&$error		Error message on failure
-	*	@return	string|false		Binary content, or false on failure
-	**/
-	function infraspackplus_fetch_url_content($url, &$error = '')
-	{
-		include_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
-
-		$error		= '';
-		$timeout	= getDolGlobalInt('INFRASPLUS_URL_IMG_TIMEOUT', 10);
-		$result		= getURLContent($url, 'GET', '', 1, array(), array('http', 'https'), 0, -1, $timeout, $timeout);
-		if (!empty($result['curl_error_no'])) {
-			$error	= $result['curl_error_msg'];
-			return false;
-		}
-		if (empty($result['http_code']) || $result['http_code'] < 200 || $result['http_code'] >= 300) {
-			$error	= 'HTTP '.(empty($result['http_code']) ? '?' : $result['http_code']);
-			return false;
-		}
-		if (empty($result['content'])) {
-			$error	= 'Empty content';
-			return false;
-		}
-		return $result['content'];
 	}
 
 	/**
@@ -1620,8 +1147,7 @@
 		$const_name	= infraspackplus_get_const_name_from_substitution_path($path);
 		if (getDolGlobalString($const_name, '')) {
 			$dolibranch		= explode('.', DOL_VERSION);
-			$dolinfras		= getDolGlobalString('EASYA_VERSION', '') || getDolGlobalString('DOLINFRAS_VERSION', '');
-			$coreVersion	= 'dlb'.$dolibranch[0].'0x'.($dolinfras ? '-DolInfraS' : '');
+			$coreVersion	= 'dlb'.$dolibranch[0].'0x'.(getDolGlobalString('EASYA_VERSION', '') ? '-Easya' : '');
 			$path_dst		= '/infraspackplus/substitutionpages/'.$coreVersion.$path;
 			$real_path_dst	= dol_buildpath($path_dst, 0);
 			dol_syslog('infraspackplus.lib.php::infraspackplus_get_substitution_url $path = '.$path.' $real_path_dst = '.$real_path_dst);
@@ -1666,7 +1192,7 @@
 	{
 		global $db, $conf, $langs;
 
-		$Lines	= [];
+		$Lines	= array();
 		$sql	= 'SELECT p.rowid AS rowid, p.ref AS product_ref, p.label AS produit, p.tobatch, p.fk_product_type AS type, p.pmp AS ppmp, p.price, p.price_ttc, p.entity,';
 		$sql	.= ' ps.reel AS qty';
 		$sql	.= ' FROM '.$db->prefix().'product_stock AS ps, '.$db->prefix().'product AS p';
@@ -1681,7 +1207,7 @@
 				$objp	= $db->fetch_object($resql);
 				// Multilangs
 				if (getDolGlobalString('MAIN_MULTILANGS', '')) { // si l'option est active
-					$sqllang	= 'SELECT label FROM '.$db->prefix().'product_lang WHERE fk_product = '.((int) $objp->rowid).' AND lang = "'.$db->escape($langs->getDefaultLang()).'" LIMIT 1';
+					$sqllang	= 'SELECT label FROM '.$db->prefix().'product_lang WHERE fk_product = '.$objp->rowid.' AND lang = "'.$db->escape($langs->getDefaultLang()).'" LIMIT 1';
 					$resqllang	= $db->query($sqllang);
 					if (!empty($resqllang)) {
 						$objplang	= $db->fetch_object($resqllang);
@@ -1787,7 +1313,6 @@
 									'expensereportfiles'	=> array('typeVal' => 'chk',	'bkptype' => '', 'value' => '', 'defaultconst' => 'INFRASPLUS_PDF_FILES_FROM_EXPENSE_REPORT'),
 									'includealias'			=> array('typeVal' => 'chk',	'bkptype' => '', 'value' => '', 'defaultconst' => 'PDF_INCLUDE_ALIAS_IN_THIRDPARTY_NAME'),
 									'mergeproduct'			=> array('typeVal' => 'chk',	'bkptype' => '', 'value' => '', 'defaultconst' => ''),
-									'docseparate'			=> array('typeVal' => 'chk',	'bkptype' => '', 'value' => '', 'defaultconst' => ''),
 									'usentascover'			=> array('typeVal' => 'chk',	'bkptype' => '', 'value' => '', 'defaultconst' => 'INFRASPLUS_PDF_NT_USED_AS_COVER'),
 									'showwvccchk'			=> array('typeVal' => 'chk',	'bkptype' => '', 'value' => '', 'defaultconst' => ''),
 									'hidepict'				=> array('typeVal' => 'chk',	'bkptype' => '', 'value' => '', 'defaultconst' => array('INFRASPLUS_PDF_WITH_PICTURE', 'INFRASPLUS_PDF_SUPPLIER_ORDER_WITH_PICTURE')),
@@ -1853,10 +1378,10 @@
 		$txtParamsType	= getDolGlobalString($paramsKeyType, '');
 		$txtParamsCust	= getDolGlobalString($paramsKeyCust, '');
 		// liste de contrôle des paramètres enregistrés (utilisateur, document, type de document ou client)
-		$listParamUser	= [];
-		$listParamDoc	= [];
-		$listParamType	= [];
-		$listParamCust	= [];
+		$listParamUser	= array();
+		$listParamDoc	= array();
+		$listParamType	= array();
+		$listParamCust	= array();
 		// On parcourt les paramètres utilisateurs
 		if (!empty($txtParamsUser)) {
 			$userParams	= explode ('&', $txtParamsUser);
@@ -2043,10 +1568,6 @@
 				if ($key == 'mergeproduct') {
 					$listOptions[$key]['value']	= 'none';
 				}
-				// Documentation technique dans un PDF séparé (décochée par défaut tant qu'aucun choix n'est mémorisé)
-				if ($key == 'docseparate') {
-					$listOptions[$key]['value']	= 'none';
-				}
 				// Page de garde
 				if ($key == 'usentascover') {
 					$listOptions[$key]['value']	= getDolGlobalString($listOptions[$key]['defaultconst'], '') && !empty($rootnotepub) ? $rootnotepub.'_'.getDolGlobalString($listOptions[$key]['defaultconst'], '') : 'none';
@@ -2130,10 +1651,8 @@
 					$listOptions[$key]['value']	= getDolGlobalString($listOptions[$key]['defaultconst'], 'none');
 				}
 				// Affichage de la mention d'autoliquidation BTP
-				// Case d'option par document (opt-in) : décochée par défaut tant qu'aucun choix n'est mémorisé.
-				// Le 'defaultconst' (INFRASPLUS_PDF_FREETEXT_TVA_6) sert uniquement à AFFICHER la case, pas à la cocher.
 				if ($key == 'showtvabtp') {
-					$listOptions[$key]['value']	= 0;
+					$listOptions[$key]['value']	= getDolGlobalString($listOptions[$key]['defaultconst'], 'none');
 				}
 				// Affichage des totaux en pied de document sur les fiches d'intervention
 				if ($key == 'showtot') {
@@ -2325,7 +1844,7 @@
 					$deposit_percent_from_payment_terms	= (float) getDictionaryValue($db->prefix().'c_payment_term', 'deposit_percent', $object->cond_reglement_id);
 					if (GETPOST('generate_deposit', 'alpha') == 'on' && !empty($deposit_percent_from_payment_terms) && isModEnabled((!$isV20p ? 'facture' : 'invoice')) && !empty($user->hasRight('facture', 'creer'))) {
 						$date			= dol_mktime(0, 0, 0, GETPOSTINT('datefmonth'), GETPOSTINT('datefday'), GETPOSTINT('datefyear'));
-						$forceFields	= [];
+						$forceFields	= array();
 						if (GETPOSTISSET('date_pointoftax')) {
 							$forceFields['date_pointoftax']	= dol_mktime(0, 0, 0, GETPOSTINT('date_pointoftaxmonth'), GETPOSTINT('date_pointoftaxday'), GETPOSTINT('date_pointoftaxyear'));
 						}
@@ -2428,7 +1947,7 @@
 			if (getDolGlobalString('MAIN_MULTILANGS', '') && empty($newlang) && GETPOST('lang_id', 'aZ09')) {
 				$newlang	= GETPOST('lang_id', 'aZ09');
 			}
-			if (getDolGlobalString('MAIN_MULTILANGS', '') && empty($newlang) && is_object($object->thirdparty)) {
+			if (getDolGlobalString('MAIN_MULTILANGS', '') && empty($newlang)) {
 				$newlang	= $object->thirdparty->default_lang;
 			}
 			if (!empty($newlang)) {
@@ -2477,7 +1996,7 @@
 			if (count($object->errors) > 0) {
 				setEventMessages($object->error, $object->errors, 'errors');
 			} else {
-				setEventMessages($langs->trans(!empty($object->error) ? $object->error : 'ErrorUnknown'), null, 'errors');
+				setEventMessages($langs->trans($object->error), null, 'errors');
 			}
 			return -1;
 		}
@@ -2545,9 +2064,9 @@
 		while ($obj	= $db->fetch_object($resql2)) {
 			unset($obj->rowid);
 			$obj->entity	= (int) $toEntity;
-			$fields 		= [];
-			$values 		= [];
-			$updates 		= [];
+			$fields 		= array();
+			$values 		= array();
+			$updates 		= array();
 			foreach ($obj as $key => $value) {
 				$fields[]	= $key;
 				if ($value == null) {

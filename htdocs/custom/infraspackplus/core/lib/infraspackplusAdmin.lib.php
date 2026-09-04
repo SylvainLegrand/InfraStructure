@@ -24,13 +24,13 @@
 	************************************************/
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
 	/**
@@ -43,7 +43,7 @@
 		global $langs, $conf, $user;
 
 		$h		= 0;
-		$head	= [];
+		$head	= array();
 		if (!empty($user->admin) || !empty($user->hasRight('infraspackplus', 'paramDolibarr'))) {
 			$head[$h][0]	= dol_buildpath('/infraspackplus/admin/generalpdf.php', 1);
 			$head[$h][1]	= $langs->trans('InfraSPlusParamsGeneralPDF');
@@ -138,7 +138,7 @@
 			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	1, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 		} else {
 			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	-1, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
-			setEventMessages('<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCautionMess').'</span>'.$langs->trans('InfraSXMLextError'), [], 'warnings');
+			setEventMessages('<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCautionMess').'</span>'.$langs->trans('InfraSXMLextError'), array(), 'warnings');
 		}
 	}
 
@@ -159,7 +159,7 @@
 	{
 		global $langs;
 
-		$currentversion	= [];
+		$currentversion	= array();
 		$sxe			= infraspackplus_getChangelogFile($appliname);
 		if (is_object($sxe)) {
 			$currentversion[0]	= (string) $sxe->Version[count($sxe->Version) - 1]->attributes()->Number;
@@ -183,6 +183,26 @@
 			}
 		}
 		return $currentversion;
+	}
+
+	/**
+	* Read the Dolibarr VERSION file and store its value in the DOLINFRAS_VERSION constant
+	*
+	* @return	string		Version string read from VERSION file, or empty string on failure
+	**/
+	function infraspackplus_getVersionDolinfras()
+	{
+		global $db, $conf;
+
+		$version	= '';
+		$file		= DOL_DOCUMENT_ROOT.'/VERSION';
+		if (is_file($file)) {
+			$version = trim(file_get_contents($file));
+		}
+		if (!empty($version) && getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
+			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+		}
+		return $version;
 	}
 
 	/**
@@ -220,7 +240,7 @@
 		if (getDolGlobalString('INFRAS_PHP_EXT_XML', '') == -1) {
 			return -1;
 		}
-		$newVersion	= getURLContent('https://raw.githubusercontent.com/InfraS-SARL/modules-versions/main/'.$appliname.'/changelog.xml', 'GET', '', 1, [], array('http', 'https'), 0);
+		$newVersion	= getURLContent('https://infras.fr/jdownloads/Modules_Dolibarr/'.$appliname.'/changelog.xml', 'GET', '', 1, array(), array('http', 'https'), 0);
 		if (!isset($newVersion['content'])) {	// not connected
 			return -1;
 		} else {
@@ -262,7 +282,7 @@
 		}
 		$columnsToMigrate	= array('rowid', 'datec', 'tms', 'label', 'fk_soc', 'name', 'address', 'zip', 'town', 'fk_pays', 'phone', 'fax', 'note', 'fk_user_creat', 'fk_user_modif');
 		$columns			= array('entity', 'email', 'url');
-		$columnsExists		= [];
+		$columnsExists		= array();
 		foreach ($columns as $column) {	// Check the existence of required columns
 			$sql	= 'SHOW COLUMNS FROM '.$db->prefix().'societe_address LIKE "'.$db->escape($column).'"';
 			$resql	= $db->query($sql);
@@ -350,7 +370,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$duplicate_model	= array ('3', 'libelle', 'nom');
 			$sql_model			= 'SELECT '.implode(', ', $cols_model);
 			$sql_model			.= ' FROM '.$db->prefix().'document_model';
-			$sql_model			.= ' WHERE nom LIKE "INFRASPLUS\_%" AND entity = '.((int) $conf->entity);
+			$sql_model			.= ' WHERE nom LIKE "INFRASPLUS\_%" AND entity = "'.$conf->entity.'"';
 			$sql_model			.= ' ORDER BY nom';
 			fwrite($handle, infraspackplus_bkup_table ('document_model', $sql_model, $cols_model, $duplicate_model, 0, ''));
 			$cols_const			= array ('name', 'entity', 'value', 'type', 'visible', 'note');
@@ -358,7 +378,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const			= 'SELECT '.implode(', ', $cols_const);
 			$sql_const			.= ' FROM '.$db->prefix().'const';
 			$sql_const			.= ' WHERE ((name LIKE "INFRASPLUS\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_VALID\_CORE\_CHGT") OR name LIKE "INFRASPACKPLUS\_PS\_%" OR (name LIKE "%\_ADDON\_PDF" AND value LIKE "InfraSPlus\_%") OR name LIKE "%\_FREE\_TEXT%" OR name LIKE "%\_PUBLIC\_NOTE%")';
-			$sql_const			.= ' AND entity = '.((int) $conf->entity);
+			$sql_const			.= ' AND entity = "'.$conf->entity.'"';
 			$sql_const			.= ' ORDER BY name';
 			$autoupdate			= getDolGlobalInt('MAIN_DISABLE_PDF_AUTOUPDATE', 0);
 			$onDuplicate		= $db->type == 'pgsql' ? ' ON CONFLICT (name) DO UPDATE SET ' : ' ON DUPLICATE KEY UPDATE ';
@@ -368,13 +388,13 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$cols_addr			= array ('entity', 'datec', 'tms', 'label', 'fk_soc', 'name', 'address', 'zip', 'town', 'fk_pays', 'phone', 'fax', 'email', 'url', 'note', 'fk_user_creat', 'fk_user_modif');
 			$sql_addr			= 'SELECT '.implode(', ', $cols_addr);
 			$sql_addr			.= ' FROM '.$db->prefix().'infraspackplus_societe_address';
-			$sql_addr			.= ' WHERE entity = '.((int) $conf->entity);
-			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_societe_address', $sql_addr, $cols_addr, [], 0, ''));
+			$sql_addr			.= ' WHERE entity = "'.$conf->entity.'"';
+			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_societe_address', $sql_addr, $cols_addr, array(), 0, ''));
 			$cols_dict			= array ('code', 'entity', 'pos', 'libelle', 'active');
 			$duplicate_dict		= array ('3', 'libelle', 'code');
 			$sql_dict_1			= 'SELECT '.implode(', ', $cols_dict);
 			$sql_dict_mention	= ' FROM '.$db->prefix().'c_infraspackplus_mention';
-			$sql_dict_2			= ' WHERE entity = '.((int) $conf->entity).' ORDER BY pos';
+			$sql_dict_2			= ' WHERE entity = "'.$conf->entity.'" ORDER BY pos';
 			fwrite($handle, infraspackplus_bkup_table ('c_infraspackplus_mention', $sql_dict_1.$sql_dict_mention.$sql_dict_2, $cols_dict, $duplicate_dict, 1, ''));
 			$sql_dict_note		= ' FROM '.$db->prefix().'c_infraspackplus_note';
 			fwrite($handle, infraspackplus_bkup_table ('c_infraspackplus_note', $sql_dict_1.$sql_dict_note.$sql_dict_2, $cols_dict, $duplicate_dict, 1, ''));
@@ -473,7 +493,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			$filesql	= $pathsql.'/'.'update.'.$conf->entity;
 			$moved		= dol_copy($filesql, $filesql.'.sql');
 			if (is_file($filesql.'.sql')) {
-				$result	= run_sql($filesql.'.sql', !getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG', '') ? 1 : 0, $conf->entity, 1);
+				$result	= run_sql($filesql.'.sql', (!getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG', '') ? 1 : 0), $conf->entity, 1);
 			}
 			$delete	= dol_delete_file($filesql.'.sql');
 			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_restore_module appliname = '.$appliname.' filesql = '.$filesql.' moved = '.$moved.' result = '.$result.' delete = '.$delete);
@@ -493,44 +513,42 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	{
 		global $db, $conf;
 
-		$array_sql	= array('INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BC", '.((int) $conf->entity).', "chequereceipt", "InfraSPlus_BC") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BC"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BL", '.((int) $conf->entity).', "shipping", "InfraSPlus_BL") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BL"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BR", '.((int) $conf->entity).', "delivery", "InfraSPlus_BR") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BR"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_Bom", '.((int) $conf->entity).', "bom", "InfraSPlus_BOM") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_Bom"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_C", '.((int) $conf->entity).', "order", "InfraSPlus_C") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_C"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CF", '.((int) $conf->entity).', "order_supplier", "InfraSPlus_CF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CT", '.((int) $conf->entity).', "contract", "InfraSPlus_CT") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CT"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_D", '.((int) $conf->entity).', "propal", "InfraSPlus_D") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_D"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_DF", '.((int) $conf->entity).', "supplier_proposal", "InfraSPlus_DF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_DF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_F", '.((int) $conf->entity).', "invoice", "InfraSPlus_F") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_F"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FF", '.((int) $conf->entity).', "invoice_supplier", "InfraSPlus_FF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FI", '.((int) $conf->entity).', "ficheinter", "InfraSPlus_FI") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FI"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_MRP", '.((int) $conf->entity).', "mrp", "InfraSPlus_MRP") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_MRP"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_NDF", '.((int) $conf->entity).', "expensereport", "InfraSPlus_NDF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_NDF"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_P", '.((int) $conf->entity).', "product", "InfraSPlus_P") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_P"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_PJ", '.((int) $conf->entity).', "project", "InfraSPlus_PJ") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_PJ"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_RE", '.((int) $conf->entity).', "reception", "InfraSPlus_RE") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_RE"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_ST", '.((int) $conf->entity).', "stock", "InfraSPlus_ST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_ST"',
-							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_UST", '.((int) $conf->entity).', "user", "InfraSPlus_UST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_UST"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("CHEQUERECEIPT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_BC", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BC"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("BOM_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_Bom", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_Bom"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_C", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_C"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_SUPPLIER_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_CF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("CONTRACT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_CT", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CT"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPEDITION_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_BL", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BL"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPENSEREPORT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_NDF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_NDF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FACTURE_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_F", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_F"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FICHEINTER_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_FI", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FI"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("INVOICE_SUPPLIER_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_FF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("LIVRAISON_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_BR", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BR"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("MRP_MO_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_MRP", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_MRP"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PRODUCT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_P", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_P"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROJECT_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_PJ", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_PJ"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROPALE_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_D", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_D"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("RECEPTION_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_RE", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_RE"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("STOCK_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_ST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_ST"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("SUPPLIER_PROPOSAL_ADDON_PDF", '.((int) $conf->entity).', "InfraSPlus_DF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_DF"',
-							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("USER_ADDON_PDF_ODT", '.((int) $conf->entity).', "InfraSPlus_UST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_UST"'
+		$array_sql	= array('INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BL", "'.$conf->entity.'", "shipping", "InfraSPlus_BL") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BL"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_BR", "'.$conf->entity.'", "delivery", "InfraSPlus_BR") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_BR"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_Bom", "'.$conf->entity.'", "bom", "InfraSPlus_BOM") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_Bom"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_C", "'.$conf->entity.'", "order", "InfraSPlus_C") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_C"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CF", "'.$conf->entity.'", "order_supplier", "InfraSPlus_CF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_CT", "'.$conf->entity.'", "contract", "InfraSPlus_CT") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_CT"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_D", "'.$conf->entity.'", "propal", "InfraSPlus_D") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_D"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_DF", "'.$conf->entity.'", "supplier_proposal", "InfraSPlus_DF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_DF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_F", "'.$conf->entity.'", "invoice", "InfraSPlus_F") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_F"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FF", "'.$conf->entity.'", "invoice_supplier", "InfraSPlus_FF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_FI", "'.$conf->entity.'", "ficheinter", "InfraSPlus_FI") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_FI"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_MRP", "'.$conf->entity.'", "mrp", "InfraSPlus_MRP") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_MRP"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_NDF", "'.$conf->entity.'", "expensereport", "InfraSPlus_NDF") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_NDF"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_P", "'.$conf->entity.'", "product", "InfraSPlus_P") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_P"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_PJ", "'.$conf->entity.'", "project", "InfraSPlus_PJ") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_PJ"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_RE", "'.$conf->entity.'", "reception", "InfraSPlus_RE") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_RE"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_ST", "'.$conf->entity.'", "stock", "InfraSPlus_ST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_ST"',
+							'INSERT INTO '.$db->prefix().'document_model (nom, entity, type, libelle) VALUES ("InfraSPlus_UST", "'.$conf->entity.'", "user", "InfraSPlus_UST") ON DUPLICATE KEY UPDATE nom = "InfraSPlus_UST"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("BOM_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_Bom", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_Bom"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_C", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_C"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("COMMANDE_SUPPLIER_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_CF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("CONTRACT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_CT", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_CT"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPEDITION_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_BL", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BL"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("EXPENSEREPORT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_NDF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_NDF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FACTURE_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_F", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_F"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("FICHEINTER_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_FI", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FI"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("INVOICE_SUPPLIER_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_FF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_FF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("LIVRAISON_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_BR", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_BR"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("MRP_MO_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_MRP", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_MRP"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PRODUCT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_P", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_P"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROJECT_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_PJ", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_PJ"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("PROPALE_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_D", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_D"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("RECEPTION_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_RE", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_RE"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("STOCK_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_ST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_ST"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("SUPPLIER_PROPOSAL_ADDON_PDF", "'.$conf->entity.'", "InfraSPlus_DF", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_DF"',
+							'INSERT INTO '.$db->prefix().'const (name, entity, value, type, visible, note) VALUES ("USER_ADDON_PDF_ODT", "'.$conf->entity.'", "InfraSPlus_UST", "chaine", "0", "InfraSPackPlus module") ON DUPLICATE KEY UPDATE value = "InfraSPlus_UST"'
 							);
 		$err		= 0;
 		$num		= count($array_sql);
@@ -538,9 +556,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			if (empty($err)) {
 				dol_syslog('infraspackplusAdmin.lib.php::infraspackplus_Change_Template', LOG_DEBUG);
 				$result				= $db->query($array_sql[$i]);
-				if (empty($result)) {
-					$err++;
-				}
+				if (empty($result))	$err++;
 			}
 		}
 		return empty($err) ? 1 : -1;
@@ -651,14 +667,14 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$out	.= '<table '.(!empty($id) ? 'id = "'.$id.'" ' : '').'class = "centpercent notopnoleftnoright table-fiche-title'.(!empty($morecssontable) ? ' '.$morecssontable : '').'">
 					<tr class = "liste_titre">';
 		if (!empty($picto)) {
-			$out .= '	<td class = "noborder infrasplusnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infraspluswidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
+			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding widthpictotitle valignmiddle col-picto">'.img_picto('', $picto, 'class = "valignmiddle infraspluswidthpictotitle pictotitle"', $pictoisfullpath).'</td>';
 		}
-		$out	.= '	<td class = "noborder infrasplusnopadding valignmiddle col-title"><div class = "infrasplusDivTitre uppercase inline-block">'.$titre.'</div></td>';
+		$out	.= '	<td class = "infrasplusnoborder infrasplusnopadding valignmiddle col-title"><div class = "infrasplusDivTitre uppercase inline-block">'.$titre.'</div></td>';
 		if (dol_strlen($morehtmlcenter)) {
-			$out .= '	<td class = "noborder infrasplusnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
+			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding center valignmiddle">'.$morehtmlcenter.'</td>';
 		}
 		if (dol_strlen($morehtmlright)) {
-			$out .= '	<td class = "noborder infrasplusnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
+			$out .= '	<td class = "infrasplusnoborder infrasplusnopadding titre_right wordbreakimp right valignmiddle">'.$morehtmlright.'</td>';
 		}
 		$out .= '	</tr>
 				</table>';
@@ -671,7 +687,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	*	@param		array		$metas	list of col value
 	*	@return		void
 	**/
-	function infraspackplus_print_colgroup($metas = [])
+	function infraspackplus_print_colgroup($metas = array())
 	{
 		print '	<tr>';
 		foreach ($metas as $values)	{
@@ -686,7 +702,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	*	@param		array		$metas	list of col value
 	*	@return		void
 	**/
-	function infraspackplus_print_liste_titre($metas = [])
+	function infraspackplus_print_liste_titre($metas = array())
 	{
 		global $langs;
 
@@ -779,7 +795,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$formother		= new FormOther($db);
 		$formcompany	= new FormCompany($db);
 		$formactions	= new FormActions($db);
-		print '	<tr id = "row_'.$confkey.'" class = "oddeven">';
+		print '	<tr class = "oddeven">';
 		if (!empty($num)) {
 			print '	<td class = "center bold">'.$num.'</td>';
 			$num++;
@@ -788,6 +804,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			print '	<td colspan = "'.$cs1.'">';
 			if (!empty($help))	{
 				print $form->textwithtooltip(($desc ? $desc : $langs->trans($confkey)), $langs->trans($help), 2, 1, img_help(1, ''));
+
 			} else {
 				print $desc ? $desc : $langs->trans($confkey);
 			}
@@ -800,11 +817,11 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 			}
 		}
 		if ($tag == 'on_off') {
-			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'#row_'.$confkey.'">';
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 			print ajax_constantonoff($confkey);
 			print '		</a>';
 		} elseif ($tag == 'on_off2') {
-			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'#row_'.$confkey.'">
+			print '		<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? '0' : '1').'">
 							'.(strpos(getDolGlobalString($confkey, ''), $metas) !== false ? img_picto($langs->trans('Activated'), 'switch_on') : img_picto($langs->trans('Disabled'), 'switch_off')).'
 						</a>';
 		} elseif ($tag == 'input') {
@@ -860,7 +877,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 				print $doleditor->Create();
 			}
 		} elseif ($tag == 'color') {
-			print $formother->selectColor($metas, $confkey, '', 1, [], 'right hideifnotset');
+			print $formother->selectColor($metas, $confkey, '', 1, array(), 'right hideifnotset');
 		} elseif ($tag == 'select') {
 			print $metas;
 		} elseif ($tag == 'select_produits') {
@@ -895,7 +912,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	*	@param		int			$num		Add a numbering column first with this number
 	*	@return		int						line number for next option
 	**/
-	function infraspackplus_print_line_inputs($type = '', $desc = '', $metas = [], $cs1 = 2, $w = 0, $end = '', $num = 0)
+	function infraspackplus_print_line_inputs($type = '', $desc = '', $metas = array(), $cs1 = 2, $w = 0, $end = '', $num = 0)
 	{
 		print '	<tr class = "oddeven">';
 		if (!empty($num)) {
@@ -905,19 +922,19 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		print '		<td colspan = "'.$cs1.'">
 						<table class = "centpercent">
 							<tr>
-								<td rowspan = "2" class = "noborder">'.$desc.'</td>';
+								<td rowspan = "2" class = "infrasplusnoborder">'.$desc.'</td>';
 		foreach ($metas[0] as $confkey => $value) {
 			$confkey	= str_replace('_AUTO', '', $confkey);
-			print '				<td class = "center noborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
+			print '				<td class = "center infrasplusnoborder" style = "max-width: '.$w.'px; min-width: '.$w.'px; width: '.$w.'px;">'.($type == 'tests' ? (getDolGlobalString($confkey, '') ? $value : '&nbsp;') : $value).'</td>';
 		}
 		print '				</tr>
 							<tr>';
 		foreach ($metas[1] as $confkey => $value) {
-			print '				<td class = "center noborder">';
+			print '				<td class = "center infrasplusnoborder">';
 			if ($type == 'tests' && !getDolGlobalString($value, '')) {
 				print '&nbsp;';
 			} else {
-				print '				<a id = "row_'.$confkey.'" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'#row_'.$confkey.'">';
+				print '				<a href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=set_'.$confkey.'&token='.newToken().'&value='.(getDolGlobalString($confkey, '') ? '0' : '1').'">';
 				print ajax_constantonoff($confkey);
 				print '				</a>'.($type == 'tests' ? '' : $value);
 			}
@@ -955,10 +972,10 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$preferedPartnerPath	= dol_buildpath('/'.$appliname.'/img/Dolibarr_preferred_partner.png', 1);
 		$listUpD				= dol_buildpath('/'.$appliname.'/img/list_updates.png', 1);
 		$urlInfraS				= 'https://infras.fr';
-		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname.'/presentation-d-module';
+		$urlWiki				= 'https://wiki.infras.fr/books/'.$appliname;
 		$urlstore				= 'https://infras.store/';
 		$urlDoli				= 'https://www.dolistore.com/index.php?controller=search&orderby=position&orderway=desc&website=marketplace&search_query=InfraS';
-		$InputCarac				= 'class = "butAction infraspluswidth180 infrasplusheight32" name = "readmore" type = "button"';
+		$InputCarac				= 'class = "button infraspluswidth180 infrasplusheight32" name = "readmore" type = "button"';
 		$supportvalue			= '/******************************'.'<br/>';
 		$supportvalue			.= ' * Module : '.$langs->trans('modcomnamePackPlus').'<br/>';
 		$supportvalue			.= ' * Module version : '.$version.'<br/>';
@@ -980,21 +997,21 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 											</tr>
 											<tr class = "infrasplusheight50">
 												<td rowspan = "3" class = "left bold valignbottom infraspluswidthtrentepercent infrasplusslogan" style = "color: white; font-size: 16px;">
-													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "noborder infraspluswidth220" src = "'.$logoPath.'"></a>
+													<a href = "'.$urlInfraS.'" target = "_blank"><img class = "infrasplusnoborder infraspluswidth220" src = "'.$logoPath.'"></a>
 													<br/>&nbsp;&nbsp;'.$langs->trans('InfraSPlusParamSlogan').'
 												</td>
 												<td class = "center valignmiddle infraspluswidthtrentepercent">
 													<a href = "'.$urlstore.'" target = "_blank"><input '.$InputCarac.' value = "'.$langs->trans('InfraSPlusParamLienModules').'" /></a>
-													<button class = "butAction infraspluswidth180 infrasplusheight32" type = "submit" >'.$langs->trans('InfraSWorkflowParamSupport').'</button>
+													<button class = "button infraspluswidth180 infrasplusheight32" type = "submit" >'.$langs->trans('InfraSWorkflowParamSupport').'</button>
 												</td>
 												<td rowspan = "3" class = "right bold valignbottom infraspluswidthtrentepercent infrasplusslogan">
-													<a href = "'.$urlDoli.'" target = "_blank"><img class = "noborder infraspluswidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
+													<a href = "'.$urlDoli.'" target = "_blank"><img class = "infrasplusnoborder infraspluswidth270" src = "'.$logoDolistorePath.'"></a>&nbsp;&nbsp;
 													<br/>'.$langs->trans('InfraSPlusParamMoreModulesLink').'&nbsp;&nbsp;
 												</td>
 											</tr>
 											<tr>
 												<td class = "center valignbottom infrasplusminwidth700imp">
-													<img class = "noborder infraspluswidth220 infrasplusmargintop10imp" src="'.$preferedPartnerPath.'"/>
+													<img class = "infrasplusnoborder infraspluswidth220 infrasplusmargintop10imp" src="'.$preferedPartnerPath.'"/>
 												</td>
 											</tr>
 											<tr>
@@ -1008,7 +1025,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$ret					.= load_fiche_titre('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamHistoryUpdates').'</span>', '', $listUpD, 1);
 		$sxe					= infraspackplus_getChangelogFile($appliname);
 		$sxelast				= infraspackplus_getChangelogFile($appliname, 'dwn');
-		$tblversionslast		= is_object($sxelast) ? $sxelast->Version : [];
+		$tblversionslast		= is_object($sxelast) ? $sxelast->Version : array();
 		if ($resVersion == -1) {
 			foreach ($tblversions as $error) {
 				$ret	.= $error->message;
@@ -1022,7 +1039,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		}
 		$ret	.= '			<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 									<input type = "hidden" name = "token" value = "'.newToken().'">
-									<table class = "noborder centpercent" >
+									<table class = "infrasplusnoborder centpercent" >
 										<tr class = "liste_titre">
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamNumberVersion').'</th>
 											<th class = "center width100">'.$langs->trans('InfraSPlusParamMonthVersion').'</th>
@@ -1132,7 +1149,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		$formatarray	= pdf_InfraSPlus_getFormat();
 		$format			= array($formatarray['width'], $formatarray['height']);
 		$pdf			= pdf_InfraSPlus_getInstance($format, 'mm', 'P');
-		$ret			= '	<table class = "noborder" >
+		$ret			= '	<table class = "infrasplusnoborder" >
 								<tr class = "liste_titre">
 									<th class = "center width400">'.$langs->trans('InfraSPlusSupportInformation').'</th>
 									<th class = "center">'.$langs->trans('Value').'</th>

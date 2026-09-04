@@ -26,9 +26,9 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 
 	global $user;
@@ -36,7 +36,7 @@
 	// Translations *********************************
 	$langs->loadLangs(array('companies', 'commercial', 'infraspackplus@infraspackplus'));
 
-	$id			= GETPOSTINT('id');
+	$id			= GETPOST('id','int');
 	$action		= GETPOST('action','alpha');
 	$cancel		= GETPOST('cancel', 'alpha');
 	$confirm	= GETPOST('confirm','alpha');
@@ -45,8 +45,8 @@
 		$backtopage = dol_sanitizeUrl($backtopage);
 	}
 	$origin		= GETPOST('origin','alpha');
-	$originid	= GETPOSTINT('originid');
-	$socid		= $user->socid ? $user->socid : (GETPOSTINT('socid') ? GETPOSTINT('socid') : GETPOSTINT('id'));
+	$originid	= GETPOST('originid','int');
+	$socid		= $user->socid ? $user->socid : (GETPOST('socid', 'int') ? GETPOST('socid', 'int') : GETPOST('id', 'int'));
 	$societe	= new Societe($db);
 	$societe->fetch($socid);
 
@@ -80,7 +80,7 @@
 		$object->address	= GETPOST('address', 'alphanohtml');
 		$object->zip		= GETPOST('zipcode', 'alphanohtml');
 		$object->town		= GETPOST('town', 'alphanohtml');
-		$object->country_id	= GETPOSTINT('country_id') ? GETPOSTINT('country_id') : $mysoc->country_id;
+		$object->country_id	= GETPOST('country_id', 'int') ? GETPOST('country_id', 'int') : $mysoc->country_id;
 		$object->phone		= GETPOST('phone', 'alpha');
 		$object->fax		= GETPOST('fax', 'alpha');
 		$object->note		= GETPOST('note', 'none');
@@ -140,17 +140,12 @@
 		}
 	} elseif ($action == 'confirm_delete' && $confirm == 'yes' && !empty($user->hasRight('societe', 'supprimer'))) {
 		$result	= $object->delete($id);
-		if ($result > 0) {
-			if (!empty($backtopage)) {
-				header('Location: '.$backtopage);
-				exit;
-			}
+		if ($result == 0) {
 			header('Location: '.DOL_URL_ROOT.'/societe/contact.php?socid='.$socid);
-			exit;
+			exit ;
 		} else {
 			$reload	= 0;
 			$action	= '';
-			setEventMessages($object->error, $object->errors, 'errors');
 		}
 	}
 
@@ -180,7 +175,7 @@
 				$object->email		=	GETPOST('email', 'custom', 0, FILTER_SANITIZE_EMAIL);
 				$object->url		=	GETPOST('url', 'custom', 0, FILTER_SANITIZE_URL);
 			}
-			$object->country_id	= (GETPOSTINT('country_id') ? GETPOSTINT('country_id') : $mysoc->country_id);
+			$object->country_id	= (GETPOST('country_id','int') ? GETPOST('country_id','int') : $mysoc->country_id);
 			if (!empty($object->country_id)) {
 				$tmparray				= getCountry($object->country_id,'all');
 				$object->country_code	= $tmparray['code'];
@@ -214,7 +209,9 @@
 			print '					<tr>
 										<td class = "tdtop">'.$langs->trans('Address').'</td>
 										<td colspan = "3">
-											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">'.dol_escape_htmltag($object->address, 0, 1).'</textarea>';
+											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">';
+			print dol_escape_htmltag($object->address, 0, 1);
+			print '							</textarea>';
 			print $form->widgetForTranslation('address', $object, $permissiontoadd, 'textarea', 'alphanohtml', 'quatrevingtpercent');
 			print '						</td>
 									</tr>';
@@ -278,7 +275,9 @@
 			print '					<tr>
 										<td>'.$langs->trans('Note').'</td>
 										<td colspan = "3">
-											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">'.dol_escape_htmltag($object->note, 0, 1).'</textarea>
+											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">';
+			print $object->note;
+			print '							</textarea>
 										</td>
 									</tr>';
 			print '				</table>
@@ -312,7 +311,7 @@
 				$object->address	=	GETPOST('address', 'alphanohtml');
 				$object->zip		=	GETPOST('zipcode', 'alphanohtml');
 				$object->town		=	GETPOST('town', 'alphanohtml');
-				$object->country_id	=	GETPOSTINT('country_id') ? GETPOSTINT('country_id') : $mysoc->country_id;
+				$object->country_id	=	GETPOST('country_id', 'int') ? GETPOST('country_id', 'int') : $mysoc->country_id;
 				$object->phone		=	GETPOST('phone', 'alpha');
 				$object->fax		=	GETPOST('fax', 'alpha');
 				$object->email		=	GETPOST('email', 'custom', 0, FILTER_SANITIZE_EMAIL);
@@ -351,7 +350,9 @@
 			print '					<tr>
 										<td class = "tdtop">'.$langs->trans('Address').'</td>
 										<td colspan = "3">
-											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">'.dol_escape_htmltag($object->address, 0, 1).'</textarea>';
+											<textarea name = "address" id = "address" class = "quatrevingtpercent" rows = "3" wrap = "soft">';
+			print dol_escape_htmltag($object->address, 0, 1);
+			print '							</textarea>';
 			print $form->widgetForTranslation('address', $object, $permissiontoadd, 'textarea', 'alphanohtml', 'quatrevingtpercent');
 			print '						</td>
 									</tr>';
@@ -415,7 +416,9 @@
 			print '					<tr>
 										<td>'.$langs->trans('Note').'</td>
 										<td colspan = "3">
-											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">'.dol_escape_htmltag($object->note, 0, 1).'</textarea>
+											<textarea name = "note" cols = "40" rows = "6" wrap = "soft">';
+			print $object->note;
+			print '							</textarea>
 										</td>
 									</tr>';
 			print '				</table>
@@ -442,7 +445,7 @@
 		}
 		// Confirmation delete
 		if ($action == 'delete') {
-			print $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.(!empty($backtopage) ? '&backtopage='.urlencode($backtopage) : ''), $langs->trans('InfraSPlusParamDeleteAddress'), $langs->trans('InfraSPlusParamConfirmDeleteAddress'), 'confirm_delete', '', '', 1, 200, 500, 0, 'Yes', 'No');
+			print $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id, $langs->trans('DeleteAddress'), $langs->trans('ConfirmDeleteAddress'), 'confirm_delete');
 		}
 		$nblines	= count($object->lines);
 		if (!empty($nblines)) {
@@ -515,24 +518,21 @@
 		}
 		// Action button
 		print '				<div class = "tabsAction">';
-		$parameters	= [];
+		$parameters	= array();
 		$reshook	= $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action); // Note that $action and $object may have been modified by hook+
 		if (empty($reshook) && $action != 'presend') {
 			if (!empty($user->hasRight('societe', 'creer'))) {
 				print '				<div class = "inline-block divButAction">
 										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&action=create&backtopage='.urlencode($backtopage).'">'.$langs->trans('Add').'</a>
 									</div>';
-				if (!empty($id) && !empty($objectLine)) {
-					print '			<div class = "inline-block divButAction">
-										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.'&action=edit&backtopage='.urlencode($backtopage).'">'.$langs->trans('Modify').'</a>
-									</div>';
-				}
-			}
-			if (!empty($user->hasRight('societe', 'supprimer')) && !empty($id) && !empty($objectLine)) {
 				print '				<div class = "inline-block divButAction">
-										<a class = "butActionDelete" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$id.'&action=delete&token='.newToken().'&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
+										<a class = "butAction" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=edit&backtopage='.urlencode($backtopage).'">'.$langs->trans('Modify').'</a>
 									</div>';
 			}
+			if (!empty($user->hasRight('societe', 'supprimer')))
+				print '				<div class = "inline-block divButAction">
+										<a class = "butActionDelete" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?socid='.$socid.'&id='.$object->lines[$i]->id.'&action=delete&backtopage='.urlencode($backtopage).'">'.$langs->trans('Delete').'</a>
+									</div>';
 		}
 		print '				</div>';
 	}

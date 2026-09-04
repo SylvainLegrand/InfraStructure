@@ -35,7 +35,7 @@
 		public $version				= self::VERSION_DEVELOPMENT;	// Version of the trigger @var string
 		public $picto				= 'technic';	// Image of the trigger @var string
 		public $family				= '';	// Category of the trigger @var string
-		public $errors				= [];	// Errors reported by the trigger @var array
+		public $errors				= array();	// Errors reported by the trigger @var array
 		const VERSION_DEVELOPMENT	= 'development';	// @var string module is in development
 		const VERSION_EXPERIMENTAL	= 'experimental';	// @var string module is experimental
 		const VERSION_DOLIBARR		= 'dolibarr';	// @var string module is dolibarr ready
@@ -118,7 +118,7 @@
 		*/
 		public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 		{
-			if (!isModEnabled('infraspackplus') || empty($object->element) || !in_array($object->element, ['societe']) || !in_array($action, ['COMPANY_CREATE', 'COMPANY_DELETE'])) {
+			if (!isModEnabled('infraspackplus') || !in_array($object->element, ['societe']) || !in_array($action, ['COMPANY_CREATE', 'COMPANY_DELETE'])) {
 				return 0;
 			}
 			$ParamLogoEmet	= getDolGlobalInt('INFRASPLUS_PDF_SET_LOGO_EMET_TIERS', 0);
