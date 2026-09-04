@@ -27,13 +27,13 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
 	// Translations *********************************
@@ -79,43 +79,47 @@
 		$result		= dolibarr_set_const($db, $confkey, GETPOST('value'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 	}
 	// Update buttons management
+	// 3rd value = default state of the "always visible" (pin) checkbox: 1 = checked by default, absent/0 = unchecked
 	$listOptions	= array('logo'					=> array('PDFInfraSPlusLogo',						1),	// $num = 1
 							'adr'					=> array('PDFInfraSPlusAddress',					1),	// $num = 2
 							'customerAddrSelect'	=> array('PDFInfraSPlusCustomerAddress',			1),	// $num = 3
 							'listfreet'				=> array('PDFInfraSPlusMentions',					1),	// $num = 4
 							'listnotep'				=> array('PDFInfraSPlusNotes',						1),	// $num = 5
 							'pied'					=> array('PDFInfraSPlusPied',						1),	// $num = 6
-							'adrlivr'				=> array('PDFInfraSPlusAdrLivr',					1),	// $num = 7
-							'adrSst'				=> array('PDFInfraSPlusListSsT',					1),	// $num = 8
-							'adrlivrfour'			=> array('PDFInfraSPlusAdrLivrFour',				1),	// $num = 9
+							'adrlivr'				=> array('PDFInfraSPlusAdrLivr',					1,	1),	// $num = 7
+							'adrSst'				=> array('PDFInfraSPlusListSsT',					1,	1),	// $num = 8
+							'adrlivrfour'				=> array('PDFInfraSPlusAdrLivrFour',					1,	1),	// $num = 9
 							'cgv'					=> array('PDFInfraSPlusCGVchk',						1),	// $num = 10
 							'cgi'					=> array('PDFInfraSPlusCGIchk',						1),	// $num = 11
 							'cga'					=> array('PDFInfraSPlusCGAchk',						1),	// $num = 12
-							'filesArray'			=> array('PDFInfraSPlusFiles',						1),	// $num = 13
-							'expensereportfiles'	=> array('InfraSPlusParamFilesFromExpensereport',	1),	// $num = 14
+							'filesArray'				=> array('PDFInfraSPlusFiles',						1),	// $num = 13
+							'expensereportfiles'		=> array('InfraSPlusParamFilesFromExpensereport',	1),	// $num = 14
 							'includealias'			=> array('PDFParamAliasIn3rdName',					1),	// $num = 15
 							'mergeproduct'			=> array('PDFInfraSPlusMergeProduct',				1),	// $num = 16
-							'usentascover'			=> array('PDFInfraSPlusUseNtAsCover',				1),	// $num = 17
-							'showwvccchk'			=> array('PDFInfraSPlusShowWVCCchk',				1),	// $num = 18
-							'hidepict'				=> array('PDFInfraSPlusHidePictchk',				1),	// $num = 19
-							'refcol'				=> array('PDFInfraSPlusShowRefCol',					1),	// $num = 20
-							'hidetimespent'			=> array('PDFInfraSPlusHidetimeSpentchk',			1),	// $num = 21
-							'hidedesc'				=> array('PDFInfraSPlusHideDescchk',				1),	// $num = 22
-							'hidedisc'				=> array('PDFInfraSPlusHideDiscchk',				1),	// $num = 23
-							'hidecols'				=> array('PDFInfraSPlusHideColschk',				1),	// $num = 24
-							'showpricebl'			=> array('PDFInfraSPlusShowPriceBLchk',				1),	// $num = 25
-							'adrfact'				=> array('PDFInfraSPlusParamAdrFact',				1),	// $num = 26
-							'showtotdisc'			=> array('InfraSPlusShowTotDiscChk',				!getDolGlobalInt('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT', 0)),	// $num = 27
-							'showtvabtp'			=> array('InfraSPlusShowTVAtxtBTPChk',				1),	// $num = 28
-							'showtot'				=> array('InfraSPlusShowTotChk',					1),	// $num = 29
-							'showvir'				=> array('InfraSPlusParamNoIBAN',					1),	// $num = 30
-							'showpayspec'			=> array('InfraSPlusShowPaySpecChk',				1),	// $num = 31
-							'showPropalSignEmet'	=> array('InfraSPlusShowPropalSignEmetChk',			1)	// $num = 32
+							'docseparate'			=> array('PDFInfraSPlusDocSeparate',				1),	// $num = 17
+							'usentascover'			=> array('PDFInfraSPlusUseNtAsCover',				1),	// $num = 18
+							'showwvccchk'			=> array('PDFInfraSPlusShowWVCCchk',				1),	// $num = 19
+							'hidepict'				=> array('PDFInfraSPlusHidePictchk',				1),	// $num = 20
+							'refcol'				=> array('PDFInfraSPlusShowRefCol',					1),	// $num = 21
+							'hidetimespent'			=> array('PDFInfraSPlusHidetimeSpentchk',			1),	// $num = 22
+							'hidedesc'				=> array('PDFInfraSPlusHideDescchk',				1),	// $num = 23
+							'hidedisc'				=> array('PDFInfraSPlusHideDiscchk',				1),	// $num = 24
+							'hidecols'				=> array('PDFInfraSPlusHideColschk',				1),	// $num = 25
+							'showpricebl'			=> array('PDFInfraSPlusShowPriceBLchk',				1),	// $num = 26
+							'adrfact'				=> array('PDFInfraSPlusParamAdrFact',				1),	// $num = 27
+							'showtotdisc'			=> array('InfraSPlusShowTotDiscChk',				!getDolGlobalInt('INFRASPLUS_PDF_SHOW_DISCOUNT_TOT', 0)),	// $num = 28
+							'showtvabtp'			=> array('InfraSPlusShowTVAtxtBTPChk',				1),	// $num = 29
+							'showtot'				=> array('InfraSPlusShowTotChk',					1),	// $num = 30
+							'showvir'				=> array('InfraSPlusParamNoIBAN',					1),	// $num = 31
+							'showpayspec'			=> array('InfraSPlusShowPaySpecChk',				1),	// $num = 32
+							'showPropalSignEmet'	=> array('InfraSPlusShowPropalSignEmetChk',			1)	// $num = 33
 							);
 	if (preg_match('/update_(.*)/', $action, $reg)) {
 		foreach ($listOptions as $option => $transKey) {
 			$constname	= 'INFRASPLUS_PDF_OPTION_'.$option;
 			$result		= dolibarr_set_const($db, $constname, GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
+			$pinname	= 'INFRASPLUS_PDF_OPTION_PIN_'.$option;
+			$result		= dolibarr_set_const($db, $pinname, GETPOST($pinname, 'int') ? '1' : '0', 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			if ($option == 'adrSst') {
 				$result	= dolibarr_set_const($db, 'INFRASPLUS_PDF_OPTION_Sst', GETPOST($constname, 'alpha'), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			}
@@ -128,10 +132,10 @@
 		}
 	}
 	if ($result == 1) {
-		setEventMessages($langs->trans('SetupSaved'), array(), 'mesgs');
+		setEventMessages($langs->trans('SetupSaved'), [], 'mesgs');
 	}
 	if ($result == -1) {
-		setEventMessages($langs->trans('Error'), array(), 'errors');
+		setEventMessages($langs->trans('Error'), [], 'errors');
 	}
 
 	// init variables *******************************
@@ -197,18 +201,20 @@
 	}
 	print '			<div class = "NOfoldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGenerationSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title');
-	print '				<table name = "tblGen" class = "infrasplusnoborder NOtoggle_bloc centpercent">';
-	$metas	= array('30px', '*', '150px', '150px', '150px', '150px', '150px', '120px');
+	print '				<table name = "tblGen" class = "noborder NOtoggle_bloc centpercent">';
+	$metas	= array('30px', '*', '150px', '150px', '150px', '150px', '150px', '150px', '120px');
 	infraspackplus_print_colgroup($metas);
-	$metas	= array(array(1, 1, 1, 1, 1, 1, 1 ,1), 'NumberingShort', 'Description', 'InfraSPlusParamBkpPerUser', 'InfraSPlusParamBkpPerDocument', 'InfraSPlusParamBkpPerType', 'InfraSPlusParamBkpPerCustomer', 'InfraSPlusParamBkpNone', '&nbsp;');
+	$metas	= array(array(1, 1, 1, 1, 1, 1, 1, 1, 1), 'NumberingShort', 'Description', 'InfraSPlusParamBkpPerUser', 'InfraSPlusParamBkpPerDocument', 'InfraSPlusParamBkpPerType', 'InfraSPlusParamBkpPerCustomer', 'InfraSPlusParamBkpNone', 'InfraSPlusParamPinVisible', '&nbsp;');
 	infraspackplus_print_liste_titre($metas);
 	if (!empty($accessright)) {
 		$num	= 1;
-		infraspackplus_print_btn_action('Gen', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave').'<br/><span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamAvertissementCalculImage'), 7);
+		infraspackplus_print_btn_action('Gen', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave').'<br/><span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamAvertissementCalculImage'), 8);
 		foreach ($listOptions as $option => $transKey) {
 			if (!empty($transKey[1])) {
 				$confkey		= 'INFRASPLUS_PDF_OPTION_'.$option;
 				$option_value	= getDolGlobalString($confkey, 'none');
+				$pinkey			= 'INFRASPLUS_PDF_OPTION_PIN_'.$option;
+				$pin_checked	= getDolGlobalString($pinkey, !empty($transKey[2]) ? '1' : '0') == '1';
 				print '			<tr class = "oddeven">
 									<td class = "center bold">'.$num.'</td>
 									<td>'.$langs->trans($transKey[0]).'</td>
@@ -217,6 +223,7 @@
 									<td class = "center"><input type = "radio" name = "'.$confkey.'" value = "type"'.($option_value == 'type' ? ' checked' : '').'/></td>
 									<td class = "center"><input type = "radio" name = "'.$confkey.'" value = "cust"'.($option_value == 'cust' ? ' checked' : '').'/></td>
 									<td class = "center"><input type = "radio" name = "'.$confkey.'" value = "none"'.($option_value == 'none' ? ' checked' : '').'/></td>
+									<td class = "center"><input type = "checkbox" name = "'.$pinkey.'" value = "1"'.($pin_checked ? ' checked' : '').'/></td>
 								</tr>';
 			}
 			$num++;

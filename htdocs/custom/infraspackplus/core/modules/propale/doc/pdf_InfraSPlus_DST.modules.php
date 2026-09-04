@@ -18,22 +18,22 @@
 	************************************************/
 
 	/************************************************
-	* 	\file		./infraspackplus/core/modules/propale/doc/pdf_InfraSPlus_D.modules.php
+	* 	\file		./infraspackplus/core/modules/propale/doc/pdf_InfraSPlus_DST.modules.php
 	* 	\ingroup	InfraS
 	* 	\brief		Class file for InfraS PDF commercial proposal
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/propale/modules_propale.php';
-	require_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/propale/modules_propale.php';
+	include_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 	// For retrocompatibility Dolibarr < 21.0
@@ -46,14 +46,15 @@
 	************************************************/
 	class pdf_InfraSPlus_DST extends ModelePDFPropales
 	{
+		const MIN_GAP_BEFORE_FOOTER	= 0.75;	// Espace mini garanti entre le bas du dernier bloc (colonne infos/bank ou zone de signature) et la ligne de separation du pied de page (~2px a 96dpi)
+
 		public $db;
 		public $name;
 		public $description;
 		public $titlekey;
 		public $defaulttemplate;
 		public $draft_watermark;
-		public $use_doli_addr_livr;
-		public $doli_addr_livr_recep;
+		public $exf_PropalProv;
 		public $show_sign_area;
 		public $show_ExtraFieldsLines;
 		public $option_logo;
@@ -68,8 +69,6 @@
 		public $option_draft_watermark;
 		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
 		public $type;
-		public $phpmin = array(7, 4);
-		public $version = 'dolibarr';
 		public $emetteur;
 		public $atleastonediscount;
 		public $tva;
@@ -92,6 +91,7 @@
 		public $marge_basse;
 		public $formatpage;
 		public $use_iso_location;
+		public $arrayidcontact;
 		public $dash_between_line;
 		public $product_use_unit;
 		public $hide_vat_ifnull;
@@ -244,6 +244,7 @@
 		public $hide_discount;
 		public $hide_cols;
 		public $showwvccchk;
+		public $wvcc_no_hr;
 		public $show_tot_disc;
 		public $show_vir;
 		public $show_tva_btp;
@@ -254,24 +255,24 @@
 		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $stdLineColor = array(0, 0, 0);
-		public $stdLineStyle = array();
+		public $stdLineStyle = [];
 		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
 		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
 		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
 		public $bgLineColor = array(0, 0, 0);
-		public $bgLineStyle = array();
+		public $bgLineStyle = [];
 		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $tblLineStyle = array();
-		public $verLineStyle = array();
-		public $horLineStyle = array();
+		public $tblLineStyle = [];
+		public $verLineStyle = [];
+		public $horLineStyle = [];
 		public $signLineCap = '';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
-		public $signLineStyle = array();
+		public $signLineStyle = [];
 		public $TotRem = array('HT' => 0, 'TTC' => 0, 'multicurrency_HT' => 0, 'multicurrency_TTC' => 0);
 		public $hasService = 0;
 		public $hasProduct = 0;
 		public $nbrProdTot = 0;
-		public $nbrProdDif = array();
-		public $ecoTaxes = array();
+		public $nbrProdDif = [];
+		public $ecoTaxes = [];
 		public $hasEcoTaxes = 0;
 		public $only_ht;
 		public $use_multicurrency;
@@ -300,7 +301,7 @@
 		public $largcol8;
 		public $largcol9;
 		public $largcol10;
-		public $tableau = array();	// Array of table to print
+		public $tableau = [];	// Array of table to print
 		public $heightforfooter;
 		public $larg_tabtotal;
 		public $larg_tabinfo;
@@ -309,15 +310,26 @@
 		public $decal_round = 0;
 		public $ht_top_table;
 		public $heightline;
-		public $use_tva_forfait;
-		public $tva_forfait;
-		public $pagewithoutheader = array();
-		public $tableHeaderBefore = array();
+		public $pagewithoutheader = [];
+		public $tableHeaderBefore = [];
 		public $signvalueEmet;
 		public $show_sign_emet_width;
+		public $propalprov_watermark;
+		public $cgv_at_very_end;
 		public $hide_pricescol;
 		public $hide_totcol;
-		public $cgv_at_very_end;
+		public $largcol11;
+		public $mergeproduct;
+		public $docseparate;
+		public $posystamp;
+		public $product_merge;
+		public $product_merge_check_x2;
+		public $produit_pdf_merge;
+		public $raw_prices;
+		public $show_pay_spec;
+		public $show_sign_area_emet;
+		public $show_sign_area_name_function;
+		public $typeadr;
 
 		/**
 		*	Constructor
@@ -337,6 +349,7 @@
 			$this->titlekey						= 'PdfCommercialProposalTitle';
 			$this->defaulttemplate				= getDolGlobalString('PROPALE_ADDON_PDF', '');
 			$this->draft_watermark				= getDolGlobalString('PROPALE_DRAFT_WATERMARK', '');
+			$this->exf_PropalProv				= getDolGlobalString('INFRASPLUS_PDF_EXF_PROPALPROV', '');
 			$this->produit_pdf_merge			= getDolGlobalInt('PRODUIT_PDF_MERGE_PROPAL', 0);
 			$this->product_merge				= getDolGlobalInt('INFRASPLUS_PDF_PRODUIT_MERGE_PROPAL', 0);
 			$this->product_merge_check_x2		= getDolGlobalInt('INFRASPLUS_PDF_PRODUIT_CHECK_MERGE_PROPAL_X2', 0);
@@ -348,6 +361,7 @@
 			$this->hide_pricescol				= getDolGlobalInt('INFRASPLUS_PDF_HIDE_PRICES_COL_DEVST', 0);
 			$this->hide_totcol					= getDolGlobalInt('INFRASPLUS_PDF_HIDE_TOT_COL_DEVST', 0);
 			$this->cgv_at_very_end				= getDolGlobalInt('INFRASPLUS_PDF_CGV_AT_VERY_END', 0);
+			$this->propalprov_watermark			= getDolGlobalString('INFRASPLUS_PDF_PROPAL_PROV_WATERMARK', '');
 			$this->option_logo					= 1;	// Display logo
 			$this->option_tva					= 1;	// Manage the vat option FACTURE_TVAOPTION
 			$this->option_modereg				= 1;	// Display payment mode
@@ -363,7 +377,7 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		object		$object				Object to generate
+		*	@param		Propal		$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
@@ -387,8 +401,14 @@
 			if (!empty($this->show_desc)) {
 				$hidedesc	= 0;
 			}
-			$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_DST') ? '' : '_DST';
-			$baseDir	= !empty($conf->propal->multidir_output[$conf->entity]) ? $conf->propal->multidir_output[$conf->entity] : $conf->propal->dir_output;
+			$baseDir		= !empty($conf->propal->multidir_output[$conf->entity]) ? $conf->propal->multidir_output[$conf->entity] : $conf->propal->dir_output;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_DST') ? '' : '_DST';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_DST', '');
+				$filesufixe	= empty($fileprefix) ? '_DST' : '';
+			}
 			if (!empty($baseDir)) {
 				$object->fetch_thirdparty();
 				if (!empty($this->show_ExtraFieldsLines)) {
@@ -403,7 +423,7 @@
 				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
-					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}
 				if (! file_exists($dir)) {
 					if (dol_mkdir($dir) < 0) {
@@ -430,6 +450,7 @@
 					$this->CGV					= !empty($hookmanager->resArray['cgv']) ? $hookmanager->resArray['cgv'] : '';
 					$this->files				= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
 					$this->mergeproduct			= !empty($hookmanager->resArray['mergeproduct']) ? $hookmanager->resArray['mergeproduct'] : '';
+					$this->docseparate			= !empty($hookmanager->resArray['docseparate']) ? $hookmanager->resArray['docseparate'] : '';
 					$this->usentascover			= !empty($hookmanager->resArray['usentascover']) ? $hookmanager->resArray['usentascover'] : '';
 					$this->include_alias		= !empty($hookmanager->resArray['includealias']) ? $hookmanager->resArray['includealias'] : '';
 					$this->with_picture			= !empty($hookmanager->resArray['hidepict']) ? $hookmanager->resArray['hidepict'] : '';
@@ -446,8 +467,8 @@
 					$this->show_sign_area_emet	= !empty($hookmanager->resArray['showPropalSignEmet']) ? $hookmanager->resArray['showPropalSignEmet'] : 0;
 					$this->signvalue			= !empty($hookmanager->resArray['signvalue']) ? $hookmanager->resArray['signvalue'] : '';
 					$this->hideInnerLines		= !empty($hookmanager->resArray['hideInnerLines']) ? $hookmanager->resArray['hideInnerLines'] : '';
-					$this->add_recap			= !empty($hookmanager->resArray['subtotal_add_recap']) ? $hookmanager->resArray['subtotal_add_recap'] : '';
-					$hookmanager->resArray		= array();
+					$this->add_recap			= !empty($hookmanager->resArray['subtotal_add_recap']) ? $hookmanager->resArray['subtotal_add_recap'] : (!empty($hookmanager->resArray['infrastructure_add_recap']) ? $hookmanager->resArray['infrastructure_add_recap'] : '');
+					$hookmanager->resArray		= [];
 					if (!empty($this->usentascover)) {
 						$this->first_page_empty	= 1;	// Comme on veut une page de garde on créé une page vide en premier puis on insère la note prévue sur celle-ci
 					}
@@ -483,6 +504,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages			= array($pdf->getPage() => true);	// Track pages with watermark to avoid double rendering in while loops
 					$pagenb						= 1;
 					// Default PDF parameters
 					$this->stdLineColor			= array(128, 128, 128);
@@ -495,7 +517,7 @@
 					$this->horLineStyle			= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>$this->horLineColor);
 					$this->signLineStyle		= array('width'=>$this->signLineW, 'dash'=>$this->signLineDash, 'cap'=>$this->signLineCap, 'color'=>$this->signLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Use of multicurrency for this document
 					$this->use_multicurrency	= isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 1 : 0;
@@ -503,21 +525,21 @@
 					$this->tableHeaderBefore	= 0;
 					$isTitleToList				= 0;
 					$isTitleToCondense			= 0;
-					$subtotalRecap				= array();
-					$descWorksHidden			= array();
-					$lineToHide					= array();
-					$realpatharray				= array();
-					$pricesObjProd				= array();
-					$listObjBib					= array();
-					$listDescBib				= array();
+					$subtotalRecap				= [];
+					$descWorksHidden			= [];
+					$lineToHide					= [];
+					$realpatharray				= [];
+					$pricesObjProd				= [];
+					$listObjBib					= [];
+					$listDescBib				= [];
 					$objproduct					= new Product($this->db);
 					for ($i = 0 ; $i < $nblignes ; $i++) {
-						$isOuvrage		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
+						$isOuvrage		= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
+						$isSubTotalLine	= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element);
 						$isProd			= !empty($object->lines[$i]->fk_product) && empty($isOuvrage) && empty($isSubTotalLine) ? $objproduct->fetch($object->lines[$i]->fk_product) : 0;
 						// Test des options Sous-total
 						if (!empty($isSubTotalLine)) {	// ATM lines
-							if ($object->lines[$i]->qty < 10) {	// Sous-titres ATM
+							if (infraspackplus_isSubtotalTitle($object->lines[$i], $object->element)) {	// Sous-titres ATM ou natifs
 								if (!empty($object->lines[$i]->info_bits) && $object->lines[$i]->info_bits > 0) {	// Avec saut de page demandé avant
 									// Pour afficher l'en-tête du tableau juste avant un titre spécifique
 									if (!empty($object->lines[$i]->array_options['options_show_table_header_before']) && $object->lines[$i]->array_options['options_show_table_header_before'] > 0) {
@@ -539,6 +561,10 @@
 								}
 							}
 						}
+						// Sous-totaux Infrastructure : collecte pour récap (si add_recap actif)
+						if (!empty($this->add_recap) && infraspackplus_isInfrastructureTotal($object->lines[$i])) {
+							$subtotalRecap	= pdf_InfraSPlus_subtotal_getrecap($object, $i, $subtotalRecap);
+						}
 						// determine category of operation
 						$this->hasProduct	+= $object->lines[$i]->product_type == Product::TYPE_PRODUCT ? 1 : 0;	// Products
 						$this->hasService	+= $object->lines[$i]->product_type == Product::TYPE_SERVICE ? 1 : 0;	// Services
@@ -547,7 +573,7 @@
 							$idParentTitle	= pdf_InfraSPlus_escapeEns($object, $i, -3);	// Ligne sous un titre / sous titre à afficher sous forme de liste
 							if (!empty($idParentTitle) && $idParentTitle == $isTitleToList) {
 								$lineToHide[]	= $object->lines[$i]->id;
-								$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+								$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 								$label			= $isProd > 0 ? $objproduct->label : $desc;
 								if (empty($descWorksHidden[$idParentTitle]['nb'])) {
 									$descWorksHidden[$idParentTitle]['nb']	= 0;
@@ -561,7 +587,7 @@
 							$idParentTitle	= pdf_InfraSPlus_escapeEns($object, $i, -4);	// Ligne sous un titre / sous titre à afficher condensé
 							if (!empty($idParentTitle) && $idParentTitle == $isTitleToCondense) {
 								$lineToHide[]	= $object->lines[$i]->id;
-								$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+								$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 								$label			= $isProd > 0 ? $objproduct->label : $desc;
 								if (empty($descWorksHidden[$idParentTitle]['nb'])) {
 									$descWorksHidden[$idParentTitle]['nb']	= 0;
@@ -592,7 +618,7 @@
 								$idParentLine	= $object->lines[$i]->fk_parent_line;
 								if (!empty($idParentLine)) {
 									$lineToHide[]	= $object->lines[$i]->id;
-									$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+									$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 									$label			= $isProd > 0 ? $objproduct->label : $desc;
 									if (empty($descWorksHidden[$idParentLine]['nb'])) {
 										$descWorksHidden[$idParentLine]['nb']	= 0;
@@ -607,7 +633,7 @@
 								$idParentLine	= $object->lines[$i]->fk_parent_line;
 								if (!empty($idParentLine)) {
 									$lineToHide[]	= $object->lines[$i]->id;
-									$desc			= (!empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : ''));
+									$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 									$label			= $isProd > 0 ? $objproduct->label : $desc;
 									if (empty($descWorksHidden[$idParentLine]['nb'])) {
 										$descWorksHidden[$idParentLine]['nb']	= 0;
@@ -623,15 +649,15 @@
 							$this->atleastonediscount++;
 							if (!empty($this->show_tot_disc) && empty($this->show_disc_ttc)) {
 								$this->TotRem['TTC']				+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht);
-								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, array(), 1);
+								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, $this->only_ht, [], 1);
 							}
 							if (!empty($this->show_disc_tot)) {
 								$this->TotRem['HT']					+= pdf_InfraSPlus_getTotRem($object, $i, 1);
-								$this->TotRem['multicurrency_HT']	+= pdf_InfraSPlus_getTotRem($object, $i, 1, array(), 1);
+								$this->TotRem['multicurrency_HT']	+= pdf_InfraSPlus_getTotRem($object, $i, 1, [], 1);
 							}
 							if (!empty($this->show_disc_ttc)) {
 								$this->TotRem['TTC']				+= pdf_InfraSPlus_getTotRem($object, $i, 0);
-								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, array(), 1);
+								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, [], 1);
 							}
 						}
 						// remise calculé globale (type InfraSDiscount)
@@ -650,7 +676,7 @@
 							}
 						}
 						// Remise automatique ou affichage des prix bruts
-						if ($isProd > 0 && ((!empty($this->discount_auto) && $object->lines[$i]->subprice < $objproduct->price) || !empty($this->raw_prices))) {
+						if ($isProd > 0 && (!empty($this->discount_auto) && $object->lines[$i]->subprice < $objproduct->price || !empty($this->raw_prices))) {
 							$this->atleastonediscount++;
 							$pricesObjProd[$i]['pu_ht']						= $objproduct->price;
 							$pricesObjProd[$i]['pu_ttc']					= $objproduct->price_ttc;
@@ -674,63 +700,11 @@
 								$this->TotRem['multicurrency_TTC']	+= pdf_InfraSPlus_getTotRem($object, $i, 0, $pricesObjProd[$i], 1);
 							}
 						} else {
-							$pricesObjProd[$i]	= array();
+							$pricesObjProd[$i]	= [];
 						}
 						// detect if there is at least one image to show
 						if (!empty($this->with_picture) && $isProd > 0) {
-							$ecmfile	= new EcmFiles($this->db);
-							if (!empty($this->old_path_photo)) {
-								$pdir[0]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';
-								$pdir[1]	= get_exdir(0, 0, 0, 0, $objproduct, 'product').dol_sanitizeFileName($objproduct->ref).'/';
-							} else {
-								$pdir[0]	= get_exdir(0, 0, 0, 0, $objproduct, 'product'); // default
-								$pdir[1]	= get_exdir($objproduct->id, 2, 0, 0, $objproduct, 'product').$objproduct->id .'/photos/';		// alternative
-							}
-							$arephoto	= false;
-							$onlyOne	= $this->only_one_picture ? (in_array($objproduct->id, $listObjBib) ? 1 : 0) : 0;
-							foreach ($pdir as $midir) {
-								if (!$arephoto && !$onlyOne) {
-									$dir		= ($objproduct->entity != $conf->entity ? $conf->product->multidir_output[$objproduct->entity] : $conf->product->dir_output).'/'.$midir;
-									$listPhotos	= array();
-									// We recover all the photos attached to the product and we find their position in the ECM
-									foreach ($objproduct->liste_photos($dir, 0) as $key => $obj) {
-										$relpath	= ($objproduct->entity == 1 ? '' : $objproduct->entity.'/').'produit/'.$midir.$obj['photo'];
-										$hasecmfile	= $ecmfile->fetch(0, '', $relpath, '', '', $objproduct->table_element, $objproduct->id);
-										if ($hasecmfile > 0) {
-											$obj['position']	= $ecmfile->position;
-											$listPhotos[]		= $obj;
-										}
-									}
-									// Sort the photos by position
-									if (!empty($listPhotos)) {
-										usort($listPhotos, function($a, $b) {
-											return intval($a['position']) - intval($b['position']);
-										});
-										// Use the first sorted photo
-										// TODO we could use a configuration to choose if we want the first, the last or more than one photo
-										$obj	= $listPhotos[0];
-										if (empty($this->cat_hq_image)) {	// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
-											if (!empty($obj['photo_vignette'])) {
-												$filename	= $obj['photo_vignette'];
-											} else {
-												$filename	= $obj['photo'];
-											}
-										} else {
-											$filename	= $obj['photo'];
-										}
-										$realpath		= $dir.$filename;
-										$listObjBib[]	= $objproduct->id;
-										$arephoto		= true;
-									}
-								}
-							}
-							if (!empty($realpath) && !empty($arephoto)) {
-								$realpatharray[$i]	= $realpath;
-							} elseif (!empty($onlyOne)) {
-								$realpatharray[$i]	= 'done';
-							} else {
-								$realpatharray[$i]	= '';
-							}
+							$realpatharray[$i]	= pdf_InfraSPlus_getLineProductImage($this->db, $objproduct, $object->lines[$i], $this->old_path_photo, $this->cat_hq_image, $this->only_one_picture, $listObjBib);
 						} else {
 							$realpatharray[$i]	= '';
 						}
@@ -953,6 +927,7 @@
 						$heightforinfotot	= $ht_colinfo > $ht_coltotal ? $ht_colinfo : $ht_coltotal;
 					}
 					$heightforinfotot		+= !empty($this->free_text_end) ? pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, 0, 1, $this->horLineStyle) : 0;
+					$heightforinfotot		+= self::MIN_GAP_BEFORE_FOOTER;
 					$this->heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 1);
 					// Insert a empty page or a cover page first
 					if (!empty($this->first_page_empty)) {
@@ -964,8 +939,9 @@
 						} else {
 							$pdf->AddPage('', '', true);
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							$watermarkedPages[$pdf->getPage()]	= true;
 							$pdf->setPage(2);
-							$tab_top	= $tab_top_newpage;
+							$tab_top							= $tab_top_newpage;
 						}
 					}
 					// Incoterm
@@ -986,7 +962,7 @@
 					$tab_top		+= $height_incoterms;
 					// Livraison
 					$height_livr	= 0;
-					if (!empty($head['livrshow'])) {
+					if (!empty($head['livrshow']) && getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION')) {
 						$pdf->SetFont('', 'B', $default_font_size + 2);
 						$pdf->writeHTMLCell($this->larg_util_txt, $this->tab_hl, $this->posx_G_txt, $tab_top, dol_htmlentitiesbr($outputlangs->transnoentities('PDFInfraSPlusLivr')), 0, 1);
 						$xlivr	= $pdf->GetX() + $pdf->GetStringWidth($outputlangs->transnoentities('PDFInfraSPlusLivr'), '', 'B', $default_font_size + 2) + 5;
@@ -1020,7 +996,7 @@
 					if (!empty($this->header_after_addr)) {
 						$tab_top	+= $this->space_headerafter;
 						$pdf->SetFont('', '', $default_font_size - 1);
-						$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+						$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 						$refDoc		= !empty($this->ref_from_cust) ? $object->ref_client : $object->ref;
 						$refCli		= !empty($this->ref_from_cust) ? '' : $object->ref_client;
 						$txtC11		= $outputlangs->transnoentities($this->titlekey).' '.$outputlangs->transnoentities('Ref').' : '.$outputlangs->convToOutputCharset($refDoc);
@@ -1030,8 +1006,9 @@
 						}
 						$largC11	= $pdf->GetStringWidth($txtC11, '', '', $default_font_size - 1) + 3;
 						$pdf->MultiCell($largC11, $this->tab_hl, $txtC11, 0, 'L', 0, 0, $this->posx_G_txt, $tab_top, true, 0, 0, false, 0, 'M', false);
-						$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+						$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 						$txtC12		= $outputlangs->transnoentities('Date').' : '.dol_print_date($object->date, 'day', false, $outputlangs, true);
+						$txtC12b	= '';
 						if (!empty($object->fin_validite)) {
 							$txtC12b	= $outputlangs->transnoentities('DateEndPropal').' : '.dol_print_date($object->fin_validite, 'day', false, $outputlangs, true);
 						}
@@ -1070,10 +1047,13 @@
 					// Loop on each lines
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						// Gestion des ouvrages, titres, sous-titres et sous-totaux
-						$isOuvrage		= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
-						$isSubTotalLine	= infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modSubtotal');
-						$isSubTitle		= $isSubTotalLine && $object->lines[$i]->qty < 10 ? 1 : 0;	// Sous-titre ATM
-						$isSubTotal		= $isSubTotalLine && $object->lines[$i]->qty > 90 ? 1 : 0;	// Sous-total ATM
+						$isOuvrage		= isModEnabled('ouvrage') && infraspackplus_isLineFromExternalModule($object->lines[$i], $object->element, 'modOuvrage');
+						$isSubTotalLine	= infraspackplus_isSubtotalModuleLine($object->lines[$i], $object->element);
+						$isInfraSLine	= infraspackplus_isInfrastructureLine($object->lines[$i]) ? 1 : 0;
+						$isInfraSTotal	= infraspackplus_isInfrastructureTotal($object->lines[$i]) ? 1 : 0;	// Sous-total infrastructure (qty 91..99)
+						$colYOffset		= !empty($isInfraSTotal) ? 1.0 : 0;	// pdfAddTotal applique setCellPaddings T=1 au libellé du sous-total. Les MultiCell des colonnes voisines ne respectent pas ce padding (hauteur explicite + valign 'M'), d'où un décalage visuel de ~1mm. On compense en décalant manuellement le Y des MultiCell pour les sous-totaux infrastructure.
+						$isSubTitle		= infraspackplus_isSubtotalTitle($object->lines[$i], $object->element) ? 1 : 0;	// Sous-titre ATM ou natif
+						$isSubTotal		= infraspackplus_isSubtotalTotal($object->lines[$i], $object->element) ? 1 : 0;	// Sous-total ATM ou natif
 						if (!empty($isSubTotal) && !empty($this->subti_with_subto)) {
 							continue;	// Sous-totaux fusionnés avec les sous-titres
 						}
@@ -1085,7 +1065,7 @@
 						}
 						$curY	= $nexY;
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-						$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						if (empty($this->hide_top_table)) {
 							$pdf->setTopMargin($tab_top_newpage + $this->ht_top_table + $this->decal_round);
 						} else {
@@ -1113,7 +1093,7 @@
 						}
 						// We don't want a title line alone at the end of the page (just before a page break)
 						if (!empty($isSubTitle)) {
-							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : array();	// Define size of image if we need it
+							$nextimglinesize	= !empty($this->with_picture) && empty($this->picture_under) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i + 1]) : [];	// Define size of image if we need it
 							if (empty($this->picture_under) && empty($this->picture_after) && isset($nextimglinesize['height'])) {
 								$nextlinehight	= $nextimglinesize['height'] + ($this->linkpictureurl ? $this->tab_hl * 2 : $this->tab_hl);
 							} else {
@@ -1122,33 +1102,38 @@
 							if (($curY + $this->tab_hl + $nextlinehight) > ($this->page_hauteur - $this->heightforfooter)) {	// There is no space left for next line + total + free text
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY						= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
-								$showpricebeforepagebreak	= 0;
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								$showpricebeforepagebreak			= 0;
 							}
 						}
 						if (!empty($isSubTotal)) {
 							if (($curY + $this->tab_hl) > ($this->page_hauteur - $this->heightforfooter)) {	// There is no space left for next line + total + free text
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY						= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
-								$showpricebeforepagebreak	= 0;
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								$showpricebeforepagebreak			= 0;
 							}
 						}
 						$colPicture		= $this->tableau['ref']['larg'] > 0 && $this->picture_in_ref ? 'ref' : 'desc';
-						$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : array();	// Define size of image if we need it
+						$imglinesize	= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : [];	// Define size of image if we need it
 						$ht_url			= 0;
 						if (!empty($imglinesize['width']) && !empty($imglinesize['height']) && $this->linkpictureurl) {
 							$txturl	= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
 							$ht_url	= $pdf->getStringHeight($this->tableau[$colPicture]['larg'], $txturl);
 						}
+						$pdf->SetY($curY);	// Resynchronise le curseur PDF sur la position reelle de la ligne : sans cela, si pdf_InfraSPlus_writelinedesc() ne dessine rien (ex: hook tiers renvoyant une erreur sur pdf_writelinedesc), $pdf->GetY() resterait sur une position obsolete et desynchroniserait $nexY (chevauchement visuel des lignes suivantes)
 						// Hauteur de la référence
 						$this->heightline	= $this->tab_hl;
 						if (empty($this->hide_cols)) {
 							// Reference
 							if (!empty($this->refcol) || !empty($this->show_num_col)) {
 								$pdf->startTransaction();
-								$startline			= $pdf->GetY();
-								$ref				= $isSubTitle || $isSubTotal ? '' : (!empty($this->refcol) ? pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails) : $i + 1);
+								$startline			= $curY;	// Utiliser $curY (position reelle de la ligne) plutot que $pdf->GetY(), qui peut etre desynchronise du curseur PDF interne
+								$ref				= $isSubTitle || $isSubTotal || $isInfraSLine ? '' : (!empty($this->refcol) ? pdf_infrasplus_getlineref($object, $i, $outputlangs, $hidedetails) : $i + 1);
 								$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $startline, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 								$endline			= $pdf->GetY();
 								$heightRef			= (ceil($endline) - ceil($startline)) > $this->tab_hl ? (ceil($endline) - ceil($startline)) : $this->tab_hl;
@@ -1164,7 +1149,9 @@
 							if (($curY + ($this->picture_in_ref ? $this->heightline : $imglinesize['height']) + ($this->picture_padding * 2) + $ht_url) > ($this->page_hauteur - ($this->heightforfooter))) {	// If photo too high, we moved completely on new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY	= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
 							}
 							$PictureY	= $curY + ($this->picture_in_ref ? $heightRef + ($this->tab_hl / 2) : $this->picture_padding);
 							$PictureY	= pdf_InfraSPlus_writelineimg($pdf, $object, $i, $outputlangs, $this->tableau[$colPicture]['posx'], $PictureY, $this->tableau[$colPicture]['larg'], $realpatharray, $imglinesize, $this->linkpictureurl, $this->tab_hl, $ht_url);
@@ -1176,8 +1163,10 @@
 							if (($curY + $this->tab_hl + $imglinesize['height'] + $this->picture_padding) > ($this->page_hauteur - ($this->heightforfooter))) {	// If photo too high, we moved completely on new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposbefore + 1);
-								$curY	= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
-								$showpricebeforepagebreak	= 0;
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
+								$curY								= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
+								$showpricebeforepagebreak			= 0;
 							}
 						}
 						// extra fields and others informations after the long description
@@ -1190,13 +1179,13 @@
 							if (!empty($this->show_ExtraFieldsLines)) {
 								$extrafieldslines	.= pdf_InfraSPlus_ExtraFieldsLines($object->lines[$i], $extrafieldsline, $extralabelsline, $this->exfltxtcolor, $outputlangs);
 							}
-							$extraDet	.= empty($extrafieldslines) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$extrafieldslines.'<hr style = "width: 80%;">';
+							$extraDet	.= empty($extrafieldslines) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$extrafieldslines.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 							// Custom values (weight, volume and code
 							$WVCC		= '';
 							if (!empty($this->showwvccchk)) {
 								$WVCC	= pdf_InfraSPlus_getlinewvdcc($object, $i, $outputlangs, $this->emetteur);
 							}
-							$extraDet	.= empty($WVCC) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '').$WVCC.'<hr style = "width: 80%;">';
+							$extraDet	.= empty($WVCC) ? '' : (!empty($this->wvcc_no_hr) ? '' : (empty($extraDet) ? '<hr style = "width: 80%;">' : '')).$WVCC.(!empty($this->wvcc_no_hr) ? '' : '<hr style = "width: 80%;">');
 						} else {	// Ouvrage or sub-total line
 							$idOuvrage	= !empty($object->lines[$i]->array_options['options_fk_ouvrage']) ? $object->lines[$i]->array_options['options_fk_ouvrage'] : '';
 							if (!empty($descWorksHidden[$object->lines[$i]->id]['desc'])) {
@@ -1225,6 +1214,8 @@
 								if ($i == ($nblignes - (empty($nbChildren) && !empty($nbSubTotal) ? $nbSubTotal : $nbChildren) - 1)) {	// No more lines, and no space left to show total, so we create a new page
 									$pdf->AddPage('', '', true);
 									$pdf->setPage($pageposafter + 1);
+									pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+									$watermarkedPages[$pdf->getPage()]	= true;
 								}
 							} else {
 								$showpricebeforepagebreak	= 0;
@@ -1233,6 +1224,8 @@
 							if ($i == ($nblignes - (empty($nbChildren) && !empty($nbSubTotal) ? $nbSubTotal : $nbChildren) - 1)) {	// No more lines, and no space left to show total, so we create a new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposafter + 1);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
 							}
 						}
 						$nexY	= $pdf->GetY();
@@ -1243,6 +1236,8 @@
 							if (($nexY + $imglinesize['height'] + $ht_url) > ($this->page_hauteur - ($this->heightforfooter + ($i == ($nblignes - 1) ? $heightforinfotot : 0)))) {	// If photo too high, we moved completely on new page
 								$pdf->AddPage('', '', true);
 								$pdf->setPage($pageposimg + 1);
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pdf->getPage()]	= true;
 								$nexY						= $heightforheader - (!empty($this->tableHeaderBefore) && in_array($pagenb, $this->pagewithoutheader) ? $this->ht_top_table : 0);
 								$showpricebeforepagebreak	= 0;
 							}
@@ -1263,22 +1258,24 @@
 							}
 						}
 						$pdf->SetFont('', '', $default_font_size - 1);	// On repositionne la police par defaut
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						if (empty($this->hide_cols)) {
 							// Reference
-							if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || (!empty($this->picture_in_ref) && empty($this->picture_replace_ref)))) {
+							if ((!empty($this->refcol) || !empty($this->show_num_col)) && (empty($this->picture_in_ref) || !empty($this->picture_in_ref) && empty($this->picture_replace_ref))) {
 								$pagepos	= $pdf->getPage();
-								$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
+								infraspackplus_applyInfrastructureOlPdfStyle($pdf, $object, $i);
+								$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->heightline, $this->tableau['ref']['posx'], $curY + $colYOffset, $ref, 0, 1, false, true, $this->force_align_left_ref, true);
 								$pdf->setPage($pagepos);
 							}
 							// Quantity
 							if (empty($this->hide_qty)) {
 								$qty	= pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
-								$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $qty, '', 'R', 0, 1, $this->tableau['qty']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+								$pdf->MultiCell($this->tableau['qty']['larg'], $this->heightline, $qty, '', 'R', 0, 1, $this->tableau['qty']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 							}
 							// Unit
 							if (!empty($this->product_use_unit)) {
-								$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
-								$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
+								$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails);
+								$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY + $colYOffset, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
 							}
 							if (! $this->hide_pricescol) {
 								// Unit price
@@ -1296,17 +1293,17 @@
 											$up_line	= pdf_InfraSPlus_getlineincldiscountincltax($object, $i, $outputlangs, $hidedetails, null, $pricesObjProd[$i]);
 										}
 									}
-									$pdf->MultiCell($this->tableau['up']['larg'], $this->heightline, $up_line, '', 'R', 0, 1, $this->tableau['up']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+									$pdf->MultiCell($this->tableau['up']['larg'], $this->heightline, $up_line, '', 'R', 0, 1, $this->tableau['up']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 								}
 								// VAT Rate
 								if (empty($this->hide_vat) && empty($this->hide_vat_col)) {
 									$vat_rate	= pdf_InfraSPlus_getlinevatrate($pdf, $object, $i, $outputlangs, $hidedetails);
-									$pdf->MultiCell($this->tableau['tva']['larg'], $this->heightline, $vat_rate, '', 'R', 0, 1, $this->tableau['tva']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+									$pdf->MultiCell($this->tableau['tva']['larg'], $this->heightline, $vat_rate, '', 'R', 0, 1, $this->tableau['tva']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 								}
 								// Discount on line
 								if (($object->lines[$i]->remise_percent && empty($this->hide_discount)) || (!empty($this->discount_auto) && !empty($pricesObjProd[$i]['remise']))) {
 									$remise_percent	= pdf_InfraSPlus_getlineremisepercent($object, $i, $outputlangs, $hidedetails, null, $pricesObjProd[$i]);
-									$pdf->MultiCell($this->tableau['discount']['larg'], $this->heightline, $remise_percent, '', 'R', 0, 1, $this->tableau['discount']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+									$pdf->MultiCell($this->tableau['discount']['larg'], $this->heightline, $remise_percent, '', 'R', 0, 1, $this->tableau['discount']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 								}
 								// Discounted price
 								if (($object->lines[$i]->remise_percent && empty($this->hide_discount) && $this->show_up_discounted) || (!empty($this->discount_auto) && !empty($pricesObjProd[$i]['remise']))) {
@@ -1315,7 +1312,7 @@
 									} else {
 										$up_disc	= pdf_InfraSPlus_getlineincldiscountincltax($object, $i, $outputlangs, $hidedetails, null, $pricesObjProd[$i]);
 									}
-									$pdf->MultiCell($this->tableau['updisc']['larg'], $this->heightline, $up_disc, '', 'R', 0, 1, $this->tableau['updisc']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+									$pdf->MultiCell($this->tableau['updisc']['larg'], $this->heightline, $up_disc, '', 'R', 0, 1, $this->tableau['updisc']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 								}
 								// Total line
 								// Sous-titre ATM fusionné avec son sous-total
@@ -1323,29 +1320,29 @@
 									$keyForIdSubtotal	= array_search($object->lines[$i]->rang, array_column($subtotalRecap, 'rang'));
 									$IdSubtotal			= $subtotalRecap[$keyForIdSubtotal]['line'];
 									if (empty($this->hide_vat)) {
-										$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, array());
+										$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, []);
 									} else {
-										$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, array());
+										$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, []);
 									}
 								} else {	// Standard
 									if (empty($this->hide_vat)) {
-										$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : array()));
+										$total_line	= pdf_InfraSPlus_getlinetotalexcltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : []));
 									} else {
-										$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : array()));
+										$total_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : []));
 									}
 								}
 								if (empty($this->hide_totcol)) {
-									$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+									$pdf->MultiCell($this->tableau['totalht']['larg'], $this->heightline, $total_line, '', 'R', 0, 1, $this->tableau['totalht']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 									if ($this->show_ttc_col) {
 										// Sous-titre ATM fusionné avec son sous-total
 										if (!empty($this->subti_with_subto) && count($subtotalRecap) > 0 && array_search($object->lines[$i]->rang, array_column($subtotalRecap, 'rang')) !== false && array_search($object->lines[$i]->qty, array_column($subtotalRecap, 'level')) !== false) {
 											$keyForIdSubtotal	= array_search($object->lines[$i]->rang, array_column($subtotalRecap, 'rang'));
 											$IdSubtotal			= $subtotalRecap[$keyForIdSubtotal]['line'];
-											$totalTTC_line		= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, array());
+											$totalTTC_line		= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $IdSubtotal, $outputlangs, $hidedetails, null, []);
 											} else {
-												$totalTTC_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : array()));	// Standard
+												$totalTTC_line	= pdf_InfraSPlus_getlinetotalincltax($pdf, $object, $i, $outputlangs, $hidedetails, null, (!empty($this->raw_prices) ? $pricesObjProd[$i] : []));	// Standard
 											}
-										$pdf->MultiCell($this->tableau['totalttc']['larg'], $this->heightline, $totalTTC_line, '', 'R', 0, 1, $this->tableau['totalttc']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
+										$pdf->MultiCell($this->tableau['totalttc']['larg'], $this->heightline, $totalTTC_line, '', 'R', 0, 1, $this->tableau['totalttc']['posx'], $curY + $colYOffset, true, 0, 0, false, 0, 'M', false);
 									}
 								}
 							}
@@ -1377,12 +1374,26 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							// Extraire le contenu texte pour corriger le z-order (filigrane/en-tête avant texte)
+							$savedContent	= '';
+							if (method_exists($pdf, 'liftPageContent')) {
+								$savedContent	= $pdf->liftPageContent();
+							}
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pagenb]	= true;
+							}
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Réinjecter le contenu texte après filigrane et en-tête
+							if (method_exists($pdf, 'dropPageContent')) {
+								$pdf->dropPageContent($savedContent);
+							}
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
 						if (isset($object->lines[$i + $nbChildren + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
 							$this->heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 0);
@@ -1397,11 +1408,15 @@
 							$pdf->AddPage();
 							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 							$pagenb++;
+							$watermarkedPages[$pagenb]	= true;
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Restore grayscale FillColor after _pagehead to keep ColorFlag true
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 							$nexY	= $heightforheader - (!empty($this->tableHeaderBefore) && in_array(($pagenb - 1), $this->pagewithoutheader) ? $this->ht_top_table : 0);
 						}
 					}
@@ -1414,7 +1429,7 @@
 						$this->_tableau($pdf, $object, $tab_top_newpage, $bottomlasttab - $tab_top_newpage, $outputlangs, $this->hide_top_table, 0, $pagenb);
 					}
 					$posyinfo		= $this->_tableau_info($pdf, $object, $bottomlasttab, $outputlangs, 0);
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$posyfreetext	= empty($this->free_text_end) ? pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->posxtabtotal, $bottomlasttab, $outputlangs, $this->emetteur, $this->listfreet, (!empty($this->number_words) ? 1 : 0), 0, $this->horLineStyle) : $bottomlasttab;
 					if (!empty($this->show_sign_area)) {
 						if (!empty($this->show_sign_area_emet)) {
@@ -1431,16 +1446,23 @@
 					$posy	= $posyinfo > $posysignarea ? $posyinfo : $posysignarea;
 					$posy	= !empty($this->free_text_end) ? pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->marge_gauche, $posy, $outputlangs, $this->emetteur, $this->listfreet, 0, 0, $this->horLineStyle) : $posy;
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
+					// Cas INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL : les sous-totaux ont été retirés de $object->lines par Infrastructure — reconstruction depuis le contexte
+					if (!empty($this->add_recap)) {
+						pdf_InfraSPlus_subtotal_getrecap_from_context($object, $subtotalRecap);
+					}
 					if (!empty($this->add_recap) && count($subtotalRecap) > 0) {	// SubTotal module with recap option
 						$subtotalRecap	= pdf_InfraSPlus_compare($subtotalRecap, 'rang');
 						$pdf->AddPage();	// New page for review
 						pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
 						$pagenb++;
+						$watermarkedPages[$pagenb]	= true;
 						if (empty($this->small_head2)) {
 							$this->_pagehead($pdf, $object, 0, $outputlangs);
 						} else {
 							$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 						}
+						$pdf->SetFillColor(255);
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						$posytotrecap	= pdf_InfraSPlus_subtotal_recap($pdf, $object, $tab_top_newpage, $outputlangs, $subtotalRecap, $this, $ht1_coltotal, $this->heightforfooter);
 						$pageposafter	= $pdf->getPage();
 						// Detect if some page were added automatically and output header, table and footer for past pages
@@ -1450,12 +1472,26 @@
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
-							pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+							// Extraire le contenu texte pour corriger le z-order (filigrane/en-tête avant texte)
+							$savedContent	= '';
+							if (method_exists($pdf, 'liftPageContent')) {
+								$savedContent	= $pdf->liftPageContent();
+							}
+							if (empty($watermarkedPages[$pagenb])) {
+								pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+								$watermarkedPages[$pagenb]	= true;
+							}
 							if (empty($this->small_head2)) {
 								$this->_pagehead($pdf, $object, 0, $outputlangs);
 							} else {
 								$this->_pagesmallhead($pdf, $object, 0, $outputlangs);
 							}
+							// Réinjecter le contenu texte après filigrane et en-tête
+							if (method_exists($pdf, 'dropPageContent')) {
+								$pdf->dropPageContent($savedContent);
+							}
+							$pdf->SetFillColor(255);
+							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
 						$bottomlasttab	= $this->page_hauteur - $ht1_coltotal - $this->heightforfooter - 1;
 						$this->_pagefoot($pdf, $object, $outputlangs, 0);
@@ -1472,51 +1508,14 @@
 						pdf_InfraSPlus_files($pdf, $this->files, $this->hidepagenum, $object, $outputlangs, $this->formatpage);
 					}
 					// If propal merge product PDF is active
-					if (!empty($this->produit_pdf_merge) && (empty($this->product_merge) || !empty($this->mergeproduct))) {
-						require_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
-						$already_merged = array ('products' => array(), 'files' => array());
-						foreach ($object->lines as $line) {
-							if (!empty($line->fk_product) && ! (in_array($line->fk_product, $already_merged['products']))) {
-								$filetomerge	= new Propalmergepdfproduct($this->db);	// Find the desire PDF
-								if (!empty($this->multilangs)) {
-									$filetomerge->fetch_by_product($line->fk_product, $outputlangs->defaultlang);
-								} else {
-									$filetomerge->fetch_by_product($line->fk_product);
-								}
-								$already_merged['products'][]	= $line->fk_product;
-								$product						= new Product($this->db);
-								$product->fetch($line->fk_product);
-								if ($product->entity != $conf->entity) {
-									$entity_product_file	= $product->entity;
-								} else {
-									$entity_product_file	= $conf->entity;
-								}
-								// If PDF is selected and file is not empty
-								if (count($filetomerge->lines) > 0) {
-									foreach ($filetomerge->lines as $linefile) {
-										if (!empty($linefile->id) && !empty($linefile->file_name)) {
-											if (!empty($this->old_path_photo)) {
-												if (isModEnabled('product')) {
-													$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
-												} elseif (isModEnabled('service')) {
-													$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir($product->id, 2, 0, 0, $product, 'product').$product->id."/photos";
-												}
-											} else {
-												if (isModEnabled('product')) {
-													$filetomerge_dir	= $conf->product->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');	//.dol_sanitizeFileName($product->ref);
-												} elseif (isModEnabled('service')) {
-													$filetomerge_dir	= $conf->service->multidir_output[$entity_product_file].'/'.get_exdir(0, 0, 0, 0, $product, 'product');	//.dol_sanitizeFileName($product->ref);
-												}
-											}
-											if (empty($this->product_merge_check_x2) || (!empty($linefile->file_name) && ! (in_array($linefile->file_name, $already_merged['files'])))) {
-												$infile						= preg_replace('/[\\/]$/', '', $filetomerge_dir).'/'.$linefile->file_name;
-												pdf_InfraSPlus_Merge($pdf, $infile, $this->hidepagenum, $object, $outputlangs, $this->formatpage);
-												$already_merged['files'][]	= $linefile->file_name;
-											}
-										}
-									}
-								}
-							}
+					if (!empty($this->produit_pdf_merge) && (empty($this->product_merge) || !empty($this->mergeproduct)) && empty($this->docseparate)) {	// Si le regroupement en PDF séparé est demandé, la documentation n'est pas fusionnée au document principal
+						$docwarnings	= [];
+						$docfiles		= infraspackplus_collect_product_documentation($this->db, $object, $outputlangs, 1, getDolGlobalInt('INFRASPLUS_PDF_MERGE_PRODUCT_LINKS', 0), $this->multilangs, $this->old_path_photo, $this->product_merge_check_x2, $docwarnings);
+						foreach ($docfiles as $docfile) {
+							pdf_InfraSPlus_Merge($pdf, $docfile, $this->hidepagenum, $object, $outputlangs, $this->formatpage, 0);
+						}
+						if (!empty($docwarnings)) {
+							setEventMessages(null, $docwarnings, 'warnings');
 						}
 					}
 					// If merge CGV is active at the very end
@@ -1553,7 +1552,7 @@
 		*	Show top header of page.
 		*
 		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		object		$object			Object to show
+		*	@param		Propal		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		array		$hauteurhead	'totalhead'		= hight of header
@@ -1567,11 +1566,11 @@
 				$hauteurhead	= $specialhead($pdf, $object, $showaddress, $outputlangs, $this->headertxtcolor, $this->header_align_left, $this->decal_round, $this->formatpage, $this->logo, $this->emetteur, $this->tab_hl,
 												$this->header_after_addr, $this->title_size, $this->titlekey, $this->ref_from_cust, $this->datesbold, $this->dates_br, $this->show_num_cli, $this->num_cli_frm,
 												$this->show_code_cli_compt, $this->code_cli_compt_frm, $this->add_creator_in_header, $this->use_iso_location, $this->adr, $this->typeadr, $this->adrlivr, $this->Rounded_rect,
-												$this->customerAddrSelect, -2, -2, '', 0, array(), '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
+												$this->customerAddrSelect, -2, -2, '', 0, [], '', -2, $this->include_alias, $this->left_recep_corner, $this->top_recep_corner, 0);
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
 			$dimCadres			= array ('S' => ($this->page_largeur - ($this->marge_gauche + 6 + $this->left_recep_corner + $this->marge_droite)), 'R' => $this->left_recep_corner);	// page width = 210 (A4) 92 + 92  = 184 => keep 210 - 184 for margins => 26 ; 10 right and left and 6 on the middle
 			$w					= $this->header_align_left ? 92 - $this->decal_round : 100;
@@ -1595,7 +1594,7 @@
 					$txtref .= ' - '.$outputlangs->transnoentities('NotValidated');
 				}
 				$pdf->MultiCell($w, $this->tab_hl, $txtref, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
-				$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+				$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 				$pdf->SetFont('', ($this->datesbold ? 'B' : ''), $default_font_size - 2);
 				$posy	+= $this->tab_hl;
 				$txtdt	= $outputlangs->transnoentities('Date').' : '.dol_print_date($object->date, 'day', false, $outputlangs, true);
@@ -1623,8 +1622,8 @@
 					$posy		+= $this->tab_hl - 0.5;
 					$pdf->MultiCell($w, $this->tab_hl, $txtNumCli, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 				}
-				if (!empty($this->show_code_cli_compt) && !empty($this->code_cli_compt_frm) && $object->thirdparty->code_compta) {
-					$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset($object->thirdparty->code_compta);
+				if (!empty($this->show_code_cli_compt) && !empty($this->code_cli_compt_frm) && pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty)) {
+					$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty));
 					$posy				+= $this->tab_hl - 0.5;
 					$pdf->MultiCell($w, $this->tab_hl, $txtCodeCliCompt, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 				}
@@ -1640,13 +1639,13 @@
 				$posy	+= 0.5;
 			}
 			$dimCadres['Y']	= ($this->use_iso_location && $posy <= $this->top_recep_corner ? $this->top_recep_corner : ($heightLogo > $posy + $this->tab_hl ? $heightLogo : $posy + $this->tab_hl));
+			$this->arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
+											'E' => $object->getIdContact('external', 'CUSTOMER'),
+											'L' => $object->getIdContact('external', 'SHIPPING')
+											);
 			if (!empty($showaddress)) {
-				$arrayidcontact	= array('I' => $object->getIdContact('internal', 'SALESREPFOLL'),
-										'E' => $object->getIdContact('external', 'CUSTOMER'),
-										'L' => $object->getIdContact('external', 'SHIPPING')
-										);
-				$addresses		= array();
-				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', 0, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
+				$addresses		= [];
+				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $this->arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', 0, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}
 			$hauteurhead	= array('totalhead'		=> $dimCadres['Y'] + $hauteurcadre,
@@ -1661,15 +1660,13 @@
 		*	Show top small header of page.
 		*
 		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		object		$object		Object to show
+		*	@param		Propal		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
 		*	@return		void
 		**/
 		protected function _pagesmallhead(&$pdf, $object, $showaddress, $outputlangs)
 		{
-			global $conf, $hookmanager;
-
 			$fromcompany	= $this->emetteur;
 			$title			= $outputlangs->transnoentities($this->titlekey);
 			pdf_InfraSPlus_pagesmallhead($pdf, $object, $showaddress, $outputlangs, $title, $fromcompany, $this->formatpage, $this->decal_round, $this->logo, $this->headertxtcolor);
@@ -1678,13 +1675,14 @@
 		/**
 		*	Show table for lines
 		*
-		*	@param		TCPDF			$pdf			Object PDF
-		*	@param		object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Propal		$object			Object to show
 		*	@param		float		$tab_top		Top position of table
 		*	@param		float		$tab_height		Height of table (rectangle)
 		*	@param		Translate	$outputlangs	Langs object
 		*	@param		int			$hidetop		1=Hide top bar of array and title, 0=Hide nothing, -1=Hide only title
 		*	@param		int			$hidebottom		Hide bottom bar of array
+		*	@param		int			$pagenb			Number of current page
 		*	@return		void
 		**/
 		protected function _tableau(&$pdf, $object, $tab_top, $tab_height, $outputlangs, $hidetop = 0, $hidebottom = 0, $pagenb)
@@ -1704,7 +1702,7 @@
 			}
 			$currency			= !empty($object->multicurrency_code) ? $object->multicurrency_code : $conf->currency;
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
 			// Output Rounded Rectangle
 			if (empty($hidetop) || ($pagenb == 1 && empty($veryhidetop))) {
@@ -1728,13 +1726,22 @@
 			} else if (!empty($this->showtblline) && empty($this->desc_full_line)) {
 				$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $tab_height, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
 			}
+			// Watermarks
 			if ($object->statut == Propal::STATUS_DRAFT && (!empty($this->draft_watermark))) {
 				if (empty($hidetop)) {
 					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + $this->ht_top_table + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
 				} else {
 					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->draft_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
 				}
-				$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+				$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			}
+			if ($object->statut > Propal::STATUS_DRAFT && (!empty($this->exf_PropalProv)) && empty($object->array_options['options_'.$this->exf_PropalProv])) {
+				if (empty($hidetop)) {
+					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->propalprov_watermark, $tab_top + $this->ht_top_table + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
+				} else {
+					pdf_InfraSPlus_watermark($pdf, $outputlangs, $this->propalprov_watermark, $tab_top + ($tab_height / 2), $this->larg_util_cadre, $this->page_hauteur, 'mm');
+				}
+				$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			}
 			// Show Folder mark
 			if (!empty($this->fold_mark)) {
@@ -1776,7 +1783,7 @@
 			}
 			// En-tête tableau
 			$pdf->SetFont('', 'B', $default_font_size - 1);
-			!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			if (empty($hidetop) || ($pagenb == 1 && empty($veryhidetop))) {
 				$pdf->MultiCell($this->tableau['desc']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Designation'), '', 'C', 0, 1, $this->tableau['desc']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 				if (empty($this->hide_cols)) {
@@ -1828,7 +1835,7 @@
 		*	Show miscellaneous information (payment mode, payment term, ...)
 		*
 		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		object		$object			Object to show
+		*	@param		Propal		$object			Object to show
 		*	@param		int			$posy			Y
 		*	@param		Translate	$outputlangs	Langs object
 		*	@return		int			$posy			Position pour suite
@@ -1836,11 +1843,15 @@
 		protected function _tableau_info(&$pdf, $object, $posy, $outputlangs, $calculseul = 0)
 		{
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings	= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$posytabinfo		= $posy + $this->ht_space_info;
 			$tabinfo_hl			= $this->tab_hl;
 			$pdf->SetFont('', '', $default_font_size - 1);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$larg_tabinfo		= $this->larg_tabinfo;
 			$larg_col1info		= 46;
 			$larg_col2info		= $larg_tabinfo - $larg_col1info;
@@ -1848,7 +1859,7 @@
 			$posxcol2info		= $posxtabinfo + $larg_col1info;
 			// VAT statements
 			if (!empty($this->text_TVA_auto)) {
-				$statements	= pdf_InfraSPlus_VAT_auto($object, $this->emetteur, $object->thirdparty, $this->hasService, $this->hasProduct, $this->show_tva_btp);
+				$statements	= pdf_InfraSPlus_VAT_auto($object, $this->emetteur, $object->thirdparty, $this->arrayidcontact, $this->adrlivr, $this->hasService, $this->hasProduct, $this->show_tva_btp);
 				if (is_array($statements)) {
 					$pdf->SetFont('', '', $default_font_size - 2);
 					if (!empty($statements['F'])) {
@@ -1999,6 +2010,7 @@
 				return $heightforinfo;
 			} else {
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posytabinfo;
 			}
 		}
@@ -2007,7 +2019,7 @@
 		*	Show area for the customer to sign
 		*
 		*	@param		TCPDF		$pdf			Object PDF
-		*	@param		object		$object		Object invoice
+		*	@param		Propal		$object			Object invoice
 		*	@param		int			$posy			y
 		*	@param		Translate	$outputlangs	Objet langs
 		*	@return		int							Position pour suite
@@ -2017,6 +2029,10 @@
 			global $conf;
 
 			$pdf->startTransaction();
+			// cf. _tableau_info() de pdf_InfraSPlus_D.modules.php : un sous-total infrastructure en derniere ligne du document laisse le padding
+			// haut/bas des cellules a 1mm, ce qui gonflerait la hauteur reellement dessinee par ce bloc et le ferait deborder sur le pied de page.
+			$savedCellPaddings	= $pdf->getCellPaddings();
+			$pdf->setCellPaddings($savedCellPaddings['L'], 0, $savedCellPaddings['R'], 0);
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$signarea_top		= $posy + 1;
 			$posxsignarea1		= $this->marge_gauche;
@@ -2031,7 +2047,7 @@
 			$signarea_hl		= $pdf->getStringHeight($larg_signarea, $outputlangs->transnoentities('ProposalCustomerSignature'));
 			$signarea_hl		= $signarea_hl < $signarea_hl_emet ? ($signarea_hl_emet < $this->tab_hl ? $this->tab_hl : $signarea_hl_emet) : ($signarea_hl < $this->tab_hl ? $this->tab_hl : $signarea_hl);
 			$pdf->SetFont('', '', $default_font_size - 2);
-			$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			if (!empty($this->show_sign_area_emet)) {
 				$pdf->MultiCell($larg_signarea, $signarea_hl, $outputlangs->transnoentities('ProposalCustomerSignatureEmet', $this->emetteur->name), '', 'L', 0, 1, $posxsignarea1 + $this->decal_round, $signarea_top, true, 0, 0, false, 0, 'M', false);
 			}
@@ -2088,6 +2104,7 @@
 					}
 				}
 				$pdf->commitTransaction();
+				$pdf->setCellPaddings($savedCellPaddings['L'], $savedCellPaddings['T'], $savedCellPaddings['R'], $savedCellPaddings['B']);
 				return $posysignarea + $this->ht_signarea + 1;
 			}
 		}
@@ -2096,14 +2113,8 @@
 		*	Show footer of page. Need this->emetteur object
 		*
 		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		Propal		$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@param		Societe		$fromcompany	Object company
-		*	@param		int			$marge_basse	Margin bottom we use for the autobreak
-		*	@param		int			$marge_gauche	Margin left
-		*	@param		int			$page_hauteur	Page height
-		*	@param		object		$object			Object shown in PDF
-		*	@param		int			$showdetails	Show company details into footer
-		*	@param		int			$hidesupline	Completly hide the line up to footer (for some edition with only table)
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text
 		**/

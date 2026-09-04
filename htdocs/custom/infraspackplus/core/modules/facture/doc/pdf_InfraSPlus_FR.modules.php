@@ -24,20 +24,20 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/payments.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/facture/modules_facture.php';
-	require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/expedition/class/'.(version_compare(DOL_VERSION, '15.0.0', '>=') ? 'expeditionlinebatch' : 'expeditionbatch').'.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/multicurrency/class/multicurrency.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/payments.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/facture/modules_facture.php';
+	include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/expedition/class/'.(version_compare(DOL_VERSION, '15.0.0', '>=') ? 'expeditionlinebatch' : 'expeditionbatch').'.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/multicurrency/class/multicurrency.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
@@ -49,18 +49,212 @@
 		public $db;
 		public $name;
 		public $description;
+		public $titlekey;
+		public $defaulttemplate;
+		public $option_logo;
+		public $option_tva;
+		public $option_modereg;
+		public $option_condreg;
+		public $option_codeproduitservice;
+		public $option_multilang;
+		public $option_escompte;
+		public $option_credit_note;
+		public $option_freetext;
 		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
 		public $type;
-		public $phpmin				= array(7, 4);
-		public $version				= 'dolibarr';
+		public $typeadr;
+		public $emetteur;
+		public $credit_notes;
+		public $deposits;
+		public $atleastonediscount;
+		public $tva;
+		public $tva_array;
+		public $localtax1;
+		public $localtax2;
+		public $credit_note;
+		public $atleastoneratenotnull;
+		public $situationinvoice;
+		public $lines_deposits = [];
+		public $use_fpdf;
+		public $main_umask;
 		public $page_largeur;
 		public $page_hauteur;
 		public $format;
 		public $marge_gauche;
-		public $marge_droite;
 		public $marge_haute;
+		public $marge_droite;
 		public $marge_basse;
-		public $emetteur;
+		public $formatpage;
+		public $use_iso_location;
+		public $dash_between_line;
+		public $product_use_unit;
+		public $hide_vat_ifnull;
+		public $vat_label_code_or_rate;
+		public $no_payment_details;
+		public $chq_num;
+		public $hidechq_address;
+		public $rib_num;
+		public $text_TVA_auto;
+		public $multi_files;
+		public $font;
+		public $headertxtcolor;
+		public $bodytxtcolor;
+		public $datesbold;
+		public $ref_from_cust;
+		public $first_page_empty;
+		public $small_head2;
+		public $title_size;
+		public $height_header_sep;
+		public $left_recep_corner;
+		public $top_recep_corner;
+		public $height_top_table;
+		public $hide_top_table;
+		public $Rounded_rect;
+		public $bg_color;
+		public $txtcolor;
+		public $title_bg;
+		public $header_after_addr;
+		public $space_headerafter;
+		public $header_align_left;
+		public $dates_br;
+		public $show_num_cli;
+		public $num_cli_frm;
+		public $show_code_cli_compt;
+		public $code_cli_compt_frm;
+		public $add_creator_in_header;
+		public $fold_mark;
+		public $paid_watermark;
+		public $hide_info_cur;
+		public $tblLineW;
+		public $tblLineDash;
+		public $tblLineColor;
+		public $showtblline;
+		public $verLineColor;
+		public $showverline;
+		public $horLineColor;
+		public $subti_with_subto;
+		public $lineSep_hight;
+		public $show_num_col;
+		public $force_align_left_ref;
+		public $picture_in_ref;
+		public $picture_replace_ref;
+		public $force_align_left_unit;
+		public $desc_full_line;
+		public $hidden_ouv;
+		public $only_one_desc;
+		public $hide_qty;
+		public $hide_up;
+		public $show_up_discounted;
+		public $discount_auto;
+		public $show_ttc_col;
+		public $hide_vat_col;
+		public $show_ttc_vat_tot;
+		public $hide_vat;
+		public $only_ttc;
+		public $larg_ref;
+		public $larg_qty;
+		public $larg_unit;
+		public $larg_up;
+		public $larg_date;
+		public $larg_remaintopay;
+		public $larg_tva;
+		public $larg_discount;
+		public $larg_updisc;
+		public $larg_progress;
+		public $larg_totalht;
+		public $larg_totalttc;
+		public $num_ref;
+		public $num_desc;
+		public $num_qty;
+		public $num_unit;
+		public $num_up;
+		public $num_date;
+		public $num_remaintopay;
+		public $num_tva;
+		public $num_discount;
+		public $num_updisc;
+		public $num_progress;
+		public $num_totalht;
+		public $num_totalttc;
+		public $ht_space_info;
+		public $ht_space_tot;
+		public $show_paymenttermcond_2l;
+		public $show_qty_prod_tot;
+		public $efPaySpec;
+		public $IBAN_with_CB;
+		public $IBAN_All;
+		public $bank_only_number;
+		public $show_outstandings;
+		public $invert_bg_ht_ttc;
+		public $show_disc_tot;
+		public $show_disc_ttc;
+		public $show_tot_local_cur;
+		public $show_tot_Cur_Symb;
+		public $number_words;
+		public $listPrefixEcotax;
+		public $exfEcoTax;
+		public $ht_signarea;
+		public $signLineW;
+		public $signLineDash;
+		public $signLineColor;
+		public $free_text_end;
+		public $type_foot;
+		public $hidepagenum;
+		public $maxsizeimgfoot;
+		public $only_one_picture;
+		public $picture_after;
+		public $picture_under;
+		public $picture_padding;
+		public $linkpictureurl;
+		public $old_path_photo;
+		public $cat_hq_image;
+		public $alpha;
+		public $exftxtcolor;
+		public $exfltxtcolor;
+		public $logo;
+		public $adr;
+		public $customerAddrSelect;
+		public $adrlivr;
+		public $listnotep;
+		public $pied;
+		public $files;
+		public $include_alias;
+		public $stdLineW = 0.2; // Default line width in TCPDF = 0.2
+		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
+		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
+		public $stdLineColor = array(0, 0, 0);
+		public $stdLineStyle = [];
+		public $bgLineW = 0.2;	// Default line width in TCPDF = 0.2
+		public $bgLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
+		public $bgLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
+		public $bgLineColor = array(0, 0, 0);
+		public $bgLineStyle = [];
+		public $tblLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
+		public $tblLineStyle = [];
+		public $horLineStyle = [];
+		public $only_ht;
+		public $use_multicurrency;
+		public $larg_util_cadre;
+		public $larg_util_txt;
+		public $posx_G_txt;
+		public $larg_desc;
+		public $posxcol1;
+		public $posxcol2;
+		public $posxcol3;
+		public $posxcol4;
+		public $posxcol5;
+		public $largcol1;
+		public $largcol2;
+		public $largcol3;
+		public $largcol4;
+		public $largcol5;
+		public $tableau = [];	// Array of table to print
+		public $tab_hl = 4;
+		public $decal_round = 0;
+		public $ht_top_table;
+		public $heightline;
+		public $qrcodestring;
+		public $adrfact;
 
 		/**
 		*	Constructor
@@ -69,7 +263,7 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
 
@@ -92,37 +286,46 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Facture		$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
 		*	@param		int			$hidedesc			Do not show desc
 		*	@param		int			$hideref			Do not show ref
-		*	@return	int							1=OK, 0=KO
+		*	@return	int									1=OK, 0=KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
 			global $user, $langs, $conf, $hookmanager;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))	$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'payment', 'paybox', 'infraspackplus@infraspackplus'));
-			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FR') ? '' : '_FR';
-			$baseDir						= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
-			$this->titlekey					= 'PDFInfraSPlusInvoiceReleveTitle';
+			$baseDir		= !empty($conf->facture->multidir_output[$conf->entity]) ? $conf->facture->multidir_output[$conf->entity] : $conf->facture->dir_output;
+			$fileprefix		= '';
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_FR') ? '' : '_FR';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_FR', '');
+				$filesufixe	= empty($fileprefix) ? '_FR' : '';
+			}
+			$this->titlekey	= 'PDFInfraSPlusInvoiceReleveTitle';
 			if (!empty($baseDir)) {
 				$object->fetch_thirdparty();
 				// Definition of $dir and $file
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
-					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}
 				if (! file_exists($dir)) {
 					if (dol_mkdir($dir) < 0) {
@@ -145,11 +348,11 @@
 					$this->adrlivr				= !empty($hookmanager->resArray['adrlivr']) ? $hookmanager->resArray['adrlivr'] : '';
 					$this->listnotep			= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied					= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
-					$this->files				= is_array($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : array();
+					$this->files				= is_array($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : [];
 					$this->include_alias		= !empty($hookmanager->resArray['includealias']) ? $hookmanager->resArray['includealias'] : '';
 					$this->adrfact				= !empty($hookmanager->resArray['adrfact']) ? $hookmanager->resArray['adrfact'] : '';
 					$nblignes					= count($object->lines);	// Set nblignes with the new facture lines content after hook
-					$hookmanager->resArray		= array();
+					$hookmanager->resArray		= [];
 					// Create pdf instance
 					$pdf						= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');
 					$default_font_size			= pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
@@ -173,6 +376,7 @@
 					// New page
 					$pdf->AddPage();
 					pdf_InfraSPlus_bg_watermark($pdf, $this->formatpage, $object->entity, $outputlangs);	// Show Watermarks
+					$watermarkedPages			= array($pdf->getPage() => true);
 					$pagenb						= 1;
 					// Default PDF parameters
 					$this->stdLineW				= 0.2; // épaisseur par défaut dans TCPDF = 0.2
@@ -189,7 +393,7 @@
 					$this->tblLineStyle			= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>(!empty($this->title_bg) && empty($this->showtblline) ? $this->bg_color : $this->tblLineColor));
 					$this->horLineStyle			= array('width'=>$this->tblLineW, 'dash'=>$this->tblLineDash, 'cap'=>$this->tblLineCap, 'color'=>$this->horLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Define width and position of notes frames
 					$this->larg_util_cadre		= $this->page_largeur - ($this->marge_gauche + $this->marge_droite);
@@ -213,11 +417,17 @@
 														'remaintopay'	=> array('col' => $this->num_remaintopay,	'larg' => $this->larg_remaintopay,	'posx' => 0)
 														);
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)		$this->largcol1		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 2)	$this->largcol2		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 3)	$this->largcol3		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 4)	$this->largcol4		= $ncol_array['larg'];
-						elseif ($ncol_array['col'] == 5)	$this->largcol5		= $ncol_array['larg'];
+						if ($ncol_array['col'] == 1) {
+							$this->largcol1	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 2) {
+							$this->largcol2	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 3) {
+							$this->largcol3	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 4) {
+							$this->largcol4	= $ncol_array['larg'];
+						} elseif ($ncol_array['col'] == 5) {
+							$this->largcol5	= $ncol_array['larg'];
+						}
 					}
 					$this->posxcol1		= $this->marge_gauche;
 					$this->posxcol2		= $this->posxcol1	+ $this->largcol1;
@@ -225,11 +435,17 @@
 					$this->posxcol4		= $this->posxcol3	+ $this->largcol3;
 					$this->posxcol5		= $this->posxcol4	+ $this->largcol4;
 					foreach($this->tableau as $ncol => $ncol_array) {
-						if ($ncol_array['col'] == 1)		$this->tableau[$ncol]['posx']	= $this->posxcol1;
-						elseif ($ncol_array['col'] == 2)	$this->tableau[$ncol]['posx']	= $this->posxcol2;
-						elseif ($ncol_array['col'] == 3)	$this->tableau[$ncol]['posx']	= $this->posxcol3;
-						elseif ($ncol_array['col'] == 4)	$this->tableau[$ncol]['posx']	= $this->posxcol4;
-						elseif ($ncol_array['col'] == 5)	$this->tableau[$ncol]['posx']	= $this->posxcol5;
+						if ($ncol_array['col'] == 1) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol1;
+						} elseif ($ncol_array['col'] == 2) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol2;
+						} elseif ($ncol_array['col'] == 3) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol3;
+						} elseif ($ncol_array['col'] == 4) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol4;
+						} elseif ($ncol_array['col'] == 5) {
+							$this->tableau[$ncol]['posx']	= $this->posxcol5;
+						}
 					}
 					// Calculs de positions
 					$this->tab_hl				= 4;
@@ -248,8 +464,11 @@
 					$nexY						= $tab_top + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
 					// Table head
 					// Output Rounded Rectangle
-					if (!empty($this->title_bg))			$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
-					else if (!empty($this->showtblline))	$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					if (!empty($this->title_bg)) {
+						$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', 'DF', $this->tblLineStyle, $this->bg_color);
+					} else if (!empty($this->showtblline)) {
+						$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->larg_util_cadre, $this->ht_top_table, $this->Rounded_rect, '1111', null, $this->tblLineStyle);
+					}
 					// Show Folder mark
 					if (!empty($this->fold_mark)) {
 						$pdf->Line(0, ($this->page_hauteur)/3, $this->fold_mark, ($this->page_hauteur)/3, $this->stdLineStyle);
@@ -257,7 +476,7 @@
 					}
 					// En-tête tableau
 					$pdf->SetFont('', 'B', $default_font_size - 1);
-					!empty($this->title_bg) ? $pdf->SetTextColor($this->txtcolor[0], $this->txtcolor[1], $this->txtcolor[2]) : $pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					!empty($this->title_bg) ? $pdf->SetTextColor((int) $this->txtcolor[0], (int) $this->txtcolor[1], (int) $this->txtcolor[2]) : $pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->MultiCell($this->tableau['ref']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Ref'), '', 'C', 0, 1, $this->tableau['ref']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['desc']['larg'], $this->ht_top_table, $outputlangs->transnoentities('Designation'), '', 'C', 0, 1, $this->tableau['desc']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
 					$pdf->MultiCell($this->tableau['date']['larg'], $this->ht_top_table, $outputlangs->transnoentities('DateInvoice'), '', 'C', 0, 1, $this->tableau['date']['posx'], $tab_top, true, 0, 0, true, $this->ht_top_table, 'M', false);
@@ -266,17 +485,21 @@
 					// Récap
 					$discount				= new DiscountAbsolute($this->db);
 					$tmpInvoice				= new Facture($this->db);
-					$listFacturesSources	= array();
+					$listFacturesSources	= [];
 					$totaux					= array('ttc' => 0, 'remaintopay' => 0);
 					// Loop on each line
 					for ($i = 0 ; $i < $nblignes ; $i++) {
 						$pdf->SetFont('', '', $default_font_size - 1);	// Into loop to work with multipage
-						$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
-						if (empty($object->lines[$i]->fk_remise_except))	continue;	// no deposit line
+						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+						if (empty($object->lines[$i]->fk_remise_except)) {
+							continue;	// no deposit line
+						}
 						$discount->fetch($object->lines[$i]->fk_remise_except);
 						// deposit line with link to deposit invoice
 						if (!empty($discount->ref_facture_source)) {
-							if (in_array($discount->fk_facture_source, $listFacturesSources))	continue;	// Attention à ne pas inclure plusieurs fois la même facture d'acompte (quand plusieurs taux de TVA sont utilisés)
+							if (in_array($discount->fk_facture_source, $listFacturesSources)) {
+								continue;	// Attention à ne pas inclure plusieurs fois la même facture d'acompte (quand plusieurs taux de TVA sont utilisés)
+							}
 							$listFacturesSources[]												= $discount->fk_facture_source;
 							$res																= $tmpInvoice->fetch($discount->fk_facture_source);
 							$paid																= $tmpInvoice->getSommePaiement(0);
@@ -299,9 +522,13 @@
 							$system_upload_relative_dir											= preg_replace('/^[\\/]/', '', $system_upload_relative_dir);
 							completeFileArrayWithDatabaseInfo($listDiscountFiles, $system_upload_relative_dir);
 							foreach ($listDiscountFiles as $discountFile) {
-								if (empty($discountFile['name']))	continue;
+								if (empty($discountFile['name'])) {
+									continue;
+								}
 								$discountName						= pathinfo($discountFile['name'], PATHINFO_FILENAME);
-								if ($discountName == $discountRef)	$this->files[]	= $discountFile['rowid'];
+								if ($discountName == $discountRef) {
+									$this->files[]	= $discountFile['rowid'];
+								}
 							}
 						}
 					}
@@ -312,7 +539,9 @@
 					if ($this->efPaySpec) {	// we show special payments before they are paid
 						$listEfPaySpec	= pdf_InfraSPlus_SpecPayExtraField($object);
 						foreach ($listEfPaySpec as $key => $efPaySpec) {
-							if ($efPaySpec['value'] != 0)	$totalEfPaySpec	+= price2num($efPaySpec['value'], 'MT');
+							if ($efPaySpec['value'] != 0) {
+								$totalEfPaySpec	+= price2num($efPaySpec['value'], 'MT');
+							}
 						}
 					}
 					$totaux['ttc']	+= $sign * ($object->total_ttc - $totalEfPaySpec);
@@ -321,13 +550,14 @@
 					$sql			= 'SELECT SUM(pf.amount) AS stdpaidamount';
 					$sql			.= ' FROM '.$this->db->prefix().'paiement_facture AS pf, '.$this->db->prefix().'paiement AS p';
 					$sql			.= ' LEFT JOIN '.$this->db->prefix().'c_paiement AS cp ON p.fk_paiement = cp.id';
-					$sql			.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.$object->id.' AND cp.entity IN ('.getEntity('c_paiement').') AND cp.type != 3';
+					$sql			.= ' WHERE pf.fk_paiement = p.rowid AND pf.fk_facture = '.((int) $object->id).' AND cp.entity IN ('.getEntity('c_paiement').') AND cp.type != 3';
 					$resql			= $this->db->query($sql);
 					if ($resql) {
 						$obj			= $this->db->fetch_object($resql);
 						$stdpaidamount	= $obj->stdpaidamount;
+					} else {
+						$this->error	= $this->db->lasterror();
 					}
-					else						$this->error	= $this->db->lasterror();
 					$this->db->free($resql);
 					$totaux['remaintopay']		+= $sign * ($object->total_ttc - $totalEfPaySpec - $stdpaidamount);
 					$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->tab_hl, $this->tableau['ref']['posx'], $nexY, $object->ref, 0, 1, false, true, 'L', true);
@@ -343,13 +573,17 @@
 					$system_upload_relative_dir	= preg_replace('/^[\\/]/', '', $system_upload_relative_dir);
 					completeFileArrayWithDatabaseInfo($listInvoiceFiles, $system_upload_relative_dir);
 					foreach ($listInvoiceFiles as $invoiceFile) {
-						if (empty($invoiceFile['name']))	continue;
-						$invoiceName						= pathinfo($invoiceFile['name'], PATHINFO_FILENAME);
-						if ($invoiceName == $objectref)		$this->files[]	= $invoiceFile['rowid'];
+						if (empty($invoiceFile['name'])) {
+							continue;
+						}
+						$invoiceName	= pathinfo($invoiceFile['name'], PATHINFO_FILENAME);
+						if ($invoiceName == $objectref) {
+							$this->files[]	= $invoiceFile['rowid'];
+						}
 					}
 					// Avoir ou excédent
 					$this->credit_notes	= $object->getSumCreditNotesUsed($this->use_multicurrency ? 1 : 0);	// Warning, this also include excess received
-					$sql				= 'SELECT re.fk_facture_source FROM '.$this->db->prefix().'societe_remise_except as re WHERE fk_facture = '.$object->id;
+					$sql				= 'SELECT re.fk_facture_source FROM '.$this->db->prefix().'societe_remise_except as re WHERE fk_facture = '.((int) $object->id);
 					$resql				= $this->db->query($sql);
 					if ($resql) {
 						$creditNote	= new Facture($this->db);
@@ -376,13 +610,18 @@
 							$system_upload_relative_dir	= preg_replace('/^[\\/]/', '', $system_upload_relative_dir);
 							completeFileArrayWithDatabaseInfo($listCrerditNoteFiles, $system_upload_relative_dir);
 							foreach ($listCrerditNoteFiles as $creditNoteFile) {
-								if (empty($creditNoteFile['name']))		continue;
-								$creditNoteName							= pathinfo($creditNoteFile['name'], PATHINFO_FILENAME);
-								if ($creditNoteName == $creditNoteRef)	$this->files[]	= $creditNoteFile['rowid'];
+								if (empty($creditNoteFile['name'])) {
+									continue;
+								}
+								$creditNoteName	= pathinfo($creditNoteFile['name'], PATHINFO_FILENAME);
+								if ($creditNoteName == $creditNoteRef) {
+									$this->files[]	= $creditNoteFile['rowid'];
+								}
 							}
 						}
+					} else {
+						dol_print_error($this->db);
 					}
-					else	dol_print_error($this->db);
 					$this->db->free($resql);
 					// Total
 					$nexY										+= $this->tab_hl * 2;
@@ -397,9 +636,13 @@
 					$heightforfooter							= $this->_pagefoot($pdf, $object, $outputlangs, 0);
 					$posy										= $this->page_hauteur - $heightforfooter - 1;
 					$this->_pagefoot($pdf, $object, $outputlangs, 0);
-					if (method_exists($pdf, 'AliasNbPages'))	$pdf->AliasNbPages();
+					if (method_exists($pdf, 'AliasNbPages')) {
+						$pdf->AliasNbPages();
+					}
 					// if merge files is active
-					if (!empty($this->files))					pdf_InfraSPlus_files($pdf, $this->files, 1, $object, $outputlangs, $this->formatpage, 1);
+					if (!empty($this->files)) {
+						pdf_InfraSPlus_files($pdf, $this->files, 1, $object, $outputlangs, $this->formatpage, 1);
+					}
 					$pdf->Close();
 					$pdf->Output($file, 'F');
 					// Add pdfgeneration hook
@@ -411,16 +654,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error	= $outputlangs->transnoentities('ErrorCanNotCreateDir', $dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error	= $outputlangs->transnoentities('ErrorConstantNotDefined', 'FAC_OUTPUTDIR');
 				return 0;
 			}
@@ -429,17 +672,15 @@
 		/**
 		*	Show top header of page.
 		*
-		*	@param		PDF			$pdf			Object PDF
-		*	@param		Object		$object		Object to show
+		*	@param		TCPDF		$pdf			Object PDF
+		*	@param		Facture		$object			Object to show
 		*	@param		int			$showaddress	0=no, 1=yes
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@return		array		$hauteurhead	'totalhead'		= hight of header
-		*											'hauteurcadre	= hight of frame
+		*	@return		array		$hauteurhead	'totalhead'		= height of header
+		*											'hauteurcadre	= height of frame
 		**/
 		protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
 		{
-			global $conf, $hookmanager;
-
 			$specialHead	= infraspackplus_fetchAllSpecialHeads(array($object->element));
 			if (!empty($specialHead['rootFileName'])) {
 				$specialhead	= 'pdf_'.$specialHead['rootFileName'].'_pagehead';
@@ -450,7 +691,7 @@
 				return $hauteurhead;
 			}
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
-			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', 'B', $default_font_size + 3);
 			$dimCadres			= array ('S' => ($this->page_largeur - ($this->marge_gauche + 6 + $this->left_recep_corner + $this->marge_droite)), 'R' => $this->left_recep_corner);	// page width = 210 (A4) 92 + 92  = 184 => keep 210 - 184 for margins => 26 ; 10 right and left and 6 on the middle
 			$w					= $this->header_align_left ? 92 - $this->decal_round : 100;
@@ -478,7 +719,7 @@
 			$pdf->MultiCell($w - $sizeBC - 3, $this->tab_hl * $this->title_size, $title, '', $align, 0, 1, $posx + $sizeBC + 3, $posy, true, 0, 0, false, 0, 'M', false);
 			$posy							= $pdf->getY();
 			$pdf->SetFont('', 'B', $default_font_size - 1);
-			$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+			$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 2);
 			if ($object->ref_client) {
 				$posy	+= $this->tab_hl - 0.5;
@@ -490,8 +731,8 @@
 				$posy		+= $this->tab_hl - 0.5;
 				$pdf->MultiCell($w, $this->tab_hl, $txtNumCli, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			}
-			if (!empty($this->show_code_cli_compt) && !empty($this->code_cli_compt_frm) && $object->thirdparty->code_compta) {
-				$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset($object->thirdparty->code_compta);
+			if (!empty($this->show_code_cli_compt) && !empty($this->code_cli_compt_frm) && pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty)) {
+				$txtCodeCliCompt	= $outputlangs->transnoentities('CustomerAccountancyCode').' : '.$outputlangs->convToOutputCharset(pdf_InfraSPlus_getCustomerAccountancyCode($object->thirdparty));
 				$posy				+= $this->tab_hl - 0.5;
 				$pdf->MultiCell($w, $this->tab_hl, $txtCodeCliCompt, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			}
@@ -511,7 +752,7 @@
 										'E' => $object->getIdContact('external', 'BILLING'),
 										'L' => $object->getIdContact('external', 'SHIPPING')
 										);
-				$addresses		= array();
+				$addresses		= [];
 				$addresses		= pdf_InfraSPlus_getAddresses($object, $outputlangs, $arrayidcontact, $this->adr, $this->adrlivr, $this->emetteur, 0, '', $this->adrfact, 0, -2, -2, $this->customerAddrSelect, $this->include_alias);
 				$hauteurcadre	= pdf_InfraSPlus_writeAddresses($pdf, $object, $outputlangs, $this->formatpage, $dimCadres, $this->tab_hl, $this->emetteur, $addresses, $this->Rounded_rect);
 			}
@@ -526,15 +767,9 @@
 		/**
 		*	Show footer of page. Need this->emetteur object
 		*
-		*	@param		PDF			$pdf			The PDF factory
+		*	@param		TCPDF		$pdf			The PDF factory
+		*	@param		Facture		$object			Object to show
 		*	@param		Translate	$outputlangs	Object lang for output
-		*	@param		Societe		$fromcompany	Object company
-		*	@param		int			$marge_basse	Margin bottom we use for the autobreak
-		*	@param		int			$marge_gauche	Margin left
-		*	@param		int			$page_hauteur	Page height
-		*	@param		Object		$object			Object shown in PDF
-		*	@param		int			$showdetails	Show company details into footer
-		*	@param		int			$hidesupline	Completly hide the line up to footer (for some edition with only table)
 		*	@param		int			$calculseul		Arrête la fonction au calcul de hauteur nécessaire
 		*	@return		int							Return height of bottom margin including footer text
 		**/

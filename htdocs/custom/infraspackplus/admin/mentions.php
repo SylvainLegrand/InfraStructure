@@ -27,14 +27,14 @@
 	require '../config.php';
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
@@ -52,7 +52,7 @@
 	$formfile		= new FormFile($db);
 	$formother		= new FormOther($db);
 	$confirm_mesg	= '';
-	$errors			= array();
+	$errors			= [];
 	$action			= GETPOST('action', 'alpha');
 	$confirm		= GETPOST('confirm', 'alpha');
 	$labelmention	= GETPOST('selmentions', 'alpha') ? GETPOST('selmentions', 'alpha') : 'BASE';
@@ -105,7 +105,7 @@
 	}
 	// Update buttons management
 	if (preg_match('/update_(.*)/', $action, $reg)) {
-		$list		= array('Notes'	=> array(),
+		$list		= array('Notes'	=> [],
 							'Opt'	=> array('INFRASPLUS_PDF_FACTOR_PRE',
 											'INFRASPLUS_PDF_FREETEXT_TVA_1',	'INFRASPLUS_PDF_FREETEXT_TVA_2',	'INFRASPLUS_PDF_FREETEXT_TVA_3',
 											'INFRASPLUS_PDF_FREETEXT_TVA_4',	'INFRASPLUS_PDF_FREETEXT_TVA_5',	'INFRASPLUS_PDF_FREETEXT_TVA_6')
@@ -113,6 +113,11 @@
 		$confkey	= $reg[1];
 		$error		= 0;
 		foreach ($list[$confkey] as $constname) {
+			// Ne pas écraser un emplacement non affiché (donc non posté) : en mode non-franchise TVA_1
+			// n'est pas rendu, en mode franchise TVA_2..6 ne le sont pas, FACTOR_PRE seulement si actif.
+			if (!GETPOSTISSET($constname)) {
+				continue;
+			}
 			$constvalue	= GETPOST($constname, 'alpha');
 			$result		= dolibarr_set_const($db, $constname, $constvalue, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 		}
@@ -121,10 +126,10 @@
 		}
 	}
 	if ($result == 1) {
-		setEventMessages($langs->trans('SetupSaved'), array(), 'mesgs');
+		setEventMessages($langs->trans('SetupSaved'), [], 'mesgs');
 	}
 	if ($result == -1) {
-		setEventMessages($langs->trans('Error'), array(), 'errors');
+		setEventMessages($langs->trans('Error'), [], 'errors');
 	}
 	if ($result == -2) {
 		setEventMessages($langs->trans('Error'), $errors, 'errors');
@@ -177,6 +182,8 @@
 	if (!empty($franchise) && !getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', '')) {
 		$confirm_mesg	= $form->formconfirm(dol_escape_htmltag($_SERVER['PHP_SELF']), $langs->trans('InfraSPlusParamTVAauto'), $langs->trans('InfraSPlusParamConfirmSetTVAauto'), 'confirm_TVAauto', '', 'yes', 1);
 	}
+	// Les mentions DOM (TVA_DOM / TVA_DOMS) ne sont proposées dans le mapping que si l'option est activée
+	$domSqlFilter	= getDolGlobalString('INFRASPLUS_PDF_SHOW_DOM_MENTIONS', '') ? '' : ' AND code NOT IN ("TVA_DOM", "TVA_DOMS")';
 
 	// View *****************************************
 	$page_name	= $langs->trans('infrasplussetup') .' - '. $langs->trans('InfraSPlusParamsMentions');
@@ -228,7 +235,7 @@
 		infraspackplus_print_backup_restore();
 	}
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGestionMentions').'</span>', '', dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1);
-	print '			<table class = "infrasplusnoborder centpercent">';
+	print '			<table class = "noborder centpercent">';
 	$metas	= array('*', '156px', '120px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(3), 'InfraSPlusParamNewMention');
@@ -260,7 +267,7 @@
 				<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "post" enctype = "multipart/form-data">
 					<input type = "hidden" name = "token" value = "'.newToken().'">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamMentionsSetup').'</span>', '', dol_buildpath('/infraspackplus/img/list.png', 1), 1);
-	print '			<table class = "infrasplusnoborder centpercent">';
+	print '			<table class = "noborder centpercent">';
 	$metas	= array('30px', '*', '456px', '130px');
 	infraspackplus_print_colgroup($metas);
 	$metas	= array(array(1, 1, 1, 1), 'NumberingShort', 'Description', $langs->trans('Status').' / '.$langs->trans('Value'), '&nbsp;');
@@ -269,102 +276,110 @@
 		$num	= 1;
 		infraspackplus_print_btn_action('Opt', '<span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamCautionSave'), 3);
 		if (isModEnabled('propal')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_DEV', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_PROPALE')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_DEV', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_PROPALE')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('commande')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_COM', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_COMMANDE')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_COM', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_COMMANDE')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('contrat')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_CT', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_CONTRAT')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_CT', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_CONTRAT')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('expedition')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_EXP', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_EXPEDITION')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_EXP', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_EXPEDITION')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
+		// $num = 5
 		if (isModEnabled('livraison')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_REC', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_SUBMODULE_LIVRAISON')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_REC', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_SUBMODULE_LIVRAISON')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('ficheinter')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_FI', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_FICHEINTER')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_FI', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_FICHEINTER')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('facture')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_FAC', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_FACTURE')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_FAC', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_FACTURE')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('supplier_proposal')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_DEV_FOU', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_SUPPLIERPROPOSAL')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_DEV_FOU', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_SUPPLIERPROPOSAL')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('fournisseur')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_FOU', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_FOURNISSEUR')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_FOU', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_FOURNISSEUR')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
+		// $num = 10
 		if (isModEnabled('product')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_PROD', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_PRODUCT')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_PROD', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_PRODUCT')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('mrp')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_MRP', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_MRP')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_MRP', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_MRP')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('bom')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_BOM', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_BOM')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_BOM', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_BOM')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
 		if (isModEnabled('expensereport')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_EXPR', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_EXPENSEREPORT')), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_SYS_MC_BASE_EXPR', 'on_off', $langs->trans('InfraSPlusParamMCBaseDef', $langs->trans('InfraSPlusParam_MAIN_MODULE_EXPENSEREPORT')), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
+		// $num = 14
 		infraspackplus_print_hr(3);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXTEND', 'on_off', $langs->trans('InfraSPlusParamFreeTextEnd'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXTEND', 'on_off', $langs->trans('InfraSPlusParamFreeTextEnd'), '', [], 1, 1, '', $num);
 		infraspackplus_print_hr(3);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXT_FACTOR_AUTO', 'on_off', $langs->trans('InfraSPlusParamFreeTextFactorAuto'), '', array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXT_FACTOR_AUTO', 'on_off', $langs->trans('InfraSPlusParamFreeTextFactorAuto'), '', [], 1, 1, '', $num);
 		if (getDolGlobalString('INFRASPLUS_PDF_FREETEXT_FACTOR_AUTO', '')) {
-			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTOR_PRE', 'input', $langs->trans('InfraSPlusParamFactorPrefix'), '', array(), 1, 1, '', $num);
+			$num	= infraspackplus_print_input('INFRASPLUS_PDF_FACTOR_PRE', 'input', $langs->trans('InfraSPlusParamFactorPrefix'), '', [], 1, 1, '', $num);
 		} else {
 			$num++;
 		}
+		// $num = 17
 		infraspackplus_print_hr(3);
-		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', 'on_off', $langs->trans('InfraSPlusParamFreeTextTVAauto'), ' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamFreeTextTVAautoHelp'), array(), 1, 1, '', $num);
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', 'on_off', $langs->trans('InfraSPlusParamFreeTextTVAauto'), ' <span class = "infraspluscaution">'.$langs->trans('InfraSPlusCaution').'</span> '.$langs->trans('InfraSPlusParamFreeTextTVAautoHelp'), [], 1, 1, '', $num);
+		// Option d'activation des mentions de TVA pour les départements d'outre-mer (DOM)
+		$num	= infraspackplus_print_input('INFRASPLUS_PDF_SHOW_DOM_MENTIONS', 'on_off', $langs->trans('InfraSPlusParamShowDomMentions'), $langs->trans('InfraSPlusParamShowDomMentionsHelp'), [], 1, 1, '', $num);
+		// $num = 19
 		if (getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_AUTO', '')) {
 			if (!empty($franchise)) {
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_1', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_1', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_1', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_1', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_1'), '', $metas, '1', '1');
 				$num	+= 5;
 			} else {
 				$num++;
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_2', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_2', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_2', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_2', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_2'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_3', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_3', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_3', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_3', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_3'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_4', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_4', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_4', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_4', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_4'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_5', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_5', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_5', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_5', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_5'), '', $metas, 1, 1, '', $num);
-				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_6', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_6', 0, '', 0, 'code LIKE "TVA\_%"');
+				$metas	= select_infraspackplus_dict('c_infraspackplus_mention', getDolGlobalString('INFRASPLUS_PDF_FREETEXT_TVA_6', ''), 'INFRASPLUS_PDF_FREETEXT_TVA_6', 0, '', 0, 'code LIKE "TVA\_%"'.$domSqlFilter);
 				$num	= infraspackplus_print_input('', 'select', $langs->trans('InfraSPlusParamFreeTextTVA_6'), '', $metas, 1, 1, '', $num);
 			}
 		} else {
 			$num	+= 6;
 		}
+		// $num = 25
 	}
 	print '			</table>
 				</form>

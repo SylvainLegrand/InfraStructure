@@ -23,12 +23,12 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/expedition/modules_expedition.php';
-	require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/expedition/modules_expedition.php';
+	include_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
 	/************************************************
@@ -36,20 +36,172 @@
 	************************************************/
 	class pdf_InfraSPlus_ET extends ModelePdfExpedition
 	{
-		var $db;
-		var $name;
-		var $description;
-		var $type;
-		var $phpmin		= array(7, 4);
-		var $version	= 'dolibarr';
-		var $page_largeur;
-		var $page_hauteur;
-		var $format;
-		var $marge_gauche;
-		var	$marge_droite;
-		var	$marge_haute;
-		var	$marge_basse;
-		var $emetteur;
+		public $db;
+		public $name;
+		public $description;
+		public $defaulttemplate;
+		public $option_logo;
+		public $option_freetext;
+		public $option_draft_watermark;
+		public $update_main_doc_field;	// Save the name of generated file as the main doc when generating a doc with this template
+		public $type;
+		public $emetteur;
+		public $atleastonediscount;
+		public $tva;
+		public $tva_array;
+		public $localtax1;
+		public $localtax2;
+		public $atleastoneratenotnull;
+		public $use_fpdf;
+		public $main_umask;
+		public $page_largeur;
+		public $page_hauteur;
+		public $format;
+		public $marge_gauche;
+		public $marge_haute;
+		public $marge_droite;
+		public $marge_basse;
+		public $formatpage;
+		public $use_iso_location;
+		public $dash_between_line;
+		public $product_use_unit;
+		public $hide_vat_ifnull;
+		public $vat_label_code_or_rate;
+		public $chq_num;
+		public $diffsize_title;
+		public $hidechq_address;
+		public $rib_num;
+		public $text_TVA_auto;
+		public $multi_files;
+		public $font;
+		public $headertxtcolor;
+		public $bodytxtcolor;
+		public $datesbold;
+		public $ref_from_cust;
+		public $first_page_empty;
+		public $small_head2;
+		public $title_size;
+		public $height_header_sep;
+		public $left_recep_corner;
+		public $top_recep_corner;
+		public $height_top_table;
+		public $hide_top_table;
+		public $Rounded_rect;
+		public $bg_color;
+		public $txtcolor;
+		public $title_bg;
+		public $header_after_addr;
+		public $space_headerafter;
+		public $header_align_left;
+		public $dates_br;
+		public $show_num_cli;
+		public $num_cli_frm;
+		public $show_code_cli_compt;
+		public $code_cli_compt_frm;
+		public $add_creator_in_header;
+		public $fold_mark;
+		public $hide_info_cur;
+		public $tblLineW;
+		public $tblLineDash;
+		public $tblLineColor;
+		public $showtblline;
+		public $verLineColor;
+		public $showverline;
+		public $horLineColor;
+		public $subti_with_subto;
+		public $lineSep_hight;
+		public $show_num_col;
+		public $force_align_left_ref;
+		public $picture_in_ref;
+		public $picture_replace_ref;
+		public $force_align_left_unit;
+		public $desc_full_line;
+		public $show_desc;
+		public $hidden_ouv;
+		public $only_one_desc;
+		public $hide_qty;
+		public $hide_up;
+		public $show_up_discounted;
+		public $discount_auto;
+		public $show_ttc_col;
+		public $hide_vat_col;
+		public $show_ttc_vat_tot;
+		public $hide_vat;
+		public $only_ttc;
+		public $larg_ref;
+		public $larg_qty;
+		public $larg_unit;
+		public $larg_up;
+		public $larg_tva;
+		public $larg_discount;
+		public $larg_updisc;
+		public $larg_progress;
+		public $larg_totalht;
+		public $larg_totalttc;
+		public $num_ref;
+		public $num_desc;
+		public $num_qty;
+		public $num_unit;
+		public $num_up;
+		public $num_tva;
+		public $num_discount;
+		public $num_updisc;
+		public $num_progress;
+		public $num_totalht;
+		public $num_totalttc;
+		public $ht_space_info;
+		public $ht_space_tot;
+		public $show_paymenttermcond_2l;
+		public $show_qty_prod_tot;
+		public $efPaySpec;
+		public $IBAN_with_CB;
+		public $IBAN_All;
+		public $bank_only_number;
+		public $invert_bg_ht_ttc;
+		public $show_disc_tot;
+		public $show_disc_ttc;
+		public $show_tot_local_cur;
+		public $show_tot_Cur_Symb;
+		public $number_words;
+		public $listPrefixEcotax;
+		public $exfEcoTax;
+		public $ht_signarea;
+		public $signLineW;
+		public $signLineDash;
+		public $signLineColor;
+		public $e_signing;
+		public $free_text_end;
+		public $type_foot;
+		public $hidepagenum;
+		public $maxsizeimgfoot;
+		public $only_one_picture;
+		public $picture_after;
+		public $picture_under;
+		public $picture_padding;
+		public $linkpictureurl;
+		public $old_path_photo;
+		public $cat_hq_image;
+		public $alpha;
+		public $exftxtcolor;
+		public $exfltxtcolor;
+		public $logo;
+		public $adrlivr;
+		public $stdLineW = 0.2; // Default line width in TCPDF = 0.2
+		public $stdLineDash = '0';	// 0 = continue ; w = discontinue espace et tiret identiques ; w,x = tiret,espace ; w,x,y,z = tiret long,espace,tiret court,espace
+		public $stdLineCap = 'butt';	// fin de trait : butt = rectangle/lg->Dash ; round = rond/lg->Dash + width : square = rectangle/lg->Dash + width
+		public $stdLineColor = array(0, 0, 0);
+		public $stdLineStyle = [];
+		public $horLineStyle = [];
+		public $only_ht;
+		public $larg_util_cadre;
+		public $tableau = [];	// Array of table to print
+		public $tab_hl = 4;
+		public $decal_round = 0;
+		public $ht_top_table;
+		public $heightline;
+		public $hBC;
+		public $includealias;
+		public $showadrlivr;
 
 		/**
 		*	Constructor
@@ -58,15 +210,18 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs, $mysoc;
 
 			$langs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db									= $db;
 			$this->name									= $langs->trans('PDFInfraSPlusEtiquetteName');
 			$this->description							= $langs->trans('PDFInfraSPlusEtiquetteDescription');
 			$this->emetteur								= $mysoc;
-			if (empty($this->emetteur->country_code))	$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			if (empty($this->emetteur->country_code)) {
+				$this->emetteur->country_code	= substr($langs->defaultlang, -2);
+			}
 			$this->type									= 'pdf';
 			$this->defaulttemplate						= getDolGlobalString('EXPEDITION_ADDON_PDF', '');
 			$this->includealias							= getDolGlobalInt('PDF_INCLUDE_ALIAS_IN_THIRDPARTY_NAME', 0);
@@ -79,24 +234,33 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Expedition	$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		int			$hidedetails		Do not show line details (inutilisée ! laissé pour la compatibilité)
 		*	@param		int			$hidedesc			Do not show desc
 		*	@param		int			$hideref			Do not show ref
-		*	@return	int							1=OK, 0=KO
+		*	@return	int									1=OK, 0=KO
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager;
+			global $user, $langs, $conf, $hookmanager;
 
-			if (! is_object($outputlangs)) $outputlangs	= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf)) $outputlangs->charset_output	= 'ISO-8859-1';
-			$filesufixe						= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_ET') ? '' : '_ET';
-			$baseDir						= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
-
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
+			$fileprefix		= '';
+			$baseDir		= !empty($conf->expedition->multidir_output[$conf->entity]) ? $conf->expedition->multidir_output[$conf->entity] : $conf->expedition->dir_output;
+			if (!getDolGlobalInt('INFRASPLUS_PDF_ADD_PREFIX_TO_TEMPLATE_NAME')) {
+				$filesufixe	= empty($this->multi_files) || (!empty($this->defaulttemplate) && $this->defaulttemplate == 'InfraSPlus_ET') ? '' : '_ET';
+			} else {
+				$fileprefix	= getDolGlobalString('INFRASPLUS_PDF_ADD_PREFIX_TO_ET', '');
+				$filesufixe	= empty($fileprefix) ? '_ET' : '';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'bills', 'products', 'companies', 'propal', 'orders', 'contracts', 'interventions', 'deliveries', 'sendings', 'projects', 'productbatch', 'infraspackplus@infraspackplus'));
 
 			if (!empty($baseDir)) {
@@ -104,11 +268,10 @@
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir.'/sending';
 					$file	= $dir.'/SPECIMEN.pdf';
-				}
-				else {
+				} else {
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/sending/'.$objectref;
-					$file		= $dir.'/'.$objectref.$filesufixe.'.pdf';
+					$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}
 				if (! file_exists($dir)) {
 					if (dol_mkdir($dir) < 0) {
@@ -119,7 +282,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters			= array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
@@ -156,7 +319,7 @@
 					$this->stdLineColor		= array(128, 128, 128);
 					$this->stdLineStyle		= array('width'=>$this->stdLineW, 'dash'=>$this->stdLineDash, 'cap'=>$this->stdLineCap, 'color'=>$this->stdLineColor);
 					$pdf->MultiCell(0, 3, '');		// Set interline to 3
-					$pdf->SetTextColor($this->headertxtcolor[0], $this->headertxtcolor[1], $this->headertxtcolor[2]);
+					$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 					$pdf->SetFont('', '', $default_font_size);
 					$pdf->SetDrawColor(0, 0, 0);
 					// Define width and position of notes frames
@@ -164,29 +327,30 @@
 					// Calculs de positions
 					$this->tab_hl			= 6;
 					$this->hBC				= 20;
-					if ($this->logo)	$logo	= $conf->mycompany->dir_output.'/logos/'.$this->logo;
-					else				$logo	= $conf->mycompany->dir_output.'/logos/'.$this->emetteur->logo;
+					if ($this->logo) {
+						$logo	= $conf->mycompany->dir_output.'/logos/'.$this->logo;
+					} else {
+						$logo	= $conf->mycompany->dir_output.'/logos/'.$this->emetteur->logo;
+					}
 					if ($logo) {
 						if (is_file($logo) && is_readable($logo)) {
 							$heightLogo	= pdf_getHeightForLogo($logo);
-							$pdf->Image($logo, $this->marge_gauche, $this->marge_haute, 0, $heightLogo, '', '', '', false, '', 'C');	// width=0 (auto)
-						}
-						else {
+							$pdf->Image($logo, $this->marge_gauche, $this->marge_haute, 0, $heightLogo, '', '', '', false, 0, 'C');	// width=0 (auto)
+						} else {
 							$pdf->SetTextColor(200, 0, 0);
 							$pdf->SetFont('', 'B', $default_font_size - 2);
 							$pdf->MultiCell($this->larg_util_cadre, $this->tab_hl, $outputlangs->transnoentities("ErrorInfraSPlusParamLogoFileNotFound", $logo), '', 'C', 0, 1, $this->marge_gauche, $this->marge_haute, true, 0, 0, false, 0, 'M', false);
 							$pdf->MultiCell($this->larg_util_cadre, $this->tab_hl, $outputlangs->transnoentities("ErrorGoToGlobalSetup"), '', 'C', 0, 1, $this->marge_gauche, $pdf->getY() + 1, true, 0, 0, false, 0, 'M', false);
-							$pdf->SetTextColor($headertxtcolor[0], $headertxtcolor[1], $headertxtcolor[2]);
+							$pdf->SetTextColor((int) $this->headertxtcolor[0], (int) $this->headertxtcolor[1], (int) $this->headertxtcolor[2]);
 							$heightLogo	= $pdf->getY() + 1;
 						}
-					}
-					else {
-						$text		= $emetteur->name;
+					} else {
+						$text		= $this->emetteur->name;
 						$pdf->MultiCell($w, $this->tab_hl, $outputlangs->convToOutputCharset($text), '', 'C', 0, 1, $this->marge_gauche, $this->marge_haute, true, 0, 0, false, 0, 'M', false);
 						$heightLogo = $this->tab_hl;
 					}
 					$posy		= $this->marge_haute + $heightLogo + $this->tab_hl;
-					$pdf->SetTextColor($this->bodytxtcolor[0], $this->bodytxtcolor[1], $this->bodytxtcolor[2]);
+					$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 					$pdf->Line($this->marge_gauche, $posy, $this->page_largeur - $this->marge_droite, $posy, $this->stdLineStyle);
 					$posy	+= 2;
 					$refcom		= '';
@@ -198,7 +362,7 @@
 						$origin_id	= $object->origin_id;
 						$object->fetch_origin();		// Load property $object->commande, $object->propal, ...
 						if ($typeobject == 'commande' && $object->$typeobject->id && isModEnabled('commande')) {
-							$objectsrc								= new Commande($db);
+							$objectsrc								= new Commande($this->db);
 							$objectsrc->fetch($object->$typeobject->id);
 							$nblignes								= count($objectsrc->lines);
 							for ($i = 0 ; $i < $nblignes ; $i++)	$nbrProdTot	+= $objectsrc->lines[$i]->product_type == 0 ? $objectsrc->lines[$i]->qty : 0;
@@ -210,9 +374,14 @@
 					$carac_emetteur	= dol_string_nohtmltag(dol_format_address($this->emetteur, 0, ' ', $outputlangs));
 					$carac_client	= '';
 					if ($this->showadrlivr && $this->adrlivr) {
-						if ($this->adrlivr == 'Default')	$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $object->thirdparty, '', 0, 'targetwithnodetails', $object, 0);
-						else								$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $this->adrlivr, '', 0, 'targetwithnodetails', $object, 0);
-						if ($carac_client)					$carac_client_name	= dol_htmlentitiesbr($this->adrlivr->name);
+						if ($this->adrlivr == 'Default') {
+							$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $object->thirdparty, '', 0, 'targetwithnodetails', $object, 0);
+						} else {
+							$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $this->adrlivr, '', 0, 'targetwithnodetails', $object, 0);
+						}
+						if ($carac_client) {
+							$carac_client_name	= dol_htmlentitiesbr($this->adrlivr->name);
+						}
 					}
 					if (!$this->showadrlivr || !$this->adrlivr) {
 						// Recipient properties
@@ -227,7 +396,7 @@
 
 					$posy		= $pdf->getY() + $this->tab_hl;
 
-					$protocol	= ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+					$protocol	= !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' || $_SERVER['SERVER_PORT'] == 443 ? "https://" : "http://";
 					$link		= $protocol.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 					$txtlink	= str_replace($_SERVER['QUERY_STRING'], 'id='.$object->origin_id, str_replace('expedition', 'commande', $link));
 					$styleBC	= array('position'		=> $posy,
@@ -263,16 +432,16 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error=$langs->trans('ErrorCanNotCreateDir',$dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error=$langs->trans("ErrorConstantNotDefined","EXP_OUTPUTDIR");
 				return 0;
 			}

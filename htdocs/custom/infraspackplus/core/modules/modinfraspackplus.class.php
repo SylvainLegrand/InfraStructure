@@ -23,8 +23,8 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
 
@@ -48,12 +48,11 @@
 			$this->name				= preg_replace('/^mod/i', '', get_class($this));	// Module label (no space allowed)
 			$this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
 			$this->editor_email		= 'support@infras.fr';
-			$editor_web				= 'https://www.infras.fr/';
-			$this->editor_url		= $editor_web;
-			$this->url_last_version	= $editor_web.'jdownloads/Modules_Dolibarr/'.$this->name.'/'.$this->name.'.txt';
+			$this->editor_url		= 'https://www.infras.fr/';
+			$this->url_last_version	= 'https://raw.githubusercontent.com/InfraS-SARL/modules-versions/main/'.$this->name.'/'.$this->name.'.txt';
 			$this->rights_class		= $this->name;																			// Key text used to identify module (for permissions, menus, etc...)
 			$isDolinfras			= isModEnabled('dolinfras');
-			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameInfraSPackPlus');
+			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenamePackPlus');
 			$this->family			= $family;																				// used to group modules in module setup page
 			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
 			$this->module_position	= 100002;
@@ -81,10 +80,8 @@
 																 'invoicesuppliernote',
 																 'expensereportnote'
 																 ),
-											'tpl'		=> 1,
 											'triggers'	=> 1,
-											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php'),
-											'js'		=> array('js' => '/'.$this->name.'/js/'.$this->name.'.js')
+											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php')
 											);
 			$this->dirs				= array('/mycompany/logos/thumbs',
 											'/'.$this->name.'/fonts',
@@ -96,12 +93,20 @@
 			// Dependencies
 			$this->hidden			= false;											// A condition to hide module
 			$this->depends			= array('modECM');									// List of modules id that must be enabled if this module is enabled
-			$this->requiredby		= array();											// List of modules id to disable if this one is disabled
-			$this->conflictwith		= array();											// List of modules id this module is in conflict with
+			// Soft dependency (not enforced by Dolibarr) : InfraSProject
+			// - core/tpl/lineviews/_columns/refproject.tpl.php calls infrasproject_printprj()
+			//   via dol_include_once('/infrasproject/core/lib/infrasproject.lib.php')
+			//   when isModEnabled('infrasproject') is true (invoice_supplier context only).
+			// - Reciprocal guard: actions_infrasproject.class.php yields printObjectLine
+			//   view rendering to IPP when isModEnabled('infraspackplus') is true.
+			// Graceful degradation: if InfraSProject is disabled, the supplier-invoice
+			// "project" column is simply not rendered, no fatal error.
+			$this->requiredby		= [];											// List of modules id to disable if this one is disabled
+			$this->conflictwith		= [];											// List of modules id this module is in conflict with
 			$this->langfiles		= array($this->name.'@'.$this->name);
 			// Constants
-			$this->const			= array();											// List of particular constants to add when module is enabled
-			$this->tabs				= array();
+			$this->const			= [];											// List of particular constants to add when module is enabled
+			$this->tabs				= [];
 			if (!isModEnabled('infraspackplus')) {
 				$conf->infraspackplus			= new stdClass();
 				$conf->infraspackplus->enabled	= 0;
@@ -140,9 +145,9 @@
 																				  'pos'		=> $langs->trans('PositionIntoComboList'))
 																		)
 											);	// Dictionaries
-			$this->boxes			= array();										// List of boxes
-			$this->cronjobs			= array();										// List of cron jobs entries to add
-			$this->rights			= array();										// Permission array used by this module
+			$this->boxes			= [];										// List of boxes
+			$this->cronjobs			= [];										// List of cron jobs entries to add
+			$this->rights			= [];										// Permission array used by this module
 			$r						= 0;
 			$this->rights[$r][0]	= $this->numero.$r;								// id de la permission
 			$this->rights[$r][1]	= $langs->trans('InfraSPlusPermMenu');			// libelle de la permission
@@ -208,7 +213,7 @@
 			$this->rights[$r][1]	= $langs->trans('InfraSPlusPermCGV');			// libelle de la permission
 			$this->rights[$r][3]	= 1;											// La permission est-elle une permission par defaut (0/1)
 			$this->rights[$r][4]	= 'paramCGV';									// action for php test if ($user->hasRight('permkey', 'level1', 'level2'))
-			$this->menu				= array();										// List of menus to add
+			$this->menu				= [];										// List of menus to add
 			$caret					= '&nbsp;&nbsp;<span class = "caret	caret--left"></span>&nbsp;';
 			$r						= 0;
 			if (!empty(infraspackplus_no_topmenu())) {
@@ -393,7 +398,7 @@
 		{
 			global $conf, $db, $langs;
 
-			$sql		= array();
+			$sql		= [];
 			$path		= dol_buildpath($this->name, 0);
 			$pathfonts	= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').$this->name.'/fonts';
 			$resultCopy	= dolCopyDir(DOL_DOCUMENT_ROOT.'/includes/tecnickcom/tcpdf/fonts', $pathfonts, 0, 0);	// sync fonts from core to documents
@@ -427,12 +432,14 @@
 			global $conf;
 
 			infraspackplus_bkup_module ($this->name);
-			$sql		= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPLUS\_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPACKPLUS\_PS\_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_ADDON\_PDF" AND value like "InfraSPlus_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_FREE\_TEXT\_%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_PUBLIC\_NOTE%" AND entity = "'.$conf->entity.'"',
-								'DELETE FROM '.$this->db->prefix().'document_model WHERE nom like "InfraSPlus\_%" AND entity = "'.$conf->entity.'"',
+			$entity		= (int) $conf->entity;
+			$sql		= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPLUS\_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPACKPLUS\_PS\_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "MAIN\_MODULE\_INFRASPACKPLUS\_%" AND entity = '.$entity,	// purge orphan module_parts constants (e.g. keys removed from descriptor between versions)
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_ADDON\_PDF" AND value like "InfraSPlus_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_FREE\_TEXT\_%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'const WHERE name like "%\_PUBLIC\_NOTE%" AND entity = '.$entity,
+								'DELETE FROM '.$this->db->prefix().'document_model WHERE nom like "InfraSPlus\_%" AND entity = '.$entity,
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'infraspackplus_societe_address',
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'c_infraspackplus_mention',
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'c_infraspackplus_note');
@@ -453,7 +460,7 @@
 			if (getDolGlobalString('INFRAS_PHP_EXT_XML', '') == -1) {
 				return $langs->trans('InfraSPlusChangelogXMLError');
 			}
-			$currentversion					= array();
+			$currentversion					= [];
 			$currentversion					= infraspackplus_getLocalVersionMinDoli($this->name);
 			$this->need_dolibarr_version	= explode('.', $currentversion[1]);	// Minimum version of Dolibarr required by module
 			$this->phpmin					= explode('.', $currentversion[5]);	// Minimum version of PHP required by module

@@ -1,0 +1,523 @@
+<?php
+/* Copyright (C) 2009       Laurent Destailleur        <eldy@users.sourceforge.net>
+ * Copyright (C) 2010-2016  Juanjo Menent	       <jmenent@2byte.es>
+ * Copyright (C) 2013-2018  Philippe Grand             <philippe.grand@atoo-net.com>
+ * Copyright (C) 2015       Jean-François Ferry         <jfefe@aternatik.fr>
+ * Copyright (C) 2024		MDW							<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024       Frédéric France         <frederic.france@free.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+
+/**
+ *      \file       htdocs/admin/chequereceipts.php
+ *		\ingroup    bank
+ *		\brief      Page to setup the bank module
+ */
+
+// Load Dolibarr environment
+require '../../../config.php';	// InfraS change
+require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/bank.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/compta/paiement/cheque/class/remisecheque.class.php';
+
+/**
+ * @var Conf $conf
+ * @var DoliDB $db
+ * @var HookManager $hookmanager
+ * @var Societe $mysoc
+ * @var Translate $langs
+ * @var User $user
+ */
+
+// Load translation files required by the page
+$langs->loadLangs(array("admin", "companies", "bills", "other", "banks"));
+
+if (!$user->admin) {
+	accessforbidden();
+}
+
+$action = GETPOST('action', 'aZ09');
+$value = GETPOST('value', 'alpha');
+$label		= GETPOST('label', 'alpha');
+$scandir	= GETPOST('scan_dir', 'alpha');
+$typedoc	= 'chequereceipt';
+
+if (!getDolGlobalString('CHEQUERECEIPTS_ADDON')) {
+	$conf->global->CHEQUERECEIPTS_ADDON = 'mod_chequereceipts_mint.php';
+}
+
+
+
+/*
+ * Actions
+ */
+$error = 0;
+
+if ($action == 'updateMask') {
+	$maskconstchequereceipts = GETPOST('maskconstchequereceipts', 'aZ09');
+	$maskchequereceipts = GETPOST('maskchequereceipts', 'alpha');
+
+	$res = 0;
+
+	if ($maskconstchequereceipts && preg_match('/_MASK$/', $maskconstchequereceipts)) {
+		$res = dolibarr_set_const($db, $maskconstchequereceipts, $maskchequereceipts, 'chaine', 0, '', $conf->entity);
+	}
+
+	if (!($res > 0)) {
+		$error++;
+	}
+
+	if (!$error) {
+		setEventMessages($langs->trans("SetupSaved"), null, 'mesgs');
+	} else {
+		setEventMessages($langs->trans("Error"), null, 'errors');
+	}
+} elseif ($action == 'specimen') {
+	$modele = GETPOST('module', 'alpha');
+
+	$chequereceipt = new RemiseCheque($db);
+	$chequereceipt->initAsSpecimen();
+
+	// Search template files : modern convention (pdf_<model>.modules.php) first, then legacy native convention (pdf_<model>.class.php)
+	$file      = '';
+	$classname = '';
+	$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+	foreach ($dirmodels as $reldir) {
+		$f = dol_buildpath($reldir."core/modules/cheque/doc/pdf_".$modele.".modules.php");
+		if (file_exists($f)) {
+			$file      = $f;
+			$classname = 'pdf_'.$modele;
+			break;
+		}
+		$f = dol_buildpath($reldir."core/modules/cheque/doc/pdf_".$modele.".class.php");
+		if (file_exists($f)) {
+			$file      = $f;
+			$classname = 'BordereauCheque'.ucfirst($modele);
+			break;
+		}
+	}
+	if ($classname !== '') {
+		require_once $file;
+		$module = new $classname($db);
+		'@phan-var-force ModeleChequeReceipts $module';
+
+		// ModeleChequeReceipts::write_file($object, $_dir, $number, $outputlangs), reads from $object
+		$ok = $module->write_file($chequereceipt, $conf->bank->dir_output.'/checkdeposits', $chequereceipt->ref, $langs) > 0;
+		if ($ok) {
+			// Derive relative path from module result to build the document URL
+			$entity      = $conf->entity;
+			$basecheckdir = (!empty($conf->bank->multidir_output[$entity]) ? $conf->bank->multidir_output[$entity] : $conf->bank->dir_output).'/checkdeposits/';
+			$fullpath     = !empty($module->result['fullpath']) ? $module->result['fullpath'] : '';
+			$specimenfile = $fullpath && strpos($fullpath, $basecheckdir) === 0 ? substr($fullpath, strlen($basecheckdir)) : 'SPECIMEN.pdf';
+			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=remisecheque&file=".urlencode($specimenfile));
+			return;
+		} else {
+			setEventMessages($module->error, $module->errors, 'errors');
+			dol_syslog($module->error, LOG_ERR);
+		}
+	} else {
+		setEventMessages($langs->trans("ErrorModuleNotFound"), null, 'errors');
+		dol_syslog($langs->trans("ErrorModuleNotFound"), LOG_ERR);
+	}
+}
+
+if ($action == 'set') {
+	$ret = addDocumentModel($value, $typedoc, $label, $scandir);
+} elseif ($action == 'del') {
+	$ret = delDocumentModel($value, $typedoc);
+	if ($ret > 0 && getDolGlobalString('CHEQUERECEIPT_ADDON_PDF') == $value) {
+		dolibarr_del_const($db, 'CHEQUERECEIPT_ADDON_PDF', $conf->entity);
+	}
+} elseif ($action == 'setdoc') {
+	if (dolibarr_set_const($db, 'CHEQUERECEIPT_ADDON_PDF', $value, 'chaine', 0, '', $conf->entity)) {
+		$conf->global->CHEQUERECEIPT_ADDON_PDF = $value;
+	}
+	$ret = delDocumentModel($value, $typedoc);
+	if ($ret > 0) {
+		$ret = addDocumentModel($value, $typedoc, $label, $scandir);
+	}
+} elseif ($action == 'setmod') {
+	dolibarr_set_const($db, "CHEQUERECEIPTS_ADDON", $value, 'chaine', 0, '', $conf->entity);
+}
+
+if ($action == 'set_BANK_CHEQUERECEIPT_FREE_TEXT') {
+	$freetext = GETPOST('BANK_CHEQUERECEIPT_FREE_TEXT', 'restricthtml'); // No alpha here, we want exact string
+
+	$res = dolibarr_set_const($db, "BANK_CHEQUERECEIPT_FREE_TEXT", $freetext, 'chaine', 0, '', $conf->entity);
+
+	if (!($res > 0)) {
+		$error++;
+	}
+
+	if (!$error) {
+		setEventMessages($langs->trans("SetupSaved"), null, 'mesgs');
+	} else {
+		setEventMessages($langs->trans("Error"), null, 'errors');
+	}
+}
+
+/*
+ * View
+ */
+
+$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+llxHeader("", $langs->trans("BankSetupModule"), '', '', 0, 0, '', '', '', 'mod-admin page-chequereceipts');
+
+$form = new Form($db);
+
+$linkback = '<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans("BackToModuleList").'</a>';
+print load_fiche_titre($langs->trans("BankSetupModule"), $linkback, 'title_setup');
+
+$head = bank_admin_prepare_head(null);
+print dol_get_fiche_head($head, 'checkreceipts', $langs->trans("BankSetupModule"), -1, 'account');
+
+/*
+ *  Numbering module
+ */
+
+print load_fiche_titre($langs->trans("ChequeReceiptsNumberingModule"), '', '');
+
+print '<div class="div-table-responsive-no-min">';
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Name").'</td>';
+print '<td>'.$langs->trans("Description").'</td>';
+print '<td class="nowrap">'.$langs->trans("Example").'</td>';
+print '<td class="center" width="60">'.$langs->trans("Status").'</td>';
+print '<td class="center" width="16">'.$langs->trans("ShortInfo").'</td>';
+print '</tr>'."\n";
+
+clearstatcache();
+
+foreach ($dirmodels as $reldir) {
+	$dir = dol_buildpath($reldir."core/modules/cheque/");
+	if (is_dir($dir)) {
+		$handle = opendir($dir);
+		if (is_resource($handle)) {
+			while (($file = readdir($handle)) !== false) {
+				if (!is_dir($dir.$file) || (substr($file, 0, 1) != '.' && substr($file, 0, 3) != 'CVS')) {
+					$filebis = $file;
+					$name = substr($file, 4, dol_strlen($file) - 16);
+					$classname = preg_replace('/\.php$/', '', $file);
+					// For compatibility
+					if (!is_file($dir.$filebis)) {
+						$filebis = $file."/".$file.".modules.php";
+						$classname = "mod_chequereceipt_".$file;
+					}
+					// Check if there is a filter on country
+					preg_match('/\-(.*)_(.*)$/', $classname, $reg);
+					if (!empty($reg[2]) && $reg[2] != strtoupper($mysoc->country_code)) {
+						continue;
+					}
+
+					$classname = preg_replace('/\-.*$/', '', $classname);
+					if (!class_exists($classname) && is_readable($dir.$filebis) && (preg_match('/mod_/', $filebis) || preg_match('/mod_/', $classname)) && substr($filebis, dol_strlen($filebis) - 3, 3) == 'php') {
+						// Charging the numbering class
+						require_once $dir.$filebis;
+
+						$module = new $classname($db);
+						'@phan-var-force ModeleNumRefChequeReceipts $module';
+
+						// Show modules according to features level
+						if ($module->version == 'development' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) {
+							continue;
+						}
+						if ($module->version == 'experimental' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) {
+							continue;
+						}
+
+						if ($module->isEnabled()) {
+							print '<tr class="oddeven"><td width="100">';
+							print(empty($module->name) ? $name : $module->name);
+							print "</td><td>\n";
+
+							print $module->info($langs);
+
+							print '</td>';
+
+							// Show example of numbering module
+							print '<td class="nowrap">';
+							$tmp = $module->getExample();
+							if (preg_match('/^Error/', $tmp)) {
+								$langs->load("errors");
+								print '<div class="error">'.$langs->trans($tmp).'</div>';
+							} elseif ($tmp == 'NotConfigured') {
+								print '<span class="opacitymedium">'.$langs->trans($tmp).'</span>';
+							} else {
+								print $tmp;
+							}
+							print '</td>'."\n";
+
+							print '<td class="center">';
+							if ($conf->global->CHEQUERECEIPTS_ADDON == $file || getDolGlobalString('CHEQUERECEIPTS_ADDON') . '.php' == $file) {
+								print img_picto($langs->trans("Activated"), 'switch_on');
+							} else {
+								print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=setmod&token='.newToken().'&value='.preg_replace('/\.php$/', '', $file).'&label='.urlencode($module->name).'" alt="'.$langs->trans("Default").'">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
+							}
+							print '</td>';
+
+							$chequereceipts = new RemiseCheque($db);
+							$chequereceipts->initAsSpecimen();
+
+							// Example
+							$htmltooltip = '';
+							$htmltooltip .= ''.$langs->trans("Version").': <b>'.$module->getVersion().'</b><br>';
+							$nextval = $module->getNextValue($mysoc, $chequereceipts);
+							if ("$nextval" != $langs->trans("NotAvailable")) {  // Keep " on nextval
+								$htmltooltip .= $langs->trans("NextValue").': ';
+								if ($nextval) {
+									if (preg_match('/^Error/', $nextval) || $nextval == 'NotConfigured') {
+										$nextval = $langs->trans($nextval);
+									}
+									$htmltooltip .= $nextval.'<br>';
+								} else {
+									$htmltooltip .= $langs->trans($module->error).'<br>';
+								}
+							}
+
+							print '<td class="center">';
+							print $form->textwithpicto('', $htmltooltip, 1, 0);
+
+							if (getDolGlobalString('CHEQUERECEIPTS_ADDON').'.php' == $file) {  // If module is the one used, we show existing errors
+								if (!empty($module->error)) {
+									dol_htmloutput_mesg($module->error, array(), 'error', 1);
+								}
+							}
+
+							print '</td>';
+
+							print "</tr>\n";
+						}
+					}
+				}
+			}
+			closedir($handle);
+		}
+	}
+}
+
+print '</table>';
+print '</div>';
+
+print '<br>';
+
+
+/*
+ * Document model templates for cheque receipts
+ */
+
+// Load active models from llx_document_model
+$def = [];
+$sql = "SELECT nom FROM ".MAIN_DB_PREFIX."document_model";
+$sql .= " WHERE type = '".$db->escape($typedoc)."'";
+$sql .= " AND entity = ".$conf->entity;
+$resql = $db->query($sql);
+if ($resql) {
+	$num_rows = $db->num_rows($resql);
+	for ($i = 0; $i < $num_rows; $i++) {
+		$array = $db->fetch_array($resql);
+		if (is_array($array)) {
+			$def[] = $array[0];
+		}
+	}
+} else {
+	dol_print_error($db);
+}
+
+print load_fiche_titre($langs->trans("CheckReceiptDocumentModels"), '', '');
+
+print '<div class="div-table-responsive-no-min">';
+print '<table class="noborder centpercent">'."\n";
+print '<tr class="liste_titre">'."\n";
+print '<td>'.$langs->trans("Name").'</td>';
+print '<td class="minwidth100">'.$langs->trans("Description").'</td>';
+print '<td class="center" width="60">'.$langs->trans("Status")."</td>\n";
+print '<td class="center" width="60">'.$langs->trans("Default")."</td>\n";
+print '<td class="center" width="38">'.$langs->trans("ShortInfo").'</td>';
+print '<td class="center" width="38">'.$langs->trans("Preview").'</td>';
+print '</tr>'."\n";
+
+clearstatcache();
+
+foreach ($dirmodels as $reldir) {
+	$dir = dol_buildpath($reldir."core/modules/cheque/doc");
+	if (!is_dir($dir)) {
+		continue;
+	}
+	$handle = opendir($dir);
+	if (!is_resource($handle)) {
+		continue;
+	}
+	$filelist = [];
+	while (($file = readdir($handle)) !== false) {
+		$filelist[] = $file;
+	}
+	closedir($handle);
+	arsort($filelist);
+
+	foreach ($filelist as $file) {
+		$filepath = $dir.'/'.$file;
+		if (!file_exists($filepath)) {
+			continue;
+		}
+		if (preg_match('/^pdf_.*\.modules\.php$/i', $file)) {
+			// Modern convention : pdf_<model>.modules.php / class pdf_<model>
+			$name      = substr($file, 4, strlen($file) - 16);
+			$classname = 'pdf_'.$name;
+		} elseif (preg_match('/^pdf_.*\.class\.php$/i', $file)) {
+			// Legacy native convention : pdf_<model>.class.php / class BordereauCheque<Model>
+			$name      = substr($file, 4, strlen($file) - 14);
+			$classname = 'BordereauCheque'.ucfirst($name);
+		} else {
+			continue;
+		}
+
+		if (!class_exists($classname)) {
+			include_once $filepath;
+		}
+		if (!class_exists($classname)) {
+			continue;
+		}
+		$module = new $classname($db);
+
+		// Filter by feature level
+		if (property_exists($module, 'version')) {
+			if ($module->version == 'development' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) {
+				continue;
+			}
+			if ($module->version == 'experimental' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) {
+				continue;
+			}
+		}
+
+		$modulename		= !empty($module->name) ? $module->name : $name;
+		$scandir_module = property_exists($module, 'scandir') ? $module->scandir : '';
+
+		print '<tr class="oddeven"><td width="100">';
+		print dol_escape_htmltag($modulename);
+		print "</td><td>\n";
+		if (!empty($module->description)) {
+			print dol_escape_htmltag($module->description);
+		} else {
+			print dol_escape_htmltag($langs->trans('RemiseChequeDocumentModelDescription', $modulename));
+		}
+		print '</td>';
+
+		// Status (enable / disable)
+		if (in_array($name, $def)) {
+			print '<td class="center">'."\n";
+			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=del&token='.newToken().'&value='.urlencode($name).'">';
+			print img_picto($langs->trans("Enabled"), 'switch_on');
+			print '</a>';
+			print '</td>';
+		} else {
+			print '<td class="center">'."\n";
+			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=set&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($scandir_module).'&label='.urlencode($modulename).'">';
+			print img_picto($langs->trans("Disabled"), 'switch_off');
+			print '</a>';
+			print '</td>';
+		}
+
+		// Default
+		print '<td class="center">';
+		if (getDolGlobalString('CHEQUERECEIPT_ADDON_PDF') == $name) {
+			print img_picto($langs->trans("Default"), 'on');
+		} else {
+			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?action=setdoc&token='.newToken().'&value='.urlencode($name).'&scan_dir='.urlencode($scandir_module).'&label='.urlencode($modulename).'">';
+			print img_picto($langs->trans("Disabled"), 'off');
+			print '</a>';
+		}
+		print '</td>';
+
+		// Info tooltip
+		$htmltooltip = $langs->trans("Name").': '.dol_escape_htmltag($modulename);
+		if (property_exists($module, 'type') && $module->type) {
+			$htmltooltip .= '<br>'.$langs->trans("Type").': '.dol_escape_htmltag($module->type);
+			if ($module->type == 'pdf' && property_exists($module, 'page_largeur')) {
+				$htmltooltip .= '<br>'.$langs->trans("Width").'/'.$langs->trans("Height").': '.(int) $module->page_largeur.'/'.(int) $module->page_hauteur;
+			}
+		}
+		print '<td class="center">';
+		print $form->textwithpicto('', $htmltooltip, 1, 'info');
+		print '</td>';
+
+		// Preview
+		print '<td class="center">';
+		if (property_exists($module, 'type') && $module->type == 'pdf') {
+			print '<a href="'.$_SERVER["PHP_SELF"].'?action=specimen&module='.urlencode($name).'">'.img_object($langs->trans("Preview"), 'pdf').'</a>';
+		} else {
+			print img_object($langs->transnoentitiesnoconv("PreviewNotAvailable"), 'generic');
+		}
+		print '</td>';
+		print "</tr>\n";
+	}
+}
+
+print '</table>';
+print '</div>';
+
+print '<br>';
+
+/*
+ * Other options
+ */
+print load_fiche_titre($langs->trans("OtherOptions"), '', '');
+
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="post">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="action" value="set_BANK_CHEQUERECEIPT_FREE_TEXT">';
+
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameters").'</td>';
+print '<td class="center" width="60">&nbsp;</td>';
+print '<td width="80">&nbsp;</td>';
+print "</tr>\n";
+
+$substitutionarray = pdf_getSubstitutionArray($langs, null, null, 2);
+$substitutionarray['__(AnyTranslationKey)__'] = $langs->trans("Translation");
+$htmltext = '<i>'.$langs->trans("AvailableVariables").':<br>';
+foreach ($substitutionarray as $key => $val) {
+	$htmltext .= $key.'<br>';
+}
+$htmltext .= '</i>';
+
+print '<tr class="oddeven"><td colspan="2">';
+print $form->textwithpicto($langs->trans("FreeLegalTextOnChequeReceipts"), $langs->trans("AddCRIfTooLong").'<br><br>'.$htmltext, 1, 'help', '', 0, 2, 'freetexttooltip').'<br>';
+$variablename = 'BANK_CHEQUERECEIPT_FREE_TEXT';
+if (!getDolGlobalString('PDF_ALLOW_HTML_FOR_FREE_TEXT')) {
+	print '<textarea name="'.$variablename.'" class="flat" cols="120">'.getDolGlobalString($variablename).'</textarea>';
+} else {
+	include_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+	$doleditor = new DolEditor($variablename, getDolGlobalString($variablename), '', 80, 'dolibarr_notes');
+	print $doleditor->Create();
+}
+print '</td><td class="right">';
+print '<input type="submit" class="button button-edit" value="'.$langs->trans("Modify").'">';
+print "</td></tr>\n";
+print '</table>';
+print "<br>";
+
+print '</table>'."\n";
+
+print dol_get_fiche_end();
+
+print '</form>';
+
+// End of page
+llxFooter();
+$db->close();

@@ -23,8 +23,8 @@
 	************************************************/
 
 	// Libraries ************************************
-	require_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/commonstickergenerator.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
+	include_once DOL_DOCUMENT_ROOT.'/core/class/commonstickergenerator.class.php';
 	dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 
 	/************************************************
@@ -32,6 +32,19 @@
 	************************************************/
 	class pdf_infrasplus extends CommonStickerGenerator
 	{
+		public $db;
+		public $multilangs;
+		public $use_fpdf;
+		public $main_umask;
+		public $font;
+		public $cat_hq_image;
+		public $watermark_i_opacity;
+		public $show_ExtraFieldsLines;
+		public $larg_util_txt;
+		public $tab_hl = 4;
+		protected $_Margin_Right = 0;
+		protected $_Margin_Bottom = 0;
+
 		/**
 		*	Constructor
 		*
@@ -39,11 +52,12 @@
 		**/
 		public function __construct($db)
 		{
-			global $conf, $langs, $mysoc;
+			global $langs;
 
 			$langs->loadLangs(array('main', 'dict', 'admin', 'companies', 'members', 'infraspackplus@infraspackplus'));
 
 			pdf_InfraSPlus_getValues($this);
+			$this->db						= $db;
 			$this->name						= $langs->trans('PDFInfraSPlusMemberName');
 			$this->description				= $langs->trans('PDFInfraSPlusMemberDescription');
 			$this->update_main_doc_field	= 1;	// Save the name of generated file as the main doc when generating a doc with this this
@@ -61,7 +75,7 @@
 		/**
 		*	Function to build pdf onto disk
 		*
-		*	@param		Object		$object				Object to generate
+		*	@param		Adherent	$object				Object to generate
 		*	@param		Translate	$outputlangs		Lang output object
 		*	@param		string		$srctemplatepath	Full path of source filename for generator using a template file
 		*	@param		string		$mode				Tell if doc module is called for 'member', ...
@@ -70,28 +84,34 @@
 		**/
 		public function write_file($object, $outputlangs, $srctemplatepath, $mode = 'member', $nooutput = 0)
 		{
-			global $user, $langs, $conf, $db, $hookmanager, $mysoc, $_Avery_Labels;
+			global $user, $langs, $conf, $hookmanager, $mysoc, $_Avery_Labels;
 
 			dol_syslog('write_file outputlangs->defaultlang = '.(is_object($outputlangs) ? $outputlangs->defaultlang : 'null'));
-			if (! is_object($outputlangs))	$outputlangs					= $langs;
+			if (! is_object($outputlangs)) {
+				$outputlangs	= $langs;
+			}
 			// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-			if (!empty($this->use_fpdf))	$outputlangs->charset_output	= 'ISO-8859-1';
+			if (!empty($this->use_fpdf)) {
+				$outputlangs->charset_output	= 'ISO-8859-1';
+			}
 			$outputlangs->loadLangs(array('main', 'dict', 'admin', 'companies', 'members', 'infraspackplus@infraspackplus'));
 			$baseDir						= !empty($conf->adherent->multidir_output[$conf->entity]) ? $conf->adherent->multidir_output[$conf->entity] : $conf->adherent->dir_output;
 			if (empty($mode) || $mode == 'member') {
 				$title		= $outputlangs->transnoentities('MembersCards');
 				$keywords	= $outputlangs->transnoentities('MembersCards').' '.$outputlangs->transnoentities('Foundation').' '.$outputlangs->convToOutputCharset($mysoc->name);
 			} else {
-				dol_print_error('', 'Bad value for $mode');
+				dol_print_error($this->db, 'Bad value for $mode');
 				return -1;
 			}
 			$this->Tformat					= $_Avery_Labels[$this->code];
 			if (empty($this->Tformat)) {
-				dol_print_error('', 'ErrorBadTypeForCard'.$this->code);
+				dol_print_error($this->db, 'ErrorBadTypeForCard'.$this->code);
 				exit;
 			}
 			$this->_Metric_Doc								= $this->Tformat['metric'];
-			if ($this->Tformat['paper-size'] != 'custom')	$this->format = $this->Tformat['paper-size'];	// standard format
+			if ($this->Tformat['paper-size'] != 'custom') {
+				$this->format = $this->Tformat['paper-size'];	// standard format
+			}
 			else {	//custom
 				$resolution		= array($this->Tformat['custom_x'], $this->Tformat['custom_y']);
 				$this->format	= $resolution;
@@ -102,14 +122,12 @@
 					$this->show_ExtraFieldsLines	= '';
 					$dir							= $baseDir;
 					$file							= $dir.'/SPECIMEN.pdf';
-				}
-				elseif (is_object($object)) {
+				} elseif (is_object($object)) {
 					$filename	= dol_sanitizeFileName($object->firstname.'.'.$object->lastname);
 					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
 					$file		= $dir.'/'.$filename.'.pdf';
-				}
-				else {
+				} else {
 					$filename	= 'tmp_cards.pdf';
 					$dir		= $conf->adherent->dir_temp;
 					$file		= $dir.'/'.$filename;
@@ -123,7 +141,7 @@
 				if (file_exists($dir)) {
 					if (! is_object($hookmanager)) {	// Add pdfgeneration hook
 						include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
-						$hookmanager	= new HookManager($db);
+						$hookmanager	= new HookManager($this->db);
 					}
 					$hookmanager->initHooks(array('pdfgeneration'));
 					$parameters			= array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
@@ -158,7 +176,7 @@
 					$filigrane	= get_exdir(0, 0, 0, 0, $object->thirdparty, 'thirdparty').'filigrane.png';
 					$filigrane	= $societedir.'/'.$filigrane;
 					if (!empty($filigrane) && is_readable($filigrane)) {
-						$imgsize	= array();
+						$imgsize	= [];
 						$imgsize	= pdf_InfraSPlus_getSizeForImage($filigrane, $this->_Width, $this->_Height);
 						if (isset($imgsize['width']) && isset($imgsize['height'])) {
 							$pdf->SetAlpha($this->watermark_i_opacity / 100);
@@ -175,7 +193,9 @@
 					}
 					// Define Text values
 					if (is_object($object)) {
-						if ($object->country == '-')	$object->country	= '';
+						if ($object->country == '-') {
+							$object->country	= '';
+						}
 						$now							= dol_now();
 						// List of values to scan for a replacement
 						$substitutionarray				= array('__ID__'			=> $object->id,
@@ -217,7 +237,7 @@
 						$posyLeft	= $posy + $logosize['height'] + 2;
 					}
 					// Define member
-					$member	= new Adherent($db);
+					$member	= new Adherent($this->db);
 					$member->fetch($object->id);
 					// Define photo - right
 					if (!empty($object->photo)) {
@@ -267,29 +287,34 @@
 						$this->error	= $hookmanager->error;
 						$this->errors	= $hookmanager->errors;
 					}
-					if (!empty($this->main_umask))	@chmod($file, octdec($this->main_umask));
+					if (!empty($this->main_umask)) {
+						@chmod($file, octdec($this->main_umask));
+					}
 					$this->result					= array('fullpath' => $file);
 					// Output to http stream
 					if (empty($nooutput)) {
 						clearstatcache();
 						$attachment					= getDolGlobalString('MAIN_DISABLE_FORCE_SAVEAS', '') ? false : true;
 						$type						= dol_mimetype($filename);
-						if (!empty($type))			header('Content-Type: '.$type);
-						if (!empty($attachment))	header('Content-Disposition: attachment; filename="'.$filename.'"');
-						else						header('Content-Disposition: inline; filename="'.$filename.'"');
+						if (!empty($type)) {
+							header('Content-Type: '.$type);
+						}
+						if (!empty($attachment)) {
+							header('Content-Disposition: attachment; filename="'.$filename.'"');
+						} else {
+							header('Content-Disposition: inline; filename="'.$filename.'"');
+						}
 						// Ajout directives pour resoudre bug IE
 						header('Cache-Control: Public, must-revalidate');
 						header('Pragma: public');
 						readfile($file);
 					}
 					return 1;	// Pas d'erreur
-				}
-				else {
+				} else {
 					$this->error	= $outputlangs->transnoentities('ErrorCanNotCreateDir', $dir);
 					return 0;
 				}
-			}
-			else {
+			} else {
 				$this->error	= $outputlangs->transnoentities('ErrorConstantNotDefined', 'MEMBER_OUTPUTDIR');
 				return 0;
 			}
