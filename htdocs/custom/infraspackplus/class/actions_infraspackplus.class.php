@@ -1774,6 +1774,7 @@ EOJS;
 		// Native Subtotals module (Dolibarr >= 22) : PDF columns of its title / subtotal lines *********
 		// The ATM Subtotal module fills the pdf_getline* hooks itself ; the native module has no hook at all, so InfraSPackPlus
 		// plays this role, only while an InfraSPlus PDF model is generating (flag set by pdf_InfraSPlus_getInstance()).
+
 		/**
 		*	Cell content of a PDF column for the lines of the native Subtotals module
 		*	- title / subtotal line : empty cell, except the amount of a subtotal when its native option "print the amount" is active
@@ -1787,6 +1788,7 @@ EOJS;
 		private function nativeSubtotalPdfCell($column, $parameters, $object)
 		{
 			global $langs;
+
 			if (!infraspackplus_isInfraSPlusPdfGeneration() || !isset($parameters['i']) || empty($object->lines[$parameters['i']])) {
 				return 0;
 			}
@@ -1814,6 +1816,7 @@ EOJS;
 			}
 			return 0;
 		}
+
 		/**
 		*	Hook pdf_getlineqty : quantity column
 		*
@@ -1827,6 +1830,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('qty', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlineupexcltax : unit price excl. tax column
 		*
@@ -1840,6 +1844,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('up', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlineupwithtax : unit price incl. tax column
 		*
@@ -1853,6 +1858,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('up', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlinevatrate : VAT rate column
 		*
@@ -1866,6 +1872,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('vat', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlineremisepercent : discount column
 		*
@@ -1879,6 +1886,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('discount', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlineunit : unit column
 		*
@@ -1892,6 +1900,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('unit', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlineprogress : situation progress column
 		*
@@ -1905,6 +1914,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('progress', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlinetotalexcltax : total excl. tax column (amount of a native subtotal)
 		*
@@ -1918,6 +1928,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('totalht', $parameters, $object);
 		}
+
 		/**
 		*	Hook pdf_getlinetotalwithtax : total incl. tax column (amount of a native subtotal)
 		*
@@ -1931,6 +1942,7 @@ EOJS;
 		{
 			return $this->nativeSubtotalPdfCell('totalttc', $parameters, $object);
 		}
+
 		/**
 		* When we show a line
 		*

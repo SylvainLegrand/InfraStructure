@@ -427,6 +427,7 @@
 	// Native convention (modSubtotals, Dolibarr >= 22) : special_code = SUBTOTALS_SPECIAL_CODE (81), product_type = 9,
 	// qty = signed level (> 0 title, < 0 subtotal), amounts = 0, label in desc, options in $line->extraparams['subtotal'].
 	// ATM convention (modSubtotal) : special_code = module number, product_type = 9, qty 1..9 title, 91..99 subtotal, 50 free text.
+
 	/**
 	*	Is the line a title or a subtotal line of the Dolibarr native "Subtotals" module ?
 	*
@@ -440,6 +441,7 @@
 		}
 		return !empty($line->special_code) && $line->special_code == SUBTOTALS_SPECIAL_CODE && $line->product_type == 9;
 	}
+
 	/**
 	*	Which subtotal module owns the line ?
 	*
@@ -457,6 +459,7 @@
 		}
 		return '';
 	}
+
 	/**
 	*	Is the line a title, a subtotal or a free text line of a subtotal module (ATM or native) ?
 	*
@@ -468,6 +471,7 @@
 	{
 		return infraspackplus_getSubtotalLineSource($line, $element) != '' ? true : false;
 	}
+
 	/**
 	*	Is the line a title (subtitle) of a subtotal module (ATM or native) ?
 	*
@@ -485,6 +489,7 @@
 		}
 		return false;
 	}
+
 	/**
 	*	Is the line a subtotal of a subtotal module (ATM or native) ?
 	*
@@ -502,6 +507,7 @@
 		}
 		return false;
 	}
+
 	/**
 	*	Is the line a free text line of a subtotal module ? (ATM only, no native equivalent)
 	*
@@ -513,6 +519,7 @@
 	{
 		return infraspackplus_getSubtotalLineSource($line, $element) == 'atm' && $line->qty == 50;
 	}
+
 	/**
 	*	Level (depth) of a title or subtotal line, whatever the subtotal module (ATM or native)
 	*
@@ -534,6 +541,7 @@
 		}
 		return 0;
 	}
+
 	/**
 	*	Options of a native title / subtotal line (extraparams['subtotal'] : titleshowuponpdf, titleshowtotalexludingvatonpdf,
 	*	titleforcepagebreak, subtotalshowtotalexludingvatonpdf). An option is active when its key is present.
@@ -552,6 +560,7 @@
 		}
 		return !empty($extraparams['subtotal']) && is_array($extraparams['subtotal']) ? $extraparams['subtotal'] : array();
 	}
+
 	/**
 	*	Is a native option active on a title / subtotal line ?
 	*
@@ -564,6 +573,7 @@
 		$options	= infraspackplus_getNativeSubtotalOptions($line);
 		return !empty($options[$key]);
 	}
+
 	/**
 	*	Amounts of a native subtotal line, computed on the fly like CommonSubtotal::getSubtotalLineAmount() but returned as numbers :
 	*	sum of the lines located above the subtotal, up to the first native title of a level lower or equal to the subtotal level.
@@ -598,6 +608,7 @@
 		}
 		return $amounts;
 	}
+
 	/**
 	*	Options of the native title which encloses an ordinary line (nearest title still open at this line).
 	*	Used to hide the unit price / total columns of the lines of a block (native options titleshowuponpdf / titleshowtotalexludingvatonpdf).
@@ -622,6 +633,7 @@
 		}
 		return null;
 	}
+
 	/**
 	*	Change directory name for Dolibarr 12
 	*

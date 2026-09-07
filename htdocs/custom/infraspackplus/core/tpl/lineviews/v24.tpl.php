@@ -88,7 +88,7 @@ if (defined('SUBTOTALS_SPECIAL_CODE') && $line->special_code == SUBTOTALS_SPECIA
 	$subtotalTplVars	= get_defined_vars();
 	$subtotalRenderer	= function () use ($subtotalTplVars) {
 		extract($subtotalTplVars);
-	return require DOL_DOCUMENT_ROOT.'/core/tpl/subtotal_view.tpl.php';
+		return require DOL_DOCUMENT_ROOT.'/core/tpl/subtotal_view.tpl.php';
 	};
 	return $subtotalRenderer->call($object);
 }

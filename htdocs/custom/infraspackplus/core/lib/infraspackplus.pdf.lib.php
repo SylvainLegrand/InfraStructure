@@ -269,11 +269,13 @@
 	function infraspackplus_isInfraSPlusPdfGeneration($set = null)
 	{
 		static $generating	= false;
+
 		if ($set !== null) {
 			$generating	= (bool) $set;
 		}
 		return $generating;
 	}
+
 	/**
 	*	Return a PDF instance object. We create a FPDI instance that instantiate TCPDF.
 	*
