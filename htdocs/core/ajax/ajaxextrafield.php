@@ -111,7 +111,7 @@ $data = [
 if ($page == 1) {
 	$data['results'][] = [
 		'id' => -1,
-		'text' => html_entity_decode('&nbsp;', ENT_QUOTES, 'UTF-8'),	// InfraS change: select2 escapes result texts, so the raw entity was displayed literally
+		'text' => "\u{00A0}",	// Real non-breaking space (U+00A0), not the HTML entity '&nbsp;' which Select2 would escape and display as raw text
 	];
 }
 $i = 0;
