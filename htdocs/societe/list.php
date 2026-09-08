@@ -370,6 +370,11 @@ $arrayfields['sales.representative'] = array('label' => $langs->trans("SalesRepr
 // Extra fields
 include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
 
+// InfraS add begin : Add hook to complete $arrayfields (allows external modules to register optional fields)
+$parameters	= array('arrayfields' => &$arrayfields);
+$reshook	= $hookmanager->executeHooks('completeArrayFields', $parameters, $object, $action); // Note that $action and $object must be defined before this line
+// InfraS add end
+
 // @phpstan-ignore-next-line
 $object->fields = dol_sort_array($object->fields, 'position');
 // @phpstan-ignore-next-line
