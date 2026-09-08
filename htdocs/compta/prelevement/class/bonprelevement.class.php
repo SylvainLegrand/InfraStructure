@@ -1073,12 +1073,12 @@ class BonPrelevement extends CommonObject
 	 *  @param	string	$sourcetype			'invoice' or 'salary'
 	 *	@return	int							Return integer <0 if KO, No of invoice included into file if OK
 	 */
-	public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $dids = 0, $fk_bank_account = 0, $sourcetype = 'invoice')
+	public function create($banque = '', $agence = '', $mode = 'real', $format = 'ALL', $executiondate = 0, $notrigger = 0, $type = 'direct-debit', $dids = 0, $fk_bank_account = 0, $sourcetype = 'invoice')	// Osden change
 	{
 		// phpcs:enable
 		global $conf, $langs, $user;
 
-		dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".(is_array($dids) ? implode(',', $dids) : $dids)." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);
+		dol_syslog(__METHOD__ . " Bank=".$banque." Office=".$agence." mode=".$mode." format=".$format." type=".$type." dids=".(is_array($dids) ? implode(',', $dids) : $dids)." fk_bank_account=".$fk_bank_account." sourcetype=".$sourcetype, LOG_DEBUG);	// Osden change
 
 		require_once DOL_DOCUMENT_ROOT . "/compta/facture/class/facture.class.php";
 		require_once DOL_DOCUMENT_ROOT . "/societe/class/societe.class.php";
@@ -1090,20 +1090,21 @@ class BonPrelevement extends CommonObject
 				return -1;
 			}
 		}
-
+		// Osden change begin
 		if (!is_int($dids) && !is_array($dids)) {
 			$this->error = 'ErrorBadParametersForDirectDebitFileCreateDids';
 			return -1;
 		}
-
+		// Osden change end
 		// Clean params
 		if (empty($fk_bank_account)) {
 			$fk_bank_account = ($type == 'bank-transfer' ? getDolGlobalInt('PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT') : getDolGlobalInt('PRELEVEMENT_ID_BANKACCOUNT'));
 		}
+		// Osden change begin
 		if (is_int($dids)) {
 			$dids = array($dids);
 		}
-
+		// Osden change end
 
 		$error = 0;
 		// Pre-store some values into variables to simplify following sql requests
@@ -1119,13 +1120,13 @@ class BonPrelevement extends CommonObject
 			$societeOrUser = 'user';
 		}
 
-		$thirdpartyBANIds = [];
+		$thirdpartyBANIds = [];	// Osden change
 
 		// Check if there is an iban associated to the bank transfer request or if we take the default
-		if ($dids !== [0] && !empty($dids)) {
+		if ($dids !== [0] && !empty($dids)) {	// Osden change
 			$sql = "SELECT pd.fk_societe_rib";
 			$sql .= " FROM " . $this->db->prefix() . "prelevement_demande as pd";
-			$sql .= " WHERE pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
+			$sql .= " WHERE pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";	// Osden change
 
 			$resql = $this->db->query($sql);
 
@@ -1134,14 +1135,14 @@ class BonPrelevement extends CommonObject
 				dol_syslog(__METHOD__ . " Read fk_societe_rib error " . $this->db->lasterror(), LOG_ERR);
 				return -1;
 			}
-
+			// Osden change begin
 			while ($obj = $this->db->fetch_object($resql)) {
 				$thirdpartyBANIds[] = (int) $obj->fk_societe_rib;
 
 				dol_syslog(__METHOD__ . " Found BAN ID to use: ".$obj->fk_societe_rib);
 			}
 			$thirdpartyBANIds = array_unique($thirdpartyBANIds);
-
+			// Osden change end
 			$this->db->free($resql);
 		}
 
@@ -1165,7 +1166,7 @@ class BonPrelevement extends CommonObject
 		$factures_errors = array();
 
 		if (!$error) {
-			dol_syslog(__METHOD__ . " Read invoices for dids=" . implode(', ', $dids), LOG_DEBUG);
+			dol_syslog(__METHOD__ . " Read invoices for dids=" . implode(', ', $dids), LOG_DEBUG);	// Osden change
 
 			$sql = "SELECT f.rowid, pd.rowid as pfdrowid";
 			$sql .= ", f.".$this->db->sanitize($socOrUser);		// fk_soc or fk_user
@@ -1205,8 +1206,8 @@ class BonPrelevement extends CommonObject
 			if ($sourcetype != 'salary') {
 				$sql .= " AND sr.type = 'ban'";		// TODO Add AND sr.type = 'ban' for users too
 			}
-			if ($dids !== [0] && !empty($dids)) {
-				$sql .= " AND pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";
+			if ($dids !== [0] && !empty($dids)) {	// Osden change
+				$sql .= " AND pd.rowid IN (".$this->db->sanitize(implode(',', $dids)).")";	// Osden change
 			}
 
 			$resql = $this->db->query($sql);
@@ -1375,7 +1376,7 @@ class BonPrelevement extends CommonObject
 					$row = $this->db->fetch_row($resql);
 
 					// Build the new ref
-					$ref = "T" . $ref . sprintf("%02d", (intval($row[0] ?? 0) + 1));
+					$ref = "T" . $ref . sprintf("%02d", (intval($row[0] ?? 0) + 1));	// Osden change
 
 					// $conf->abc->dir_output may be:
 					// /home/ldestailleur/git/dolibarr_15.0/documents/abc/
@@ -1505,7 +1506,7 @@ class BonPrelevement extends CommonObject
 					if ($sourcetype == 'salary') {
 						$userid = $this->context['factures_prev'][0][2];
 					}
-					$result = $this->generate($format, $executiondate, $type, $fk_bank_account, $userid, $thirdpartyBANIds);
+					$result = $this->generate($format, $executiondate, $type, $fk_bank_account, $userid, $thirdpartyBANIds);	// Osden change
 					if ($result < 0) {
 						//var_dump($this->error);
 						//var_dump($this->invoice_in_error);
@@ -1818,7 +1819,7 @@ class BonPrelevement extends CommonObject
 	 * @param   int[]  	$thirdpartyBANIds	If defined, will use this IDs to get the RIB. Otherwise, the first default BAN will be taken.
 	 * @return	int							>=0 if OK, <0 if KO
 	 */
-	public function generate(string $format = 'ALL', int $executiondate = 0, string $type = 'direct-debit', int $fk_bank_account = 0, int $forsalary = 0, Array $thirdpartyBANIds = [])
+	public function generate(string $format = 'ALL', int $executiondate = 0, string $type = 'direct-debit', int $fk_bank_account = 0, int $forsalary = 0, Array $thirdpartyBANIds = [])	// Osden change
 	{
 		global $conf, $langs, $mysoc;
 
@@ -1889,21 +1890,23 @@ class BonPrelevement extends CommonObject
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 				$sql .= " " . MAIN_DB_PREFIX . "facture as f,";
 				$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
-				$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
+				$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";	// Osden add
 				$sql .= " " . MAIN_DB_PREFIX . "societe as soc,";
 				$sql .= " " . MAIN_DB_PREFIX . "c_country as c,";
 				$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 				$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 				$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 				$sql .= " AND p.fk_facture = f.rowid";
-				$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);
-				$sql .= " AND pd.fk_facture = f.rowid";
+				$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);	// Osden add
+				$sql .= " AND pd.fk_facture = f.rowid";	// Osden 	dd
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
+				// Osden change begin
 				$sql .= " AND (";
 				$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
 				$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
 				$sql .= " )";
+				// Osden change end
 				$sql .= " AND rib.type = 'ban'";
 
 				// Define $fileDebiteurSection. One section DrctDbtTxInf per invoice.
@@ -1917,10 +1920,12 @@ class BonPrelevement extends CommonObject
 						$obj = $this->db->fetch_object($resql);
 
 						if (!empty($cachearraytotestduplicate[$obj->idfac])) {
+							// Osden change begin
 							$soc = new Societe($this->db);
 							$soc->fetch($obj->socid);
 							$msg = (empty($thirdpartyBANIds)) ? 'ErrorCompanyHasDuplicateDefaultBAN' : 'ErrorCompanyHasDuplicateInvoicesBAN';
 							$this->error = $langs->trans($msg, $soc->getNomUrl());
+							// Osden change end
 							$this->invoice_in_error[$obj->idfac] = $this->error;
 							$result = -2;
 							break;
@@ -1930,6 +1935,7 @@ class BonPrelevement extends CommonObject
 						// Get the default value
 						$daterum = (!empty($obj->date_rum)) ? $this->db->jdate($obj->date_rum) : $this->db->jdate($obj->datec);
 						$iban = dolDecrypt($obj->iban);
+						// Osden add begin
 						$bic = $obj->bic;
 						$drum = $obj->drum;
 						$rum = $obj->rum;
@@ -1958,8 +1964,8 @@ class BonPrelevement extends CommonObject
 								$rum = $bankaccount->rum;
 							}
 						}
-
-						$fileDebiteurSection .= $this->EnregDestinataireSEPA($obj->code, $obj->nom, $obj->address, $obj->zip, $obj->town, $obj->country_code, '', '', '', $obj->somme, $obj->reffac, $obj->idfac, $iban, $bic, $daterum, (string) $drum, $rum, $type);
+						// Osden add end
+						$fileDebiteurSection .= $this->EnregDestinataireSEPA($obj->code, $obj->nom, $obj->address, $obj->zip, $obj->town, $obj->country_code, '', '', '', $obj->somme, $obj->reffac, $obj->idfac, $iban, $bic, $daterum, (string) $drum, $rum, $type);	// Osden change
 
 						$this->total += $obj->somme;
 						$i++;
@@ -2069,20 +2075,22 @@ class BonPrelevement extends CommonObject
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement_lignes as pl,";
 					$sql .= " " . MAIN_DB_PREFIX . "facture_fourn as f,";
 					$sql .= " " . MAIN_DB_PREFIX . "prelevement as p,";
-					$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";
+					$sql .= " " . MAIN_DB_PREFIX . "prelevement_demande as pd,";	// Osden add
 					$sql .= " " . MAIN_DB_PREFIX . "societe as soc";
 					$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_country as c ON soc.fk_pays = c.rowid,";
 					$sql .= " " . MAIN_DB_PREFIX . "societe_rib as rib";
 					$sql .= " WHERE pl.fk_prelevement_bons = " . ((int) $this->id);
 					$sql .= " AND pl.rowid = p.fk_prelevement_lignes";
 					$sql .= " AND p.fk_facture_fourn = f.rowid";
-					$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);
-					$sql .= " AND pd.fk_facture_fourn = f.rowid";
+					$sql .= " AND pd.fk_prelevement_bons = " . ((int) $this->id);	// Osden add
+					$sql .= " AND pd.fk_facture_fourn = f.rowid";	// Osden add
 					$sql .= " AND f.fk_soc = soc.rowid";
+					// Osden change begin
 					$sql .= " AND (";
 					$sql .= "   (rib.rowid IS NOT NULL AND rib.rowid = pd.fk_societe_rib)";
 					$sql .= "   OR (pd.fk_societe_rib IS NULL AND rib.fk_soc = f.fk_soc AND rib.default_rib = 1)";
 					$sql .= " )";
+					// Osden change end
 					$sql .= " AND rib.type = 'ban'";
 				}
 				// Define $fileCrediteurSection. One section DrctDbtTxInf per invoice.
@@ -2362,7 +2370,7 @@ class BonPrelevement extends CommonObject
 	public function EnregDestinataireSEPA($row_code_client, $row_nom, $row_address, $row_zip, $row_town, $row_country_code, $row_cb, $row_cg, $row_cc, $row_somme, $row_ref, $row_idfac, $row_iban, $row_bic, $row_datec, $row_drum, $row_rum, $type = 'direct-debit', $row_comment = '')
 	{
 		// phpcs:enable
-		global $conf, $mysoc, $hookmanager;
+		global $conf, $mysoc, $hookmanager;	// Osden change
 
 		if (getDolGlobalString('SEPA_FORCE_TWO_DECIMAL')) {
 			$row_somme = number_format((float) price2num($row_somme, 'MT'), 2, ".", "");
@@ -2381,7 +2389,7 @@ class BonPrelevement extends CommonObject
 
 		// Define date of RUM signature
 		$DtOfSgntr = dol_print_date($row_datec, '%Y-%m-%d');
-
+		// Osden change begin
 		$XML_RESULT = '';
 		if (!is_object($hookmanager)) {
 			include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
@@ -2539,6 +2547,7 @@ class BonPrelevement extends CommonObject
 			$XML_RESULT .= $hookmanager->resPrint;
 		}
 		return $XML_RESULT;
+		// Osden change end
 	}
 
 

@@ -1410,7 +1410,7 @@ class ExtraFields
 										search: params.term,
 										page: params.page || 1,
 										objecttype: '".$extrafieldsobjectkey."',
-										objectid: '".$objectid."',	// InfraS change
+										objectid: '".$objectid."',
 										objectkey: '".$key."',
 										mode: '".$mode."',
 										value: '".$value."'
@@ -1499,12 +1499,10 @@ class ExtraFields
 						} else {
 							$keyList .= ', '.$parentField;
 						}
-						// infras add begin
 						// Re-add parent field that was removed by keyList reset above
 						if (!empty($parentField)) {
 							$keyList .= ', '.$parentField;
 						}
-						// infras add end
 					}
 
 					$filter_categorie = false;
@@ -1780,12 +1778,10 @@ class ExtraFields
 					} else {
 						$keyList .= ', '.$parentField;
 					}
-					// infras add begin
 					// Re-add parent field that was removed by keyList reset above
 					if (!empty($parentField)) {
 						$keyList .= ', '.$parentField;
 					}
-					// infras add end
 				}
 
 				$filter_categorie = false;
@@ -2409,6 +2405,11 @@ class ExtraFields
 				$classpath = $InfoFieldList[1];
 				if (!empty($classpath)) {
 					dol_include_once($InfoFieldList[1]);
+					if (!$classname || !class_exists($classname)) {
+						// Without this, the raw id is printed with nothing telling why, which is very
+						// hard to diagnose. Most often the class path stored in the definition is wrong.
+						dol_syslog('Extrafields::showOutputField the class '.$classname.' of the link field '.$key.' could not be loaded from '.$classpath.', check the extrafield definition', LOG_WARNING);
+					}
 					if ($classname && class_exists($classname)) {
 						$tmpobject = new $classname($this->db);
 						'@phan-var-force CommonObject $tmpobject';
