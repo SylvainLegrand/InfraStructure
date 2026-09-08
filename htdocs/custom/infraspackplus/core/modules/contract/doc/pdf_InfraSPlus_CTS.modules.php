@@ -325,7 +325,8 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 					$filesArray[]	= $pdfFile;
 				}
 				if (!empty($filesArray)) {
-					completeFileArrayWithDatabaseInfo($filesArray, 'infraspackplus/specialfiles');
+					$relativedirpdfs	= (!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles';
+					completeFileArrayWithDatabaseInfo($filesArray, $relativedirpdfs);
 
 					$arrayFilesID	= [];
 					foreach ($filesArray as $row) {
@@ -333,6 +334,9 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 							$arrayFilesID[] = $row['rowid'];
 						}
 					}
+					// Etat du repertoire avant assemblage (comparaison apres generation)
+					$pdf_files_before	= glob($dir.'/*.pdf');
+					$pdf_files_before	= is_array($pdf_files_before) ? $pdf_files_before : [];
 					if (!empty($arrayFilesID)) {
 						pdf_InfraSPlus_files($pdf, $arrayFilesID, 1, $object, $outputlangs, $this->formatpage);
 					}
