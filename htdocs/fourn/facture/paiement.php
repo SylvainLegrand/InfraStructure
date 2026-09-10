@@ -190,7 +190,7 @@ if (empty($reshook)) {
 				if ($result <= 0) {
 					dol_print_error($db);
 				}
-				$amountsresttopay[$cursorfacid] = price2num($tmpinvoice->total_ttc - $tmpinvoice->getSommePaiement(), 'MT'); // InfraS change Arrondis
+				$amountsresttopay[$cursorfacid] = price2num($tmpinvoice->getRoundedTotalTTC(0) - price2num($tmpinvoice->getSommePaiement(), 'MT'), 'MT'); // InfraS change Arrondis
 				if ($amounts[$cursorfacid]) {
 					// Check amount
 					if ((abs((float) $amounts[$cursorfacid]) > abs((float) $amountsresttopay[$cursorfacid]))) {
@@ -217,7 +217,7 @@ if (empty($reshook)) {
 				if ($result <= 0) {
 					dol_print_error($db);
 				}
-				$multicurrency_amountsresttopay[$cursorfacid] = price2num($tmpinvoice->multicurrency_total_ttc - $tmpinvoice->getSommePaiement(1), 'MT'); // InfraS change Arrondis
+				$multicurrency_amountsresttopay[$cursorfacid] = price2num($tmpinvoice->getRoundedTotalTTC(1) - price2num($tmpinvoice->getSommePaiement(1), 'MT'), 'MT'); // InfraS change Arrondis
 				if ($multicurrency_amounts[$cursorfacid]) {
 					// Check amount
 					if ((abs((float) $multicurrency_amounts[$cursorfacid]) > abs((float) $multicurrency_amountsresttopay[$cursorfacid]))) {

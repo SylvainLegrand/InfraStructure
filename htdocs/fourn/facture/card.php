@@ -1065,7 +1065,7 @@ if (empty($reshook)) {
 						$totalpaid = price2num($facture_source->getSommePaiement(), 'MT');
 						$totalcreditnotes = price2num($facture_source->getSumCreditNotesUsed(), 'MT');
 						$totaldeposits = price2num($facture_source->getSumDepositsUsed(), 'MT');
-						$remain_to_pay = abs(price2num($facture_source->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits);
+						$remain_to_pay = abs($facture_source->getRoundedTotalTTC(0) - $totalpaid - $totalcreditnotes - $totaldeposits);
 						// InfraS change end Arrondis
 						$desc = $langs->trans('invoiceAvoirLineWithPaymentRestAmount');
 						$retAddLine = $object->addline($desc, $remain_to_pay, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'TTC');
@@ -2096,7 +2096,7 @@ if (empty($reshook)) {
 
 		if (!$ventilExportCompta) {
 			// We verify that no payment was done
-			if (price2num($resteapayer, 'MT') == price2num($object->total_ttc, 'MT', 1) && $object->status == FactureFournisseur::STATUS_VALIDATED) { // InfraS change Arrondis
+			if (price2num($resteapayer, 'MT') == $object->getRoundedTotalTTC(0) && $object->status == FactureFournisseur::STATUS_VALIDATED) { // InfraS change Arrondis
 				$idwarehouse = GETPOST('idwarehouse');
 
 				$object->fetch_thirdparty();
@@ -2197,6 +2197,19 @@ if (empty($reshook)) {
 			dol_print_error($db, $object->error, $object->errors);
 			exit;
 		}
+		// InfraS add begin Arrondis - persistance du mode choisi (Mode 1 = totalofround, Mode 2 = roundoftotal) sur la facture.
+		// Les lignes ne sont plus réécrites (voir update_price) : le mode pilote uniquement la TVA/TTC comptables
+		// dérivés par CommonObject::getRoundedTotals() (affichage, reste à payer).
+		if (!is_array($object->extraparams)) {
+			$object->extraparams = array();
+		}
+		$object->extraparams['calculationrule'] = (($calculationrule == 'roundoftotal') ? 'roundoftotal' : 'totalofround');
+		$result = $object->setExtraParameters();
+		if ($result < 0) {
+			dol_print_error($db, $object->error, $object->errors);
+			exit;
+		}
+		// InfraS add end Arrondis
 	}
 	if ($action == 'update_extras' && $permissiontoeditextra) {
 		$object->oldcopy = dol_clone($object, 2);  // @phan-suppress-current-line PhanTypeMismatchProperty
@@ -3166,7 +3179,7 @@ if ($action == 'create') {
 		$totalpaid = price2num($object->getSommePaiement(), 'MT');
 		$totalcreditnotes = price2num($object->getSumCreditNotesUsed(), 'MT');
 		$totaldeposits = price2num($object->getSumDepositsUsed(), 'MT');
-		$total_ttc_arrondi = price2num($object->total_ttc, 'MT');
+		$total_ttc_arrondi = $object->getRoundedTotalTTC(0); // TTC comptable = somme des composants arrondis (voir CommonObject::getRoundedTotals)
 		// InfraS change end Arrondis
 		// print "totalpaid=".$totalpaid." totalcreditnotes=".$totalcreditnotes." totaldeposts=".$totaldeposits."
 		// selleruserrevenuestamp=".$selleruserevenustamp;
@@ -3184,7 +3197,7 @@ if ($action == 'create') {
 			$multicurrency_totalpaid = price2num($object->getSommePaiement(1), 'MT');
 			$multicurrency_totalcreditnotes = price2num($object->getSumCreditNotesUsed(1), 'MT');
 			$multicurrency_totaldeposits = price2num($object->getSumDepositsUsed(1), 'MT');
-			$multicurrency_total_ttc_arrondi = price2num($object->multicurrency_total_ttc, 'MT');
+			$multicurrency_total_ttc_arrondi = $object->getRoundedTotalTTC(1);
 			$multicurrency_resteapayer = price2num($multicurrency_total_ttc_arrondi - $multicurrency_totalpaid - $multicurrency_totalcreditnotes - $multicurrency_totaldeposits, 'MT');
 			// InfraS change end Arrondis
 			// Code to fix case of corrupted data
@@ -3375,11 +3388,11 @@ if ($action == 'create') {
 		}
 
 		// Confirmation set paid
-		if ($action == 'paid' && ($resteapayer <= 0 || (getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') && $resteapayer == $object->total_ttc))) {
+		if ($action == 'paid' && ($resteapayer <= 0 || (getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') && $resteapayer == $total_ttc_arrondi))) { // InfraS change Arrondis
 			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('ClassifyPaid'), $langs->trans('ConfirmClassifyPaidBill', $object->ref), 'confirm_paid', '', 0, 1);
 		}
 
-		if ($action == 'paid' && $resteapayer > 0 && (!getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') || $resteapayer != $object->total_ttc)) {
+		if ($action == 'paid' && $resteapayer > 0 && (!getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') || $resteapayer != $total_ttc_arrondi)) { // InfraS change Arrondis
 			$close = array();
 			// Code
 			$i = 0;
@@ -3842,21 +3855,21 @@ if ($action == 'create') {
 			include DOL_DOCUMENT_ROOT.'/core/tpl/object_currency_amount.tpl.php';
 
 			print '<tr>';
+			// InfraS change begin Arrondis - montants affichés = totaux comptables arrondis (TTC = HT + TVA + taxes arrondis), règle de
+			// TVA lue sur la facture (Mode 1 / Mode 2 persisté dans extraparams) sinon constante MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND_SUPPLIER
+			$roundedtotals = $object->getRoundedTotals(0, '');
+			$multicurrency_roundedtotals = $object->getRoundedTotals(1, '');
 			print '<td class="titlefieldmiddle">' . $langs->trans('AmountHT') . '</td>';
-			print '<td class="nowrap amountcard right">' . price($object->total_ht, 0, $langs, 0, -1, -1, $conf->currency) . '</td>';
+			print '<td class="nowrap amountcard right">' . price($roundedtotals['ht'], 0, $langs, 0, -1, -1, $conf->currency) . '</td>';
 			if (isModEnabled("multicurrency") && ($object->multicurrency_code && $object->multicurrency_code != $conf->currency)) {
-				print '<td class="nowrap amountcard right">' . price($object->multicurrency_total_ht, 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
+				print '<td class="nowrap amountcard right">' . price($multicurrency_roundedtotals['ht'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
 			}
 			print '</tr>';
 
 			print '<tr>';
 			print '<td>' . $langs->trans('AmountVAT') . '</td>';
 			print '<td class="nowrap amountcard right">';
-			if (GETPOST('calculationrule')) {
-				$calculationrule = GETPOST('calculationrule', 'alpha');
-			} else {
-				$calculationrule = (!getDolGlobalString('MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND_SUPPLIER') ? 'totalofround' : 'roundoftotal');
-			}
+			$calculationrule = $roundedtotals['rule'];
 			if ($calculationrule == 'totalofround') {
 				$calculationrulenum = 1;
 			} else {
@@ -3865,40 +3878,43 @@ if ($action == 'create') {
 			// Show link for "recalculate"
 			if ($object->getVentilExportCompta() == 0) {
 				$s = '<span class="hideonsmartphone opacitymedium">' . $langs->trans("ReCalculate") . ' </span>';
-				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=totalofround">' . $langs->trans("Mode1") . '</a>';
+				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=totalofround">' . ($calculationrulenum == 1 ? '<strong>' . $langs->trans("Mode1") . '</strong>' : $langs->trans("Mode1")) . '</a>';
 				$s .= ' / ';
-				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=roundoftotal">' . $langs->trans("Mode2") . '</a>';
+				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=roundoftotal">' . ($calculationrulenum == 2 ? '<strong>' . $langs->trans("Mode2") . '</strong>' : $langs->trans("Mode2")) . '</a>';
 				print '<div class="inline-block">';
 				print $form->textwithtooltip($s, $langs->trans("CalculationRuleDesc", $calculationrulenum) . '<br>' . $langs->trans("CalculationRuleDescSupplier"), 2, 1, img_picto('', 'help'), '', 3, '', 0, 'recalculate');
 				print '&nbsp; &nbsp; &nbsp; &nbsp;';
 				print '</div>';
 			}
-			print '<span class="nowraponall">'.price($object->total_tva, 1, $langs, 0, -1, -1, $conf->currency).'</span>';
+			print '<span class="nowraponall">'.price($roundedtotals['tva'], 1, $langs, 0, -1, -1, $conf->currency).'</span>';
 			print '</td>';
 			if (isModEnabled("multicurrency") && ($object->multicurrency_code && $object->multicurrency_code != $conf->currency)) {
-				print '<td class="nowraponall amountcard right">' . price($object->multicurrency_total_tva, 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
+				print '<td class="nowraponall amountcard right">' . price($multicurrency_roundedtotals['tva'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
 			}
+			// InfraS change end Arrondis
 			print '</tr>';
 
 			if ($societe->localtax1_assuj == "1") { //Localtax1
 				print '<tr>';
 				print '<td>' . $langs->transcountry("AmountLT1", $societe->country_code) . '</td>';
-				print '<td class="nowrap amountcard right">' . price($object->total_localtax1, 1, $langs, 0, -1, -1, $conf->currency) . '</td>';
+				print '<td class="nowrap amountcard right">' . price($roundedtotals['localtax1'], 1, $langs, 0, -1, -1, $conf->currency) . '</td>'; // InfraS change Arrondis
 				print '</tr>';
 			}
 			if ($societe->localtax2_assuj == "1") { //Localtax2
 				print '<tr>';
 				print '<td>' . $langs->transcountry("AmountLT2", $societe->country_code) . '</td>';
-				print '<td class="nowrap amountcard right">' . price($object->total_localtax2, 1, $langs, 0, -1, -1, $conf->currency) . '</td>';
+				print '<td class="nowrap amountcard right">' . price($roundedtotals['localtax2'], 1, $langs, 0, -1, -1, $conf->currency) . '</td>'; // InfraS change Arrondis
 				print '</tr>';
 			}
 
 			print '<tr>';
 			print '<td>' . $langs->trans('AmountTTC') . '</td>';
-			print '<td class="nowrap amountcard right">' . price($object->total_ttc, 0, $langs, 0, -1, -1, $conf->currency) . '</td>';
+			// InfraS change begin Arrondis
+			print '<td class="nowrap amountcard right">' . price($roundedtotals['ttc'], 0, $langs, 0, -1, -1, $conf->currency) . '</td>';
 			if (isModEnabled("multicurrency") && ($object->multicurrency_code && $object->multicurrency_code != $conf->currency)) {
-				print '<td class="nowrap amountcard right">' . price($object->multicurrency_total_ttc, 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
+				print '<td class="nowrap amountcard right">' . price($multicurrency_roundedtotals['ttc'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
 			}
+			// InfraS change end Arrondis
 			print '</tr>';
 
 			print '</table>';
@@ -4159,7 +4175,7 @@ if ($action == 'create') {
 				print '<span class="opacitymedium">';
 				print $langs->trans("Billed");
 				print '</span>';
-				print '</td><td class="right">'.price($object->total_ttc).'</td><td>&nbsp;</td></tr>';
+				print '</td><td class="right">'.price($total_ttc_arrondi).'</td><td>&nbsp;</td></tr>'; // InfraS change Arrondis
 
 				// Remainder to pay
 				print '<tr><td colspan="'.$nbcols.'" class="right">';
@@ -4193,7 +4209,7 @@ if ($action == 'create') {
 				print ' :</td><td class="right">'.price($sign * $totalpaid).'</td><td>&nbsp;</td></tr>';
 
 				// Billed
-				print '<tr><td colspan="'.$nbcols.'" class="right">'.$langs->trans("Billed").' :</td><td class="right">'.price($sign * $object->total_ttc).'</td><td>&nbsp;</td></tr>';
+				print '<tr><td colspan="'.$nbcols.'" class="right">'.$langs->trans("Billed").' :</td><td class="right">'.price($sign * $total_ttc_arrondi).'</td><td>&nbsp;</td></tr>'; // InfraS change Arrondis
 
 				// Remainder to pay back
 				print '<tr><td colspan="'.$nbcols.'" class="right">';
@@ -4406,16 +4422,16 @@ if ($action == 'create') {
 
 				// Classify paid
 				if ($object->status == FactureFournisseur::STATUS_VALIDATED && $object->paid == 0 && (
-					($object->type != FactureFournisseur::TYPE_CREDIT_NOTE && $object->type != FactureFournisseur::TYPE_DEPOSIT && ($resteapayer <= 0 || (getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') && $object->total_ttc == $resteapayer))) ||
+					($object->type != FactureFournisseur::TYPE_CREDIT_NOTE && $object->type != FactureFournisseur::TYPE_DEPOSIT && ($resteapayer <= 0 || (getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') && $total_ttc_arrondi == $resteapayer))) || // InfraS change Arrondis
 						($object->type == FactureFournisseur::TYPE_CREDIT_NOTE && $resteapayer >= 0) ||
-						($object->type == FactureFournisseur::TYPE_DEPOSIT && $object->total_ttc > 0 && ($resteapayer == 0 || (getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') && $object->total_ttc == $resteapayer)))
+						($object->type == FactureFournisseur::TYPE_DEPOSIT && $object->total_ttc > 0 && ($resteapayer == 0 || (getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') && $total_ttc_arrondi == $resteapayer))) // InfraS change Arrondis
 				)
 				) {
 					print '<a class="butAction'.($conf->use_javascript_ajax ? ' reposition' : '').'" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=paid&token='.newToken().'">'.$langs->trans('ClassifyPaid').'</a>';
 				}
 
 				// Classify 'closed not completely paid' (possible if validated and not yet filed paid)
-				if ($object->status == FactureFournisseur::STATUS_VALIDATED && $object->paid == 0 && $resteapayer > 0 && (!getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') || $object->total_ttc != $resteapayer)) {
+				if ($object->status == FactureFournisseur::STATUS_VALIDATED && $object->paid == 0 && $resteapayer > 0 && (!getDolGlobalString('SUPPLIER_INVOICE_CAN_SET_PAID_EVEN_IF_PARTIALLY_PAID') || $total_ttc_arrondi != $resteapayer)) { // InfraS change Arrondis
 					if ($totalpaid > 0 || $totalcreditnotes > 0) {
 						// If one payment or one credit note was linked to this invoice
 						print '<a class="butAction'.($conf->use_javascript_ajax ? ' reposition' : '').'" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=paid&token='.newToken().'">'.$langs->trans('ClassifyPaidPartially').'</a>';

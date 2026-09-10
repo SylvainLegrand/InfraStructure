@@ -323,12 +323,7 @@ abstract class CommonInvoice extends CommonObject
 		$alreadypaid += price2num($this->getSumDepositsUsed($multicurrency), 'MT');
 		$alreadypaid += price2num($this->getSumCreditNotesUsed($multicurrency), 'MT');
 
-		if ((int) $multicurrency > 0) {
-			$totalamount = $this->multicurrency_total_ttc;
-		} else {
-			$totalamount = $this->total_ttc;
-		}
-		$totalamount = price2num($totalamount, 'MT');
+		$totalamount = $this->getRoundedTotalTTC((int) $multicurrency); // TTC comptable = somme des composants arrondis (voir CommonObject::getRoundedTotals)
 		// InfraS change end Arrondis
 		$remaintopay = price2num($totalamount - $alreadypaid, 'MT');
 		if ($this->status == self::STATUS_CLOSED && $this->close_code == 'discount_vat') {		// If invoice closed with discount for anticipated payment
@@ -1259,7 +1254,7 @@ abstract class CommonInvoice extends CommonObject
 				$totalpaid = price2num($this->getSommePaiement(), 'MT');
 				$totalcreditnotes = price2num($this->getSumCreditNotesUsed(), 'MT');
 				$totaldeposits = price2num($this->getSumDepositsUsed(), 'MT');
-				$resteapayer = (float) price2num(price2num($this->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+				$resteapayer = (float) price2num($this->getRoundedTotalTTC(0) - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
 				// InfraS change end Arrondis
 				$pendingAmount = (float) ($obj->pending_amount ?? 0);
 

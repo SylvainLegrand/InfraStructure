@@ -625,6 +625,8 @@
 					$tab_top_newpage		= (empty($this->small_head2) ? $hauteurhead - $hauteurcadre : 17);
 					$this->ht_top_table		= ($this->Rounded_rect * 2 > $this->height_top_table ? $this->Rounded_rect * 2 : $this->height_top_table) + $this->tab_hl * 0.5;
 					$ht_colinfo				= $this->_tableau_info($pdf, $object, $this->marge_haute, $outputlangs, 1);
+					$emptyTvaArray	= [];
+					pdf_InfraSPlus_normalizeTotals($object, $emptyTvaArray, $this->tva, $this->localtax1, $this->localtax2, $this->use_multicurrency, 1);	// Arrondis : totaux comptables coherents (HT + TVA = TTC), voir infraspackplus.pdf.lib.php
 					$ht_coltotal			= $this->_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					if (($this->paid || $this->credit_notes || $this->deposits) && empty($this->no_payment_details)) {
 						$ht_coltotal	+= $this->_tableau_versements($pdf, $object, $this->marge_haute, $outputlangs, 1);

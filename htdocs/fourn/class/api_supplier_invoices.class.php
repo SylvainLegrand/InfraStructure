@@ -593,7 +593,7 @@ class SupplierInvoices extends DolibarrApi
 			// InfraS change begin Arrondis - arrondi de chaque composant avant combinaison
 			$totalpaid = price2num($this->invoice->getSommePaiement(), 'MT');
 			$totaldeposits = price2num($this->invoice->getSumDepositsUsed(), 'MT');
-			$paymentamount = price2num(price2num($this->invoice->total_ttc, 'MT') - $totalpaid - $totaldeposits, 'MT');
+			$paymentamount = price2num($this->invoice->getRoundedTotalTTC(0) - $totalpaid - $totaldeposits, 'MT');
 			// InfraS change end Arrondis
 		}
 

@@ -191,7 +191,7 @@ class ActionsStripeconnect extends CommonHookActions
 				dol_print_error($this->db, '');
 			}
 
-			$resteapayer = price2num(price2num($object->total_ttc, 'MT') - price2num($totalpaid, 'MT'), 'MT'); // InfraS change Arrondis
+			$resteapayer = price2num($object->getRoundedTotalTTC(0) - price2num($totalpaid, 'MT'), 'MT'); // InfraS change Arrondis
 			// Request a direct debit order
 			if ($object->statut > Facture::STATUS_DRAFT && $object->statut < Facture::STATUS_ABANDONED && $object->paye == 0) {
 				$stripe = new Stripe($this->db);

@@ -347,7 +347,7 @@ if (empty($reshook)) {
 					$totalpaid = price2num($objecttmp->getSommePaiement(), 'MT');
 					$totalcreditnotes = price2num($objecttmp->getSumCreditNotesUsed(), 'MT');
 					$totaldeposits = price2num($objecttmp->getSumDepositsUsed(), 'MT');
-					$objecttmp->resteapayer = price2num(price2num($objecttmp->total_ttc, 'MT') - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
+					$objecttmp->resteapayer = price2num($objecttmp->getRoundedTotalTTC(0) - $totalpaid - $totalcreditnotes - $totaldeposits, 'MT');
 					// InfraS change end Arrondis
 
 					// hook to finalize the remaining amount, considering e.g. cash discount agreements

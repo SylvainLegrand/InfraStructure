@@ -1470,6 +1470,11 @@ EOJS;
 		{
 			unset($_SESSION['InfraSPackPlus_model']);	// Destroys the session variable that indicates that we are using an InfraSPackPlus template
 			infraspackplus_isInfraSPlusPdfGeneration(false);	// End of generation : disable the pdf_getline* hooks of the module
+			// Arrondis : restore the exact totals of the document, replaced in memory by the rounded accounting totals during generation (pdf_InfraSPlus_normalizeTotals)
+			if (!empty($parameters['object']) && is_object($parameters['object'])) {
+				dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
+				pdf_InfraSPlus_restoreTotals($parameters['object']);
+			}
 			// Documentation technique des produits / services dans un PDF séparé (option 'docseparate' avant génération)
 			// Nota : l'objet métier est dans $parameters['object'] et le chemin du PDF principal dans $parameters['file'] ($object reçu = instance du modèle PDF)
 			$docseparate	= GETPOST('docseparate', 'alpha');

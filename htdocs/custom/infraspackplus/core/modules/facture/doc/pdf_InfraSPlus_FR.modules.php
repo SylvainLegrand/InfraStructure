@@ -504,14 +504,14 @@
 							$res																= $tmpInvoice->fetch($discount->fk_facture_source);
 							$paid																= $tmpInvoice->getSommePaiement(0);
 							$sign																= $tmpInvoice->type == 2 && !empty($this->credit_note) ? -1 : 1;
-							$totaux['ttc']														+= $sign * $tmpInvoice->total_ttc;
-							$totaux['remaintopay']												+= $sign * ($tmpInvoice->total_ttc - $paid);
+							$totaux['ttc']														+= $sign * pdf_InfraSPlus_getTotalTTC($tmpInvoice);
+							$totaux['remaintopay']												+= $sign * (pdf_InfraSPlus_getTotalTTC($tmpInvoice) - $paid);
 							$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->tab_hl, $this->tableau['ref']['posx'], $nexY, $tmpInvoice->ref, 0, 1, false, true, 'L', true);
 							$pdf->writeHTMLCell($this->tableau['desc']['larg'], $this->tab_hl, $this->tableau['desc']['posx'], $nexY, $outputlangs->convToOutputCharset($tmpInvoice->ref_client), 0, 1, false, true, 'L', true);
 							$pdf->writeHTMLCell($this->tableau['date']['larg'], $this->tab_hl, $this->tableau['date']['posx'], $nexY, dol_print_date($tmpInvoice->date, 'day', false, $outputlangs, true), 0, 1, false, true, 'L', true);
-							$total_ttc															= pdf_InfraSPlus_price($tmpInvoice, $sign * $tmpInvoice->total_ttc, $outputlangs, 1, 0, 'T');
+							$total_ttc															= pdf_InfraSPlus_price($tmpInvoice, $sign * pdf_InfraSPlus_getTotalTTC($tmpInvoice), $outputlangs, 1, 0, 'T');
 							$pdf->writeHTMLCell($this->tableau['totalttc']['larg'], $this->tab_hl, $this->tableau['totalttc']['posx'], $nexY, $total_ttc, 0, 1, false, true, 'R', true);
-							$remaintopay														= pdf_InfraSPlus_price($tmpInvoice, $sign * ($tmpInvoice->total_ttc - $paid), $outputlangs, 1, 0, 'T');
+							$remaintopay														= pdf_InfraSPlus_price($tmpInvoice, $sign * (pdf_InfraSPlus_getTotalTTC($tmpInvoice) - $paid), $outputlangs, 1, 0, 'T');
 							$pdf->writeHTMLCell($this->tableau['remaintopay']['larg'], $this->tab_hl, $this->tableau['remaintopay']['posx'], $nexY, $remaintopay, 0, 1, false, true, 'R', true);
 							$nexY																+= $this->tab_hl * 1.5;
 							// search for the pdf file
@@ -544,7 +544,7 @@
 							}
 						}
 					}
-					$totaux['ttc']	+= $sign * ($object->total_ttc - $totalEfPaySpec);
+					$totaux['ttc']	+= $sign * (pdf_InfraSPlus_getTotalTTC($object) - $totalEfPaySpec);
 					// Loop on each payment
 					$stdpaidamount	= 0;
 					$sql			= 'SELECT SUM(pf.amount) AS stdpaidamount';
@@ -559,13 +559,13 @@
 						$this->error	= $this->db->lasterror();
 					}
 					$this->db->free($resql);
-					$totaux['remaintopay']		+= $sign * ($object->total_ttc - $totalEfPaySpec - $stdpaidamount);
+					$totaux['remaintopay']		+= $sign * (pdf_InfraSPlus_getTotalTTC($object) - $totalEfPaySpec - $stdpaidamount);
 					$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->tab_hl, $this->tableau['ref']['posx'], $nexY, $object->ref, 0, 1, false, true, 'L', true);
 					$pdf->writeHTMLCell($this->tableau['desc']['larg'], $this->tab_hl, $this->tableau['desc']['posx'], $nexY, $outputlangs->convToOutputCharset($object->ref_client), 0, 1, false, true, 'L', true);
 					$pdf->writeHTMLCell($this->tableau['date']['larg'], $this->tab_hl, $this->tableau['date']['posx'], $nexY, dol_print_date($object->date, 'day', false, $outputlangs, true), 0, 1, false, true, 'L', true);
-					$total_ttc					= pdf_InfraSPlus_price($object, $sign * ($object->total_ttc - $totalEfPaySpec), $outputlangs, 1, 0, 'T');
+					$total_ttc					= pdf_InfraSPlus_price($object, $sign * (pdf_InfraSPlus_getTotalTTC($object) - $totalEfPaySpec), $outputlangs, 1, 0, 'T');
 					$pdf->writeHTMLCell($this->tableau['totalttc']['larg'], $this->tab_hl, $this->tableau['totalttc']['posx'], $nexY, $total_ttc, 0, 1, false, true, 'R', true);
-					$remaintopay				= pdf_InfraSPlus_price($object, $sign * ($object->total_ttc - $totalEfPaySpec - $stdpaidamount), $outputlangs, 1, 0, 'T');
+					$remaintopay				= pdf_InfraSPlus_price($object, $sign * (pdf_InfraSPlus_getTotalTTC($object) - $totalEfPaySpec - $stdpaidamount), $outputlangs, 1, 0, 'T');
 					$pdf->writeHTMLCell($this->tableau['remaintopay']['larg'], $this->tab_hl, $this->tableau['remaintopay']['posx'], $nexY, $remaintopay, 0, 1, false, true, 'R', true);
 					// Loop on each documents to find the pdf file
 					$listInvoiceFiles			= dol_dir_list($dir, 'files', 0, '\.pdf$', null, 'name', SORT_ASC, 0, 1, '', 0);
@@ -592,15 +592,15 @@
 							$res						= $creditNote->fetch($obj->fk_facture_source);
 							$paid						= $creditNote->getSommePaiement(0);
 							$sign						= $creditNote->type == 2 && !empty($this->credit_note) ? -1 : 1;
-							$totaux['ttc']				+= $sign * $creditNote->total_ttc;
-							$totaux['remaintopay']		+= $sign * ($creditNote->total_ttc - $paid);
+							$totaux['ttc']				+= $sign * pdf_InfraSPlus_getTotalTTC($creditNote);
+							$totaux['remaintopay']		+= $sign * (pdf_InfraSPlus_getTotalTTC($creditNote) - $paid);
 							$nexY						+= $this->tab_hl * 1.5;
 							$pdf->writeHTMLCell($this->tableau['ref']['larg'], $this->tab_hl, $this->tableau['ref']['posx'], $nexY, $creditNote->ref, 0, 1, false, true, 'L', true);
 							$pdf->writeHTMLCell($this->tableau['desc']['larg'], $this->tab_hl, $this->tableau['desc']['posx'], $nexY, $outputlangs->convToOutputCharset($creditNote->ref_client), 0, 1, false, true, 'L', true);
 							$pdf->writeHTMLCell($this->tableau['date']['larg'], $this->tab_hl, $this->tableau['date']['posx'], $nexY, dol_print_date($creditNote->date, 'day', false, $outputlangs, true), 0, 1, false, true, 'L', true);
-							$total_ttc					= pdf_InfraSPlus_price($creditNote, $sign * $creditNote->total_ttc, $outputlangs, 1, 0, 'T');
+							$total_ttc					= pdf_InfraSPlus_price($creditNote, $sign * pdf_InfraSPlus_getTotalTTC($creditNote), $outputlangs, 1, 0, 'T');
 							$pdf->writeHTMLCell($this->tableau['totalttc']['larg'], $this->tab_hl, $this->tableau['totalttc']['posx'], $nexY, $total_ttc, 0, 1, false, true, 'R', true);
-							$remaintopay				= pdf_InfraSPlus_price($creditNote, $sign * ($creditNote->total_ttc - $paid), $outputlangs, 1, 0, 'T');
+							$remaintopay				= pdf_InfraSPlus_price($creditNote, $sign * (pdf_InfraSPlus_getTotalTTC($creditNote) - $paid), $outputlangs, 1, 0, 'T');
 							$pdf->writeHTMLCell($this->tableau['remaintopay']['larg'], $this->tab_hl, $this->tableau['remaintopay']['posx'], $nexY, $remaintopay, 0, 1, false, true, 'R', true);
 							// search for the pdf file
 							$creditNoteRef				= dol_sanitizeFileName($creditNote->ref);

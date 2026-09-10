@@ -291,7 +291,7 @@ if ($object->id > 0) {
 	$totalpaid = price2num($object->getSommePaiement(), 'MT');
 	$totalcreditnotes = price2num($object->getSumCreditNotesUsed(), 'MT');
 	$totaldeposits = price2num($object->getSumDepositsUsed(), 'MT');
-	$total_ttc_arrondi = price2num($object->total_ttc, 'MT');
+	$total_ttc_arrondi = $object->getRoundedTotalTTC(0); // TTC comptable = somme des composants arrondis (voir CommonObject::getRoundedTotals)
 	// InfraS change end Arrondis
 	//print "totalpaid=".$totalpaid." totalcreditnotes=".$totalcreditnotes." totaldeposts=".$totaldeposits;
 

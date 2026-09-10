@@ -4069,6 +4069,168 @@
 		$showCurSymb	= !empty($forceSymb) ? 1 : getDolGlobalInt('INFRASPLUS_PDF_SHOW_CUR_SYMB', 0);
 		return price($price, 0, $outputlangs, 1, $rounding, $rounding, !empty($showCurSymb) ? $currency : '');
 	}
+
+	/**
+	*	Round amounts to MAIN_MAX_DECIMALS_TOT and, when their sum differs from the expected total by a rounding residual
+	*	only (a few cents), spread the residual cent by cent on the largest amounts so that the sum matches the total
+	*
+	*	@param	array		$amounts		Amounts (key => amount), or arrays holding the amount under $key (key => array($key => amount))
+	*	@param	string		$key			Sub-key holding the amount ('' = values are the amounts)
+	*	@param	float|null	$target			Expected sum after rounding (null = round only)
+	*	@return	void
+	**/
+	function pdf_InfraSPlus_roundAmounts(&$amounts, $key = '', $target = null)
+	{
+		if (!is_array($amounts) || !count($amounts)) {
+			return;
+		}
+		$sum	= 0.0;
+		foreach ($amounts as $k => $v) {
+			if ($key === '') {
+				$amounts[$k]		= (float) price2num($v, 'MT');
+				$sum				+= $amounts[$k];
+			} elseif (is_array($v)) {
+				$amounts[$k][$key]	= (float) price2num((isset($v[$key]) ? $v[$key] : 0), 'MT');
+				$sum				+= $amounts[$k][$key];
+			}
+		}
+		if ($target === null) {
+			return;
+		}
+		$residcents	= (int) round(((float) $target - $sum) * 100);
+		if ($residcents == 0 || abs($residcents) > 4) {	// no residual, or difference too high to be a rounding residual : keep amounts as they are
+			return;
+		}
+		$keys	= array_keys($amounts);
+		usort($keys, function ($a, $b) use ($amounts, $key) {
+			$va	= $key === '' ? $amounts[$a] : (is_array($amounts[$a]) && isset($amounts[$a][$key]) ? $amounts[$a][$key] : 0);
+			$vb	= $key === '' ? $amounts[$b] : (is_array($amounts[$b]) && isset($amounts[$b][$key]) ? $amounts[$b][$key] : 0);
+			return abs($vb) <=> abs($va);
+		});
+		$step	= $residcents > 0 ? 1 : -1;
+		while ($residcents != 0) {
+			foreach ($keys as $k) {
+				if ($residcents == 0) {
+					break;
+				}
+				if ($key === '') {
+					$amounts[$k]		= (float) price2num($amounts[$k] + ($step * 0.01), 'MT');
+				} elseif (is_array($amounts[$k])) {
+					$amounts[$k][$key]	= (float) price2num($amounts[$k][$key] + ($step * 0.01), 'MT');
+				}
+				$residcents	-= $step;
+			}
+		}
+	}
+
+	/**
+	*	Normalize the totals of a document for PDF output. On Dolibarr LTS by InfraS, lines and document totals are stored
+	*	unrounded : printing HT, VAT and TTC each rounded on its own may give HT + VAT <> TTC by one cent. The document totals
+	*	are replaced IN MEMORY by the accounting totals of CommonObject::getRoundedTotals() (TTC = sum of rounded components,
+	*	VAT rule of the document), and the VAT / local taxes collected by rate by the model are rounded and adjusted (cent
+	*	residual on the largest amounts) so that their sum matches the rounded document VAT and HT. Exact values are saved
+	*	into $object->context['infrasplus_exact_totals'] and restored by pdf_InfraSPlus_restoreTotals() (afterPDFCreation hook).
+	*	No-op on a Dolibarr core without getRoundedTotals(), on a document already normalized and on situation invoices.
+	*
+	*	@param	CommonObject	$object			Document (modified in memory only)
+	*	@param	array			$tva_array		VAT by rate + code : key => array('vatrate', 'vatcode', 'base', 'amount') (may be empty)
+	*	@param	array			$tva			VAT by rate : rate => amount (may be empty)
+	*	@param	array			$localtax1		Local tax 1 : type => array(rate => amount) (may be empty)
+	*	@param	array			$localtax2		Local tax 2 : type => array(rate => amount) (may be empty)
+	*	@param	int				$multicurrency	1 = amounts collected by the model are in document currency
+	*	@param	int				$sign			Sign applied by the model to collected amounts (-1 for credit notes shown positive)
+	*	@return	int								1 = totals normalized, 0 = nothing done
+	**/
+	function pdf_InfraSPlus_normalizeTotals(&$object, &$tva_array, &$tva, &$localtax1, &$localtax2, $multicurrency = 0, $sign = 1)
+	{
+		if (!is_object($object) || !method_exists($object, 'getRoundedTotals') || !isset($object->context) || !is_array($object->context)) {
+			return 0;
+		}
+		if (!empty($object->context['infrasplus_exact_totals'])) {
+			return 0;	// already normalized
+		}
+		if (!empty($object->situation_cycle_ref) && !empty($object->situation_counter) && $object->situation_counter > 1) {
+			return 0;	// situation invoices : totals are net of previous situations, the models handle them themselves
+		}
+		$fields	= ['total_ht', 'total_tva', 'total_localtax1', 'total_localtax2', 'total_ttc', 'multicurrency_total_ht', 'multicurrency_total_tva', 'multicurrency_total_ttc'];
+		$exact	= [];
+		foreach ($fields as $field) {
+			$exact[$field]	= isset($object->$field) ? $object->$field : null;
+		}
+		$rounded	= $object->getRoundedTotals(0, '');
+		$roundedmc	= $object->getRoundedTotals(1, '');
+		$object->context['infrasplus_exact_totals']	= $exact;
+		$object->total_ht							= $rounded['ht'];
+		$object->total_tva							= $rounded['tva'];
+		$object->total_localtax1					= $rounded['localtax1'];
+		$object->total_localtax2					= $rounded['localtax2'];
+		$object->total_ttc							= $rounded['ttc'];
+		$object->multicurrency_total_ht				= $roundedmc['ht'];
+		$object->multicurrency_total_tva			= $roundedmc['tva'];
+		$object->multicurrency_total_ttc			= $roundedmc['ttc'];
+		$sign		= empty($sign) ? 1 : $sign;
+		$targettva	= $sign * (!empty($multicurrency) ? $roundedmc['tva'] : $rounded['tva']);
+		$targetht	= $sign * (!empty($multicurrency) ? $roundedmc['ht'] : $rounded['ht']);
+		if (is_array($tva_array) && count($tva_array)) {
+			pdf_InfraSPlus_roundAmounts($tva_array, 'amount', $targettva);
+			pdf_InfraSPlus_roundAmounts($tva_array, 'base', $targetht);
+		}
+		if (is_array($tva) && count($tva)) {
+			pdf_InfraSPlus_roundAmounts($tva, '', $targettva);
+		}
+		if (is_array($localtax1)) {
+			foreach ($localtax1 as $type => $rates) {
+				if (is_array($rates)) {
+					pdf_InfraSPlus_roundAmounts($localtax1[$type], '', null);
+				}
+			}
+		}
+		if (is_array($localtax2)) {
+			foreach ($localtax2 as $type => $rates) {
+				if (is_array($rates)) {
+					pdf_InfraSPlus_roundAmounts($localtax2[$type], '', null);
+				}
+			}
+		}
+		return 1;
+	}
+
+	/**
+	*	Restore the exact totals of a document normalized by pdf_InfraSPlus_normalizeTotals()
+	*
+	*	@param	CommonObject	$object		Document
+	*	@return	int							1 = restored, 0 = nothing to restore
+	**/
+	function pdf_InfraSPlus_restoreTotals(&$object)
+	{
+		if (!is_object($object) || !isset($object->context) || !is_array($object->context) || empty($object->context['infrasplus_exact_totals']) || !is_array($object->context['infrasplus_exact_totals'])) {
+			return 0;
+		}
+		foreach ($object->context['infrasplus_exact_totals'] as $field => $value) {
+			if ($value !== null) {
+				$object->$field	= $value;
+			}
+		}
+		unset($object->context['infrasplus_exact_totals']);
+		return 1;
+	}
+
+	/**
+	*	Return the total TTC of a document to print : accounting total (sum of rounded components, see
+	*	CommonObject::getRoundedTotalTTC() on Dolibarr LTS by InfraS), exact total on a standard Dolibarr core
+	*
+	*	@param	CommonObject	$object			Document
+	*	@param	int				$multicurrency	1 = document currency
+	*	@return	float							Total TTC
+	**/
+	function pdf_InfraSPlus_getTotalTTC($object, $multicurrency = 0)
+	{
+		if (is_object($object) && method_exists($object, 'getRoundedTotalTTC')) {
+			return (float) $object->getRoundedTotalTTC($multicurrency);
+		}
+		return (float) (!empty($multicurrency) ? $object->multicurrency_total_ttc : $object->total_ttc);
+	}
+
 	/**
 	*	Return line unit price excluding tax
 	*

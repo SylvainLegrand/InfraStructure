@@ -442,6 +442,26 @@ foreach (array_keys($tabfac) as $rndkey) {
 	$rnd_iscomplex = (!empty($noTaxDispatchingKeepWithLines)
 		|| (isset($tabrctva[$rndkey]) && !empty($tabrctva[$rndkey]))
 		|| (isset($tabother[$rndkey]) && !empty($tabother[$rndkey])));
+	// InfraS add begin Arrondis - tiers aligne sur le TTC comptable de la facture (somme des composants arrondis, voir
+	// CommonObject::getRoundedTotals()) et non sur l'arrondi du TTC exact, pour lettrer exactement avec le paiement et le
+	// reste a payer de la fiche. Uniquement en cas standard (la TVA deductible est ensuite derivee pour l'equilibre),
+	// correction limitee a un residu d'arrondi (<= 0.05), imputee sur le plus gros compte tiers.
+	if (!$rnd_iscomplex && isset($tabttc[$rndkey]) && is_array($tabttc[$rndkey]) && count($tabttc[$rndkey]) > 0) {
+		$rnd_invoice = new FactureFournisseur($db);
+		if ($rnd_invoice->fetch($rndkey) > 0 && method_exists($rnd_invoice, 'getRoundedTotalTTC')) {
+			$rnd_tierstarget = (float) price2num($rnd_invoice->getRoundedTotalTTC(0), 'MT');
+			$rnd_tiersdiff = (float) price2num($rnd_tierstarget - $rnd_tiers, 'MT');
+			if ($rnd_tiersdiff != 0 && abs($rnd_tiersdiff) <= 0.05) {
+				$rnd_tierskeys = array_keys($tabttc[$rndkey]);
+				usort($rnd_tierskeys, function ($a, $b) use (&$tabttc, $rndkey) {
+					return abs($tabttc[$rndkey][$b]) <=> abs($tabttc[$rndkey][$a]);
+				});
+				$tabttc[$rndkey][$rnd_tierskeys[0]] = (float) price2num($tabttc[$rndkey][$rnd_tierskeys[0]] + $rnd_tiersdiff, 'MT');
+				$rnd_tiers = $rnd_tierstarget;
+			}
+		}
+	}
+	// InfraS add end Arrondis
 	if (!$rnd_iscomplex && isset($tabtva[$rndkey]) && is_array($tabtva[$rndkey]) && count($tabtva[$rndkey]) > 0) {
 		$rnd_tvatarget = (float) price2num($rnd_tiers - $rnd_ht - $rnd_localtax, 'MT');
 		$rnd_residcents = (int) round(($rnd_tvatarget - $rnd_sumtva) * 100);

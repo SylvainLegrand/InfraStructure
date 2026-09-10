@@ -4272,6 +4272,153 @@ abstract class CommonObject
 		}
 	}
 
+	// InfraS add begin Arrondis - totaux comptables arrondis au centime, dérivés des totaux exacts stockés en base
+	/**
+	 *	Return the VAT calculation rule to use for the rounded totals of this document.
+	 *	Priority: forced parameter, then the rule persisted on the document ($this->extraparams['calculationrule'],
+	 *	set from the Mode 1 / Mode 2 links of the supplier invoice card), then the setup constant
+	 *	MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND (or MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND_SUPPLIER for supplier documents).
+	 *
+	 *	@param	string	$rule	'' = auto, 'totalofround' (Mode 1) or 'roundoftotal' (Mode 2) to force
+	 *	@return	string			'totalofround' or 'roundoftotal'
+	 */
+	public function getCalculationRule($rule = '')
+	{
+		if ($rule != 'totalofround' && $rule != 'roundoftotal') {
+			$rule = '';
+			if (!empty($this->extraparams) && is_array($this->extraparams) && !empty($this->extraparams['calculationrule'])) {
+				$rule = $this->extraparams['calculationrule'];
+			}
+			if ($rule != 'totalofround' && $rule != 'roundoftotal') {
+				$constname = 'MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND';
+				if (in_array($this->element, array('facture_fourn', 'supplier_invoice', 'invoice_supplier', 'invoice_supplier_rec', 'order_supplier', 'supplier_order', 'supplier_proposal'))) {
+					$constname .= '_SUPPLIER';
+				}
+				$rule = (getDolGlobalString($constname) ? 'roundoftotal' : 'totalofround');
+			}
+		}
+		return $rule;
+	}
+
+	/**
+	 *	Return the accounting totals of the document, rounded to MAIN_MAX_DECIMALS_TOT, derived from the exact totals
+	 *	stored in database (lines and document totals are stored unrounded, see price.lib.php and update_price()).
+	 *	TTC is the sum of the rounded components (HT + VAT + local taxes + revenue stamp), never the rounding of the
+	 *	exact TTC, so that the displayed HT + VAT always equals the displayed TTC. Two exceptions:
+	 *	 - exact TTC already an exact cent amount (prices entered tax included, e.g. 9.99): this is the amount really
+	 *	   invoiced, it is kept as TTC and VAT is derived (TTC - HT - taxes) whatever the rule;
+	 *	 - exact totals not satisfying TTC = HT + VAT + taxes (NPR lines, corrupted data): rounding of exact TTC is kept.
+	 *	VAT rule (see getCalculationRule()):
+	 *	 - 'totalofround' (Mode 1): HT, VAT and local taxes = sum of the line amounts each rounded (total of rounded lines,
+	 *	   what most suppliers print: e.g. 26.908 + 4.40 - 6.944 -> 26.91 + 4.40 - 6.94 = 24.37)
+	 *	 - 'roundoftotal' (Mode 2): VAT = sum, for each VAT rate, of the rounding of (sum of line HT for this rate x rate)
+	 *
+	 *	@param	int		$multicurrency	1 = return totals in the document currency (multicurrency_* fields)
+	 *	@param	string	$rule			'' = auto (see getCalculationRule()), 'totalofround' or 'roundoftotal'
+	 *	@return	array{ht:float,tva:float,localtax1:float,localtax2:float,revenuestamp:float,ttc:float,rule:string}
+	 */
+	public function getRoundedTotals($multicurrency = 0, $rule = '')
+	{
+		$rule = $this->getCalculationRule($rule);
+		$tx = ((!empty($multicurrency) && !empty($this->multicurrency_tx)) ? (float) $this->multicurrency_tx : 1.0);
+
+		$exact_ht = (float) ($multicurrency ? (isset($this->multicurrency_total_ht) ? $this->multicurrency_total_ht : 0) : (isset($this->total_ht) ? $this->total_ht : 0));
+		$exact_tva = (float) ($multicurrency ? (isset($this->multicurrency_total_tva) ? $this->multicurrency_total_tva : 0) : (isset($this->total_tva) ? $this->total_tva : 0));
+		$exact_ttc = (float) ($multicurrency ? (isset($this->multicurrency_total_ttc) ? $this->multicurrency_total_ttc : 0) : (isset($this->total_ttc) ? $this->total_ttc : 0));
+		// Local taxes and revenue stamp have no multicurrency field: converted with the document rate
+		$exact_localtax1 = (float) (isset($this->total_localtax1) ? $this->total_localtax1 : 0) * $tx;
+		$exact_localtax2 = (float) (isset($this->total_localtax2) ? $this->total_localtax2 : 0) * $tx;
+		$exact_revenuestamp = (float) (isset($this->revenuestamp) ? $this->revenuestamp : 0) * $tx;
+
+		$ht = (float) price2num($exact_ht, 'MT');
+		$tva = (float) price2num($exact_tva, 'MT');
+		$localtax1 = (float) price2num($exact_localtax1, 'MT');
+		$localtax2 = (float) price2num($exact_localtax2, 'MT');
+		$revenuestamp = (float) price2num($exact_revenuestamp, 'MT');
+
+		// Exact totals must be self-consistent to derive TTC from components; otherwise keep the rounding of exact TTC
+		$consistent = (abs($exact_ttc - ($exact_ht + $exact_tva + $exact_localtax1 + $exact_localtax2 + $exact_revenuestamp)) < 0.005);
+		// Exact TTC already on the cent grid = prices entered tax included: the TTC is the invoiced amount, VAT is derived
+		$ttc_is_cent_amount = (abs($exact_ttc * 100 - round($exact_ttc * 100)) < 0.00001);
+
+		// Recalculation from the lines. Not applicable to situation invoices (document totals are net of previous
+		// situations, lines are not): rounding of the exact document totals is used instead.
+		$issituationfollowup = (!empty($this->situation_cycle_ref) && !empty($this->situation_counter) && $this->situation_counter > 1);
+		if ($consistent && !$ttc_is_cent_amount && !empty($this->table_element_line) && !empty($this->fk_element) && !empty($this->id) && !$issituationfollowup) {
+			$fieldht = ($multicurrency ? 'multicurrency_total_ht' : 'total_ht');
+			$fieldtva = ($multicurrency ? 'multicurrency_total_tva' : 'total_tva');
+			if (!$multicurrency && ($this->element == 'facture_fourn' || $this->element == 'invoice_supplier')) {
+				$fieldtva = 'tva';
+			}
+			if ($rule == 'roundoftotal') {
+				// Mode 2: VAT = sum, for each VAT rate, of the rounding of (sum of line HT for this rate x rate)
+				$sql = "SELECT tva_tx, SUM(".$this->db->sanitize($fieldht).") as sumht";
+				$sql .= " FROM ".$this->db->prefix().$this->table_element_line;
+				$sql .= " WHERE ".$this->db->sanitize($this->fk_element)." = ".((int) $this->id);
+				$sql .= " GROUP BY tva_tx";
+				$resql = $this->db->query($sql);
+				if ($resql) {
+					$tva = 0.0;
+					while ($obj = $this->db->fetch_object($resql)) {
+						$tva += (float) price2num((float) $obj->sumht * (float) $obj->tva_tx / 100, 'MT');
+					}
+					$this->db->free($resql);
+				} else {
+					dol_syslog(get_class($this)."::getRoundedTotals ".$this->db->lasterror(), LOG_ERR);
+				}
+			} else {
+				// Mode 1: HT, VAT and local taxes = sum of the line amounts, each line amount rounded first
+				$sql = "SELECT ".$this->db->sanitize($fieldht)." as ht, ".$this->db->sanitize($fieldtva)." as tva, total_localtax1, total_localtax2";
+				$sql .= " FROM ".$this->db->prefix().$this->table_element_line;
+				$sql .= " WHERE ".$this->db->sanitize($this->fk_element)." = ".((int) $this->id);
+				$resql = $this->db->query($sql);
+				if ($resql) {
+					$ht = 0.0;
+					$tva = 0.0;
+					$localtax1 = 0.0;
+					$localtax2 = 0.0;
+					while ($obj = $this->db->fetch_object($resql)) {
+						$ht += (float) price2num((float) $obj->ht, 'MT');
+						$tva += (float) price2num((float) $obj->tva, 'MT');
+						$localtax1 += (float) price2num((float) $obj->total_localtax1 * $tx, 'MT');
+						$localtax2 += (float) price2num((float) $obj->total_localtax2 * $tx, 'MT');
+					}
+					$this->db->free($resql);
+					$ht = (float) price2num($ht, 'MT');
+					$tva = (float) price2num($tva, 'MT');
+					$localtax1 = (float) price2num($localtax1, 'MT');
+					$localtax2 = (float) price2num($localtax2, 'MT');
+				} else {
+					dol_syslog(get_class($this)."::getRoundedTotals ".$this->db->lasterror(), LOG_ERR);
+				}
+			}
+		}
+
+		if ($consistent && $ttc_is_cent_amount) {
+			$ttc = (float) price2num($exact_ttc, 'MT');
+			$tva = (float) price2num($ttc - $ht - $localtax1 - $localtax2 - $revenuestamp, 'MT');
+		} elseif ($consistent) {
+			$ttc = (float) price2num($ht + $tva + $localtax1 + $localtax2 + $revenuestamp, 'MT');
+		} else {
+			$ttc = (float) price2num($exact_ttc, 'MT');
+		}
+
+		return array('ht' => $ht, 'tva' => $tva, 'localtax1' => $localtax1, 'localtax2' => $localtax2, 'revenuestamp' => $revenuestamp, 'ttc' => $ttc, 'rule' => $rule);
+	}
+
+	/**
+	 *	Return the accounting total TTC of the document (sum of rounded components, see getRoundedTotals()).
+	 *
+	 *	@param	int		$multicurrency	1 = document currency
+	 *	@return	float					Rounded total TTC
+	 */
+	public function getRoundedTotalTTC($multicurrency = 0)
+	{
+		$totals = $this->getRoundedTotals($multicurrency, '');
+		return $totals['ttc'];
+	}
+	// InfraS add end Arrondis
+
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
 	/**
 	 *	Add an object link into llx_element_element.

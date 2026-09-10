@@ -17,7 +17,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.9` (2026-09)
+- Dernière version locale : `21.8.10` (2026-09)
 - Dépendance obligatoire : `modECM`
 - Emplacement : `htdocs/custom/infraspackplus/`
 
@@ -337,7 +337,9 @@ Le module intervient via trois hooks principaux sur le contexte `pdfgeneration` 
   - `INFRASPLUS_PDF_PARAMS_{element}_CUST_{thirdparty_id}` — par client/tiers
 
 **`afterPDFCreation()`** (hook `pdfgeneration`) :
-- Nettoie la variable de session `$_SESSION['InfraSPackPlus_model']`
+- Nettoie la variable de session `$_SESSION['InfraSPackPlus_model']` et lève le drapeau `infraspackplus_isInfraSPlusPdfGeneration(false)`
+- Restaure les totaux exacts du document via `pdf_InfraSPlus_restoreTotals($parameters['object'])` (voir *Totaux PDF cohérents, fix v21.8.10*) : les modèles les ont remplacés en mémoire par les totaux comptables arrondis pendant la génération
+- Génère la documentation technique séparée (`infraspackplus_build_documentation_pdf()`) si l'option `docseparate` a été demandée
 
 ### Autres hooks notables
 
@@ -450,12 +452,12 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 
 ```xml
 <changelog>
-  <Version Number="21.8.9" MonthVersion="2026-09">
+  <Version Number="21.8.10" MonthVersion="2026-09">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
   </Version>
-  <InfraS Downloaded="20260907"/>
+  <InfraS Downloaded="20260909"/>
   <Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
   <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
@@ -469,7 +471,7 @@ Le trigger écoute uniquement les événements sur l'élément `societe` :
 La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.8.9",          // Version courante
+    0 => "21.8.10",         // Version courante
     1 => "18.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)
@@ -739,6 +741,19 @@ Deux modules de sous-totaux coexistent et ne se reconnaissent pas : le module **
 - **Correctif** : dans le hook, `subprice_ttc` est converti en `(float)` **avant** le test `empty()` (`$line->subprice_ttc = isset($line->subprice_ttc) ? (float) $line->subprice_ttc : 0.0;`), puis `pu_ttc` reçoit directement la valeur normalisée. Les 5 variantes `lineviews` (v21 à v24 + v22-DolInfraS) sont inchangées : elles reçoivent désormais un float, et `0.0` déclenche correctement leurs replis. Même correctif dans le hook homologue d'InfraSProject (21.1.11) et, avec tags `// InfraS change`, dans les deux tests `isset()` du template core `core/tpl/objectline_view.tpl.php` de l'instance (chemin de repli quand aucun des deux modules n'est actif — report vers le core de la base LTS à faire manuellement). Vérifié par rendu CLI du hook sur les lignes réelles : 864,00 et -4 368,00 au lieu de 0,00.
 - **Nuance non traitée** : le repli hérité (`total_ttc / qty`) donne un PU TTC **après** remise de ligne (864,00 pour PU HT 800,00 et remise 10 %), alors que la colonne « P.U. HT » voisine affiche le prix avant remise. Afficher 960,00 imposerait de diviser par `(1 - remise_percent / 100)` — comportement upstream conservé en l'état.
 - **Règle à retenir** : toute valeur numérique issue d'un `fetch_object()` / `fetch_lines()` (montants, prix, taux, colonnes `DOUBLE`) doit être castée en `(float)` avant un `empty()`, un `!$x` ou un `?:`, sinon un zéro stocké en base passe pour une valeur renseignée. Voir aussi *Colonne « P.U. TTC » affichant le HT pour les lignes sans quantité (fix v21.5.4)* : même colonne, même code hérité en plusieurs exemplaires (5 lineviews + InfraSProject + template core) — vérifier les trois couches à chaque correction.
+
+### Totaux PDF cohérents (HT + TVA = TTC) sur Dolibarr LTS by InfraS — normalisation avant `_tableau_tot()` (fix v21.8.10)
+
+- **Contexte** : le core « Dolibarr LTS by InfraS » stocke lignes et totaux document **sans arrondi** (8 décimales, tags `InfraS change Arrondis` dans `core/lib/price.lib.php` et `CommonObject::update_price()`). Le core expose en contrepartie `CommonObject::getRoundedTotals($multicurrency, $rule)` / `getRoundedTotalTTC($multicurrency)` : HT, TVA, taxes locales et timbre arrondis séparément au centime, TTC = somme des arrondis, règle de TVA `totalofround` (Mode 1, somme des HT/TVA de ligne arrondis ligne par ligne, défaut fournisseurs) ou `roundoftotal` (Mode 2, Σ par taux de arrondi(HT_taux × taux)) lue dans `extraparams['calculationrule']` de la facture (liens Mode 1 / Mode 2 de la fiche facture fournisseur) sinon dans `MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND(_SUPPLIER)`. Cas particulier intégré : TTC exact déjà au centime (saisie TTC, ex. 9,99) → TTC conservé, TVA dérivée.
+- **Symptôme** : le tableau des totaux des modèles imprimait `total_ht`, chaque TVA par taux (`$this->tva_array` / `$this->tva`, sommes exactes des lignes) et `total_ttc` en les arrondissant **indépendamment** via `pdf_InfraSPlus_price()` → `price()`. Facture OVH FF-202609439 (fitantanana, 2026-09-09) : HT 2,20418496, TVA 0,44083699, TTC 2,64502195 → PDF « 2,20 + 0,44 = 2,65 », alors que la facture OVH et le reste à payer de la fiche (corrigée le même jour côté core) disent 2,64.
+- **Correctif** (`core/lib/infraspackplus.pdf.lib.php`, 4 fonctions après `pdf_InfraSPlus_price()`) :
+  - `pdf_InfraSPlus_roundAmounts(&$amounts, $key, $target)` : arrondit une liste de montants (valeurs directes ou sous-clé d'un tableau) à `MAIN_MAX_DECIMALS_TOT` et, si l'écart au total cible est un simple résidu d'arrondi (≤ 4 centimes), le répartit centime par centime sur les plus gros montants ;
+  - `pdf_InfraSPlus_normalizeTotals(&$object, &$tva_array, &$tva, &$localtax1, &$localtax2, $multicurrency, $sign)` : remplace **en mémoire** `total_ht/tva/localtax1/localtax2/ttc` et `multicurrency_total_*` de l'objet par `getRoundedTotals(0)` / `getRoundedTotals(1)`, arrondit les TVA collectées par taux en ajustant `amount` sur la TVA arrondie et `base` sur le HT arrondi (signe du modèle appliqué, `$this->sign = -1` pour les avoirs affichés en positif), arrondit les taxes locales. Valeurs exactes sauvegardées dans `$object->context['infrasplus_exact_totals']`. Sans effet si la méthode `getRoundedTotals` n'existe pas (Dolibarr standard), si l'objet est déjà normalisé, ou sur une facture de situation de rang > 1 (totaux nets des situations précédentes, gérés par les modèles) ;
+  - `pdf_InfraSPlus_restoreTotals(&$object)` : restaure les valeurs exactes, appelée par le hook `afterPDFCreation` (`$parameters['object']`) — indispensable car `Facture::update()`, `Propal::update()`, `Commande::update()`… réécrivent `total_*` depuis la mémoire ;
+  - `pdf_InfraSPlus_getTotalTTC($object, $multicurrency)` : `getRoundedTotalTTC()` si disponible, `total_ttc` sinon (utilisée par le relevé de factures FR pour les factures, acomptes et avoirs listés).
+- **Appel dans les modèles** : une ligne juste avant le premier `_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1)` (calcul de hauteur), une fois `$this->tva_array` / `$this->tva` / `$this->localtax*` remplis par la boucle de préparation des lignes. Modèles concernés : D, DP, C, CP, CBC, F, FL, FT (`$this->tva_array`, `$this->sign`) ; FF, CF (`$this->tva` seul, tableau vide passé pour `tva_array`) ; DF (HT et TTC seuls, tableaux vides). Non concernés : BL/BLX/BR/RE (objet sans totaux propres), NDF (lignes saisies TTC au centime), FI (`pricefichinter`), extrait de compte, relevé FR (traité par `pdf_InfraSPlus_getTotalTTC()`).
+- **Vérification** : génération CLI vers un répertoire temporaire (surcharger `$conf->fournisseur->facture->dir_output` **et** `$conf->facture->multidir_output[$conf->entity]` — le modèle F lit `multidir_output`, l'oublier régénère le PDF réel de la facture). FF-202609439 → 2,20 / 0,44 / 2,64 ; FF-202609436 (MGA, multidevise) → 132 500 / 26 500 / 159 000 ; FA-202609180 → 452,96 / 90,59 / 543,55 ; totaux exacts restaurés après génération (`context` vide).
+- **Règle à retenir** : tout nouveau modèle qui imprime HT, TVA et TTC doit appeler `pdf_InfraSPlus_normalizeTotals()` avant son tableau des totaux et ne jamais arrondir le TTC exact seul (`price2num($object->total_ttc, 'MT')`) pour un montant à payer : utiliser `pdf_InfraSPlus_getTotalTTC()`. Le module reste compatible avec un core Dolibarr standard (toutes ces fonctions sont sans effet si `getRoundedTotals()` est absente).
 
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 
