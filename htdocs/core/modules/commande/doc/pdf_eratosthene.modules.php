@@ -1900,7 +1900,7 @@ class pdf_eratosthene extends ModelePDFCommandes
 				}
 			}
 		}
-
+		// Osden add begin
 		// Show shipping address
 		if (getDolGlobalInt('SALES_ORDER_SHOW_SHIPPING_ADDRESS')) {
 			$idaddressshipping = $object->getIdContact('external', 'SHIPPING');
@@ -1941,7 +1941,7 @@ class pdf_eratosthene extends ModelePDFCommandes
 				$top_shift += $hautcadre + 10;
 			}
 		}
-
+		// Osden add end
 		$pdf->SetTextColor(0, 0, 0);
 
 		$pagehead = array('top_shift' => $top_shift, 'shipp_shift' => $shipp_shift);

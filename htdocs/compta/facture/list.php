@@ -18,7 +18,7 @@
  * Copyright (C) 2023		Nick Fragoulis
  * Copyright (C) 2023		Joachim Kueter			<git-jk@bloxera.com>
  * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
- * Copyright (C) 2024-2025  Frédéric France			<frederic.france@free.fr>
+ * Copyright (C) 2024-2026  Frédéric France			<frederic.france@free.fr>
  * Copyright (C) 2024		Solution Libre SAS		<contact@solution-libre.fr>
  * Copyright (C) 2024		William Mead			<william.mead@manchenumerique.fr>
  *
@@ -2810,7 +2810,7 @@ if ($num > 0) {
 			// Currency rate
 			if (!empty($arrayfields['f.multicurrency_tx']['checked'])) {
 				print '<td class="nowraponall">';
-				$form->form_multicurrency_rate($_SERVER['PHP_SELF'].'?id='.$obj->rowid, $obj->multicurrency_tx, 'none', $obj->multicurrency_code);
+				$form->form_multicurrency_rate($_SERVER['PHP_SELF'].'?id='.$obj->id, $obj->multicurrency_tx, 'none', $obj->multicurrency_code);
 				print "</td>\n";
 				if (!$i) {
 					$totalarray['nbfield']++;

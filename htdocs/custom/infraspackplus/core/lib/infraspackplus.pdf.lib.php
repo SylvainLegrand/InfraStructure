@@ -4157,8 +4157,8 @@
 		foreach ($fields as $field) {
 			$exact[$field]	= isset($object->$field) ? $object->$field : null;
 		}
-		$rounded	= $object->getRoundedTotals(0, '');
-		$roundedmc	= $object->getRoundedTotals(1, '');
+		$rounded									= $object->getRoundedTotals(0, '');
+		$roundedmc									= $object->getRoundedTotals(1, '');
 		$object->context['infrasplus_exact_totals']	= $exact;
 		$object->total_ht							= $rounded['ht'];
 		$object->total_tva							= $rounded['tva'];
@@ -4168,9 +4168,9 @@
 		$object->multicurrency_total_ht				= $roundedmc['ht'];
 		$object->multicurrency_total_tva			= $roundedmc['tva'];
 		$object->multicurrency_total_ttc			= $roundedmc['ttc'];
-		$sign		= empty($sign) ? 1 : $sign;
-		$targettva	= $sign * (!empty($multicurrency) ? $roundedmc['tva'] : $rounded['tva']);
-		$targetht	= $sign * (!empty($multicurrency) ? $roundedmc['ht'] : $rounded['ht']);
+		$sign										= empty($sign) ? 1 : $sign;
+		$targettva									= $sign * (!empty($multicurrency) ? $roundedmc['tva'] : $rounded['tva']);
+		$targetht									= $sign * (!empty($multicurrency) ? $roundedmc['ht'] : $rounded['ht']);
 		if (is_array($tva_array) && count($tva_array)) {
 			pdf_InfraSPlus_roundAmounts($tva_array, 'amount', $targettva);
 			pdf_InfraSPlus_roundAmounts($tva_array, 'base', $targetht);

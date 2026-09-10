@@ -1472,7 +1472,6 @@ EOJS;
 			infraspackplus_isInfraSPlusPdfGeneration(false);	// End of generation : disable the pdf_getline* hooks of the module
 			// Arrondis : restore the exact totals of the document, replaced in memory by the rounded accounting totals during generation (pdf_InfraSPlus_normalizeTotals)
 			if (!empty($parameters['object']) && is_object($parameters['object'])) {
-				dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 				pdf_InfraSPlus_restoreTotals($parameters['object']);
 			}
 			// Documentation technique des produits / services dans un PDF séparé (option 'docseparate' avant génération)
@@ -1480,7 +1479,6 @@ EOJS;
 			$docseparate	= GETPOST('docseparate', 'alpha');
 			if (!empty($docseparate) && $docseparate != 'none' && getDolGlobalInt('INFRASPLUS_PDF_DOC_SEPARATE', 0)
 				&& !empty($parameters['file']) && !empty($parameters['object']) && is_object($parameters['object']) && !empty($parameters['object']->lines) && !empty($parameters['outputlangs'])) {
-				dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');
 				$warnings	= [];
 				infraspackplus_build_documentation_pdf($parameters['object'], $parameters['file'], $parameters['outputlangs'], $warnings);
 				if (!empty($warnings)) {
