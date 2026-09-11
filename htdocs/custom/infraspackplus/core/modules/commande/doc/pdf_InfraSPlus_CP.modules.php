@@ -910,7 +910,7 @@
 					$this->ht_top_table	= ($this->Rounded_rect * 2 > $this->height_top_table ? $this->Rounded_rect * 2 : $this->height_top_table) + $this->tab_hl * 0.5;
 					$heightforheader	= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
 					$ht_colinfo			= $this->_tableau_info($pdf, $object, $this->marge_haute, $outputlangs, 1);
-					pdf_InfraSPlus_normalizeTotals($object, $this->tva_array, $this->tva, $this->localtax1, $this->localtax2, $this->use_multicurrency, $this->sign);	// Arrondis : totaux comptables coherents (HT + TVA = TTC), voir infraspackplus.pdf.lib.php
+					pdf_InfraSPlus_normalizeTotals($object, $this->tva_array, $this->tva, $this->localtax1, $this->localtax2, $this->use_multicurrency, 1);	// Arrondis (pas d'avoir sur ce type de document : signe toujours positif) : totaux comptables coherents (HT + TVA = TTC), voir infraspackplus.pdf.lib.php
 					$ht1_coltotal		= $this->_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					$ht2_coltotal		= empty($this->free_text_end) ? pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->posxtabtotal, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, (!empty($this->number_words) ? 1 : 0), 1, $this->horLineStyle) : 0;
 					$ht_coltotal		= 0;

@@ -199,6 +199,7 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - Le module applique des substitutions de pages selon version Dolibarr (répertoire `substitutionpages/`)
 - Les constantes `INFRASPLUS_*` sont nombreuses ; éviter les changements massifs sans test de génération PDF
 - **Valeurs `DOUBLE` lues en base** : le pilote mysqli renvoie les colonnes `DOUBLE(24,8)` (montants, prix, taux) en **chaîne** — un zéro arrive comme `"0.00000000"`, vrai en PHP. Caster en `(float)` avant tout `empty()` / `!$x` / `?:` sur une valeur issue d'un `fetch_object()` (cf. colonne « P.U. TTC » à 0,00, fix v21.8.8 / InfraSProject 21.1.11).
+- **Propriété `$sign` (avoir affiché en positif) : uniquement sur les modèles de facture** (`F`, `FL`, `FT` : `public $sign = 1`, -1 pour un avoir). Les modèles commande, devis et fournisseurs n'ont pas cette propriété : y passer `1` explicitement à `pdf_InfraSPlus_normalizeTotals()`, jamais `$this->sign` (fix v21.8.11).
 
 ## Dernières mises à jour (Recent updates)
 
@@ -337,6 +338,9 @@ Le module intervient via trois hooks principaux sur le contexte `pdfgeneration` 
   - `INFRASPLUS_PDF_PARAMS_{element}_CUST_{thirdparty_id}` — par client/tiers
 
 **`afterPDFCreation()`** (hook `pdfgeneration`) :
+- Nettoie la variable de session `$_SESSION['InfraSPackPlus_model']` et lève le drapeau `infraspackplus_isInfraSPlusPdfGeneration(false)`
+- Restaure les totaux exacts du document via `pdf_InfraSPlus_restoreTotals($parameters['object'])` (voir *Totaux PDF cohérents, fix v21.8.10*) : les modèles les ont remplacés en mémoire par les totaux comptables arrondis pendant la génération
+- Génère la documentation technique séparée (`infraspackplus_build_documentation_pdf()`) si l'option `docseparate` a été demandée
 - Nettoie la variable de session `$_SESSION['InfraSPackPlus_model']` et lève le drapeau `infraspackplus_isInfraSPlusPdfGeneration(false)`
 - Restaure les totaux exacts du document via `pdf_InfraSPlus_restoreTotals($parameters['object'])` (voir *Totaux PDF cohérents, fix v21.8.10*) : les modèles les ont remplacés en mémoire par les totaux comptables arrondis pendant la génération
 - Génère la documentation technique séparée (`infraspackplus_build_documentation_pdf()`) si l'option `docseparate` a été demandée
@@ -755,6 +759,17 @@ Deux modules de sous-totaux coexistent et ne se reconnaissent pas : le module **
 - **Vérification** : génération CLI vers un répertoire temporaire (surcharger `$conf->fournisseur->facture->dir_output` **et** `$conf->facture->multidir_output[$conf->entity]` — le modèle F lit `multidir_output`, l'oublier régénère le PDF réel de la facture). FF-202609439 → 2,20 / 0,44 / 2,64 ; FF-202609436 (MGA, multidevise) → 132 500 / 26 500 / 159 000 ; FA-202609180 → 452,96 / 90,59 / 543,55 ; totaux exacts restaurés après génération (`context` vide).
 - **Règle à retenir** : tout nouveau modèle qui imprime HT, TVA et TTC doit appeler `pdf_InfraSPlus_normalizeTotals()` avant son tableau des totaux et ne jamais arrondir le TTC exact seul (`price2num($object->total_ttc, 'MT')`) pour un montant à payer : utiliser `pdf_InfraSPlus_getTotalTTC()`. Le module reste compatible avec un core Dolibarr standard (toutes ces fonctions sont sans effet si `getRoundedTotals()` est absente).
 
+### Modèle de bordereau de prélèvement / virement pour InfraSFiles (InfraSPlus_Bon, add v21.9.0)
+
+Modèle PDF `core/modules/infrasfiles/widthdraw/doc/pdf_InfraSPlus_Bon.modules.php` (classe `pdf_InfraSPlus_Bon` **extends `ModelePDFInfrasfileswidthdraw`**, classe de base du module InfraSFiles) : même contenu que le modèle `bordereau` d'InfraSFiles — un document par tiers ou par maison mère, factures, échéances, avoirs appliqués, statut des lignes, total et rejets — rendu au standard InfraSPlus (gabarit `InfraSPlus_BC`) : `pdf_InfraSPlus_getValues()`, `pdf_InfraSPlus_getInstance()`, logo, titre / réf / dates / statut à droite, cadres d'adresses `pdf_InfraSPlus_getAddresses()` + `pdf_InfraSPlus_writeAddresses()` (compte bancaire de la société ajouté sous son adresse, maison mère et RIB du destinataire sous la sienne), tableau `_tableau()` par page, bande de total, zone de signature, mentions `pdf_InfraSPlus_free_text()` au-dessus du pied, pied `pdf_InfraSPlus_pagefoot()`, notes du dictionnaire `pdf_InfraSPlus_Notes()` (`typeNotes = -1`), filigrane image + filigrane brouillon d'InfraSFiles, fusion `pdf_InfraSPlus_files()`.
+Points techniques :
+- **Découverte** : InfraSFiles scanne `core/modules/infrasfiles/<élément>/doc/` dans tous les modules déclarant `models` ; le modèle est donc listé, activé (`llx_document_model`, type `infrasfileswidthdraw`) et prévisualisé (spécimen) dans **les paramètres d'InfraSFiles**, jamais dans ceux d'InfraSPackPlus. Le fichier commence par `dol_include_once()` de la classe de base puis `return` si elle n'existe pas : sans InfraSFiles, rien n'est déclaré.
+- **Données** : lignes, unités (tiers / maison mère), nom de fichier, indexation ECM et dernier document viennent de la classe de base (`infrasfilesGetFile()`, `infrasfilesBefore()`, `infrasfilesFinish()`) ; le modèle n'ajoute que le rendu. `pdf_InfraSPlus_getValues()` force `update_main_doc_field = 1` : remis à 0 dans le constructeur (la table native n'a pas la colonne, InfraSFiles mémorise le fichier lui-même).
+- **Destinataire** : `infrasplusLoadAddressee()` charge le tiers ou la maison mère de l'unité dans `$object->thirdparty` (objet `Societe`, ou objet minimal pour le spécimen) ; `pdf_InfraSPlus_getAddresses()` est appelé avec `typeadr = 'accountStatus'` pour qu'il utilise ce tiers tel quel (sans le détour `INFRASPLUS_PDF_FACTURE_PARENT_ADDR_FACT`, la maison mère étant déjà décidée par InfraSFiles).
+- **Options** : `formBuilddocOptions()` et `beforePDFCreation()` acceptent l'élément `widthdraw` dans leurs listes générales (titre, logo, adresse expéditeur, adresse destinataire, mentions, notes, image de pied, fichiers, alias, séparateur de fin) ; les blocs spécifiques (CGV, images produits, colonnes, remises, PAD de signature…) restent gérés par leurs propres listes. `infraspackplus_defaultParam()` déclare `widthdraw` dans `listModulesFreeT` (mention système de base = `INFRASFILES_WIDTHDRAW_FREE_TEXT`) et `listModulesNoteP` (pas de note native). Les choix sont mémorisés par les constantes `INFRASPLUS_PDF_PARAMS_widthdraw_*` comme pour les autres éléments.
+- **Préfixe** : code `Bon` dans `$listModeles` / `$listModelesModule` (`admin/infrasplussetup.php`, conditionné au module `infrasfiles`), constante `INFRASPLUS_PDF_ADD_PREFIX_TO_Bon` (casse mixte, comme `PJ_Dossier`), suffixe `_Bon` en mode multi-fichiers ; appliqués par `infrasplusApplyPrefix()` au nom calculé par InfraSFiles (`<REF>-<code destinataire>.pdf`).
+- **Propriétés dynamiques** : `pdf_InfraSPlus_getValues()` renseigne ~150 propriétés ; la classe déclare celles qu'elle utilise et porte `#[\AllowDynamicProperties]` (commentaire pour PHP < 8.0) pour les autres.
+- **Test** : `infrasfiles/test/phpunit/InfrasfilesPdfPresenceTest::testModeleInfraSPlusBonDInfraspackplus` (ignoré si le modèle est absent).
 ### Ajout du support d'une nouvelle version Dolibarr (Adding support for new Dolibarr versions)
 
 Pour supporter une nouvelle version majeure de Dolibarr (ex. 24.x) :
@@ -771,3 +786,10 @@ Pour supporter une nouvelle version majeure de Dolibarr (ex. 24.x) :
    <Dolibarr minVersion="21.0.0" maxVersion="24.0.x"/>
    ```
 6. Tester la redirection des pages de substitution et le fonctionnement de la génération PDF
+
+### Avertissement PHP « Undefined property: pdf_InfraSPlus_C::$sign » sur les modèles commande et devis (fix v21.8.11)
+
+- **Symptôme** : à chaque génération d'un PDF de commande (`C`, `CP`, `CBC`) ou de devis (`D`, `DP`), une ligne `PHP Warning: Undefined property: pdf_InfraSPlus_C::$sign ... on line 912` dans le journal d'erreurs PHP du pool (constaté sur infras.store / fitantanana après chaque achat en ligne). Aucun effet sur les montants imprimés.
+- **Cause** : la version 21.8.10 (« Totaux PDF cohérents ») a ajouté dans 11 modèles l'appel `pdf_InfraSPlus_normalizeTotals($object, ..., $this->use_multicurrency, $this->sign)`. La propriété `$sign` n'existe que dans les trois modèles de facture (déclarée `public $sign = 1`, passée à -1 pour afficher un avoir en positif). Les modèles fournisseurs (`FF`, `CF`, `DF`) passaient déjà `1` explicitement ; les cinq modèles commande/devis ont repris la forme facture par copie. La fonction remplace un signe vide par 1 (`empty($sign) ? 1 : $sign`), d'où l'absence d'impact fonctionnel.
+- **Correctif** : les cinq modèles passent le signe `1` explicitement, avec un commentaire (pas d'avoir sur ces types de documents). Le module de l'instance était identique à la base LTS (`diff -rq` vide, 21.8.10 des deux côtés) : numérotation 21.8.11 sans collision, report vers la base via InfraSTools.
+- **Leçon** : lors d'un ajout transversal à plusieurs modèles PDF, vérifier pour chaque propriété `$this->xxx` utilisée qu'elle est déclarée dans la classe cible (`grep -n "public \$xxx"`), les modèles n'ayant pas tous les mêmes propriétés malgré une structure commune.
