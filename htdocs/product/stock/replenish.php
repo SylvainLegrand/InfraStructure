@@ -72,14 +72,15 @@ $salert = GETPOST('salert', 'alpha');
 $includeproductswithoutdesiredqty = GETPOST('includeproductswithoutdesiredqty', 'alpha');
 $mode = GETPOST('mode', 'alpha');
 $draftorder = GETPOST('draftorder', 'alpha');
+// Osden add begin
 $customer_order_id = GETPOSTINT('customer_order_id');
 $ordered_before = dol_mktime(23, 59, 59, GETPOSTINT('ordered_beforemonth'), GETPOSTINT('ordered_beforeday'), GETPOSTINT('ordered_beforeyear'));
 $to_be_received_by = dol_mktime(23, 59, 59, GETPOSTINT('to_be_received_bymonth'), GETPOSTINT('to_be_received_byday'), GETPOSTINT('to_be_received_byyear'));
-
+// Osden add end
 $fourn_id = GETPOSTINT('fourn_id');
 $fk_supplier = GETPOSTINT('fk_supplier');
 $fk_entrepot = GETPOSTINT('fk_entrepot');
-
+// Osden add begin
 if ($customer_order_id > 0) {
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/order.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
@@ -96,7 +97,7 @@ if ($customer_order_id > 0) {
 		exit;
 	}
 }
-
+// Osden add end
 // List all visible warehouses
 $resWar = $db->query("SELECT rowid FROM " . MAIN_DB_PREFIX . "entrepot WHERE entity IN (" . $db->sanitize(getEntity('stock')) . ")");
 $listofqualifiedwarehousesid = "";
@@ -204,10 +205,18 @@ if ($action == 'order' && GETPOST('valid') && $user->hasRight('fournisseur', 'co
 				$box = $i;
 				$supplierpriceid = GETPOSTINT('fourn'.$i);
 				//get all the parameters needed to create a line
+
 				$qty = GETPOSTFLOAT('tobuy'.$i);
-				$idprod = $productsupplier->get_buyprice($supplierpriceid, $qty);
+				// Pass fk_soc = $fk_supplier so that, if the exact price tier (id $supplierpriceid) does not match
+				// the requested qty (fallback search in get_buyprice()), the fallback stays restricted to the
+				// supplier selected in the replenishment filter instead of matching any product/supplier in base.
+				$idprod = $productsupplier->get_buyprice($supplierpriceid, $qty, 0, 'none', $fk_supplier);
 				$res = $productsupplier->fetch($idprod);
-				if ($res && $idprod > 0) {
+				if ($res && $idprod > 0 && $fk_supplier > 0 && (int) $productsupplier->fourn_socid !== (int) $fk_supplier) {
+					// Safety net: never let a line be attached to a supplier different from the one filtered on.
+					dol_syslog("replenish.php: get_buyprice returned fourn_socid=".$productsupplier->fourn_socid." for fk_product=".$idprod." instead of expected fk_supplier=".$fk_supplier." (line $i, product_fournisseur_price id $supplierpriceid, qty $qty)", LOG_WARNING);
+					$errorQty++;
+				} elseif ($res && $idprod > 0) {
 					if ($qty) {
 						//might need some value checks
 						$line = new CommandeFournisseurLigne($db);
@@ -340,10 +349,11 @@ if ($action == 'order' && GETPOST('valid') && $user->hasRight('fournisseur', 'co
 				}
 				$order->cond_reglement_id = (int) $order->thirdparty->cond_reglement_supplier_id;
 				$order->mode_reglement_id = (int) $order->thirdparty->mode_reglement_supplier_id;
+				// Osden add begin
 				if ($customer_order_id > 0) {
 					$order->linkedObjectsIds['commande'] = $customer_order_id;
 				}
-
+				// Osden add end
 				$id = $order->create($user);
 				if ($id < 0) {
 					$fail++;
@@ -363,7 +373,7 @@ if ($action == 'order' && GETPOST('valid') && $user->hasRight('fournisseur', 'co
 			$db->commit();
 
 			setEventMessages($langs->trans('OrderCreated'), null, 'mesgs');
-			header('Location: replenishorders.php' . ($customer_order_id > 0 ? "?customer_order_id=" . urlencode($customer_order_id) : ''));
+			header('Location: replenishorders.php' . ($customer_order_id > 0 ? "?customer_order_id=" . urlencode($customer_order_id) : ''));	// Osden change
 			exit;
 		} else {
 			$db->rollback();
@@ -443,9 +453,11 @@ if (dol_strlen((string) $type)) {
 		$sql .= ' AND p.fk_product_type <> 1';
 	}
 }
+// Osden add begin
 if ($customer_order_id > 0) {
 	$sql .= ' AND EXISTS (SELECT rowid FROM ' . $db->prefix() . 'commandedet WHERE fk_product = p.rowid AND fk_commande = ' . ((int) $customer_order_id) . ')';
 }
+// Osden add end
 if ($search_ref) {
 	$sql .= natural_search('p.ref', $search_ref);
 }
@@ -481,9 +493,11 @@ if ($usevirtualstock) {
 		$sqlCommandesCli .= " FROM ".MAIN_DB_PREFIX."commandedet as cd1, ".MAIN_DB_PREFIX."commande as c1";
 		$sqlCommandesCli .= " WHERE c1.rowid = cd1.fk_commande AND c1.entity IN (".getEntity(getDolGlobalString('STOCK_CALCULATE_VIRTUAL_STOCK_TRANSVERSE_MODE') ? 'stock' : 'commande').")";
 		$sqlCommandesCli .= " AND cd1.fk_product = p.rowid";
+		// Osden add begin
 		if (!empty($ordered_before)) {
 			$sqlCommandesCli .= " AND COALESCE(c1.date_livraison, c1.date_commande) <= '" . $db->idate($ordered_before) . "'";
 		}
+		// Osden add end
 		$sqlCommandesCli .= " AND c1.fk_statut IN (1,2))";
 	} else {
 		$sqlCommandesCli = '0';
@@ -498,9 +512,11 @@ if ($usevirtualstock) {
 		$sqlExpeditionsCli .= " WHERE ed2.fk_expedition = e2.rowid AND cd2.rowid = ed2.fk_elementdet AND e2.entity IN (".getEntity(getDolGlobalString('STOCK_CALCULATE_VIRTUAL_STOCK_TRANSVERSE_MODE') ? 'stock' : 'expedition').")";
 		$sqlExpeditionsCli .= " AND cd2.fk_commande = c2.rowid";
 		$sqlExpeditionsCli .= " AND c2.fk_statut IN (1,2)";
+		// Osden add begin
 		if (!empty($ordered_before)) {
 			$sqlExpeditionsCli .= " AND COALESCE(c2.date_livraison, c2.date_commande) <= '" . $db->idate($ordered_before) . "'";
 		}
+		// Osden add end
 		$sqlExpeditionsCli .= " AND cd2.fk_product = p.rowid";
 		$sqlExpeditionsCli .= " AND e2.fk_statut IN (1,2))";
 	} else {
@@ -514,9 +530,11 @@ if ($usevirtualstock) {
 		$sqlCommandesFourn .= " WHERE c3.rowid = cd3.fk_commande";
 		$sqlCommandesFourn .= " AND c3.entity IN (".getEntity(getDolGlobalString('STOCK_CALCULATE_VIRTUAL_STOCK_TRANSVERSE_MODE') ? 'stock' : 'supplier_order').")";
 		$sqlCommandesFourn .= " AND cd3.fk_product = p.rowid";
+		// Osden add begin
 		if (!empty($to_be_received_by)) {
 			$sqlCommandesFourn .= " AND COALESCE(c3.date_livraison, c3.date_commande) <= '" . $db->idate($to_be_received_by) . "'";
 		}
+		// Osden add end
 		$sqlCommandesFourn .= " AND c3.fk_statut IN (3,4))";
 
 		$sqlReceptionFourn = "(SELECT ".$db->ifsql("SUM(fd4.qty) IS NULL", "0", "SUM(fd4.qty)")." as qty"; // We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
@@ -524,9 +542,11 @@ if ($usevirtualstock) {
 		$sqlReceptionFourn .= " ".MAIN_DB_PREFIX."receptiondet_batch as fd4";
 		$sqlReceptionFourn .= " WHERE fd4.fk_element = cf4.rowid AND cf4.entity IN (".getEntity(getDolGlobalString('STOCK_CALCULATE_VIRTUAL_STOCK_TRANSVERSE_MODE') ? 'stock' : 'supplier_order').")";
 		$sqlReceptionFourn .= " AND fd4.fk_product = p.rowid";
+		// Osden add begin
 		if (!empty($to_be_received_by)) {
 			$sqlReceptionFourn .= " AND COALESCE(cf4.date_livraison, cf4.date_commande) <= '" . $db->idate($to_be_received_by) . "'";
 		}
+		// Osden add end
 		$sqlReceptionFourn .= " AND cf4.fk_statut IN (3,4))";
 	} else {
 		$sqlCommandesFourn = '0';
@@ -647,7 +667,7 @@ $helpurl = 'EN:Module_Stocks_En|FR:Module_Stock|';
 $helpurl .= 'ES:M&oacute;dulo_Stocks';
 
 llxHeader('', $title, $helpurl, '', 0, 0, '', '', '', 'mod-product page-stock_replenish');
-
+// Osden change begin
 if ($customer_order_id > 0) {
 	$order->fetch_thirdparty();
 	$head = commande_prepare_head($order);
@@ -702,7 +722,7 @@ if ($customer_order_id > 0) {
 
 	print dol_get_fiche_head($head, 'replenish', '', -1, '');
 }
-
+// Osden change end
 print '<span class="opacitymedium">' . $langs->trans("ReplenishmentStatusDesc") . '</span>' . "\n";
 
 //$link = '<a title=' .$langs->trans("MenuNewWarehouse"). ' href="'.DOL_URL_ROOT.'/product/stock/card.php?action=create">'.$langs->trans("MenuNewWarehouse").'</a>';
@@ -714,12 +734,12 @@ print '<br><br>';
 if ($usevirtualstock == 1) {
 	print $langs->trans("CurentSelectionMode") . ': ';
 	print '<span class="a-mesure">' . $langs->trans("UseVirtualStock") . '</span>';
-	print ' <a class="a-mesure-disabled" href="' . $_SERVER["PHP_SELF"] . '?mode=physical' . ($fk_supplier > 0 ? '&fk_supplier=' . $fk_supplier : '') . ($fk_entrepot > 0 ? '&fk_entrepot=' . $fk_entrepot : '') . ($customer_order_id > 0 ? '&customer_order_id=' . $customer_order_id : '') . '">' . $langs->trans("UsePhysicalStock") . '</a>';
+	print ' <a class="a-mesure-disabled" href="' . $_SERVER["PHP_SELF"] . '?mode=physical' . ($fk_supplier > 0 ? '&fk_supplier=' . $fk_supplier : '') . ($fk_entrepot > 0 ? '&fk_entrepot=' . $fk_entrepot : '') . ($customer_order_id > 0 ? '&customer_order_id=' . $customer_order_id : '') . '">' . $langs->trans("UsePhysicalStock") . '</a>';	// Osden change
 	print '<br>';
 }
 if ($usevirtualstock == 0) {
 	print $langs->trans("CurentSelectionMode") . ': ';
-	print '<a class="a-mesure-disabled" href="' . $_SERVER["PHP_SELF"] . '?mode=virtual' . ($fk_supplier > 0 ? '&fk_supplier=' . $fk_supplier : '') . ($fk_entrepot > 0 ? '&fk_entrepot=' . $fk_entrepot : '') . ($customer_order_id > 0 ? '&customer_order_id=' . $customer_order_id : '') . '">' . $langs->trans("UseVirtualStock") . '</a>';
+	print '<a class="a-mesure-disabled" href="' . $_SERVER["PHP_SELF"] . '?mode=virtual' . ($fk_supplier > 0 ? '&fk_supplier=' . $fk_supplier : '') . ($fk_entrepot > 0 ? '&fk_entrepot=' . $fk_entrepot : '') . ($customer_order_id > 0 ? '&customer_order_id=' . $customer_order_id : '') . '">' . $langs->trans("UseVirtualStock") . '</a>';	// Osden change
 	print ' <span class="a-mesure">' . $langs->trans("UsePhysicalStock") . '</span>';
 	print '<br>';
 }
@@ -737,9 +757,11 @@ print '<input type="hidden" name="mode" value="' . $mode . '">';
 if ($limit > 0 && $limit != $conf->liste_limit) {
 	print '<input type="hidden" name="limit" value="' . $limit . '">';
 }
+// Osden add begin
 if ($customer_order_id > 0) {
 	print '<input type="hidden" name="customer_order_id" value="' . $customer_order_id . '">';
 }
+// Osden add end
 if (getDolGlobalString('STOCK_ALLOW_ADD_LIMIT_STOCK_BY_WAREHOUSE')) {
 	print '<div class="inline-block valignmiddle" style="padding-right: 20px;">';
 	print $langs->trans('Warehouse') . ' ' . $formproduct->selectWarehouses($fk_entrepot, 'fk_entrepot', '', 1);
@@ -749,6 +771,7 @@ print '<div class="inline-block valignmiddle" style="padding-right: 20px;">';
 $filter = '(fournisseur:=:1)';
 print $langs->trans('Supplier') . ' ' . $form->select_company($fk_supplier, 'fk_supplier', $filter, 1);
 print '</div>';
+// Osden add begin
 if ($usevirtualstock) {
 	if (isModEnabled('order')) {
 		print '<div class="inline-block valignmiddle" style="padding-right: 20px;">';
@@ -761,7 +784,7 @@ if ($usevirtualstock) {
 		print '</div>';
 	}
 }
-
+// Osden add end
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldPreListTitle', $parameters); // Note that $action and $object may have been modified by hook
 if (empty($reshook)) {
@@ -784,10 +807,11 @@ print '<input type="hidden" name="type" value="' . $type . '">';
 print '<input type="hidden" name="linecount" value="' . $num . '">';
 print '<input type="hidden" name="action" value="order">';
 print '<input type="hidden" name="mode" value="' . $mode . '">';
+// Osden add begin
 if ($customer_order_id > 0) {
 	print '<input type="hidden" name="customer_order_id" value="' . $customer_order_id . '">';
 }
-
+// Osden add end
 
 if ($search_ref || $search_label || $sall || $salert || $draftorder || GETPOST('search', 'alpha')) {
 	$filters = '&search_ref=' . urlencode($search_ref) . '&search_label=' . urlencode($search_label);
@@ -824,10 +848,11 @@ if (!empty($includeproductswithoutdesiredqty)) {
 if (!empty($salert)) {
 	$filters .= '&salert='.urlencode($salert);
 }
+// Osden add begin
 if ($customer_order_id > 0) {
 	$filters .= '&customer_order_id='.urlencode($customer_order_id);
 }
-
+// Osden add end
 $param = (isset($type) ? '&type='.urlencode((string) ($type)) : '');
 $param .= '&fourn_id='.urlencode((string) ($fourn_id)).'&search_label='.urlencode((string) ($search_label)).'&includeproductswithoutdesiredqty='.urlencode((string) ($includeproductswithoutdesiredqty)).'&salert='.urlencode((string) ($salert)).'&draftorder='.urlencode((string) ($draftorder));
 $param .= '&search_ref='.urlencode($search_ref);
@@ -840,10 +865,11 @@ if (!empty($includeproductswithoutdesiredqty)) {
 if (!empty($salert)) {
 	$param .= '&salert='.urlencode($salert);
 }
+// Osden add begin
 if ($customer_order_id > 0) {
 	$param .= '&customer_order_id='.urlencode($customer_order_id);
 }
-
+// Osden add end
 $stocklabel = $langs->trans('Stock');
 $stocklabelbis = $langs->trans('Stock');
 $stocktooltip = '';
@@ -954,7 +980,7 @@ $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters); // No
 print $hookmanager->resPrint;
 
 print "</tr>\n";
-
+// Osden add begin
 $other_filters = array();
 if ($usevirtualstock) {
 	if (!empty($ordered_before)) {
@@ -966,7 +992,7 @@ if ($usevirtualstock) {
 		$other_filters['load_stats_reception'] = " AND COALESCE(cf.date_livraison, cf.date_commande) <= '" . $db->idate($to_be_received_by) . "'";
 	}
 }
-
+// Osden add end
 while ($i < ($limit ? min($num, $limit) : $num)) {
 	$objp = $db->fetch_object($resql);
 
@@ -977,7 +1003,7 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 			exit;
 		}
 
-		$prod->load_stock('warehouseopen, warehouseinternal'.(!$usevirtualstock ? ', novirtual' : ''), $draftchecked === 'checked' ? 1 : null, null, $other_filters);
+		$prod->load_stock('warehouseopen, warehouseinternal'.(!$usevirtualstock ? ', novirtual' : ''), $draftchecked === 'checked' ? 1 : null, null, $other_filters);	// Osden change
 
 		// Multilangs
 		if (getDolGlobalInt('MAIN_MULTILANGS')) {
@@ -1013,20 +1039,21 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 				$stockwarehouse = $prod->stock_warehouse[$fk_entrepot]->real;
 			}
 		}
+		// Osden add begin
 		$stocktoshow = price(price2num($stock, 'MS'));
 		if ($usevirtualstock) {
 			$stocktoshow = $formproduct->printTheoreticalStockDetails($prod, true, $other_filters);
 		}
-
+		// Osden add end
 		// Force call prod->load_stats_xxx to choose status to count (otherwise it is loaded by load_stock function)
 		if (isset($draftchecked)) {
-			$result = $prod->load_stats_commande_fournisseur(0, '0,1,2,3,4', 0, null, $other_filters['load_stats_commande_fournisseur'] ?? '');
+			$result = $prod->load_stats_commande_fournisseur(0, '0,1,2,3,4', 0, null, $other_filters['load_stats_commande_fournisseur'] ?? '');	// Osden change
 		} elseif (!$usevirtualstock) {
-			$result = $prod->load_stats_commande_fournisseur(0, '1,2,3,4', 0, null, $other_filters['load_stats_commande_fournisseur'] ?? '');
+			$result = $prod->load_stats_commande_fournisseur(0, '1,2,3,4', 0, null, $other_filters['load_stats_commande_fournisseur'] ?? '');	// Osden change
 		}
 
 		if (!$usevirtualstock) {
-			$result = $prod->load_stats_reception(0, '4', 0, null, $other_filters['load_stats_reception'] ?? '');
+			$result = $prod->load_stats_reception(0, '4', 0, null, $other_filters['load_stats_reception'] ?? '');	// Osden change
 		}
 
 		//print $prod->stats_commande_fournisseur['qty'].'<br>'."\n";
@@ -1107,7 +1134,7 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 		print '<td class="right">'.((getDolGlobalString('STOCK_ALLOW_ADD_LIMIT_STOCK_BY_WAREHOUSE') && $fk_entrepot > 0) > 0 ? ($objp->seuil_stock_alertepse ? $alertstockwarehouse : img_info($langs->trans('ProductValuesUsedBecauseNoValuesForThisWarehouse')) . '0') : $alertstock).'</td>';
 
 		// Current stock (all warehouses)
-		print '<td class="right">' . $warning . $stocktoshow;
+		print '<td class="right">' . $warning . $stocktoshow;	// Osden change
 		print '<!-- stock returned by main sql is ' . $objp->stock_physique . ' -->';
 		print '</td>';
 
