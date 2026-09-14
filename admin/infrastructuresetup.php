@@ -48,7 +48,7 @@
 	// Actions **************************************
 	$form			= new Form($db);
 	$formfile		= new FormFile($db);
-	$formother		= new FormOther(db: $db);
+	$formother		= new FormOther($db);
 	$extrafields	= new ExtraFields($db);
 	$action			= GETPOST('action','alpha');
 	$confirm		= GETPOST('confirm', 'alpha');

@@ -699,6 +699,7 @@
 		{
 			if (!getDolGlobalString('INFRASTRUCTURE_MANAGE_OL')) return 0;
 			if (empty($object->lines) || ! is_array($object->lines) || !isset($parameters['marginInfo'])) return 0;
+
 			// Lignes à conserver pour le calcul des marges : tout sauf les lignes OL (special_code = 3)
 			$TLines	= array();
 			$hasOl	= false;
@@ -710,6 +711,7 @@
 				$TLines[] = $line;
 			}
 			if (!$hasOl) return 0; // Pas de lignes OL : laisser le calcul natif inchangé
+
 			$clone			= clone $object;
 			$clone->lines	= $TLines;
 			dol_include_once('/core/class/html.formmargin.class.php');
@@ -717,6 +719,7 @@
 			$parameters['marginInfo']	= $formmargin->getMarginInfosArray($clone, false);
 			return 0;
 		}
+
 		/**
 		* Change rounding mode
 		*
