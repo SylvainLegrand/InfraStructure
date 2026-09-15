@@ -275,7 +275,7 @@ class TCPDF_COLORS {
 		$color = strtolower($color);
 		// check for javascript color array syntax
 		if (strpos($color, '[') !== false) {
-			if (preg_match('/[\[][\"\'](t|g|rgba|rgb|cmyk)[\"\'][\,]?([0-9\.]*+)[\,]?([0-9\.]*+)[\,]?([0-9\.]*+)[\,]?([0-9\.]*+)[\]]/', $color, $m) > 0) {
+			if (preg_match('/[\[][\"\'](t|g|rgba|rgb|cmyk)[\"\'][\,]?([0-9\.]*+)[\,]?([0-9\.]*+)[\,]?([0-9\.]*+)[\,]?([0-9\.]*+)[\]]/', $color, $m) > 0) {	// InfraS change
 				$returncolor = array();
 				switch ($m[1]) {
 					case 'cmyk': {
@@ -286,8 +286,8 @@ class TCPDF_COLORS {
 						$returncolor['K'] = max(0, min(100, (floatval($m[5]) * 100)));
 						break;
 					}
-					case 'rgb':
-					case 'rgba': {
+					case 'rgb':	// InfraS change
+					case 'rgba': {	// InfraS add
 						// RGB
 						$returncolor['R'] = max(0, min(255, (floatval($m[2]) * 255)));
 						$returncolor['G'] = max(0, min(255, (floatval($m[3]) * 255)));
@@ -318,6 +318,7 @@ class TCPDF_COLORS {
 		if (strlen($color) == 0) {
 			return $defcol;
 		}
+		// InfraS add begin
 		// RGBA ARRAY
 		if (substr($color, 0, 4) == 'rgba') {
 			$codes = substr($color, 5);
@@ -337,6 +338,7 @@ class TCPDF_COLORS {
 			}
 			return $returncolor;
 		}
+		// InfraS add end
 		// RGB ARRAY
 		if (substr($color, 0, 3) == 'rgb') {
 			$codes = substr($color, 4);

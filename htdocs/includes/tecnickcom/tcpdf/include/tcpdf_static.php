@@ -55,7 +55,7 @@ class TCPDF_STATIC {
 	 * Current TCPDF version.
 	 * @private static
 	 */
-	private static $tcpdf_version = '6.11.3';
+	private static $tcpdf_version = '6.11.3';	// InfraS change
 
 	/**
 	 * String alias for total number of pages.
@@ -105,7 +105,7 @@ class TCPDF_STATIC {
 	 * @public static
 	 */
 	public static $pageboxes = array('MediaBox', 'CropBox', 'BleedBox', 'TrimBox', 'ArtBox');
-
+	// InfraS add begin
 	/**
      * Array of default cURL options for curl_setopt_array.
      *
@@ -130,7 +130,7 @@ class TCPDF_STATIC {
         CURLOPT_FAILONERROR => true,
         CURLOPT_RETURNTRANSFER => true,
     ];
-
+		// InfraS add end
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/**
@@ -404,10 +404,11 @@ class TCPDF_STATIC {
 		if (function_exists('posix_getpid')) {
 			$rnd .= posix_getpid();
 		}
-
+		// InfraS add begin
 		if (function_exists('random_bytes')) {
 			$rnd .= random_bytes(512);
-		} elseif (function_exists('openssl_random_pseudo_bytes') AND (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN')) {
+		// InfraS add end
+		} elseif (function_exists('openssl_random_pseudo_bytes') AND (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN')) {	// InfraS change
 			// this is not used on windows systems because it is very slow for a know bug
 			$rnd .= openssl_random_pseudo_bytes(512);
 		} else {
@@ -415,7 +416,7 @@ class TCPDF_STATIC {
 				$rnd .= uniqid('', true);
 			}
 		}
-		return $rnd.$seed.__FILE__.microtime(true);
+		return $rnd.$seed.__FILE__.microtime(true);	// InfraS change
 	}
 
 	/**
@@ -1831,7 +1832,13 @@ class TCPDF_STATIC {
 	 * @public static
 	 */
 	public static function fopenLocal($filename, $mode) {
-		if (strpos($filename, '://') === false) {
+		//Â @CHANGE DOL
+		if (strpos($filename, '//') === 0) {
+			// Share folder on a (windows) server
+			// e.g.: "//[MyServerName]/[MySharedFolder]/"
+			//
+			// nothing to change
+		} elseif (strpos($filename, '://') === false) {
 			$filename = 'file://'.$filename;
 		} elseif (stream_is_local($filename) !== true) {
 			return false;
@@ -1848,6 +1855,7 @@ class TCPDF_STATIC {
 	 */
 	public static function url_exists($url) {
 		$crs = curl_init();
+		// InfraS change begin
         $curlopts = [];
         if (
             (ini_get('open_basedir') == '')
@@ -1866,6 +1874,7 @@ class TCPDF_STATIC {
 		if (PHP_VERSION_ID < 80000) {
 			curl_close($crs);
 		}
+		// InfraS change end
 		return ($code == 200);
 	}
 
@@ -1983,6 +1992,7 @@ class TCPDF_STATIC {
 			) {
 				// try to get remote file data using cURL
 				$crs = curl_init();
+				// InfraS change begin
 				$curlopts = [];
 				if (
 					(ini_get('open_basedir') == '')
@@ -2000,6 +2010,7 @@ class TCPDF_STATIC {
 				if (PHP_VERSION_ID < 80000) {
 					curl_close($crs);
 				}
+				// InfraS change end
 				if ($ret !== false) {
 					return $ret;
 				}
@@ -2655,6 +2666,7 @@ class TCPDF_STATIC {
 		}
 		return $page_mode;
 	}
+
 
 } // END OF TCPDF_STATIC CLASS
 

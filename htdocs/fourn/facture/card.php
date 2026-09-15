@@ -1479,7 +1479,7 @@ if (empty($reshook)) {
 									(int) $date_end,
 									0,
 									$lines[$i]->info_bits,
-									$line_price_base_type,	// Osden add
+									$line_price_base_type,	// Osden change
 									$product_type,
 									$lines[$i]->rang,
 									0,
@@ -1682,14 +1682,12 @@ if (empty($reshook)) {
 		$alldate_end = dol_mktime(GETPOSTINT('alldate_endhour'), GETPOSTINT('alldate_endmin'), 0, GETPOSTINT('alldate_endmonth'), GETPOSTINT('alldate_endday'), GETPOSTINT('alldate_endyear'));
 		foreach ($object->lines as $line) {
 			if ($line->product_type == 1) { // only service line
-				// Osden add begin
+	// Osden change begin
 				// Preserve the original entry mode of the line so the total is not drifted by rounding.
 				$line_price_base_type = $line->getPriceBaseType();
 				$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
-				// Osden add end
-				$result = $object->updateline($line->id, $line->desc, $line_pu, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, $line_price_base_type, $line->info_bits, $line->product_type, $line->remise_percent, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);	// Osden change
+				$result = $object->updateline($line->id, $line->desc, $line_pu, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, $line_price_base_type, $line->info_bits, $line->product_type, $line->remise_percent, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
 			}
-		// Osden add begin
 		}
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'alpha') && GETPOST('remiseforalllines', 'alpha') !== '' && $usercancreate) {
 		// Define vat_rate
@@ -1700,7 +1698,7 @@ if (empty($reshook)) {
 			$line_price_base_type = $line->getPriceBaseType();
 			$line_pu = ($line_price_base_type === 'TTC') ? (float) $line->subprice_ttc : (float) $line->subprice;
 			$result = $object->updateline($line->id, $line->desc, $line_pu, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, $line->qty, $line->fk_product, $line_price_base_type, $line->info_bits, $line->product_type, $remise_percent, 0, $line->date_start, $line->date_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier, $line->rang);
-		// Osden add end
+	// Osden change end
 		}
 	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && GETPOST('vatforalllines', 'alpha') != '' && $usercancreate) {
 		// Define vat_rate
@@ -2000,20 +1998,20 @@ if (empty($reshook)) {
 			// Local Taxes
 			$localtax1_tx = get_localtax($tva_tx, 1, $mysoc, $object->thirdparty);
 			$localtax2_tx = get_localtax($tva_tx, 2, $mysoc, $object->thirdparty);
-			// Osden change begin
 			// Keep the entry mode chosen by the user so the total is computed from the typed value (no rounding drift).
 			if (GETPOST('price_ht') != '' || GETPOST('multicurrency_price_ht') != '') {
-				$price_base_type = 'HT';
-				$pu = price2num($price_ht, 'MU'); // $pu must be rounded according to settings
-				$pu_devise = price2num($price_ht_devise, 'CU');
+				$price_base_type = 'HT';	// Osden add
+				$pu = price2num($price_ht, 'MU'); // Osden change	// $pu must be rounded according to settings
+				$pu_devise = price2num($price_ht_devise, 'CU');	// Osden add
 			} else {
-				$price_base_type = 'TTC';
-				$pu = price2num(GETPOST('price_ttc'), 'MU');
-				$pu_devise = price2num($price_ttc_devise, 'CU');
+				$price_base_type = 'TTC';	// Osden add
+				$pu = price2num(GETPOST('price_ttc'), 'MU');	// Osden change
+				$pu_devise = price2num($price_ttc_devise, 'CU');	// Osden change
 			}
+			//$price_base_type = 'HT';	// Osden change
+			//$pu_devise = price2num($price_ht_devise, 'CU');	// Osden change
 
-			$result = $object->addline($line_desc, (float) $pu, $tva_tx, $localtax1_tx, $localtax2_tx, (float) $qty, 0, $remise_percent, $date_start, $date_end, 0, $tva_npr, $price_base_type, $type, -1, 0, $array_options, $fk_unit, 0, (float) $pu_devise, $ref_supplier);
-			// Osden change end
+			$result = $object->addline($line_desc, (float) $pu, $tva_tx, $localtax1_tx, $localtax2_tx, (float) $qty, 0, $remise_percent, $date_start, $date_end, 0, $tva_npr, $price_base_type, $type, -1, 0, $array_options, $fk_unit, 0, (float) $pu_devise, $ref_supplier);	// Osden change
 		}
 
 		//print "xx".$tva_tx; exit;
@@ -2148,13 +2146,13 @@ if (empty($reshook)) {
 			} else {
 				setEventMessages($langs->trans('DisabledBecausePayments'), null, 'errors');
 				$action = '';
-				// InfraS add end
+			// InfraS add end
 			}
 		// InfraS add begin
 		} else {
 			setEventMessages($langs->trans('DisabledBecauseDispatchedInBookkeeping'), null, 'errors');
 			$action = '';
-			// InfraS add end
+		// InfraS add end
 		}
 	} elseif ($action == 'reopen' && $usercancreate) {
 		// Set invoice to validated/unpaid status
@@ -3115,9 +3113,9 @@ if ($action == 'create') {
 			print '<tr><td>'.$langs->trans('AmountTTC').'</td><td>'.price($objectsrc->total_ttc)."</td></tr>";
 
 			if (isModEnabled("multicurrency")) {
-				print '<tr><td>'.$langs->trans('MulticurrencyAmountHT').'</td><td>'.price($objectsrc->multicurrency_total_ht).'</td></tr>';
-				print '<tr><td>'.$langs->trans('MulticurrencyAmountVAT').'</td><td>'.price($objectsrc->multicurrency_total_tva)."</td></tr>";
-				print '<tr><td>'.$langs->trans('MulticurrencyAmountTTC').'</td><td>'.price($objectsrc->multicurrency_total_ttc)."</td></tr>";
+				print '<tr><td>'.$langs->trans('MulticurrencyAmountHT').'</td><td>'.price($objectsrc->multicurrency_total_ht, 0, $langs, 1, -1, -1, $objectsrc->multicurrency_code).'</td></tr>';
+				print '<tr><td>'.$langs->trans('MulticurrencyAmountVAT').'</td><td>'.price($objectsrc->multicurrency_total_tva, 0, $langs, 1, -1, -1, $objectsrc->multicurrency_code)."</td></tr>";
+				print '<tr><td>'.$langs->trans('MulticurrencyAmountTTC').'</td><td>'.price($objectsrc->multicurrency_total_ttc, 0, $langs, 1, -1, -1, $objectsrc->multicurrency_code)."</td></tr>";
 			}
 		}
 
@@ -3855,21 +3853,27 @@ if ($action == 'create') {
 			include DOL_DOCUMENT_ROOT.'/core/tpl/object_currency_amount.tpl.php';
 
 			print '<tr>';
-			// InfraS change begin Arrondis - montants affichés = totaux comptables arrondis (TTC = HT + TVA + taxes arrondis), règle de
+			// InfraS change Arrondis - montants affichés = totaux comptables arrondis (TTC = HT + TVA + taxes arrondis), règle de
 			// TVA lue sur la facture (Mode 1 / Mode 2 persisté dans extraparams) sinon constante MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND_SUPPLIER
-			$roundedtotals = $object->getRoundedTotals(0, '');
-			$multicurrency_roundedtotals = $object->getRoundedTotals(1, '');
+			$roundedtotals = $object->getRoundedTotals(0, '');	// InfraS add Arrondis
+			$multicurrency_roundedtotals = $object->getRoundedTotals(1, '');	// InfraS add Arrondis
 			print '<td class="titlefieldmiddle">' . $langs->trans('AmountHT') . '</td>';
-			print '<td class="nowrap amountcard right">' . price($roundedtotals['ht'], 0, $langs, 0, -1, -1, $conf->currency) . '</td>';
+			print '<td class="nowrap amountcard right">' . price($roundedtotals['ht'], 0, $langs, 0, -1, -1, $conf->currency) . '</td>';	// InfraS change Arrondis
 			if (isModEnabled("multicurrency") && ($object->multicurrency_code && $object->multicurrency_code != $conf->currency)) {
-				print '<td class="nowrap amountcard right">' . price($multicurrency_roundedtotals['ht'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
+				print '<td class="nowrap amountcard right">' . price($multicurrency_roundedtotals['ht'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';	// InfraS change Arrondis
 			}
 			print '</tr>';
 
 			print '<tr>';
 			print '<td>' . $langs->trans('AmountVAT') . '</td>';
 			print '<td class="nowrap amountcard right">';
-			$calculationrule = $roundedtotals['rule'];
+			// InfraS change begin Arrondis
+			//if (GETPOST('calculationrule')) {
+				$calculationrule = $roundedtotals['rule'];
+			//} else {
+			//	$calculationrule = (!getDolGlobalString('MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND_SUPPLIER') ? 'totalofround' : 'roundoftotal');
+			//}
+			// InfraS change end
 			if ($calculationrule == 'totalofround') {
 				$calculationrulenum = 1;
 			} else {
@@ -3878,43 +3882,40 @@ if ($action == 'create') {
 			// Show link for "recalculate"
 			if ($object->getVentilExportCompta() == 0) {
 				$s = '<span class="hideonsmartphone opacitymedium">' . $langs->trans("ReCalculate") . ' </span>';
-				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=totalofround">' . ($calculationrulenum == 1 ? '<strong>' . $langs->trans("Mode1") . '</strong>' : $langs->trans("Mode1")) . '</a>';
+				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=totalofround">' . ($calculationrulenum == 1 ? '<strong>' . $langs->trans("Mode1") . '</strong>' : $langs->trans("Mode1")) . '</a>';	// InfraS change Arrondis
 				$s .= ' / ';
-				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=roundoftotal">' . ($calculationrulenum == 2 ? '<strong>' . $langs->trans("Mode2") . '</strong>' : $langs->trans("Mode2")) . '</a>';
+				$s .= '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=calculate&token='.newToken().'&calculationrule=roundoftotal">' . ($calculationrulenum == 2 ? '<strong>' . $langs->trans("Mode2") . '</strong>' : $langs->trans("Mode2")) . '</a>';	// InfraS change Arrondis
 				print '<div class="inline-block">';
 				print $form->textwithtooltip($s, $langs->trans("CalculationRuleDesc", $calculationrulenum) . '<br>' . $langs->trans("CalculationRuleDescSupplier"), 2, 1, img_picto('', 'help'), '', 3, '', 0, 'recalculate');
 				print '&nbsp; &nbsp; &nbsp; &nbsp;';
 				print '</div>';
 			}
-			print '<span class="nowraponall">'.price($roundedtotals['tva'], 1, $langs, 0, -1, -1, $conf->currency).'</span>';
+			print '<span class="nowraponall">'.price($roundedtotals['tva'], 1, $langs, 0, -1, -1, $conf->currency).'</span>';	// InfraS change Arrondis
 			print '</td>';
 			if (isModEnabled("multicurrency") && ($object->multicurrency_code && $object->multicurrency_code != $conf->currency)) {
-				print '<td class="nowraponall amountcard right">' . price($multicurrency_roundedtotals['tva'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
+				print '<td class="nowraponall amountcard right">' . price($multicurrency_roundedtotals['tva'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';	// InfraS change Arrondis
 			}
-			// InfraS change end Arrondis
 			print '</tr>';
 
 			if ($societe->localtax1_assuj == "1") { //Localtax1
 				print '<tr>';
 				print '<td>' . $langs->transcountry("AmountLT1", $societe->country_code) . '</td>';
-				print '<td class="nowrap amountcard right">' . price($roundedtotals['localtax1'], 1, $langs, 0, -1, -1, $conf->currency) . '</td>'; // InfraS change Arrondis
+				print '<td class="nowrap amountcard right">' . price($roundedtotals['localtax1'], 1, $langs, 0, -1, -1, $conf->currency) . '</td>';	// InfraS change Arrondis
 				print '</tr>';
 			}
 			if ($societe->localtax2_assuj == "1") { //Localtax2
 				print '<tr>';
 				print '<td>' . $langs->transcountry("AmountLT2", $societe->country_code) . '</td>';
-				print '<td class="nowrap amountcard right">' . price($roundedtotals['localtax2'], 1, $langs, 0, -1, -1, $conf->currency) . '</td>'; // InfraS change Arrondis
+				print '<td class="nowrap amountcard right">' . price($roundedtotals['localtax2'], 1, $langs, 0, -1, -1, $conf->currency) . '</td>';	// InfraS change Arrondis
 				print '</tr>';
 			}
 
 			print '<tr>';
 			print '<td>' . $langs->trans('AmountTTC') . '</td>';
-			// InfraS change begin Arrondis
-			print '<td class="nowrap amountcard right">' . price($roundedtotals['ttc'], 0, $langs, 0, -1, -1, $conf->currency) . '</td>';
+			print '<td class="nowrap amountcard right">' . price($roundedtotals['ttc'], 0, $langs, 0, -1, -1, $conf->currency) . '</td>';	// InfraS change Arrondis
 			if (isModEnabled("multicurrency") && ($object->multicurrency_code && $object->multicurrency_code != $conf->currency)) {
-				print '<td class="nowrap amountcard right">' . price($multicurrency_roundedtotals['ttc'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';
+				print '<td class="nowrap amountcard right">' . price($multicurrency_roundedtotals['ttc'], 0, $langs, 0, -1, -1, $object->multicurrency_code) . '</td>';	// InfraS change Arrondis
 			}
-			// InfraS change end Arrondis
 			print '</tr>';
 
 			print '</table>';

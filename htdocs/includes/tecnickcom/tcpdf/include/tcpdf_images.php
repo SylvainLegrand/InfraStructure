@@ -55,7 +55,7 @@ class TCPDF_IMAGES {
 	 * Array of hinheritable SVG properties.
 	 * @since 5.0.000 (2010-05-02)
 	 * @public static
-	 * 
+	 *
 	 * @var string[]
 	 */
 	public static $svginheritprop = array('clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cursor', 'direction', 'display', 'fill', 'fill-opacity', 'fill-rule', 'font', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'glyph-orientation-horizontal', 'glyph-orientation-vertical', 'image-rendering', 'kerning', 'letter-spacing', 'marker', 'marker-end', 'marker-mid', 'marker-start', 'pointer-events', 'shape-rendering', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'text-anchor', 'text-rendering', 'visibility', 'word-spacing', 'writing-mode');
@@ -126,9 +126,9 @@ class TCPDF_IMAGES {
 		// create temporary PNG image
 		imagepng($image, $tempfile);
 		// remove image from memory
-		if (PHP_VERSION_ID < 80000) {
+		if (PHP_VERSION_ID < 80000) {	// InfraS add
 			imagedestroy($image);
-		}
+		}	// InfraS add
 		// get PNG image data
 		$retvars = self::_parsepng($tempfile);
 		// tidy up by removing temporary image
@@ -147,9 +147,9 @@ class TCPDF_IMAGES {
 	 */
 	public static function _toJPEG($image, $quality, $tempfile) {
 		imagejpeg($image, $tempfile, $quality);
-		if (PHP_VERSION_ID < 80000) {
+		if (PHP_VERSION_ID < 80000) {	// InfraS add
 			imagedestroy($image);
-		}
+		}	// InfraS add
 		$retvars = self::_parsejpeg($tempfile);
 		// tidy up by removing temporary image
 		unlink($tempfile);
@@ -274,12 +274,12 @@ class TCPDF_IMAGES {
 			return 'pngalpha';
 		}
 		if (ord(fread($f, 1)) != 0) {
-			// Unknownn compression method
+			// Unknown compression method
 			fclose($f);
 			return false;
 		}
 		if (ord(fread($f, 1)) != 0) {
-			// Unknownn filter method
+			// Unknown filter method
 			fclose($f);
 			return false;
 		}
@@ -331,7 +331,7 @@ class TCPDF_IMAGES {
 				}
 				// get compression method
 				if (ord(fread($f, 1)) != 0) {
-					// Unknownn filter method
+					// Unknown filter method
 					fclose($f);
 					return false;
 				}

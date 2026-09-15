@@ -47,9 +47,9 @@
 
 // DOCUMENT_ROOT fix for IIS Webserver
 if ((!isset($_SERVER['DOCUMENT_ROOT'])) OR (empty($_SERVER['DOCUMENT_ROOT']))) {
-	if(isset($_SERVER['SCRIPT_FILENAME'])) {
+	if(isset($_SERVER['SCRIPT_FILENAME'])) {	// InfraS change
 		$_SERVER['DOCUMENT_ROOT'] = str_replace( '\\', '/', substr($_SERVER['SCRIPT_FILENAME'], 0, 0-strlen($_SERVER['PHP_SELF'])));
-	} elseif(isset($_SERVER['PATH_TRANSLATED'])) {
+	} elseif(isset($_SERVER['PATH_TRANSLATED'])) {	// InfraS change
 		$_SERVER['DOCUMENT_ROOT'] = str_replace( '\\', '/', substr(str_replace('\\\\', '\\', $_SERVER['PATH_TRANSLATED']), 0, 0-strlen($_SERVER['PHP_SELF'])));
 	} else {
 		// define here your DOCUMENT_ROOT path if the previous fails (e.g. '/var/www')
@@ -154,7 +154,7 @@ if (!defined('PDF_HEADER_TITLE')) {
 }
 
 if (!defined('PDF_HEADER_STRING')) {
-	define ('PDF_HEADER_STRING', "by2026 Nicola Asuni - Tecnick.com\nwww.tcpdf.org");
+	define ('PDF_HEADER_STRING', "by2026 Nicola Asuni - Tecnick.com\nwww.tcpdf.org");	// InfraS change
 }
 
 if (!defined('PDF_UNIT')) {
@@ -206,7 +206,7 @@ if (!defined('PDF_FONT_MONOSPACED')) {
 }
 
 if (!defined('PDF_IMAGE_SCALE_RATIO')) {
-	define ('PDF_IMAGE_SCALE_RATIO', 96/72);
+	define ('PDF_IMAGE_SCALE_RATIO', 96/72);	// InfraS change
 }
 
 if (!defined('HEAD_MAGNIFICATION')) {
@@ -245,11 +245,11 @@ if (!defined('K_TIMEZONE')) {
 	define('K_TIMEZONE', @date_default_timezone_get());
 }
 
-// Custom cURL options for curl_setopt_array.
+// InfraS add begin	// Custom cURL options for curl_setopt_array.
 if (!defined('K_CURLOPTS')) {
 	define('K_CURLOPTS', array());
 }
-
+// InfraS add end
 //============================================================+
 // END OF FILE
 //============================================================+

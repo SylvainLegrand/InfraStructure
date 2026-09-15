@@ -1815,7 +1815,7 @@ class TCPDF {
 	 * @protected
 	 * @since 6.9.0 (2025-02-11)
 	 */
-	protected $custom_xmp_rdf_pdfaExtension = '';
+	protected $custom_xmp_rdf_pdfaExtension = '';	// InfraS add
 
 	/**
 	 * Overprint mode array.
@@ -2907,7 +2907,16 @@ class TCPDF {
 	 * @since 1.4
 	 */
 	public function setCompression($compress=true) {
-		$this->compress = ($compress && function_exists('gzcompress'));
+		$this->compress = ($compress && function_exists('gzcompress'));	// InfraS change
+		/* // InfraS change begin
+		if (function_exists('gzcompress')) {
+			if ($compress) {
+				if ( !$this->pdfa_mode) {
+					$this->compress = true;
+				}
+			}
+		}
+		*/ // InfraS change end
 	}
 
 	/**
@@ -3007,7 +3016,7 @@ class TCPDF {
 	public function Error($msg) {
 		// unset all class variables
 		$this->_destroy(true);
-		$msg = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
+		$msg = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');	// InfraS add
 		if (defined('K_TCPDF_THROW_EXCEPTION_ERROR') AND !K_TCPDF_THROW_EXCEPTION_ERROR) {
 			die('<strong>TCPDF ERROR: </strong>'.$msg);
 		} else {
@@ -4432,7 +4441,7 @@ class TCPDF {
 				$this->Error('All fonts must be embedded in PDF/A mode!');
 			}
 		} else {
-			$this->Error('Unknown font type: '.$type.'');
+			$this->Error('Unknown font type: '.$type.'');	// InfraS change
 		}
 		// set name if unset
 		if (empty($name)) {
@@ -4931,7 +4940,7 @@ class TCPDF {
 			$this->Image($opt['mk']['ix'], '', '', 0, 0, '', '', '', false, 300, '', false, false, 0, false, true);
 		}
 	}
-
+	// InfraS add begin
 	/**
 	 * Embed the attached files.
 	 * @since 6.9.000 (2025-02-11)
@@ -4957,7 +4966,7 @@ class TCPDF {
 			$this->embeddedfiles[$filename] = array('f' => ++$this->n, 'n' => ++$this->n, 'content' => $content );
 		}
 	}
-
+	// InfraS add end
 	/**
 	 * Embedd the attached files.
 	 * @since 4.4.000 (2008-12-07)
@@ -4971,12 +4980,14 @@ class TCPDF {
 		}
 		reset($this->embeddedfiles);
 		foreach ($this->embeddedfiles as $filename => $filedata) {
+			// InfraS change begin
 			$data = false;
 			if (isset($filedata['file']) && !empty($filedata['file'])) {
 				$data = $this->getCachedFileContents($filedata['file']);
 			} elseif ($filedata['content'] && !empty($filedata['content'])) {
 				$data = $filedata['content'];
 			}
+			// InfraS change end
 			if ($data !== FALSE) {
 				$rawsize = strlen($data);
 				if ($rawsize > 0) {
@@ -4994,10 +5005,11 @@ class TCPDF {
 					$filter = '';
 					if ($this->compress) {
 						$data = gzcompress($data);
-						$filter .= ' /Filter /FlateDecode';
+						$filter .= ' /Filter /FlateDecode';	// InfraS change
 					}
+
 					if ($this->pdfa_version == 3) {
-						$filter .= ' /Subtype /text#2Fxml';
+						$filter .= ' /Subtype /text#2Fxml';	// InfraS change
 					}
 
 					$stream = $this->_getrawstream($data, $filedata['n']);
@@ -6917,8 +6929,8 @@ class TCPDF {
 			// fallback to avoid division by zero
 			$h = $h == 0 ? 1 : $h;
 			$ratio_wh = ($w / $h);
-			if (($y + $h) > $this->PageBreakTrigger + $this->bMargin) {
-				$h = $this->PageBreakTrigger + $this->bMargin - $y;
+			if (($y + $h) > $this->PageBreakTrigger + $this->bMargin) {	// InfraS change
+				$h = $this->PageBreakTrigger + $this->bMargin - $y;	// InfraS change
 				$w = ($h * $ratio_wh);
 			}
 			if ((!$this->rtl) AND (($x + $w) > ($this->w - $this->rMargin))) {
@@ -7026,7 +7038,7 @@ class TCPDF {
 			unset($imgdata);
 			$imsize = @getimagesize($file);
 			if ($imsize === FALSE) {
-				$this->_unlink($file);
+				$this->_unlink($file);	// InfraS change
 				$file = $original_file;
 			}
 		}
@@ -7259,7 +7271,7 @@ class TCPDF {
 					$tempname = TCPDF_STATIC::getObjFilename('img', $this->file_id);
 					$img->writeImage($tempname);
 					$info = TCPDF_IMAGES::_parsejpeg($tempname);
-					$this->_unlink($tempname);
+					$this->_unlink($tempname);	// InfraS change
 					$img->destroy();
 				} catch(Exception $e) {
 					$info = false;
@@ -7439,16 +7451,16 @@ class TCPDF {
 					}
 				}
 				imagepng($imgalpha, $tempfile_alpha);
-				if (PHP_VERSION_ID < 80000) {
+				if (PHP_VERSION_ID < 80000) {	// InfraS add
 					imagedestroy($imgalpha);
-				}
+				}	// InfraS add
 				// extract image without alpha channel
 				$imgplain = imagecreatetruecolor($wpx, $hpx);
 				imagecopy($imgplain, $img, 0, 0, 0, 0, $wpx, $hpx);
 				imagepng($imgplain, $tempfile_plain);
-				if (PHP_VERSION_ID < 80000) {
+				if (PHP_VERSION_ID < 80000) {	// InfraS add
 					imagedestroy($imgplain);
-				}
+				}	// InfraS add
 				$parsed = true;
 			} catch (Exception $e) {
 				// GD fails
@@ -7890,7 +7902,7 @@ class TCPDF {
 	 * @since 4.5.016 (2009-02-24)
 	 */
 	public function _destroy($destroyall=false, $preserve_objcopy=false) {
-		if (isset($this->file_id) && isset(self::$cleaned_ids[$this->file_id])) {
+		if (isset($this->file_id) && isset(self::$cleaned_ids[$this->file_id])) {	// InfraS change
 			$destroyall = false;
 		}
 		if ($destroyall AND !$preserve_objcopy && isset($this->file_id)) {
@@ -7899,16 +7911,16 @@ class TCPDF {
 			if ($handle = @opendir(K_PATH_CACHE)) {
 				while ( false !== ( $file_name = readdir( $handle ) ) ) {
 					if (strpos($file_name, '__tcpdf_'.$this->file_id.'_') === 0) {
-						$this->_unlink(K_PATH_CACHE.$file_name);
+						$this->_unlink(K_PATH_CACHE.$file_name);	// InfraS change
 					}
 				}
 				closedir($handle);
 			}
 			if (isset($this->imagekeys)) {
 				foreach($this->imagekeys as $file) {
-					if ((strpos($file,  K_PATH_CACHE.'__tcpdf_'.$this->file_id.'_') === 0)
-						&& TCPDF_STATIC::file_exists($file)) {
-							$this->_unlink($file);
+					if ((strpos($file,  K_PATH_CACHE.'__tcpdf_'.$this->file_id.'_') === 0)	// InfraS change
+						&& TCPDF_STATIC::file_exists($file)) {	// InfraS add
+							$this->_unlink($file);	// InfraS change
 					}
 				}
 			}
@@ -8208,7 +8220,7 @@ class TCPDF {
 	 * @since 5.0.010 (2010-05-17)
 	 */
 	protected function _getannotsrefs($n) {
-		if (!(isset($this->PageAnnots[$n]) OR count($this->empty_signature_appearance)>0 OR ($this->sign AND isset($this->signature_data['cert_type'])))) {
+		if (!(isset($this->PageAnnots[$n]) OR count($this->empty_signature_appearance)>0 OR ($this->sign AND isset($this->signature_data['cert_type'])))) {	// InfraS change
 			return '';
 		}
 		$out = ' /Annots [';
@@ -8354,15 +8366,15 @@ class TCPDF {
 										break;
 									}
 									case 'locked': {
-										$fval += 1 << 7;
+										$fval += 1 << 7;	// InfraS change
 										break;
 									}
 									case 'togglenoview': {
-										$fval += 1 << 8;
+										$fval += 1 << 8;	// InfraS change
 										break;
 									}
 									case 'lockedcontents': {
-										$fval += 1 << 9;
+										$fval += 1 << 9;	// InfraS change
 										break;
 									}
 									default: {
@@ -8576,7 +8588,7 @@ class TCPDF {
 						}
 						case 'freetext': {
 							if (isset($pl['opt']['da']) AND !empty($pl['opt']['da'])) {
-								$annots .= ' /DA '.$this->_datastring($pl['opt']['da']);
+								$annots .= ' /DA '.$this->_datastring($pl['opt']['da']);	// InfraS change
 							}
 							if (isset($pl['opt']['q']) AND ($pl['opt']['q'] >= 0) AND ($pl['opt']['q'] <= 2)) {
 								$annots .= ' /Q '.intval($pl['opt']['q']);
@@ -8833,7 +8845,7 @@ class TCPDF {
 								$annots .= ' /AA << '.$pl['opt']['aa'].' >>';
 							}
 							if (isset($pl['opt']['da']) AND !empty($pl['opt']['da'])) {
-								$annots .= ' /DA '.$this->_datastring($pl['opt']['da']);
+								$annots .= ' /DA '.$this->_datastring($pl['opt']['da']);	// InfraS change
 							}
 							if (isset($pl['opt']['q']) AND ($pl['opt']['q'] >= 0) AND ($pl['opt']['q'] <= 2)) {
 								$annots .= ' /Q '.intval($pl['opt']['q']);
@@ -9671,7 +9683,7 @@ class TCPDF {
 	public function setExtraXMPRDF($xmp) {
 		$this->custom_xmp_rdf = $xmp;
 	}
-
+	// InfraS add begin
 	/**
 	 * Set additional XMP data to be added to the default XMP data for PDF/A extensions.
 	 * IMPORTANT: This data is added as-is without controls, so you have to validate your data before using this method!
@@ -9682,7 +9694,7 @@ class TCPDF {
 	public function setExtraXMPPdfaextension($xmp) {
 		$this->custom_xmp_rdf_pdfaExtension = $xmp;
 	}
-
+	// InfraS add end
 	/**
 	 * Put XMP data object and return ID.
 	 * @return int The object ID.
@@ -9817,7 +9829,7 @@ class TCPDF {
 		$xmp .= "\t\t\t\t\t\t\t".'</rdf:Seq>'."\n";
 		$xmp .= "\t\t\t\t\t\t".'</pdfaSchema:property>'."\n";
 		$xmp .= "\t\t\t\t\t".'</rdf:li>'."\n";
-		$xmp .= $this->custom_xmp_rdf_pdfaExtension;
+		$xmp .= $this->custom_xmp_rdf_pdfaExtension;	// InfraS add
 		$xmp .= "\t\t\t\t".'</rdf:Bag>'."\n";
 		$xmp .= "\t\t\t".'</pdfaExtension:schemas>'."\n";
 		$xmp .= "\t\t".'</rdf:Description>'."\n";
@@ -9856,11 +9868,13 @@ class TCPDF {
 		}
 		// start catalog
 		$oid = $this->_newobj();
+		// InfraS add begin
 		$out = '<< ';
 		if (!empty($this->efnames)) {
 			$out .= ' /AF [ '. implode(' ', $this->efnames) .' ]';
 		}
-		$out .= ' /Type /Catalog';
+		// InfraS add end
+		$out .= ' /Type /Catalog';	// InfraS change
 		$out .= ' /Version /'.$this->PDFVersion;
 		//$out .= ' /Extensions <<>>';
 		$out .= ' /Pages 1 0 R';
@@ -9999,7 +10013,7 @@ class TCPDF {
 				$out .= ' >> >>';
 			}
 			$font = $this->getFontBuffer((($this->pdfa_mode) ? 'pdfa' : '') .'helvetica');
-			$out .= ' /DA ' . $this->_datastring('/F'.$font['i'].' 0 Tf 0 g');
+			$out .= ' /DA ' . $this->_datastring('/F'.$font['i'].' 0 Tf 0 g');	// InfraS change
 			$out .= ' /Q '.(($this->rtl)?'2':'0');
 			//$out .= ' /XFA ';
 			$out .= ' >>';
@@ -11106,7 +11120,7 @@ class TCPDF {
 				$this->encryptdata['V'] = 4;
 				$this->encryptdata['Length'] = 128;
 				$this->encryptdata['CF']['CFM'] = 'AESV2';
-				$this->encryptdata['CF']['Length'] = 16;
+				$this->encryptdata['CF']['Length'] = 16;	// InfraS change
 				if ($this->encryptdata['pubkey']) {
 					$this->encryptdata['SubFilter'] = 'adbe.pkcs7.s5';
 					$this->encryptdata['Recipients'] = array();
@@ -11117,7 +11131,7 @@ class TCPDF {
 				$this->encryptdata['V'] = 5;
 				$this->encryptdata['Length'] = 256;
 				$this->encryptdata['CF']['CFM'] = 'AESV3';
-				$this->encryptdata['CF']['Length'] = 32;
+				$this->encryptdata['CF']['Length'] = 32;	// InfraS change
 				if ($this->encryptdata['pubkey']) {
 					$this->encryptdata['SubFilter'] = 'adbe.pkcs7.s5';
 					$this->encryptdata['Recipients'] = array();
@@ -13996,7 +14010,7 @@ class TCPDF {
 	 * @since 3.0.000 (2008-03-27)
 	 */
 	protected function addExtGState($parms) {
-		if (($this->pdfa_mode && $this->pdfa_version < 2) || ($this->state != 2)) {
+		if (($this->pdfa_mode && $this->pdfa_version < 2) || ($this->state != 2)) {	// InfraS change
 			// transparency is not allowed in PDF/A-1 mode
 			return;
 		}
@@ -16500,7 +16514,7 @@ class TCPDF {
 			)
 		);
 
-		if($html === '' || $html === null) {
+		if($html === '' || $html === null) {	// InfraS change
 			return $dom;
 		}
 		// array of CSS styles ( selector => properties).
@@ -16922,7 +16936,7 @@ class TCPDF {
 							$dom[$key]['height'] = $dom[$key]['style']['height'];
 						}
 						// check for text alignment
-						if (isset($dom[$key]['style']['text-align'][0])) {
+						if (isset($dom[$key]['style']['text-align'][0])) {	// InfraS change
 							$dom[$key]['align'] = strtoupper($dom[$key]['style']['text-align'][0]);
 						}
 						// check for CSS border properties
@@ -17319,7 +17333,7 @@ class TCPDF {
 		$hlen = intval(substr($data, 0, $hpos));
 		$hash = substr($data, $hpos + 1, $hlen);
 		$encoded = substr($data, $hpos + 2 + $hlen);
-		if (!hash_equals( $this->hashTCPDFtag($encoded), $hash)) {
+		if (!hash_equals( $this->hashTCPDFtag($encoded), $hash)) {	// InfraS change
 			$this->Error('Invalid parameters');
 		}
 		return json_decode(urldecode($encoded), true);
@@ -17485,9 +17499,11 @@ class TCPDF {
 				}
 			}
 			if ($key == $maxel) break;
+			// InfraS add begin
 			if ($dom[$key]['tag'] AND $dom[$key]['opening'] AND !empty($dom[$key]['attribute']['id'])) {
 				$this->setDestination($dom[$key]['attribute']['id']);
 			}
+			// InfraS add end
 			if ($dom[$key]['tag'] AND isset($dom[$key]['attribute']['pagebreak'])) {
 				// check for pagebreak
 				if (($dom[$key]['attribute']['pagebreak'] == 'true') OR ($dom[$key]['attribute']['pagebreak'] == 'left') OR ($dom[$key]['attribute']['pagebreak'] == 'right')) {
@@ -18929,7 +18945,7 @@ class TCPDF {
 		}
 		unset($dom);
 	}
-
+	// InfraS add begin
 	/**
 	 * Check if the path is relative.
 	 * @param string $path path to check
@@ -18952,7 +18968,7 @@ class TCPDF {
 		return ((strpos($path, '://') !== false)
 			&& (preg_match('|^https?://|', $path) !== 1));
 	}
-
+	// InfraS add end
 	/**
 	 * Process opening tags.
 	 * @param array $dom html dom array
@@ -19096,29 +19112,29 @@ class TCPDF {
 				$this->setLineWidth($hrHeight);
 
 				$lineStyle = array();
-				if (isset($tag['fgcolor'])) {
-					$lineStyle['color'] = $tag['fgcolor'];
-				}
+                    		if (isset($tag['fgcolor'])) {
+		                        $lineStyle['color'] = $tag['fgcolor'];
+                    		}
 
-				if (isset($tag['fgcolor'])) {
-					$lineStyle['color'] = $tag['fgcolor'];
-				}
+                    		if (isset($tag['fgcolor'])) {
+                        		$lineStyle['color'] = $tag['fgcolor'];
+                    		}
 
-				if (isset($tag['style']['cap'])) {
-					$lineStyle['cap'] = $tag['style']['cap'];
-				}
+                    		if (isset($tag['style']['cap'])) {
+                        		$lineStyle['cap'] = $tag['style']['cap'];
+                    		}
 
-				if (isset($tag['style']['join'])) {
-					$lineStyle['join'] = $tag['style']['join'];
-				}
+                    		if (isset($tag['style']['join'])) {
+                        		$lineStyle['join'] = $tag['style']['join'];
+                    		}
 
-				if (isset($tag['style']['dash'])) {
-					$lineStyle['dash'] = $tag['style']['dash'];
-				}
+                    		if (isset($tag['style']['dash'])) {
+                        		$lineStyle['dash'] = $tag['style']['dash'];
+                    		}
 
-				if (isset($tag['style']['phase'])) {
-					$lineStyle['phase'] = $tag['style']['phase'];
-				}
+                    		if (isset($tag['style']['phase'])) {
+                        		$lineStyle['phase'] = $tag['style']['phase'];
+                    		}
 
 				$lineStyle = array_filter($lineStyle);
 
@@ -19138,24 +19154,41 @@ class TCPDF {
 					break;
 				}
 				$imgsrc = $tag['attribute']['src'];
+				$reg = array();	// @CHANGE Avoid warning
 				if ($imgsrc[0] === '@') {
 					// data stream
 					$imgsrc = '@'.base64_decode(substr($imgsrc, 1));
-					$type = preg_match('/<svg\s+[^>]*[^>]*>.*<\/svg>/is', $imgsrc) ? 'svg' : '';
+					$type = preg_match('/<svg\s+[^>]*[^>]*>.*<\/svg>/is', $imgsrc) ? 'svg' : '';	// InfraS change
 				} else if (preg_match('@^data:image/([^;]*);base64,(.*)@', $imgsrc, $reg)) {
 					$imgsrc = '@'.base64_decode($reg[2]);
 					$type = $reg[1];
+					// InfraS add begin
 				} elseif ($this->isRelativePath($imgsrc)) {
 					// accessing parent folders is not allowed
 					break;
+					// InfraS add end
 				} elseif ( $this->allowLocalFiles && substr($imgsrc, 0, 7) === 'file://') {
-					// get image type from a local file path
-					$imgsrc = substr($imgsrc, 7);
-					$type = TCPDF_IMAGES::getImageFileType($imgsrc);
+                    // get image type from a local file path
+                    $imgsrc = substr($imgsrc, 7);
+                    $type = TCPDF_IMAGES::getImageFileType($imgsrc);
+					// InfraS add begin
 				} elseif ($this->hasExtForbiddenProtocol($imgsrc)) {
 					break;
-				} else {
-					if (($imgsrc[0] === '/') AND !empty($_SERVER['DOCUMENT_ROOT']) AND ($_SERVER['DOCUMENT_ROOT'] != '/')) {
+					// InfraS add end
+                } else {
+					// @CHANGE LDR Add support for src="file://..." links
+					if (strpos($imgsrc, 'file://') === 0) {
+						$imgsrc = str_replace('file://', '/', $imgsrc);
+						$imgsrc = urldecode($imgsrc);
+						$testscrtype = @parse_url($imgsrc);
+						if (empty($testscrtype['query'])) {
+							// convert URL to server path
+							$imgsrc = str_replace(K_PATH_URL, K_PATH_MAIN, $imgsrc);
+						} elseif (preg_match('|^https?://|', $imgsrc) !== 1) {
+							// convert URL to server path
+							$imgsrc = str_replace(K_PATH_MAIN, K_PATH_URL, $imgsrc);
+						}
+					} elseif (($imgsrc[0] === '/') AND !empty($_SERVER['DOCUMENT_ROOT']) AND ($_SERVER['DOCUMENT_ROOT'] != '/')) {
 						// fix image path
 						$findroot = strpos($imgsrc, $_SERVER['DOCUMENT_ROOT']);
 						if (($findroot === false) OR ($findroot > 1)) {
@@ -19212,7 +19245,7 @@ class TCPDF {
 				$imglink = '';
 				if (isset($this->HREF['url']) AND !TCPDF_STATIC::empty_string($this->HREF['url'])) {
 					$imglink = $this->HREF['url'];
-					if ($imglink[0] == '#' AND isset($imglink[1]) AND is_numeric($imglink[1])) {
+					if ($imglink[0] == '#' AND isset($imglink[1]) AND is_numeric($imglink[1])) {	// InfraS change
 						// convert url to internal link
 						$lnkdata = explode(',', $imglink);
 						if (isset($lnkdata[0])) {
@@ -20073,7 +20106,7 @@ class TCPDF {
 					}
 				}
 				if (!$in_table_head) { // we are not inside a thead section
-					$this->cell_padding = isset($table_el['old_cell_padding']) ? $table_el['old_cell_padding'] : array('T' => 0, 'R' => 0, 'B' => 0, 'L' => 0);
+					$this->cell_padding = isset($table_el['old_cell_padding']) ? $table_el['old_cell_padding'] : array('T' => 0, 'R' => 0, 'B' => 0, 'L' => 0);	// InfraS change
 					// reset row height
 					$this->resetLastH();
 					if (($this->page == ($this->numpages - 1)) AND ($this->pageopen[$this->numpages])) {
@@ -23262,22 +23295,23 @@ class TCPDF {
 		$this->_out(sprintf('%F %F %F %F %F %F cm', $svgscale_x, 0, 0, $svgscale_y, ($e + $svgoffset_x), ($f + $svgoffset_y)));
 		// creates a new XML parser to be used by the other XML functions
 		$parser = xml_parser_create('UTF-8');
+		// the following function allows to use parser inside object
+		//xml_set_object($parser, $this);	// InfraS change
 		// disable case-folding for this XML parser
 		xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
 		// sets the element handler functions for the XML parser
-		xml_set_element_handler($parser, [$this, 'startSVGElementHandler'], [$this, 'endSVGElementHandler']);
+		xml_set_element_handler($parser, [$this, 'startSVGElementHandler'], [$this, 'endSVGElementHandler']);	// InfraS change
 		// sets the character data handler function for the XML parser
-		xml_set_character_data_handler($parser, [$this, 'segSVGContentHandler']);
+		xml_set_character_data_handler($parser, [$this, 'segSVGContentHandler']);	// InfraS change
 		// start parsing an XML document
 		if (!xml_parse($parser, $svgdata)) {
 			$error_message = sprintf('SVG Error: %s at line %d', xml_error_string(xml_get_error_code($parser)), xml_get_current_line_number($parser));
 			$this->Error($error_message);
 		}
-
 		// free this XML parser (does nothing in PHP >= 8.0)
-		if (function_exists('xml_parser_free') && PHP_VERSION_ID < 80000) {
-		    xml_parser_free($parser);
-		}
+		if (function_exists('xml_parser_free') && PHP_VERSION_ID < 80000) {	// InfraS add
+		xml_parser_free($parser);
+		}	// InfraS add
 
 		// >= PHP 7.0.0 "explicitly unset the reference to parser to avoid memory leaks"
 		unset($parser);
@@ -23420,7 +23454,7 @@ class TCPDF {
 		$text_color = TCPDF_COLORS::convertHTMLColorToDec($svgstyle['text-color'], $this->spot_colors);
 		$this->setTextColorArray($text_color);
 		// clip
-		if (preg_match('/rect\(([a-z0-9\-\.]*+)[\s]*+([a-z0-9\-\.]*+)[\s]*+([a-z0-9\-\.]*+)[\s]*+([a-z0-9\-\.]*+)\)/si', $svgstyle['clip'], $regs)) {
+		if (preg_match('/rect\(([a-z0-9\-\.]*+)[\s]*+([a-z0-9\-\.]*+)[\s]*+([a-z0-9\-\.]*+)[\s]*+([a-z0-9\-\.]*+)\)/si', $svgstyle['clip'], $regs)) {	// InfraS change
 			$top = (isset($regs[1])?$this->getHTMLUnitToUnits($regs[1], 0, $this->svgunit, false):0);
 			$right = (isset($regs[2])?$this->getHTMLUnitToUnits($regs[2], 0, $this->svgunit, false):0);
 			$bottom = (isset($regs[3])?$this->getHTMLUnitToUnits($regs[3], 0, $this->svgunit, false):0);
@@ -23508,8 +23542,8 @@ class TCPDF {
 				$gradient['coords'][4] /= $w;
 			} elseif ($gradient['mode'] == 'percentage') {
 				foreach($gradient['coords'] as $key => $val) {
-					$val = floatval($val) / 100;
-					$gradient['coords'][$key] = $val;
+					$val = floatval($val) / 100;	// InfraS add
+					$gradient['coords'][$key] = $val;	// InfraS change
 					if ($val < 0) {
 						$gradient['coords'][$key] = 0;
 					} elseif ($val > 1) {
@@ -23538,15 +23572,17 @@ class TCPDF {
 				$cy -= $h;
 			}
 			$this->_out(sprintf('%F 0 0 %F %F %F cm', ($w * $this->k), ($h * $this->k), ($x * $this->k), ($cy * $this->k)));
-			if ((is_array($gradient['stops']) || $gradient['stops'] instanceof Countable) && count($gradient['stops']) > 1) {
-				$this->Gradient($gradient['type'], $gradient['coords'], $gradient['stops']);
+			if ((is_array($gradient['stops']) || $gradient['stops'] instanceof Countable) && count($gradient['stops']) > 1) {	// InfraS change
+				$this->Gradient($gradient['type'], $gradient['coords'], $gradient['stops']);	// InfraS change
 			}
 		} elseif ($svgstyle['fill'] != 'none') {
 			$fill_color = TCPDF_COLORS::convertHTMLColorToDec($svgstyle['fill'], $this->spot_colors);
 			if ($svgstyle['fill-opacity'] != 1) {
 				$this->setAlpha($this->alpha['CA'], 'Normal', $svgstyle['fill-opacity'], false);
+				// InfraS add begin
 			} elseif (preg_match('/rgba\(\d+%?,\s*\d+%?,\s*\d+%?,\s*(\d+(?:\.\d+)?)\)/i', $svgstyle['fill'], $rgba_matches)) {
 				$this->setAlpha($this->alpha['CA'], 'Normal', $rgba_matches[1], false);
+				// InfraS add end
 			}
 			$this->setFillColorArray($fill_color);
 			if ($svgstyle['fill-rule'] == 'evenodd') {
@@ -23580,7 +23616,7 @@ class TCPDF {
 			if (preg_match('/font-family[\s]*:[\s]*([^\;\"]*)/si', $svgstyle['font'], $regs)) {
 				$font_family = $this->getFontFamilyName($regs[1]);
 			} else {
-				$font_family = $this->getFontFamilyName($svgstyle['font-family']);
+				$font_family = $this->getFontFamilyName($svgstyle['font-family']);	// InfraS change
 			}
 			if (preg_match('/font-size[\s]*:[\s]*([^\s\;\"]*)/si', $svgstyle['font'], $regs)) {
 				$font_size = trim($regs[1]);
@@ -23736,9 +23772,11 @@ class TCPDF {
 			if (isset($val[2])) {
 				// get curve parameters, see https://github.com/tecnickcom/TCPDF/issues/767
 				$rawparams = preg_split('/([\,\s]+)/si', trim($val[2]));
+				// InfraS add begin
 				$rawparams = array_filter($rawparams, function($p) {
 					return trim($p) != '';
 				});
+				// InfraS add end
 				$params = array();
 				foreach ($rawparams as $ck => $cp) {
 					$params[$ck] = $this->getHTMLUnitToUnits($cp, 0, $this->svgunit, false);
@@ -24435,7 +24473,6 @@ class TCPDF {
 					}
 					$this->StopTransform();
 				}
-
 				break;
 			}
 			case 'ellipse': {
@@ -24564,9 +24601,11 @@ class TCPDF {
 						$img = '@'.base64_decode(substr($img, strlen($m[0])));
 					} else {
 						// fix image path
+						// InfraS add begin
 						if ($this->isRelativePath($img) || $this->hasExtForbiddenProtocol($img)) {
 							break;
 						}
+						// InfraS add end
 						if (!TCPDF_STATIC::empty_string($this->svgdir) AND (($img[0] == '.') OR (basename($img) == $img))) {
 							// replace relative path with full server path
 							$img = $this->svgdir.'/'.$img;
@@ -24749,7 +24788,7 @@ class TCPDF {
 	 */
 	protected function endSVGElementHandler($parser, $name) {
 		$name = $this->removeTagNamespace($name);
-		if ($this->svgdefsmode AND !in_array($name, array('defs', 'clipPath', 'linearGradient', 'radialGradient', 'stop'))) {
+		if ($this->svgdefsmode AND !in_array($name, array('defs', 'clipPath', 'linearGradient', 'radialGradient', 'stop'))) {	// InfraS change
 			if (end($this->svgdefs) !== FALSE) {
 				$last_svgdefs_id = key($this->svgdefs);
 				if (isset($this->svgdefs[$last_svgdefs_id]['attribs']['child_elements'])) {
@@ -24886,7 +24925,7 @@ class TCPDF {
 
         return TCPDF_STATIC::file_exists($file);
     }
-
+	// InfraS add begin
 	/**
 	 * Wrapper for unlink with disabled protocols.
 	 * @param string $file
@@ -24900,7 +24939,7 @@ class TCPDF {
 		}
 		return @unlink($file);
 	}
-
+	// InfraS add end
 } // END OF TCPDF CLASS
 
 //============================================================+

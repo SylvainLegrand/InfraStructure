@@ -191,30 +191,32 @@ class TCPDF_FONTS {
 			fclose($fp);
 			// get font info
 			$fmetric['Flags'] = $flags;
-			preg_match ('#/FullName[\s]*+\(([^\)]*+)#', $font, $matches);
+			preg_match ('#/FullName[\s]*+\(([^\)]*+)#', $font, $matches);	// InfraS change
 			$fmetric['name'] = preg_replace('/[^a-zA-Z0-9_\-]/', '', $matches[1]);
-			preg_match('#/FontBBox[\s]*+{([^}]*+)#', $font, $matches);
-			$rawbvl = explode(' ', trim($matches[1]));
-			$bvl = [(int) $rawbvl[0], (int) $rawbvl[1], (int) $rawbvl[2], (int) $rawbvl[3]];
+			preg_match('#/FontBBox[\s]*+{([^}]*+)#', $font, $matches);	// InfraS change
+			$rawbvl = explode(' ', trim($matches[1]));	// InfraS change
+			$bvl = [(int) $rawbvl[0], (int) $rawbvl[1], (int) $rawbvl[2], (int) $rawbvl[3]];	// InfraS add
+			// InfraS change begin
 			$fmetric['bbox'] = implode(' ', $bvl);
 			$fmetric['Ascent'] = $bvl[3];
 			$fmetric['Descent'] = $bvl[1];
 			preg_match('#/ItalicAngle[\s]*+([0-9\+\-]*+)#', $font, $matches);
+			// InfraS change end
 			$fmetric['italicAngle'] = intval($matches[1]);
 			if ($fmetric['italicAngle'] != 0) {
 				$fmetric['Flags'] |= 64;
 			}
-			preg_match('#/UnderlinePosition[\s]*+([0-9\+\-]*+)#', $font, $matches);
+			preg_match('#/UnderlinePosition[\s]*+([0-9\+\-]*+)#', $font, $matches);	// InfraS change
 			$fmetric['underlinePosition'] = intval($matches[1]);
-			preg_match('#/UnderlineThickness[\s]*+([0-9\+\-]*+)#', $font, $matches);
+			preg_match('#/UnderlineThickness[\s]*+([0-9\+\-]*+)#', $font, $matches);	// InfraS change
 			$fmetric['underlineThickness'] = intval($matches[1]);
-			preg_match('#/isFixedPitch[\s]*+([^\s]*+)#', $font, $matches);
+			preg_match('#/isFixedPitch[\s]*+([^\s]*+)#', $font, $matches);	// InfraS change
 			if ($matches[1] == 'true') {
 				$fmetric['Flags'] |= 1;
 			}
 			// get internal map
 			$imap = array();
-			if (preg_match_all('#dup[\s]([0-9]+)[\s]*+/([^\s]*+)[\s]put#sU', $font, $fmap, PREG_SET_ORDER) > 0) {
+			if (preg_match_all('#dup[\s]([0-9]+)[\s]*+/([^\s]*+)[\s]put#sU', $font, $fmap, PREG_SET_ORDER) > 0) {	// InfraS change
 				foreach ($fmap as $v) {
 					$imap[$v[2]] = $v[1];
 				}
@@ -230,22 +232,22 @@ class TCPDF_FONTS {
 				$eplain .= chr($chr ^ ($r >> 8));
 				$r = ((($chr + $r) * $c1 + $c2) % 65536);
 			}
-			if (preg_match('#/ForceBold[\s]*+([^\s]*+)#', $eplain, $matches) > 0) {
+			if (preg_match('#/ForceBold[\s]*+([^\s]*+)#', $eplain, $matches) > 0) {	// InfraS change
 				if ($matches[1] == 'true') {
 					$fmetric['Flags'] |= 0x40000;
 				}
 			}
-			if (preg_match('#/StdVW[\s]*+\[([^\]]*+)#', $eplain, $matches) > 0) {
+			if (preg_match('#/StdVW[\s]*+\[([^\]]*+)#', $eplain, $matches) > 0) {	// InfraS change
 				$fmetric['StemV'] = intval($matches[1]);
 			} else {
 				$fmetric['StemV'] = 70;
 			}
-			if (preg_match('#/StdHW[\s]*+\[([^\]]*+)#', $eplain, $matches) > 0) {
+			if (preg_match('#/StdHW[\s]*+\[([^\]]*+)#', $eplain, $matches) > 0) {	// InfraS change
 				$fmetric['StemH'] = intval($matches[1]);
 			} else {
 				$fmetric['StemH'] = 30;
 			}
-			if (preg_match('#/BlueValues[\s]*+\[([^\]]*+)#', $eplain, $matches) > 0) {
+			if (preg_match('#/BlueValues[\s]*+\[([^\]]*+)#', $eplain, $matches) > 0) {	// InfraS change
 				$bv = explode(' ', $matches[1]);
 				if (count($bv) >= 6) {
 					$v1 = intval($bv[2]);
@@ -266,7 +268,7 @@ class TCPDF_FONTS {
 				$fmetric['CapHeight'] = 700;
 			}
 			// get the number of random bytes at the beginning of charstrings
-			if (preg_match('#/lenIV[\s]*+([\d]*+)#', $eplain, $matches) > 0) {
+			if (preg_match('#/lenIV[\s]*+([\d]*+)#', $eplain, $matches) > 0) {	// InfraS change
 				$lenIV = intval($matches[1]);
 			} else {
 				$lenIV = 4;
@@ -274,7 +276,7 @@ class TCPDF_FONTS {
 			$fmetric['Leading'] = 0;
 			// get charstring data
 			$eplain = substr($eplain, (strpos($eplain, '/CharStrings') + 1));
-			preg_match_all('#/([A-Za-z0-9\.]*+)[\s][0-9]+[\s]RD[\s](.*)[\s]ND#sU', $eplain, $matches, PREG_SET_ORDER);
+			preg_match_all('#/([A-Za-z0-9\.]*+)[\s][0-9]+[\s]RD[\s](.*)[\s]ND#sU', $eplain, $matches, PREG_SET_ORDER);	// InfraS change
 			if (!empty($enc) AND isset(TCPDF_FONT_DATA::$encmap[$enc])) {
 				$enc_map = TCPDF_FONT_DATA::$encmap[$enc];
 			} else {
@@ -1384,7 +1386,7 @@ class TCPDF_FONTS {
 		}
 		// set checkSumAdjustment on head table
 		$checkSumAdjustment = 0xB1B0AFBA - self::_getTTFtableChecksum($font, strlen($font));
-		$font = substr($font, 0, $table['head']['offset'] + $offset + 4).pack('N', $checkSumAdjustment).substr($font, $table['head']['offset'] + $offset + 8);
+		$font = substr($font, 0, $table['head']['offset'] + $offset + 4).pack('N', $checkSumAdjustment).substr($font, $table['head']['offset'] + $offset + 8);	// InfraS change
 		return $font;
 	}
 
@@ -1781,9 +1783,9 @@ class TCPDF_FONTS {
 	 */
 	public static function UTF8ArrayToUniArray($ta, $isunicode=true) {
 		if ($isunicode) {
-			return array_map(static::class.'::unichrUnicode', $ta);
+			return array_map(static::class.'::unichrUnicode', $ta);	// InfraS change
 		}
-		return array_map(static::class.'::unichrASCII', $ta);
+		return array_map(static::class.'::unichrASCII', $ta);	// InfraS change
 	}
 
 	/**
@@ -2003,7 +2005,7 @@ class TCPDF_FONTS {
 		if ($isunicode) {
 			// requires PCRE unicode support turned on
 			$chars = TCPDF_STATIC::pregSplit('//','u', $str, -1, PREG_SPLIT_NO_EMPTY);
-			$carr = array_map(static::class.'::uniord', $chars);
+			$carr = array_map(static::class.'::uniord', $chars);	// InfraS change
 		} else {
 			$chars = str_split($str);
 			$carr = array_map('ord', $chars);
