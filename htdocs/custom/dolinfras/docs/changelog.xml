@@ -20,7 +20,12 @@
 		<change type='add'>Ajout des pages de paramètres du module : dolinfrassetup.php (paramètres), about.php (à propos) et changelog.php (historique des versions)</change>
 		<change type='add'>Ajout de la section « Options de gestion des paramètres LTS » avec le bouton « Forcer l'application des paramètres » : force la valeur des constantes du fichier data.sql dans la base de données (entité courante)</change>
 	</Version>
-	<InfraS Downloaded="20260708"/>
+	<Version Number="18.3.0" MonthVersion="2026-09">
+		<change type='fix'>Suppression du doublon de WITHDRAW_ENABLED_EXTENDED_LIST présent dans le groupe des options fonctionnelles visibles (conservé dans le groupe SaaS by InfraS)</change>
+		<change type='chg'>La fonction d'application forcée des constantes LTS s'appuie désormais sur la nouvelle fonction de lecture du fichier data.sql</change>
+		<change type='add'>Ajout sur la page de paramètres d'une option par constante du fichier data.sql : section « Paramètres SaaS by InfraS » et section « Options fonctionnelles Dolibarr » (boutons On / Off, champs de saisie, listes déroulantes). Chaque libellé indique si la constante s'affiche dans la page Accueil - Configuration - Divers : (visible) ou (caché)</change>
+	</Version>
+	<InfraS Downloaded="20260914"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
