@@ -612,15 +612,15 @@
 		public function updateTotalPrice($parameters, &$object, &$action, HookManager $hookmanager)
 		{
 			if (!getDolGlobalString('INFRASTRUCTURE_MANAGE_OL')) return 0;
-			$TAllowed = ['propal', 'commande', 'facture', 'supplier_proposal', 'order_supplier', 'facture_fourn', 'invoice_supplier'];
+			$TAllowed	= ['propal', 'commande', 'facture', 'supplier_proposal', 'order_supplier', 'facture_fourn', 'invoice_supplier'];
 			if (!in_array($object->element, $TAllowed) || empty($object->table_element_line) || empty($object->fk_element)) return 0;
 			if (!empty($parameters['nodatabaseupdate'])) return 0;
 
 			// Vérifier si des lignes OL (special_code = 3) existent sur ce document
-			$sql = "SELECT rowid FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
-			$sql .= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
-			$sql .= " AND special_code = 3";
-			$rescheck = $object->db->query($sql);
+			$sql		= "SELECT rowid FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
+			$sql		.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
+			$sql		.= " AND special_code = 3";
+			$rescheck	= $object->db->query($sql);
 			if (!$rescheck || $object->db->num_rows($rescheck) == 0) {
 				if ($rescheck) $object->db->free($rescheck);
 				return 0; // Pas de lignes OL : laisser update_price() gérer normalement
@@ -631,29 +631,29 @@
 			$fieldtva_line = in_array($object->element, ['facture_fourn', 'invoice_supplier']) ? 'tva' : 'total_tva';
 
 			// Sommer les totaux en excluant les lignes OL (special_code = 3)
-			$sql = "SELECT";
-			$sql .= " COALESCE(SUM(total_ht), 0) as total_ht,";
-			$sql .= " COALESCE(SUM(".$object->db->sanitize($fieldtva_line)."), 0) as total_tva,";
-			$sql .= " COALESCE(SUM(total_ttc), 0) as total_ttc,";
-			$sql .= " COALESCE(SUM(total_localtax1), 0) as total_localtax1,";
-			$sql .= " COALESCE(SUM(total_localtax2), 0) as total_localtax2,";
-			$sql .= " COALESCE(SUM(multicurrency_total_ht), 0) as multicurrency_total_ht,";
-			$sql .= " COALESCE(SUM(multicurrency_total_tva), 0) as multicurrency_total_tva,";
-			$sql .= " COALESCE(SUM(multicurrency_total_ttc), 0) as multicurrency_total_ttc";
-			$sql .= " FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
-			$sql .= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
-			$sql .= " AND special_code != 3";
-			$resql = $object->db->query($sql);
+			$sql	= "SELECT";
+			$sql	.= " COALESCE(SUM(total_ht), 0) as total_ht,";
+			$sql	.= " COALESCE(SUM(".$object->db->sanitize($fieldtva_line)."), 0) as total_tva,";
+			$sql	.= " COALESCE(SUM(total_ttc), 0) as total_ttc,";
+			$sql	.= " COALESCE(SUM(total_localtax1), 0) as total_localtax1,";
+			$sql	.= " COALESCE(SUM(total_localtax2), 0) as total_localtax2,";
+			$sql	.= " COALESCE(SUM(multicurrency_total_ht), 0) as multicurrency_total_ht,";
+			$sql	.= " COALESCE(SUM(multicurrency_total_tva), 0) as multicurrency_total_tva,";
+			$sql	.= " COALESCE(SUM(multicurrency_total_ttc), 0) as multicurrency_total_ttc";
+			$sql	.= " FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
+			$sql	.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
+			$sql	.= " AND special_code != 3";
+			$resql	= $object->db->query($sql);
 			if (!$resql) return 0;
 			$obj = $object->db->fetch_object($resql);
 			$object->db->free($resql);
 			if (!$obj) return 0;
 
-			$object->total_ht			= (float) price2num($obj->total_ht);
-			$object->total_tva			= (float) price2num($obj->total_tva);
-			$object->total_ttc			= (float) price2num($obj->total_ttc);
-			$object->total_localtax1	= (float) price2num($obj->total_localtax1);
-			$object->total_localtax2	= (float) price2num($obj->total_localtax2);
+			$object->total_ht					= (float) price2num($obj->total_ht);
+			$object->total_tva					= (float) price2num($obj->total_tva);
+			$object->total_ttc					= (float) price2num($obj->total_ttc);
+			$object->total_localtax1			= (float) price2num($obj->total_localtax1);
+			$object->total_localtax2			= (float) price2num($obj->total_localtax2);
 			$object->multicurrency_total_ht		= (float) price2num($obj->multicurrency_total_ht);
 			$object->multicurrency_total_tva	= (float) price2num($obj->multicurrency_total_tva);
 			$object->multicurrency_total_ttc	= (float) price2num($obj->multicurrency_total_ttc);
@@ -662,21 +662,23 @@
 			if (!empty($object->revenuestamp)) {
 				$multicurrency_tx				= !empty($object->multicurrency_tx) ? $object->multicurrency_tx : 1;
 				$object->total_ttc				+= $object->revenuestamp;
-				$object->multicurrency_total_ttc	+= $object->revenuestamp * $multicurrency_tx;
+				$object->multicurrency_total_ttc+= $object->revenuestamp * $multicurrency_tx;
 			}
 
-			// Mettre à jour les totaux du document en base
-			$sql = "UPDATE ".$object->db->prefix().$object->db->sanitize($object->table_element)." SET";
-			$sql .= " total_ht = ".((float) price2num($object->total_ht, 'MT', 1)).",";
-			$sql .= " total_tva = ".((float) price2num($object->total_tva, 'MT', 1)).",";
-			$sql .= " localtax1 = ".((float) price2num($object->total_localtax1, 'MT', 1)).",";
-			$sql .= " localtax2 = ".((float) price2num($object->total_localtax2, 'MT', 1)).",";
-			$sql .= " total_ttc = ".((float) price2num($object->total_ttc, 'MT', 1));
-			$sql .= ", multicurrency_total_ht = ".((float) price2num($object->multicurrency_total_ht, 'MT', 1));
-			$sql .= ", multicurrency_total_tva = ".((float) price2num($object->multicurrency_total_tva, 'MT', 1));
-			$sql .= ", multicurrency_total_ttc = ".((float) price2num($object->multicurrency_total_ttc, 'MT', 1));
-			$sql .= " WHERE rowid = ".((int) $object->id);
-			$resql = $object->db->query($sql);
+			// Mettre à jour les totaux du document en base, en pleine précision (échelle DOUBLE(24,8)) comme CommonObject::update_price()
+			// sur Dolibarr LTS by InfraS : un arrondi au centime ici rendrait le TTC exact « au centime » et fausserait les totaux
+			// comptables dérivés par getRoundedTotals() (fiche, PDF, reste à payer) d'un centime.
+			$sql	= "UPDATE ".$object->db->prefix().$object->db->sanitize($object->table_element)." SET";
+			$sql	.= " total_ht = ".((float) price2num($object->total_ht, 8, 1)).",";
+			$sql	.= " total_tva = ".((float) price2num($object->total_tva, 8, 1)).",";
+			$sql	.= " localtax1 = ".((float) price2num($object->total_localtax1, 8, 1)).",";
+			$sql	.= " localtax2 = ".((float) price2num($object->total_localtax2, 8, 1)).",";
+			$sql	.= " total_ttc = ".((float) price2num($object->total_ttc, 8, 1));
+			$sql	.= ", multicurrency_total_ht = ".((float) price2num($object->multicurrency_total_ht, 8, 1));
+			$sql	.= ", multicurrency_total_tva = ".((float) price2num($object->multicurrency_total_tva, 8, 1));
+			$sql	.= ", multicurrency_total_ttc = ".((float) price2num($object->multicurrency_total_ttc, 8, 1));
+			$sql	.= " WHERE rowid = ".((int) $object->id);
+			$resql	= $object->db->query($sql);
 			if (!$resql) return 0;
 
 			return 1; // update_price() standard ignorée
