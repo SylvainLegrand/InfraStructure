@@ -879,7 +879,11 @@ class pdf_crabe extends ModelePDFFactures
 				$posy = $this->_tableau_info($pdf, $object, $bottomlasttab, $outputlangs, $outputlangsbis);
 
 				// Display total area
+				// InfraS add begin Arrondis - totaux comptables cohérents (HT + TVA + taxes = TTC, règle de TVA du document), voir pdf_normalizeTotals() dans core/lib/pdf.lib.php
+				pdf_normalizeTotals($object, $this->tva_array, $this->tva, $this->localtax1, $this->localtax2, ((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0), 1);
+				// InfraS add end Arrondis
 				$posy = $this->_tableau_tot($pdf, $object, $deja_regle, $bottomlasttab, $outputlangs, $outputlangsbis);
+				pdf_restoreTotals($object); // InfraS add Arrondis - l'objet appartient à l'appelant : totaux exacts restaurés
 
 				// Display Payments area
 				$listofpayments = $object->getListOfPayments('', 0, 1);

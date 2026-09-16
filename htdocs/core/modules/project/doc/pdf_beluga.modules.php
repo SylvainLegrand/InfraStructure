@@ -661,12 +661,21 @@ class pdf_beluga extends ModelePDFProjects
 									$pdf->MultiCell($this->posxamountht - $this->posxsociety, 3, (is_object($element->thirdparty) ? $element->thirdparty->name : ''), 1, 'L');
 								}
 
+								// InfraS add begin Arrondis - montants affichés = totaux comptables de l'élément (HT et TTC arrondis séparément, TTC = somme des composants arrondis)
+								$element_total_ht = (isset($element->total_ht) ? $element->total_ht : null);
+								$element_total_ttc = (isset($element->total_ttc) ? $element->total_ttc : null);
+								if ($element_total_ht !== null && method_exists($element, 'getRoundedTotals') && !empty($element->id)) {
+									$element_rounded = $element->getRoundedTotals(0, '');
+									$element_total_ht = $element_rounded['ht'];
+									$element_total_ttc = $element_rounded['ttc'];
+								}
+								// InfraS add end Arrondis
 								// Amount without tax
 								if (empty($value['disableamount'])) {
 									$pdf->SetXY($this->posxamountht, $curY);
-									$pdf->MultiCell($this->posxamountttc - $this->posxamountht, 3, (isset($element->total_ht) ? price($element->total_ht) : ''), 1, 'R');
+									$pdf->MultiCell($this->posxamountttc - $this->posxamountht, 3, ($element_total_ht !== null ? price($element_total_ht) : ''), 1, 'R'); // InfraS change Arrondis
 									$pdf->SetXY($this->posxamountttc, $curY);
-									$pdf->MultiCell($this->posxstatut - $this->posxamountttc, 3, (isset($element->total_ttc) ? price($element->total_ttc) : ''), 1, 'R');
+									$pdf->MultiCell($this->posxstatut - $this->posxamountttc, 3, ($element_total_ttc !== null ? price($element_total_ttc) : ''), 1, 'R'); // InfraS change Arrondis
 								} else {
 									$pdf->SetXY($this->posxamountht, $curY);
 									if ($key == 'agenda') {
@@ -688,8 +697,8 @@ class pdf_beluga extends ModelePDFProjects
 								$pdf->MultiCell($this->page_largeur - $this->marge_droite - $this->posxstatut, 3, $outputstatut, 1, 'R', false, 1, null, null, true, 0, true);
 
 								if ($qualifiedfortotal) {
-									$total_ht += $element->total_ht;
-									$total_ttc += $element->total_ttc;
+									$total_ht += (float) $element_total_ht; // InfraS change Arrondis
+									$total_ttc += (float) $element_total_ttc; // InfraS change Arrondis
 								}
 								$nexY = $pdf->GetY();
 								$curY = $nexY;

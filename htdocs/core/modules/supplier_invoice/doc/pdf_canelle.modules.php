@@ -565,7 +565,11 @@ class pdf_canelle extends ModelePDFSuppliersInvoices
 				}
 
 				// Display total area
+				// InfraS add begin Arrondis - totaux comptables cohérents (HT + TVA + taxes = TTC, règle de TVA du document), voir pdf_normalizeTotals() dans core/lib/pdf.lib.php
+				pdf_normalizeTotals($object, $this->tva_array, $this->tva, $this->localtax1, $this->localtax2, ((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0), 1);
+				// InfraS add end Arrondis
 				$posy = $this->_tableau_tot($pdf, $object, $deja_regle, $bottomlasttab, $outputlangs);
+				pdf_restoreTotals($object); // InfraS add Arrondis - l'objet appartient à l'appelant : totaux exacts restaurés
 
 				$amount_credit_notes_included = 0;
 				$amount_deposits_included = 0;

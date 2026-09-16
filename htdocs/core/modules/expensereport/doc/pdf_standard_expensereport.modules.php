@@ -497,6 +497,9 @@ class pdf_standard_expensereport extends ModeleExpenseReport
 
 				$pdf->SetFont('', '', 10);
 
+				// InfraS add begin Arrondis - totaux comptables cohérents (HT + TVA = TTC), voir pdf_normalizeTotals() dans core/lib/pdf.lib.php ; restaurés après la zone paiements
+				pdf_normalizeTotals($object, $this->tva_array, $this->tva, $this->localtax1, $this->localtax2, 0, 1);
+				// InfraS add end Arrondis
 				// Show total area box
 				$posy = $bottomlasttab + 5;
 				$posy_start_of_totals = $posy;
@@ -529,6 +532,7 @@ class pdf_standard_expensereport extends ModeleExpenseReport
 				if ($sumPayments > 0 && !getDolGlobalString('PDF_EXPENSEREPORT_NO_PAYMENT_DETAILS')) {
 					$posy = $this->tablePayments($pdf, $object, $posy_start_of_totals, $outputlangs);
 				}
+				pdf_restoreTotals($object); // InfraS add Arrondis
 
 				// Page footer
 				$this->_pagefoot($pdf, $object, $outputlangs);
