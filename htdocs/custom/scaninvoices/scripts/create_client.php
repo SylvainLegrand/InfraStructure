@@ -32,6 +32,7 @@ if (substr($sapi_type, 0, 3) == 'cgi') {
 }
 
 require_once $path."../../../master.inc.php";
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/bank.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
@@ -68,7 +69,7 @@ create_client($c);
 function scaninvoicesApiGetCompanyDetailsWithVatNumber($vatNumber)
 {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$retour = false;
 
 	if (strtolower(substr($vatNumber, 0, 2)) != "fr") {

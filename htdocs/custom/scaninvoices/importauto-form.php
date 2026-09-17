@@ -21,6 +21,7 @@
 
  /** @var Form $form */
 
+ dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
  dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 
@@ -30,7 +31,7 @@ $apiInfoFromServer = scaninvoicesApiGetInfoAboutWebservice();
 
 <div id="ScanInvoicesWaitModal" class="ScanInvoicesWaitModal"></div>
 
-<?php if (getDolGlobalString('SCANINVOICES_PROTOCOL_MISSMATCH')) {
+<?php if (scaninvoicesGetDolGlobalString('SCANINVOICES_PROTOCOL_MISSMATCH')) {
 	print '<div id="ocr-server-card" style="float:left; max-width: 350px; min-height: 40px; padding: 2em; border: 1px solid #888; background: #f8f8f8; text-align: left; margin-right: 20px;">';
 	print $apiInfoFromServer;
 	print '</div>';
@@ -41,7 +42,7 @@ $apiInfoFromServer = scaninvoicesApiGetInfoAboutWebservice();
 <div>
 	<div id="formupload">
 		<form method="post">
-			<p><?php print '<div class="valignmiddle inline-block">'.img_picto('', 'company', 'class="pictofixedwidth"').$langs->trans("ScanInvoicesAutoImportSupplier").':</div>'.$form->select_company('', 'fournID', 's.fournisseur=1', $langs->transnoentities("AUTOMATIC"), 0, 0, null, 0, 'inline-block minwidth175 maxwidth250 widthcentpercentminusxx'); ?>
+			<p><?php print '<div class="valignmiddle inline-block">'.img_picto('', 'company', 'class="pictofixedwidth"').$langs->trans("ScanInvoicesAutoImportSupplier").':</div>'.$form->select_company('', 'fournID', '(s.fournisseur:=:1)', $langs->transnoentities("AUTOMATIC"), 0, 0, null, 0, 'inline-block minwidth175 maxwidth250 widthcentpercentminusxx'); ?>
 			<input name="filenamePDF" id="filenamePDF" type="hidden">
 			<div class="ScanInvoicesflex">
 			<div id="ScanInvoicesMydrop" class="ScanInvoicesflexitem">
@@ -65,6 +66,15 @@ $apiInfoFromServer = scaninvoicesApiGetInfoAboutWebservice();
 
 <script language="javascript">
 var ListeFichiers;
+
+// CSRF token + translated labels + client-side error reporter (see js/scaninvoices-clientlog.js)
+window.SCANINVOICES_TOKEN = "<?php echo currentToken(); ?>";
+window.SCANINVOICES_OCR_I18N = <?php echo json_encode(array(
+	'ocrFailed' => $langs->transnoentities('OcrAnalysisFailed'),
+	'ocrTimeout' => $langs->transnoentities('OcrAnalysisTimeout'),
+	'uploadFailed' => $langs->transnoentities('OcrUploadInvalidResponse'),
+)); ?>;
+<?php include 'js/scaninvoices-clientlog.js'; ?>
 
 document.querySelector('#ScanInvoicesMydrop')
 		.addEventListener('click', (e) => {
@@ -180,14 +190,28 @@ function importOneInvoice(nb, id, fournID) {
 			},
 			error: function (request, textStatus, error) {
 				hideWait();
-				if (textStatus === "timeout") {
-					alert(' importOneInvoice server timeout (2) - your dolibarr server does not return data as fast as required');
+				var i18n = window.SCANINVOICES_OCR_I18N || {};
+				var detailLines = [
+					'phase: importAuto',
+					'file_id: ' + id,
+					'textStatus: ' + textStatus,
+					'http_status: ' + (request.status || 0),
+					'statusText: ' + (request.statusText || '')
+				];
+				if (request.responseText) {
+					detailLines.push('response_excerpt: ' + String(request.responseText).slice(0, 500));
 				}
-				else {
-					let fullErrorMessage = request.status + ': ' + request.statusText
-					console.log(" importOneInvoice error (2)" + fullErrorMessage);
-					alert('Local API server error (2) - your dolibarr server does not return data as fast as required:' + fullErrorMessage);
-				}
+				var details = detailLines.join('\n');
+				var ref = (typeof scaninvoicesReportClientError === 'function')
+					? scaninvoicesReportClientError('importAuto', textStatus, details) : '';
+				var msg = (textStatus === "timeout")
+					? (i18n.ocrTimeout || 'The OCR server did not answer in time.')
+					: (i18n.ocrFailed || 'OCR analysis failed.');
+				console.log(" importOneInvoice error: " + details);
+				$('#fourn' + nb).html(msg + (ref ? ' [' + ref + ']' : ''));
+				$('#fact' + nb).html('');
+				$('#justif' + nb).html('');
+				$.jnotify(msg + (ref ? ' (' + ref + ')' : ''), "error", true);
 				//try next ?
 				reject();
 				console.log(" importOneInvoice error, try next ?" + nb + ' et ' + ListeFichiers.length);
@@ -255,7 +279,20 @@ $(document).ready(function () {
 		hideWait();
 		//Pour chaque fichier il faut maintenant lancer l'analyse & l'import
 		console.log("Zeroupload complete " + JSON.stringify(response));
-		let d = JSON.parse(response.data);
+		let d;
+		try {
+			d = JSON.parse(response.data);
+		} catch (e) {
+			// uploadauto.php returned a non-JSON body (e.g. a leaked PHP warning):
+			// report it so support gets the raw body, and tell the user clearly.
+			var pdetails = 'phase: uploadauto\nparse_error: ' + e.message
+				+ '\nresponse_excerpt: ' + String(response && response.data ? response.data : '').slice(0, 500);
+			var pref = (typeof scaninvoicesReportClientError === 'function')
+				? scaninvoicesReportClientError('uploadauto', 'invalid JSON from uploadauto.php', pdetails) : '';
+			var pi18n = window.SCANINVOICES_OCR_I18N || {};
+			$.jnotify((pi18n.uploadFailed || 'Upload failed (invalid server response)') + (pref ? ' (' + pref + ')' : ''), "error", true);
+			return;
+		}
 
 		ListeFichiers = d.row;
 

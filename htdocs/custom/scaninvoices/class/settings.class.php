@@ -23,8 +23,9 @@
  */
 
 // Put here all includes required by your class file
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
-include_once __DIR__ . "/../core/modules/scaninvoices/mod_settings_standard.php";
+require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
+include_once __DIR__."/../core/modules/scaninvoices/mod_settings_standard.php";
 
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
@@ -77,6 +78,11 @@ class Settings extends CommonObject
 	public $picto = 'settings@scaninvoices';
 
 
+	/**
+	 * @var string Unique trigger prefix (Dolibarr 23+ requires it on business objects using triggers)
+	 */
+	public const TRIGGER_PREFIX = 'SETTINGS';
+
 	const STATUS_DRAFT = 0;
 	const STATUS_VALIDATED = 1;
 	const STATUS_CANCELED = 9;
@@ -87,7 +93,7 @@ class Settings extends CommonObject
 	 *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
 	 *  'label' the translation key.
 	 *  'picto' is code of a picto to show before value in forms
-	 *  'enabled' is a condition when the field must be managed (Example: 1 or 'getDolGlobalString('MY_SETUP_PARAM'))
+	 *  'enabled' is a condition when the field must be managed (Example: 1 or 'scaninvoicesGetDolGlobalString('MY_SETUP_PARAM'))
 	 *  'position' is the sort order of field.
 	 *  'notnull' is set to 1 if not null in database. Set to -1 if we must set data to null if empty ('' or 0).
 	 *  'visible' says if field is visible in list (Examples: 0=Not visible, 1=Visible on list and create/update/view forms, 2=Visible on list only, 3=Visible on create/update/view form only (not list), 4=Visible on list and update/view form only (not create). 5=Visible on list and view only (not create/not update). Using a negative value means field is not shown by default on list but can be selected for viewing)
@@ -112,21 +118,21 @@ class Settings extends CommonObject
 	/**
 	 * @var array  Array with all fields and their property. Do not use it as a static var. It may be modified by constructor.
 	 */
-	public $fields = array(
-		'rowid' => array('type' => 'integer', 'label' => 'TechnicalID', 'enabled' => '1', 'position' => 1, 'notnull' => 1, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'css' => 'left', 'comment' => "Id"),
-		'ref' => array('type' => 'varchar(128)', 'label' => 'Ref', 'enabled' => '1', 'position' => 10, 'notnull' => 1, 'visible' => 4, 'noteditable' => '1', 'default' => '(PROV)', 'index' => 1, 'searchall' => 1, 'showoncombobox' => '1', 'comment' => "Reference of object"),
-		'label' => array('type' => 'varchar(255)', 'label' => 'Label', 'enabled' => '1', 'position' => 30, 'notnull' => 0, 'visible' => 1, 'searchall' => 1, 'css' => 'minwidth300', 'help' => "Help text", 'showoncombobox' => '1',),
-		'fk_soc' => array('type' => 'integer:Societe:societe/class/societe.class.php:1:((status:=:1) AND (entity:IN:__SHARED_ENTITIES__))', 'label' => 'ThirdParty', 'enabled' => '1', 'position' => 50, 'notnull' => -1, 'visible' => 1, 'index' => 1, 'help' => "LinkToThirparty",),
-		'fk_default_product' => array('type' => 'integer:Product:product/class/product.class.php:1:(tobuy:=:1)', 'label' => 'Default product', 'enabled' => '1', 'position' => 52, 'notnull' => -1, 'visible' => -1, 'index' => 1, 'help' => "LinkToDefaultProduct", 'css' => 'maxwidth500 widthcentpercentminusxx'),
-		'yml' => array('type' => 'text', 'label' => 'YAML file', 'enabled' => '1', 'position' => 60, 'notnull' => 0, 'visible' => 3, 'help' => "YMLfilter",),
-		'manual_import' => array('type' => 'text', 'label' => 'Description manuelle des zones', 'enabled' => '1', 'position' => 61, 'notnull' => 0, 'visible' => 3, 'help' => "Stockage des zones à importer",),
-		'note_private' => array('type' => 'html', 'label' => 'NotePrivate', 'enabled' => '1', 'position' => 62, 'notnull' => 0, 'visible' => 0,),
-		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 500, 'notnull' => 1, 'visible' => -2,),
-		'tms' => array('type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 501, 'notnull' => 0, 'visible' => -2,),
-		'fk_user_creat' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserAuthor', 'enabled' => '1', 'position' => 510, 'notnull' => 1, 'visible' => -2, 'foreignkey' => 'user.rowid',),
-		'fk_user_modif' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserModif', 'enabled' => '1', 'position' => 511, 'notnull' => -1, 'visible' => -2,),
-		'import_key' => array('type' => 'varchar(14)', 'label' => 'ImportId', 'enabled' => '1', 'position' => 1000, 'notnull' => -1, 'visible' => -2,),
-		'status' => array('type' => 'smallint', 'label' => 'Status', 'enabled' => '1', 'position' => 1000, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Valid&eacute;', '9' => 'Annul&eacute;'),),
+	public $fields=array(
+		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>'1', 'position'=>1, 'notnull'=>1, 'visible'=>0, 'noteditable'=>'1', 'index'=>1, 'css'=>'left', 'comment'=>"Id"),
+		'ref' => array('type'=>'varchar(128)', 'label'=>'Ref', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>4, 'noteditable'=>'1', 'default'=>'(PROV)', 'index'=>1, 'searchall'=>1, 'showoncombobox'=>'1', 'comment'=>"Reference of object"),
+		'label' => array('type'=>'varchar(255)', 'label'=>'Label', 'enabled'=>'1', 'position'=>30, 'notnull'=>0, 'visible'=>1, 'searchall'=>1, 'css'=>'minwidth300', 'help'=>"Help text", 'showoncombobox'=>'1',),
+		'fk_soc' => array('type'=>'integer:Societe:societe/class/societe.class.php:1:((status:=:1) AND (entity:IN:__SHARED_ENTITIES__))', 'label'=>'ThirdParty', 'enabled'=>'1', 'position'=>50, 'notnull'=>-1, 'visible'=>1, 'index'=>1, 'help'=>"LinkToThirparty",),
+		'fk_default_product' => array('type'=>'integer:Product:product/class/product.class.php:1:(tobuy:=:1)', 'label'=>'Default product', 'enabled'=>'1', 'position'=>52, 'notnull'=>-1, 'visible'=>-1, 'index'=>1, 'help'=>"LinkToDefaultProduct", 'css'=>'maxwidth500 widthcentpercentminusxx'),
+		'yml' => array('type'=>'text', 'label'=>'YAML file', 'enabled'=>'1', 'position'=>60, 'notnull'=>0, 'visible'=>3, 'help'=>"YMLfilter",),
+		'manual_import' => array('type'=>'text', 'label'=>'Description manuelle des zones', 'enabled'=>'1', 'position'=>61, 'notnull'=>0, 'visible'=>3, 'help'=>"Stockage des zones à importer",),
+		'note_private' => array('type'=>'html', 'label'=>'NotePrivate', 'enabled'=>'1', 'position'=>62, 'notnull'=>0, 'visible'=>0,),
+		'date_creation' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>500, 'notnull'=>1, 'visible'=>-2,),
+		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
+		'fk_user_creat' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserAuthor', 'enabled'=>'1', 'position'=>510, 'notnull'=>1, 'visible'=>-2, 'foreignkey'=>'user.rowid',),
+		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'enabled'=>'1', 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
+		'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>-2,),
+		'status' => array('type'=>'smallint', 'label'=>'Status', 'enabled'=>'1', 'position'=>1000, 'notnull'=>1, 'visible'=>1, 'index'=>1, 'arrayofkeyval'=>array('0'=>'Brouillon', '1'=>'Valid&eacute;', '9'=>'Annul&eacute;'),),
 	);
 	public $rowid;
 	public $ref;
@@ -198,7 +204,7 @@ class Settings extends CommonObject
 			$this->fields['fk_default_product']['type'] = 'integer:Product:product/class/product.class.php:1:tobuy=1';
 		}
 
-		if (empty(getDolGlobalString('MAIN_SHOW_TECHNICAL_ID')) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
+		if (empty(scaninvoicesGetDolGlobalString('MAIN_SHOW_TECHNICAL_ID')) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
 		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) $this->fields['entity']['enabled'] = 0;
 
 		// Example to show how to set values of fields definition dynamically
@@ -272,17 +278,11 @@ class Settings extends CommonObject
 		unset($object->import_key);
 
 		// Clear fields
-		if (property_exists($object, 'ref')) $object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_" . $object->ref : $this->fields['ref']['default'];
-		if (property_exists($object, 'label')) $object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf") . " " . $object->label : $this->fields['label']['default'];
-		if (property_exists($object, 'status')) {
-			$object->status = self::STATUS_DRAFT;
-		}
-		if (property_exists($object, 'date_creation')) {
-			$object->date_creation = dol_now();
-		}
-		if (property_exists($object, 'date_modification')) {
-			$object->date_modification = null;
-		}
+		if (property_exists($object, 'ref')) $object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
+		if (property_exists($object, 'label')) $object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
+		if (property_exists($object, 'status')) { $object->status = self::STATUS_DRAFT; }
+		if (property_exists($object, 'date_creation')) { $object->date_creation = dol_now(); }
+		if (property_exists($object, 'date_modification')) { $object->date_modification = null; }
 		// ...
 		// Clear extrafields that are unique
 		if (is_array($object->array_options) && count($object->array_options) > 0) {
@@ -381,35 +381,35 @@ class Settings extends CommonObject
 
 		$sql = 'SELECT ';
 		$sql .= $this->getFieldList();
-		$sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
-		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN (' . getEntity($this->table_element) . ')';
+		$sql .= ' FROM '.MAIN_DB_PREFIX.$this->table_element.' as t';
+		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN ('.getEntity($this->table_element).')';
 		else $sql .= ' WHERE 1 = 1';
 		// Manage filter
 		$sqlwhere = array();
 		if (count($filter) > 0) {
 			foreach ($filter as $key => $value) {
 				if ($key == 't.rowid') {
-					$sqlwhere[] = $key . '=' . $value;
+					$sqlwhere[] = $key.'='.$value;
 				} elseif ($key == 'customsql') {
 					$sqlwhere[] = $value;
 				} elseif (isset($this->fields[$key]['type']) && in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
 					$sqlwhere[] = $key . ' = \'' . $this->db->idate($value) . '\'';
 				} elseif (strpos($value, '%') === false) {
-					$sqlwhere[] = $key . ' IN (' . $this->db->sanitize($this->db->escape($value)) . ')';
+					$sqlwhere[] = $key.' IN ('.$this->db->sanitize($this->db->escape($value)).')';
 				} else {
-					$sqlwhere[] = $key . ' LIKE \'%' . $this->db->escape($value) . '%\'';
+					$sqlwhere[] = $key.' LIKE \'%'.$this->db->escape($value).'%\'';
 				}
 			}
 		}
 		if (count($sqlwhere) > 0) {
-			$sql .= ' AND (' . implode(' ' . $filtermode . ' ', $sqlwhere) . ')';
+			$sql .= ' AND ('.implode(' '.$filtermode.' ', $sqlwhere).')';
 		}
 
 		if (!empty($sortfield)) {
 			$sql .= $this->db->order($sortfield, $sortorder);
 		}
 		if (!empty($limit)) {
-			$sql .= ' ' . $this->db->plimit($limit, $offset);
+			$sql .= ' '.$this->db->plimit($limit, $offset);
 		}
 
 		$resql = $this->db->query($sql);
@@ -430,8 +430,8 @@ class Settings extends CommonObject
 
 			return $records;
 		} else {
-			$this->errors[] = 'Error ' . $this->db->lasterror();
-			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
+			$this->errors[] = 'Error '.$this->db->lasterror();
+			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
 
 			return -1;
 		}
@@ -495,18 +495,18 @@ class Settings extends CommonObject
 	{
 		global $conf, $langs;
 
-		require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+		require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
 		$error = 0;
 
 		// Protection
 		if ($this->status == self::STATUS_VALIDATED) {
-			dol_syslog(get_class($this) . "::validate action abandonned: (settings) already validated", LOG_WARNING);
+			dol_syslog(get_class($this)."::validate action abandonned: (settings) already validated", LOG_WARNING);
 			return 0;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->settings->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->settings->settings_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->settings->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->settings->settings_advance->validate))))
 		 {
 		 $this->error='NotEnoughPermissions';
 		 dol_syslog(get_class($this)."::valid ".$this->error, LOG_ERR);
@@ -527,14 +527,14 @@ class Settings extends CommonObject
 
 		if (!empty($num)) {
 			// Validate
-			$sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element;
-			$sql .= " SET ref = '" . $this->db->escape($num) . "',";
-			$sql .= " status = " . self::STATUS_VALIDATED;
-			if (!empty($this->fields['date_validation'])) $sql .= ", date_validation = '" . $this->db->idate($now) . "'";
-			if (!empty($this->fields['fk_user_valid'])) $sql .= ", fk_user_valid = " . $user->id;
-			$sql .= " WHERE rowid = " . $this->id;
+			$sql = "UPDATE ".MAIN_DB_PREFIX.$this->table_element;
+			$sql .= " SET ref = '".$this->db->escape($num)."',";
+			$sql .= " status = ".self::STATUS_VALIDATED;
+			if (!empty($this->fields['date_validation'])) $sql .= ", date_validation = '".$this->db->idate($now)."'";
+			if (!empty($this->fields['fk_user_valid'])) $sql .= ", fk_user_valid = ".$user->id;
+			$sql .= " WHERE rowid = ".$this->id;
 
-			dol_syslog(get_class($this) . "::validate()", LOG_DEBUG);
+			dol_syslog(get_class($this)."::validate()", LOG_DEBUG);
 			$resql = $this->db->query($sql);
 			if (!$resql) {
 				dol_print_error($this->db);
@@ -556,31 +556,28 @@ class Settings extends CommonObject
 			// Rename directory if dir was a temporary ref
 			if (preg_match('/^[\(]?PROV/i', $this->ref)) {
 				// Now we rename also files into index
-				$sql = 'UPDATE ' . MAIN_DB_PREFIX . "ecm_files set filename = CONCAT('" . $this->db->escape($this->newref) . "', SUBSTR(filename, " . (strlen($this->ref) + 1) . ")), filepath = 'settings/" . $this->db->escape($this->newref) . "'";
-				$sql .= " WHERE filename LIKE '" . $this->db->escape($this->ref) . "%' AND filepath = 'settings/" . $this->db->escape($this->ref) . "' and entity = " . $conf->entity;
+				$sql = 'UPDATE '.MAIN_DB_PREFIX."ecm_files set filename = CONCAT('".$this->db->escape($this->newref)."', SUBSTR(filename, ".(strlen($this->ref) + 1).")), filepath = 'settings/".$this->db->escape($this->newref)."'";
+				$sql .= " WHERE filename LIKE '".$this->db->escape($this->ref)."%' AND filepath = 'settings/".$this->db->escape($this->ref)."' and entity = ".$conf->entity;
 				$resql = $this->db->query($sql);
-				if (!$resql) {
-					$error++;
-					$this->error = $this->db->lasterror();
-				}
+				if (!$resql) { $error++; $this->error = $this->db->lasterror(); }
 
 				// We rename directory ($this->ref = old ref, $num = new ref) in order not to lose the attachments
 				$oldref = dol_sanitizeFileName($this->ref);
 				$newref = dol_sanitizeFileName($num);
-				$dirsource = $conf->scaninvoices->dir_output . '/settings/' . $oldref;
-				$dirdest = $conf->scaninvoices->dir_output . '/settings/' . $newref;
+				$dirsource = $conf->scaninvoices->dir_output.'/settings/'.$oldref;
+				$dirdest = $conf->scaninvoices->dir_output.'/settings/'.$newref;
 				if (!$error && file_exists($dirsource)) {
-					dol_syslog(get_class($this) . "::validate() rename dir " . $dirsource . " into " . $dirdest);
+					dol_syslog(get_class($this)."::validate() rename dir ".$dirsource." into ".$dirdest);
 
 					if (@rename($dirsource, $dirdest)) {
 						dol_syslog("Rename ok");
 						// Rename docs starting with $oldref with $newref
-						$listoffiles = dol_dir_list($conf->scaninvoices->dir_output . '/settings/' . $newref, 'files', 1, '^' . preg_quote($oldref, '/'));
+						$listoffiles = dol_dir_list($conf->scaninvoices->dir_output.'/settings/'.$newref, 'files', 1, '^'.preg_quote($oldref, '/'));
 						foreach ($listoffiles as $fileentry) {
 							$dirsource = $fileentry['name'];
-							$dirdest = preg_replace('/^' . preg_quote($oldref, '/') . '/', $newref, $dirsource);
-							$dirsource = $fileentry['path'] . '/' . $dirsource;
-							$dirdest = $fileentry['path'] . '/' . $dirdest;
+							$dirdest = preg_replace('/^'.preg_quote($oldref, '/').'/', $newref, $dirsource);
+							$dirsource = $fileentry['path'].'/'.$dirsource;
+							$dirdest = $fileentry['path'].'/'.$dirdest;
 							@rename($dirsource, $dirdest);
 						}
 					}
@@ -618,8 +615,8 @@ class Settings extends CommonObject
 			return 0;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
@@ -642,8 +639,8 @@ class Settings extends CommonObject
 			return 0;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
@@ -666,8 +663,8 @@ class Settings extends CommonObject
 			return 0;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
@@ -694,14 +691,14 @@ class Settings extends CommonObject
 
 		$result = '';
 
-		$label = img_picto('', $this->picto) . ' <u>' . $langs->trans("Settings") . '</u>';
+		$label = img_picto('', $this->picto).' <u>'.$langs->trans("Settings").'</u>';
 		if (isset($this->status)) {
-			$label .= ' ' . $this->getLibStatut(5);
+			$label .= ' '.$this->getLibStatut(5);
 		}
 		$label .= '<br>';
-		$label .= '<b>' . $langs->trans('Ref') . ':</b> ' . $this->ref;
+		$label .= '<b>'.$langs->trans('Ref').':</b> '.$this->ref;
 
-		$url = dol_buildpath('/scaninvoices/settings_card.php', 1) . '?id=' . $this->id;
+		$url = dol_buildpath('/scaninvoices/settings_card.php', 1).'?id='.$this->id;
 
 		if ($option != 'nolink') {
 			// Add param to save lastsearch_values or not
@@ -712,43 +709,43 @@ class Settings extends CommonObject
 
 		$linkclose = '';
 		if (empty($notooltip)) {
-			if (!empty(getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER'))) {
+			if (!empty(scaninvoicesGetDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER'))) {
 				$label = $langs->trans("ShowSettings");
-				$linkclose .= ' alt="' . dol_escape_htmltag($label, 1) . '"';
+				$linkclose .= ' alt="'.dol_escape_htmltag($label, 1).'"';
 			}
-			$linkclose .= ' title="' . dol_escape_htmltag($label, 1) . '"';
-			$linkclose .= ' class="classfortooltip' . ($morecss ? ' ' . $morecss : '') . '"';
-		} else $linkclose = ($morecss ? ' class="' . $morecss . '"' : '');
+			$linkclose .= ' title="'.dol_escape_htmltag($label, 1).'"';
+			$linkclose .= ' class="classfortooltip'.($morecss ? ' '.$morecss : '').'"';
+		} else $linkclose = ($morecss ? ' class="'.$morecss.'"' : '');
 
-		$linkstart = '<a href="' . $url . '"';
-		$linkstart .= $linkclose . '>';
+		$linkstart = '<a href="'.$url.'"';
+		$linkstart .= $linkclose.'>';
 		$linkend = '</a>';
 
 		$result .= $linkstart;
 
 		if (empty($this->showphoto_on_popup)) {
-			if ($withpicto) $result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="' . (($withpicto != 2) ? 'paddingright ' : '') . 'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
+			if ($withpicto) $result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="'.(($withpicto != 2) ? 'paddingright ' : '').'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
 		} else {
 			if ($withpicto) {
-				require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+				require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
 				list($class, $module) = explode('@', $this->picto);
-				$upload_dir = $conf->$module->multidir_output[$conf->entity] . "/$class/" . dol_sanitizeFileName($this->ref);
+				$upload_dir = $conf->$module->multidir_output[$conf->entity]."/$class/".dol_sanitizeFileName($this->ref);
 				$filearray = dol_dir_list($upload_dir, "files");
 				$filename = $filearray[0]['name'];
 				if (!empty($filename)) {
 					$pospoint = strpos($filearray[0]['name'], '.');
 
-					$pathtophoto = $class . '/' . $this->ref . '/thumbs/' . substr($filename, 0, $pospoint) . '_mini' . substr($filename, $pospoint);
-					if (empty($conf->global->{strtoupper($module . '_' . $class) . '_FORMATLISTPHOTOSASUSERS'})) {
-						$result .= '<div class="floatleft inline-block valignmiddle divphotoref"><div class="photoref"><img class="photo' . $module . '" alt="No photo" border="0" src="' . DOL_URL_ROOT . '/viewimage.php?modulepart=' . $module . '&entity=' . $conf->entity . '&file=' . urlencode($pathtophoto) . '"></div></div>';
+					$pathtophoto = $class.'/'.$this->ref.'/thumbs/'.substr($filename, 0, $pospoint).'_mini'.substr($filename, $pospoint);
+					if (empty($conf->global->{strtoupper($module.'_'.$class).'_FORMATLISTPHOTOSASUSERS'})) {
+						$result .= '<div class="floatleft inline-block valignmiddle divphotoref"><div class="photoref"><img class="photo'.$module.'" alt="No photo" border="0" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart='.$module.'&entity='.$conf->entity.'&file='.urlencode($pathtophoto).'"></div></div>';
 					} else {
-						$result .= '<div class="floatleft inline-block valignmiddle divphotoref"><img class="photouserphoto userphoto" alt="No photo" border="0" src="' . DOL_URL_ROOT . '/viewimage.php?modulepart=' . $module . '&entity=' . $conf->entity . '&file=' . urlencode($pathtophoto) . '"></div>';
+						$result .= '<div class="floatleft inline-block valignmiddle divphotoref"><img class="photouserphoto userphoto" alt="No photo" border="0" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart='.$module.'&entity='.$conf->entity.'&file='.urlencode($pathtophoto).'"></div>';
 					}
 
 					$result .= '</div>';
 				} else {
-					$result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="' . (($withpicto != 2) ? 'paddingright ' : '') . 'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
+					$result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="'.(($withpicto != 2) ? 'paddingright ' : '').'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
 				}
 			}
 		}
@@ -760,7 +757,7 @@ class Settings extends CommonObject
 
 		global $action, $hookmanager;
 		$hookmanager->initHooks(array('settingsdao'));
-		$parameters = array('id' => $this->id, 'getnomurl' => $result);
+		$parameters = array('id'=>$this->id, 'getnomurl'=>$result);
 		$reshook = $hookmanager->executeHooks('getNomUrl', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
 		if ($reshook > 0) $result = $hookmanager->resPrint;
 		else $result .= $hookmanager->resPrint;
@@ -801,7 +798,7 @@ class Settings extends CommonObject
 			$this->labelStatusShort[self::STATUS_CANCELED] = $langs->trans('Disabled');
 		}
 
-		$statusType = 'status' . $status;
+		$statusType = 'status'.$status;
 		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
 		if ($status == self::STATUS_CANCELED) $statusType = 'status6';
 
@@ -818,8 +815,8 @@ class Settings extends CommonObject
 	{
 		$sql = 'SELECT rowid, date_creation as datec, tms as datem,';
 		$sql .= ' fk_user_creat, fk_user_modif';
-		$sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
-		$sql .= ' WHERE t.rowid = ' . $id;
+		$sql .= ' FROM '.MAIN_DB_PREFIX.$this->table_element.' as t';
+		$sql .= ' WHERE t.rowid = '.$id;
 		$result = $this->db->query($sql);
 		if ($result) {
 			if ($this->db->num_rows($result)) {
@@ -871,7 +868,7 @@ class Settings extends CommonObject
 		$this->lines = array();
 
 		$objectline = new SettingsLine($this->db);
-		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql' => 'fk_settings = ' . $this->id));
+		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql'=>'fk_settings = '.$this->id));
 
 		if (is_numeric($result)) {
 			$this->error = $this->error;
@@ -893,29 +890,29 @@ class Settings extends CommonObject
 		global $langs, $conf;
 		$langs->load("scaninvoices@scaninvoices");
 
-		if (empty(getDolGlobalString('SCANINVOICES_SETTINGS_ADDON'))) {
+		if (empty(scaninvoicesGetDolGlobalString('SCANINVOICES_SETTINGS_ADDON'))) {
 			$conf->global->SCANINVOICES_SETTINGS_ADDON = 'mod_settings_standard';
 		}
 
-		if (!empty(getDolGlobalString('SCANINVOICES_SETTINGS_ADDON'))) {
+		if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_SETTINGS_ADDON'))) {
 			$mybool = false;
 
-			$file = getDolGlobalString('SCANINVOICES_SETTINGS_ADDON') . ".php";
-			$classname = getDolGlobalString('SCANINVOICES_SETTINGS_ADDON');
+			$file = scaninvoicesGetDolGlobalString('SCANINVOICES_SETTINGS_ADDON').".php";
+			$classname = scaninvoicesGetDolGlobalString('SCANINVOICES_SETTINGS_ADDON');
 
 			// Include file with class
 			$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
 			foreach ($dirmodels as $reldir) {
-				$dir = dol_buildpath($reldir . "core/modules/scaninvoices/");
+				$dir = dol_buildpath($reldir."core/modules/scaninvoices/");
 
 				// dol_syslog("Eric : on passe ici, include once : " . json_encode($conf->modules_parts));
 
 				// Load file with numbering class (if found)
-				$mybool |= @include_once $dir . $file;
+				$mybool |= @include_once $dir.$file;
 			}
 
 			if ($mybool === false) {
-				dol_print_error($this->db, "Failed to include file " . $file);
+				dol_print_error($this->db, "Failed to include file ".$file);
 				return '';
 			}
 
@@ -931,7 +928,7 @@ class Settings extends CommonObject
 					return "";
 				}
 			} else {
-				print $langs->trans("Error") . " " . $langs->trans("ClassNotFound") . ' ' . $classname;
+				print $langs->trans("Error")." ".$langs->trans("ClassNotFound").' '.$classname;
 				return "";
 			}
 		} else {
@@ -965,8 +962,8 @@ class Settings extends CommonObject
 
 			if (!empty($this->model_pdf)) {
 				$modele = $this->model_pdf;
-			} elseif (!empty(getDolGlobalString('SETTINGS_ADDON_PDF'))) {
-				$modele = getDolGlobalString('SETTINGS_ADDON_PDF');
+			} elseif (!empty(scaninvoicesGetDolGlobalString('SETTINGS_ADDON_PDF'))) {
+				$modele = scaninvoicesGetDolGlobalString('SETTINGS_ADDON_PDF');
 			}
 		}
 
@@ -990,7 +987,7 @@ class Settings extends CommonObject
 	{
 		global $conf, $langs;
 
-		//getDolGlobalString('SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log'');
+		//scaninvoicesGetDolGlobalString('SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log'');
 
 		$error = 0;
 		$this->output = '';
@@ -1011,7 +1008,7 @@ class Settings extends CommonObject
 }
 
 
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobjectline.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/commonobjectline.class.php';
 
 /**
  * Class SettingsLine. You can also remove this and generate a CRUD class for lines objects.

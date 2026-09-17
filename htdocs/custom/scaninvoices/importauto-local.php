@@ -21,6 +21,7 @@
 
 /** @var Form $form */
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 
@@ -30,11 +31,32 @@ if(!isset($localFileName)) {
 	$localFileName = '';
 }
 
-$module = basename($_GET['module']);
+// Calling modules storing a document we can import. The file itself always
+// lives in <module directory>/<object ref>/<file name>.
+$moduleDataDir = array(
+	'peppol' => DOL_DATA_ROOT . '/peppol',
+	'facturx' => DOL_DATA_ROOT . '/facturx',
+);
+
+$module = basename(GETPOST('module', 'aZ09'));
+$iref = basename(GETPOST('iref', 'alpha'));
 $fullFileName = "";
-if($module == "peppol") {
-	$iref = basename($_GET['iref']);
-	$fullFileName = DOL_DATA_ROOT . '/peppol/' . $iref . "/" . $localFileName;
+if ($module != "" && isset($moduleDataDir[$module]) && $iref != "" && $localFileName != "") {
+	$fullFileName = $moduleDataDir[$module] . '/' . $iref . "/" . $localFileName;
+}
+
+// Nothing to read means nothing to import: stop here with a message instead of
+// letting sha1_file() run on an empty path, which is fatal since php 8.
+if ($fullFileName == "" || !is_readable($fullFileName)) {
+	$langs->load("errors");
+	dol_syslog(
+		'ScanInvoices importauto-local: no readable source file, module=' . $module
+		. ', iref=' . $iref . ', localFileName=' . $localFileName
+		. ', resolved path=' . ($fullFileName != "" ? $fullFileName : '(unresolved)'),
+		LOG_ERR
+	);
+	print '<div class="error">' . $langs->trans('ErrorFileNotFound', dol_escape_htmltag($localFileName != "" ? $localFileName : $module)) . '</div>';
+	return;
 }
 
 $localFileID = "";
@@ -42,7 +64,6 @@ $localFileID = "";
 $storageExt = "." . pathinfo($localFileName, PATHINFO_EXTENSION);
 
 $ficim = new Filestoimport($db);
-$dirupload = tempnam(DOL_DATA_ROOT . '/scaninvoices/temp/', 'scaninvoices');
 $sha1 = sha1_file($fullFileName);
 //search if file is already here
 $resultAll = $ficim->fetchAll('', '', 0, 0, array('customsql' => "t.sha1='" . $sha1 . "'"));
@@ -90,7 +111,7 @@ if ($resultAll) {
 
 <div id="ScanInvoicesWaitModal" class="ScanInvoicesWaitModal"></div>
 
-<?php if (getDolGlobalString('SCANINVOICES_PROTOCOL_MISSMATCH')) {
+<?php if (scaninvoicesGetDolGlobalString('SCANINVOICES_PROTOCOL_MISSMATCH')) {
 	print '<div id="ocr-server-card" style="float:left; max-width: 350px; min-height: 40px; padding: 2em; border: 1px solid #888; background: #f8f8f8; text-align: left; margin-right: 20px;">';
 	print $apiInfoFromServer;
 	print '</div>';

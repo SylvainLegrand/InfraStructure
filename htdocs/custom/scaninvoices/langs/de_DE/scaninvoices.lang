@@ -22,7 +22,7 @@ ModuleScanInvoicesName=ScanInvoices
 # Module description 'ModuleScanInvoicesDesc'
 ModuleScanInvoicesDesc=Sie können PDF-Dokumente wie Lieferantenrechnungen hochladen und die Rechnung und/oder den Lieferanten automatisch erstellen, ohne Daten eingeben zu müssen. Das Modul verwendet sowohl FactorX-Informationen (falls verfügbar) als auch OCR, um Ihr hochgeladenes PDF zu analysieren.
 ScanInvoicesArea=Automatischer Rechnungsimportbereich (Modul ScanInvoices)
-ScanInvoicesNeedPerms=Dieses Modul erfordert umfangreiche Zugriffsrechte für die Arbeit (Lesen von Dritten, Erstellen von Dritten, erweiterten Zugriffsrechte an Dritte, Lieferanten lesen, Lieferantenrechnungen lesen, Lieferantenrechnung erstellen, Produkte und Dienstleistungen lesen …) Und bei einem Priori hat dieser Benutzer nicht all diese Rechte!
+ScanInvoicesNeedPerms=Dieses Modul erfordert umfangreiche Zugriffsrechte für die Arbeit (Lesen von Dritten, Erstellen von Dritten, erweiterten Zugriffsrechte an Dritte, Lieferanten lesen, Lieferantenrechnungen lesen, Lieferantenrechnung erstellen, Produkte und Dienstleistungen lesen ...) Und bei einem Priori hat dieser Benutzer nicht all diese Rechte!
 
 
 #
@@ -72,7 +72,8 @@ ModuleScanInvoicesImportAuto=Automatischer Import
 ScanInvoicesFromSupplierOrder=Importieren Sie die Lieferantenrechnung automatisch mit ScanInvoice und verknüpfen Sie sie mit dieser Bestellung
 LineLabelForNewInvoicesIfNotdefine=Sehen Sie sich die Details in den Anhängen an
 ERROR_MESSAGE_ANALYSE1=Fehler beim Analysieren des Dokuments (Code #%s)
-ERROR_MESSAGE_ANALYSE2=Wechseln Sie zu %sdem halbmanuellen Importassistenten%s und importieren Sie Ihr Dokument erneut…
+ERROR_MESSAGE_ANALYSE2=Wechseln Sie zu %sdem halbmanuellen Importassistenten%s und importieren Sie Ihr Dokument erneut...
+ErrorAnalyzeNoDataExtracted=Der Analysedienst hat aus diesem Dokument keine Daten extrahiert (nicht unterstütztes Format oder unlesbarer Inhalt)
 ERROR_MESSAGE_CREATE_INVOICE=Fehler beim Erstellen von %s von %s, Fehlercode: %s
 SUCCESS_MESSAGE_CREATE_INVOICE=Rechnung %s von %s importiert: %s
 ERROR_MESSAGE_INVOICE_DUPLICATE=Fehler (%s von %s), diese Rechnung scheint bereits importiert worden zu sein. Fehlercode: %s
@@ -86,19 +87,19 @@ DEFAULT_OCR_WEBSERVICE_MSG2=Klicken Sie auf diesen Link, um die Verbindung zu pr
 #
 # manual import Step1
 #
-MANUAL_IMPORT_STEP1=Manueller Import – Assistent für Schritt 1
+MANUAL_IMPORT_STEP1=Manueller Import - Assistent für Schritt 1
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER=Wählen Sie den Lieferanten
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT1=Wenn der Lieferant dieser Rechnung bereits in Ihrem dolibarr vorhanden ist, wählen Sie ihn bitte aus der Liste unten aus.
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2=Wenn es nicht vorhanden ist, haben Sie zwei Möglichkeiten:
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2a=Entweder erstellen Sie es manuell, indem Sie auf die Schaltfläche "+" rechts neben der Liste klicken
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2b=Entweder Sie wählen im Drop-down-Menü nichts aus und wenn die Umsatzsteuer-Identifikationsnummer auf der Rechnung vorhanden ist, lassen Sie den automatischen Piloten die Arbeit für Sie erledigen (funktioniert nur wirklich gut für französische Umsatzsteuer-Identifikationsnummern)
-MANUAL_IMPORT_STEP1_LEGEND=Hinweis: Die automatische Erstellung von Lieferanten funktioniert nur, wenn die auf der Rechnung angegebene Umsatzsteuer-Identifikationsnummer eine französische Nummer ist…
+MANUAL_IMPORT_STEP1_LEGEND=Hinweis: Die automatische Erstellung von Lieferanten funktioniert nur, wenn die auf der Rechnung angegebene Umsatzsteuer-Identifikationsnummer eine französische Nummer ist...
 Next=Folgend
 
 #
 # manual import Step2
 #
-MANUAL_IMPORT_STEP2_OPEN_FILE=Datei öffnen…
+MANUAL_IMPORT_STEP2_OPEN_FILE=Datei öffnen...
 MANUAL_IMPORT_STEP2_SUPPLIER=Anbieter:
 MANUAL_IMPORT_STEP2_VAT_NUMBER=Umsatzsteuer-Identifikationsnummer:
 MANUAL_IMPORT_STEP2_DATE=Datiert:
@@ -117,13 +118,13 @@ MANUAL_IMPORT_STEP2_HELP_CLOSE=Nah dran
 MANUAL_IMPORT_STEP2_HELP_NEXT=Folgend
 MANUAL_IMPORT_STEP2_HELP_PREV=Vorherige
 MANUAL_IMPORT_STEP2_HELP_1_TITLE=1. Dateiauswahl
-MANUAL_IMPORT_STEP2_HELP_1_TXT=Importieren Sie zunächst Ihre Rechnungsdatei im PDF-Format…<br />Los, klicken Sie auf die Schaltfläche und wählen Sie Ihre PDF-Datei aus :-)
+MANUAL_IMPORT_STEP2_HELP_1_TXT=Importieren Sie zunächst Ihre Rechnungsdatei im PDF-Format...<br />Los, klicken Sie auf die Schaltfläche und wählen Sie Ihre PDF-Datei aus :-)
 MANUAL_IMPORT_STEP2_HELP_2_TITLE=2. Identifizieren Sie die zu analysierenden Bereiche
-MANUAL_IMPORT_STEP2_HELP_2_TXT=Verschieben Sie die Bereiche auf dem Bild der Rechnung, um anzugeben, welche Bereiche analysiert werden sollen.<br /><small>Wenn Sie schon einmal Bereiche für diesen Lieferanten auf einer früheren Rechnung definiert hatten, hat das System diese vorab positioniert, wenn Sie möchten müssen überprüfen, ob sie gut platziert sind…</small>
+MANUAL_IMPORT_STEP2_HELP_2_TXT=Verschieben Sie die Bereiche auf dem Bild der Rechnung, um anzugeben, welche Bereiche analysiert werden sollen.<br /><small>Wenn Sie schon einmal Bereiche für diesen Lieferanten auf einer früheren Rechnung definiert hatten, hat das System diese vorab positioniert, wenn Sie möchten müssen überprüfen, ob sie gut platziert sind...</small>
 MANUAL_IMPORT_STEP2_HELP_3_TITLE=3. Führen Sie OCR aus
 MANUAL_IMPORT_STEP2_HELP_3_TXT=Klicken Sie auf diese Schaltfläche, um die Bildanalyse und die Datenextraktion zu starten <br /><small>achten Sie darauf, dass Sie VORHER ein pdf geladen und die Analysezonen positioniert haben</small>
 MANUAL_IMPORT_STEP2_HELP_4_TITLE=4. Überprüfen Sie das Ergebnis
-MANUAL_IMPORT_STEP2_HELP_4_TXT=Überprüfen Sie die importierten Daten und passen Sie ggf. die Analysebereiche an, klicken Sie dann ggf. erneut auf die Schaltfläche „OCR“ des vorherigen Reiters
+MANUAL_IMPORT_STEP2_HELP_4_TXT=Überprüfen Sie die importierten Daten und passen Sie ggf. die Analysebereiche an, klicken Sie dann ggf. erneut auf die Schaltfläche "OCR" des vorherigen Reiters
 MANUAL_IMPORT_STEP2_HELP_5_TITLE=5. Importieren Sie die Rechnung
 MANUAL_IMPORT_STEP2_HELP_5_TXT=Klicken Sie nach der Validierung der verschiedenen Werte auf diese Schaltfläche, um die Lieferantenrechnung in dolibarr zu importieren
 MANUAL_IMPORT_STEP2_DOCUMENT_LANG=Sprache des Dokuments:
@@ -152,3 +153,14 @@ ERROR_FIELD_EMPTY=Das Feld %s ist leer!
 supplier_invoice_ref=Referenz der Lieferantenrechnung
 
 OcrServiceUnavailableStopChain=Der OCR-Server ist nicht verfügbar. Der Kettenimport wurde unterbrochen. Bitte versuchen Sie es in einigen Minuten erneut.
+
+# OCR error handling / support details (manual import)
+OcrAnalysisFailed=Die OCR-Analyse ist fehlgeschlagen.
+OcrAnalysisTimeout=Der OCR-Server hat nicht innerhalb der zulässigen Zeit geantwortet.
+OcrErrorUnreachable=Der OCR-Server konnte nicht erreicht werden.
+OcrErrorHttp=Der OCR-Server hat mit dem HTTP-Code %s geantwortet.
+OcrErrorBadResponse=Der OCR-Server hat eine unlesbare Antwort zurückgegeben.
+OcrCopyDetailsIntro=Kopieren Sie die folgenden Details und senden Sie sie an den Support, um die Diagnose zu beschleunigen:
+OcrCopyDetailsButton=Details für den Support kopieren
+OcrDetailsCopied=Details in die Zwischenablage kopiert
+OcrUploadInvalidResponse=Upload fehlgeschlagen: ungültige Serverantwort. Bitte erneut versuchen oder den Support kontaktieren.

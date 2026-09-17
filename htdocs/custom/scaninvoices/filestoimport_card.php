@@ -75,6 +75,8 @@ if (!$res) {
 	die("Include of main fails");
 }
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
+
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
@@ -123,9 +125,9 @@ if (empty($action) && empty($id) && empty($ref)) {
 // Load object
 include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
 
-$permissiontoaccess = $user->rights->scaninvoices->read;
-$permissiontoadd = $user->rights->scaninvoices->write;
-$permissiontodelete = $user->rights->scaninvoices->delete;
+$permissiontoaccess = scaninvoicesUserHasRight($user, 'scaninvoices', 'read');
+$permissiontoadd = scaninvoicesUserHasRight($user, 'scaninvoices', 'write');
+$permissiontodelete = scaninvoicesUserHasRight($user, 'scaninvoices', 'delete');
 // Security check - Protection if external user
 /*
 Note: vérification des droits associés et nécessaires:
@@ -140,14 +142,14 @@ Note: vérification des droits associés et nécessaires:
 	.../...?
 */
 $otherModulesRights = [
-	$user->rights->societe->lire,
-	$user->rights->societe->creer,
-	$user->rights->societe->client->voir,
-	$user->rights->fournisseur->lire,
-	$user->rights->fournisseur->facture->lire,
-	$user->rights->fournisseur->facture->creer,
-	$user->rights->produit->lire,
-	$user->rights->service->lire
+	scaninvoicesUserHasRight($user, 'societe', 'lire'),
+	scaninvoicesUserHasRight($user, 'societe', 'creer'),
+	scaninvoicesUserHasRight($user, 'societe', 'client', 'voir'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'creer'),
+	scaninvoicesUserHasRight($user, 'produit', 'lire'),
+	scaninvoicesUserHasRight($user, 'service', 'lire')
 ];
 // Security check - Protection if external user
 if ($user->socid > 0) {
@@ -592,8 +594,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			$relativepath = $objref.'/'.$objref.'.pdf';
 			$filedir = $conf->scaninvoices->dir_output.'/'.$object->element.'/'.$objref;
 			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
-			$genallowed = $user->rights->scaninvoices->read; // If you can read, you can build the PDF to read content
-			$delallowed = $user->rights->scaninvoices->write; // If you can create/edit, you can remove a file on card
+			$genallowed = scaninvoicesUserHasRight($user, 'scaninvoices', 'read'); // If you can read, you can build the PDF to read content
+			$delallowed = scaninvoicesUserHasRight($user, 'scaninvoices', 'write'); // If you can create/edit, you can remove a file on card
 			print $formfile->showdocuments('scaninvoices:Filestoimport', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
 		}
 

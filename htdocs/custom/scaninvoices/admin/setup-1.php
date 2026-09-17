@@ -58,6 +58,7 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 //require_once "../class/myclass.class.php";
 
@@ -95,7 +96,7 @@ if ($action == 'set') {
 }
 
 $defaultCREATEPRODUCTchecked = "";
-if (!empty(getDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT')) && getDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT') == 1) {
+if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT')) && scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT') == 1) {
 	$defaultCREATEPRODUCTchecked = " checked";
 }
 
@@ -167,37 +168,37 @@ print '<tr class="liste_titre"><td class="">' . $langs->trans("Parameter") . '</
 $filenamepatern = array('1'=> $langs->trans("dol_object_ref"), '2' => $langs->trans("fourn_invoice_ref"));
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_FILE_NAME") . "</b><br /><i>" . $langs->trans("SCANINVOICES_FILE_NAMETooltip") . '</i></td>';
 print '<td>';
-print $form->selectArray("SCANINVOICES_FILE_NAME", $filenamepatern, getDolGlobalString('SCANINVOICES_FILE_NAME'), 1);
+print $form->selectArray("SCANINVOICES_FILE_NAME", $filenamepatern, scaninvoicesGetDolGlobalString('SCANINVOICES_FILE_NAME'), 1);
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_FILE_NAME_PRE") . "</b><br /><i>" . $langs->trans("SCANINVOICES_FILE_NAME_PRETooltip") . '</i></td>';
 print '<td>';
-print '<input type="text" name="SCANINVOICES_FILE_NAME_PRE" value="' . getDolGlobalString('SCANINVOICES_FILE_NAME_PRE') . '" class="minwidth300">';
+print '<input type="text" name="SCANINVOICES_FILE_NAME_PRE" value="' . scaninvoicesGetDolGlobalString('SCANINVOICES_FILE_NAME_PRE') . '" class="minwidth300">';
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_DEFAULT_PRODUCT") . "</b><br /><i>" . $langs->trans("SCANINVOICES_DEFAULT_PRODUCTTooltip") . '</i></td>';
 print '<td>';
-print scaninvoicesSelect_produits_fournisseurs_list(0, (int) getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'), "SCANINVOICES_DEFAULT_PRODUCT", '', '', '', -1, 0, 0, 1, '', 0, '');
+print scaninvoicesSelect_produits_fournisseurs_list(0, (int) scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'), "SCANINVOICES_DEFAULT_PRODUCT", '', '', '', -1, 0, 0, 1, '', 0, '');
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_DEFAULT_LIVRAISON") . "</b><br /><i>" . $langs->trans("SCANINVOICES_DEFAULT_LIVRAISONTooltip") . '</i></td>';
 print '<td>';
-print scaninvoicesSelect_produits_fournisseurs_list(0, (int) getDolGlobalString('SCANINVOICES_DEFAULT_LIVRAISON'), "SCANINVOICES_DEFAULT_LIVRAISON", '', '', '', -1, 0, 0, 1, '', 0, '');
+print scaninvoicesSelect_produits_fournisseurs_list(0, (int) scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_LIVRAISON'), "SCANINVOICES_DEFAULT_LIVRAISON", '', '', '', -1, 0, 0, 1, '', 0, '');
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_DISABLE_WARNING") . "</b><br /><i>" . $langs->trans("SCANINVOICES_DISABLE_WARNINGTooltip") . '</i></td>';
 print '<td>';
-echo '<input type="checkbox" name="SCANINVOICES_DISABLE_WARNING" value="1" class="minwidth300" '.(getDolGlobalInt('SCANINVOICES_DISABLE_WARNING') ? 'checked="checked"' : '').'>';
+echo '<input type="checkbox" name="SCANINVOICES_DISABLE_WARNING" value="1" class="minwidth300" '.(scaninvoicesGetDolGlobalInt('SCANINVOICES_DISABLE_WARNING') ? 'checked="checked"' : '').'>';
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR") . "</b><br /><i>" . $langs->trans("SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARRTooltip") . '</i></td>';
 print '<td>';
-echo '<input type="checkbox" name="SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR" value="1" class="minwidth300" '.(getDolGlobalInt('SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR') ? 'checked="checked"' : '').'>';
+echo '<input type="checkbox" name="SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR" value="1" class="minwidth300" '.(scaninvoicesGetDolGlobalInt('SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR') ? 'checked="checked"' : '').'>';
 print '</td>';
 print '</tr>';
 
@@ -205,7 +206,7 @@ print '</tr>';
 //TODO - plus simple si on avait le form builder
 // print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_ADD_CATEG") . "</b><br /><i>" . $langs->trans("SCANINVOICES_ADD_CATEGTooltip") . '</i></td>';
 // print '<td>';
-// print scaninvoicesSelect_produits_fournisseurs_list('',getDolGlobalString('SCANINVOICES_ADD_CATEG'),"SCANINVOICES_ADD_CATEG",'','','',-1,0,0,1,'',0,'');
+// print scaninvoicesSelect_produits_fournisseurs_list('',scaninvoicesGetDolGlobalString('SCANINVOICES_ADD_CATEG'),"SCANINVOICES_ADD_CATEG",'','','',-1,0,0,1,'',0,'');
 // print '</td>';
 // print '</tr>';
 
@@ -267,10 +268,10 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 							$module = new $file($db);
 
 							// Show modules according to features level
-							if ($module->version == 'development' && getDolGlobalString('MAIN_FEATURES_LEVEL') < 2) {
+							if ($module->version == 'development' && scaninvoicesGetDolGlobalString('MAIN_FEATURES_LEVEL') < 2) {
 								continue;
 							}
-							if ($module->version == 'experimental' && getDolGlobalString('MAIN_FEATURES_LEVEL') < 1) {
+							if ($module->version == 'experimental' && scaninvoicesGetDolGlobalString('MAIN_FEATURES_LEVEL') < 1) {
 								continue;
 							}
 
@@ -296,7 +297,7 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 
 								print '<td class="center">';
 								$constforvar = 'SCANINVOICES_' . strtoupper($myTmpObjectKey) . '_ADDON';
-								if (getDolGlobalString($constforvar) == $file) {
+								if (scaninvoicesGetDolGlobalString($constforvar) == $file) {
 									print img_picto($langs->trans("Activated"), 'switch_on');
 								} else {
 									print '<a href="' . $_SERVER["PHP_SELF"] . '?action=setmod&token=' . newToken() . '&object=' . strtolower($myTmpObjectKey) . '&value=' . urlencode($file) . '">';

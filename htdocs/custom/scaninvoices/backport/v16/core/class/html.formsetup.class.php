@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 
 /**
  * This class help you create setup render
@@ -699,7 +700,7 @@ class FormSetupItem
 	{
 		global $conf;
 		if (isset($conf->global->{$this->confKey})) {
-			$this->fieldValue = getDolGlobalString($this->confKey);
+			$this->fieldValue = scaninvoicesGetDolGlobalString($this->confKey);
 			return true;
 		} else {
 			$this->fieldValue = null;
@@ -896,7 +897,7 @@ class FormSetupItem
 		} elseif ($this->type == 'securekey') {
 			$out.= $this->generateInputFieldSecureKey();
 		} elseif ($this->type == 'product') {
-			if (isModEnabled("product") || isModEnabled("service")) {
+			if (scaninvoicesIsModEnabled("product") || scaninvoicesIsModEnabled("service")) {
 				$selected = (empty($this->fieldValue) ? '' : $this->fieldValue);
 				$out.= $this->form->select_produits($selected, $this->confKey, '', 0, 0, 1, 2, '', 0, array(), 0, '1', 0, $this->cssClass, 0, '', null, 1);
 			}
@@ -938,7 +939,7 @@ class FormSetupItem
 		global $conf;
 		require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 		/** @phpstan-ignore-next-line */
-		$doleditor = new DolEditor($this->confKey, $this->fieldValue, '', 160, 'dolibarr_notes', '', false, false, isModEnabled('fckeditor'), ROWS_5, '90%');
+		$doleditor = new DolEditor($this->confKey, $this->fieldValue, '', 160, 'dolibarr_notes', '', false, false, scaninvoicesIsModEnabled('fckeditor'), ROWS_5, '90%');
 		return $doleditor->Create(1);
 	}
 

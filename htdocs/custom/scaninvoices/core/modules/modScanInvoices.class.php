@@ -27,6 +27,7 @@
  *  \brief      Description and activation file for module ScanInvoices
  */
 include_once DOL_DOCUMENT_ROOT . '/core/modules/DolibarrModules.class.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 
 /**
  *  Description and activation class for module ScanInvoices.
@@ -55,12 +56,9 @@ class modScanInvoices extends DolibarrModules
 		$this->rights_class = 'scaninvoices';
 		// Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
 		// It is used to group modules by family in module setup page
-		$isDolinfras	= isModEnabled('dolinfras');
-		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'financial';
-		$this->family = $family;
-		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100015;
+		$this->family = 'financial';
 		// Module position in the family on 2 digits ('01', '10', '20', ...)
+		$this->module_position = '90';
 		// Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
 		//$this->familyinfo = array('myownfamily' => array('position' => '01', 'label' => $langs->trans("MyOwnFamily")));
 		// Module label (no space allowed), used if translation string 'ModuleScanInvoicesName' not found (ScanInvoices is name of module).
@@ -72,7 +70,7 @@ class modScanInvoices extends DolibarrModules
 		$this->editor_name = 'CAP-REL';
 		$this->editor_url = 'https://cap-rel.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.4.84';
+		$this->version = '1.4.94';
 		// Procol version
 		$this->protocol = '1';
 		// Url to the file with your last numberversion of this module
@@ -536,7 +534,7 @@ class modScanInvoices extends DolibarrModules
 
 		dolibarr_set_const($this->db, 'SCANINVOICE_MODULE_VERSION', $this->version, 'chaine', 0, 'Active module version', $conf->entity);
 		// Flush Memcached if active so menus/permissions/constants do not stay stale after activation/upgrade
-		if (isModEnabled('memcached') && class_exists('Memcached')) {
+		if (scaninvoicesIsModEnabled('memcached') && class_exists('Memcached')) {
 			$m = new Memcached();
 			$tmparray = explode(':', $conf->global->MEMCACHED_SERVER);
 			$result = $m->addServer($tmparray[0], !empty($tmparray[1]) ? $tmparray[1] : 11211);

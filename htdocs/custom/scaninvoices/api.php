@@ -21,6 +21,7 @@
 define('NOTOKENRENEWAL', 1);
 
 require_once __DIR__ . '/functions.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/middlewares.php');
 dol_include_once('/scaninvoices/class/filestoimport.class.php');
 $output = "";
@@ -83,7 +84,7 @@ router('GET', 'jpgfile/(?<filename>(.*))&token=.*$', function ($params) {
 // get data on rect position
 router('POST', 'rect', function ($params) {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$ratio = GETPOST('ratio', 'alpha');
 	if (!is_numeric($ratio) && !($ratio > 0)) {
 		$ratio = 1;
@@ -105,21 +106,40 @@ router('POST', 'rect', function ($params) {
 	$result = getURLContent($url, 'POST', json_encode($param), 1, scanInvoicesApiCommonHeader(), ['http','https'], 2);
 	scaninvoiceshandleTimeoutCheckBlacklist($result);
 
-	if (is_array($result) && $result['http_code'] == 200 && isset($result['content'])) {
-		$json = json_decode($result['content']);
-		$output['texte'] = trim($json->result->texte);
+	$httpCode = (is_array($result) && isset($result['http_code'])) ? (int) $result['http_code'] : 0;
+	$content  = (is_array($result) && isset($result['content'])) ? $result['content'] : '';
+
+	$texte = null;
+	if ($httpCode == 200 && $content !== '') {
+		$json = json_decode($content);
+		// ->result may come back as a JSON-encoded string or as a structure.
+		$results = (is_object($json) && isset($json->result) && is_string($json->result))
+			? json_decode($json->result)
+			: (is_object($json) && isset($json->result) ? $json->result : null);
+		if (is_object($results) && isset($results->texte) && is_scalar($results->texte)) {
+			$texte = trim((string) $results->texte);
+		}
+	}
+
+	if ($texte !== null) {
+		$output['texte'] = $texte;
 
 		$ratio = 1;
 		$rect = is_array($rectIn) ? $rectIn : [];
-		$posX = round($rect['startX'] / $ratio);
-		$posY = round($rect['startY'] / $ratio);
-		$largeur = round($rect['w'] / $ratio);
-		$hauteur = round($rect['h'] / $ratio);
+		$posX = round(((float) ($rect['startX'] ?? 0)) / $ratio);
+		$posY = round(((float) ($rect['startY'] ?? 0)) / $ratio);
+		$largeur = round(((float) ($rect['w'] ?? 0)) / $ratio);
+		$hauteur = round(((float) ($rect['h'] ?? 0)) / $ratio);
 		$output['x'] = $posX;
 		$output['y'] = $posY;
 		$output['w'] = $largeur;
 		$output['h'] = $hauteur;
 	} else {
+		dol_syslog(
+			'ScanInvoices internal API::RECT FAILED http_code=' . $httpCode
+			. ' content=' . dol_trunc((string) $content, 500),
+			LOG_ERR
+		);
 		$output['ERRcode'] = "1121558a";
 	}
 	json([$output]);
@@ -128,6 +148,13 @@ router('POST', 'rect', function ($params) {
 //Demande d'import automatique d'un fichier qui est déjà stocké dans temp/
 router('POST', 'importAuto', function ($params) {
 	global $db, $user;
+
+	// Capture any stray PHP output (warnings/notices from importNow() or the OCR
+	// response parsing) so it can never corrupt the JSON body. Without this the
+	// client gets an HTTP 200 with a non-JSON body -> "importOneInvoice error 200:
+	// parsererror" and the auto-import chain silently stops (file stays "Waiting").
+	ob_start();
+
 	$object = new Filestoimport($db);
 
 	$id = (int) GETPOST('id', 'int');
@@ -135,13 +162,11 @@ router('POST', 'importAuto', function ($params) {
 
 	// dol_syslog('ScanInvoices: POST importAuto :' . $_POST['id']);
 	$retour = array('error' => "");
-	if ($id == "") {
+	if ($id <= 0) {
 		$retour['error'] = "idNotFound " . json_encode($params);
-		json($retour);
-	}
-
-	$object->fetch($id);
-	if (!$object->fullImportSuccess()) {
+	} elseif ($object->fetch($id) <= 0) {
+		$retour['error'] = "fetchFailed id=" . $id;
+	} elseif (!$object->fullImportSuccess()) {
 		$retour = $object->importNow($fournID);
 		if (!empty($retour['ocr_unavailable'])) {
 			dol_syslog('ScanInvoices::api importAuto: OCR unavailable, returning ocr_unavailable=true to client for id=' . $id, LOG_WARNING);
@@ -161,6 +186,8 @@ router('POST', 'importAuto', function ($params) {
 		}
 		$retour['justif'] = $object->filename;
 	}
+
+	scaninvoicesStripStrayOutput('importAuto');
 	json($retour);
 });
 
@@ -168,7 +195,13 @@ router('POST', 'importAuto', function ($params) {
 //Start OCR stuff
 router('POST', 'runocr', function ($params) {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+
+	// Capture any stray PHP output (warnings/notices) produced while processing so
+	// it can never corrupt the JSON body sent to the AJAX client (which would show
+	// up as a jQuery "parsererror" with an HTTP 200). Flushed by scaninvoicesRunocrFlush().
+	ob_start();
+
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$ratio = GETPOST('ratio', 'alpha');
 	if (!is_numeric($ratio) && !($ratio > 0)) {
 		$ratio = 1;
@@ -195,7 +228,7 @@ router('POST', 'runocr', function ($params) {
 		dol_syslog("ScanInvoices:runocr no data extraction zone requests ! short return");
 		$mesg = '<div class="message">'.$langs->trans('runocrInfoThereIsNoNewZone') . '</div>';
 		$output['error'] = $mesg;
-		json([$output]);
+		scaninvoicesRunocrFlush($output);
 		return;
 	}
 
@@ -213,27 +246,89 @@ router('POST', 'runocr', function ($params) {
 	$result = getURLContent($url, 'POST', json_encode($param), 1, scanInvoicesApiCommonHeader(), ['http','https'], 2);
 	scaninvoiceshandleTimeoutCheckBlacklist($result);
 
-	if (is_array($result) && $result['http_code'] == 200 && isset($result['content'])) {
-		$json = json_decode($result['content']);
-		$results = json_decode($json->result);
-		foreach ($results as $key => $val) {
-			dol_syslog('ScanInvoices internal API::RECT return ' . $key . " => " . $val);
-			if ($key == 'totalht' || $key == 'totalttc') {
-				$output[$key] = scaninvoicesClean_amount($val);
-			} else {
-				$output[$key] = $val;
+	// Normalize the getURLContent() result so nothing is dereferenced blindly.
+	$httpCode   = (is_array($result) && isset($result['http_code'])) ? (int) $result['http_code'] : 0;
+	$content    = (is_array($result) && isset($result['content'])) ? $result['content'] : '';
+	$curlErrNo  = (is_array($result) && isset($result['curl_error_no'])) ? $result['curl_error_no'] : '';
+	$curlErrMsg = (is_array($result) && isset($result['curl_error_msg'])) ? $result['curl_error_msg'] : '';
+
+	$ocrOk = false;
+	if ($httpCode == 200 && $content !== '') {
+		$json = json_decode($content);
+		// The OCR server wraps the extracted fields in a JSON string under ->result.
+		// Guard every step: a malformed/unexpected body must not trigger PHP warnings
+		// (which would leak into the response and break JSON parsing on the client).
+		if (is_object($json) && isset($json->result)) {
+			// ->result is normally a JSON-encoded string, but tolerate a structure
+			// sent as-is. Decoding an object body yields a stdClass, which foreach
+			// walks fine but is_iterable() rejects (it only accepts array and
+			// Traversable), hence the explicit array/object test below.
+			$results = is_string($json->result) ? json_decode($json->result) : $json->result;
+			if (is_array($results) || is_object($results)) {
+				foreach ($results as $key => $val) {
+					dol_syslog('ScanInvoices internal API::RECT return ' . $key . " => " . (is_scalar($val) ? $val : json_encode($val)));
+					if ($key == 'totalht' || $key == 'totalttc') {
+						$output[$key] = scaninvoicesClean_amount($val);
+					} else {
+						$output[$key] = $val;
+					}
+				}
+				$ocrOk = true;
 			}
 		}
 	}
-	if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
-		dol_syslog("ScanInvoices:runocr error Curl details " . $result['curl_error_msg']);
-		$mesg = '<div class="error">'.$langs->trans('runocrError');
-		$mesg .= '<br />'.$result['curl_error_msg'];
-		$mesg .= '</div>';
-		$output['error'] = $mesg;
+
+	if (!$ocrOk) {
+		// Produce a clear, user-facing message plus a copy-pasteable detail block
+		// so support does not have to guess. A support reference ties the UI message
+		// to the server log line below.
+		$supportRef = 'SIOCR-' . dol_print_date(dol_now(), '%Y%m%d-%H%M%S');
+
+		if ($curlErrMsg !== '' || ($curlErrNo !== '' && $curlErrNo !== 0)) {
+			$reason = $langs->trans('OcrErrorUnreachable');
+		} elseif ($httpCode != 200) {
+			$reason = $langs->trans('OcrErrorHttp', $httpCode);
+		} else {
+			$reason = $langs->trans('OcrErrorBadResponse');
+		}
+
+		dol_syslog(
+			'ScanInvoices:runocr FAILED ref=' . $supportRef . ' http_code=' . $httpCode
+			. ' curl_no=' . $curlErrNo . ' curl_msg=' . $curlErrMsg
+			. ' content=' . dol_trunc((string) $content, 500),
+			LOG_ERR
+		);
+
+		$output['error'] = $reason;
+		$output['errorDetails'] = scaninvoicesBuildOcrErrorDetails($supportRef, $url, $httpCode, $curlErrNo, $curlErrMsg, $content);
+		$output['supportRef'] = $supportRef;
 	}
 
-	json([$output]);
+	scaninvoicesRunocrFlush($output);
+});
+
+// Collect client-side (JS) errors and log them server-side, so support can find
+// them in dolibarr.log by reference instead of asking the user for a screenshot.
+// Grep the server log with: grep 'ScanInvoices:CLIENT' dolibarr.log
+router('POST', 'clientlog', function ($params) {
+	ob_start();
+
+	$level   = GETPOST('level', 'aZ09');
+	$context = GETPOST('context', 'alphanohtml');
+	$ref     = GETPOST('ref', 'alphanohtml');
+	$message = GETPOST('message', 'nohtml');
+	$details = GETPOST('details', 'nohtml');
+
+	$logLevel = ($level === 'error') ? LOG_ERR : LOG_WARNING;
+	dol_syslog(
+		'ScanInvoices:CLIENT ref=' . $ref . ' context=' . $context
+		. ' message=' . dol_trunc((string) $message, 300)
+		. ' details=' . dol_trunc((string) $details, 2000),
+		$logLevel
+	);
+
+	scaninvoicesStripStrayOutput('clientlog');
+	json(['ok' => 1, 'ref' => $ref]);
 });
 
 // //on demande la creation du fournisseur a partir du num de tva
@@ -261,7 +356,7 @@ router('POST', 'importInvoice', function ($params) {
 	global $db, $langs, $conf, $user;
 	dol_syslog("scaninvoicesApi::importInvoice start");
 
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 
 	$data = new stdClass();
 	$data->fournisseurID = GETPOST('fournID', 'int') ? GETPOST('fournID', 'int') : null;
@@ -385,8 +480,8 @@ router('POST', 'importInvoice', function ($params) {
 			if ($resultDefProAll && !empty($defaultproduct->fk_default_product)) {
 				$data->defaultProductID = $defaultproduct->fk_default_product;
 				dol_syslog('scaninvoicesApi::importInvoice produit/service par défaut (from supplier) id='.$defaultproduct->fk_default_product);
-			} elseif (getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT')) {
-				$data->defaultProductID = getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
+			} elseif (scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT')) {
+				$data->defaultProductID = scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
 				dol_syslog('scaninvoicesApi::importInvoice produit/service par défaut (from module conf) (a) id='.$data->defaultProductID);
 			} else {
 				dol_syslog('scaninvoicesApi::importInvoice pas de produit/service par défaut pour ce fournisseur');

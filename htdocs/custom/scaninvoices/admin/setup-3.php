@@ -58,6 +58,7 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 //require_once "../class/myclass.class.php";
 require_once DOL_DOCUMENT_ROOT.'/includes/sabre/autoload.php';
@@ -107,6 +108,7 @@ $formSetup = new FormSetup($db);
 $formSetup->newItem('SCANINVOICES_DISABLE_IMPORT_LINES')->setAsYesNo();
 $formSetup->newItem('SCANINVOICES_IMPORT_CREATE_PRODUCT')->setAsYesNo();
 $formSetup->newItem('SCANINVOICES_IMPORT_OVERRIDE_LABEL_PRODUCT')->setAsYesNo();
+$formSetup->newItem('SCANINVOICES_IMPORT_UPDATE_BUYPRICE')->setAsYesNo();
 
 $options = [
 	Product::TYPE_PRODUCT => 'Produit',
@@ -196,7 +198,7 @@ if ($action == 'updateMask') {
 		$tmpobjectkey = GETPOST('object');
 		if (!empty($tmpobjectkey)) {
 			$constforval = 'SCANINVOICES_' . strtoupper($tmpobjectkey) . '_ADDON_PDF';
-			if (getDolGlobalString($constforval) == "$value") {
+			if (scaninvoicesGetDolGlobalString($constforval) == "$value") {
 				dolibarr_del_const($db, $constforval, $conf->entity);
 			}
 		}
@@ -305,10 +307,10 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 							$module = new $file($db);
 
 							// Show modules according to features level
-							if ($module->version == 'development' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) {
+							if ($module->version == 'development' && scaninvoicesGetDolGlobalInt('MAIN_FEATURES_LEVEL') < 2) {
 								continue;
 							}
-							if ($module->version == 'experimental' && getDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) {
+							if ($module->version == 'experimental' && scaninvoicesGetDolGlobalInt('MAIN_FEATURES_LEVEL') < 1) {
 								continue;
 							}
 
@@ -334,7 +336,7 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 
 								print '<td class="center">';
 								$constforvar = 'SCANINVOICES_' . strtoupper($myTmpObjectKey) . '_ADDON';
-								if (getDolGlobalString($constforvar) == $file) {
+								if (scaninvoicesGetDolGlobalString($constforvar) == $file) {
 									print img_picto($langs->trans("Activated"), 'switch_on');
 								} else {
 									print '<a href="' . $_SERVER["PHP_SELF"] . '?action=setmod&token=' . newToken() . '&object=' . strtolower($myTmpObjectKey) . '&value=' . urlencode($file) . '">';

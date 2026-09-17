@@ -29,6 +29,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 use Sabre\DAV\Client;
 
 // require_once __DIR__.'/../lib/scaninvoices.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 /**
@@ -81,6 +82,11 @@ class Filestoimport extends CommonObject
 	public $picto = 'fa-file-upload';
 
 
+	/**
+	 * @var string Unique trigger prefix (Dolibarr 23+ requires it on business objects using triggers)
+	 */
+	public const TRIGGER_PREFIX = 'FILESTOIMPORT';
+
 	const STATUS_DRAFT = 0; //WAITING
 	const STATUS_VALIDATED = 1; // ? analyzed, but could be success or partial success or fail
 	const STATUS_CLOSED = 2; // full success
@@ -107,7 +113,7 @@ class Filestoimport extends CommonObject
 	 *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
 	 *  'label' the translation key.
 	 *  'picto' is code of a picto to show before value in forms
-	 *  'enabled' is a condition when the field must be managed (Example: 1 or 'getDolGlobalString('MY_SETUP_PARAM'))
+	 *  'enabled' is a condition when the field must be managed (Example: 1 or 'scaninvoicesGetDolGlobalString('MY_SETUP_PARAM'))
 	 *  'position' is the sort order of field.
 	 *  'notnull' is set to 1 if not null in database. Set to -1 if we must set data to null if empty ('' or 0).
 	 *  'visible' says if field is visible in list (Examples: 0=Not visible, 1=Visible on list and create/update/view forms, 2=Visible on list only, 3=Visible on create/update/view form only (not list), 4=Visible on list and update/view form only (not create). 5=Visible on list and view only (not create/not update). Using a negative value means field is not shown by default on list but can be selected for viewing)
@@ -217,7 +223,7 @@ class Filestoimport extends CommonObject
 
 		$this->db = $db;
 
-		if (empty(getDolGlobalString('MAIN_SHOW_TECHNICAL_ID')) && isset($this->fields['rowid'])) {
+		if (empty(scaninvoicesGetDolGlobalString('MAIN_SHOW_TECHNICAL_ID')) && isset($this->fields['rowid'])) {
 			$this->fields['rowid']['visible'] = 0;
 		}
 		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) {
@@ -561,8 +567,8 @@ class Filestoimport extends CommonObject
 			$this->status = self::STATUS_DRAFT;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->filestoimport->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->filestoimport->filestoimport_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->filestoimport->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->filestoimport->filestoimport_advance->validate))))
 		 {
 		 $this->error='NotEnoughPermissions';
 		 dol_syslog(get_class($this)."::valid ".$this->error, LOG_ERR);
@@ -680,8 +686,8 @@ class Filestoimport extends CommonObject
 			return 0;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
@@ -704,8 +710,8 @@ class Filestoimport extends CommonObject
 			return 0;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
@@ -728,8 +734,8 @@ class Filestoimport extends CommonObject
 			return 0;
 		}
 
-		/*if (! ((empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
-		 || (! empty(getDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
+		/*if (! ((empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->write))
+		 || (! empty(scaninvoicesGetDolGlobalString('MAIN_USE_ADVANCED_PERMS')) && ! empty($user->rights->scaninvoices->scaninvoices_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
@@ -780,7 +786,7 @@ class Filestoimport extends CommonObject
 
 		$linkclose = '';
 		if (empty($notooltip)) {
-			if (!empty(getDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER'))) {
+			if (!empty(scaninvoicesGetDolGlobalString('MAIN_OPTIMIZEFORTEXTBROWSER'))) {
 				$label = $langs->trans("ShowFilestoimport");
 				$linkclose .= ' alt="'.dol_escape_htmltag($label, 1).'"';
 			}
@@ -981,15 +987,15 @@ class Filestoimport extends CommonObject
 		global $langs, $conf;
 		$langs->load("scaninvoices@scaninvoices");
 
-		if (empty(getDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON'))) {
+		if (empty(scaninvoicesGetDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON'))) {
 			$conf->global->SCANINVOICES_FILESTOIMPORT_ADDON = 'mod_filestoimport_standard';
 		}
 
-		if (!empty(getDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON'))) {
+		if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON'))) {
 			$mybool = false;
 
-			$file = getDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON').".php";
-			$classname = getDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON');
+			$file = scaninvoicesGetDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON').".php";
+			$classname = scaninvoicesGetDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADDON');
 
 			// Include file with class
 			$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
@@ -1051,8 +1057,8 @@ class Filestoimport extends CommonObject
 
 			if (!empty($this->model_pdf)) {
 				$modele = $this->model_pdf;
-			} elseif (!empty(getDolGlobalString('FILESTOIMPORT_ADDON_PDF'))) {
-				$modele = getDolGlobalString('FILESTOIMPORT_ADDON_PDF');
+			} elseif (!empty(scaninvoicesGetDolGlobalString('FILESTOIMPORT_ADDON_PDF'))) {
+				$modele = scaninvoicesGetDolGlobalString('FILESTOIMPORT_ADDON_PDF');
 			}
 		}
 
@@ -1075,9 +1081,9 @@ class Filestoimport extends CommonObject
 	public function doScheduledJob()
 	{
 		global $conf, $langs, $user, $db;
-		$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+		$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 
-		//getDolGlobalString('SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log'');
+		//scaninvoicesGetDolGlobalString('SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log'');
 
 		$error = 0;
 		$this->output = '';
@@ -1087,8 +1093,8 @@ class Filestoimport extends CommonObject
 		$now = dol_now();
 
 		//will be better if we can change cron schedule !
-		// if (time() < getDolGlobalString('SCANINVOICES_CRON_NEXTRUN')) {
-		//     dol_syslog("scaninvoices : ocr server ask us to sleep until " . date(DATE_RFC2822, getDolGlobalString('SCANINVOICES_CRON_NEXTRUN))');
+		// if (time() < scaninvoicesGetDolGlobalString('SCANINVOICES_CRON_NEXTRUN')) {
+		//     dol_syslog("scaninvoices : ocr server ask us to sleep until " . date(DATE_RFC2822, scaninvoicesGetDolGlobalString('SCANINVOICES_CRON_NEXTRUN))');
 		//     return 0;
 		// }
 
@@ -1130,7 +1136,7 @@ class Filestoimport extends CommonObject
 		$this->db->commit();
 
 		//Send repport by email
-		scaninvoicesSendMail(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'), $langs->trans("MailRepporting"), '', '', $html);
+		scaninvoicesSendMail(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'), $langs->trans("MailRepporting"), '', '', $html);
 
 		return $error;
 	}
@@ -1273,7 +1279,7 @@ class Filestoimport extends CommonObject
 		$importKey = time();
 		$htmlTitle = "<h3>" . $langs->trans("IMPORT_FILES_FROM_NETWORK_SHARE_MAIL") . "</h3>";
 		$html = "";
-		$defaultSHAREtype = getDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE');
+		$defaultSHAREtype = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE');
 		$path = "";
 		if ($defaultSHAREtype == 1) {
 			$settings = scaninvoicesConvertNextcloudURItoSettings();

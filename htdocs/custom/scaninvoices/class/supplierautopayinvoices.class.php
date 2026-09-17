@@ -22,6 +22,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 // include_once __DIR__."/../core/modules/scaninvoices/mod_settings_standard.php";
 require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
 require_once DOL_DOCUMENT_ROOT.'/fourn/class/paiementfourn.class.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 class Supplierautopayinvoices extends CommonObject
@@ -41,7 +42,7 @@ class Supplierautopayinvoices extends CommonObject
 
 		$this->db = $db;
 
-		if (empty(getDolGlobalString('MAIN_SHOW_TECHNICAL_ID')) && isset($this->fields['rowid'])) {
+		if (empty(scaninvoicesGetDolGlobalString('MAIN_SHOW_TECHNICAL_ID')) && isset($this->fields['rowid'])) {
 			$this->fields['rowid']['visible'] = 0;
 		}
 		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) {

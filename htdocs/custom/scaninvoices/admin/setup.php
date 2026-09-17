@@ -55,6 +55,7 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 //require_once "../class/myclass.class.php";
 
@@ -114,7 +115,7 @@ if ($action == 'updateMask') {
 	$array = ['SCANINVOICES_EMAIL', 'SCANINVOICES_URI', 'SCANINVOICES_PASS_API'];
 	$changes = false;
 	foreach ($array as $key) {
-		$oldvalue = getDolGlobalString($key);
+		$oldvalue = scaninvoicesGetDolGlobalString($key);
 		$value = rtrim(GETPOST($key), '/');
 		if ($value != $oldvalue) {
 			dolibarr_set_const($db, $key, $value, 'chaine', 0, '', $conf->entity);
@@ -127,22 +128,22 @@ if ($action == 'updateMask') {
 }
 
 $defaultURI = "https://ocr.cap-rel.fr";
-if (!empty(getDolGlobalString('SCANINVOICES_URI'))) {
-	$defaultURI = getDolGlobalString('SCANINVOICES_URI');
+if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_URI'))) {
+	$defaultURI = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 }
-$defaultEmail = getDolGlobalString('MAIN_INFO_SOCIETE_MAIL');
-if (!empty(getDolGlobalString('SCANINVOICES_EMAIL'))) {
-	$defaultEmail = getDolGlobalString('SCANINVOICES_EMAIL');
+$defaultEmail = scaninvoicesGetDolGlobalString('MAIN_INFO_SOCIETE_MAIL');
+if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL'))) {
+	$defaultEmail = scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL');
 }
 $defaultPassword = "HackMePleaseButHackMeSoft";
-if (!empty(getDolGlobalString('SCANINVOICES_PASS_API'))) {
-	$defaultPassword = getDolGlobalString('SCANINVOICES_PASS_API');
+if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API'))) {
+	$defaultPassword = scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API');
 }
 $resetPasswordLink = '';
 
 if ($action == 'checkConnectAPI') {
 	//Note: in case of remote api key removed or disabled, local api is set but can't be used anymore
-	if (!empty(getDolGlobalString('SCANINVOICES_KEY_API'))) {
+	if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_KEY_API'))) {
 		if (scaninvoicesApiTryLoginWithAPIKey()) {
 			//Ok
 		} else {
@@ -152,7 +153,7 @@ if ($action == 'checkConnectAPI') {
 		}
 	}
 
-	if (empty(getDolGlobalString('SCANINVOICES_KEY_API'))) {
+	if (empty(scaninvoicesGetDolGlobalString('SCANINVOICES_KEY_API'))) {
 		//Si ce compte utilisateur existe déjà
 		dol_syslog("ScanInvoices:  : scaninvoicesApiTryLoginWithUserPass");
 		switch (scaninvoicesApiTryLoginWithUserPass()) {
@@ -170,8 +171,8 @@ if ($action == 'checkConnectAPI') {
 					dol_syslog("ScanInvoices:  : scaninvoicesApiCreateAccount");
 				} else {
 					//this account exist but that password does not match -> add forgot password link
-					$defaultURI = getDolGlobalString('SCANINVOICES_URI');
-					$defaultEmail = getDolGlobalString('SCANINVOICES_EMAIL');
+					$defaultURI = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
+					$defaultEmail = scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL');
 					$resetPasswordLink = "<a class='butAction' href='" . $defaultURI .  "/forgot-password?email=" . $defaultEmail . "' target='_blank'>" . $langs->trans("SCANINVOICES_PASS_APITooltipResetPass") . "</a>";
 				}
 			break;
@@ -328,10 +329,10 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 							$module = new $file($db);
 
 							// Show modules according to features level
-							if ($module->version == 'development' && getDolGlobalString('MAIN_FEATURES_LEVEL') < 2) {
+							if ($module->version == 'development' && scaninvoicesGetDolGlobalString('MAIN_FEATURES_LEVEL') < 2) {
 								continue;
 							}
-							if ($module->version == 'experimental' && getDolGlobalString('MAIN_FEATURES_LEVEL') < 1) {
+							if ($module->version == 'experimental' && scaninvoicesGetDolGlobalString('MAIN_FEATURES_LEVEL') < 1) {
 								continue;
 							}
 
@@ -357,7 +358,7 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 
 								print '<td class="center">';
 								$constforvar = 'SCANINVOICES_' . strtoupper($myTmpObjectKey) . '_ADDON';
-								if (getDolGlobalString($constforvar) == $file) {
+								if (scaninvoicesGetDolGlobalString($constforvar) == $file) {
 									print img_picto($langs->trans("Activated"), 'switch_on');
 								} else {
 									print '<a href="' . $_SERVER["PHP_SELF"] . '?action=setmod&token=' . newToken() . '&object=' . strtolower($myTmpObjectKey) . '&value=' . urlencode($file) . '">';

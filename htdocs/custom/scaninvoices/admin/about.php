@@ -53,6 +53,7 @@ if (!$res) {
 // Libraries
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 // Translations (load 'install' for the 'License' core key)
@@ -81,7 +82,7 @@ if ($action == 'send_feedback') {
 		require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
 
 		$to = 'commercial+scaninvoices@cap-rel.fr';
-		$from = !empty($email) ? $email : getDolGlobalString('MAIN_MAIL_EMAIL_FROM');
+		$from = !empty($email) ? $email : scaninvoicesGetDolGlobalString('MAIN_MAIL_EMAIL_FROM');
 		$subject = 'ScanInvoices Module Feedback - '.$rating.'/5 stars';
 
 		$message = "New feedback from ScanInvoices module:\n\n";

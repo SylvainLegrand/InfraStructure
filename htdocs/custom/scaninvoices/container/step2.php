@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/class/settings.class.php');
 
 $filenamePDF = GETPOST('filenamePDF', 'alpha') ? GETPOST('filenamePDF', 'alpha') : "";
@@ -101,10 +102,10 @@ if ($fournID !== null) {
 	}
 }
 
-if ($fournisseurProductSaved == '' && !empty(getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'))) {
-	$fournisseurProductSaved = getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
+if ($fournisseurProductSaved == '' && !empty(scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'))) {
+	$fournisseurProductSaved = scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
 	if (substr($fournisseurProductSaved, 0, 7) != 'idprod_') {
-		$fournisseurProductSaved = 'idprod_' . getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
+		$fournisseurProductSaved = 'idprod_' . scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
 	}
 }
 
@@ -444,6 +445,16 @@ if ($fournisseurProductSaved == '' && !empty(getDolGlobalString('SCANINVOICES_DE
 
 	});
 
+	// CSRF token + translated labels used by canvascode.js to build the OCR error / support block.
+	window.SCANINVOICES_TOKEN = "<?php echo currentToken(); ?>";
+	window.SCANINVOICES_OCR_I18N = <?php echo json_encode(array(
+		'ocrFailed' => $langs->transnoentities('OcrAnalysisFailed'),
+		'ocrTimeout' => $langs->transnoentities('OcrAnalysisTimeout'),
+		'copyIntro' => $langs->transnoentities('OcrCopyDetailsIntro'),
+		'copyBtn' => $langs->transnoentities('OcrCopyDetailsButton'),
+		'copied' => $langs->transnoentities('OcrDetailsCopied'),
+	)); ?>;
 
+	<?php include 'js/scaninvoices-clientlog.js'; ?>
 	<?php include 'js/canvascode.js'; ?>
 </script>

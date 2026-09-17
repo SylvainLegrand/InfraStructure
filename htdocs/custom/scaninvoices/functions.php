@@ -54,9 +54,11 @@ if (!$res) {
 	exit('Include of main fails');
 }
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 
 
-$permissiontoaccess = $user->rights->scaninvoices->read;
+
+$permissiontoaccess = scaninvoicesUserHasRight($user, 'scaninvoices', 'read');
 /*
 Note: vérification des droits associés et nécessaires:
 	- lire les tiers societe->lire;
@@ -70,14 +72,14 @@ Note: vérification des droits associés et nécessaires:
 	.../...?
 */
 $otherModulesRights = [
-	$user->rights->societe->lire,
-	$user->rights->societe->creer,
-	$user->rights->societe->client->voir,
-	$user->rights->fournisseur->lire,
-	$user->rights->fournisseur->facture->lire,
-	$user->rights->fournisseur->facture->creer,
-	$user->rights->produit->lire,
-	$user->rights->service->lire
+	scaninvoicesUserHasRight($user, 'societe', 'lire'),
+	scaninvoicesUserHasRight($user, 'societe', 'creer'),
+	scaninvoicesUserHasRight($user, 'societe', 'client', 'voir'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'creer'),
+	scaninvoicesUserHasRight($user, 'produit', 'lire'),
+	scaninvoicesUserHasRight($user, 'service', 'lire')
 ];
 // Security check - Protection if external user
 if ($user->socid > 0) {

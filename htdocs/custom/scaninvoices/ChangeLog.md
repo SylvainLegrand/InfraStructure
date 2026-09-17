@@ -1,5 +1,26 @@
 # CHANGELOG SCANINVOICES FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 1.4.94 - 20260909
+
+ * fix import of unit prices below Dolibarr unit precision
+ * keep line prices derived from the line total on import
+
+## 1.4.92 - 20260908
+
+ * fix data extraction for manual stuff
+
+## 1.4.90 - 20260903
+
+ * add buy prices (new option in setup)
+ * accept raw xml files as input
+ * fix phpstan errors
+ * fetch public ip via dolibarr geturl
+
+## 1.4.86 - 20260828
+
+ * fix fatal error on module activation with Dolibarr releases without isModEnabled()
+ * restore compatibility with Dolibarr 14
+
 ## 1.4.84 - 20260616
 
  * fix for some race conditions on import thanks to Hans B.

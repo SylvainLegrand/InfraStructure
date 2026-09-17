@@ -26,6 +26,7 @@
  * \brief      File containing class for advanced numbering model of Filestoimport
  */
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/core/modules/scaninvoices/modules_filestoimport.php');
 
 
@@ -79,7 +80,7 @@ class mod_filestoimport_advanced extends ModeleNumRefFilestoimport
 
 		// Parametrage du prefix
 		$texte .= '<tr><td>'.$langs->trans("Mask").':</td>';
-		$texte .= '<td class="right">'.$form->textwithpicto('<input type="text" class="flat" size="24" name="maskFilestoimport" value="'.getDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADVANCED_MASK').'">', $tooltip, 1, 1).'</td>';
+		$texte .= '<td class="right">'.$form->textwithpicto('<input type="text" class="flat" size="24" name="maskFilestoimport" value="'.scaninvoicesGetDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADVANCED_MASK').'">', $tooltip, 1, 1).'</td>';
 
 		$texte .= '<td class="left" rowspan="2">&nbsp; <input type="submit" class="button" value="'.$langs->trans("Modify").'" name="Button"></td>';
 
@@ -132,7 +133,7 @@ class mod_filestoimport_advanced extends ModeleNumRefFilestoimport
 		require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 		// We get cursor rule
-		$mask = getDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADVANCED_MASK');
+		$mask = scaninvoicesGetDolGlobalString('SCANINVOICES_FILESTOIMPORT_ADVANCED_MASK');
 
 		if (!$mask) {
 			$this->error = 'NotConfigured';

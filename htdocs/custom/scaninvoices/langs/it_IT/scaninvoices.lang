@@ -69,7 +69,8 @@ ModuleScanInvoicesNameManual=Importazione manuale
 ModuleScanInvoicesImportAuto=Importazione automatica
 LineLabelForNewInvoicesIfNotdefine=Guarda il dettaglio negli allegati
 ERROR_MESSAGE_ANALYSE1=Errore durante l&#39;analisi del documento (codice #%s)
-ERROR_MESSAGE_ANALYSE2="Passa a %sl&#39;importazione guidata semimanuale%s e reimporta il tuo documento…"
+ERROR_MESSAGE_ANALYSE2="Passa a %sl&#39;importazione guidata semimanuale%s e reimporta il tuo documento..."
+ErrorAnalyzeNoDataExtracted=Il servizio di analisi non ha estratto alcun dato da questo documento (formato non supportato o contenuto illeggibile)
 ERROR_MESSAGE_CREATE_INVOICE=Errore durante la creazione di %s di %s, codice di errore: %s
 SUCCESS_MESSAGE_CREATE_INVOICE=Fattura %s da %s importata: %s
 ERROR_MESSAGE_INVOICE_DUPLICATE=Errore (%s di %s), questa fattura sembra essere già stata importata. Codice di errore: %s
@@ -89,13 +90,13 @@ MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT1=Se il fornitore di questa fattura esist
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2=Se non esiste, hai due opzioni:
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2a=O lo crei manualmente facendo clic sul pulsante &quot;+&quot; a destra dell&#39;elenco
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2b=O non scegli nulla nel menu a tendina e se il suo numero di partita IVA è presente sulla fattura, lasci che il pilota automatico faccia il lavoro per te (funziona davvero bene solo per le partite IVA francesi)
-MANUAL_IMPORT_STEP1_LEGEND="Nota: La creazione automatica dei fornitori funziona solo se la partita IVA indicata in fattura è un numero francese…"
+MANUAL_IMPORT_STEP1_LEGEND="Nota: La creazione automatica dei fornitori funziona solo se la partita IVA indicata in fattura è un numero francese..."
 Next=seguente
 
 #
 # manual import Step2
 #
-MANUAL_IMPORT_STEP2_OPEN_FILE="Apri il file…"
+MANUAL_IMPORT_STEP2_OPEN_FILE="Apri il file..."
 MANUAL_IMPORT_STEP2_SUPPLIER=Fornitore:
 MANUAL_IMPORT_STEP2_VAT_NUMBER=Partita IVA:
 MANUAL_IMPORT_STEP2_DATE=Data:
@@ -114,7 +115,7 @@ MANUAL_IMPORT_STEP2_HELP_CLOSE=Chiudere
 MANUAL_IMPORT_STEP2_HELP_NEXT=seguente
 MANUAL_IMPORT_STEP2_HELP_PREV=Precedente
 MANUAL_IMPORT_STEP2_HELP_1_TITLE=1. Scelta del fascicolo
-MANUAL_IMPORT_STEP2_HELP_1_TXT="Inizia importando il file della fattura in formato PDF…<br /> Dai, clicca sul pulsante e scegli il tuo file PDF :-)"
+MANUAL_IMPORT_STEP2_HELP_1_TXT="Inizia importando il file della fattura in formato PDF...<br /> Dai, clicca sul pulsante e scegli il tuo file PDF :-)"
 MANUAL_IMPORT_STEP2_HELP_2_TITLE=2. Identificare le aree da analizzare
 MANUAL_IMPORT_STEP2_HELP_2_TXT="Sposta le aree sull&#39;immagine della fattura per indicare quali aree scansionare.<br /> <small>Se mai avevi già definito delle zone per questo fornitore su una fattura precedente, il sistema le avrà preposizionate, dovrai verificare che siano ben posizionate...</small>"
 MANUAL_IMPORT_STEP2_HELP_3_TITLE=3. Eseguire l&#39;OCR
@@ -148,3 +149,14 @@ DateOcrSend="Data di presentazione dell'OCR"
 DateOcrReturn="Data della risposta dell'OCR"
 
 OcrServiceUnavailableStopChain=Il server OCR non è disponibile. L'importazione in serie è stata interrotta. Riprova tra qualche minuto.
+
+# OCR error handling / support details (manual import)
+OcrAnalysisFailed=L'analisi OCR non è riuscita.
+OcrAnalysisTimeout=Il server OCR non ha risposto nel tempo consentito.
+OcrErrorUnreachable=Non è stato possibile contattare il server OCR.
+OcrErrorHttp=Il server OCR ha risposto con il codice HTTP %s.
+OcrErrorBadResponse=Il server OCR ha restituito una risposta illeggibile.
+OcrCopyDetailsIntro=Copia i dettagli qui sotto e inviali all'assistenza per velocizzare la diagnosi:
+OcrCopyDetailsButton=Copia i dettagli per l'assistenza
+OcrDetailsCopied=Dettagli copiati negli appunti
+OcrUploadInvalidResponse=Caricamento non riuscito: risposta del server non valida. Riprova o contatta l'assistenza.

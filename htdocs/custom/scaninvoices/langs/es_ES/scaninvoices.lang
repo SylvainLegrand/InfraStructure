@@ -59,7 +59,8 @@ ModuleScanInvoicesNameManual=Importación manual
 ModuleScanInvoicesImportAuto=Importación automática
 LineLabelForNewInvoicesIfNotdefine=Mira el detalle en los archivos adjuntos
 ERROR_MESSAGE_ANALYSE1=Error al analizar el documento (código #%s)
-ERROR_MESSAGE_ANALYSE2=Cambie a %sel asistente de importación semimanual%s y vuelva a importar su documento…
+ERROR_MESSAGE_ANALYSE2=Cambie a %sel asistente de importación semimanual%s y vuelva a importar su documento...
+ErrorAnalyzeNoDataExtracted=El servicio de análisis no extrajo ningún dato de este documento (formato no compatible o contenido ilegible)
 ERROR_MESSAGE_CREATE_INVOICE=Error al crear %s de %s, código de error: %s
 SUCCESS_MESSAGE_CREATE_INVOICE=Factura %s de %s importada: %s
 ERROR_MESSAGE_INVOICE_DUPLICATE=Error (%s de %s), parece que esta factura ya se ha importado. Código de error: %s
@@ -92,13 +93,13 @@ MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT1=Si el proveedor de esta factura ya exis
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2=Si no existe, tienes dos opciones:
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2a=O lo crea manualmente haciendo clic en el botón "+" a la derecha de la lista
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2b=O no elige nada en el menú desplegable y si su número de IVA está presente en la factura, deja que el piloto automático haga el trabajo por usted (realmente solo funciona bien para los números de IVA franceses)
-MANUAL_IMPORT_STEP1_LEGEND=Nota: La creación automática de proveedores solo funciona si el número de IVA indicado en la factura es un número francés…
+MANUAL_IMPORT_STEP1_LEGEND=Nota: La creación automática de proveedores solo funciona si el número de IVA indicado en la factura es un número francés...
 Next=Próximo
 
 #
 # manual import Step2
 #
-MANUAL_IMPORT_STEP2_OPEN_FILE=Abrir documento…
+MANUAL_IMPORT_STEP2_OPEN_FILE=Abrir documento...
 MANUAL_IMPORT_STEP2_SUPPLIER=Proveedor:
 MANUAL_IMPORT_STEP2_VAT_NUMBER=Número de TVA:
 MANUAL_IMPORT_STEP2_DATE=Con fecha de:
@@ -117,9 +118,9 @@ MANUAL_IMPORT_STEP2_HELP_CLOSE=Cerca
 MANUAL_IMPORT_STEP2_HELP_NEXT=Próximo
 MANUAL_IMPORT_STEP2_HELP_PREV=Anterior
 MANUAL_IMPORT_STEP2_HELP_1_TITLE=1. Elección del archivo
-MANUAL_IMPORT_STEP2_HELP_1_TXT=Comience por importar su archivo de factura en formato PDF…<br />Vaya, haga clic en el botón y elija su archivo PDF :-)
+MANUAL_IMPORT_STEP2_HELP_1_TXT=Comience por importar su archivo de factura en formato PDF...<br />Vaya, haga clic en el botón y elija su archivo PDF :-)
 MANUAL_IMPORT_STEP2_HELP_2_TITLE=2. Identificar las áreas a analizar
-MANUAL_IMPORT_STEP2_HELP_2_TXT=Mueva las áreas en la imagen de la factura para indicar qué áreas analizar.<br /><small>Si alguna vez ya había definido áreas para este proveedor en una factura anterior, el sistema las habrá preposicionado, si hay que comprobar que están bien colocados…</small>
+MANUAL_IMPORT_STEP2_HELP_2_TXT=Mueva las áreas en la imagen de la factura para indicar qué áreas analizar.<br /><small>Si alguna vez ya había definido áreas para este proveedor en una factura anterior, el sistema las habrá preposicionado, si hay que comprobar que están bien colocados...</small>
 MANUAL_IMPORT_STEP2_HELP_3_TITLE=3. Ejecutar OCR
 MANUAL_IMPORT_STEP2_HELP_3_TXT=Haga clic en este botón para iniciar el análisis de imágenes y la extracción de datos <br /><small>tenga cuidado de haber cargado un pdf ANTES y haber posicionado las zonas de análisis</small>
 MANUAL_IMPORT_STEP2_HELP_4_TITLE=4. Comprueba el resultado
@@ -154,3 +155,14 @@ Filestoimports=Archivos para importar
 Filetoimport=Archivos para importar
 
 OcrServiceUnavailableStopChain=El servidor OCR no está disponible. La importación encadenada se ha detenido. Por favor, inténtelo de nuevo en unos minutos.
+
+# OCR error handling / support details (manual import)
+OcrAnalysisFailed=El análisis OCR ha fallado.
+OcrAnalysisTimeout=El servidor OCR no respondió en el tiempo permitido.
+OcrErrorUnreachable=No se pudo contactar con el servidor OCR.
+OcrErrorHttp=El servidor OCR respondió con el código HTTP %s.
+OcrErrorBadResponse=El servidor OCR devolvió una respuesta ilegible.
+OcrCopyDetailsIntro=Copie los detalles a continuación y envíelos al soporte para acelerar el diagnóstico:
+OcrCopyDetailsButton=Copiar los detalles para el soporte
+OcrDetailsCopied=Detalles copiados al portapapeles
+OcrUploadInvalidResponse=La subida ha fallado: respuesta del servidor no válida. Vuelva a intentarlo o contacte con el soporte.

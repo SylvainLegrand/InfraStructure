@@ -58,9 +58,11 @@ if (!$res && file_exists("../../main.inc.php")) $res = @include "../../main.inc.
 if (!$res && file_exists("../../../main.inc.php")) $res = @include "../../../main.inc.php";
 if (!$res) die("Include of main fails");
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 
 
-$permissiontoaccess = $user->rights->scaninvoices->read;
+
+$permissiontoaccess = scaninvoicesUserHasRight($user, 'scaninvoices', 'read');
 /*
 Note: vérification des droits associés et nécessaires:
 	- lire les tiers societe->lire;
@@ -74,14 +76,14 @@ Note: vérification des droits associés et nécessaires:
 	.../...?
 */
 $otherModulesRights = [
-	$user->rights->societe->lire,
-	$user->rights->societe->creer,
-	$user->rights->societe->client->voir,
-	$user->rights->fournisseur->lire,
-	$user->rights->fournisseur->facture->lire,
-	$user->rights->fournisseur->facture->creer,
-	$user->rights->produit->lire,
-	$user->rights->service->lire
+	scaninvoicesUserHasRight($user, 'societe', 'lire'),
+	scaninvoicesUserHasRight($user, 'societe', 'creer'),
+	scaninvoicesUserHasRight($user, 'societe', 'client', 'voir'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'creer'),
+	scaninvoicesUserHasRight($user, 'produit', 'lire'),
+	scaninvoicesUserHasRight($user, 'service', 'lire')
 ];
 // Security check - Protection if external user
 if ($user->socid > 0) accessforbidden();
@@ -182,9 +184,9 @@ include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
 $object->fields = dol_sort_array($object->fields, 'position');
 $arrayfields = dol_sort_array($arrayfields, 'position');
 
-$permissiontoaccess = $user->rights->scaninvoices->read;
-$permissiontoadd = $user->rights->scaninvoices->write;
-$permissiontodelete = $user->rights->scaninvoices->delete;
+$permissiontoaccess = scaninvoicesUserHasRight($user, 'scaninvoices', 'read');
+$permissiontoadd = scaninvoicesUserHasRight($user, 'scaninvoices', 'write');
+$permissiontodelete = scaninvoicesUserHasRight($user, 'scaninvoices', 'delete');
 
 // Security check
 if (empty($conf->scaninvoices->enabled)) accessforbidden('Module not enabled');
@@ -310,7 +312,7 @@ $sql .= $db->order($sortfield, $sortorder);
 
 // Count total nb of records
 $nbtotalofrecords = '';
-if (!getDolGlobalInt('MAIN_DISABLE_FULL_SCANLIST')) {
+if (!scaninvoicesGetDolGlobalInt('MAIN_DISABLE_FULL_SCANLIST')) {
 	$resql = $db->query($sql);
 	$nbtotalofrecords = $db->num_rows($resql);
 	if (($page * $limit) > $nbtotalofrecords) {	// if total of record found is smaller than page * limit, goto and load page 0
@@ -334,7 +336,7 @@ if (is_numeric($nbtotalofrecords) && ($limit > $nbtotalofrecords || empty($limit
 }
 
 // Direct jump if only one record found
-if ($num == 1 && !empty(getDolGlobalString('MAIN_SEARCH_DIRECT_OPEN_IF_ONLY_ONE')) && $search_all && !$page) {
+if ($num == 1 && !empty(scaninvoicesGetDolGlobalString('MAIN_SEARCH_DIRECT_OPEN_IF_ONLY_ONE')) && $search_all && !$page) {
 	$obj = $db->fetch_object($resql);
 	$id = $obj->rowid;
 	header("Location: ".dol_buildpath('/scaninvoices/settings_card.php', 1).'?id='.$id);

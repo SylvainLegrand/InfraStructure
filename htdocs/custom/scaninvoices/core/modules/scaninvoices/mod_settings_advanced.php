@@ -26,6 +26,7 @@
  * \brief      File containing class for advanced numbering model of Settings
  */
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/core/modules/scaninvoices/modules_settings.php');
 
 
@@ -79,7 +80,7 @@ class mod_settings_advanced extends ModeleNumRefSettings
 
 		// Parametrage du prefix
 		$texte .= '<tr><td>'.$langs->trans("Mask").':</td>';
-		$texte .= '<td class="right">'.$form->textwithpicto('<input type="text" class="flat" size="24" name="maskSettings" value="'.getDolGlobalString('SCANINVOICES_SETTINGS_ADVANCED_MASK').'">', $tooltip, 1, 1).'</td>';
+		$texte .= '<td class="right">'.$form->textwithpicto('<input type="text" class="flat" size="24" name="maskSettings" value="'.scaninvoicesGetDolGlobalString('SCANINVOICES_SETTINGS_ADVANCED_MASK').'">', $tooltip, 1, 1).'</td>';
 
 		$texte .= '<td class="left" rowspan="2">&nbsp; <input type="submit" class="button" value="'.$langs->trans("Modify").'" name="Button"></td>';
 
@@ -132,7 +133,7 @@ class mod_settings_advanced extends ModeleNumRefSettings
 		require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 		// We get cursor rule
-		$mask = getDolGlobalString('SCANINVOICES_SETTINGS_ADVANCED_MASK');
+		$mask = scaninvoicesGetDolGlobalString('SCANINVOICES_SETTINGS_ADVANCED_MASK');
 
 		if (!$mask) {
 			$this->error = 'NotConfigured';

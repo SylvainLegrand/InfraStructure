@@ -58,6 +58,7 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 //require_once "../class/myclass.class.php";
 require_once DOL_DOCUMENT_ROOT.'/includes/sabre/autoload.php';
@@ -102,13 +103,13 @@ if ($action == 'set') {
 }
 
 $defaultSHAREchecked = "";
-if (!empty(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_ENABLE'))) {
+if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_ENABLE'))) {
 	$defaultSHAREchecked = " checked";
 }
 
 $defaultSHAREtype = "";
-if (!empty(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE'))) {
-	$defaultSHAREtype = getDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE');
+if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE'))) {
+	$defaultSHAREtype = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE');
 }
 
 $html = "";
@@ -192,37 +193,37 @@ print '</tr>';
 $typepattern = array('1'=> 'Nextcloud', '2' => 'Synology DAV');
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_IMPORT_SHARE_TYPE") . "</b><br /><i>" . $langs->trans("SCANINVOICES_IMPORT_SHARE_TYPETooltip") . '</i></td>';
 print '<td>';
-print $form->selectArray("SCANINVOICES_IMPORT_SHARE_TYPE", $typepattern, getDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE'), 1, 0, 0, '', 0, 0, 0, '', 'width150');
+print $form->selectArray("SCANINVOICES_IMPORT_SHARE_TYPE", $typepattern, scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE'), 1, 0, 0, '', 0, 0, 0, '', 'width150');
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_IMPORT_SHARE_URI") . "</b><br /><i>" . $langs->trans("SCANINVOICES_IMPORT_SHARE_URITooltip") . '</i></td>';
 print '<td>';
-print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_URI" value="' . getDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI') . '" class="minwidth300" onchange="formChange();">';
+print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_URI" value="' . scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI') . '" class="minwidth300" onchange="formChange();">';
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_IMPORT_SHARE_PORT") . "</b><br /><i>" . $langs->trans("SCANINVOICES_IMPORT_SHARE_PORTTooltip") . '</i></td>';
 print '<td>';
-print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_PORT" value="' . getDolGlobalString('SCANINVOICES_IMPORT_SHARE_PORT') . '" class="minwidth300" onchange="formChange();">';
+print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_PORT" value="' . scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_PORT') . '" class="minwidth300" onchange="formChange();">';
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_IMPORT_SHARE_LOGIN") . "</b><br /><i>" . $langs->trans("SCANINVOICES_IMPORT_SHARE_LOGINTooltip") . '</i></td>';
 print '<td>';
-print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_LOGIN" value="' . getDolGlobalString('SCANINVOICES_IMPORT_SHARE_LOGIN') . '" class="minwidth300" onchange="formChange();">';
+print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_LOGIN" value="' . scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_LOGIN') . '" class="minwidth300" onchange="formChange();">';
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_IMPORT_SHARE_PASS") . "</b><br /><i>" . $langs->trans("SCANINVOICES_IMPORT_SHARE_PASSTooltip") . '</i></td>';
 print '<td>';
-print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_PASS" value="' . getDolGlobalString('SCANINVOICES_IMPORT_SHARE_PASS') . '" class="minwidth300" onchange="formChange();">';
+print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_PASS" value="' . scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_PASS') . '" class="minwidth300" onchange="formChange();">';
 print '</td>';
 print '</tr>';
 
 print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_IMPORT_SHARE_MAILREPORT") . "</b><br /><i>" . $langs->trans("SCANINVOICES_IMPORT_SHARE_MAILREPORTTooltip") . '</i></td>';
 print '<td>';
-print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_MAILREPORT" value="' . getDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT') . '" class="minwidth300" onchange="formChange();">';
+print '<input type="text" name="SCANINVOICES_IMPORT_SHARE_MAILREPORT" value="' . scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT') . '" class="minwidth300" onchange="formChange();">';
 print '</td>';
 print '</tr>';
 
@@ -231,7 +232,7 @@ print '</table>';
 print '<br><div class="right">';
 
 $btnDefaultStatus = "";
-if ($defaultSHAREchecked != "" && !empty(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE')) && !empty(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI'))) {
+if ($defaultSHAREchecked != "" && !empty(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE')) && !empty(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI'))) {
 	$btnDefaultStatus = "style='visibility: hidden;'";
 }
 
@@ -291,10 +292,10 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 							$module = new $file($db);
 
 							// Show modules according to features level
-							if ($module->version == 'development' && getDolGlobalString('MAIN_FEATURES_LEVEL < 2')) {
+							if ($module->version == 'development' && scaninvoicesGetDolGlobalString('MAIN_FEATURES_LEVEL < 2')) {
 								continue;
 							}
-							if ($module->version == 'experimental' && getDolGlobalString('MAIN_FEATURES_LEVEL < 1')) {
+							if ($module->version == 'experimental' && scaninvoicesGetDolGlobalString('MAIN_FEATURES_LEVEL < 1')) {
 								continue;
 							}
 
@@ -320,7 +321,7 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 
 								print '<td class="center">';
 								$constforvar = 'SCANINVOICES_' . strtoupper($myTmpObjectKey) . '_ADDON';
-								if (getDolGlobalString($constforvar) == $file) {
+								if (scaninvoicesGetDolGlobalString($constforvar) == $file) {
 									print img_picto($langs->trans("Activated"), 'switch_on');
 								} else {
 									print '<a href="' . $_SERVER["PHP_SELF"] . '?action=setmod&token=' . newToken() . '&object=' . strtolower($myTmpObjectKey) . '&value=' . urlencode($file) . '">';

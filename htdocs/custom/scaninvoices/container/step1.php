@@ -57,7 +57,7 @@
 						<p class="margintoponly marginbottomonly inline-block">
 						<?php
 						$fournID = GETPOST('socid', 'int');
-						print img_picto('', 'company') . $form->select_company($fournID, 'fournID', 's.fournisseur=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth100 widthcentpercentminusxx maxwidth500');
+						print img_picto('', 'company') . $form->select_company($fournID, 'fournID', '(s.fournisseur:=:1)', 'SelectThirdParty', 0, 0, null, 0, 'minwidth100 widthcentpercentminusxx maxwidth500');
 						print ' <a href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=0&fournisseur=1&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create&filenamePDF='. urlencode($filename)) . '"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans("AddThirdParty") . '"></span></a>';
 						?>
 						</p>

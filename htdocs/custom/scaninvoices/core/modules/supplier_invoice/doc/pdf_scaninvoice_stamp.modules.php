@@ -32,6 +32,7 @@ require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 
 
 /**
@@ -144,10 +145,10 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 		$this->page_largeur = $formatarray['width'];
 		$this->page_hauteur = $formatarray['height'];
 		$this->format = array($this->page_largeur, $this->page_hauteur);
-		$this->marge_gauche = getDolGlobalInt('MAIN_PDF_MARGIN_LEFT') ? getDolGlobalInt('MAIN_PDF_MARGIN_LEFT') : 10;
-		$this->marge_droite = getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT') ? getDolGlobalInt('MAIN_PDF_MARGIN_RIGHT') : 10;
-		$this->marge_haute = getDolGlobalInt('MAIN_PDF_MARGIN_TOP') ? getDolGlobalInt('MAIN_PDF_MARGIN_TOP') : 10;
-		$this->marge_basse = getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM') ? getDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM') : 10;
+		$this->marge_gauche = scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_LEFT') ? scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_LEFT') : 10;
+		$this->marge_droite = scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_RIGHT') ? scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_RIGHT') : 10;
+		$this->marge_haute = scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_TOP') ? scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_TOP') : 10;
+		$this->marge_basse = scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM') ? scaninvoicesGetDolGlobalInt('MAIN_PDF_MARGIN_BOTTOM') : 10;
 	}
 
 
@@ -185,7 +186,7 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 			$outputlangs = $langs;
 		}
 		// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-		if (!empty(getDolGlobalString('MAIN_USE_FPDF'))) {
+		if (!empty(scaninvoicesGetDolGlobalString('MAIN_USE_FPDF'))) {
 			$outputlangs->charset_output = 'ISO-8859-1';
 		}
 
@@ -205,7 +206,7 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 				$objectrefsupplier = dol_sanitizeFileName($object->ref_supplier);
 				$dir = $conf->fournisseur->facture->dir_output . '/' . get_exdir($object->id, 2, 0, 0, $object, 'invoice_supplier') . $objectref;
 				$file = $dir . "/" . $objectref . ".pdf";
-				if (!empty(getDolGlobalString('SUPPLIER_REF_IN_NAME'))) {
+				if (!empty(scaninvoicesGetDolGlobalString('SUPPLIER_REF_IN_NAME'))) {
 					$file = $dir . "/" . $objectref . ($objectrefsupplier ? "_" . $objectrefsupplier : "") . ".pdf";
 				}
 			}
@@ -278,7 +279,7 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 				$pdf->SetCreator("Dolibarr " . DOL_VERSION);
 				$pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
 				$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref) . " " . $outputlangs->transnoentities("PdfInvoiceTitle") . " " . $outputlangs->convToOutputCharset($object->thirdparty->name));
-				if (!empty(getDolGlobalString('MAIN_DISABLE_PDF_COMPRESSION'))) {
+				if (!empty(scaninvoicesGetDolGlobalString('MAIN_DISABLE_PDF_COMPRESSION'))) {
 					$pdf->SetCompression(false);
 				}
 
@@ -301,8 +302,8 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 					dol_syslog("scaninvoice_stamp : exception on pdf close is " . $e->getMessage(), LOG_WARNING);
 				}
 
-				if (!empty(getDolGlobalString('MAIN_UMASK'))) {
-					@chmod($file, octdec(getDolGlobalString('MAIN_UMASK')));
+				if (!empty(scaninvoicesGetDolGlobalString('MAIN_UMASK'))) {
+					@chmod($file, octdec(scaninvoicesGetDolGlobalString('MAIN_UMASK')));
 				}
 
 				//clean up tmp file

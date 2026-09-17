@@ -25,6 +25,7 @@
 
 dol_include_once('/scaninvoices/class/filestoimport.class.php');
 dol_include_once('/scaninvoices/lib/scaninvoices_filestoimport.lib.php');
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 /**
@@ -121,8 +122,8 @@ class ActionsScanInvoices
 		// if (in_array($parameters['currentcontext'], array('contractcard'))				// do something only for the context 'contractcard'
 		//     if ($user->rights->sellyoursaas->write) {
 		//         if (in_array($object->array_options['options_deployment_status'], array('processing', 'undeployed'))) {
-		//             $alt = $langs->trans("SellYourSaasSubDomains").' '.getDolGlobalString('SELLYOURSAAS_SUB_DOMAIN_NAMES');
-		//             $alt.= '<br>'.$langs->trans("SellYourSaasSubDomainsIP").' '.getDolGlobalString('SELLYOURSAAS_SUB_DOMAIN_IP');
+		//             $alt = $langs->trans("SellYourSaasSubDomains").' '.scaninvoicesGetDolGlobalString('SELLYOURSAAS_SUB_DOMAIN_NAMES');
+		//             $alt.= '<br>'.$langs->trans("SellYourSaasSubDomainsIP").' '.scaninvoicesGetDolGlobalString('SELLYOURSAAS_SUB_DOMAIN_IP');
 
 		//             print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=deploy&token='.urlencode(newToken()).'" title="'.dol_escape_htmltag($alt).'">' . $langs->trans('Redeploy') . '</a>';
 		//         } else {
@@ -385,7 +386,7 @@ class ActionsScanInvoices
 		global $user;
 
 		if ($parameters['features'] == 'myobject') {
-			if ($user->rights->scaninvoices->read) {
+			if (scaninvoicesUserHasRight($user, 'scaninvoices', 'read')) {
 				$this->results['result'] = 1;
 				return 1;
 			} else {
@@ -483,7 +484,7 @@ class ActionsScanInvoices
 		}
 		$html .= "</p>";
 		if ($documentAjoute > 0) {
-			scaninvoicesSendMail(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'), $langs->trans("MailRepporting"), '', '', $html);
+			scaninvoicesSendMail(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'), $langs->trans("MailRepporting"), '', '', $html);
 		}
 
 		return 1;

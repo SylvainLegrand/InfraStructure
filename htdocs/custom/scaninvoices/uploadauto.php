@@ -1,5 +1,4 @@
 <?php
-
 /**
  * uploadauto.php - called by importauto.php stuff
  *
@@ -21,14 +20,21 @@
 define('NOTOKENRENEWAL', 1);
 
 require_once 'functions.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
-require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
-require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 dol_include_once('/scaninvoices/class/settings.class.php');
 dol_include_once('/scaninvoices/class/filestoimport.class.php');
 dol_include_once('/scaninvoices/lib/scaninvoices_settings.lib.php');
 
-require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+
+// Capture any stray PHP output (warnings/notices from the antivirus scan, file
+// move or create) so it can never corrupt the JSON body. The frontend does
+// JSON.parse(response) right after upload; a leaked warning breaks it and the
+// auto-import chain silently stops (file stays "Waiting"). Flushed before echo.
+ob_start();
 
 $action = (string) GETPOST('action', 'alpha');
 $maxHeight = (int) GETPOST('maxHeight', 'int');
@@ -56,7 +62,7 @@ foreach ($_FILES as $key => &$file) {
 	$mimeType = finfo_file($finfo, $file['tmp_name']);
 	dol_syslog("ScanInvoices import mime type = $mimeType");
 	finfo_close($finfo);
-	$dirupload = tempnam(DOL_DATA_ROOT . '/scaninvoices/temp/', 'scaninvoices');
+	$dirupload = tempnam(DOL_DATA_ROOT.'/scaninvoices/temp/', 'scaninvoices');
 
 	//default storage file ext is pdf
 	$storageExt = ".pdf";
@@ -86,7 +92,7 @@ foreach ($_FILES as $key => &$file) {
 		$pdf->AddPage();
 		$pdf->setJPEGQuality(75);
 		$pdf->Image($file['tmp_name'], 5, 5, $page_largeur - 10, $page_hauteur - 10, '', '', '', false, 300, '', false, false, 0);
-		$tmpfile = tempnam(DOL_DATA_ROOT . '/scaninvoices/temp/', 'scaninvoices');
+		$tmpfile = tempnam(DOL_DATA_ROOT.'/scaninvoices/temp/', 'scaninvoices');
 		$pdf->Output($tmpfile, 'F');
 		rename($tmpfile, $file['tmp_name']);
 		$file['name'] = str_replace($extension, 'pdf', $file['name']);
@@ -95,7 +101,7 @@ foreach ($_FILES as $key => &$file) {
 
 	$sha1 = sha1_file($file['tmp_name']);
 	//search if file is already here
-	$resultAll = $object->fetchAll('', '', 0, 0, array('customsql' => "t.sha1='" . $sha1 . "'"));
+	$resultAll = $object->fetchAll('', '', 0, 0, array('customsql'=>"t.sha1='" . $sha1 . "'"));
 	if ($resultAll) {
 		$object = reset($resultAll);
 		// print json_encode($object);
@@ -104,7 +110,7 @@ foreach ($_FILES as $key => &$file) {
 		$row['message'] = "duplicate";
 	} else {
 		$db->begin();
-		$basefilename = dol_sanitizeFileName(scaninvoicesSlugify(basename($file['name'], $storageExt))) . $storageExt;
+		$basefilename = dol_sanitizeFileName(scaninvoicesSlugify(basename($file['name'], $storageExt))).$storageExt;
 		$object->filename = $basefilename;
 		$object->date_creation = dol_now();
 		$object->import_key = $importKey;
@@ -112,10 +118,10 @@ foreach ($_FILES as $key => &$file) {
 		if ($action == 'later') {
 			$object->queue = Filestoimport::QUEUE_LATER;
 			$output['action'] = $action;
-			$dirupload = DOL_DATA_ROOT . '/scaninvoices/uploads/later/';
+			$dirupload = DOL_DATA_ROOT.'/scaninvoices/uploads/later/';
 		} else {
 			$object->queue = Filestoimport::QUEUE_NOW;
-			$dirupload = DOL_DATA_ROOT . '/scaninvoices/uploads/now/';
+			$dirupload = DOL_DATA_ROOT.'/scaninvoices/uploads/now/';
 		}
 		$completefilename = $dirupload . $basefilename;
 
@@ -127,7 +133,7 @@ foreach ($_FILES as $key => &$file) {
 
 		if (dol_move_uploaded_file($file['tmp_name'], $completefilename, 1) <= 0) {
 			$output['result'] = 'err';
-			$output['error'] = "Failed to save uploaded file '" . $file['name'] . "'. Please check permissions or file size limits.";
+			$output['error'] = "Failed to save uploaded file '".$file['name']."'. Please check permissions or file size limits.";
 			break;
 		} else {
 			if (!file_exists($completefilename) || !is_readable($completefilename)) {
@@ -141,9 +147,9 @@ foreach ($_FILES as $key => &$file) {
 			$objectid = $object->create($user);
 			if ($objectid <= 0) {
 				$db->rollback();
-				dol_syslog('ScanInvoices create_object Erreur : ' . $object->error);
+				dol_syslog('ScanInvoices create_object Erreur : '.$object->error);
 			} else {
-				dol_syslog('ScanInvoices create_object OK : ' . $objectid);
+				dol_syslog('ScanInvoices create_object OK : '.$objectid);
 				$db->commit();
 			}
 			$row['id'] = $objectid;
@@ -160,5 +166,6 @@ $output['nbFiles'] = $numFile;
 
 dol_syslog("ScanInvoices import auto, return is = " . json_encode($output));
 
-header('Content-Type: ' . JSON_MIME_TYPE);
+scaninvoicesStripStrayOutput('uploadauto');
+header('Content-Type: '.JSON_MIME_TYPE);
 echo json_encode($output);

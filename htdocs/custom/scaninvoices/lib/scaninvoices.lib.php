@@ -24,6 +24,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/geturl.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/core/modules/modScanInvoices.class.php');
 dol_include_once('/scaninvoices/class/filestoimport.class.php');
 dol_include_once('/scaninvoices/class/settings.class.php');
@@ -31,14 +32,14 @@ dol_include_once('/scaninvoices/lib/scaninvoices_settings.lib.php');
 
 if (isset($db)) {
 	$tmpmodule = new modScanInvoices($db);
-	if ($tmpmodule->version != getDolGlobalString('SCANINVOICE_MODULE_VERSION')) {
+	if ($tmpmodule->version != scaninvoicesGetDolGlobalString('SCANINVOICE_MODULE_VERSION')) {
 		setEventMessages($langs->trans("ErrorScanInvoiceModuleVersionDatabase"), [], 'errors');
 	}
 }
 
-//getDolGlobalString('SCANINVOICES_KEY_API'),
+//scaninvoicesGetDolGlobalString('SCANINVOICES_KEY_API'),
 // $scaninvoices_apikey = "1|yvAK40gVwQNVARMViUvCcztaH9XNhV57DeYGbHH2";
-// $scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+// $scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 // print "chargement de la lib, endpoint = $scaninvoices_endpoint\n";
 
 function scaninvoicesMultibyte_trim($str)
@@ -124,7 +125,7 @@ function scanInvoicesuserAgent()
 		dol_syslog("Set server UUID $uuid");
 	}
 
-	return 'dolibarr/' . getDolGlobalString('MAIN_INFO_SOCIETE_NOM') . " (scaninvoices@" . $modScanInvoices->version . ") [" . $uuid . "]";
+	return 'dolibarr/' . scaninvoicesGetDolGlobalString('MAIN_INFO_SOCIETE_NOM') . " (scaninvoices@" . $modScanInvoices->version . ") [" . $uuid . "]";
 }
 
 function scanInvoicesApiCommonHeader($withBearer = true, $isJson = true)
@@ -133,7 +134,7 @@ function scanInvoicesApiCommonHeader($withBearer = true, $isJson = true)
 	$curlHeaders[] = 'User-Agent: ' . scanInvoicesuserAgent();
 	$curlHeaders[] = 'Accept: ' . 'application/json';
 	if ($withBearer) {
-		$curlHeaders[] = 'Authorization: ' . 'Bearer ' . getDolGlobalString('SCANINVOICES_KEY_API');
+		$curlHeaders[] = 'Authorization: ' . 'Bearer ' . scaninvoicesGetDolGlobalString('SCANINVOICES_KEY_API');
 	}
 	if ($isJson) {
 		$curlHeaders[] = 'Content-Type: ' . 'application/json';
@@ -144,12 +145,12 @@ function scanInvoicesApiCommonHeader($withBearer = true, $isJson = true)
 function scaninvoicesApiTryLoginWithAPIKey()
 {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$retour = false;
 
 	$url = $scaninvoices_endpoint . '/api/profile';
 	dol_syslog('ScanInvoices:scaninvoicesApiTryLoginWithAPIKey Try to log in ' . $url . ' with api key ...');
-	$param = ['json' => ['email' => getDolGlobalString('SCANINVOICES_EMAIL')]];
+	$param = ['json' => ['email' => scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL')]];
 	$result = getURLContent($url, 'POST', json_encode($param), 1, scanInvoicesApiCommonHeader(), ['http', 'https'], 2);
 	scaninvoiceshandleTimeoutCheckBlacklist($result);
 
@@ -180,7 +181,7 @@ function scaninvoicesApiCreateAPIKey()
 function scaninvoicesApiCreateAccount()
 {
 	global $conf, $mesg, $langs, $db, $user;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$retour = false;
 
 	//Note : special case header without api key
@@ -195,9 +196,9 @@ function scaninvoicesApiCreateAccount()
 	$param = [
 		'firstname' => $user->firstname,
 		'name' => $user->lastname,
-		'email' => getDolGlobalString('SCANINVOICES_EMAIL'),
-		'password' => getDolGlobalString('SCANINVOICES_PASS_API'),
-		'password_confirmation' => getDolGlobalString('SCANINVOICES_PASS_API'),
+		'email' => scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL'),
+		'password' => scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API'),
+		'password_confirmation' => scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API'),
 	];
 	$result = getURLContent($url, 'POST', json_encode($param), 1, scanInvoicesApiCommonHeader(false), ['http', 'https'], 2);
 	scaninvoiceshandleTimeoutCheckBlacklist($result);
@@ -226,13 +227,13 @@ function scaninvoicesApiCreateAccount()
 function scaninvoicesApiTryLoginWithUserPass()
 {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = scaninvoicesgetDolGlobalString('SCANINVOICES_URI', 'https://ocr.cap-rel.fr');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI', 'https://ocr.cap-rel.fr');
 	$retour = -1;
 
 	//Note special case, we do not use api key
 	$url = $scaninvoices_endpoint . '/api/login';
-	$email = scaninvoicesgetDolGlobalString('SCANINVOICES_EMAIL', '');
-	$pass = scaninvoicesgetDolGlobalString('SCANINVOICES_PASS_API', '');
+	$email = scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL', '');
+	$pass = scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API', '');
 	if (empty($scaninvoices_endpoint) || empty($email) || empty($pass)) {
 		// setEventMessages("error 2", [json_encode($conf->global)], 'errors');
 		return -2;
@@ -275,7 +276,7 @@ function scaninvoicesApiTryLoginWithUserPass()
 function scaninvoicesApiGetCompanyDetailsWithVatNumber($vatNumberArg)
 {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$retour = false;
 	$vatNumber = preg_replace('/[\W]/', '', $vatNumberArg);
 
@@ -343,7 +344,7 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 	global $conf, $mesg, $langs, $db, $user;
 	$fournisseurID = -1;
 
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$retour = array('error' => '');
 
 	if ($object) {
@@ -385,9 +386,24 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 		$data = new stdClass();
 		$data->fileName = $completefilename;
 
+		// Default values: the OCR server may return a partial payload, so every
+		// field read below has to exist whatever branch is taken.
+		$data->fournisseur = '';
+		$data->fournisseurVAT = '';
+		$data->fournisseurAddr1 = '';
+		$data->fournisseurAddr2 = '';
+		$data->fournisseurAddr3 = '';
+		$data->fournisseurAddrCP = '';
+		$data->fournisseurAddrCity = '';
+		$data->fournisseurAddrCountry = '';
+		$data->fournisseurCountryCode = '';
+
 		//maybe a base64file was included inside file (pdf into xml peppol for example)
 		dol_syslog('  search for base64_file data');
-		if (isset($dataJson->meta)) {
+		// meta must be a real object: the server can answer with an empty string
+		// (meta:"") when it did not manage to extract anything from the document.
+		// isset() alone is true in that case and would skip the fallback below.
+		if (isset($dataJson->meta) && is_object($dataJson->meta)) {
 			if (isset($dataJson->meta->base64_file)) {
 				dol_syslog('  base64_file present ..., filename = ' . $dataJson->meta->base64_file_name);
 				$data->base64_file = $dataJson->meta->base64_file ?? '';
@@ -424,13 +440,6 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 		} else {
 			$data->fournisseur = scaninvoicesGetJsonValue($dataJson, 'meta->supplier_name', '');
 			$data->fournisseurVAT = scaninvoicesGetJsonValue($dataJson, 'meta->supplier_numtva', '');
-			$data->fournisseurAddr1 = '';
-			$data->fournisseurAddr2 = '';
-			$data->fournisseurAddr3 = '';
-			$data->fournisseurAddrCP = '';
-			$data->fournisseurAddrCity = '';
-			$data->fournisseurAddrCountry = '';
-			$data->fournisseurCountryCode = '';
 		}
 
 		//bug nom de fournisseur sans aucun caractères, exemple "----"
@@ -443,11 +452,46 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 		// dol_syslog("Retour brut du serveur 2 : " . json_encode($dataJson->meta));
 		if (isset($dataJson->meta->products)) {
 			// dol_syslog("dataJson include products lines : " . json_encode($dataJson->meta->products));
-			if (empty(getDolGlobalString('SCANINVOICES_DISABLE_IMPORT_LINES'))) {
+			if (empty(scaninvoicesGetDolGlobalString('SCANINVOICES_DISABLE_IMPORT_LINES'))) {
 				$data->lines = $dataJson->meta->products;
 			}
 		} else {
 			// dol_syslog("dataJson does not include products lines ! ");
+		}
+
+		// The OCR server can answer HTTP 200 with nothing usable inside (meta:"" or
+		// a meta without supplier nor invoice number), typically when it does not
+		// know how to read that document format. Report that case explicitly:
+		// without a supplier name, a VAT number and an invoice number there is
+		// nothing to import, and going on would fail later on the supplier
+		// creation with a misleading "cannot create supplier" message.
+		$invoiceNumber = scaninvoicesGetJsonValue($dataJson, 'meta->invoice_number', '');
+		if (empty($data->fournisseur) && empty($data->fournisseurVAT) && empty($invoiceNumber)) {
+			$ocrID = isset($dataJson->ocrID) ? basename($dataJson->ocrID) : '';
+			dol_syslog(
+				'scaninvoicesApiRunInvoiceAnalyze ERREUR ANLY-003 : analyse vide, aucune donnée exploitable. ocrID=' . $ocrID
+				. ', file=' . $completefilename . ', payload=' . dol_trunc($result['content'], 500),
+				LOG_ERR
+			);
+			$code = 'ANLY-003 : ' . $langs->transnoentities('ErrorAnalyzeNoDataExtracted');
+			if ($ocrID != '') {
+				$code .= ' (ocrID ' . $ocrID . ')';
+			}
+			$msg = scaninvoicesMessageErreurAnalyse($code, $data, $dataJson);
+			$retour['message'] = $msg;
+			$retour['error'] = $msg;
+			$retour['fourn'] = $msg;
+			$retour['fact'] = '';
+			$retour['justif'] = basename($completefilename);
+
+			if ($object) {
+				$object->date_ocr_return = dol_now();
+				$object->status = Filestoimport::STATUS_ERROR;
+				$object->message = strip_tags($msg);
+				$object->update($user);
+			}
+
+			return $retour;
 		}
 
 		//Recherche si le fournisseur existe dans dolibarr : on utilise le num de TVA si il existe
@@ -495,7 +539,8 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 				if ($retour['error'] != "") {
 					$object->status = Filestoimport::STATUS_ERROR;
 				}
-				$object->message = strip_tags($retour['message']);
+				// message is only set on the failure branch above
+				$object->message = strip_tags($retour['message'] ?? '');
 				$object->update($user);
 			}
 		}
@@ -524,12 +569,18 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 			//Le produit par défaut s'il est configuré
 			$defaultproduct = new Settings($db);
 			$resultDefProAll = $defaultproduct->fetchAll('', '', 0, 0, array('customsql' => "t.fk_soc=$fournisseurID"));
+			if (!is_array($resultDefProAll)) {
+				// fetchAll returns a negative int on sql error (missing table after a
+				// broken module update for instance): reset() would be fatal there.
+				dol_syslog('scaninvoicesApiRunInvoiceAnalyze: Settings::fetchAll failed (' . $defaultproduct->error . '), no default product for supplier ' . $fournisseurID, LOG_WARNING);
+				$resultDefProAll = array();
+			}
 			$defaultproduct = reset($resultDefProAll);
 			if ($resultDefProAll && !empty($defaultproduct->fk_default_product)) {
 				$data->defaultProductID = $defaultproduct->fk_default_product;
 				dol_syslog('scaninvoicesApiRunInvoiceAnalyze produit/service par défaut (from supplier) id=' . $defaultproduct->fk_default_product);
-			} elseif (!empty(getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'))) {
-				$data->defaultProductID = getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
+			} elseif (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'))) {
+				$data->defaultProductID = scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
 				dol_syslog('scaninvoicesApiRunInvoiceAnalyze produit/service par défaut (from module conf) (b) id=' . $data->defaultProductID);
 			} else {
 				dol_syslog('importInvoice pas de produit/service par défaut pour ce fournisseur');
@@ -611,7 +662,7 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 function scaninvoicesApiGetInfoAboutWebservice($format = 'html')
 {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 
 	$module = new modScanInvoices($db);
 
@@ -622,7 +673,7 @@ function scaninvoicesApiGetInfoAboutWebservice($format = 'html')
 	$url = $scaninvoices_endpoint . '/api/ruok';
 	$param = [
 		'json' => [
-			'email' => getDolGlobalString('SCANINVOICES_EMAIL'),
+			'email' => scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL'),
 			'protocol' => $module->protocol,
 		]
 	];
@@ -683,7 +734,7 @@ function scaninvoicesApiGetInfoAboutWebservice($format = 'html')
 function scaninvoicesApiGetInvoicesZonesForSupplier($vatNumberArg, $exactNameArg)
 {
 	global $conf, $mesg, $langs, $db;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 	$retour = array('error' => '');
 	$vatNumber = preg_replace('/[\W]/', '', $vatNumberArg);
 	$param = ['objectType' => 'invoices', 'vatNumber' => $vatNumber, 'name' => $exactNameArg];
@@ -779,14 +830,29 @@ function scaninvoicesValidateDate($date, $format = 'Y-m-d')
 	return $d && $d->format($format) === $date;
 }
 
-//Netttoyage d'un nombre éventuellement accompagné d'un signe euro par exemple
-function scaninvoicesClean_amount($str)
+/**
+ * Netttoyage d'un nombre éventuellement accompagné d'un signe euro par exemple
+ *
+ * @param   mixed   $str        Amount to clean
+ * @param   mixed   $rounding   price2num() rounding mode ('MU' for a unit price, 'MT' for a
+ *                              total, 'CU' to keep the highest available precision)
+ * @return  string              Cleaned amount
+ */
+function scaninvoicesClean_amount($str, $rounding = 'MU')
 {
 	global $langs;
 
+	// PHP casts a float below 0.0001 to a scientific notation string ("1.5E-5"), and the
+	// cleanup below only keeps digits, dot, comma and minus: the exponent would be dropped
+	// and "1.5E-5" would become "1.5-5", read back as 1.5, ie 100000 times too big. Expand
+	// to plain decimal notation before cleaning.
+	if (is_numeric($str) && preg_match('/[eE][+-]?\d+/', (string) $str)) {
+		$str = rtrim(rtrim(sprintf('%.12F', (float) $str), '0'), '.');
+	}
+
 	$str = str_replace(['−', '‐', '‑', '‒', '–', '—', '―'], '-', html_entity_decode($str));
 	$number = preg_replace('/[^\d\.,-]/', '', $str);
-	$res = price2num($number, 'MU');
+	$res = price2num($number, $rounding);
 	dol_syslog(" clean amount $str -> $number -> $res");
 	return $res;
 
@@ -903,7 +969,7 @@ function scaninvoicesCreate_fact_fournisseur($data)
 		}
 
 		//forcee everything from dolibarr thirdpart settings
-		if (getDolGlobalString('SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR')) {
+		if (scaninvoicesGetDolGlobalString('SCANINVOICES_FORCE_SUPPLIER_SETTINGS_FROM_DOLIBARR')) {
 			dol_syslog(' ScanInvoices: configuration is to force supplier payment settings from thirdpart settings...');
 
 			if (!empty($facfou->thirdparty->fk_account)) {
@@ -995,7 +1061,7 @@ function scaninvoicesCreate_fact_fournisseur($data)
 
 			//Si on a des lignes de factures dans la structure importée (par exemple facturX ou retour multiligne)
 			// dol_syslog("______________________________________________________ ScanInvoices : products lines ? " . json_encode($data->lines));
-			if (empty(getDolGlobalString('SCANINVOICES_DISABLE_IMPORT_LINES')) && is_array($data->lines) && (count($data->lines) > 0)) {
+			if (empty(scaninvoicesGetDolGlobalString('SCANINVOICES_DISABLE_IMPORT_LINES')) && is_array($data->lines) && (count($data->lines) > 0)) {
 				//TODO disabled due to setup, documentation and user settings we have to do before
 				$prevline = null;
 				foreach ($data->lines as $line) {
@@ -1004,12 +1070,14 @@ function scaninvoicesCreate_fact_fournisseur($data)
 
 					//certaines factures ont 2 lignes pour un produit, si cette ligne n'a pas de prix
 					//et de quantité on passe a la suivante
-					$price = scaninvoicesClean_amount($line->price_base);
+					//price_base comes from the structured readers (Peppol, Factur-X), unit_price from
+					//the OCR templates: neither is guaranteed, hence the isset() before reading them.
+					$price = isset($line->price_base) ? scaninvoicesClean_amount($line->price_base) : 0;
 					if (($price == '' || $price == 0) && isset($line->unit_price)) {
 						$price = scaninvoicesClean_amount($line->unit_price);
 					}
 
-					$qty = scaninvoicesClean_amount($line->qty);
+					$qty = isset($line->qty) ? scaninvoicesClean_amount($line->qty) : 0;
 					if (($qty == '' || $qty == 0) && isset($line->quantity)) {
 						$qty = scaninvoicesClean_amount($line->quantity);
 					}
@@ -1021,6 +1089,20 @@ function scaninvoicesCreate_fact_fournisseur($data)
 						} else {
 							$price = scaninvoicesClean_amount($line->amount_untax);
 						}
+					}
+
+					//Same with total_ht, the line total the structured readers report (BT-131).
+					//Some Factur-X issuers leave the net unit price (BT-146) at zero and only fill
+					//that total: without this fallback the line is dropped below by the "price and
+					//quantity not null" test and the invoice is imported without its lines.
+					if (($price == '' || $price == 0) && isset($line->total_ht) && scaninvoicesClean_amount($line->total_ht) != 0) {
+						if ($qty > 0) {
+							$price = scaninvoicesClean_amount($line->total_ht) / $qty;
+						} else {
+							$price = scaninvoicesClean_amount($line->total_ht);
+							$qty = 1;
+						}
+						dol_syslog("ScanInvoices : no unit price on that line, derived from total_ht=" . $line->total_ht . " and qty=$qty -> price=$price");
 					}
 
 					//Si un taux de TVA existe pour ce produit on l'utilise, sinon on reste sur le taux global de la facture
@@ -1092,18 +1174,27 @@ function scaninvoicesCreate_fact_fournisseur($data)
 
 					$fk_product = scaninvoicesSearchProductID($ref, $data->fournisseurID);
 
-					//Creation d'un produit si prix > 0
-					$price = scaninvoicesClean_amount($line->price_base);
-					$qty = scaninvoicesClean_amount($line->qty);
-					if ($price == 0) {
-						$price = scaninvoicesClean_amount($line->unit_price);
+					// Refresh the price and the quantity from the line, but never overwrite with a
+					// zero what the block above already derived from the line total (amount_untax or
+					// amount_tax) or from the quantity alias: the line would then be silently dropped
+					// by the "price != 0 && qty != 0" test below, and the invoice would be recorded
+					// with missing lines and a wrong total.
+					$priceFromLine = isset($line->price_base) ? scaninvoicesClean_amount($line->price_base) : 0;
+					if ($priceFromLine == 0 && isset($line->unit_price)) {
+						$priceFromLine = scaninvoicesClean_amount($line->unit_price);
+					}
+					$price = ($priceFromLine != 0) ? $priceFromLine : price2num($price, 'MU');
+
+					$qtyFromLine = isset($line->qty) ? scaninvoicesClean_amount($line->qty) : 0;
+					if ($qtyFromLine != 0) {
+						$qty = $qtyFromLine;
 					}
 
 					//Creation d'un produit si prix > 0 et option SCANINVOICES_IMPORT_CREATE_PRODUCT
-					if ($fk_product <= 0 && $price > 0 && getDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT')) {
+					if ($fk_product <= 0 && $price > 0 && scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT')) {
 						$nproduit = new Product($db);
 						//bug détecté nico : si tout est produit pb de déclaration de TVA !!!!
-						$nproduit->type = getDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT_TYPE') ?? Product::TYPE_SERVICE;
+						$nproduit->type = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT_TYPE') ?? Product::TYPE_SERVICE;
 
 						$nproduit->status = 0; //pas en vente
 						$nproduit->status_buy = 1; //en achat
@@ -1121,6 +1212,11 @@ function scaninvoicesCreate_fact_fournisseur($data)
 						}
 					}
 
+					//Produit réellement identifié par sa référence (ou créé à l'instant) : seul celui-là peut
+					//recevoir le prix d'achat de la ligne. Le produit par défaut ci-dessous est un article
+					//fourre-tout partagé, lui affecter un prix d'achat n'aurait aucun sens.
+					$fk_product_identified = ($fk_product > 0) ? $fk_product : 0;
+
 					//Si toujours pas de produit -> utilisation du produit par defaut pour le fournisseur
 					if ($fk_product <= 0) {
 						$defaultproduct = new Settings($db);
@@ -1129,8 +1225,8 @@ function scaninvoicesCreate_fact_fournisseur($data)
 						if ($resultDefProAll && !empty($defaultproduct->fk_default_product)) {
 							$fk_product = $defaultproduct->fk_default_product;
 							dol_syslog('scaninvoicesApiRunInvoiceAnalyze produit/service par défaut (from supplier) id=' . $defaultproduct->fk_default_product);
-						} elseif (!empty(getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'))) {
-							$fk_product = getDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
+						} elseif (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT'))) {
+							$fk_product = scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_PRODUCT');
 							dol_syslog('scaninvoicesApiRunInvoiceAnalyze produit/service par défaut (from module conf) (c) id=' . $data->defaultProductID);
 						} else {
 							dol_syslog('importInvoice pas de produit/service par défaut pour ce fournisseur');
@@ -1148,7 +1244,7 @@ function scaninvoicesCreate_fact_fournisseur($data)
 						if ($detailtsProduit->fetch($fk_product)) {
 							$typeProductOrService = $detailtsProduit->type;
 							//update product label au vol
-							if (getDolGlobalString('SCANINVOICES_IMPORT_OVERRIDE_LABEL_PRODUCT')) {
+							if (scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_OVERRIDE_LABEL_PRODUCT')) {
 								$detailtsProduit->label = scaninvoicesClean_label($line->label);
 								$detailtsProduit->update($fk_product, $user, true);
 							}
@@ -1164,11 +1260,58 @@ function scaninvoicesCreate_fact_fournisseur($data)
 						$txt .= " : " . $line->desc;
 					}
 
+					// Dolibarr rounds unit prices to MAIN_MAX_DECIMALS_UNIT decimals (5 by default).
+					// A per-usage invoice can bill below that precision (0.000015 EUR per snapshot for
+					// instance): rounding the unit price multiplies the error by the quantity and
+					// inflates the whole invoice. When rounding costs more than one cent on the line,
+					// import the exact line total as a single unit instead.
+					$roundedToSingleUnit = false;
+					$rawUnitPriceLabel = '';
+					$rawUnitPrice = isset($line->price_base) ? (float) scaninvoicesClean_amount($line->price_base, 'CU') : 0;
+					// No unit price on the line: the exact one is the line total divided by the
+					// quantity, so the rounding check below also covers the prices derived above.
+					if ($rawUnitPrice == 0 && isset($line->total_ht) && $qty > 0) {
+						$rawUnitPrice = (float) scaninvoicesClean_amount($line->total_ht, 'CU') / $qty;
+					}
+					if ($rawUnitPrice != 0 && $qty > 0 && abs(((float) $price - $rawUnitPrice) * $qty) > 0.01) {
+						$exactLineTotal = $rawUnitPrice * $qty;
+						if (isset($line->total_ht) && (float) $line->total_ht != 0) {
+							$exactLineTotal = $line->total_ht;
+						}
+						$rawUnitPriceLabel = rtrim(rtrim(sprintf('%.12F', $rawUnitPrice), '0'), '.');
+						dol_syslog(
+							"ScanInvoices : unit price $rawUnitPriceLabel is below Dolibarr unit precision (rounded to $price)"
+							. ", import qty=$qty as a single line of $exactLineTotal to keep the exact amount"
+						);
+						$txt .= ' (' . $qty . ' x ' . $rawUnitPriceLabel . ')';
+						$price = scaninvoicesClean_amount($exactLineTotal, 'MT');
+						$qty = 1;
+						$roundedToSingleUnit = true;
+					}
+
 					if ($price != 0 && $qty != 0) {
 						//    function addline($desc, $pu, $txtva, $txlocaltax1, $txlocaltax2, $qty, $fk_product = 0, $remise_percent = 0, $date_start = '', $date_end = '', $ventil = 0, $info_bits = '', $price_base_type = 'HT', $type = 0, $rang = -1, $notrigger = false, $array_options = 0, $fk_unit = null, $origin_id = 0, $pu_ht_devise = 0, $ref_supplier = '', $special_code = '', $fk_parent_line = 0, $fk_remise_except = 0)
 						$ret = $facfou->addline($txt, $price, $tauxtva, 0, 0, $qty, $fk_product, $line->remise_percent, '', '', 0, '', 'HT', $typeProductOrService, -1, false, 0, null, 0, 0, $ref);
 						if ($ret < 0) {
 							dol_syslog("______________________________________________________ ScanInvoices : add line error for txt=$txt, price=$price,tauxtva=" . $tauxtva . ",qty=" . $qty . "fk_product=$fk_product, ref=$ref");
+						} elseif (scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_UPDATE_BUYPRICE') && $fk_product_identified > 0) {
+							if ($roundedToSingleUnit) {
+								// $price holds the line total here, not a unit price: recording it
+								// as a buying price would corrupt the supplier catalog.
+								dol_syslog(
+									"ScanInvoices : buying price not updated for product $fk_product_identified"
+									. ", unit price $rawUnitPriceLabel is below Dolibarr unit precision"
+								);
+							} else {
+								scaninvoicesUpdateSupplierBuyPrice(
+									$fk_product_identified,
+									(int) $data->fournisseurID,
+									$ref,
+									(float) $price,
+									$tauxtva,
+									isset($line->remise_percent) ? $line->remise_percent : 0
+								);
+							}
 						}
 
 						// deee / ecotaxe - ecounit = à l'unité donc * qty
@@ -1232,7 +1375,13 @@ function scaninvoicesCreate_fact_fournisseur($data)
 							$ret = $facfou->addline($txt, $price, $tauxtva, 0, 0, $qty, $fk_product, 0, '', '', 0, '', 'HT', $typeProductOrService, -1, false, 0, null, 0, 0, $ref);
 						}
 					} else {
-						dol_syslog("  line not added (price or qty null)");
+						//Dropping a line silently would leave the invoice with a wrong total, since
+						//Dolibarr recomputes the header from the lines: make it visible in the logs.
+						dol_syslog(
+							"ScanInvoices : line not added (price or qty null), ref=$ref, price=$price, qty=$qty"
+							. ", invoice=" . $data->facture . ", line=" . json_encode($line),
+							LOG_WARNING
+						);
 					}
 				}
 			} else {
@@ -1289,8 +1438,8 @@ function scaninvoicesCreate_fact_fournisseur($data)
 				// TODO chercher un produit Livraison
 				$txt = "Livraison";
 				$ref = "transport";
-				if (!empty(getDolGlobalString('SCANINVOICES_DEFAULT_LIVRAISON'))) {
-					$fk_product = str_replace('idprod_', '', getDolGlobalString('SCANINVOICES_DEFAULT_LIVRAISON'));
+				if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_LIVRAISON'))) {
+					$fk_product = str_replace('idprod_', '', scaninvoicesGetDolGlobalString('SCANINVOICES_DEFAULT_LIVRAISON'));
 				} else {
 					$fk_product = scaninvoicesSearchProductID($ref, $data->fournisseurID);
 				}
@@ -1430,11 +1579,11 @@ function scaninvoicesJoinFileToInvoice($facfou, $fileName, $upload_dir)
 		}
 		$dest_file_name = $facfou->ref . '-';
 		//Then, thanks to Franck
-		if (!empty(getDolGlobalString('SCANINVOICES_FILE_NAME_PRE'))) {
-			$dest_file_name .= getDolGlobalString('SCANINVOICES_FILE_NAME_PRE' . '-');
+		if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_FILE_NAME_PRE'))) {
+			$dest_file_name .= scaninvoicesGetDolGlobalString('SCANINVOICES_FILE_NAME_PRE' . '-');
 		}
-		if (!empty(getDolGlobalString('SCANINVOICES_FILE_NAME'))) {
-			switch (getDolGlobalString('SCANINVOICES_FILE_NAME')) {
+		if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_FILE_NAME'))) {
+			switch (scaninvoicesGetDolGlobalString('SCANINVOICES_FILE_NAME')) {
 				case 1:
 					$dest_file_name .= dol_sanitizeFileName($facfou->ref) . $extension;
 					break;
@@ -1477,7 +1626,10 @@ function scaninvoicesMessageErreurAnalyse($code, $data, $dataJson = null)
 		$filenamePDF = basename($data->fileName);
 	}
 
-	$msg = "<li>" . $langs->trans('ERROR_MESSAGE_ANALYSE1', $code) . "</li>";
+	// transnoentities: the message is also stored as is in the message column of
+	// the file to import and pushed to the browser through json, html entities
+	// would show up literally there (cr&eacute;er).
+	$msg = "<li>" . $langs->transnoentities('ERROR_MESSAGE_ANALYSE1', $code) . "</li>";
 	$msg .= "<li>" . $langs->transnoentities(
 		'ERROR_MESSAGE_ANALYSE2',
 		"<a href=\"" . dol_buildpath("/scaninvoices/importinvoice.php", 1) . "?filenamePDF=" . urlencode($filenamePDF) . "&action=create\" target=\"_blank\">",
@@ -1579,7 +1731,13 @@ function scaninvoicesCreate_supplier($f)
 	global $db, $user;
 	$result = 0;
 
-	if (trim($f->fournisseur) == "") {
+	$supplierName = isset($f->fournisseur) ? trim((string) $f->fournisseur) : '';
+	if ($supplierName == "") {
+		dol_syslog(
+			'scaninvoicesCreate_supplier: no supplier name in the analyzed data, cannot create a supplier for '
+			. (isset($f->fileName) ? $f->fileName : 'unknown file'),
+			LOG_WARNING
+		);
 		return false;
 	}
 
@@ -1655,7 +1813,7 @@ function scaninvoicesCreate_supplier($f)
 function scaninvoicesPdf2jpeg($src, $dst, $rect = null)
 {
 	global $conf, $langs, $mesg;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 
 	//Note si le fichier existe déjà et qu'il est pas plus vieux que le src on le passe tel-quel ?
 	//mais quid de l'ocrid en ce cas ? -> pour l'instant on reste comme ça
@@ -1729,7 +1887,7 @@ function scaninvoicesPdf2jpeg($src, $dst, $rect = null)
 function scaninvoicesSendJpeg($src, $dst, $dstPDF)
 {
 	global $conf, $langs, $mesg;
-	$scaninvoices_endpoint = getDolGlobalString('SCANINVOICES_URI');
+	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 
 	$retour = [];
 	dol_syslog("scaninvoices: scaninvoicesSendJpeg appel au webservice ocr pour stocker le fichier jpeg $src...");
@@ -1962,11 +2120,11 @@ function scaninvoicesSelect_produits_fournisseurs_list($socid, $selected = '', $
 	$out = '';
 	$outarray = array();
 
-	$maxlengtharticle = (empty(getDolGlobalString('PRODUCT_MAX_LENGTH_COMBO')) ? 48 : getDolGlobalString('PRODUCT_MAX_LENGTH_COMBO'));
+	$maxlengtharticle = (empty(scaninvoicesGetDolGlobalString('PRODUCT_MAX_LENGTH_COMBO')) ? 48 : scaninvoicesGetDolGlobalString('PRODUCT_MAX_LENGTH_COMBO'));
 
 	$langs->load('stocks');
 	// Units
-	if (!empty(getDolGlobalString('PRODUCT_USE_UNITS'))) {
+	if (!empty(scaninvoicesGetDolGlobalString('PRODUCT_USE_UNITS'))) {
 		$langs->load('other');
 	}
 
@@ -2026,7 +2184,7 @@ function scaninvoicesSelect_produits_fournisseurs_list($socid, $selected = '', $
 
 			// Units
 			$outvalUnits = '';
-			if (!empty(getDolGlobalString('PRODUCT_USE_UNITS'))) {
+			if (!empty(scaninvoicesGetDolGlobalString('PRODUCT_USE_UNITS'))) {
 				if (!empty($objp->unit_short)) {
 					$outvalUnits .= ' - ' . $objp->unit_short;
 				}
@@ -2115,20 +2273,20 @@ function scaninvoicesSelect_produits_fournisseurs_list($socid, $selected = '', $
 					}
 				}
 				if ($objp->quantity == 1) {
-					$optlabel .= ' - ' . price($objp->fprice * (!empty(getDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 1, $langs, 0, 0, -1, $conf->currency) . "/";
-					$outvallabel .= ' - ' . price($objp->fprice * (!empty(getDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 0, $langs, 0, 0, -1, $conf->currency) . "/";
+					$optlabel .= ' - ' . price($objp->fprice * (!empty(scaninvoicesGetDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 1, $langs, 0, 0, -1, $conf->currency) . "/";
+					$outvallabel .= ' - ' . price($objp->fprice * (!empty(scaninvoicesGetDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 0, $langs, 0, 0, -1, $conf->currency) . "/";
 					$optlabel .= $langs->trans("Unit"); // Do not use strtolower because it breaks utf8 encoding
 					$outvallabel .= $langs->transnoentities("Unit");
 				} else {
-					$optlabel .= ' - ' . price($objp->fprice * (!empty(getDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 1, $langs, 0, 0, -1, $conf->currency) . "/" . $objp->quantity;
-					$outvallabel .= ' - ' . price($objp->fprice * (!empty(getDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 0, $langs, 0, 0, -1, $conf->currency) . "/" . $objp->quantity;
+					$optlabel .= ' - ' . price($objp->fprice * (!empty(scaninvoicesGetDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 1, $langs, 0, 0, -1, $conf->currency) . "/" . $objp->quantity;
+					$outvallabel .= ' - ' . price($objp->fprice * (!empty(scaninvoicesGetDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 0, $langs, 0, 0, -1, $conf->currency) . "/" . $objp->quantity;
 					$optlabel .= ' ' . $langs->trans("Units"); // Do not use strtolower because it breaks utf8 encoding
 					$outvallabel .= ' ' . $langs->transnoentities("Units");
 				}
 
 				if ($objp->quantity > 1) {
-					$optlabel .= " (" . price($objp->unitprice * (!empty(getDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 1, $langs, 0, 0, -1, $conf->currency) . "/" . $langs->trans("Unit") . ")"; // Do not use strtolower because it breaks utf8 encoding
-					$outvallabel .= " (" . price($objp->unitprice * (!empty(getDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 0, $langs, 0, 0, -1, $conf->currency) . "/" . $langs->transnoentities("Unit") . ")"; // Do not use strtolower because it breaks utf8 encoding
+					$optlabel .= " (" . price($objp->unitprice * (!empty(scaninvoicesGetDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 1, $langs, 0, 0, -1, $conf->currency) . "/" . $langs->trans("Unit") . ")"; // Do not use strtolower because it breaks utf8 encoding
+					$outvallabel .= " (" . price($objp->unitprice * (!empty(scaninvoicesGetDolGlobalString('DISPLAY_DISCOUNTED_SUPPLIER_PRICE')) ? (1 - $objp->remise_percent / 100) : 1), 0, $langs, 0, 0, -1, $conf->currency) . "/" . $langs->transnoentities("Unit") . ")"; // Do not use strtolower because it breaks utf8 encoding
 				}
 				if ($objp->remise_percent >= 1) {
 					$optlabel .= " - " . $langs->trans("Discount") . " : " . vatrate($objp->remise_percent) . ' %';
@@ -2159,10 +2317,10 @@ function scaninvoicesSelect_produits_fournisseurs_list($socid, $selected = '', $
 				}
 			}
 
-			if (!empty($conf->stock->enabled) && $showstockinlist && isset($objp->stock) && ($objp->fk_product_type == Product::TYPE_PRODUCT || !empty(getDolGlobalString('STOCK_SUPPORTS_SERVICES')))) {
+			if (!empty($conf->stock->enabled) && $showstockinlist && isset($objp->stock) && ($objp->fk_product_type == Product::TYPE_PRODUCT || !empty(scaninvoicesGetDolGlobalString('STOCK_SUPPORTS_SERVICES')))) {
 				$novirtualstock = ($showstockinlist == 2);
 
-				if (!empty($user->rights->stock->lire)) {
+				if (!empty(scaninvoicesUserHasRight($user, 'stock', 'lire'))) {
 					$outvallabel .= ' - ' . $langs->trans("Stock") . ': ' . price((float) price2num($objp->stock, 'MS'));
 
 					if ($objp->stock > 0) {
@@ -2172,7 +2330,7 @@ function scaninvoicesSelect_produits_fournisseurs_list($socid, $selected = '', $
 					}
 					$optlabel .= $langs->transnoentities("Stock") . ':' . price((float) price2num($objp->stock, 'MS'));
 					$optlabel .= '</span>';
-					if (empty($novirtualstock) && !empty(getDolGlobalString('STOCK_SHOW_VIRTUAL_STOCK_IN_PRODUCTS_COMBO'))) {  // Warning, this option may slow down combo list generation
+					if (empty($novirtualstock) && !empty(scaninvoicesGetDolGlobalString('STOCK_SHOW_VIRTUAL_STOCK_IN_PRODUCTS_COMBO'))) {  // Warning, this option may slow down combo list generation
 						$langs->load("stocks");
 
 						$tmpproduct = new Product($db);
@@ -2313,7 +2471,7 @@ function scaninvoicesConvertNextcloudURItoSettings()
 {
 	global $conf;
 	$password = $username = null;
-	$nextcloud = parse_url(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI'));
+	$nextcloud = parse_url(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI'));
 	$subdir = "";
 	//nextcloud is in a subdir
 	if (strpos($nextcloud['path'], '/index.php') > 0) {
@@ -2324,9 +2482,9 @@ function scaninvoicesConvertNextcloudURItoSettings()
 	if (strpos($nextcloud['path'], 's/') > 0) {
 		$username = preg_replace('/.*\/s\/(\w+)/', '$1', $nextcloud['path']);
 	}
-	$password = getDolGlobalString('SCANINVOICES_IMPORT_SHARE_PASS');
+	$password = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_PASS');
 
-	$portToUse = getDolGlobalString('SCANINVOICES_IMPORT_SHARE_PORT');
+	$portToUse = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_PORT');
 	$port = "";
 	if (!empty($portToUse)) {
 		$port = ":" . $portToUse;
@@ -2355,13 +2513,13 @@ function scaninvoicesConvertSynologyURItoSettings()
 {
 	global $conf;
 	$password = $username = null;
-	$davuri = parse_url(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI'));
+	$davuri = parse_url(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_URI'));
 	$subdir = "";
 	//davuri is in a subdir
 	$subdir = $davuri['path'];
-	$username = getDolGlobalString('SCANINVOICES_IMPORT_SHARE_LOGIN');
-	$password = getDolGlobalString('SCANINVOICES_IMPORT_SHARE_PASS');
-	$portToUse = getDolGlobalString('SCANINVOICES_IMPORT_SHARE_PORT');
+	$username = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_LOGIN');
+	$password = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_PASS');
+	$portToUse = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_PORT');
 
 	$port = "";
 	if (!empty($portToUse)) {
@@ -2382,10 +2540,10 @@ function scaninvoicesSendMail($to, $subject, $cc, $bcc, $html)
 {
 	global $conf, $user, $langs;
 	$error = 0;
-	if ($html != "" && !empty(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'))) {
+	if ($html != "" && !empty(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'))) {
 		include_once DOL_DOCUMENT_ROOT . '/core/class/CMailFile.class.php';
 		$subjecttosend = $langs->trans('[Dolibarr/ScanInvoices] ' . $subject);
-		$from = getDolGlobalString('MAIN_MAIL_EMAIL_FROM');
+		$from = scaninvoicesGetDolGlobalString('MAIN_MAIL_EMAIL_FROM');
 		$texttosend = $html;
 		$deliveryreceipt = 0;
 		$msgishtml = 1;
@@ -2398,7 +2556,7 @@ function scaninvoicesSendMail($to, $subject, $cc, $bcc, $html)
 			dol_syslog("ScanInvoices html mail is empty, do not send email");
 			$error++;
 		}
-		if (empty(getDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'))) {
+		if (empty(scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_MAILREPORT'))) {
 			dol_syslog("ScanInvoices html mail can't be send by email : destination mail is empty, please update this module settings");
 			$error++;
 		}
@@ -2583,9 +2741,11 @@ function scaninvoicesSearchProductID($ref, $supplier_id)
 		//https://github.com/Dolibarr/dolibarr/issues/20270
 		$resProd = $prod->get_buyprice('', '', '', $ref, $supplier_id);
 		if ($resProd > 0) {
-			$fk_product = $prod->id;
+			//get_buyprice() returns the product id but does not load the product,
+			//$prod->id is still empty here
+			$fk_product = $resProd;
 			$found = true;
-			dol_syslog("scaninvoicesSearchProductID found case 5, fk_product=" . $fk_product . "or resProd=$resProd");
+			dol_syslog("scaninvoicesSearchProductID found case 5, fk_product=" . $fk_product);
 		}
 	}
 
@@ -2605,9 +2765,10 @@ function scaninvoicesSearchProductID($ref, $supplier_id)
 	if (!$found) {
 		$resProd = $prod->get_buyprice('', '', '', $ref);
 		if ($resProd > 0) {
-			dol_syslog("scaninvoicesSearchProductID found case 7");
-			$fk_product = $prod->id;
+			//same as case 5: the product id is the return value, not $prod->id
+			$fk_product = $resProd;
 			$found = true;
+			dol_syslog("scaninvoicesSearchProductID found case 7, fk_product=" . $fk_product);
 		}
 	}
 
@@ -2627,19 +2788,122 @@ function scaninvoicesSearchProductID($ref, $supplier_id)
 }
 
 /**
- * get public ip of that server thanks to cap-rel ip webservice
+ * Update the supplier buying price of a product from an imported invoice line.
  *
- * @return  [type]  [return description]
+ * Dolibarr keeps one price row per (supplier, supplier ref, quantity) triplet.
+ * We always record the unit price for a quantity of 1: recording the invoice
+ * quantity instead would add a price row for every quantity met on the invoices
+ * and fill the product supplier tab with unusable entries.
+ *
+ * When product_fourn_price_id is left empty, update_buyprice() deletes then
+ * re-inserts the row matching (fk_soc, ref_fourn, quantity), so calling this
+ * again with the same data just refreshes the existing price.
+ *
+ * @param   int     $fk_product      Id of the dolibarr product to update
+ * @param   int     $supplier_id     Id of the supplier thirdparty
+ * @param   string  $ref_fourn       Supplier reference of the product, must not be empty
+ * @param   float   $unit_price      Unit price, tax excluded
+ * @param   float   $tva_tx          Vat rate of the invoice line
+ * @param   float   $remise_percent  Discount percent of the invoice line
+ *
+ * @return  int                      Id of the price row if ok, <0 if ko
+ */
+function scaninvoicesUpdateSupplierBuyPrice($fk_product, $supplier_id, $ref_fourn, $unit_price, $tva_tx, $remise_percent = 0)
+{
+	global $db, $user;
+
+	require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.product.class.php';
+	require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+	if ($fk_product <= 0) {
+		dol_syslog('scaninvoicesUpdateSupplierBuyPrice: no product id, buying price not updated', LOG_WARNING);
+		return -1;
+	}
+	if ($supplier_id <= 0) {
+		dol_syslog('scaninvoicesUpdateSupplierBuyPrice: no supplier id for product ' . $fk_product . ', buying price not updated', LOG_WARNING);
+		return -1;
+	}
+
+	$ref_fourn = trim((string) $ref_fourn);
+	if ($ref_fourn === '') {
+		// update_buyprice() deletes every price row matching ref_fourn before inserting,
+		// an empty reference would wipe unrelated price rows of that supplier
+		dol_syslog('scaninvoicesUpdateSupplierBuyPrice: empty supplier ref for product ' . $fk_product . ', buying price not updated', LOG_WARNING);
+		return -1;
+	}
+	if (!is_numeric($unit_price) || $unit_price <= 0) {
+		dol_syslog('scaninvoicesUpdateSupplierBuyPrice: invalid unit price (' . $unit_price . ') for product ' . $fk_product . ' ref_fourn=' . $ref_fourn . ', buying price not updated', LOG_WARNING);
+		return -1;
+	}
+
+	$supplier = new Societe($db);
+	if ($supplier->fetch($supplier_id) <= 0) {
+		dol_syslog('scaninvoicesUpdateSupplierBuyPrice: cannot load supplier ' . $supplier_id . ' : ' . $supplier->error, LOG_ERR);
+		return -1;
+	}
+
+	// update_buyprice() uses $this->id as fk_product, the product has to be loaded first
+	$prodfourn = new ProductFournisseur($db);
+	if ($prodfourn->fetch($fk_product) <= 0) {
+		dol_syslog('scaninvoicesUpdateSupplierBuyPrice: cannot load product ' . $fk_product . ' : ' . $prodfourn->error, LOG_ERR);
+		return -1;
+	}
+
+	$res = $prodfourn->update_buyprice(1, $unit_price, $user, 'HT', $supplier, 0, $ref_fourn, (float) $tva_tx, 0, (float) $remise_percent);
+	if ($res < 0) {
+		dol_syslog('scaninvoicesUpdateSupplierBuyPrice: update_buyprice failed for product ' . $fk_product . ' supplier ' . $supplier_id . ' ref_fourn=' . $ref_fourn . ' : ' . $prodfourn->error, LOG_ERR);
+		return -1;
+	}
+
+	dol_syslog('scaninvoicesUpdateSupplierBuyPrice: buying price set to ' . $unit_price . ' HT for product ' . $fk_product . ', supplier ' . $supplier_id . ', ref_fourn=' . $ref_fourn);
+	return $res;
+}
+
+/**
+ * Get the public ip of that server, asked to the cap-rel ip webservice.
+ *
+ * Goes through getURLContent() so the call inherits the dolibarr timeouts and
+ * proxy settings: a plain file_get_contents() on an unreachable host holds the
+ * page until the php default socket timeout, and returns the error body as if
+ * it were an ip when the service answers something else than 200.
+ *
+ * @return  string  Public ip address, empty string when it cannot be determined
  */
 function scaninvoicesGetMyIP()
 {
-	$ip = file_get_contents('https://bl.cap-rel.fr/ip.php');
-	if (empty($ip)) {
-		preg_match('/((\d{1,3}\.){3}\d{1,3})/', @file_get_contents("http://www.monip.org/"), $matches);
-		if (isset($matches[0])) {
-			$ip = $matches[0];
+	$ip = '';
+	$sources = array(
+		'https://bl.cap-rel.fr/ip.php',
+		'http://www.monip.org/',
+	);
+
+	foreach ($sources as $url) {
+		/** @phpstan-ignore-next-line */
+		$result = getURLContent($url, 'GET', '', 1, array(), array('http', 'https'), 0);
+
+		if (!is_array($result) || !isset($result['content']) || (int) ($result['http_code'] ?? 0) != 200) {
+			dol_syslog(
+				'scaninvoicesGetMyIP: no usable answer from ' . $url
+				. ' (http_code=' . ($result['http_code'] ?? 'n/a')
+				. ', curl_error_msg=' . ($result['curl_error_msg'] ?? '') . ')',
+				LOG_WARNING
+			);
+			continue;
 		}
+
+		// Both services answer either the bare address or a page holding it
+		if (preg_match('/((\d{1,3}\.){3}\d{1,3})/', $result['content'], $matches)) {
+			$ip = $matches[1];
+			break;
+		}
+
+		dol_syslog('scaninvoicesGetMyIP: no ip address found in the answer of ' . $url, LOG_WARNING);
 	}
+
+	if ($ip == '') {
+		dol_syslog('scaninvoicesGetMyIP: public ip of this server could not be determined', LOG_WARNING);
+	}
+
 	return $ip;
 }
 
@@ -2686,38 +2950,120 @@ function scaninvoiceshandleTimeoutCheckBlacklist($result)
 }
 
 
+/**
+ * Read a value inside a decoded json payload.
+ *
+ * The key can be a simple property name ('meta') or a path using the php arrow
+ * notation ('meta->supplier_name'). Without the path support, a key like
+ * 'meta->supplier_name' was looked up as a property literally named
+ * 'meta->supplier_name', which never exists, so the default value was always
+ * returned and every fallback based on this function was dead code.
+ *
+ * @param mixed  $json    Decoded json (object or array)
+ * @param string $key     Property name or 'a->b->c' path
+ * @param mixed  $default Value returned when the path does not exist
+ * @return mixed
+ */
 function scaninvoicesGetJsonValue($json, $key, $default = '')
 {
-	if (isset($json->{$key})) {
-		return $json->{$key};
-	}
-	return $default;
-}
-
-
-
-
-/**
- * Return dolibarr global constant string value
- * @param string $key key to return value, return '' if not set
- * @param string $default value to return
- * @return string
- */
-function scaninvoicesgetDolGlobalString($key, $default = '')
-{
-	if (function_exists('getDolGlobalString')) {
-		if (((int) DOL_VERSION) < 15) {
-			$res = getDolGlobalString($key);
-			if (empty($res)) {
-				$res = $default;
-			}
-			return $res;
+	$current = $json;
+	foreach (explode('->', $key) as $part) {
+		$part = trim($part);
+		if (is_object($current) && isset($current->{$part})) {
+			$current = $current->{$part};
+		} elseif (is_array($current) && isset($current[$part])) {
+			$current = $current[$part];
 		} else {
-			/** @phpstan-ignore-next-line */
-			return getDolGlobalString($key, $default);
+			return $default;
 		}
 	}
-	global $conf;
-	// return $conf->global->$key ?? $default;
-	return (string) (empty($conf->global->$key) ? $default : $conf->global->$key);
+	return $current;
 }
+
+/**
+ * Build a copy-pasteable technical detail block for OCR errors.
+ *
+ * The end user can copy this block and send it to support instead of a vague
+ * "it does not work". Every field is plain text on its own line.
+ *
+ * @param string $ref       Support reference (also logged server-side to correlate)
+ * @param string $url       OCR endpoint that was called
+ * @param int    $httpCode  HTTP code returned by the OCR server (0 if unreachable)
+ * @param mixed  $curlErrNo curl error number (empty if none)
+ * @param string $curlErrMsg curl error message (empty if none)
+ * @param string $content   Raw body returned by the OCR server (truncated)
+ * @return string
+ */
+function scaninvoicesBuildOcrErrorDetails($ref, $url, $httpCode, $curlErrNo, $curlErrMsg, $content)
+{
+	$lines = [];
+	$lines[] = 'ref: ' . $ref;
+	$lines[] = 'module: scaninvoices ' . scaninvoicesGetDolGlobalString('SCANINVOICE_MODULE_VERSION');
+	$lines[] = 'dolibarr: ' . DOL_VERSION;
+	$lines[] = 'endpoint: ' . $url;
+	$lines[] = 'http_code: ' . $httpCode;
+	if ($curlErrNo !== '' && $curlErrNo !== null) {
+		$lines[] = 'curl_error_no: ' . $curlErrNo;
+	}
+	if ($curlErrMsg !== '' && $curlErrMsg !== null) {
+		$lines[] = 'curl_error_msg: ' . $curlErrMsg;
+	}
+	$lines[] = 'response_excerpt: ' . dol_trunc((string) $content, 300);
+	return implode("\n", $lines);
+}
+
+/**
+ * Discard and log any stray output captured in the output buffer.
+ *
+ * PHP warnings/notices emitted while an AJAX endpoint runs would otherwise be
+ * prepended to the JSON body and break parsing on the client (jQuery
+ * "parsererror", JSON.parse exception). Call this right before echoing the JSON,
+ * with an ob_start() opened at the start of the handler.
+ *
+ * @param string $context Short label for the log line (endpoint name)
+ * @return string The stray output that was suppressed (empty if none)
+ */
+function scaninvoicesStripStrayOutput($context = '')
+{
+	$stray = '';
+	if (ob_get_level() > 0) {
+		$stray = (string) ob_get_clean();
+	}
+	if (trim($stray) !== '') {
+		dol_syslog('ScanInvoices:' . $context . ' stray output suppressed from JSON body: ' . dol_trunc($stray, 1000), LOG_WARNING);
+	}
+	return $stray;
+}
+
+/**
+ * Flush the runocr response as valid JSON.
+ *
+ * Any stray output captured in the output buffer (PHP warnings/notices emitted
+ * during processing) is discarded so the AJAX client always receives parseable
+ * JSON instead of a jQuery "parsererror". The stray content is logged and, when
+ * an error is already being reported, appended to the support details so the
+ * root cause is never lost.
+ *
+ * Requires an ob_start() to have been called at the beginning of the handler.
+ *
+ * @param array $output Payload to return (wrapped in an array by the caller)
+ * @return void
+ */
+function scaninvoicesRunocrFlush($output)
+{
+	$stray = '';
+	if (ob_get_level() > 0) {
+		$stray = (string) ob_get_clean();
+	}
+	if (trim($stray) !== '') {
+		dol_syslog('ScanInvoices:runocr stray output suppressed from JSON body: ' . dol_trunc($stray, 1000), LOG_WARNING);
+		if (!empty($output['errorDetails'])) {
+			$output['errorDetails'] .= "\nstray_output: " . dol_trunc($stray, 500);
+		}
+	}
+	json([$output]);
+}
+
+
+
+

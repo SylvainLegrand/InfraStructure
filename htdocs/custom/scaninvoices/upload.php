@@ -24,6 +24,7 @@ define('NOTOKENRENEWAL', 1);
 // } // Do not check CSRF attack (test on referer + on token).
 
 include 'functions.php';
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';

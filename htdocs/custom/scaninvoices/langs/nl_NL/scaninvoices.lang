@@ -7,7 +7,7 @@ Next=Naar
 #
 # manual import Step2
 #
-MANUAL_IMPORT_STEP2_OPEN_FILE=Open bestand…
+MANUAL_IMPORT_STEP2_OPEN_FILE=Open bestand...
 MANUAL_IMPORT_STEP2_SUPPLIER=Aanbieder:
 MANUAL_IMPORT_STEP2_VAT_NUMBER=BTW-nummer:
 MANUAL_IMPORT_STEP2_DATE=Gedateerd:
@@ -65,7 +65,8 @@ ModuleScanInvoicesNameManual=Handmatig importeren
 ModuleScanInvoicesImportAuto=Automatisch importeren
 LineLabelForNewInvoicesIfNotdefine=Kijk naar de details in de bijlagen
 ERROR_MESSAGE_ANALYSE1=Fout bij het parsen van document (code #%s)
-ERROR_MESSAGE_ANALYSE2=Schakel over naar %de halfautomatische importwizard%s en importeer je document opnieuw…
+ERROR_MESSAGE_ANALYSE2=Schakel over naar %de halfautomatische importwizard%s en importeer je document opnieuw...
+ErrorAnalyzeNoDataExtracted=De analysedienst heeft geen gegevens uit dit document gehaald (niet-ondersteund formaat of onleesbare inhoud)
 ERROR_MESSAGE_CREATE_INVOICE=Fout bij het aanmaken van %s van %s, foutcode: %s
 SUCCESS_MESSAGE_CREATE_INVOICE=Factuur %s van %s geïmporteerd: %s
 ERROR_MESSAGE_INVOICE_DUPLICATE=Fout (%s of %s), deze factuur lijkt al geïmporteerd te zijn. Foutcode: %s
@@ -138,3 +139,14 @@ AUTOMATIC_IMPORT_TABLE_HEADER_DOCUMENT=Bewijs
 AUTOMATIC_IMPORT_TABLE_HEADER_WAITING=wachtend
 
 OcrServiceUnavailableStopChain=De OCR-server is niet beschikbaar. De ketenimport is gestopt. Probeer het over een paar minuten opnieuw.
+
+# OCR error handling / support details (manual import)
+OcrAnalysisFailed=De OCR-analyse is mislukt.
+OcrAnalysisTimeout=De OCR-server heeft niet binnen de toegestane tijd geantwoord.
+OcrErrorUnreachable=De OCR-server kon niet worden bereikt.
+OcrErrorHttp=De OCR-server antwoordde met HTTP-code %s.
+OcrErrorBadResponse=De OCR-server gaf een onleesbaar antwoord terug.
+OcrCopyDetailsIntro=Kopieer de onderstaande details en stuur ze naar de support om de diagnose te versnellen:
+OcrCopyDetailsButton=Details kopiëren voor support
+OcrDetailsCopied=Details gekopieerd naar klembord
+OcrUploadInvalidResponse=Uploaden mislukt: ongeldig serverantwoord. Probeer opnieuw of neem contact op met de support.

@@ -402,6 +402,69 @@ function loadSavedPos()
 /**
  * main code to start OCR
  */
+/**
+ * Display a human-readable OCR error with a copy-pasteable technical block.
+ *
+ * The details are rendered in a read-only textarea plus a "copy" button so the
+ * user can send them to support instead of a vague "it does not work". All
+ * values are inserted as text (never innerHTML) to avoid any injection.
+ *
+ * @param {string} message Short, translated, user-facing message
+ * @param {string} details Multi-line technical details (may be empty)
+ */
+function scaninvoicesShowOcrError(message, details)
+{
+	var i18n = window.SCANINVOICES_OCR_I18N || {};
+	var msg = message || i18n.ocrFailed || 'OCR analysis failed.';
+	var box = document.getElementById('message');
+	if (!box) {
+		alert(msg + (details ? '\n\n' + details : ''));
+		return;
+	}
+
+	box.innerHTML = '';
+	var wrap = document.createElement('div');
+	wrap.className = 'scaninvoices-ocr-error';
+
+	var title = document.createElement('p');
+	var strong = document.createElement('strong');
+	strong.textContent = msg;
+	title.appendChild(strong);
+	wrap.appendChild(title);
+
+	if (details) {
+		var intro = document.createElement('p');
+		intro.textContent = i18n.copyIntro || 'Copy the details below and send them to support:';
+		wrap.appendChild(intro);
+
+		var ta = document.createElement('textarea');
+		ta.id = 'scaninvoicesOcrErrorDetails';
+		ta.readOnly = true;
+		ta.rows = 8;
+		ta.style.width = '100%';
+		ta.value = details;
+		wrap.appendChild(ta);
+
+		var btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'button';
+		btn.textContent = i18n.copyBtn || 'Copy details for support';
+		btn.addEventListener('click', function () {
+			ta.select();
+			try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+			if (navigator.clipboard) {
+				navigator.clipboard.writeText(ta.value).catch(function () { /* ignore */ });
+			}
+			$.jnotify(i18n.copied || 'Details copied to clipboard', 'success', false);
+		});
+		wrap.appendChild(btn);
+	}
+
+	box.appendChild(wrap);
+	box.style.display = 'block';
+	$.jnotify(msg, 'error', true);
+}
+
 function runOCR()
 {
 	showWait();
@@ -440,7 +503,12 @@ function runOCR()
 		dataType: "json",
 		success: function (data, textStatus, request) {
 			if (data[0].error != "") {
-				$.jnotify(data[0].error, "error", true);
+				// A structured OCR error carries copy-pasteable support details.
+				if (data[0].errorDetails) {
+					scaninvoicesShowOcrError(data[0].error, data[0].errorDetails);
+				} else {
+					$.jnotify(data[0].error, "error", true);
+				}
 			} else {
 				for (let k in data[0]) {
 					// console.log("chargement pour " + k + " :: " + data[0][k]);
@@ -457,14 +525,32 @@ function runOCR()
 		},
 		error: function (request, textStatus, error) {
 			hideWait('runOCR 2');
-			if (textStatus === "timeout") {
-				alert(' runOCR server timeout (3) - your dolibarr server does not return data as fast as required');
-			} else {
-				let fullErrorMessage = request.status + ': ' + request.statusText
-				console.log(" runOCR error (1)" + fullErrorMessage);
-				alert('Local API server runOCR error (3) - your dolibarr server does not return data as fast as required :' + fullErrorMessage);
+			// Network/timeout/parse failure: the server did not return usable JSON.
+			// Surface a clear message plus a copy-pasteable detail block. In the
+			// "parsererror" case, request.responseText carries the raw body (e.g. a
+			// leaked PHP warning), which is exactly what support needs to see.
+			var i18n = window.SCANINVOICES_OCR_I18N || {};
+			var detailLines = [
+				'phase: runocr',
+				'textStatus: ' + textStatus,
+				'http_status: ' + (request.status || 0),
+				'statusText: ' + (request.statusText || '')
+			];
+			if (request.responseText) {
+				detailLines.push('response_excerpt: ' + String(request.responseText).slice(0, 500));
 			}
-
+			var msg = (textStatus === "timeout")
+				? (i18n.ocrTimeout || 'The OCR server did not answer in time.')
+				: (i18n.ocrFailed || 'OCR analysis failed.');
+			var details = detailLines.join('\n');
+			// Report to the server and prepend the reference so the same id shows
+			// on screen and in dolibarr.log (grep 'ScanInvoices:CLIENT').
+			if (typeof scaninvoicesReportClientError === 'function') {
+				var ref = scaninvoicesReportClientError('runocr', msg, details);
+				if (ref) { details = 'client_ref: ' + ref + '\n' + details; }
+			}
+			console.log('runOCR error: ' + details);
+			scaninvoicesShowOcrError(msg, details);
 		}
 	});
 

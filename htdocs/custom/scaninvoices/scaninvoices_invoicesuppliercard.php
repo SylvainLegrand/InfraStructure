@@ -60,10 +60,12 @@ if (!$res) {
 	exit('Include of main fails');
 }
 
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 
-$permissiontoaccess = $user->rights->scaninvoices->read;
-$permissiontoadd = $user->rights->scaninvoices->write;
-$permissiontodelete = $user->rights->scaninvoices->delete;
+
+$permissiontoaccess = scaninvoicesUserHasRight($user, 'scaninvoices', 'read');
+$permissiontoadd = scaninvoicesUserHasRight($user, 'scaninvoices', 'write');
+$permissiontodelete = scaninvoicesUserHasRight($user, 'scaninvoices', 'delete');
 
 /*
 Note: vérification des droits associés et nécessaires:
@@ -78,14 +80,14 @@ Note: vérification des droits associés et nécessaires:
 	.../...?
 */
 $otherModulesRights = [
-	$user->rights->societe->lire,
-	$user->rights->societe->creer,
-	$user->rights->societe->client->voir,
-	$user->rights->fournisseur->lire,
-	$user->rights->fournisseur->facture->lire,
-	$user->rights->fournisseur->facture->creer,
-	$user->rights->produit->lire,
-	$user->rights->service->lire
+	scaninvoicesUserHasRight($user, 'societe', 'lire'),
+	scaninvoicesUserHasRight($user, 'societe', 'creer'),
+	scaninvoicesUserHasRight($user, 'societe', 'client', 'voir'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'creer'),
+	scaninvoicesUserHasRight($user, 'produit', 'lire'),
+	scaninvoicesUserHasRight($user, 'service', 'lire')
 ];
 // Security check - Protection if external user
 if ($user->socid > 0) accessforbidden();
@@ -148,7 +150,7 @@ if (empty($action) && empty($objid)) $action = 'view';
 // Load object
 include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
 
-$permissiontoaccess = $user->rights->scaninvoices->read;
+$permissiontoaccess = scaninvoicesUserHasRight($user, 'scaninvoices', 'read');
 
 
 /*

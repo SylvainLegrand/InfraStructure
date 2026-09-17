@@ -62,6 +62,8 @@ SCANINVOICES_IMPORT_CREATE_PRODUCT=Création d'un produit dans la base de donné
 SCANINVOICES_IMPORT_CREATE_PRODUCTTooltip=Lors de l'import des lignes automatique des factures il est possible de créer un produit dolibarr automatiquement
 SCANINVOICES_IMPORT_OVERRIDE_LABEL_PRODUCT=Mise à jour du label du produit à l'import
 SCANINVOICES_IMPORT_OVERRIDE_LABEL_PRODUCTTooltip=Cette option permet de mettre à jour le libellé du produit lors de l'import
+SCANINVOICES_IMPORT_UPDATE_BUYPRICE=Mise à jour du prix d'achat fournisseur à l'import
+SCANINVOICES_IMPORT_UPDATE_BUYPRICETooltip=Cette option enregistre le prix unitaire HT de chaque ligne importée comme prix d'achat du produit chez ce fournisseur (onglet "Fournisseurs" de la fiche produit), pour une quantité de 1. Seuls les produits identifiés par leur référence ou créés à l'import sont concernés, jamais le produit par défaut du fournisseur.
 SCANINVOICES_IMPORT_SHARE_PORT = Port à utiliser pour se connecter sur le serveur
 SCANINVOICES_IMPORT_SHARE_PORTTooltip = Entrez le port de connexion vers le serveur de stockage
 
@@ -82,7 +84,7 @@ SCANINVOICES_GED_DELETEPATHTooltip=Supprime l'arborescence ScanInvoices de la GE
 About=À propos
 ScanInvoicesAbout=À propos de ScanInvoices
 ScanInvoicesAboutPage=Page à propos de ScanInvoices
-ScanInvoicesNeedPerms=Ce module nécessite des droits d'accès larges pour fonctionner (lire les tiers, créer des tiers, droits étendus d'accès aux tiers, lire les fournisseurs, lire les factures fournisseur, créer des facture fournisseur, lire les produits et services …). Et à priori cet utilisateur ne dispose pas de tous ces droits !
+ScanInvoicesNeedPerms=Ce module nécessite des droits d'accès larges pour fonctionner (lire les tiers, créer des tiers, droits étendus d'accès aux tiers, lire les fournisseurs, lire les factures fournisseur, créer des facture fournisseur, lire les produits et services ...). Et à priori cet utilisateur ne dispose pas de tous ces droits !
 
 #
 # Box d'exemple
@@ -98,7 +100,8 @@ LineLabelForNewInvoicesWithMultiVAT=Globalisation avec taux de TVA a %s
 LineLabelForNewInvoicesWithEXO=Globalisation EXO TVA
 LineLabelForNewInvoicesWithECOPART=Globalisation Eco Part
 ERROR_MESSAGE_ANALYSE1=Erreur d'analyse du document (code #%s)
-ERROR_MESSAGE_ANALYSE2=Basculez sur %sl'assistant d'import semi-automatique%s et réimportez votre document…
+ERROR_MESSAGE_ANALYSE2=Basculez sur %sl'assistant d'import semi-automatique%s et réimportez votre document...
+ErrorAnalyzeNoDataExtracted=Le service d'analyse n'a extrait aucune donnée de ce document (format non supporté ou contenu illisible)
 ERROR_MESSAGE_CREATE_INVOICE=Erreur de création %s du %s, code d'erreur : %s
 SUCCESS_MESSAGE_CREATE_INVOICE=Facture %s du %s importée : %s
 ERROR_MESSAGE_INVOICE_DUPLICATE=Erreur (%s du %s), cette facture semble déjà avoir été importée. Code d'erreur : %s
@@ -124,13 +127,13 @@ MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT1=Si le fournisseur de cette facture exis
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2=S'il n'existe pas vous avez deux possibilités :
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2a=Soit vous le créez manuellement en cliquant sur le bouton + à droite de la liste
 MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2b=Soit vous ne choisissez rien dans le menu déroulant et si son numéro de TVA est présent sur la facture vous laissez faire le pilote automatique qui fera le boulot à votre place (ne marche réellement bien que pour les numéros de TVA français, suisses ou belges)
-MANUAL_IMPORT_STEP1_LEGEND=Note : La création automatique de fournisseurs ne fonctionne que si le numéro de TVA indiqué sur la facture est un numéro français, suisse ou belge…
+MANUAL_IMPORT_STEP1_LEGEND=Note : La création automatique de fournisseurs ne fonctionne que si le numéro de TVA indiqué sur la facture est un numéro français, suisse ou belge...
 Next=Suivant
 
 #
 # manual import Step2
 #
-MANUAL_IMPORT_STEP2_OPEN_FILE=Fichier…
+MANUAL_IMPORT_STEP2_OPEN_FILE=Fichier...
 MANUAL_IMPORT_STEP2_TAKE_PICTURE=Photo...
 MANUAL_IMPORT_STEP2_SUPPLIER=Fournisseur :
 MANUAL_IMPORT_STEP2_VAT_NUMBER=Numéro de TVA :
@@ -152,9 +155,9 @@ MANUAL_IMPORT_STEP2_HELP_CLOSE=Fermer
 MANUAL_IMPORT_STEP2_HELP_NEXT=Suivant
 MANUAL_IMPORT_STEP2_HELP_PREV=Précédent
 MANUAL_IMPORT_STEP2_HELP_1_TITLE=1. Choix du fichier
-MANUAL_IMPORT_STEP2_HELP_1_TXT=Commencez par importer votre fchier de facture au format PDF…<br />Allez, cliquez sur le bouton et choisissez votre fichier PDF :-)
+MANUAL_IMPORT_STEP2_HELP_1_TXT=Commencez par importer votre fchier de facture au format PDF...<br />Allez, cliquez sur le bouton et choisissez votre fichier PDF :-)
 MANUAL_IMPORT_STEP2_HELP_2_TITLE=2. Identifiez les zones à analyser
-MANUAL_IMPORT_STEP2_HELP_2_TXT=Déplacez les zones sur l'image de la facture pour indiquer quelles sont les zones à analyser.<br /><small>Si jamais vous aviez déjà définis des zones pour ce fournisseur sur une précédente facture le système les aura pré-positionnées, il vous restera de vérifier qu'elles sont bien placées…</small>
+MANUAL_IMPORT_STEP2_HELP_2_TXT=Déplacez les zones sur l'image de la facture pour indiquer quelles sont les zones à analyser.<br /><small>Si jamais vous aviez déjà définis des zones pour ce fournisseur sur une précédente facture le système les aura pré-positionnées, il vous restera de vérifier qu'elles sont bien placées...</small>
 MANUAL_IMPORT_STEP2_HELP_3_TITLE=3. Lancez l'OCR
 MANUAL_IMPORT_STEP2_HELP_3_TXT=Cliquez sur ce bouton pour lancer l'analyse de l'image et l'extraction des données <br /><small>attention à bien avoir chargé un pdf AVANT et à avoir positionné les zones d'analyse</small>
 MANUAL_IMPORT_STEP2_HELP_4_TITLE=4. Vérifiez le résultat
@@ -278,3 +281,14 @@ ScanInvoicesFeedbackSendError=Erreur lors de l'envoi du retour
 ScanInvoicesBuyMeACoffee=Offrez-nous un café
 ScanInvoicesDonationText=Ce module nous a demandé du temps de développement et de conception. Si vous le trouvez utile et souhaitez soutenir son développement, pensez à nous offrir un café (ou un peu plus). Chaque contribution aide à maintenir le projet en vie et nous motive à ajouter de nouvelles fonctionnalités !
 ScanInvoicesOfferCoffee=Offrir un café ... ou un peu plus
+
+# OCR error handling / support details (manual import)
+OcrAnalysisFailed=L'analyse OCR a échoué.
+OcrAnalysisTimeout=Le serveur OCR n'a pas répondu dans le délai imparti.
+OcrErrorUnreachable=Le serveur OCR n'a pas pu être contacté.
+OcrErrorHttp=Le serveur OCR a répondu avec le code HTTP %s.
+OcrErrorBadResponse=Le serveur OCR a renvoyé une réponse illisible.
+OcrCopyDetailsIntro=Copiez les détails ci-dessous et transmettez-les au support pour accélérer le diagnostic :
+OcrCopyDetailsButton=Copier les détails pour le support
+OcrDetailsCopied=Détails copiés dans le presse-papier
+OcrUploadInvalidResponse=L'envoi a échoué : réponse invalide du serveur. Merci de réessayer ou de contacter le support.

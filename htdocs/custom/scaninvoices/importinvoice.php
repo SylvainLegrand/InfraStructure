@@ -72,20 +72,21 @@ if (!$res && file_exists('../../../main.inc.php')) {
 if (!$res) {
 	exit('Include of main fails');
 }
+dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 
-$permissiontoaccess = $user->rights->scaninvoices->read;
+$permissiontoaccess = scaninvoicesUserHasRight($user, 'scaninvoices', 'read');
 
 $otherModulesRights = [
-	$user->rights->societe->lire,
-	$user->rights->societe->creer,
-	$user->rights->societe->client->voir,
-	$user->rights->fournisseur->lire,
-	$user->rights->fournisseur->facture->lire,
-	$user->rights->fournisseur->facture->creer,
-	$user->rights->produit->lire,
-	$user->rights->service->lire
+	scaninvoicesUserHasRight($user, 'societe', 'lire'),
+	scaninvoicesUserHasRight($user, 'societe', 'creer'),
+	scaninvoicesUserHasRight($user, 'societe', 'client', 'voir'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'lire'),
+	scaninvoicesUserHasRight($user, 'fournisseur', 'facture', 'creer'),
+	scaninvoicesUserHasRight($user, 'produit', 'lire'),
+	scaninvoicesUserHasRight($user, 'service', 'lire')
 ];
 // Security check - Protection if external user
 if ($user->socid > 0) {
@@ -151,7 +152,7 @@ $arrayofcss =  array(
 if ($step == 2) {
 	//sur oblyon dans le cas particulier de l'inversion des menu gauche/haut on force le menu en mode caché + slide
 	//on force quelques paramètres pour retrouver une utilisation normale
-	if (getDolGlobalString('MAIN_THEME') == 'oblyon' && getDolGlobalString('MAIN_MENU_INVERT') == 1) {
+	if (scaninvoicesGetDolGlobalString('MAIN_THEME') == 'oblyon' && scaninvoicesGetDolGlobalString('MAIN_MENU_INVERT') == 1) {
 		$conf->global->OBLYON_HIDE_LEFTMENU = 1;
 		$conf->global->OBLYON_FULLSIZE_TOPBAR = 1;
 		$conf->global->THEME_ELDY_ENABLE_PERSONALIZED = 1;
@@ -178,7 +179,7 @@ if ($step != 2) {
 	print '<div class="fiche">';
 }
 
-if (!empty(getDolGlobalString('SCANINVOICES_PROTOCOL_MISSMATCH'))) {
+if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_PROTOCOL_MISSMATCH'))) {
 	print '<div id="ocr-server-card" style="max-width: 350px; min-height: 40px; padding: 2em; border: 1px solid #888; background: #f8f8f8; text-align: left; margin: 3em auto;">';
 	print $apiInfoFromServer;
 	print '</div>';
