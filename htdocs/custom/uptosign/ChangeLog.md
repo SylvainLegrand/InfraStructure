@@ -1,5 +1,19 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.14 -- 2026-09-17
+
+ the release archive now ships production dependencies only
+ new check refusing to publish an archive that still have dev depends
+ widen the sign position wizard side column
+
+## 2.4.13 -- 2026-09-16
+
+ open the sign position wizard in an isolated modal, without theme or menu
+ the wizard page no longer loads any third party CSS or JS, which could shift signatures
+ the sign tab now only carries a launcher button, the PDF payload moved to the modal
+ new http tests checking the wizard page stays free of the Dolibarr layout
+ note: reactivate the module so the new modal script is registered
+
 ## 2.4.12 -- 2026-08-25
 
  add supplier docs
@@ -341,14 +355,14 @@ FIX: #41 better configuration ui/ux for documents sign models
 FIX: better reseller target page
 FIX: #19 display events on agenda
 
-## 2.2.14 -- 20231018
+## 2.2.14 -- 20231018
 
 FIX: users sign position
 FIX: auto download proof file (back)
 FIX: code factoring for sign list (whocansign)
 FIX: race condition on auto seal/sign on first page
 
-## 2.2.6 -- 20231011
+## 2.2.6 -- 20231011
 
 FIX: sometime user sign field is hidden by default
 NEW: online sign for FichInter

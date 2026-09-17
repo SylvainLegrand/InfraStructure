@@ -275,6 +275,12 @@ class ActionsUptoSign
 						array_push($errors, 'Init Process Error, res is ' . $res . ' and action is ' . $action  . " <br /> " . implode(',', $uptoSign->errors));
 						$error++;
 					}
+				} else {
+					// Without a file nothing was sent: raise the error instead of letting the
+					// caller believe the request has been registered.
+					dol_syslog("uptosign doActions action=$action, no pdf file found for " . $object->element . " #" . ((int) $object->id) . ", abort", LOG_ERR);
+					array_push($errors, 'UptoSignNoPdfFilesAssociated');
+					$error++;
 				}
 				break;
 			case "confirm_uptosignfetch":
@@ -925,7 +931,9 @@ class ActionsUptoSign
 		//Si pas de btn alors affichage en mode disabled
 		if ($signbtn) {
 			if ($objectExtraFieldUptoSignEnabled) {
-				$retour .= '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath("/custom/uptosign/uptosign_tab.php", 1) . '?id=' . $object->id . '&objectType=' . $typeOfObject . '&action=presign"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignBtnSign') . '</a></div>';
+				// uptosign-open-wizard: js/uptosign-modal.js turns the link into an isolated
+				// modal (standalone=1). Without JavaScript the href still opens the wizard.
+				$retour .= '<div class="inline-block divButAction"><a class="butAction uptosign-open-wizard" href="' . dol_buildpath("/custom/uptosign/uptosign_tab.php", 1) . '?id=' . $object->id . '&objectType=' . $typeOfObject . '&action=presign"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignBtnSign') . '</a></div>';
 				//$retour .= '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=uptosign"><i class=\"fas fa-signature\"></i>' . $langs->trans('UptoSignBtnSign') . '</a></div>';
 			}
 		} else {

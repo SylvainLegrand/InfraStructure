@@ -2192,9 +2192,12 @@ class UptoSign extends CommonObject
 					dol_syslog('uptosign: signInit: position via profil de doc :' . json_encode($positions));
 				}
 			} else {
-				dol_syslog("uptosign: signInit Error configIds var is not an id", LOG_ERR);
-				array_push($this->errors, "signInit Error configIds var is not an id");
-				array_push($this->errors, $config->errors);
+				dol_syslog("uptosign: signInit Error, no sign config for model=" . $model_pdf . ", type=" . $object->element . ", object #" . ((int) $object->id), LOG_ERR);
+				// Marker first so callers can tell that cause apart, then the detailed
+				// message built by fetchListId. array_merge, not array_push: pushing the
+				// array itself would nest it and break the implode() done by the callers.
+				array_push($this->errors, "UptoSignNoSignConfigForModel");
+				$this->errors = array_merge($this->errors, (array) $config->errors);
 				return -2;
 			}
 			dol_syslog("uptosign : signInit config is " . json_encode($config));
@@ -2493,6 +2496,11 @@ class UptoSign extends CommonObject
 			dol_syslog("uptosign redirect_sign=" . $this->redirect_sign . ", redirect=" . $resultContentRedirect . ", resultContent url= " . $resultContentUrl);
 			if ($this->redirect_sign == 'true' && $resultContentRedirect == 'available' && $resultContentUrl != "") {
 				ob_clean();
+				// Called from the isolated wizard: a Location header would open the remote
+				// signature page inside the modal iframe. Leave the frame instead.
+				if (function_exists('uptosign_standalone_active') && uptosign_standalone_active()) {
+					uptosign_standalone_leave($resultContentUrl);
+				}
 				header("Location: " . $resultContentUrl);
 				ob_flush();
 				exit;
@@ -2691,7 +2699,8 @@ class UptoSign extends CommonObject
 			if (!is_array($configIds)) {
 				dol_syslog("uptosign sealInit error, there is no configuration for that document ($object->element > $model_pdf)", LOG_ERR);
 				array_push($this->errors, "There is no seal configuration for that document ($object->element > $model_pdf)");
-				array_push($this->errors, $config->errors);
+				// array_merge, not array_push: a nested array breaks the implode() done by the callers
+				$this->errors = array_merge($this->errors, (array) $config->errors);
 				return --$error;
 			}
 

@@ -10,7 +10,7 @@ description: "Guide d'utilisation du module UptoSign : signature, scellement, si
 
 UptoSign est accessible depuis le menu **GED** (Gestion Électronique de Documents) dans le menu latéral gauche de Dolibarr. Vous y trouvez :
 
-- **UptoSign** — Historique de toutes les signatures et scellements
+- **UptoSign** - Historique de toutes les signatures et scellements
 - L'onglet **Signature électronique** est ajouté sur chaque fiche de document pris en charge (devis, commande, facture, contrat, intervention, projet, tiers, utilisateur)
 
 ## Signer un document
@@ -21,14 +21,16 @@ Avant de lancer une signature, assurez-vous qu'un fichier PDF est associé au do
 
 ### Étape 2 : ouvrir l'onglet Signature électronique
 
-Cliquez sur l'onglet **Signature électronique** de la fiche. Si plusieurs fichiers PDF sont associés au document, sélectionnez celui que vous souhaitez utiliser.
+Cliquez sur l'onglet **Signature électronique** de la fiche. L'assistant de positionnement s'ouvre dans une fenêtre dédiée, sans les menus ni les styles de Dolibarr : c'est ce qui garantit que les signatures se placent exactement là où vous les déposez, quel que soit le thème ou les autres modules installés. Si plusieurs fichiers PDF sont associés au document, sélectionnez celui que vous souhaitez utiliser.
+
+Pour revenir à la fiche sans lancer de procédure, fermez la fenêtre avec la croix en haut à droite (ou la touche Échap).
 
 ![Onglet de signature électronique avec le sélecteur de fichier PDF et l'aperçu du document](screenshots/onglet-signature-tab.webp)
 
 ### Étape 3 : positionner le sceau et les signatures
 
-1. **Placez le sceau UptoSign** — Le sceau est obligatoire. Déplacez l'étiquette du sceau sur l'aperçu du document ou saisissez les coordonnées manuellement (en millimètres, coin supérieur gauche). Indiquez le numéro de page.
-2. **Placez les signatures** — Choisissez le ou les signataires du document parmi les contacts liés à la fiche. Pour chaque signataire, positionnez la zone de signature sur le document.
+1. **Placez le sceau UptoSign** - Le sceau est obligatoire. Déplacez l'étiquette du sceau sur l'aperçu du document ou saisissez les coordonnées manuellement (en millimètres, coin supérieur gauche). Indiquez le numéro de page.
+2. **Placez les signatures** - Choisissez le ou les signataires du document parmi les contacts liés à la fiche. Pour chaque signataire, positionnez la zone de signature sur le document.
 
 > **Conseil** : le numéro de page peut être négatif pour compter en partant de la fin. Par exemple, `-1` désigne la dernière page.
 

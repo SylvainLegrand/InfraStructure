@@ -352,6 +352,11 @@ uptosignErrorPdfToText = Erreur de lancement de la commande 'pdftotext' vérifie
 uptosignErrorSmalotDoesNotExists = La classe SmalotPDF n'existe pas, si votre installation a été réalisée à partir du dépot git, pensez à lancer la commande "composer i" pour installer les dépendances...
 uptosignErrorVendorDoesNotExists = Le sous dossier "vendor" n'existe pas, si votre installation a été réalisée à partir du dépot git, pensez à lancer la commande "composer i" pour installer les dépendances...
 UptoSignOnlineSignFormErrorGenericMessage = Une erreur s'est produite, votre correspondant en a été informé automatiquement mais nous vous invitons à le contacter pour confirmer l'erreur.
+UptoSignOnlineSignNotConfiguredMessage = La signature électronique n'est pas encore disponible pour ce document. Votre correspondant en a été informé automatiquement.
+UptoSignOnlineSignNoDocumentMessage = Le document à signer n'est pas disponible pour le moment. Votre correspondant en a été informé automatiquement.
+UptoSignOnlineSignContactSender = Vous pouvez également le contacter à l'adresse %s.
+UptoSignSignatureRequestFailedFor = La demande de signature du document %s n'a pas pu être lancée.
+UptoSignErrorUnknownCause = Cause inconnue, consultez les journaux du module pour le détail.
 ErrorUptoSignModuleVersionDatabase = Module UptoSign: Attention la version de votre module n'est pas cohérente par rapport à la version de la base de données, pensez bien à désactiver et réactiver le module ...
 ErrorUptoSignModuleChooseDefaultUser = Attention la configuration de votre module uptosign est incomplète, veuillez configurez l'utilisateur par défaut à utiliser en cas d'action anonyme ...
 
@@ -501,3 +506,14 @@ UptoSignSearchEmployeeWithMobile=Rechercher un salarié (avec mobile et e-mail)
 UptoSignFilterEmployeesByGroup=Filtrer les salariés par groupe
 UseFormatInputEmailToTarget=Saisissez une ligne par destinataire au format <strong>prénom;nom;téléphone;email</strong>
 UseFormatFileEmailToTarget=Le fichier d'import doit être au format <strong>prénom;nom;téléphone;email</strong> (une ligne par destinataire)
+#
+# Assistant de positionnement isolé
+#
+UptoSignWizardTitle=Positionnement des signatures
+UptoSignWizardOpen=Positionner les signatures
+UptoSignWizardClose=Fermer
+UptoSignWizardLauncherHelp=L'assistant s'ouvre dans une fenêtre isolée, sans les menus ni les styles de Dolibarr, pour garantir un positionnement exact des signatures.
+UptoSignWizardSealActive=Sceller (actif)
+UptoSignWizardSignActive=Signer (actif)
+UptoSignWizardSwitchToSign=Signer
+UptoSignWizardSwitchToSeal=Sceller

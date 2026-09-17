@@ -26,7 +26,7 @@
  *  \ingroup    uptosign
  *  \brief      Description and activation file for module UptoSign
  */
-include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
+include_once DOL_DOCUMENT_ROOT . '/core/modules/DolibarrModules.class.php';
 dol_include_once('/uptosign/lib/uptosign.lib.php');
 
 /**
@@ -80,12 +80,12 @@ class modUptoSign extends DolibarrModules
 		$this->editor_url = 'https://cap-rel.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.4.12';
+		$this->version = '2.4.14';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version . "&d=" . DOL_VERSION . "&h=" . md5(DOL_DATA_ROOT);
 
 		// Key used in llx_const table to save module status enabled/disabled (where UPTOSIGN is value of property name of module in uppercase)
-		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
+		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
 
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
@@ -115,11 +115,12 @@ class modUptoSign extends DolibarrModules
 			'theme' => 0,
 			// Set this to relative path of css file if module has its own css file
 			'css' => array(
-					'/uptosign/css/uptosign.css.php',
+				'/uptosign/css/uptosign.css.php',
 			),
 			// Set this to relative path of js file if module must load a js on all pages
 			'js' => array(
 				'/uptosign/js/uptosign.js',
+				'/uptosign/js/uptosign-modal.js',
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
 			'hooks' => array(
@@ -204,16 +205,16 @@ class modUptoSign extends DolibarrModules
 
 		// Array to add new pages in new tabs
 		$this->tabs = array();
-		$this->tabs[] = array('data'=>'propal:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=propal&id=__ID__');
-		$this->tabs[] = array('data'=>'order:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=commande&id=__ID__');
-		$this->tabs[] = array('data'=>'supplier_order:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=supplier_order&id=__ID__');
-		$this->tabs[] = array('data'=>'supplier_proposal:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=supplier_proposal&id=__ID__');
-		$this->tabs[] = array('data'=>'invoice:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=invoice&id=__ID__');
-		$this->tabs[] = array('data'=>'contract:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=contract&id=__ID__');
-		$this->tabs[] = array('data'=>'intervention:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=intervention&id=__ID__');
-		$this->tabs[] = array('data'=>'project:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=project&id=__ID__');
-		$this->tabs[] = array('data'=>'thirdparty:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=societe&id=__ID__');
-		$this->tabs[] = array('data'=>'user:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=user&id=__ID__');
+		$this->tabs[] = array('data' => 'propal:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=propal&id=__ID__');
+		$this->tabs[] = array('data' => 'order:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=commande&id=__ID__');
+		$this->tabs[] = array('data' => 'supplier_order:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=supplier_order&id=__ID__');
+		$this->tabs[] = array('data' => 'supplier_proposal:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=supplier_proposal&id=__ID__');
+		$this->tabs[] = array('data' => 'invoice:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=invoice&id=__ID__');
+		$this->tabs[] = array('data' => 'contract:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=contract&id=__ID__');
+		$this->tabs[] = array('data' => 'intervention:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=intervention&id=__ID__');
+		$this->tabs[] = array('data' => 'project:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=project&id=__ID__');
+		$this->tabs[] = array('data' => 'thirdparty:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=societe&id=__ID__');
+		$this->tabs[] = array('data' => 'user:+tabUptoSign:UptoSignTab:uptosign@uptosign:$user->rights->uptosign->create:/uptosign/uptosign_tab.php?objectType=user&id=__ID__');
 
 
 		// Example:
@@ -245,28 +246,28 @@ class modUptoSign extends DolibarrModules
 		// Dictionaries
 		// $this->dictionaries = array();
 		/* Example: */
-		$this->dictionaries=array(
-			'langs'=>'uptosign@uptosign',
+		$this->dictionaries = array(
+			'langs' => 'uptosign@uptosign',
 			// List of tables we want to see into dictonnary editor
-			'tabname'=>array(MAIN_DB_PREFIX."c_digitalsign"),
+			'tabname' => array(MAIN_DB_PREFIX . "c_digitalsign"),
 			// Label of tables
-			'tablib'=>array("DigitalSign"),
+			'tablib' => array("DigitalSign"),
 			// Request to select fields
-			'tabsql'=>array('SELECT f.rowid as rowid, f.code, f.label, f.active, f.module FROM '.MAIN_DB_PREFIX.'c_digitalsign as f'),
+			'tabsql' => array('SELECT f.rowid as rowid, f.code, f.label, f.active, f.module FROM ' . MAIN_DB_PREFIX . 'c_digitalsign as f'),
 			// Sort order
-			'tabsqlsort'=>array("label ASC"),
+			'tabsqlsort' => array("label ASC"),
 			// List of fields (result of select to show dictionary)
-			'tabfield'=>array("code,label"),
+			'tabfield' => array("code,label"),
 			// List of fields (list of fields to edit a record)
-			'tabfieldvalue'=>array("code,label"),
+			'tabfieldvalue' => array("code,label"),
 			// List of fields (list of fields for insert)
-			'tabfieldinsert'=>array("code,label,module"),
+			'tabfieldinsert' => array("code,label,module"),
 			// Name of columns with primary key (try to always name it 'rowid')
-			'tabrowid'=>array("rowid"),
+			'tabrowid' => array("rowid"),
 			// Condition to show each dictionary
-			'tabcond'=>array($conf->uptosign->enabled),
+			'tabcond' => array($conf->uptosign->enabled),
 			// Tooltip for every fields of dictionaries: DO NOT PUT AN EMPTY ARRAY
-			'tabhelp'=>array(array('code' => 'Code', 'label' => 'Label')),
+			'tabhelp' => array(array('code' => 'Code', 'label' => 'Label')),
 		);
 		/* */
 
@@ -286,36 +287,36 @@ class modUptoSign extends DolibarrModules
 		$arraydate = dol_getdate(dol_now());
 		$datestart = dol_mktime(rand(0, 6), rand(0, 59), 0, $arraydate['mon'], $arraydate['mday'], $arraydate['year']);
 		$this->cronjobs = array(
-			 0 => array(
-				 'label' => 'UptoSignResellerCron',
-				 'jobtype' => 'method',
-				 'class' => '/uptosign/class/uptosign.class.php',
-				 'objectname' => 'Uptosign',
-				 'method' => 'doScheduledJob',
-				 'parameters' => '',
-				 'comment' => 'UptoSignResellerCronComments',
-				 'frequency' => 1,
-				 'unitfrequency' => 86400,
-				 'status' => 0,
-				 'test' => '$conf->uptosign->enabled',
-				 'priority' => 50,
-				 'datenextrun' => $datestart,
-			 ),
-			 1 => array(
-				 'label' => 'UptoSignArchiveCron',
-				 'jobtype' => 'method',
-				 'class' => '/uptosign/class/uptosign.class.php',
-				 'objectname' => 'Uptosign',
-				 'method' => 'doScheduledArchive',
-				 'parameters' => '',
-				 'comment' => 'UptoSignArchiveCronComments',
-				 'frequency' => 1,
-				 'unitfrequency' => 86400,
-				 'status' => 0,
-				 'test' => '$conf->uptosign->enabled',
-				 'priority' => 50,
-				 'datenextrun' => $datestart,
-			 ),
+			0 => array(
+				'label' => 'UptoSignResellerCron',
+				'jobtype' => 'method',
+				'class' => '/uptosign/class/uptosign.class.php',
+				'objectname' => 'Uptosign',
+				'method' => 'doScheduledJob',
+				'parameters' => '',
+				'comment' => 'UptoSignResellerCronComments',
+				'frequency' => 1,
+				'unitfrequency' => 86400,
+				'status' => 0,
+				'test' => '$conf->uptosign->enabled',
+				'priority' => 50,
+				'datenextrun' => $datestart,
+			),
+			1 => array(
+				'label' => 'UptoSignArchiveCron',
+				'jobtype' => 'method',
+				'class' => '/uptosign/class/uptosign.class.php',
+				'objectname' => 'Uptosign',
+				'method' => 'doScheduledArchive',
+				'parameters' => '',
+				'comment' => 'UptoSignArchiveCronComments',
+				'frequency' => 1,
+				'unitfrequency' => 86400,
+				'status' => 0,
+				'test' => '$conf->uptosign->enabled',
+				'priority' => 50,
+				'datenextrun' => $datestart,
+			),
 		);
 		// Example: $this->cronjobs=array(
 		//    0=>array('label'=>'My label', 'jobtype'=>'method', 'class'=>'/dir/class/file.class.php', 'objectname'=>'MyClass', 'method'=>'myMethod', 'parameters'=>'param1, param2', 'comment'=>'Comment', 'frequency'=>2, 'unitfrequency'=>3600, 'status'=>0, 'test'=>'$conf->uptosign->enabled', 'priority'=>50),
@@ -477,49 +478,49 @@ class modUptoSign extends DolibarrModules
 		);
 		*/
 
-		$this->menu[$r++]=array(
+		$this->menu[$r++] = array(
 			// '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'fk_menu'=>'fk_mainmenu=ecm',
+			'fk_menu' => 'fk_mainmenu=ecm',
 			// This is a Left menu entry
-			'type'=>'left',
-			'titre'=>'UpToSign',
-			'mainmenu'=>'ecm',
-			'leftmenu'=>'uptosign',
+			'type' => 'left',
+			'titre' => 'UpToSign',
+			'mainmenu' => 'ecm',
+			'leftmenu' => 'uptosign',
 			'prefix' => img_picto('', 'object_uptosign@uptosign', 'class="paddingright pictofixedwidth"'),
-			'url'=>'/uptosign/uptosign_list.php',
+			'url' => '/uptosign/uptosign_list.php',
 			// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'langs'=>'uptosign@uptosign',
-			'position'=>1100+$r,
+			'langs' => 'uptosign@uptosign',
+			'position' => 1100 + $r,
 			// Define condition to show or hide menu entry. Use '$conf->uptosign->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'enabled'=>'$conf->uptosign->enabled',
+			'enabled' => '$conf->uptosign->enabled',
 			// Use 'perms'=>'$user->rights->uptosign->level1->level2' if you want your menu with a permission rules
-			'perms'=>'1',
-			'target'=>'',
+			'perms' => '1',
+			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
-			'user'=>2,
+			'user' => 2,
 		);
 
 		//TODO uptosignlist a venir
-		$this->menu[$r++]=array(
+		$this->menu[$r++] = array(
 			// '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'fk_menu'=>'fk_mainmenu=ecm,fk_leftmenu=uptosign',
+			'fk_menu' => 'fk_mainmenu=ecm,fk_leftmenu=uptosign',
 			// This is a Left menu entry
-			'type'=>'left',
-			'titre'=>'uptosignlistMenu',
-			'mainmenu'=>'ecm',
-			'leftmenu'=>'uptosignlistMenu',
+			'type' => 'left',
+			'titre' => 'uptosignlistMenu',
+			'mainmenu' => 'ecm',
+			'leftmenu' => 'uptosignlistMenu',
 			'prefix' => img_picto('', 'object_uptosign@uptosign', 'class="paddingright pictofixedwidth"'),
-			'url'=>'/uptosign/uptosignlist_list.php',
+			'url' => '/uptosign/uptosignlist_list.php',
 			// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'langs'=>'uptosign@uptosign',
-			'position'=>1100+$r,
+			'langs' => 'uptosign@uptosign',
+			'position' => 1100 + $r,
 			// Define condition to show or hide menu entry. Use '$conf->uptosign->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'enabled'=>'$conf->uptosign->enabled',
+			'enabled' => '$conf->uptosign->enabled',
 			// Use 'perms'=>'$user->rights->uptosign->level1->level2' if you want your menu with a permission rules
-			'perms'=>'1',
-			'target'=>'',
+			'perms' => '1',
+			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
-			'user'=>2,
+			'user' => 2,
 		);
 
 		//TODO dev en cours
@@ -656,20 +657,20 @@ class modUptoSign extends DolibarrModules
 		// 1. Drop the initial-setup document configurations so the current default coordinates
 		//    are re-inserted for this entity. The table is missing on a fresh install, where
 		//    _load_tables() below creates it and there is nothing to reset yet.
-		$tableConf = MAIN_DB_PREFIX."uptosign_uptosignconfig";
+		$tableConf = MAIN_DB_PREFIX . "uptosign_uptosignconfig";
 		if (uptosign_table_exists($db, $tableConf)) {
-			$sqlDelConf = "DELETE FROM ".$tableConf." WHERE import_key = 'initial-setup' AND entity = ".((int) $conf->entity);
-		if (!$db->query($sqlDelConf)) {
-			dol_syslog("uptosign init: failed to reset initial-setup configs: ".$db->lasterror(), LOG_ERR);
+			$sqlDelConf = "DELETE FROM " . $tableConf . " WHERE import_key = 'initial-setup' AND entity = " . ((int) $conf->entity);
+			if (!$db->query($sqlDelConf)) {
+				dol_syslog("uptosign init: failed to reset initial-setup configs: " . $db->lasterror(), LOG_ERR);
 			}
 		} else {
-			dol_syslog("uptosign init: table ".$tableConf." not created yet, skip initial-setup configs reset", LOG_DEBUG);
+			dol_syslog("uptosign init: table " . $tableConf . " not created yet, skip initial-setup configs reset", LOG_DEBUG);
 		}
 		// 2. Drop the module email templates that were never customized by the user (datec == tms),
 		//    so the up-to-date wording is re-inserted.
-		$sqlDelTpl = "DELETE FROM ".MAIN_DB_PREFIX."c_email_templates WHERE module = 'uptosign' AND datec = tms";
+		$sqlDelTpl = "DELETE FROM " . MAIN_DB_PREFIX . "c_email_templates WHERE module = 'uptosign' AND datec = tms";
 		if (!$db->query($sqlDelTpl)) {
-			dol_syslog("uptosign init: failed to reset uptosign email templates: ".$db->lasterror(), LOG_ERR);
+			dol_syslog("uptosign init: failed to reset uptosign email templates: " . $db->lasterror(), LOG_ERR);
 		}
 
 		//$result = $this->_load_tables('/install/mysql/tables/', 'uptosign');
@@ -687,9 +688,9 @@ class modUptoSign extends DolibarrModules
 
 			//2. migration de l'historique des transactions
 			$sql = array_merge($sql, array(
-				"INSERT INTO ".MAIN_DB_PREFIX."uptosign(rowid,ref,entity,label,fk_soc,description,date_creation,date_sign,tms,fk_user_creat,fk_user_modif,import_key,status,fk_object,object_type,sign_status,sign_id,fk_contact_sign,fk_user_sign,hash_file,path_file,api_name,hook_key) SELECT rowid,ref,entity,label,fk_soc,description,date_creation,date_sign,tms,fk_user_creat,fk_user_modif,import_key,status,fk_object,object_type,sign_status,sign_id,fk_contact_sign,fk_user_sign,hash_file,path_file,api_name,hook_key FROM ".MAIN_DB_PREFIX."uptosign_old",
-				"DROP TABLE IF EXISTS ".MAIN_DB_PREFIX."uptosign_old",
-				"DROP TABLE IF EXISTS ".MAIN_DB_PREFIX."uptosign_config_old"
+				"INSERT INTO " . MAIN_DB_PREFIX . "uptosign(rowid,ref,entity,label,fk_soc,description,date_creation,date_sign,tms,fk_user_creat,fk_user_modif,import_key,status,fk_object,object_type,sign_status,sign_id,fk_contact_sign,fk_user_sign,hash_file,path_file,api_name,hook_key) SELECT rowid,ref,entity,label,fk_soc,description,date_creation,date_sign,tms,fk_user_creat,fk_user_modif,import_key,status,fk_object,object_type,sign_status,sign_id,fk_contact_sign,fk_user_sign,hash_file,path_file,api_name,hook_key FROM " . MAIN_DB_PREFIX . "uptosign_old",
+				"DROP TABLE IF EXISTS " . MAIN_DB_PREFIX . "uptosign_old",
+				"DROP TABLE IF EXISTS " . MAIN_DB_PREFIX . "uptosign_config_old"
 			));
 
 			//3. migration des configurations de documents / position automatique des signatures ?
@@ -700,13 +701,13 @@ class modUptoSign extends DolibarrModules
 		}
 
 		//cleanup #28
-		require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-		if (is_dir(DOL_DATA_ROOT.'/UptoSign')) {
-			@dol_delete_dir_recursive(DOL_DATA_ROOT.'/UptoSign');
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+		if (is_dir(DOL_DATA_ROOT . '/UptoSign')) {
+			@dol_delete_dir_recursive(DOL_DATA_ROOT . '/UptoSign');
 		}
 
 		// force re-read data because of prev sql make insert of $conf->global->UPTOSIGN_MODULE_VERSION
-		$sqlMig = "SELECT value as ver FROM ".MAIN_DB_PREFIX."const WHERE name='UPTOSIGN_MODULE_VERSION'";
+		$sqlMig = "SELECT value as ver FROM " . MAIN_DB_PREFIX . "const WHERE name='UPTOSIGN_MODULE_VERSION'";
 		$resqlMig = $db->query($sqlMig);
 		if ($resqlMig) {
 			$obj = $db->fetch_object($resqlMig);
@@ -727,7 +728,7 @@ class modUptoSign extends DolibarrModules
 		//     } else {
 		// }
 
-		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+		include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 		$extrafields = new ExtraFields($this->db);
 		// note via llx_c_digitalsign mais je ne trouve pas comment faire pour avoir une valeur par défaut qui marche
 		// $result = $extrafields->addExtraField('digitalsign',    $langs->trans('DigitalSign'),    'sellist', 1100, 100, 'propal',   0, 0, 2, array('options' => array('c_digitalsign:label:rowid::active=1' => null)), 1, '', 1, '', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
@@ -736,12 +737,12 @@ class modUptoSign extends DolibarrModules
 
 		//donc en attendant, passage sur un dropdown classique
 		// show function uptosign_list_of_elements_with_extrafield()
-		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'propal', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
-		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'commande', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
-		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'contrat', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
-		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'projet', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
-		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'supplier_proposal', 0, 0, 'uptosign', array('options' => array('dolibarr' =>"DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
-		$result = $extrafields->addExtraField('digitalsign_disable_sms', $langs->trans('DigitalSignCodeBy'), 'select', 1200, 1, 'thirdparty', 0, 0, '0', array('options' => array('0' =>"DigitalSignCodeBySMS", '1' => "DigitalSignCodeByEmail")), 1, '', 1, 'DigitalSignCodeByTooltip', '', '', 'uptosign@uptosign', 'getDolGlobalString("UPTOSIGN_DISABLE_SMS_SELECT_THIRDPART")', 0, 0);
+		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'propal', 0, 0, 'uptosign', array('options' => array('dolibarr' => "DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
+		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'commande', 0, 0, 'uptosign', array('options' => array('dolibarr' => "DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
+		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'contrat', 0, 0, 'uptosign', array('options' => array('dolibarr' => "DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
+		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'projet', 0, 0, 'uptosign', array('options' => array('dolibarr' => "DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
+		$result = $extrafields->addExtraField('digitalsign', $langs->trans('DigitalSign'), 'select', 1100, 100, 'supplier_proposal', 0, 0, 'uptosign', array('options' => array('dolibarr' => "DolibarrNative", 'uptosign' => "UpToSignCertified")), 1, '', 1, 'DigitalSignTooltip', '', '', 'uptosign@uptosign', '$conf->uptosign->enabled', 0, 0);
+		$result = $extrafields->addExtraField('digitalsign_disable_sms', $langs->trans('DigitalSignCodeBy'), 'select', 1200, 1, 'thirdparty', 0, 0, '0', array('options' => array('0' => "DigitalSignCodeBySMS", '1' => "DigitalSignCodeByEmail")), 1, '', 1, 'DigitalSignCodeByTooltip', '', '', 'uptosign@uptosign', 'getDolGlobalString("UPTOSIGN_DISABLE_SMS_SELECT_THIRDPART")', 0, 0);
 
 		// UPTOSIGN_DISABLE_SMS_SELECT_THIRDPART
 		// Document templates
@@ -873,28 +874,28 @@ class modUptoSign extends DolibarrModules
 		);
 
 		foreach ($types as $id => $t) {
-			$sql = "SELECT id FROM ".MAIN_DB_PREFIX."c_actioncomm WHERE code = '".$db->escape($t['code'])."'";
+			$sql = "SELECT id FROM " . MAIN_DB_PREFIX . "c_actioncomm WHERE code = '" . $db->escape($t['code']) . "'";
 			$resql = $db->query($sql);
 			if (!$resql) {
-				dol_syslog("uptosign: _registerAgendaEventTypes select failed for ".$t['code'].": ".$db->lasterror(), LOG_ERR);
+				dol_syslog("uptosign: _registerAgendaEventTypes select failed for " . $t['code'] . ": " . $db->lasterror(), LOG_ERR);
 				return -1;
 			}
 			if ($db->num_rows($resql) == 0) {
-				$sqlins = "INSERT INTO ".MAIN_DB_PREFIX."c_actioncomm(id, code, type, libelle, module, active, position)";
-				$sqlins .= " VALUES(".((int) $id).", '".$db->escape($t['code'])."', 'systemauto', '".$db->escape($t['libelle'])."', 'uptosign@uptosign', 1, ".((int) $id).")";
+				$sqlins = "INSERT INTO " . MAIN_DB_PREFIX . "c_actioncomm(id, code, type, libelle, module, active, position)";
+				$sqlins .= " VALUES(" . ((int) $id) . ", '" . $db->escape($t['code']) . "', 'systemauto', '" . $db->escape($t['libelle']) . "', 'uptosign@uptosign', 1, " . ((int) $id) . ")";
 				if (!$db->query($sqlins)) {
-					dol_syslog("uptosign: _registerAgendaEventTypes insert failed for ".$t['code'].": ".$db->lasterror(), LOG_ERR);
+					dol_syslog("uptosign: _registerAgendaEventTypes insert failed for " . $t['code'] . ": " . $db->lasterror(), LOG_ERR);
 					return -1;
 				}
-				dol_syslog("uptosign: registered agenda event type ".$t['code'], LOG_DEBUG);
+				dol_syslog("uptosign: registered agenda event type " . $t['code'], LOG_DEBUG);
 			}
 
 			// Recategorize legacy events (created since 2023 with fk_action pointing to AC_OTH_AUTO).
 			// The code column is unique to this module, so matching on it is safe across entities.
-			$sqlupd = "UPDATE ".MAIN_DB_PREFIX."actioncomm SET fk_action = ".((int) $id);
-			$sqlupd .= " WHERE code = '".$db->escape($t['code'])."' AND fk_action <> ".((int) $id);
+			$sqlupd = "UPDATE " . MAIN_DB_PREFIX . "actioncomm SET fk_action = " . ((int) $id);
+			$sqlupd .= " WHERE code = '" . $db->escape($t['code']) . "' AND fk_action <> " . ((int) $id);
 			if (!$db->query($sqlupd)) {
-				dol_syslog("uptosign: _registerAgendaEventTypes recategorize failed for ".$t['code'].": ".$db->lasterror(), LOG_ERR);
+				dol_syslog("uptosign: _registerAgendaEventTypes recategorize failed for " . $t['code'] . ": " . $db->lasterror(), LOG_ERR);
 				return -1;
 			}
 		}
@@ -926,25 +927,27 @@ class modUptoSign extends DolibarrModules
 		//pour savoir si on était en version 1.x on regarde si UPTOSIGN_MODULE_VERSION existe :)
 		if (utsbackports_getDolGlobalString('UPTOSIGN_MODULE_VERSION', '')  != '') {
 			uptosign_bkup_module(strtolower($this->name));
-			$sql = array("DELETE FROM ".MAIN_DB_PREFIX."const WHERE name like 'UPTOSIGN\_%' AND entity = '".$conf->entity . "';",
-						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign;',
-						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_config;',
-						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_uptosignconfig;',
-						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_uptosignlistmembers;',
-						'DROP TABLE IF EXISTS '.MAIN_DB_PREFIX.'uptosign_uptosignlist;');
+			$sql = array(
+				"DELETE FROM " . MAIN_DB_PREFIX . "const WHERE name like 'UPTOSIGN\_%' AND entity = '" . $conf->entity . "';",
+				'DROP TABLE IF EXISTS ' . MAIN_DB_PREFIX . 'uptosign;',
+				'DROP TABLE IF EXISTS ' . MAIN_DB_PREFIX . 'uptosign_config;',
+				'DROP TABLE IF EXISTS ' . MAIN_DB_PREFIX . 'uptosign_uptosignconfig;',
+				'DROP TABLE IF EXISTS ' . MAIN_DB_PREFIX . 'uptosign_uptosignlistmembers;',
+				'DROP TABLE IF EXISTS ' . MAIN_DB_PREFIX . 'uptosign_uptosignlist;'
+			);
 		} else {
 			//multicomp ?
 			if ((int) $conf->entity == 1) {
 				//dans le cas où ça n'était pas présent, on l'ajoute pour que le init du module sache quoi faire
 				dolibarr_set_const($db, 'UPTOSIGN_MODULE_VERSION', '1.x', 'chaine', 0, 'Active module version', $conf->entity);
 				$sql = array(
-					'RENAME TABLE '.MAIN_DB_PREFIX.'uptosign TO '.MAIN_DB_PREFIX.'uptosign_old;',
-					'RENAME TABLE '.MAIN_DB_PREFIX.'uptosign_config TO '.MAIN_DB_PREFIX.'uptosign_config_old;',
+					'RENAME TABLE ' . MAIN_DB_PREFIX . 'uptosign TO ' . MAIN_DB_PREFIX . 'uptosign_old;',
+					'RENAME TABLE ' . MAIN_DB_PREFIX . 'uptosign_config TO ' . MAIN_DB_PREFIX . 'uptosign_config_old;',
 				);
 			}
 		}
 		//manual delete cron due to strange AND test=1
-		$sql[] = "DELETE FROM ".MAIN_DB_PREFIX."cronjob WHERE module_name = 'uptosign' AND entity = '".$conf->entity . "';";
+		$sql[] = "DELETE FROM " . MAIN_DB_PREFIX . "cronjob WHERE module_name = 'uptosign' AND entity = '" . $conf->entity . "';";
 		return $this->_remove($sql, $options);
 	}
 }

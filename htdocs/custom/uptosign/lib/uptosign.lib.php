@@ -2559,6 +2559,197 @@ function uptosignFindFileToUse(CommonObject $obj, $last_main_doc)
 }
 
 /**
+ * Tell if a signature request can really be started for that object.
+ *
+ * signInit() needs, in that order: a pdf file, then either the magic keywords inside
+ * that pdf or a signature config matching the document model. When none of them is
+ * available the request can only fail, so callers (public sign page) can use this to
+ * avoid offering a button that never works and to report the real cause.
+ *
+ * @param   CommonObject  $object  object to sign
+ * @param   string        $file    full path of the pdf to sign, searched from $object when empty
+ *
+ * @return  array   ['ok' => bool, 'reason' => string, 'model' => string, 'type' => string, 'detail' => string]
+ */
+function uptosign_check_sign_availability(CommonObject $object, $file = '')
+{
+	global $db, $langs;
+
+	$type = uptosign_unify_object_type($object->element);
+	$model = uptosign_unify_object_name(uptosignModel($object));
+	$status = array('ok' => false, 'reason' => '', 'model' => $model, 'type' => $type, 'detail' => '');
+
+	if (empty($file)) {
+		$file = uptosignFindFileToUse($object, '');
+	}
+	if (empty($file)) {
+		$status['reason'] = 'nofile';
+		$status['detail'] = $langs->transnoentitiesnoconv('UptoSignNoPdfFilesAssociated');
+		dol_syslog("uptosign: uptosign_check_sign_availability no pdf file for " . $object->element . " #" . ((int) $object->id), LOG_WARNING);
+		return $status;
+	}
+
+	// An odt model always carries the magic keywords in the pdf it generates, no config needed
+	if (strtolower(substr($model, -3)) == 'odt') {
+		$status['ok'] = true;
+		return $status;
+	}
+
+	$config = new UptoSignConfig($db);
+	$configIds = $config->fetchListId(uptosignModel($object), $object->element, 'sign');
+	if (!empty($configIds)) {
+		$status['ok'] = true;
+		return $status;
+	}
+
+	// Without a config, signInit still accepts the document when the pdf carries both
+	// the stamp and the signature keywords, so read the file before refusing.
+	$magic = array();
+	if (uptosign_auto_position_magic_keywords($file, $magic, 'presign')) {
+		$hasSign = false;
+		for ($idn = 0; $idn < 10; $idn++) {
+			if (isset($magic[sprintf("SIGN_%'02d", $idn)]) || isset($magic[sprintf("FROM_%'02d", $idn)])) {
+				$hasSign = true;
+				break;
+			}
+		}
+		if (isset($magic['STAMP']) && $hasSign) {
+			$status['ok'] = true;
+			return $status;
+		}
+	}
+
+	$status['reason'] = 'noconfig';
+	$status['detail'] = $langs->transnoentitiesnoconv(
+		'UptoSignErrorThereIsNoConfig',
+		$model . ' (' . $type . ')',
+		"<a href='" . dol_buildpath("/uptosign/uptosignconfig_list.php", 1) . "'>",
+		"</a>"
+	);
+	dol_syslog("uptosign: uptosign_check_sign_availability no sign config for model=$model, type=$type, object #" . ((int) $object->id), LOG_WARNING);
+
+	return $status;
+}
+
+/**
+ * Tell if uptosign is the signature provider used for that object.
+ *
+ * Same rule as the one applied when the public page submits the sign form: the
+ * digitalsign extrafield drives the choice, and an empty value falls back to
+ * uptosign when UPTOSIGN_FORCE_AS_DEFAULT_SIGN_SYSTEM_CLONE is set.
+ *
+ * @param   CommonObject  $object  object to sign
+ *
+ * @return  bool
+ */
+function uptosign_is_sign_provider(CommonObject $object)
+{
+	$provider = '';
+	if (isset($object->array_options) && is_array($object->array_options) && !empty($object->array_options['options_digitalsign'])) {
+		$provider = $object->array_options['options_digitalsign'];
+	}
+	if (empty($provider)
+		&& in_array($object->element, uptosign_list_of_elements_with_extrafield())
+		&& utsbackports_getDolGlobalString('UPTOSIGN_FORCE_AS_DEFAULT_SIGN_SYSTEM_CLONE', '') != '') {
+		$provider = 'uptosign';
+	}
+
+	return ($provider == 'uptosign');
+}
+
+/**
+ * Find out why the sign hook refused the request, from the errors it raised.
+ *
+ * @param   array  $errors  errors collected from the hook manager
+ *
+ * @return  string  'noconfig', 'nofile' or '' when the cause is not a known one
+ */
+function uptosign_public_sign_error_reason($errors)
+{
+	$flat = array();
+	foreach ((array) $errors as $err) {
+		if (is_array($err)) {
+			$flat = array_merge($flat, $err);
+		} else {
+			$flat[] = $err;
+		}
+	}
+
+	foreach ($flat as $err) {
+		if (!is_string($err)) {
+			continue;
+		}
+		if (strpos($err, 'UptoSignNoSignConfigForModel') !== false) {
+			return 'noconfig';
+		}
+		if (strpos($err, 'UptoSignNoPdfFilesAssociated') !== false) {
+			return 'nofile';
+		}
+	}
+
+	return '';
+}
+
+/**
+ * Turn the errors raised by the sign hook into a message that can be shown to an
+ * external signer: the technical detail stays in the log and in the admin mail.
+ *
+ * @param   array  $errors  errors collected from the hook manager
+ *
+ * @return  string  translated message
+ */
+function uptosign_public_sign_error_message($errors)
+{
+	global $langs, $mysoc;
+
+	$contact = '';
+	if (!empty($mysoc->email)) {
+		$contact = ' ' . $langs->trans('UptoSignOnlineSignContactSender', $mysoc->email);
+	}
+
+	switch (uptosign_public_sign_error_reason($errors)) {
+		case 'noconfig':
+			return $langs->trans('UptoSignOnlineSignNotConfiguredMessage') . $contact;
+		case 'nofile':
+			return $langs->trans('UptoSignOnlineSignNoDocumentMessage') . $contact;
+		default:
+			return $langs->trans('UptoSignOnlineSignFormErrorGenericMessage');
+	}
+}
+
+/**
+ * Build the technical detail of a failed sign request, for the admin mail and the log.
+ * Unlike the message shown to the signer, it names the document model and links to the
+ * page where the missing config can be added.
+ *
+ * @param   CommonObject  $object  object the signer tried to sign
+ * @param   array         $errors  errors collected from the hook manager
+ *
+ * @return  string  html detail
+ */
+function uptosign_public_sign_error_detail(CommonObject $object, $errors)
+{
+	global $langs;
+
+	$type = uptosign_unify_object_type($object->element);
+	$model = uptosign_unify_object_name(uptosignModel($object));
+
+	switch (uptosign_public_sign_error_reason($errors)) {
+		case 'noconfig':
+			return $langs->transnoentitiesnoconv(
+				'UptoSignErrorThereIsNoConfig',
+				$model . ' (' . $type . ')',
+				"<a href='" . dol_buildpath("/uptosign/uptosignconfig_list.php", 1) . "'>",
+				"</a>"
+			);
+		case 'nofile':
+			return $langs->transnoentitiesnoconv('UptoSignNoPdfFilesAssociated') . ' (' . $type . ' ' . $object->ref . ')';
+		default:
+			return $langs->transnoentitiesnoconv('UptoSignErrorUnknownCause') . ' (' . $type . ' ' . $object->ref . ', ' . $model . ')';
+	}
+}
+
+/**
  * get list of files linked to object and who can be signed
  *
  * @param   CommonObject  $obj  [$obj description]

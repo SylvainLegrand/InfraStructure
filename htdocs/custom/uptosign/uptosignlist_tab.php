@@ -88,6 +88,7 @@ dol_include_once('/uptosign/class/uptosign.class.php');
 dol_include_once('/uptosign/class/uptosignconfig.class.php');
 dol_include_once('/uptosign/lib/backports.lib.php');
 dol_include_once('/uptosign/lib/uptosign_uptosignlist.lib.php');
+dol_include_once('/uptosign/lib/uptosign_standalone.lib.php');
 
 dol_include_once('/uptosign/vendor/autoload.php');
 $uptoSign = new UptoSign($db);
@@ -125,13 +126,16 @@ $refTitle = (string) GETPOST('refTitle', 'alpha');
 $postAutoposition = GETPOSTISSET('autoposition');
 $countOfPages = GETPOSTINT('countOfPages');
 //$lineid   = GETPOSTINT('lineid');
+// Chrome-less rendering: see lib/uptosign_standalone.lib.php. Without it the page
+// only shows a launcher opening the wizard in an isolated modal.
+$standalone = uptosign_standalone_active();
 $object = $modulepart = $head = null;
 $signed = false;
 
 // Initialize technical objects
 if ($objectType == 'uptosignlist') {
-	require_once 'class/uptosignlist.class.php';
-	require_once 'lib/uptosign_uptosignlist.lib.php';
+	dol_include_once('/uptosign/class/uptosignlist.class.php');
+	dol_include_once('/uptosign/lib/uptosign_uptosignlist.lib.php');
 	$object = new UptoSignList($db);
 	$object->fetch($id);
 	$object->getRights();
@@ -250,13 +254,25 @@ $nomain = "";
 if ($action == 'uptosign' && $object->id > 0 && (int) $object->status !== (int) UptoSignList::STATUS_DRAFT) {
 	dol_syslog("uptosign: duplicate uptosignlist sign request for id=" . $object->id . " (status=" . $object->status . "), redirect to card", LOG_WARNING);
 	setEventMessages($langs->trans("UptoSignDuplicateRequestRedirect"), [], 'warnings');
-	header('Location: ' . dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . (int) $object->id);
+	$idemTarget = dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . (int) $object->id;
+	if ($standalone) {
+		// Inside the modal a Location header would only reload the iframe.
+		uptosign_standalone_leave($idemTarget);
+	}
+	header('Location: ' . $idemTarget);
 	exit;
 }
 
 // Buffer page output so the success path can flush it and emit a POST-Redirect-GET header.
 ob_start();
-llxHeader('', 'UptoSign - Choose sign position', '', '', 0, 0, $arrayofjs, $arrayofcss, '', '', $nomain, 0);
+if ($standalone) {
+	uptosign_standalone_header($langs->trans('UptoSignWizardTitle'), $arrayofjs, $arrayofcss, $object->ref);
+} else {
+	// The launcher does not need the wizard assets, they are loaded by the modal. The
+	// modal script is loaded here and not only through module_parts, so the tab keeps
+	// working on an installation that was not reactivated after the update.
+	llxHeader('', 'UptoSign - Choose sign position', '', '', 0, 0, array('/uptosign/js/uptosign-modal.js?ver=' . filemtime('js/uptosign-modal.js')), array(), '', '', $nomain, 0);
+}
 $allreadyUsed = [];
 $x = $y = $p = $s = null;
 $error = null;
@@ -404,13 +420,18 @@ if ($action == 'uptosign') {
 		}
 		setEventMessages($langs->trans($message), [], 'mesgs');
 
-		// POST-Redirect-GET: discard buffered output (llxHeader was emitted into the
+		// POST-Redirect-GET: discard buffered output (the header was emitted into the
 		// ob_start buffer above) and redirect to the list card. Prevents re-running
 		// sealOrSignInitLight on F5 or back/forward navigation.
+		$successTarget = dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . (int) $object->id;
+		if ($standalone) {
+			// Hand the URL over to the host page: it closes the modal and navigates.
+			uptosign_standalone_leave($successTarget);
+		}
 		while (ob_get_level() > 0) {
 			ob_end_clean();
 		}
-		header('Location: ' . dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . (int) $object->id);
+		header('Location: ' . $successTarget);
 		exit;
 	} else {
 		setEventMessages("sealOrSignInitLight errors : " . implode("\n", $uptoSign->errors), [], 'errors');
@@ -420,7 +441,9 @@ if ($action == 'uptosign') {
 // }
 
 if ($object->status != UptoSignList::STATUS_DRAFT) {
-	print dol_get_fiche_head($head, 'uptosignlisttab', $langs->trans("UptoSign"), -1, $object->picto);
+	if (!$standalone) {
+		print dol_get_fiche_head($head, 'uptosignlisttab', $langs->trans("UptoSign"), -1, $object->picto);
+	}
 	print '	<div class="fichecenter">' . "\n";
 	print ' 	<div class="fichethirdleft" style="padding:10px; max-width: 200px">' . "\n";
 	print "<p>" . $langs->trans("uptosignListProcessInProgress") . "</p>";
@@ -430,10 +453,28 @@ if ($object->status != UptoSignList::STATUS_DRAFT) {
 }
 
 //
-if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'create'))) {
+if (!$standalone && $object->id > 0) {
+	// Dolibarr tab: keep the native chrome and the tab bar, and delegate the wizard to
+	// the isolated modal. None of the expensive work below (PDF payload, position
+	// detection) is done here, it belongs to the standalone request.
 	$res = $object->fetch_optionals();
 
 	print dol_get_fiche_head($head, 'uptosignlisttab', $langs->trans("UptoSign"), -1, $object->picto);
+
+	// A list is signed, never sealed: keep presign so the wizard does not fall back to
+	// the seal mode the "empty action" default would select.
+	$wizardAction = in_array($action, array('presign', 'preseal'), true) ? $action : 'presign';
+	$wizardUrl = dol_buildpath('/uptosign/uptosignlist_tab.php', 1)
+		. '?id=' . urlencode((string) $id)
+		. '&objectType=' . urlencode($objectType)
+		. '&action=' . urlencode($wizardAction)
+		. ($pdfFileChoosed != '' ? '&pdfFileChoosed=' . urlencode($pdfFileChoosed) : '')
+		. '&standalone=1';
+	uptosign_standalone_print_launcher($wizardUrl, $langs->trans('UptoSignWizardOpen'));
+
+	print dol_get_fiche_end();
+} elseif ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'create'))) {
+	$res = $object->fetch_optionals();
 
 	$formconfirm = $lineid = '';
 
@@ -455,6 +496,9 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	// dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
 	// print '</div>' . "\n";
 	print '<form id="leform" name="leform" method="POST" action="' . dol_buildpath('/uptosign/uptosignlist_tab.php', 1) . '">' . "\n";
+	// Keep the chrome-less mode across the POST, otherwise the result would come back
+	// with the full Dolibarr layout inside the modal.
+	print '	  <input type="hidden" name="standalone" value="1">' . "\n";
 
 	if ($action == "" || $action =="preseal") {
 		$signOrSeal = 'seal';
@@ -616,14 +660,14 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '	  <input id="autoposition" type="hidden" value="1" />'."\n";
 	}
 	print '	</div><!-- end of ficheright -->'."\n";
-	// print '  </div><!-- end of fichecenter -->'."\n";
-	print dol_get_fiche_end();
+	print '</form>'."\n";
+	print '  </div><!-- end of fichecenter -->'."\n";
 }
 
-
-print '</form>'."\n";
-
-print '</div>'."\n";
 // End of page
-llxFooter();
-$db->close();
+if ($standalone) {
+	uptosign_standalone_footer();
+} else {
+	llxFooter();
+	$db->close();
+}

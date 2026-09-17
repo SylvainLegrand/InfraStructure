@@ -82,7 +82,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 dol_include_once('/uptosign/lib/backports.lib.php');
 
 // load uptosign libraries
-require_once __DIR__.'/class/uptosign.class.php';
+dol_include_once('/uptosign/class/uptosign.class.php');
 
 // for other modules
 //dol_include_once('/othermodule/class/otherobject.class.php');

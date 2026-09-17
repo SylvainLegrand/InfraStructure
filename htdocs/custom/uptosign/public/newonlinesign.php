@@ -399,16 +399,20 @@ if ($action == "dosign" && empty($cancel)) {
 				$action = "confirm_uptosign";
 				$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 				if ($reshook < 0) {
-					dol_syslog("uptosign: hook error is " . $hookmanager->error, LOG_ERR);
+					dol_syslog("uptosign: hook error is " . $hookmanager->error . ", errors are " . json_encode($hookmanager->errors), LOG_ERR);
 					if (utsbackports_getDolGlobalString("UPTOSIGN_SEND_ERROR_MAIL_TO")) {
-						$utsmessage  = $hookmanager->error . "<br />\n";
+						// Start with the readable cause: the admin has to know what to fix, the
+						// raw dump stays below for support.
+						$utsmessage  = "<b>" . dol_escape_htmltag($langs->transnoentitiesnoconv("UptoSignSignatureRequestFailedFor", $object->ref)) . "</b><br />\n";
+						$utsmessage .= uptosign_public_sign_error_detail($object, $hookmanager->errors) . "<br />\n";
+						$utsmessage .= $hookmanager->error . "<br />\n";
 						$utsmessage .= "errors = <pre>" . json_encode($hookmanager->errors) . "</pre><br>\n";
 						$utsmessage .= "action = $action<br>\n";
 						$utsmessage .= "parameters = <pre>" . json_encode($parameters) . "</pre><br>\n";
 						$utsmessage .= "object = <pre>" . json_encode($object) . "</pre><br>\n";
 						uptosign_send_mail(utsbackports_getDolGlobalString("UPTOSIGN_SEND_ERROR_MAIL_TO"), "New Online Sign Error", $utsmessage);
 					}
-					setEventMessages($langs->trans("UptoSignOnlineSignFormErrorGenericMessage"), [], 'errors');
+					setEventMessages(uptosign_public_sign_error_message($hookmanager->errors), [], 'errors');
 				} else {
 					$action = "uptosign_started";
 				}
@@ -1019,6 +1023,52 @@ if ($action != "dosign" && $message != 'signed' && uptosignCheckStatusSigned($ob
 print '</td></tr>' . "\n";
 print '<tr><td class="center">';
 
+// Do not offer a sign button the module cannot honour: without a pdf or without a
+// signature config for that document model, signInit() can only fail. Say so here
+// instead of letting the signer discover it after the click. Called from the branches
+// that are about to print a sign button, so a document already signed or refused
+// neither runs the check nor notifies the admin.
+$signBlockedNotice = function () use ($object, $langs, $mysoc) {
+	static $notice = null;
+	if ($notice !== null) {
+		return $notice;
+	}
+	$notice = '';
+
+	if (!uptosign_is_sign_provider($object)) {
+		return $notice;
+	}
+	$availability = uptosign_check_sign_availability($object);
+	if (!empty($availability['ok'])) {
+		return $notice;
+	}
+
+	if ($availability['reason'] == 'nofile') {
+		$text = $langs->trans('UptoSignOnlineSignNoDocumentMessage');
+	} else {
+		$text = $langs->trans('UptoSignOnlineSignNotConfiguredMessage');
+	}
+	if (!empty($mysoc->email)) {
+		$text .= ' ' . $langs->trans('UptoSignOnlineSignContactSender', $mysoc->email);
+	}
+	$notice = '<div class="warning">' . $text . '</div>';
+
+	dol_syslog("uptosign newonlinesign: sign button hidden for " . $object->element . " " . $object->ref
+		. ", reason=" . $availability['reason'] . ", model=" . $availability['model'], LOG_ERR);
+
+	// One mail per document and per visitor session: the signer often reloads the page
+	// and the admin only needs to be told once that this document cannot be signed.
+	$notifkey = 'uptosign_signblocked_' . $object->element . '_' . ((int) $object->id);
+	if (utsbackports_getDolGlobalString("UPTOSIGN_SEND_ERROR_MAIL_TO") && empty($_SESSION[$notifkey])) {
+		$_SESSION[$notifkey] = 1;
+		$utsmessage  = "<b>" . dol_escape_htmltag($langs->transnoentitiesnoconv("UptoSignSignatureRequestFailedFor", $object->ref)) . "</b><br />\n";
+		$utsmessage .= $availability['detail'] . "<br />\n";
+		uptosign_send_mail(utsbackports_getDolGlobalString("UPTOSIGN_SEND_ERROR_MAIL_TO"), "Online signature unavailable", $utsmessage);
+	}
+
+	return $notice;
+};
+
 if ($action == "dosign" && empty($cancel)) {
 	print '<div style="margin-bottom: 0;" class="tablepublicpayment">';
 	print '<input type="button" class="buttonDelete small" id="clearsignature" value="' . $langs->trans("ClearSignature") . '">';
@@ -1107,30 +1157,45 @@ if ($action == "dosign" && empty($cancel)) {
 				print '<span class="warning">' . $langs->trans("PropalAlreadyRefused") . '</span>';
 			}
 		} else {
-			print '<input type="submit" class="butAction small wraponsmartphone marginbottomonly marginleftonly marginrightonly reposition" value="' . $langs->trans("AcceptDocument") . '">';
+			// The refuse button stays available: the signer must still be able to answer
+			// even when the signature itself cannot be started.
+			$notice = $signBlockedNotice();
+			if ($notice != '') {
+				print $notice;
+			} else {
+				print '<input type="submit" class="butAction small wraponsmartphone marginbottomonly marginleftonly marginrightonly reposition" value="' . $langs->trans("AcceptDocument") . '">';
+			}
 			print '<input name="refusepropal" type="submit" class="butActionDelete small wraponsmartphone marginbottomonly marginleftonly marginrightonly reposition" value="' . $langs->trans("RefuseDocument") . '">';
 		}
 	} elseif ($source == 'contract' || $source == 'contrat') {
 		if ($message == 'signed') {
 			print '<span class="ok">' . $langs->trans("ContractSigned") . '</span>';
+		} elseif (($notice = $signBlockedNotice()) != '') {
+			print $notice;
 		} else {
 			print '<input type="submit" class="butAction small wraponsmartphone marginbottomonly marginleftonly marginrightonly reposition" value="' . $langs->trans("SignContract") . '">';
 		}
 	} elseif ($source == 'fichinter') {
 		if ($message == 'signed') {
 			print '<span class="ok">' . $langs->trans("FichinterSigned") . '</span>';
+		} elseif (($notice = $signBlockedNotice()) != '') {
+			print $notice;
 		} else {
 			print '<input type="submit" class="butAction small wraponsmartphone marginbottomonly marginleftonly marginrightonly reposition" value="' . $langs->trans("SignFichinter") . '">';
 		}
 	} elseif ($source == 'commande') {
 		if ($message == 'signed') {
 			print '<span class="ok">' . $langs->trans("CommandeSigned") . '</span>';
+		} elseif (($notice = $signBlockedNotice()) != '') {
+			print $notice;
 		} else {
 			print '<input type="submit" class="butAction small wraponsmartphone marginbottomonly marginleftonly marginrightonly reposition" value="' . $langs->trans("AcceptDocument") . '">';
 		}
 	} elseif ($source == 'project') {
 		if ($message == 'signed') {
 			print '<span class="ok">' . $langs->trans("DocumentAlreadySigned") . '</span>';
+		} elseif (($notice = $signBlockedNotice()) != '') {
+			print $notice;
 		} else {
 			print '<input type="submit" class="butAction small wraponsmartphone marginbottomonly marginleftonly marginrightonly reposition" value="' . $langs->trans("AcceptDocument") . '">';
 		}

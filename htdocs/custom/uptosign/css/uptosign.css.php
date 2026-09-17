@@ -156,3 +156,38 @@ div.mainmenu.uptosign {
 	background-color:#0F0;
 	box-shadow:0px 0px 10px 2px #0F0;
 }
+
+/* Modal hosting the isolated position wizard (js/uptosign-modal.js) */
+.uptosign-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 100000;
+	background: rgba(20, 28, 36, 0.72);
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.uptosign-modal-frame {
+	width: 100%;
+	height: 100%;
+	border: 0;
+	border-radius: 8px;
+	background: #ffffff;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+body.uptosign-modal-open {
+	overflow: hidden;
+}
+
+@media only screen and (max-width: 800px) {
+	.uptosign-modal-overlay {
+		padding: 0;
+	}
+	.uptosign-modal-frame {
+		border-radius: 0;
+	}
+}

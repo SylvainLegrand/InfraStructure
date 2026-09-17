@@ -266,7 +266,7 @@ print '</div>'; // End support-content
 print '</div>'; // End support-page
 
 // Changelog section
-$changelog_path = dol_buildpath('/uptosign/CHANGELOG.md', 0);
+$changelog_path = dol_buildpath('/uptosign/ChangeLog.md', 0);
 if (file_exists($changelog_path)) {
 	print '<div class="div-table-responsive-no-min">';
 	print '<table class="noborder centpercent">';

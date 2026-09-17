@@ -458,6 +458,11 @@ uptosignErrorPdfToText=Error launching the 'pdftotext' command, please check tha
 uptosignErrorSmalotDoesNotExists=The SmalotPDF class does not exist, if your installation was done from the git repository, remember to run "composer i" to install the dependencies...
 uptosignErrorVendorDoesNotExists=The "vendor" subdirectory does not exist, if your installation was done from the git repository, remember to run "composer i" to install the dependencies...
 UptoSignOnlineSignFormErrorGenericMessage=An error has occurred, your correspondent has been automatically notified but we invite you to contact them to confirm the error.
+UptoSignOnlineSignNotConfiguredMessage=Electronic signature is not available yet for this document. Your correspondent has been automatically notified.
+UptoSignOnlineSignNoDocumentMessage=The document to sign is not available at the moment. Your correspondent has been automatically notified.
+UptoSignOnlineSignContactSender=You can also reach them at %s.
+UptoSignSignatureRequestFailedFor=The signature request for document %s could not be started.
+UptoSignErrorUnknownCause=Unknown cause, please check the module logs for details.
 UptoSignObjectTypeNotCompatible=This object type is not compatible with the uptosign module!
 UptoSignThereIsNoSocidForThatObject=The Dolibarr object being processed does not have a field to identify the company it belongs to!
 UptoSignMissingPhoneNumber=ERROR MISSING NUMBER
@@ -598,3 +603,14 @@ UptoSignSearchEmployeeWithMobile=Search an employee (with mobile and email)
 UptoSignFilterEmployeesByGroup=Filter employees by group
 UseFormatInputEmailToTarget=Enter one recipient per line with format <strong>firstname;lastname;mobile;email</strong>
 UseFormatFileEmailToTarget=Imported file must have format <strong>firstname;lastname;mobile;email</strong> (one recipient per line)
+#
+# Isolated position wizard
+#
+UptoSignWizardTitle=Signature positioning
+UptoSignWizardOpen=Set signature positions
+UptoSignWizardClose=Close
+UptoSignWizardLauncherHelp=The wizard opens in an isolated window, without the Dolibarr menus and styles, to guarantee accurate signature positioning.
+UptoSignWizardSealActive=Seal (active)
+UptoSignWizardSignActive=Sign (active)
+UptoSignWizardSwitchToSign=Sign
+UptoSignWizardSwitchToSeal=Seal
