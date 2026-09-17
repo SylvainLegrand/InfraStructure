@@ -1267,6 +1267,19 @@
 		$multicurrency_total_ht			= 0;
 		$multicurrency_total_ttc		= 0;
 		$sign							= 1;
+		// Dolibarr(lignes stockées sans arrondi) : le sous-total d'un bloc est la somme des montants de ligne arrondis au
+		// centime (ceux qui sont imprimés), la TVA suit la règle du document (Mode 1 : somme des TVA de ligne arrondies ; Mode 2 : arrondi
+		// par taux de HT x taux) et TTC = HT + TVA + taxes locales arrondis, comme CommonObject::getRoundedTotals() pour le total du document.
+		// Sur un core standard les lignes sont déjà arrondies : l'arrondi est sans effet.
+		$roundLines						= method_exists($object, 'getRoundedTotals');
+		$roundOfTotal					= ($roundLines && method_exists($object, 'getCalculationRule') && $object->getCalculationRule('') == 'roundoftotal');
+		$rnd							= function ($v) use ($roundLines) {
+			return $roundLines ? (float) price2num($v, 'MT') : $v;
+		};
+		$total_localtax					= 0;
+		$multicurrency_total_tva		= 0;	// TVA + taxes locales en devise (dérivées du TTC devise)
+		$TTotal_ht						= [];
+		$TTotal_ht_array				= [];
 		if ($memoEnabled) {
 			if (!isset($object->context['infrastructureCache']['linesReversed']) || !is_array($object->context['infrastructureCache']['linesReversed'])) {
 				$object->context['infrastructureCache']['linesReversed']	= array_reverse($object->lines);
@@ -1305,8 +1318,8 @@
 				// Ligne marquée optionnelle : montant exclu du total du bloc, cumulé séparément pour l'annotation du sous-total.
 				// La quantité reste, elle, cumulée normalement (non masquée).
 				$total_qty						+= $l->qty;
-				$total_options					+= $l->total_ht;
-				$multicurrency_total_options	+= $l->multicurrency_total_ht;
+				$total_options					+= $rnd($l->total_ht);
+				$multicurrency_total_options	+= $rnd($l->multicurrency_total_ht);
 			} elseif (!TInfrastructure::isModInfrastructureLine($l) && empty($isOuvrage)) {
 				$totalQty	= !empty($listOuvrages) && !empty($l->fk_parent_line) && array_key_exists($l->fk_parent_line, $listOuvrages) ? $listOuvrages[$l->fk_parent_line] : 1;
 				$total_qty += $l->qty;
@@ -1336,33 +1349,48 @@
 							$lineMulticurrencyTotalHT	= $l->multicurrency_total_ht;
 							$lineMulticurrencyTotalTTC	= $l->multicurrency_total_ttc;
 						}
-						$total						+= $lineTotalHT;
-						$total_tva					+= $lineTotalTVA;
-						$total_ttc					+= $lineTotalTTC;
+						$total						+= $rnd($lineTotalHT);
+						$total_tva					+= $rnd($lineTotalTVA);
+						$total_ttc					+= $rnd($lineTotalTTC);
+						$total_localtax				+= $rnd($lineTotalTTC - $lineTotalHT - $lineTotalTVA);
 						if (!isset($TTotal_tva[$l->tva_tx])) {
 							$TTotal_tva[$l->tva_tx]	= 0;
+							$TTotal_ht[$l->tva_tx]	= 0;
 						}
-						$TTotal_tva[$l->tva_tx]		+= $lineTotalTVA;
-						$multicurrency_total_ht		+= $lineMulticurrencyTotalHT;
-						$multicurrency_total_ttc	+= $lineMulticurrencyTotalTTC;
+						$TTotal_tva[$l->tva_tx]		+= $rnd($lineTotalTVA);
+						$TTotal_ht[$l->tva_tx]		+= $rnd($lineTotalHT);
+						$multicurrency_total_ht		+= $rnd($lineMulticurrencyTotalHT);
+						$multicurrency_total_tva	+= $rnd($lineMulticurrencyTotalTTC - $lineMulticurrencyTotalHT);
+						$multicurrency_total_ttc	+= $rnd($lineMulticurrencyTotalTTC);
 					} elseif ($l->product_type != 9) {
-						$total						+= $l->total_ht * $totalQty;
-						$total_tva					+= $l->total_tva * $totalQty;
-						$TTotal_tva[$l->tva_tx]		+= $l->total_tva * $totalQty;
-						$total_ttc					+= $l->total_ttc * $totalQty;
-						$multicurrency_total_ht		+= $l->multicurrency_total_ht * $totalQty;
-						$multicurrency_total_ttc	+= $l->multicurrency_total_ttc * $totalQty;
+						$total						+= $rnd($l->total_ht * $totalQty);
+						$total_tva					+= $rnd($l->total_tva * $totalQty);
+						$total_localtax				+= $rnd(($l->total_ttc - $l->total_ht - $l->total_tva) * $totalQty);
+						if (!isset($TTotal_tva[$l->tva_tx])) {
+							$TTotal_tva[$l->tva_tx]	= 0;
+							$TTotal_ht[$l->tva_tx]	= 0;
+						}
+						$TTotal_tva[$l->tva_tx]		+= $rnd($l->total_tva * $totalQty);
+						$TTotal_ht[$l->tva_tx]		+= $rnd($l->total_ht * $totalQty);
+						$total_ttc					+= $rnd($l->total_ttc * $totalQty);
+						$multicurrency_total_ht		+= $rnd($l->multicurrency_total_ht * $totalQty);
+						$multicurrency_total_tva	+= $rnd(($l->multicurrency_total_ttc - $l->multicurrency_total_ht) * $totalQty);
+						$multicurrency_total_ttc	+= $rnd($l->multicurrency_total_ttc * $totalQty);
 					}
 				} elseif ($l->product_type != 9) {
-					$total							+= $l->total_ht * $totalQty;
-					$total_tva						+= $l->total_tva * $totalQty;
-					$multicurrency_total_ht			+= $l->multicurrency_total_ht * $totalQty;
+					$total							+= $rnd($l->total_ht * $totalQty);
+					$total_tva						+= $rnd($l->total_tva * $totalQty);
+					$total_localtax					+= $rnd(($l->total_ttc - $l->total_ht - $l->total_tva) * $totalQty);
+					$multicurrency_total_ht			+= $rnd($l->multicurrency_total_ht * $totalQty);
+					$multicurrency_total_tva		+= $rnd(($l->multicurrency_total_ttc - $l->multicurrency_total_ht) * $totalQty);
 					if (! isset($TTotal_tva[$l->tva_tx])) {
 						$TTotal_tva[$l->tva_tx]	= 0;
+						$TTotal_ht[$l->tva_tx]	= 0;
 					}
-					$TTotal_tva[$l->tva_tx]			+= $l->total_tva * $totalQty;
-					$total_ttc						+= $l->total_ttc * $totalQty;
-					$multicurrency_total_ttc		+= $l->multicurrency_total_ttc * $totalQty;
+					$TTotal_tva[$l->tva_tx]			+= $rnd($l->total_tva * $totalQty);
+					$TTotal_ht[$l->tva_tx]			+= $rnd($l->total_ht * $totalQty);
+					$total_ttc						+= $rnd($l->total_ttc * $totalQty);
+					$multicurrency_total_ttc		+= $rnd($l->multicurrency_total_ttc * $totalQty);
 					$vatrate = (string) $l->tva_tx;
 					if (($l->info_bits & 0x01) == 0x01) {
 						$vatrate .= '*';
@@ -1370,10 +1398,32 @@
 					$vatcode	= $l->vat_src_code;
 					if (empty($TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'])) {
 						$TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] = 0;
+						$TTotal_ht_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')] = 0;
 					}
-					$TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')] = ['vatrate' => $vatrate, 'vatcode' => $vatcode, 'amount' => $TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] + $l->total_tva, 'base' => $total];
+					$TTotal_ht_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')] += $rnd($l->total_ht);
+					$TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')] = ['vatrate' => $vatrate, 'vatcode' => $vatcode, 'amount' => $TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] + $rnd($l->total_tva), 'base' => $total];
 				}
 			}
+		}
+		if ($roundLines) {
+			if ($roundOfTotal) {
+				// Mode 2 : TVA du bloc = somme, par taux, de l'arrondi de (HT du taux x taux)
+				$total_tva	= 0;
+				foreach ($TTotal_tva as $tx => $amount) {
+					$TTotal_tva[$tx]	= (float) price2num((isset($TTotal_ht[$tx]) ? $TTotal_ht[$tx] : 0) * ((float) $tx) / 100, 'MT');
+					$total_tva			+= $TTotal_tva[$tx];
+				}
+				foreach ($TTotal_tva_array as $key => $vals) {
+					$TTotal_tva_array[$key]['amount']	= (float) price2num((isset($TTotal_ht_array[$key]) ? $TTotal_ht_array[$key] : 0) * ((float) $vals['vatrate']) / 100, 'MT');
+				}
+			}
+			$total							= (float) price2num($total, 'MT');
+			$total_tva						= (float) price2num($total_tva, 'MT');
+			$total_options					= (float) price2num($total_options, 'MT');
+			$total_ttc						= (float) price2num($total + $total_tva + $total_localtax, 'MT');
+			$multicurrency_total_ht			= (float) price2num($multicurrency_total_ht, 'MT');
+			$multicurrency_total_options	= (float) price2num($multicurrency_total_options, 'MT');
+			$multicurrency_total_ttc		= (float) price2num($multicurrency_total_ht + $multicurrency_total_tva, 'MT');
 		}
 		if (!$return_all) {
 			$result	= $total;

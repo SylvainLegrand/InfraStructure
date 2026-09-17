@@ -376,6 +376,17 @@
 		{
 			dol_include_once('/core/lib/price.lib.php');
 			$TTot = ['total_pa_ht' => 0, 'total_options' => 0, 'total_subprice' => 0, 'total_unit_subprice' => 0, 'total_ht' => 0, 'total_tva' => 0, 'total_ttc' => 0, 'TTotal_tva' => [], 'multicurrency_total_options' => 0, 'multicurrency_total_subprice' => 0, 'multicurrency_total_unit_subprice' => 0, 'multicurrency_total_ht' => 0, 'multicurrency_total_tva' => 0, 'multicurrency_total_ttc' => 0, 'TTotal_tva_multicurrency' => []];
+			// Dolibarr (lignes stockées sans arrondi) : montants de ligne arrondis au centime avant sommation, TVA selon la règle
+			// du document (Mode 1 / Mode 2), TTC = HT + TVA + taxes locales arrondis (voir infrastructure_get_totalLineFromObject()).
+			$roundLines		= method_exists($object, 'getRoundedTotals');
+			$roundOfTotal	= ($roundLines && method_exists($object, 'getCalculationRule') && $object->getCalculationRule('') == 'roundoftotal');
+			$rnd			= function ($v) use ($roundLines) {
+				return $roundLines ? (float) price2num($v, 'MT') : $v;
+			};
+			$TTotal_ht		= [];
+			$TTotal_ht_mc	= [];
+			$total_localtax	= 0;
+			$mc_localtax	= 0;
 			foreach ($object->lines as &$l) {
 				if ($l->rang <= $line->rang) {
 					continue;
@@ -386,10 +397,10 @@
 				}
 				if (!empty($l->array_options['options_infrastructure_ol'])) {
 					$tabprice				= calcul_price_total($l->qty, $l->subprice, $l->remise_percent, $l->tva_tx, $l->localtax1_tx, $l->localtax2_tx, 0, 'HT', $l->info_bits, $l->product_type);
-					$TTot['total_options']	+= $tabprice[0]; // total ht
+					$TTot['total_options']	+= $rnd($tabprice[0]); // total ht
 					if (!empty($l->multicurrency_subprice)) {
 						$tabpriceMc									= calcul_price_total($l->qty, $l->multicurrency_subprice, $l->remise_percent, $l->tva_tx, $l->localtax1_tx, $l->localtax2_tx, 0, 'HT', $l->info_bits, $l->product_type);
-						$TTot['multicurrency_total_options']		+= $tabpriceMc[0];
+						$TTot['multicurrency_total_options']		+= $rnd($tabpriceMc[0]);
 					}
 				} else {
 					// Fix DA020000 : exlure les sous-totaux du calcul (calcul pété)
@@ -398,18 +409,49 @@
 						$TTot['total_pa_ht']							+= $l->pa_ht * $l->qty;
 						$TTot['total_subprice']							+= $l->subprice * $l->qty;
 						$TTot['total_unit_subprice']					+= $l->subprice; // Somme des prix unitaires non remisés
-						$TTot['total_ht']								+= $l->total_ht;
-						$TTot['total_tva']								+= $l->total_tva;
-						$TTot['total_ttc']								+= $l->total_ttc;
-						$TTot['TTotal_tva'][$l->tva_tx]					+= $l->total_tva;
+						if (!isset($TTot['TTotal_tva'][$l->tva_tx])) {
+							$TTot['TTotal_tva'][$l->tva_tx]					= 0;
+							$TTot['TTotal_tva_multicurrency'][$l->tva_tx]	= 0;
+							$TTotal_ht[$l->tva_tx]							= 0;
+							$TTotal_ht_mc[$l->tva_tx]						= 0;
+						}
+						$TTot['total_ht']								+= $rnd($l->total_ht);
+						$TTot['total_tva']								+= $rnd($l->total_tva);
+						$TTot['total_ttc']								+= $rnd($l->total_ttc);
+						$TTot['TTotal_tva'][$l->tva_tx]					+= $rnd($l->total_tva);
+						$TTotal_ht[$l->tva_tx]							+= $rnd($l->total_ht);
+						$total_localtax									+= $rnd($l->total_ttc - $l->total_ht - $l->total_tva);
 						$TTot['multicurrency_total_subprice']			+= $l->multicurrency_subprice * $l->qty;
 						$TTot['multicurrency_total_unit_subprice']		+= $l->multicurrency_subprice; // Somme des prix unitaires multicurrency non remisés
-						$TTot['multicurrency_total_ht']					+= $l->multicurrency_total_ht;
-						$TTot['multicurrency_total_tva']				+= $l->multicurrency_total_tva;
-						$TTot['multicurrency_total_ttc']				+= $l->multicurrency_total_ttc;
-						$TTot['TTotal_tva_multicurrency'][$l->tva_tx]	+= $l->multicurrency_total_tva;
+						$TTot['multicurrency_total_ht']					+= $rnd($l->multicurrency_total_ht);
+						$TTot['multicurrency_total_tva']				+= $rnd($l->multicurrency_total_tva);
+						$TTot['multicurrency_total_ttc']				+= $rnd($l->multicurrency_total_ttc);
+						$TTot['TTotal_tva_multicurrency'][$l->tva_tx]	+= $rnd($l->multicurrency_total_tva);
+						$TTotal_ht_mc[$l->tva_tx]						+= $rnd($l->multicurrency_total_ht);
+						$mc_localtax									+= $rnd($l->multicurrency_total_ttc - $l->multicurrency_total_ht - $l->multicurrency_total_tva);
 					}
 				}
+			}
+			if ($roundLines) {
+				if ($roundOfTotal) {
+					// Mode 2 : TVA du bloc = somme, par taux, de l'arrondi de (HT du taux x taux)
+					$TTot['total_tva']				= 0;
+					$TTot['multicurrency_total_tva']	= 0;
+					foreach ($TTot['TTotal_tva'] as $tx => $amount) {
+						$TTot['TTotal_tva'][$tx]				= (float) price2num((isset($TTotal_ht[$tx]) ? $TTotal_ht[$tx] : 0) * ((float) $tx) / 100, 'MT');
+						$TTot['TTotal_tva_multicurrency'][$tx]	= (float) price2num((isset($TTotal_ht_mc[$tx]) ? $TTotal_ht_mc[$tx] : 0) * ((float) $tx) / 100, 'MT');
+						$TTot['total_tva']						+= $TTot['TTotal_tva'][$tx];
+						$TTot['multicurrency_total_tva']		+= $TTot['TTotal_tva_multicurrency'][$tx];
+					}
+				}
+				$TTot['total_ht']					= (float) price2num($TTot['total_ht'], 'MT');
+				$TTot['total_tva']					= (float) price2num($TTot['total_tva'], 'MT');
+				$TTot['total_options']				= (float) price2num($TTot['total_options'], 'MT');
+				$TTot['total_ttc']					= (float) price2num($TTot['total_ht'] + $TTot['total_tva'] + $total_localtax, 'MT');
+				$TTot['multicurrency_total_ht']		= (float) price2num($TTot['multicurrency_total_ht'], 'MT');
+				$TTot['multicurrency_total_tva']	= (float) price2num($TTot['multicurrency_total_tva'], 'MT');
+				$TTot['multicurrency_total_options']	= (float) price2num($TTot['multicurrency_total_options'], 'MT');
+				$TTot['multicurrency_total_ttc']	= (float) price2num($TTot['multicurrency_total_ht'] + $TTot['multicurrency_total_tva'] + $mc_localtax, 'MT');
 			}
 			return $TTot;
 		}
