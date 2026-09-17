@@ -19,16 +19,17 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
     float: left;
     min-width: 160px;
     margin: 2px 0 0;
-    font-size: 14px;
+    font-size: var(--fontsize);	/* InfraS change */
     text-align: left;
     list-style: none;
     background-color: var(--bgcolor);
     -webkit-background-clip: padding-box;
     background-clip: padding-box;
-	border: 1px solid var(--colorboxstatsborder);
-    border-radius: 4px;
-    -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
-    box-shadow: 0 6px 12px rgba(0,0,0,.175);
+	/* InfraS change begin : jetons de design */
+	border: 1px solid var(--oblyon-border);
+    border-radius: var(--oblyon-radius);
+    box-shadow: var(--oblyon-shadow-lg);
+	/* InfraS change end */
 }
 
 .dropdown-toggle{
@@ -407,11 +408,13 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         bottom: 0;
         transform: translateY(100%);
         /* InfraS add end */
-        background: #fff;
-        border: 1px solid #bbb;
+        /* InfraS change begin : jetons de design (plus d'ombre decalee sans flou) */
+        background: var(--colorbline);
+        border: 1px solid var(--oblyon-border);
         text-align: var(--left);
-        -webkit-box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
-        box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
+        border-radius: var(--oblyon-radius);
+        box-shadow: var(--oblyon-shadow-lg);
+        /* InfraS change end */
     }
 
     .dropdown-content a {
@@ -473,7 +476,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         height: 0px;
         border-style: solid;
         border-width: 0 var(--triangleBorderSize) var(--triangleBorderSize) var(--triangleBorderSize);
-        border-color: transparent transparent #ffff transparent;
+        border-color: transparent transparent var(--colorbline) transparent;	/* InfraS change : valeur #ffff invalide */
         transform: rotate(0deg);
     }
 

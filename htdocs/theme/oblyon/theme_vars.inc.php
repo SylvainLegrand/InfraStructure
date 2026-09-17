@@ -36,19 +36,29 @@
 	global $conf, $theme_bordercolor, $theme_datacolor, $theme_bgcolor, $theme_bgcoloronglet;
 
 	// Define fonts
-	$fontlist			= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
-	$fontboxtitle		= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
-	$fontlisted			= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
+	// InfraS change begin : police choisie (THEME_FONT_FAMILY) en tete, pile systeme moderne en repli ; sans reglage = pile systeme ; une valeur deja composee (virgule) est prise telle quelle
+	$oblyon_font_stack	= 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+	$oblyon_font_family	= trim(getDolGlobalString('THEME_FONT_FAMILY', ''));
+	if ($oblyon_font_family === '' || strtolower($oblyon_font_family) == 'system-ui') {
+		$fontlist	= $oblyon_font_stack;
+	} elseif (strpos($oblyon_font_family, ',') !== false) {
+		$fontlist	= $oblyon_font_family;
+	} else {
+		$fontlist	= '"'.$oblyon_font_family.'", '.$oblyon_font_stack;
+	}
+	$fontboxtitle		= $fontlist;
+	$fontlisted			= $fontlist;
 	/* Main menu */
-	$fontmainmenu		= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
+	$fontmainmenu		= $fontlist;
 	/* Secondary menu */
-	$fontsecmenu		= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
-	$fontmenusearch		= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
-	$fontmenubookmarks	= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
-	$fontmenuhelp		= '"'.getDolGlobalString('THEME_FONT_FAMILY', 'Century Gothic').'", sans-serif';
+	$fontsecmenu		= $fontlist;
+	$fontmenusearch		= $fontlist;
+	$fontmenubookmarks	= $fontlist;
+	$fontmenuhelp		= $fontlist;
+	// InfraS change end
 	$img_head			= '';
 	$usegradient		= 0;
-	$borderwidth		= 3;
+	$borderwidth		= 1;	// InfraS change : liseret haut des boites et titres de listes ramene de 3 a 1 px (design 3.4.1)
 	// Font size and line height
 	$fontsizebase		= getDolGlobalInt('THEME_ELDY_FONT_SIZE1', 14);
 	$fontsize			= !empty($conf->dol_optimize_smallscreen) ? $fontsizebase - 2 : $fontsizebase;
