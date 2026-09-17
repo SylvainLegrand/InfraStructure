@@ -26,6 +26,10 @@ DolInfraSForceApplyBtn   = Forzar la aplicación de los parámetros
 DolInfraSForceApplyDone  = %s constante(s) aplicada(s) en la entidad actual
 DolInfraSForceApplyError = Error al aplicar los parámetros LTS
 
+### Permissions ###
+DolInfraSPermSetup       = Modificar los parámetros de InfraS
+DolInfraSPermBkpRest     = Copia de seguridad / Restaurar los parámetros del módulo
+
 ### Changelog / About ###
 DolInfraSParamPresent1             = <b>Este módulo es una creación de</b>
 DolInfraSParamPresent2             = <b>, módulo estructurante de la distribución « <span class = "dolinfraspuentedolibarr">Dolibarr LTS</span> by <span class = "dolinfrasneuropolinfras">InfraS</span> »</b>
@@ -42,3 +46,106 @@ DolInfraSParamMonthVersion         = Fecha
 DolInfraSParamChangesVersion       = Modificaciones
 DolInfraSParamCheckNewVersion      = Nuevo Changelog
 DolInfraSParamCheckNewVersionTitle = Haga clic para descargar el changelog de la última versión disponible
+
+### LTS constants setup page ###
+DolInfraSTitleSaaSParams           = Parámetros SaaS by InfraS
+DolInfraSTitleDoliOptions          = Opciones funcionales de Dolibarr
+DolInfraSTitleConstCached          = Constantes ocultas en Dolibarr
+DolInfraSTitleVisibleInDivers      = Constantes visibles en %s
+DolInfraSTitleLinkInDivers         = Inicio > Configuración > Varios
+DolInfraSFeaturesLevelDeprecated   = Estables y obsoletas
+DolInfraSFeaturesLevelStable       = Solo estables
+DolInfraSFeaturesLevelExperimental = Estables y experimentales
+DolInfraSFeaturesLevelDevelopment  = Estables, experimentales y en desarrollo
+
+### SaaS by InfraS constants ###
+DolInfraSConstCATEGORIE_RECURSIV_ADD                     = Asignar también las categorías padre al clasificar en una categoría
+DolInfraSConstCHECKLASTVERSION_EXTERNALMODULE            = Verificar en línea la última versión disponible de los módulos externos
+DolInfraSConstCRON_DISABLE_KEY_CHANGE                    = Prohibir la modificación de la clave de seguridad de las tareas programadas
+DolInfraSConstCRON_DISABLE_TUTORIAL_CRON                 = Ocultar el mensaje tutorial de configuración del cron
+DolInfraSConstCRON_WARNING_DELAY_HOURS                   = Número de horas de retraso de una tarea programada antes de la advertencia
+DolInfraSConstDATABASE_PWD_ENCRYPTED                     = Contraseña de la base de datos cifrada en el archivo conf.php
+DolInfraSConstFCKEDITOR_ALLOW_ANY_CONTENT                = Permitir cualquier contenido HTML en el editor WYSIWYG (sin filtrado CKEditor)
+DolInfraSConstFCKEDITOR_ENABLE_DETAILS_FULL              = Editor WYSIWYG completo para las descripciones de las líneas de documentos
+DolInfraSConstFCKEDITOR_ENABLE_NOTE_PRIVATE              = Editor WYSIWYG para las notas privadas
+DolInfraSConstFCKEDITOR_ENABLE_NOTE_PUBLIC               = Editor WYSIWYG para las notas públicas
+DolInfraSConstFCKEDITOR_ENABLE_SCAYT_AUTOSTARTUP         = Iniciar automáticamente el corrector ortográfico SCAYT en el editor WYSIWYG
+DolInfraSConstFCKEDITOR_ENABLE_SCAYT_LANG                = Idioma predeterminado del corrector ortográfico SCAYT
+DolInfraSConstFCKEDITOR_ENABLE_SPECIALCHAR               = Botón de inserción de caracteres especiales en el editor WYSIWYG
+DolInfraSConstFCKEDITOR_ENABLE_USERSIGN                  = Editor WYSIWYG para la firma de los usuarios
+DolInfraSConstFCKEDITOR_SKIN                             = Aspecto del editor WYSIWYG
+DolInfraSConstINFRASPACKPLUS_DISABLED_CORE_CHANGE        = Bloquear la gestión de las modificaciones del core por InfraSPackPlus
+DolInfraSConstINFRASPACKPLUS_DISABLED_MODULE_CHANGE      = Bloquear la gestión de las modificaciones de módulos por InfraSPackPlus
+DolInfraSConstMAILING_NO_USING_PHPMAIL                   = Prohibir la función mail nativa de PHP para los emailings (fuerza SMTP)
+DolInfraSConstMAILING_SMTP_SETUP_EMAILS_FOR_QUESTIONS    = Dirección de contacto propuesta para las preguntas de configuración SMTP
+DolInfraSConstMAIN_ACTIVATE_FILECACHE                    = Activar la caché de archivos (widgets del panel)
+DolInfraSConstMAIN_ALWAYS_CREATE_LOCK_AFTER_LAST_UPGRADE = Crear automáticamente el archivo install.lock tras una actualización
+DolInfraSConstMAIN_BUGTRACK_ENABLELINK                   = Enlace de notificación de errores (soporte InfraS)
+DolInfraSConstMAIN_ENABLE_AJAX_TOOLTIP                   = Cargar las descripciones emergentes por AJAX
+DolInfraSConstMAIN_FILECHECK_LOCAL_SUFFIX                = Sufijo del archivo XML local usado para el control de integridad de los archivos
+DolInfraSConstMAIN_HELPCENTER_DISABLELINK                = Ocultar el enlace HelpCenter en la página de conexión
+DolInfraSConstMAIN_HELP_DISABLELINK                      = Ocultar el enlace a la documentación en línea
+DolInfraSConstMAIN_HTML_FOOTER                           = Aplicar el pie de página HTML LTS: coloca el botón de importación de líneas antes del tipo en el bloque de objetos vinculados
+DolInfraSConstMAIN_MAIL_ADD_INLINE_IMAGES_IF_DATA        = Convertir las imágenes codificadas en base 64 del cuerpo de los correos en archivos adjuntos incrustados (cid)
+DolInfraSConstMAIN_MAIL_ADD_INLINE_IMAGES_IF_IN_MEDIAS   = Convertir las imágenes procedentes de los medios en archivos adjuntos incrustados (cid) en los correos
+DolInfraSConstMAIN_MENU_HIDE_UNAUTHORIZED                = Ocultar las entradas de menú no autorizadas
+DolInfraSConstMAIN_MOTD                                  = Mensaje de bienvenida mostrado en el panel
+DolInfraSConstMAIN_SECURITY_DISABLEFORGETPASSLINK        = Ocultar el enlace « Contraseña olvidada » en la página de conexión
+DolInfraSConstMAIN_SECURITY_MAXFILESIZE_DOWNLOADED       = Tamaño máximo en KB de los archivos descargables
+DolInfraSConstMAIN_SHOW_LOGO                             = Mostrar el logotipo de la empresa en el menú
+DolInfraSConstMAIN_UMASK                                 = Permisos de los archivos creados por Dolibarr
+DolInfraSConstMAIN_UPLOAD_DOC                            = Tamaño máximo en KB de los archivos subidos
+DolInfraSConstMAIN_USE_ADVANCED_PERMS                    = Activar los permisos avanzados de los usuarios y grupos
+DolInfraSConstMAIN_USE_DOL_EVAL_NEW                      = Usar la versión reforzada de la función dol_eval
+DolInfraSConstSEPA_USE_IDS                               = Usar un ICS distinto para las transferencias SEPA (campo ICS de transferencia de la cuenta bancaria)
+DolInfraSConstSYSLOG_DISABLE_LOGHANDLER_SYSLOG           = Desactivar el gestor de registros syslog del sistema
+DolInfraSConstUSER_PASSWORD_GENERATED                    = Generador de contraseñas utilizado
+DolInfraSConstUSER_PASSWORD_PATTERN                      = Patrón de contraseña: longitud mín - mayúsculas mín - cifras mín - caracteres especiales mín - repeticiones máx - evitar caracteres ambiguos
+DolInfraSConstWITHDRAW_ENABLED_EXTENDED_LIST             = Activar la lista avanzada de gestión de transferencias a proveedores
+
+### Dolibarr functional options constants ###
+DolInfraSConstACCOUNTANCY_COMBO_FOR_AUX                                  = Usar una lista desplegable gráfica para seleccionar las cuentas auxiliares
+DolInfraSConstBANK_ASK_PAYMENT_BANK_DURING_ORDER                         = Solicitar la cuenta bancaria al crear un pedido
+DolInfraSConstBANK_ASK_PAYMENT_BANK_DURING_PROPOSAL                      = Solicitar la cuenta bancaria al crear un presupuesto
+DolInfraSConstBANK_CAN_RECONCILIATE_CASHACCOUNT                          = Permitir la conciliación de las cuentas de caja
+DolInfraSConstCATEGORY_GRAPHSTATS_ON_PRODUCTS                            = Mostrar el gráfico de productos por categoría en el área de Productos
+DolInfraSConstCATEGORY_GRAPHSTATS_ON_THIRDPARTIES                        = Mostrar el gráfico de terceros por categoría en el área de Terceros
+DolInfraSConstFACTUREFOURN_REUSE_NOTES_ON_CREATE_FROM                    = Reutilizar las notas pública y privada del objeto de origen al crear una factura de proveedor
+DolInfraSConstFACTURE_REUSE_NOTES_ON_CREATE_FROM                         = Reutilizar las notas pública y privada del objeto de origen al crear una factura de cliente
+DolInfraSConstFICHINTER_CLASSIFY_BILLED                                  = Permitir clasificar una ficha de intervención como Facturada (añade el evento automático correspondiente)
+DolInfraSConstINVOICE_ALLOW_EXTERNAL_DOWNLOAD                            = Generar una clave de compartición que permita la descarga externa de las facturas
+DolInfraSConstINVOICE_AUTO_NEXT_MONTH_ON_LINES                           = Desplazar un mes las fechas de inicio y fin al clonar una línea de servicio que cubre un mes completo
+DolInfraSConstINVOICE_USE_DEFAULT_DOCUMENT                               = Seleccionar un modelo de documento predeterminado según el tipo de factura
+DolInfraSConstMAIN_DISABLE_FORCE_SAVEAS                                  = No forzar el guardado en disco de los archivos descargados (mostrar en el navegador)
+DolInfraSConstMAIN_ENABLE_IMPORT_LINKED_OBJECT_LINES                     = Permitir importar líneas desde los documentos vinculados compatibles
+DolInfraSConstMAIN_ENABLE_LOG_TO_HTML                                    = Permitir mostrar los registros al final del código HTML con el parámetro logtohtml=1 (módulo Logs necesario)
+DolInfraSConstMAIN_EXTRAFIELDS_ENABLE_NEW_SELECT2                        = Usar siempre select2 en AJAX para las listas de tipo sellist (sin límite)
+DolInfraSConstMAIN_FEATURES_LEVEL                                        = Nivel de funcionalidades mostradas
+DolInfraSConstMAIN_FILL_SERVICE_DATES_FROM_LAST_SERVICE_LINE             = Añadir un botón para rellenar las fechas de servicio desde la última línea de servicio
+DolInfraSConstMAIN_KEEP_REF_CUSTOMER_ON_CLONING                          = Conservar la referencia del cliente al clonar un objeto (presupuesto, factura)
+DolInfraSConstMAIN_MAIL_FORCE_CONTENT_TYPE_TO_HTML                       = Enviar todos los correos en formato HTML
+DolInfraSConstMAIN_PROPAGATE_CONTACTS_FROM_ORIGIN                        = Propagar los contactos específicos del objeto de origen al crear un nuevo objeto
+DolInfraSConstMAIN_SHOW_PRODUCT_ACTIVITY_TRIM                            = Mostrar la facturación trimestral de los productos y servicios en el área de Productos
+DolInfraSConstMAIN_SHOW_TUNING_INFO                                      = Añadir la información de rendimiento en la consola JavaScript
+DolInfraSConstMAIN_USE_PROPAL_REFCLIENT_FOR_ORDER                        = Copiar la referencia del cliente del presupuesto al pedido
+DolInfraSConstMAIN_USE_TOP_MENU_BOOKMARK_DROPDOWN                        = Mover los marcadores a un menú desplegable del menú superior
+DolInfraSConstMAIN_USE_TOP_MENU_QUICKADD_DROPDOWN                        = Añadir un menú desplegable con atajos para crear nuevos objetos
+DolInfraSConstORDER_ALLOW_EXTERNAL_DOWNLOAD                              = Generar una clave de compartición que permita la descarga externa de los pedidos
+DolInfraSConstPRODUCT_ADD_FORM_ADD_TO                                    = Añadir desde la ficha de producto un formulario para agregarlo a un documento comercial
+DolInfraSConstPROJECT_ALLOW_COMMENT_ON_TASK                              = Permitir los comentarios en las tareas de proyecto
+DolInfraSConstPROJECT_HIDE_UNSELECTABLES                                 = Ocultar en las listas desplegables los proyectos no seleccionables (cerrados o borrador)
+DolInfraSConstPROPOSAL_ALLOW_EXTERNAL_DOWNLOAD                           = Generar una clave de compartición que permita la descarga externa de los presupuestos
+DolInfraSConstRELOAD_PAGE_ON_CUSTOMER_CHANGE                             = Recargar la página para aplicar los parámetros del cliente al crear directamente un documento
+DolInfraSConstRELOAD_PAGE_ON_SUPPLIER_CHANGE                             = Recargar la página para aplicar los parámetros del proveedor al crear directamente un documento
+DolInfraSConstSOCIETE_ASK_FOR_SHIPPING_METHOD                            = Predefinir el método de envío en la ficha del cliente y usarlo por defecto al crear un pedido
+DolInfraSConstSOCIETE_ON_SEARCH_AND_LIST_GO_ON_CUSTOMER_OR_SUPPLIER_CARD = Dirigir el enlace del tercero a la ficha cliente / proveedor en lugar de la ficha de contacto en las listas
+DolInfraSConstSOCIETE_SORT_ON_TYPEENT                                    = Ordenar la lista de tipos de tercero alfabéticamente en lugar del campo posición del diccionario
+DolInfraSConstSUPPLIER_ORDER_AUTOADD_USER_CONTACT                        = Añadir automáticamente como contacto el usuario que aprueba el pedido de proveedor
+DolInfraSConstSUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT             = Permitir modificar el precio de compra usado para el PMP durante la recepción de un pedido de proveedor
+DolInfraSConstSUPPLIER_ORDER_USE_DISPATCH_STATUS                         = Añadir un estado en cada línea de distribución al recibir los productos de los proveedores
+DolInfraSConstSUPPLIER_ORDER_WITH_NOPRICEDEFINED                         = Permitir introducir un producto aunque no tenga precio de proveedor definido
+DolInfraSConstTHIRDPARTY_INCLUDE_PARENT_IN_LINKTO                        = Buscar también los elementos del tercero padre al vincular a un objeto
+DolInfraSConstTHIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO             = Buscar también los elementos del tercero propietario del proyecto al vincular a un objeto
+DolInfraSConstTHIRDPARTY_NOTCUSTOMERPROSPECT_BY_DEFAULT                  = No activar el estado « Cliente / Cliente potencial » al crear un tercero
+DolInfraSConstTHIRDPARTY_NOTSUPPLIER_BY_DEFAULT                          = No activar el estado « Proveedor » al crear un tercero
+DolInfraSConstUSER_HIDE_INACTIVE_IN_COMBOBOX                             = Ocultar los usuarios inactivos en las listas desplegables

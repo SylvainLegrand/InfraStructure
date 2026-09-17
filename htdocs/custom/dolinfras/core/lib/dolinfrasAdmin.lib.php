@@ -62,6 +62,79 @@
 	}
 
 	/**
+	*	Lit le fichier sql/data.sql du module et retourne la liste des constantes LTS
+	*
+	*	@param		string	$appliname	module name
+	*	@return		array				list of constants : name => array('value', 'visible', 'note')
+	**/
+	function dolinfras_get_lts_constants($appliname)
+	{
+		$constants	= array();
+		$file		= dol_buildpath('/'.$appliname.'/sql/data.sql', 0);
+		if (! is_file($file)) {
+			dol_syslog('dolinfrasAdmin.Lib::dolinfras_get_lts_constants file not found = '.$file, LOG_ERR);
+			return $constants;
+		}
+		$content	= file_get_contents($file);
+		if ($content === false) {
+			dol_syslog('dolinfrasAdmin.Lib::dolinfras_get_lts_constants unable to read file = '.$file, LOG_ERR);
+			return $constants;
+		}
+		if (preg_match_all('/^insert ignore into llx_const \(name, entity, value, type, visible, note\) values \(\'([A-Za-z0-9_]+)\',\s+__ENTITY__, \'(.*)\',\s+\'chaine\', ([01]), \'(.*)\'\);$/m', $content, $matches, PREG_SET_ORDER)) {
+			foreach ($matches as $match) {
+				if (isset($constants[$match[1]])) {	// La première déclaration du fichier fait foi
+					continue;
+				}
+				$constants[$match[1]]	= array('value' => $match[2], 'visible' => (int) $match[3], 'note' => $match[4]);
+			}
+		}
+		return $constants;
+	}
+
+	/**
+	*	Retourne le type d'option à afficher dans la page de paramétrage pour une constante LTS
+	*
+	*	@param		string	$confkey		constant name
+	*	@param		string	$defaultvalue	default value of the constant (from data.sql)
+	*	@return		string					on_off, lts_value, input, number, textarea, select_language or select_featureslevel
+	**/
+	function dolinfras_get_lts_param_type($confkey, $defaultvalue)
+	{
+		$specifictypes	= array(
+								'CRON_WARNING_DELAY_HOURS'				=> 'number',
+								'FCKEDITOR_ENABLE_SCAYT_LANG'			=> 'select_language',
+								'MAIN_FEATURES_LEVEL'					=> 'select_featureslevel',
+								'MAIN_HTML_FOOTER'						=> 'lts_value',
+								'MAIN_MOTD'								=> 'textarea',
+								'MAIN_SECURITY_MAXFILESIZE_DOWNLOADED'	=> 'number',
+								'MAIN_UPLOAD_DOC'						=> 'number',
+								);
+		if (isset($specifictypes[$confkey])) {
+			return $specifictypes[$confkey];
+		}
+		if ($defaultvalue === '0' || $defaultvalue === '1') {
+			return 'on_off';
+		}
+		return 'input';
+	}
+
+	/**
+	*	Retourne le lien HTML de bascule On / Off d'une constante LTS (sans ajax pour conserver les colonnes visible et note)
+	*
+	*	@param		string	$confkey	constant name
+	*	@param		string	$valueon	value to set when the option is turned on
+	*	@return		string				HTML link
+	**/
+	function dolinfras_lts_onoff_link($confkey, $valueon = '1')
+	{
+		global $langs;
+
+		$currentvalue	= (string) getDolGlobalString($confkey, '');
+		$isactive		= $valueon === '1' ? ($currentvalue !== '' && $currentvalue !== '0') : ($currentvalue === $valueon);
+		return '<a class = "inline-block" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action='.($isactive ? 'del_' : 'set_').$confkey.'&token='.newToken().'#'.$confkey.'">'.img_picto($langs->trans($isactive ? 'Enabled' : 'Disabled'), $isactive ? 'switch_on' : 'switch_off').'</a>';
+	}
+
+	/**
 	*	Force la valeur des constantes du fichier sql/data.sql dans la base de données (entité courante)
 	*
 	*	@param		string	$appliname	module name
@@ -71,29 +144,22 @@
 	{
 		global $db, $conf;
 
-		$file	= dol_buildpath('/'.$appliname.'/sql/data.sql', 0);
-		if (! is_file($file)) {
-			dol_syslog('dolinfrasAdmin.Lib::dolinfras_force_lts_constants file not found = '.$file, LOG_ERR);
-			return -1;
-		}
-		$content	= file_get_contents($file);
-		if ($content === false) {
+		$constants	= dolinfras_get_lts_constants($appliname);
+		if (empty($constants)) {
 			return -1;
 		}
 		$nbapplied	= 0;
-		if (preg_match_all('/^insert ignore into llx_const \(name, entity, value, type, visible, note\) values \(\'([A-Za-z0-9_]+)\',\s+__ENTITY__, \'(.*)\',\s+\'chaine\', ([01]), \'(.*)\'\);$/m', $content, $matches, PREG_SET_ORDER)) {
-			$db->begin();
-			foreach ($matches as $match) {
-				$result	= dolibarr_set_const($db, $match[1], $match[2], 'chaine', (int) $match[3], $match[4], $conf->entity);
-				if ($result < 0) {
-					$db->rollback();
-					dol_syslog('dolinfrasAdmin.Lib::dolinfras_force_lts_constants error on constant = '.$match[1], LOG_ERR);
-					return -1;
-				}
-				$nbapplied++;
+		$db->begin();
+		foreach ($constants as $confkey => $constant) {
+			$result	= dolibarr_set_const($db, $confkey, $constant['value'], 'chaine', $constant['visible'], $constant['note'], $conf->entity);
+			if ($result < 0) {
+				$db->rollback();
+				dol_syslog('dolinfrasAdmin.Lib::dolinfras_force_lts_constants error on constant = '.$confkey, LOG_ERR);
+				return -1;
 			}
-			$db->commit();
+			$nbapplied++;
 		}
+		$db->commit();
 		dol_syslog('dolinfrasAdmin.Lib::dolinfras_force_lts_constants nbapplied = '.$nbapplied);
 		return $nbapplied;
 	}
@@ -187,7 +253,7 @@
 			$num++;
 		}
 		print '		<td colspan = "'.$cs1.'" class = "'.$alignclass.'">'.$desc.'</td>
-					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button dolinfraswidth220" type = "submit" value = "'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
+					<td'.(empty($noRowspan) ? ' rowspan = "0"' : '').' class = "center valigntop"><button class = "button" type = "submit" value = "'.$action.'" name = "action">'.$langs->trans($lbl).'</button></td>
 				</tr>';
 		return $num;
 	}

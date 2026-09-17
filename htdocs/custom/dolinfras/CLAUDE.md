@@ -19,7 +19,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.2.0` (2026-07)
+- Dernière version locale : `18.3.0` (2026-09)
 - Emplacement : `htdocs/custom/dolinfras/`
 
 Convention de lecture du descripteur :
@@ -174,7 +174,7 @@ Trois pages dans `admin/`, réservées aux utilisateurs `admin` (le module n'a p
 
 | Page | Onglet | Rôle |
 |------|--------|------|
-| `admin/dolinfrassetup.php` | `dolinfrassetup` | Page de paramètres. Section « Options de gestion des paramètres LTS » : bouton « Forcer l'application des paramètres » (action `forceLTSParams`) qui force la valeur des constantes de `sql/data.sql` dans la base (entité courante) via `dolinfras_force_lts_constants()` |
+| `admin/dolinfrassetup.php` | `dolinfrassetup` | Page de paramètres. Trois sections : « Options de gestion des paramètres LTS » (bouton « Forcer l'application des paramètres », action `forceLTSParams`, qui force la valeur des constantes de `sql/data.sql` dans la base via `dolinfras_force_lts_constants()`), « Paramètres SaaS by InfraS » (constantes `visible = 0`) et « Options fonctionnelles Dolibarr » (constantes `visible = 1`). Les deux dernières sections sont **générées dynamiquement** à partir de `sql/data.sql` : une option par constante (bouton On / Off, champ de saisie, liste déroulante selon le type retourné par `dolinfras_get_lts_param_type()`). Actions `set_<CONSTANTE>` / `del_<CONSTANTE>` pour les bascules (écriture immédiate, colonnes `visible` et `note` de `data.sql` conservées) et `update_saas` / `update_options` pour l'enregistrement des champs saisis |
 | `admin/about.php` | `about` | Affiche `README.md` en HTML via `dolMd2Html()` |
 | `admin/changelog.php` | `changelog` | Affiche le changelog complet (`dolinfras_getChangeLog()`) avec bouton de téléchargement du dernier changelog (action `dwnChangelog`) |
 
@@ -187,7 +187,10 @@ Fichier unique de bibliothèque contenant toutes les fonctions du module :
 | Fonction | Description |
 |----------|-------------|
 | `dolinfras_admin_prepare_head()` | Génère les onglets des pages d'administration (Paramètres, À propos, Changelog) |
-| `dolinfras_force_lts_constants($appliname)` | Parse `sql/data.sql` et force chaque constante via `dolibarr_set_const()` dans l'entité courante (transaction avec rollback en cas d'erreur) ; retourne le nombre de constantes appliquées ou -1 |
+| `dolinfras_get_lts_constants($appliname)` | Parse `sql/data.sql` par regex et retourne la liste ordonnée des constantes LTS (`nom => array('value', 'visible', 'note')`) ; la première déclaration d'une constante fait foi |
+| `dolinfras_get_lts_param_type($confkey, $defaultvalue)` | Retourne le type d'option à afficher pour une constante : `on_off`, `lts_value`, `input`, `number`, `textarea`, `select_language` ou `select_featureslevel` (table d'exceptions par nom de constante, sinon déduit de la valeur par défaut : `0`/`1` => `on_off`, autre => `input`) |
+| `dolinfras_lts_onoff_link($confkey, $valueon)` | Retourne le lien HTML de bascule On / Off d'une constante (sans ajax, pour conserver `visible` et `note` — le service ajax du core les écrase) |
+| `dolinfras_force_lts_constants($appliname)` | S'appuie sur `dolinfras_get_lts_constants()` et force chaque constante via `dolibarr_set_const()` dans l'entité courante (transaction avec rollback en cas d'erreur) ; retourne le nombre de constantes appliquées ou -1 |
 | `dolinfras_test_php_ext()` | Vérifie si l'extension PHP XML est chargée, stocke le résultat dans `INFRAS_PHP_EXT_XML` |
 | `dolinfras_getLocalVersionMinDoli($appliname)` | Lit `docs/changelog.xml` et retourne un tableau [version, minDoli, errFlag, versionsArray, maxDoli, minPHP, maxPHP] |
 | `dolinfras_getVersionDolinfras()` | Lit le fichier `VERSION` de Dolibarr et stocke sa valeur dans `DOLINFRAS_VERSION` et la famille dans `DOLINFRAS_FAMILY` |
@@ -227,6 +230,8 @@ Clés de traduction principales :
 - `DolInfraSParam*` — 15 clés pour la bannière de support et le changelog (présentation InfraS, slogan, liens, historique des mises à jour, etc.)
 - `DolInfraSSetupPages` / `DolInfraSParams` / `DolInfraSParamsChangelog` — titres des pages et onglets admin
 - `DolInfraSTitleLTS` / `DolInfraSParamForceApply` / `DolInfraSForceApply*` — section « Options de gestion des paramètres LTS » et bouton d'application forcée
+- `DolInfraSTitleSaaSParams` / `DolInfraSTitleDoliOptions` / `DolInfraSParamCautionSave` / `DolInfraSFeaturesLevel*` — titres et libellés des deux sections de paramétrage des constantes LTS
+- `DolInfraSConst<NOM_DE_LA_CONSTANTE>` — libellé de l'option de chaque constante de `sql/data.sql` (88 clés) : toute constante ajoutée dans `data.sql` doit recevoir sa clé dans les trois fichiers de langue, sinon la clé brute s'affiche à l'écran. Chaque libellé se termine par un marqueur indiquant si la constante apparaît dans la page *Accueil > Configuration > Divers* (`admin/const.php`, qui ne liste que les constantes `visible = 1`) : `(visible)` / `(caché)` en français, `(visible)` / `(hidden)` en anglais, `(visible)` / `(oculto)` en espagnol. Ce marqueur suit la colonne `visible` déclarée dans `data.sql` : le mettre à jour dans les trois langues si le `visible` d'une constante change
 
 ## CSS (Styles)
 
@@ -283,7 +288,9 @@ Si modification de `sql/data.sql` :
 - Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée
 - La constante `DOLINFRAS_VERSION` est utilisée par d'autres modules InfraS (infrasdiscount, infraspackplus) pour le branding dynamique de leur famille
 - Les constantes LTS (`data.sql`) sont injectées avec `INSERT IGNORE` : jamais réécrites si modifiées en base — sauf via le bouton « Forcer l'application des paramètres » qui, lui, écrase les valeurs
-- `dolinfras_force_lts_constants()` parse `data.sql` par regex : toute nouvelle ligne du fichier doit respecter le format existant (`insert ignore into llx_const (name, entity, value, type, visible, note) values ('NOM', __ENTITY__, 'valeur', 'chaine', 0|1, 'note');`)
+- `dolinfras_get_lts_constants()` (utilisée par le forçage **et** par la page de paramètres) parse `data.sql` par regex : toute nouvelle ligne du fichier doit respecter le format existant (`insert ignore into llx_const (name, entity, value, type, visible, note) values ('NOM', __ENTITY__, 'valeur', 'chaine', 0|1, 'note');`), sans quoi la constante n'apparaît ni dans la page de paramètres ni dans l'application forcée
+- Une constante ne doit être déclarée qu'une seule fois dans `data.sql` : un doublon n'est plus affiché qu'une fois dans la page de paramètres (première déclaration retenue), mais reste une source de confusion
+- `MAIN_HTML_FOOTER` contient du JavaScript : son option est un simple bouton On / Off qui applique ou retire la valeur de `data.sql` (type `lts_value`), la saisie libre étant volontairement interdite (filtrage `restricthtml` des entrées)
 
 ## Notes techniques (Technical notes)
 

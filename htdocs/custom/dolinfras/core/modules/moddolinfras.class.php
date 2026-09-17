@@ -85,6 +85,18 @@
 			$this->rights			= array();
 			// Menus
 			$this->menu				= array();
+			$r						= 0;
+			$this->rights[$r][0]	= $this->numero.$r;										// id de la permission
+			$this->rights[$r][1]	= $langs->trans('DolInfraSPermSetup');					// libelle de la permission
+			$this->rights[$r][3]	= 0;													// La permission est-elle une permission par defaut (0/1)
+			$this->rights[$r][4]	= 'paramSetup';											// action for php test if ($user->hasRight('DolInfraS', 'paramSetup'))
+			$r++;
+			$this->rights[$r][0]	= $this->numero.$r;										// id de la permission
+			$this->rights[$r][1]	= $langs->trans('DolInfraSPermBkpRest');				// libelle de la permission
+			$this->rights[$r][3]	= 0;													// La permission est-elle une permission par defaut (0/1)
+			$this->rights[$r][4]	= 'paramBkpRest';										// action for php test if ($user->hasRight('DolInfraS', 'paramBkpRest'))
+			$this->menu				= array();												// List of menus to add
+
 		}
 
 		/**
