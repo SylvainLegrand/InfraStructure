@@ -86,7 +86,7 @@ htdocs/custom/oblyon/
 │   ├── oblyon_presets.lib.php # Presets JSON (3.6.0) : sections, chargement, appliquer, enregistrer sous, mettre à jour, supprimer, importer, contraste, cartes
 │   ├── oblyon_colors.lib.php  # Couleurs par utilisateur (3.6.0) : oblyon_color_setting() (point de lecture unique du thème), liste des constantes de l'onglet, pastille
 │   └── inovea_common.lib.php  # Fonctions communes Inovea (changelog Parsedown)
-├── presets/                   # Presets du module (3.6.0) : green, dark, blue, night, light (.json)
+├── presets/                   # Presets du module (3.6.0) : green, dark, blue, night, light (.json) + accessible.json (scope user : onglet utilisateur seulement)
 ├── sql/
 │   ├── data.sql               # Constantes initiales (~200 INSERT, exhaustif ; preset « Oblyon Blue » par défaut)
 │   └── update_3.2.0_oblyon_to_eldy.sql  # Migration OBLYON_* → THEME_ELDY_* (manuelle, à l'upgrade)
@@ -137,11 +137,11 @@ Dans `core/modules/modOblyon.class.php` :
 - **Dépendances** : aucune
 - **Conflits** : `modQuickUX`
 - **Répertoires de données** (`$this->dirs`, créés dans `DOL_DATA_ROOT` à l'activation) : `/oblyon/sql` (sauvegardes), `/oblyon/presets` (presets de l'instance, 3.6.0)
-- **Onglets** (`$this->tabs`, enregistrés dans `MAIN_MODULE_OBLYON_TABS_0` à l'activation → désactiver / réactiver le module après une mise à jour par copie de fichiers) : `user:+oblyoncolors` = onglet « Couleurs » de la fiche utilisateur (3.6.0), condition `1` (visible pour l'utilisateur sur sa propre fiche, la page applique les droits)
+- **Onglets** (`$this->tabs`, enregistrés dans `MAIN_MODULE_OBLYON_TABS_0` à l'activation → désactiver / réactiver le module après une mise à jour par copie de fichiers) : `user:+oblyoncolors` = onglet « Couleurs » de la fiche utilisateur (3.6.0), condition `$user->hasRight('oblyon', 'usercolors')` (`$user` = le visiteur ; la page revérifie le droit avec `accessforbidden()`)
 - **Dictionnaires** : aucun
 - **Boxes** : aucune
 - **Cron** : aucune tâche
-- **Permissions** : aucune (accès réservé aux administrateurs via `$user->admin`)
+- **Permissions** : un droit `oblyon` / `usercolors` (id `4325730` = numéro du module + `0`, libellé `Permission4325730` / `OblyonPermUserColors`, non attribué par défaut aux nouveaux utilisateurs) = « Régler ses couleurs personnelles » (onglet Couleurs de la fiche utilisateur). `rights_class = oblyon` (classe `modoblyon` en minuscules : ne pas renommer). Attribué aux admins à l'activation ; `user/perms.php` réinsère les droits manquants à chaque affichage mais ne les attribue pas. Les pages d'administration restent réservées aux administrateurs (`$user->admin`)
 - **Menus** : aucun (gérés directement par le `MenuManager` Oblyon)
 
 ### Initialisation (Lifecycle : `init()`)
@@ -430,12 +430,14 @@ Besoin : utilisateurs daltoniens ou malvoyants. Chaque utilisateur (droit `user/
 - **Ratios exclus** du périmètre utilisateur : `THEME_INVERT_RATIO_FILTER`, `THEME_SATURATE_RATIO`, `THEME_AGRESSIVENESS_RATIO`.
 - **Formes acceptées** (`oblyon_color_is_valid($value, $name)`) : `#RRGGBB` à 6 chiffres ou `#` seul pour toutes les constantes ; `r,g,b` (0-255) seulement pour celles que le thème normalise avec `colorStringToArray()` (`oblyon_colors_rgb_allowed()`). Un champ vide de l'onglet reprend la valeur de l'instance (une instance vide = contraste automatique, jamais stocké `#`). Décocher la case efface aussi l'ancien drapeau core `THEME_ELDY_ENABLE_PERSONALIZED`, que l'onglet et le thème honorent.
 - **Contraste** : sous le tableau, `oblyon_check_preset_contrast(array('colors' => photo))` liste les couples < 4,5 de la palette personnelle.
+- **Droit** : l'onglet exige `oblyon` / `usercolors` (condition de l'onglet et garde `accessforbidden()` en tête de page, message `OblyonUserColorsNoRight`) en plus des règles de la fiche (`user/self/write` sur soi, `user/user/write` sur autrui).
+- **Presets de l'onglet** (section « Presets de couleurs » au-dessus du tableau, `oblyon_print_user_preset_cards()`) : presets du module de `scope` vide (les 5 Oblyon) puis de `scope = user` (`presets/accessible.json`, « Oblyon Accessibilité », palette Okabe-Ito sur fond clair, jamais proposé dans l'onglet Couleurs du module), puis les presets personnels de l'utilisateur (`DOL_DATA_ROOT/oblyon/userpresets/<id>/<clé>.json`, `$conf->oblyon->dir_output`, dossier créé par `dol_mkdir` à la première écriture, donc par PHP-FPM : ne pas le créer à la main). « Appliquer à mes couleurs » (`apply_user_preset`) = `oblyon_apply_preset_to_user()` : photo complète des 116 constantes (couleur du preset si présente dans ses sections `colors` / `dashboard`, sinon valeur de l'instance) + drapeau + révision CSS. « Enregistrer mes couleurs actuelles comme preset » (`save_user_preset`) = `oblyon_save_user_preset()` : couleurs affichées (`oblyon_user_current_colors()`), sections `colors` + `dashboard` seulement, clé validée, refus des clés du module (-3) et des doublons (-4), écriture atomique. `delete_user_preset`, `download_user_preset` (GET + jeton, fichier du dossier de l'utilisateur seulement). Les presets d'instance ne sont pas proposés ici.
 - **Test hors ligne** : scratchpad `oblyon_user_colors_test.php` (modes `user` / `set` / `css <login>` / `clean`, une génération de feuille par processus car `style.css.php` déclare des fonctions) enchaîné par `user_colors_test.sh <htdocs> <base>` ; `oblyon_user_page_test.php <htdocs> <id> [edit]` rend l'onglet.
 - Piste : « enregistrer mes couleurs comme preset » = `oblyon_write_preset_file()` avec la photo utilisateur à la place de `oblyon_presets_current_values()`.
 
 ### Presets JSON (3.6.0)
 
-Un preset = un fichier `<clé>.json` (`clé` : `[a-z0-9][a-z0-9_-]{1,39}`) : `{ "name", "description", "author", "version", <sections> }`. `name`/`description` sont des clés de langue quand elles existent (`Oblyon<key>`, `Oblyon<key>Desc` pour le module), sinon du texte brut (presets d'instance). Sections facultatives, chacune avec sa liste blanche dans `oblyon_presets_sections()` : `colors` (`OBLYON_COLOR_*`, `THEME_ELDY_*` de couleur, `THEME_INVERT_RATIO_FILTER`, `THEME_SATURATE_RATIO`), `typography`, `menus`, `general`, `lists_cards`, `dashboard` (`MAIN_DISABLE_BLOCK_*`, `OBLYON_INFOXBOX_*`…), `custom_css` (valeur scalaire = `OBLYON_CUSTOM_CSS`). Exclus volontairement : `MAIN_FONTAWESOME_*` (dépend des dossiers installés, écrit à l'entité 0), `FCKEDITOR_*`, `MAIN_SECURITY_*`, menus forcés. Conventions conservées : `#` = hériter, `''` = supprimer la constante (`dolibarr_set_const`). Les couleurs hex sont normalisées en majuscules à la lecture.
+Un preset = un fichier `<clé>.json` (`clé` : `[a-z0-9][a-z0-9_-]{1,39}`) : `{ "name", "description", "author", "version", "scope" (facultatif : `user` = proposé seulement sur l'onglet Couleurs de la fiche utilisateur), <sections> }`. `name`/`description` sont des clés de langue quand elles existent (`Oblyon<key>`, `Oblyon<key>Desc` pour le module), sinon du texte brut (presets d'instance). Sections facultatives, chacune avec sa liste blanche dans `oblyon_presets_sections()` : `colors` (`OBLYON_COLOR_*`, `THEME_ELDY_*` de couleur, `THEME_INVERT_RATIO_FILTER`, `THEME_SATURATE_RATIO`), `typography`, `menus`, `general`, `lists_cards`, `dashboard` (`MAIN_DISABLE_BLOCK_*`, `OBLYON_INFOXBOX_*`…), `custom_css` (valeur scalaire = `OBLYON_CUSTOM_CSS`). Exclus volontairement : `MAIN_FONTAWESOME_*` (dépend des dossiers installés, écrit à l'entité 0), `FCKEDITOR_*`, `MAIN_SECURITY_*`, menus forcés. Conventions conservées : `#` = hériter, `''` = supprimer la constante (`dolibarr_set_const`). Les couleurs hex sont normalisées en majuscules à la lecture.
 
 - Dossiers : module `presets/` (lecture seule) puis instance `DOL_DATA_ROOT/[<entité>/]oblyon/presets` (même logique d'entité que la sauvegarde `oblyon_bkup_module`) ; un preset d'instance de même clé remplace celui du module. Cache statique par requête, `oblyon_get_presets_reset()` après écriture.
 - « Modifié » = comparaison base ↔ fichier sur les sections du preset (`oblyon_preset_modified_sections()`, constante absente en base = `''`). `OBLYON_CURRENT_PRESET` désigne le preset courant ; si elle manque (instance mise à jour par copie de fichiers), `oblyon_detect_current_preset()` (appelée à l'ouverture de l'onglet Couleurs) la sème avec le premier preset identique à la base, sinon aucune carte n'est « Actuel ». Le bouton Enregistrer du formulaire des couleurs n'écrit jamais de fichier ; seuls « Enregistrer sous » (nouveau preset d'instance) et « Mettre à jour » (preset d'instance existant, version +1) écrivent.
@@ -577,6 +579,12 @@ La bibliothèque `lib/oblyon.lib.php` fournit des fonctions utilitaires pour les
 | `oblyon_user_colors_list()` / `oblyon_user_colors_keys()` | Groupes → constantes de l'onglet (menus haut/gauche permutés si `MAIN_MENU_INVERT`), liste plate (116) |
 | `oblyon_user_color_label($name)` | Libellé (clé de langue = nom de la constante, TOP/LEFT permutés) |
 | `oblyon_color_swatch($value)` | Pastille + code pour le mode lecture |
+| `oblyon_user_presets_dir($userid)` / `oblyon_get_user_presets($userid)` | Dossier et liste des presets personnels (fichiers JSON, source `user`) |
+| `oblyon_get_presets_for_user($userid)` | Presets proposés sur l'onglet : module (`scope` vide puis `user`) + personnels |
+| `oblyon_preset_user_colors($preset)` / `oblyon_user_current_colors($object)` | Couleurs d'un preset limitées aux 116 constantes ; couleurs affichées à l'utilisateur (personnelles valides sinon instance) |
+| `oblyon_apply_preset_to_user($preset, $object)` | Photo complète + drapeau + révision CSS ; 1 / -1 |
+| `oblyon_save_user_preset($object, $key, $name, $desc)` / `oblyon_delete_user_preset($object, $key)` | Preset personnel : -2 clé invalide, -3 clé du module, -4 doublon, -1 écriture ; suppression -2 inconnu |
+| `oblyon_print_user_preset_cards($object, $canedit)` | Cartes de l'onglet + formulaire replié « Enregistrer mes couleurs actuelles comme preset » |
 
 ### Bibliothèque des presets (`lib/oblyon_presets.lib.php`, 3.6.0)
 
@@ -606,6 +614,7 @@ Incluse par `admin/colors.php` (`dol_include_once`). Toutes les fonctions sont p
 | `oblyon_color_luminance($hex)` / `oblyon_contrast_ratio($a, $b)` | Luminance relative et rapport de contraste WCAG 2 |
 | `oblyon_check_preset_contrast($preset, $threshold)` | Couples texte/fond sous le seuil (21 couples, tels que le thème les peint) |
 | `oblyon_presets_section_label($section)` / `oblyon_preset_text($text)` / `oblyon_preset_color($preset, $name)` | Libellé de section, texte traduit si clé de langue, couleur d'aperçu (`#CCCCCC` si absente) |
+| `oblyon_preset_card_preview($preset, $key, $source)` | Aperçu d'une carte (capture `img/oblyon<clé>.png` si `source = module` et fichier présent, sinon dessin), partagé avec l'onglet utilisateur |
 | `oblyon_print_preset_cards()` | Cartes (module puis instance) : capture `img/oblyon<clé>.png` ou dessin CSS, nom + badges, icône contraste, boutons Appliquer / Mettre à jour / Télécharger / Supprimer |
 | `oblyon_print_preset_forms()` | Formulaires repliés « Enregistrer sous » (clé avec `textwithpicto`, nom, description) et « Importer » |
 

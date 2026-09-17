@@ -215,9 +215,12 @@
 	**/
 	function oblyon_normalize_preset_data($data)
 	{
-		$out	= array('name' => '', 'description' => '', 'author' => '', 'version' => '1', 'sections' => array());
-		foreach (array('name', 'description', 'author', 'version') as $meta) {
+		$out	= array('name' => '', 'description' => '', 'author' => '', 'version' => '1', 'scope' => '', 'sections' => array()); // infras add: meta scope ('' = partout, 'user' = onglet utilisateur seulement)
+		foreach (array('name', 'description', 'author', 'version', 'scope') as $meta) {
 			if (isset($data[$meta]) && is_scalar($data[$meta]))	$out[$meta]	= trim((string) $data[$meta]);
+		}
+		if ($out['scope'] !== 'user') { // Infras add : seule valeur connue est 'user'
+			$out['scope']	= '';
 		}
 		foreach (oblyon_presets_sections() as $section => $def) {
 			if (! isset($data[$section]))	continue;
@@ -691,6 +694,31 @@
 	}
 
 	/**
+	 *	Preview block of preset card: screenshot img/oblyon<key>.png of the module when it exists (the five shipped presets), else a drawing from the colors.
+	 *
+	 *	@param 			array	$preset		Preset (oblyon_get_perset)
+	 *	@param			string	$key		Preset key
+	 *	@param			string	$source		Source of the preset ('module' or 'instance' or 'user')
+	 *	@return			string				HTML of the preview block
+	 **/
+	function oblyon_preset_card_preview($preset, $key, $source) {
+		global $langs;
+		$shot		= ($source == 'module' && file_exists(dol_buildpath('/oblyon/img/oblyon'.$key.'.png', 0)));
+		$out	= '<div class="oblyon-preset__preview'.($shot ? ' oblyon-preset__preview--img' : '').'" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BCKGRD').'" title="'.($shot ? dol_escape_htmltag(oblyon_preset_text($preset['name'] !== '' ? $preset['name'] : $key)) : $langs->trans('OblyonPresetPreview')).'">';
+		if ($shot) {
+			$out	.= '<img src="'.dol_buildpath('/oblyon/img/oblyon'.$key.'.png', 1).'" alt="">';
+		} else {
+			$out	.= '<div class="oblyon-preset__top" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_TOPMENU_BCKGRD').'"><i style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_MAIN').'"></i></div>';
+			$out	.= '<div class="oblyon-preset__left" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_LEFTMENU_BCKGRD').'"></div>';
+			$out	.= '<div class="oblyon-preset__page"><div class="oblyon-preset__band" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BTITLE').'"><i style="background:'.oblyon_preset_color($preset, 'THEME_ELDY_TEXTTITLE').'"></i></div>';
+			$out	.= '<div class="oblyon-preset__row" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BLINE').'"><i style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_FLINE').'"></i></div>';
+			$out	.= '<div class="oblyon-preset__row" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BLINE').'"><i style="background:'.oblyon_preset_color($preset, 'THEME_ELDY_TEXTLINK').'"></i></div>';
+			$out	.= '<div class="oblyon-preset__btn" style="background:'.oblyon_preset_color($preset, 'THEME_ELDY_BTNACTION').'"></div></div>';
+		}
+		$out	.= '</div>';
+		return $out;
+	}
+	/**
 	*	HTML of the preset cards (module presets, then instance presets) with their action buttons (POST forms).
 	*	A preset is applied, updated and saved as a whole : the section choice only exists in the library (CLI, other callers).
 	*
@@ -707,7 +735,11 @@
 		$out		= '';
 		foreach (array('module' => 'OblyonPresetsModule', 'instance' => 'OblyonPresetsInstance') as $source => $titlekey) {
 			$group	= array();
-			foreach ($presets as $key => $preset)	if ($preset['source'] == $source)	$group[$key]	= $preset;
+			foreach ($presets as $key => $preset)	{
+				if ($preset['source'] == $source && $preset['scope'] !== 'user') {
+					$group[$key]	= $preset;
+				}
+			}
 			if (! count($group) && $source == 'module')	continue;
 			$out	.= '<div class="oblyon-presets"><div class="oblyon-presets__title">'.$langs->trans($titlekey).($source == 'instance' ? ' <span class="opacitymedium small">('.dol_escape_htmltag(oblyon_presets_dirs()['instance']).')</span>' : '').'</div>';
 			$out	.= '<div class="opacitymedium small oblyon-presets__help">'.$langs->trans(count($group) ? 'OblyonPresetsHelp' : 'OblyonPresetsInstanceEmpty').'</div>';
@@ -718,19 +750,7 @@
 				$contrast	= oblyon_check_preset_contrast($preset);
 				$out	.= '<form method="POST" action="'.$self.'" class="oblyon-preset'.($iscurrent ? ' is-current' : '').($modified ? ' is-modified' : '').'">';
 				$out	.= '<input type="hidden" name="token" value="'.newToken().'"><input type="hidden" name="preset_key" value="'.dol_escape_htmltag($key).'">';
-				// Preview : screenshot img/oblyon<key>.png of the module when it exists (the five shipped presets), else a drawing from the colors
-				$shot	= ($source == 'module' && file_exists(dol_buildpath('/oblyon/img/oblyon'.$key.'.png', 0)));
-				$out	.= '<div class="oblyon-preset__preview'.($shot ? ' oblyon-preset__preview--img' : '').'" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BCKGRD').'" title="'.($shot ? dol_escape_htmltag(oblyon_preset_text($preset['name'] !== '' ? $preset['name'] : $key)) : $langs->trans('OblyonPresetPreview')).'">';
-				if ($shot)	$out	.= '<img src="'.dol_buildpath('/oblyon/img/oblyon'.$key.'.png', 1).'" alt="">';
-				else {
-				$out	.= '<div class="oblyon-preset__top" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_TOPMENU_BCKGRD').'"><i style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_MAIN').'"></i></div>';
-				$out	.= '<div class="oblyon-preset__left" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_LEFTMENU_BCKGRD').'"></div>';
-				$out	.= '<div class="oblyon-preset__page"><div class="oblyon-preset__band" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BTITLE').'"><i style="background:'.oblyon_preset_color($preset, 'THEME_ELDY_TEXTTITLE').'"></i></div>';
-				$out	.= '<div class="oblyon-preset__row" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BLINE').'"><i style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_FLINE').'"></i></div>';
-				$out	.= '<div class="oblyon-preset__row" style="background:'.oblyon_preset_color($preset, 'OBLYON_COLOR_BLINE').'"><i style="background:'.oblyon_preset_color($preset, 'THEME_ELDY_TEXTLINK').'"></i></div>';
-				$out	.= '<div class="oblyon-preset__btn" style="background:'.oblyon_preset_color($preset, 'THEME_ELDY_BTNACTION').'"></div></div>';
-				}
-				$out	.= '</div>';
+				$out	.= oblyon_preset_card_preview($preset, $key, $source);	// InfraS change : apercu partage avec l'onglet utilisateur
 				// Head : name (description as tooltip) + badges, then small icons (contrast warning, download, update, delete)
 				$sections	= implode(', ', array_map('oblyon_presets_section_label', array_keys($preset['sections'])));
 				$tooltip	= ($preset['description'] !== '' ? oblyon_preset_text($preset['description'])."\n" : '').$langs->trans('OblyonPresetSections').' : '.$sections;

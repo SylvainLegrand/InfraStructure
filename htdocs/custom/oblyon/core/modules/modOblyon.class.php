@@ -95,7 +95,7 @@
 					//'ihm_admin:-dashboard',
 					//'ihm_admin:-login',
 					//'ihm_admin:+template_oblyon:Colors:oblyon@oblyon::/oblyon/admin/colors.php',
-					'user:+oblyoncolors:OblyonUserColorsTab:oblyon@oblyon:1:/oblyon/user/colors.php?id=__ID__',	// InfraS add : couleurs par utilisateur (3.6.0) ; condition 1 = visible pour l'utilisateur sur sa propre fiche, la page applique les droits
+					'user:+oblyoncolors:OblyonUserColorsTab:oblyon@oblyon:$user->hasRight(\'oblyon\', \'usercolors\'):/oblyon/user/colors.php?id=__ID__',	// InfraS add : couleurs par utilisateur (3.6.0) ; onglet visible avec le droit usercolors ($user = visiteur), la page revérifie
 				);
 			}
 			if (!isModEnabled('oblyon')) {
@@ -105,7 +105,14 @@
 			$this->dictionaries	= array();	// Dictionaries
 			$this->boxes		= array();	// List of boxes
 			$this->cronjobs		= array();	// List of cron jobs entries to add
+			// InfraS add begin : droit "Regler ses couleurs personnelles" (onglet Couleurs de la fiche utilisateur, 3.6.0). Attribue aux admins a l'activation ; les autres par l'onglet Permissions
 			$this->rights		= array();	// Permission array used by this module
+			$r					= 0;
+			$this->rights[$r][0]	= $this->numero.$r;	// 4325730
+			$this->rights[$r][1]	= $langs->trans('OblyonPermUserColors');
+			$this->rights[$r][3]	= 0;
+			$this->rights[$r][4]	= 'usercolors';
+			// InfraS add end
 			$this->menu			= array();	// List of menus to add
 		}
 

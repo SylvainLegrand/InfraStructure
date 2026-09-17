@@ -188,3 +188,220 @@
 		$css	= (strpos($value, ',') !== false ? 'rgb('.$value.')' : $value);
 		return '<span class="oblyon-color-swatch" style="background:'.dol_escape_htmltag($css).'"></span> <span class="opacitymedium">'.dol_escape_htmltag(strtoupper($value)).'</span>';
 	}
+	// User presets (personal colour presets of the "Colors" tab of the user card) ******************
+	/**
+	*	Directory of the personal presets of a user : DOL_DATA_ROOT/[entity/]oblyon/userpresets/<id> (created on the first write)
+	*
+	*	@param		int		$userid		User id
+	*	@return		string				Directory (may not exist yet)
+	**/
+	function oblyon_user_presets_dir($userid)
+	{
+		global $conf;
+		$root	= (!empty($conf->oblyon->dir_output) ? $conf->oblyon->dir_output : DOL_DATA_ROOT.'/oblyon');
+		return $root.'/userpresets/'.((int) $userid);
+	}
+	/**
+	*	Personal presets of a user (files of his directory), key => preset (oblyon_load_preset_file, source 'user')
+	*
+	*	@param		int		$userid		User id
+	*	@return		array
+	**/
+	function oblyon_get_user_presets($userid)
+	{
+		$dir	= oblyon_user_presets_dir($userid);
+		$out	= array();
+		if (! is_dir($dir))	return $out;
+		foreach (dol_dir_list($dir, 'files', 0, '\.json$', null, 'name', SORT_ASC, 0, 1) as $file) {
+			$preset	= oblyon_load_preset_file($file['fullname'], 'user');
+			if ($preset !== null)	$out[$preset['key']]	= $preset;
+		}
+		return $out;
+	}
+	/**
+	*	Presets offered on the Colors tab of a user : module presets with scope '' (the five shipped ones) then scope 'user' (accessibility),
+	*	then the personal presets of the user. Instance presets of the Colors tab of the module are not offered here.
+	*
+	*	@param		int		$userid		User id
+	*	@return		array				key => preset
+	**/
+	function oblyon_get_presets_for_user($userid)
+	{
+		$out	= array();
+		foreach (array('', 'user') as $scope) {
+			foreach (oblyon_get_presets() as $key => $preset) {
+				if ($preset['source'] == 'module' && $preset['scope'] === $scope)	$out[$key]	= $preset;
+			}
+		}
+		foreach (oblyon_get_user_presets($userid) as $key => $preset)	$out[$key]	= $preset;
+		return $out;
+	}
+	/**
+	*	Colours of a preset limited to the constants of the user tab (sections colors and dashboard, valid colour shapes only)
+	*
+	*	@param		array	$preset		Preset
+	*	@return		array				constant => colour
+	**/
+	function oblyon_preset_user_colors($preset)
+	{
+		$out	= array();
+		foreach (oblyon_user_colors_keys() as $key) {
+			foreach (array('colors', 'dashboard') as $section) {
+				if (isset($preset['sections'][$section][$key])) {
+					$value	= (string) $preset['sections'][$section][$key];
+					if (oblyon_color_is_valid($value, $key))	$out[$key]	= $value;
+					break;
+				}
+			}
+		}
+		return $out;
+	}
+	/**
+	*	Colours currently shown to a user on his tab : personal values when his personal colours are on and valid, else the instance values
+	*
+	*	@param		User	$object		User (conf loaded)
+	*	@return		array				constant => colour ('' possible)
+	**/
+	function oblyon_user_current_colors($object)
+	{
+		$enabled	= oblyon_user_colors_enabled($object);
+		$out		= array();
+		foreach (oblyon_user_colors_keys() as $key) {
+			$personal	= ($enabled && isset($object->conf->$key) ? (string) $object->conf->$key : '');
+			$out[$key]	= ($personal !== '' && oblyon_color_is_valid($personal, $key) ? $personal : getDolGlobalString($key));
+		}
+		return $out;
+	}
+	/**
+	*	Apply a preset to the personal colours of a user : full snapshot (preset colour when it has one, else the instance value),
+	*	flag OBLYON_USER_COLORS = 1, CSS revision bumped so the browser fetches the new stylesheet
+	*
+	*	@param		array	$preset		Preset
+	*	@param		User	$object		User
+	*	@return		int					1 = OK, -1 = KO
+	**/
+	function oblyon_apply_preset_to_user($preset, $object)
+	{
+		global $db, $conf;
+		$colors		= oblyon_preset_user_colors($preset);
+		$tabparam	= array();
+		foreach (oblyon_user_colors_keys() as $key)	$tabparam[$key]	= (isset($colors[$key]) ? $colors[$key] : getDolGlobalString($key));
+		$tabparam['OBLYON_USER_COLORS']	= 1;
+		$res	= dol_set_user_param($db, $conf, $object, $tabparam);	// 4 arguments : signature of Dolibarr 22 LTS
+		if ($res <= 0)	return -1;
+		dolibarr_set_const($db, 'MAIN_IHM_PARAMS_REV', getDolGlobalInt('MAIN_IHM_PARAMS_REV') + 1, 'chaine', 0, '', $conf->entity);
+		return 1;
+	}
+	/**
+	*	Save the colours currently shown to a user as one of his personal presets (sections colors + dashboard, colours only)
+	*
+	*	@param		User	$object			User
+	*	@param		string	$key			Preset key (validated here)
+	*	@param		string	$name			Displayed name
+	*	@param		string	$description	Description
+	*	@return		int						1 = OK, -1 = write error, -2 = invalid key, -3 = key of a module preset, -4 = already exists
+	**/
+	function oblyon_save_user_preset($object, $key, $name, $description = '')
+	{
+		if (! oblyon_preset_key_is_valid($key))	return -2;
+		$module	= oblyon_get_preset($key);
+		if ($module !== null && $module['source'] == 'module')	return -3;
+		$dir	= oblyon_user_presets_dir($object->id);
+		$file	= $dir.'/'.$key.'.json';
+		if (file_exists($file))	return -4;
+		$data	= array('name' => (string) $name, 'description' => (string) $description, 'author' => (string) $object->login, 'version' => '1', 'colors' => array(), 'dashboard' => array());
+		foreach (oblyon_user_current_colors($object) as $name_ => $value) {
+			if ($value === '')	continue;
+			$section	= oblyon_presets_section_of($name_);
+			if ($section == 'colors' || $section == 'dashboard')	$data[$section][$name_]	= $value;
+		}
+		ksort($data['colors']);
+		ksort($data['dashboard']);
+		if (! is_dir($dir) && dol_mkdir($dir) < 0)	return -1;
+		if (! is_writable($dir))	return -1;
+		$json	= json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		if ($json === false || @file_put_contents($file.'.tmp', $json."\n") === false || ! @rename($file.'.tmp', $file)) {	// atomic write
+			@unlink($file.'.tmp');
+			return -1;
+		}
+		dolChmod($file);
+		return 1;
+	}
+	/**
+	*	Delete a personal preset of a user
+	*
+	*	@param		User	$object		User
+	*	@param		string	$key		Preset key
+	*	@return		int					1 = OK, -1 = KO, -2 = unknown
+	**/
+	function oblyon_delete_user_preset($object, $key)
+	{
+		if (! oblyon_preset_key_is_valid($key))	return -2;
+		$file	= oblyon_user_presets_dir($object->id).'/'.$key.'.json';
+		if (! file_exists($file))	return -2;
+		return (@unlink($file) ? 1 : -1);
+	}
+	/**
+	*	HTML of the preset cards of the user tab (module presets, accessibility preset, personal presets) and of the folded "save as preset" form
+	*
+	*	@param		User	$object		User of the card
+	*	@param		bool	$canedit	Buttons shown
+	*	@return		string				HTML
+	**/
+	function oblyon_print_user_preset_cards($object, $canedit)
+	{
+		global $langs, $db;
+		require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+		$form	= new Form($db);
+		$self	= dol_escape_htmltag($_SERVER['PHP_SELF']);
+		$id		= (int) $object->id;
+		$out	= '<div class="oblyon-presets oblyon-user-presets"><div class="oblyon-presets__title">'.$langs->trans('OblyonUserPresets').'</div>';
+		$out	.= '<div class="opacitymedium small oblyon-presets__help">'.$langs->trans('OblyonUserPresetsHelp').'</div>';
+		$out	.= '<div class="oblyon-presets__grid">';
+		$mine	= 0;
+		foreach (oblyon_get_presets_for_user($id) as $key => $preset) {
+			$source		= ($preset['source'] == 'user' ? 'user' : 'module');
+			if ($source == 'user')	$mine++;
+			$contrast	= oblyon_check_preset_contrast(array('colors' => oblyon_preset_user_colors($preset)));
+			$out	.= '<form method="POST" action="'.$self.'" class="oblyon-preset">';
+			$out	.= '<input type="hidden" name="token" value="'.newToken().'"><input type="hidden" name="id" value="'.$id.'"><input type="hidden" name="preset_key" value="'.dol_escape_htmltag($key).'"><input type="hidden" name="preset_source" value="'.$source.'">';
+			$out	.= oblyon_preset_card_preview($preset, $key, $source);
+			$tooltip	= ($preset['description'] !== '' ? oblyon_preset_text($preset['description']) : '');
+			$out	.= '<div class="oblyon-preset__head"><div class="oblyon-preset__name" title="'.dol_escape_htmltag($tooltip, 0, 1).'">'.oblyon_preset_text($preset['name'] !== '' ? $preset['name'] : $key);
+			if ($preset['scope'] === 'user')	$out	.= ' <span class="badge badge-status4 badge-status" title="'.dol_escape_htmltag($langs->trans('OblyonUserPresetAccessible')).'">'.$langs->trans('OblyonUserPresetAccessibleShort').'</span>';
+			if ($source == 'user')			$out	.= ' <span class="badge badge-status0 badge-status">'.$langs->trans('OblyonUserPresetsMineShort').'</span>';
+			$out	.= '</div><div class="oblyon-preset__icons">';
+			if ($contrast) {
+				$details	= array();
+				foreach ($contrast as $c)	$details[]	= oblyon_user_color_label($c['text']).' / '.oblyon_user_color_label($c['background']).' : '.$c['ratio'];
+				$out	.= '<span class="oblyon-preset__icon oblyon-preset__icon--warn" title="'.dol_escape_htmltag($langs->trans('OblyonPresetContrastWarning', count($contrast))."\n".implode("\n", $details), 0, 1).'"><span class="fa fa-exclamation-triangle"></span></span>';
+			}
+			$out	.= '</div></div>';
+			$out	.= '<div class="oblyon-preset__actions">';
+			if ($canedit)	$out	.= '<button type="submit" name="action" value="apply_user_preset" class="butAction small oblyon-preset__apply">'.$langs->trans('OblyonUserPresetApply').'</button>';
+			if ($source == 'user') {
+				$out	.= '<div class="oblyon-preset__row-btn">';
+				$out	.= '<a class="butAction small" href="'.$self.'?id='.$id.'&action=download_user_preset&preset_key='.urlencode($key).'&token='.newToken().'" title="'.dol_escape_htmltag($langs->trans('OblyonPresetDownload')).'"><span class="fa fa-download paddingright"></span>'.$langs->trans('Download').'</a>';
+				if ($canedit)	$out	.= '<button type="submit" name="action" value="delete_user_preset" class="butActionDelete small" onclick="return confirm(\''.dol_escape_js($langs->trans('OblyonPresetDeleteConfirm', $key)).'\');"><span class="fa fa-trash paddingright"></span>'.$langs->trans('OblyonPresetDelete').'</button>';
+				$out	.= '</div>';
+			}
+			$out	.= '</div></form>';
+		}
+		$out	.= '</div>';
+		if (! $mine)	$out	.= '<div class="opacitymedium small oblyon-presets__help">'.$langs->trans('OblyonUserPresetsEmpty').'</div>';
+		// Save the current colours as a personal preset (folded, like the forms of the module tab)
+		if ($canedit) {
+			$modulekeys	= array();
+			foreach (oblyon_get_presets() as $key => $preset)	if ($preset['source'] == 'module')	$modulekeys[]	= $key;
+			$out	.= '<div class="oblyon-presets oblyon-presets--forms"><details class="oblyon-presets__form"><summary class="oblyon-presets__title">'.$langs->trans('OblyonUserPresetSaveTitle').'</summary>';
+			$out	.= '<form method="POST" action="'.$self.'"><input type="hidden" name="token" value="'.newToken().'"><input type="hidden" name="id" value="'.$id.'"><input type="hidden" name="action" value="save_user_preset">';
+			$out	.= '<div class="opacitymedium small">'.$langs->trans('OblyonUserPresetSaveHelp').'</div>';
+			$out	.= '<div class="oblyon-presets__fields">';
+			$out	.= '<label class="oblyon-presets__field"><span>'.$langs->trans('OblyonPresetKey').$form->textwithpicto('', $langs->trans('OblyonPresetKeyHelp', implode(', ', $modulekeys)), 1, 'help', '', 0, 2).'</span><input type="text" name="preset_key" class="flat" maxlength="40" pattern="[a-z0-9][a-z0-9_-]{1,39}" placeholder="mes-couleurs" required></label>';
+			$out	.= '<label class="oblyon-presets__field oblyon-presets__field--wide"><span>'.$langs->trans('OblyonPresetName').'</span><input type="text" name="preset_name" class="flat" maxlength="80" required></label>';
+			$out	.= '<label class="oblyon-presets__field oblyon-presets__field--full"><span>'.$langs->trans('OblyonPresetDesc').'</span><input type="text" name="preset_desc" class="flat" maxlength="255"></label></div>';
+			$out	.= '<button type="submit" class="butAction small">'.$langs->trans('OblyonPresetSaveAs').'</button></form></details></div>';
+		}
+		$out	.= '</div>';
+		return $out;
+	}

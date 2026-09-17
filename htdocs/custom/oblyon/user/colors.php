@@ -47,6 +47,7 @@
 	$feature2		= (($socid && $user->hasRight('user', 'self', 'write')) ? '' : 'user');
 	$result			= restrictedArea($user, 'user', $id, 'user&user', $feature2);
 	if ($user->id != $id && !$canreaduser)	accessforbidden();
+	if (!$user->hasRight('oblyon', 'usercolors'))	accessforbidden($langs->trans('OblyonUserColorsNoRight'));	// dedicated permission of the module (admins have every right)
 	$object			= new User($db);
 	$object->fetch($id, '', '', 1);		// 1 = load the personal conf (llx_user_param) into $object->conf
 	$object->loadRights();
@@ -87,6 +88,43 @@
 		exit;
 	}
 
+	// Presets of the tab : apply / save as personal preset / delete / download (POST + token, then redirect ; download = GET + token)
+	$presetkey	= GETPOST('preset_key', 'alphanohtml');
+	if ($action == 'download_user_preset' && oblyon_preset_key_is_valid($presetkey)) {
+		$file	= oblyon_user_presets_dir($object->id).'/'.$presetkey.'.json';
+		if (file_exists($file)) {
+			header('Content-Type: application/json; charset=utf-8');
+			header('Content-Disposition: attachment; filename="'.$presetkey.'.json"');
+			header('Content-Length: '.filesize($file));
+			readfile($file);
+			exit;
+		}
+	}
+	if (in_array($action, array('apply_user_preset', 'save_user_preset', 'delete_user_preset')) && $_SERVER['REQUEST_METHOD'] == 'POST' && $canedit) {
+		$presetres	= 0;
+		$presetmsg	= '';
+		if ($action == 'apply_user_preset') {
+			$presets	= oblyon_get_presets_for_user($object->id);
+			$presetres	= (isset($presets[$presetkey]) ? oblyon_apply_preset_to_user($presets[$presetkey], $object) : -2);
+			$presetmsg	= 'OblyonUserPresetApplied';
+		} elseif ($action == 'save_user_preset') {
+			$presetkey	= strtolower(preg_replace('/[^a-z0-9_-]/i', '-', $presetkey));
+			$presetname	= GETPOST('preset_name', 'alphanohtml');
+			$presetres	= ($presetname !== '' ? oblyon_save_user_preset($object, $presetkey, $presetname, GETPOST('preset_desc', 'alphanohtml')) : -2);
+			$presetmsg	= 'OblyonPresetCreated';
+		} elseif ($action == 'delete_user_preset') {
+			$presetres	= oblyon_delete_user_preset($object, $presetkey);
+			$presetmsg	= 'OblyonPresetDeleted';
+		}
+		if ($presetres > 0) {
+			setEventMessages($langs->trans($presetmsg, $presetkey), null, 'mesgs');
+		} else {
+			$preseterrors	= array(-1 => 'OblyonPresetErrorWrite', -2 => ($action == 'save_user_preset' ? 'OblyonPresetErrorKey' : 'OblyonPresetErrorUnknown'), -3 => 'OblyonPresetErrorReserved', -4 => 'OblyonPresetErrorExists');
+			setEventMessages($langs->trans(isset($preseterrors[$presetres]) ? $preseterrors[$presetres] : 'Error'), null, 'errors');
+		}
+		header('Location: '.$_SERVER['PHP_SELF'].'?id='.$id);
+		exit;
+	}
 	// View *****************************************
 	$edit		= ($action == 'edit' && $canedit);
 	$enabled	= oblyon_user_colors_enabled($object);	// OBLYON_USER_COLORS, or the historical THEME_ELDY_ENABLE_PERSONALIZED user param (same test as the theme)
@@ -108,6 +146,8 @@
 	print '</table>';
 	print dol_get_fiche_end();
 	print '<br>';
+	// Presets of the tab (module presets, accessibility preset, personal presets) : own forms, so outside the edit form of the table
+	if (!$edit)	print oblyon_print_user_preset_cards($object, $canedit);
 
 	// Table : Parameter | Default value | Use personal value | Personal value (same layout as showSkins() of the core for a user profile)
 	print '<div class="div-table-responsive-no-min">';

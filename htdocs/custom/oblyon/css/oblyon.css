@@ -377,3 +377,6 @@ table.oblyon-user-colors input.oblyon-user-color {
 table.oblyon-user-colors input.oblyon-user-color:disabled {
 	cursor: not-allowed;
 }
+.oblyon-user-presets .oblyon-presets__grid + .oblyon-presets__help {
+	margin-top: 8px;
+}
