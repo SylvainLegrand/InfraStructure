@@ -194,6 +194,7 @@ InfraSPlusPDFAddPrefixToFI                     = Préfixe à ajouter au nom du m
 InfraSPlusPDFAddPrefixToNDF                    = Préfixe à ajouter au nom du modèle de notes de frais pdf_InfraSPlus_NDF (Notes de frais)
 InfraSPlusPDFAddPrefixToBC                     = Préfixe à ajouter au nom du modèle de bordereaux de chèque pdf_InfraSPlus_BC (Bordereaux de chèque)
 InfraSPlusPDFAddPrefixToBOM                    = Préfixe à ajouter au nom du modèle de nomenclatures pdf_InfraSPlus_BOM (Nomenclatures)
+InfraSPlusPDFAddPrefixToBon                    = Préfixe à ajouter au nom du modèle de bons de prélèvement / virement pdf_InfraSPlus_Bon (Bordereaux de prélèvement / virement, module InfraSFiles)
 InfraSPlusParamFilesFromProject                = Proposer aussi les pièces jointes du projet (affaire) associé au document comme fichiers fusionnables
 InfraSPlusParamFilesFromBom                    = Dans les ordres de fabrication proposer aussi les pièces jointes de la nomenclature associée au document comme fichiers fusionnables
 InfraSPlusParamFilesFromExpensereport          = Fusionner les pièces jointes associées aux notes de frais 
@@ -1102,6 +1103,10 @@ PDFInfraSPlusExpenseDescription = Note de frais PDF modèle InfraS. Modèle de n
 ### pdf_InfraS_chequereceipt ###
 PDFInfraSPlusChequeReceiptName        = InfraSPlus_BC
 PDFInfraSPlusChequeReceiptDescription = Bordereau de remise de chèques PDF modèle InfraS. Modèle complet (logo, filigrane, signature, pied de page InfraS, …)
+
+### pdf_InfraS_bon ###
+PDFInfraSPlusBonName        = InfraSPlus_Bon
+PDFInfraSPlusBonDescription = Bordereau de prélèvement / virement PDF modèle InfraS (module InfraSFiles) : un document par tiers ou par maison mère, factures, échéances, avoirs, statuts et total, avec la mise en page et les options InfraSPackPlus (logo, cadres d'adresses, mentions, notes, signature, filigrane, pied de page, fichiers fusionnés)
 
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT

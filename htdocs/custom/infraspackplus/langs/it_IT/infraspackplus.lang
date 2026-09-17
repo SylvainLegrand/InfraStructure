@@ -194,6 +194,7 @@ InfraSPlusPDFAddPrefixToFI                     = Prefisso da aggiungere al nome 
 InfraSPlusPDFAddPrefixToNDF                    = Prefisso da aggiungere al nome del modello di note spese pdf_InfraSPlus_NDF (Note spese)
 InfraSPlusPDFAddPrefixToBC                     = Prefisso da aggiungere al nome del modello di distinte di assegno pdf_InfraSPlus_BC (Distinte di assegno)
 InfraSPlusPDFAddPrefixToBOM                    = Prefisso da aggiungere al nome del modello di distinte base pdf_InfraSPlus_BOM (Distinte base)
+InfraSPlusPDFAddPrefixToBon                    = Prefisso da aggiungere al nome del modello di ordini di addebito diretto / bonifico pdf_InfraSPlus_Bon (Distinte di addebito diretto / bonifico, modulo InfraSFiles)
 InfraSPlusParamFilesFromProject                = Proporre anche gli allegati del progetto (caso) associati al documento come file unibili
 InfraSPlusParamFilesFromBom                    = Negli ordini di produzione Proporre anche gli allegati della nomenclatura associata al documento come file unificabili
 InfraSPlusParamFilesFromExpensereport          = Unisci gli allegati associati alle note spese
@@ -1102,6 +1103,10 @@ PDFInfraSPlusExpenseDescription = Modello di nota spese PDF InfraS. Modello comp
 ### pdf_InfraS_chequereceipt ###
 PDFInfraSPlusChequeReceiptName        = InfraSPlus_BC
 PDFInfraSPlusChequeReceiptDescription = Distinta di versamento assegni PDF modello InfraS. Modello completo (logo, filigrana, firma, piè di pagina InfraS, …)
+
+### pdf_InfraS_bon ###
+PDFInfraSPlusBonName        = InfraSPlus_Bon
+PDFInfraSPlusBonDescription = Distinta di addebito diretto / bonifico PDF modello InfraS (modulo InfraSFiles): un documento per terzo o per casa madre, fatture, scadenze, note di credito, stati e totale, con l'impaginazione e le opzioni InfraSPackPlus (logo, riquadri indirizzi, menzioni, note, firma, filigrana, piè di pagina, file uniti)
 
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT

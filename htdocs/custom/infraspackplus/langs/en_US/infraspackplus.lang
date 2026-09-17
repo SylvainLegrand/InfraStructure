@@ -195,6 +195,7 @@ InfraSPlusPDFAddPrefixToFI                     = Prefix to add to the name of th
 InfraSPlusPDFAddPrefixToNDF                    = Prefix to add to the name of the expense report template pdf_InfraSPlus_NDF (Expense reports)
 InfraSPlusPDFAddPrefixToBC                     = Prefix to add to the name of the cheque slip template pdf_InfraSPlus_BC (Cheque slips)
 InfraSPlusPDFAddPrefixToBOM                    = Prefix to add to the name of the bill of materials template pdf_InfraSPlus_BOM (Bills of materials)
+InfraSPlusPDFAddPrefixToBon                    = Prefix to add to the name of the direct debit / credit transfer order template pdf_InfraSPlus_Bon (Direct debit / credit transfer slips, InfraSFiles module)
 InfraSPlusParamFilesFromProject                = Also propose the attachments of the project associated with the document as mergeable files
 InfraSPlusParamFilesFromBom                    = In production orders also propose the attachments of the nomenclature associated with the document as mergeable files
 InfraSPlusParamFilesFromExpensereport          = Merge attachments associated with expense reports
@@ -1102,6 +1103,10 @@ PDFInfraSPlusExpenseDescription = PDF expense report from InfraS. Complete PDF e
 ### pdf_InfraS_chequereceipt ###
 PDFInfraSPlusChequeReceiptName        = InfraSPlus_BC
 PDFInfraSPlusChequeReceiptDescription = InfraS PDF cheque deposit slip. Complete model (logo, watermark, signature, InfraS footer, …)
+
+### pdf_InfraS_bon ###
+PDFInfraSPlusBonName        = InfraSPlus_Bon
+PDFInfraSPlusBonDescription = InfraS PDF direct debit / credit transfer slip (InfraSFiles module): one document per third party or per parent company, invoices, due dates, credit notes, statuses and total, with the InfraSPackPlus layout and options (logo, address frames, mentions, notes, signature, watermark, footer, merged files)
 
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT

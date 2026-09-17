@@ -62,13 +62,13 @@
 	$urlfile				= GETPOST('urlfile', 'alpha');
 	$typefile				= GETPOST('typefile', 'alpha');
 	$listModeles 			= ['BLC', 'C', 'CBC', 'CBL', 'CP', 'OF', 'OM', 'CF', 'CFBL', 'F', 'FL', 'FR', 'FT', 'FF', 'D', 'DP', 'DST', 'DF', 'PJ_Dossier', 'PJ',
-								'BL', 'BLX', 'ET', 'BR', 'CT', 'CTS', 'RE', 'MRP', 'FI', 'NDF', 'BC', 'BOM'];
+								'BL', 'BLX', 'ET', 'BR', 'CT', 'CTS', 'RE', 'MRP', 'FI', 'NDF', 'BC', 'BOM', 'Bon'];
 	// Module Dolibarr requis pour chaque modèle (masque l'option de préfixe si le module correspondant est désactivé)
 	$listModelesModule		= ['BLC' => 'commande', 'C' => 'commande', 'CBC' => 'commande', 'CBL' => 'commande', 'CP' => 'commande', 'OF' => 'commande', 'OM' => 'commande',
 								'CF' => 'supplier_order', 'CFBL' => 'supplier_order', 'F' => 'facture', 'FL' => 'facture', 'FR' => 'facture', 'FT' => 'facture', 'FF' => 'supplier_invoice',
 								'D'	=> 'propal', 'DP' => 'propal', 'DST' => 'propal', 'DF' => 'supplier_proposal', 'PJ_Dossier' => 'projet', 'PJ' => 'projet', 'BL' => 'expedition',
 								'BLX' => 'expedition', 'ET' => 'expedition', 'BR' => 'expedition', 'CT' => 'contrat', 'CTS' => 'contrat', 'RE' => 'reception', 'MRP' => 'mrp',
-								'FI' => 'ficheinter', 'NDF' => 'expensereport', 'BC' => 'banque', 'BOM' => 'mrp',
+								'FI' => 'ficheinter', 'NDF' => 'expensereport', 'BC' => 'banque', 'BOM' => 'mrp', 'Bon' => 'infrasfiles',	// Bon = bons de prélèvement / virement via le module InfraSFiles
 							];
 	$listParamsExfProdPos	= array('type'				=> 'varchar',
 									'pos'				=> 50,

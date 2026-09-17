@@ -414,6 +414,7 @@
 					}
 					if ($this->export_type == 'Customer') {	// Get lines of the customer account statut
 						$sql	= 'SELECT f.datef AS date';
+						$sql	.= ', f.rowid AS invoice_id';	// Arrondis : pour relire le TTC comptable de la facture
 						$sql	.= ', f.ref AS label';
 						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '';
 						$sql	.= ', f.ref_client AS label_externe';
@@ -513,6 +514,7 @@
 						$sql	.= ' ORDER BY f.datef '.$this->orderby.', f.ref '.$this->orderby;
 					} else if ($this->export_type == 'Supplier') {	// Get lines of the supplier account statut
 						$sql	= 'SELECT f.datef AS date';
+						$sql	.= ', f.rowid AS invoice_id';	// Arrondis : pour relire le TTC comptable de la facture
 						$sql	.= ', f.ref AS label';
 						$sql	.= ', f.ref_supplier AS label_externe';
 						$sql	.= !empty($this->show_payment_deadline) ? ', f.date_lim_reglement AS date_limite' : '';
@@ -730,6 +732,22 @@
 					for ($i = 0; $i < $nblignes; $i++) {
 						$line					= $this->db->fetch_object($resql);
 						$invoice_ref			= $line->label;
+						// Arrondis : sur Dolibarr LTS by InfraS le TTC est stocke sans arrondi (8 decimales) ; le montant du releve est le TTC comptable
+						// de la facture (HT + TVA arrondis, regle de TVA du document, CommonObject::getRoundedTotalTTC()), celui que le paiement solde.
+						// Sinon une facture soldee affiche « 10,56 / 10,55 / reste 0,01 ». Sans effet sur un core standard (methode absente).
+						if (!empty($line->invoice_id) && method_exists('Facture', 'getRoundedTotalTTC')) {
+							$rndInvoice	= ($this->export_type == 'Supplier' ? new FactureFournisseur($this->db) : new Facture($this->db));
+							if ($rndInvoice->fetch((int) $line->invoice_id) > 0) {
+								$line->total_amount					= $rndInvoice->getRoundedTotalTTC(0);
+								$line->multicurrency_total_amount	= $rndInvoice->getRoundedTotalTTC(1);
+							}
+						}
+						// Arrondis : chaque composant (paiements, avoirs, remises) arrondi au centime avant combinaison
+						foreach (array('amount_payed', 'amount_creditnote', 'amount_creditused', 'multicurrency_amount_payed', 'multicurrency_amount_creditnote', 'multicurrency_amount_creditused') as $rndField) {
+							if (isset($line->$rndField) && $line->$rndField !== null) {
+								$line->$rndField	= (float) price2num($line->$rndField, 'MT');
+							}
+						}
 						$nblignes_d				= 0;	// Payment details
 						$paiement_detail_list	= [];	// paiement detail list
 						if (!empty($show_payment_details)) {

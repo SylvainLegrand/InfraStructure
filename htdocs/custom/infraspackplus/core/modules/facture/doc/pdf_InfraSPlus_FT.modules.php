@@ -747,7 +747,7 @@
 						$extraDet												= '';
 						// Description of product line
 						$pdf->startTransaction();
-						pdf_InfraSPlus_writelinedesc($pdf, $object, $i, $outputlangs, $this->formatpage, $this->horLineStyle, $this->tableau['desc']['larg'], $this->heightline, $this->tableau['desc']['posx'], $curY, $hideref, $hidedesc, 0, $extraDet, $this->exfEcoTax);
+						pdf_InfraSPlus_writelinedesc($pdf, $object, $i, $outputlangs, $this->formatpage, $this->horLineStyle, $this->tableau['desc']['larg'], $this->heightline, $this->tableau['desc']['posx'], $curY, $hideref, $hidedesc, 0, $extraDet, null, 0, 0, 0, [], [], '', $this->tab_hl, 4, 0, $this->exfEcoTax);	// exfEcoTax est le 25e parametre, pas $prodfichinter (TypeError PHP 8 quand INFRASPLUS_PDF_EXF_ECOTAX est renseigne)
 						$pageposafter											= $pdf->getPage();
 						$pageposdesc											= $pdf->getPage();
 						$posyafter												= $pdf->GetY();
