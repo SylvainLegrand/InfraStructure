@@ -66,7 +66,7 @@
 			$this->picto					= 'inovea@'.$this->name;																// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
 			$this->module_parts				= array('menus'	=> 1,
 													'js'	=> array('/'.$this->name.'/js/pushy.js', '/'.$this->name.'/js/oblyon.js?v='.urlencode(trim($this->version))),	// InfraS change : version dans l'adresse (le serveur met les .js en cache 30 jours : sans cela les navigateurs gardent l'ancien script apres une mise a jour)
-													'css'	=> array('css'	=> ('/'.$this->name.'/css/'.$this->name.'.css'), ('/theme/'.$this->name.'/custom.css.php'), ('/'.$this->name.'/css/font.css')),
+													'css'	=> array('css'	=> ('/'.$this->name.'/css/'.$this->name.'.css.php'), ('/theme/'.$this->name.'/custom.css.php'), ('/'.$this->name.'/css/font.css.php')),
 													'tpl'	=> 0,
 													'hooks' => array('data' => array('main'), 'entity' => '0')
 													);
