@@ -141,7 +141,7 @@ class MenuManager {
 		else
 		{
 			if ($mode == 'top') {
-                print_left_oblyon_menu($this->db, $this->menu_array, $this->menu_array_after, $this->tabMenu, $this->menu, 0, '', '', $moredata, $this->type_user);
+                print_left_oblyon_menu($this->db, $this->menu_array, $this->menu_array_after, $this->tabMenu, $this->menu, 0, '', '', $moredata, $this->type_user, (oblyon_flyout_enabled() ? 1 : 0));	// InfraS change : en mode volets, la barre du haut ne recoit que l'en-tete
             }
 			if ($mode == 'left') {
                 print_oblyon_menu($this->db, $this->atarget, $this->type_user, $this->tabMenu, $this->menu, 0, $mode, '', $moredata);

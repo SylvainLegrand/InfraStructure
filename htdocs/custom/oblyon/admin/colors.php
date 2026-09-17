@@ -30,6 +30,7 @@ require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 dol_include_once('/oblyon/lib/oblyon.lib.php');
+dol_include_once('/oblyon/lib/oblyon_presets.lib.php');	// InfraS add : presets JSON (3.6.0)
 
 /**
  * @var Conf $conf
@@ -48,6 +49,60 @@ if (! $user->admin) accessforbidden();
 
 // Reset cache **********************************
 $_SESSION['dol_resetcache']	= dol_print_date(dol_now(), 'dayhourlog');
+
+// InfraS add begin : presets JSON (3.6.0) : telecharger (GET + jeton), appliquer / mettre a jour / enregistrer sous / supprimer / importer (POST + jeton, puis redirection)
+oblyon_detect_current_preset();	// instance mise a jour par copie de fichiers : OBLYON_CURRENT_PRESET semee si la base correspond exactement a un preset
+$presetaction	= GETPOST('action', 'aZ09');
+$presetkey		= GETPOST('preset_key', 'alphanohtml');
+if ($presetaction == 'download_preset' && oblyon_preset_key_is_valid($presetkey)) {
+	$preset	= oblyon_get_preset($presetkey);
+	if ($preset !== null) {
+		header('Content-Type: application/json; charset=utf-8');
+		header('Content-Disposition: attachment; filename="'.$presetkey.'.json"');
+		header('Content-Length: '.filesize($preset['file']));
+		readfile($preset['file']);
+		exit;
+	}
+}
+if (in_array($presetaction, array('apply_preset', 'save_preset', 'saveas_preset', 'delete_preset', 'import_preset')) && $_SERVER['REQUEST_METHOD'] == 'POST') {
+	$presetsections	= array_values(array_intersect((array) GETPOST('preset_sections', 'array'), array_keys(oblyon_presets_sections())));
+	$presetres		= 0;
+	$presetmsg		= '';
+	if ($presetaction == 'apply_preset') {
+		$presetres	= oblyon_apply_preset($presetkey, $presetsections);
+		$presetmsg	= 'OblyonPresetApplied';
+	} elseif ($presetaction == 'save_preset') {
+		$presetres	= oblyon_update_preset($presetkey, array(), GETPOST('preset_name', 'alphanohtml'), GETPOST('preset_desc', 'alphanohtml'));	// always the whole file (the screen has no section choice)
+		$presetmsg	= 'OblyonPresetSaved';
+	} elseif ($presetaction == 'saveas_preset') {
+		$presetkey	= strtolower(preg_replace('/[^a-z0-9_-]/i', '-', $presetkey));
+		$presetres	= oblyon_export_preset($presetkey, GETPOST('preset_name', 'alphanohtml'), GETPOST('preset_desc', 'alphanohtml'), $presetsections);
+		$presetmsg	= 'OblyonPresetCreated';
+	} elseif ($presetaction == 'delete_preset') {
+		$presetres	= oblyon_delete_preset($presetkey);
+		$presetmsg	= 'OblyonPresetDeleted';
+	} elseif ($presetaction == 'import_preset') {
+		if (! empty($_FILES['preset_file']['tmp_name']) && is_uploaded_file($_FILES['preset_file']['tmp_name'])) {
+			if ($presetkey === '')	$presetkey	= preg_replace('/\.json$/i', '', $_FILES['preset_file']['name']);
+			$presetkey	= strtolower(preg_replace('/[^a-z0-9_-]/i', '-', $presetkey));
+			$presetres	= oblyon_import_preset($_FILES['preset_file']['tmp_name'], $presetkey, GETPOSTINT('preset_replace') ? true : false);
+		} else {
+			$presetres	= -5;
+		}
+		$presetmsg	= 'OblyonPresetImported';
+	}
+	if ($presetres > 0) {
+		setEventMessages($langs->trans($presetmsg, $presetkey), null, 'mesgs');
+	} else {
+		$preseterrors	= array(-1 => 'OblyonPresetErrorWrite', -2 => 'OblyonPresetErrorKey', -3 => 'OblyonPresetErrorReserved', -4 => 'OblyonPresetErrorExists', -5 => 'OblyonPresetErrorFile');
+		if ($presetaction == 'apply_preset' || $presetaction == 'delete_preset' || $presetaction == 'save_preset')	$preseterrors[-2]	= 'OblyonPresetErrorUnknown';
+		if ($presetaction == 'apply_preset')	$preseterrors[-1]	= 'OblyonPresetErrorApply';	// -1 = SQL error, not a file error
+		setEventMessages($langs->trans(isset($preseterrors[$presetres]) ? $preseterrors[$presetres] : 'Error'), null, 'errors');
+	}
+	header('Location: '.$_SERVER['PHP_SELF']);
+	exit;
+}
+// InfraS add end
 
 // init variables *******************************
 $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
@@ -102,6 +157,7 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 																				'THEME_ELDY_BACKTITLE1'
 																				),
 										'OblyonColorGrpTabs'			=> array('THEME_ELDY_BACKTABACTIVE',
+																				'THEME_ELDY_BACKTABCARD1',	// InfraS add : fond de l'onglet actif d'une fiche, jusqu'ici absent de l'onglet (restait blanc dans un preset sombre)
 																				'OBLYON_COLOR_TEXTTABACTIVE'
 																				),
 										'OblyonColorGrpLines'			=> array('OBLYON_COLOR_BLINE',
@@ -165,522 +221,7 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 																				),
 										)
 					);
-$listtheme	= array('green'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
-										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#34495E',
-										'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER'		=> '#2C3E50',
-										'OBLYON_COLOR_TOPMENU_TXT'				=> '#FFFFFF',
-										'OBLYON_COLOR_TOPMENU_TXT_ACTIVE'		=> '#',
-										'OBLYON_COLOR_TOPMENU_TXT_HOVER'		=> '#',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD'			=> '#2ECC71',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER'	=> '#29B564',
-										'OBLYON_COLOR_LEFTMENU_TXT'				=> '#FFFFFF',
-										'OBLYON_COLOR_LEFTMENU_TXT_ACTIVE'		=> '#',
-										'OBLYON_COLOR_LEFTMENU_TXT_HOVER'		=> '#222222',
-										'THEME_ELDY_BTNACTION'					=> '#0088CC',
-										'OBLYON_COLOR_BUTTON_ACTION2'			=> '#0044CC',
-										'OBLYON_COLOR_BUTTON_DELETE1'			=> '#CC8800',
-										'OBLYON_COLOR_BUTTON_DELETE2'			=> '#CC4400',
-										'OBLYON_COLOR_INFO_BORDER'				=> '#87cfd2',
-										'OBLYON_COLOR_INFO_BCKGRD'				=> '#eff8fc',
-										'OBLYON_COLOR_INFO_TEXT'				=> '#222222',
-										'OBLYON_COLOR_WARNING_BORDER'			=> '#f2cf87',
-										'OBLYON_COLOR_WARNING_BCKGRD'			=> '#fcf8e3',
-										'OBLYON_COLOR_WARNING_TEXT'				=> '#222222',
-										'OBLYON_COLOR_ERROR_BORDER'				=> '#e0796e',
-										'OBLYON_COLOR_ERROR_BCKGRD'				=> '#f07b6e',
-										'OBLYON_COLOR_ERROR_TEXT'				=> '#222222',
-										'OBLYON_COLOR_NOTIF_INFO_BCKGRD'		=> '#d9e5d1',
-										'OBLYON_COLOR_NOTIF_INFO_TEXT'			=> '#446548',
-										'OBLYON_COLOR_NOTIF_WARNING_BCKGRD'		=> '#fff7d1',
-										'OBLYON_COLOR_NOTIF_WARNING_TEXT'		=> '#a28918',
-										'OBLYON_COLOR_NOTIF_ERROR_BCKGRD'		=> '#d79eac',
-										'OBLYON_COLOR_NOTIF_ERROR_TEXT'			=> '#a72947',
-										'OBLYON_COLOR_MAIN'						=> '#0083A2',
-										'OBLYON_COLOR_BCKGRD'					=> '#F5F5F5',
-										'OBLYON_COLOR_LOGO_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_LOGIN_BCKGRD'				=> '#F4F4F4',
-										'OBLYON_COLOR_BTITLE'					=> '#0083A2',
-										'OBLYON_COLOR_FTITLE'					=> '#222222',
-										'OBLYON_COLOR_STITLE'					=> '#222222',
-										'OBLYON_COLOR_BLINE'					=> '#FFFFFF',
-										'THEME_ELDY_USE_HOVER'					=> '#F1F1F1',
-										'OBLYON_COLOR_FLINE'					=> '#444444',
-										'OBLYON_COLOR_FLINE_HOVER'				=> '#222222',
-										'OBLYON_COLOR_FDATE_DEFAULT'			=> '#FF0000',
-										'OBLYON_COLOR_FDATE_SELECTED'			=> '#FF0000',
-										'OBLYON_COLOR_TEXTTABACTIVE'			=> '#222222',
-										'OBLYON_COLOR_INPUT_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_INFOBOX_BCKGRD1'			=> '#444444',
-										'OBLYON_COLOR_INFOBOX_BCKGRD2'			=> '#E4EFE8',
-										'OBLYON_COLOR_BORDER_ACTIONCOLUMN'		=> '#BBBBBB',
-										'THEME_INVERT_RATIO_FILTER'				=> '0',
-										'THEME_ELDY_TOPBORDER_TITLE1'			=> '#FFFFFF',
-										'THEME_ELDY_BACKTITLE1'					=> '#E9EAED',
-										'THEME_ELDY_BACKTABACTIVE'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR1'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR2'				=> '#FFFFFF',
-										'THEME_ELDY_LINEPAIR1'					=> '#FBFBFB',
-										'THEME_ELDY_LINEPAIR2'					=> '#FBFBFB',
-										'THEME_ELDY_LINEBREAK'					=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
-										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
-										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
-										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
-										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
-										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
-										'THEME_ELDY_USERBACK'					=> '#79633F',
-										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
-										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
-										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
-										'THEME_ELDY_COLORMEMBER'				=> '#666666',
-										'OBLYON_COLOR_AMOUNT_REMAIN'			=> '#880000',
-										'OBLYON_COLOR_AMOUNT_PAID'				=> '#008800',
-										'OBLYON_COLOR_AMOUNT_UNPAID'			=> '#550000',
-										'OBLYON_COLOR_STATUS_SUCCESS'			=> '#00a65a',
-										'OBLYON_COLOR_STATUS_INFO'				=> '#00c0ef',
-										'OBLYON_COLOR_STATUS_WARNING'			=> '#f39c12',
-										'OBLYON_COLOR_STATUS_DANGER'			=> '#dd4b39',
-										'OBLYON_COLOR_STATUS_PRIMARY'			=> '#337ab7',
-										'OBLYON_COLOR_PROGRESSBAR'				=> '#3c8dbc',
-										'OBLYON_COLOR_TIMELINEITEM'				=> '#0073b7',
-										'OBLYON_COLOR_WEATHER_LEVEL0'			=> '#cfbf00',
-										'OBLYON_COLOR_WEATHER_LEVEL1'			=> '#bc9526',
-										'OBLYON_COLOR_WEATHER_LEVEL2'			=> '#b16000',
-										'OBLYON_COLOR_WEATHER_LEVEL3'			=> '#b04000',
-										'OBLYON_COLOR_WEATHER_LEVEL4'			=> '#993013',
-										'OBLYON_COLOR_INFOBOX_UPDATE'			=> '#bc9525',
-										'OBLYON_COLOR_BTOTAL'					=> '#FFFFFF',
-										'OBLYON_COLOR_FTOTAL'					=> '#444444',
-										'OBLYON_COLOR_INPUT_ADD_BCKGRD' 		=> '#FFFFFF',
-										'OBLYON_COLOR_BOX_SHADOW'				=> '#f0f0f0',
-										'THEME_ELDY_TEXTBTNACTION'				=> '#FFFFFF',
-										'THEME_ELDY_USE_CHECKED'				=> '#F1F1F1',
-										'THEME_ELDY_BACKBODY'					=> '#F5F5F5',
-										'THEME_ELDY_BACKTABCARD1'				=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLELINK'				=> '#1C1C1C',
-										'THEME_ELDY_TOPMENU_BACK1'				=> '#34495E',
-										'OBLYON_COLOR_AUTOCOMPLETE_BCKGRD'		=> '#2C3E50',
-										'OBLYON_COLOR_AUTOCOMPLETE_TEXT'		=> '#FFFFFF',
-										'OBLYON_COLOR_CHIP_BCKGRD'				=> '#E4E4E4',
-										'OBLYON_COLOR_CHIP_TEXT'				=> '#000000',
-										'OBLYON_COLOR_RESULT_BCKGRD'			=> '#444444',
-										'OBLYON_COLOR_RESULT_TEXT'				=> '#FFFFFF',
-										'THEME_ELDY_VERMENU_BACK1'				=> '#2ECC71',
-										),
-					'dark'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
-										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#333333',
-										'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER'		=> '#0083A2',
-										'OBLYON_COLOR_TOPMENU_TXT'				=> '#F4F4F4',
-										'OBLYON_COLOR_TOPMENU_TXT_ACTIVE'		=> '#',
-										'OBLYON_COLOR_TOPMENU_TXT_HOVER'		=> '#',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD'			=> '#333333',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER'	=> '#0083A2',
-										'OBLYON_COLOR_LEFTMENU_TXT'				=> '#F4F4F4',
-										'OBLYON_COLOR_LEFTMENU_TXT_ACTIVE'		=> '#',
-										'OBLYON_COLOR_LEFTMENU_TXT_HOVER'		=> '#FFFFFF',
-										'THEME_ELDY_BTNACTION'					=> '#0083A2',
-										'OBLYON_COLOR_BUTTON_ACTION2'			=> '#0063A2',
-										'OBLYON_COLOR_BUTTON_DELETE1'			=> '#CC8800',
-										'OBLYON_COLOR_BUTTON_DELETE2'			=> '#CC4400',
-										'OBLYON_COLOR_INFO_BORDER'				=> '#87cfd2',
-										'OBLYON_COLOR_INFO_BCKGRD'				=> '#eff8fc',
-										'OBLYON_COLOR_INFO_TEXT'				=> '#222222',
-										'OBLYON_COLOR_WARNING_BORDER'			=> '#f2cf87',
-										'OBLYON_COLOR_WARNING_BCKGRD'			=> '#fcf8e3',
-										'OBLYON_COLOR_WARNING_TEXT'				=> '#222222',
-										'OBLYON_COLOR_ERROR_BORDER'				=> '#e0796e',
-										'OBLYON_COLOR_ERROR_BCKGRD'				=> '#f07b6e',
-										'OBLYON_COLOR_ERROR_TEXT'				=> '#222222',
-										'OBLYON_COLOR_NOTIF_INFO_BCKGRD'		=> '#d9e5d1',
-										'OBLYON_COLOR_NOTIF_INFO_TEXT'			=> '#446548',
-										'OBLYON_COLOR_NOTIF_WARNING_BCKGRD'		=> '#fff7d1',
-										'OBLYON_COLOR_NOTIF_WARNING_TEXT'		=> '#a28918',
-										'OBLYON_COLOR_NOTIF_ERROR_BCKGRD'		=> '#d79eac',
-										'OBLYON_COLOR_NOTIF_ERROR_TEXT'			=> '#a72947',
-										'OBLYON_COLOR_MAIN'						=> '#0083A2',
-										'OBLYON_COLOR_BCKGRD'					=> '#F4F4F4',
-										'OBLYON_COLOR_LOGO_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_LOGIN_BCKGRD'				=> '#F4F4F4',
-										'OBLYON_COLOR_BTITLE'					=> '#0083A2',
-										'OBLYON_COLOR_FTITLE'					=> '#222222',
-										'OBLYON_COLOR_STITLE'					=> '#222222',
-										'OBLYON_COLOR_BLINE'					=> '#FFFFFF',
-										'THEME_ELDY_USE_HOVER'					=> '#F1F1F1',
-										'OBLYON_COLOR_FLINE'					=> '#444444',
-										'OBLYON_COLOR_FLINE_HOVER'				=> '#222222',
-										'OBLYON_COLOR_FDATE_DEFAULT'			=> '#FF0000',
-										'OBLYON_COLOR_FDATE_SELECTED'			=> '#FF0000',
-										'OBLYON_COLOR_TEXTTABACTIVE'			=> '#222222',
-										'OBLYON_COLOR_INPUT_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_INFOBOX_BCKGRD1'			=> '#444444',
-										'OBLYON_COLOR_INFOBOX_BCKGRD2'			=> '#E4EFE8',
-										'OBLYON_COLOR_BORDER_ACTIONCOLUMN'		=> '#BBBBBB',
-										'THEME_INVERT_RATIO_FILTER'				=> '80',
-										'THEME_ELDY_TOPBORDER_TITLE1'			=> '#FFFFFF',
-										'THEME_ELDY_BACKTITLE1'					=> '#E9EAED',
-										'THEME_ELDY_BACKTABACTIVE'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR1'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR2'				=> '#FFFFFF',
-										'THEME_ELDY_LINEPAIR1'					=> '#FBFBFB',
-										'THEME_ELDY_LINEPAIR2'					=> '#FBFBFB',
-										'THEME_ELDY_LINEBREAK'					=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
-										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
-										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
-										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
-										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
-										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
-										'THEME_ELDY_USERBACK'					=> '#79633F',
-										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
-										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
-										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
-										'THEME_ELDY_COLORMEMBER'				=> '#666666',
-										'OBLYON_COLOR_AMOUNT_REMAIN'			=> '#880000',
-										'OBLYON_COLOR_AMOUNT_PAID'				=> '#008800',
-										'OBLYON_COLOR_AMOUNT_UNPAID'			=> '#550000',
-										'OBLYON_COLOR_STATUS_SUCCESS'			=> '#00a65a',
-										'OBLYON_COLOR_STATUS_INFO'				=> '#00c0ef',
-										'OBLYON_COLOR_STATUS_WARNING'			=> '#f39c12',
-										'OBLYON_COLOR_STATUS_DANGER'			=> '#dd4b39',
-										'OBLYON_COLOR_STATUS_PRIMARY'			=> '#337ab7',
-										'OBLYON_COLOR_PROGRESSBAR'				=> '#3c8dbc',
-										'OBLYON_COLOR_TIMELINEITEM'				=> '#0073b7',
-										'OBLYON_COLOR_WEATHER_LEVEL0'			=> '#cfbf00',
-										'OBLYON_COLOR_WEATHER_LEVEL1'			=> '#bc9526',
-										'OBLYON_COLOR_WEATHER_LEVEL2'			=> '#b16000',
-										'OBLYON_COLOR_WEATHER_LEVEL3'			=> '#b04000',
-										'OBLYON_COLOR_WEATHER_LEVEL4'			=> '#993013',
-										'OBLYON_COLOR_INFOBOX_UPDATE'			=> '#bc9525',
-										'OBLYON_COLOR_BTOTAL'					=> '#FFFFFF',
-										'OBLYON_COLOR_FTOTAL'					=> '#444444',
-										'OBLYON_COLOR_INPUT_ADD_BCKGRD'			=> '#FFFFFF',
-										'OBLYON_COLOR_BOX_SHADOW'				=> '#f0f0f0',
-										'THEME_ELDY_TEXTBTNACTION'				=> '#FFFFFF',
-										'THEME_ELDY_USE_CHECKED'				=> '#F1F1F1',
-										'THEME_ELDY_BACKBODY'					=> '#F4F4F4',
-										'THEME_ELDY_BACKTABCARD1'				=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLELINK'				=> '#1C1C1C',
-										'THEME_ELDY_TOPMENU_BACK1'				=> '#333333',
-										'OBLYON_COLOR_AUTOCOMPLETE_BCKGRD'		=> '#0083A2',
-										'OBLYON_COLOR_AUTOCOMPLETE_TEXT'		=> '#FFFFFF',
-										'OBLYON_COLOR_CHIP_BCKGRD'				=> '#E4E4E4',
-										'OBLYON_COLOR_CHIP_TEXT'				=> '#000000',
-										'OBLYON_COLOR_RESULT_BCKGRD'			=> '#444444',
-										'OBLYON_COLOR_RESULT_TEXT'				=> '#FFFFFF',
-										'THEME_ELDY_VERMENU_BACK1'				=> '#333333',
-										),
-					'blue'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
-										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#092D5C',
-										'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER'		=> '#0D4185',
-										'OBLYON_COLOR_TOPMENU_TXT'				=> '#F4F4F4',
-										'OBLYON_COLOR_TOPMENU_TXT_ACTIVE'		=> '#',
-										'OBLYON_COLOR_TOPMENU_TXT_HOVER'		=> '#',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD'			=> '#092D5C',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER'	=> '#0D4185',
-										'OBLYON_COLOR_LEFTMENU_TXT'				=> '#F4F4F4',
-										'OBLYON_COLOR_LEFTMENU_TXT_ACTIVE'		=> '#F4F4F4',
-										'OBLYON_COLOR_LEFTMENU_TXT_HOVER'		=> '#FFFFFF',
-										'THEME_ELDY_BTNACTION'					=> '#0088CC',
-										'OBLYON_COLOR_BUTTON_ACTION2'			=> '#0044CC',
-										'OBLYON_COLOR_BUTTON_DELETE1'			=> '#CC8800',
-										'OBLYON_COLOR_BUTTON_DELETE2'			=> '#CC4400',
-										'OBLYON_COLOR_INFO_BORDER'				=> '#87CFD2',
-										'OBLYON_COLOR_INFO_BCKGRD'				=> '#EFF8FC',
-										'OBLYON_COLOR_INFO_TEXT'				=> '#222222',
-										'OBLYON_COLOR_WARNING_BORDER'			=> '#F2CF87',
-										'OBLYON_COLOR_WARNING_BCKGRD'			=> '#FCF8E3',
-										'OBLYON_COLOR_WARNING_TEXT'				=> '#222222',
-										'OBLYON_COLOR_ERROR_BORDER'				=> '#E0796E',
-										'OBLYON_COLOR_ERROR_BCKGRD'				=> '#F07B6E',
-										'OBLYON_COLOR_ERROR_TEXT'				=> '#222222',
-										'OBLYON_COLOR_NOTIF_INFO_BCKGRD'		=> '#446548',
-										'OBLYON_COLOR_NOTIF_INFO_TEXT'			=> '#D9E5D1',
-										'OBLYON_COLOR_NOTIF_WARNING_BCKGRD'		=> '#A28918',
-										'OBLYON_COLOR_NOTIF_WARNING_TEXT'		=> '#FFF7D1',
-										'OBLYON_COLOR_NOTIF_ERROR_BCKGRD'		=> '#A72947',
-										'OBLYON_COLOR_NOTIF_ERROR_TEXT'			=> '#D79EAC',
-										'OBLYON_COLOR_MAIN'						=> '#E09430',
-										'OBLYON_COLOR_BCKGRD'					=> '#F4F4F4',
-										'OBLYON_COLOR_LOGO_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_LOGIN_BCKGRD'				=> '#F4F4F4',
-										'OBLYON_COLOR_BTITLE'					=> '#E09430',
-										'OBLYON_COLOR_FTITLE'					=> '#222222',
-										'OBLYON_COLOR_STITLE'					=> '#222222',
-										'OBLYON_COLOR_BLINE'					=> '#FFFFFF',
-										'THEME_ELDY_USE_HOVER'					=> '#F1F1F1',
-										'OBLYON_COLOR_FLINE'					=> '#444444',
-										'OBLYON_COLOR_FLINE_HOVER'				=> '#222222',
-										'OBLYON_COLOR_FDATE_DEFAULT'			=> '#FF0000',
-										'OBLYON_COLOR_FDATE_SELECTED'			=> '#FF0000',
-										'OBLYON_COLOR_TEXTTABACTIVE'			=> '#222222',
-										'OBLYON_COLOR_INPUT_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_INFOBOX_BCKGRD1'			=> '#444444',
-										'OBLYON_COLOR_INFOBOX_BCKGRD2'			=> '#E4EFE8',
-										'OBLYON_COLOR_BORDER_ACTIONCOLUMN'		=> '#BBBBBB',
-										'THEME_INVERT_RATIO_FILTER'				=> '0',
-										'THEME_ELDY_TOPBORDER_TITLE1'			=> '#FFFFFF',
-										'THEME_ELDY_BACKTITLE1'					=> '#E9EAED',
-										'THEME_ELDY_BACKTABACTIVE'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR1'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR2'				=> '#FFFFFF',
-										'THEME_ELDY_LINEPAIR1'					=> '#FBFBFB',
-										'THEME_ELDY_LINEPAIR2'					=> '#FBFBFB',
-										'THEME_ELDY_LINEBREAK'					=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
-										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
-										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
-										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
-										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
-										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
-										'THEME_ELDY_USERBACK'					=> '#79633F',
-										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
-										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
-										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
-										'THEME_ELDY_COLORMEMBER'				=> '#666666',
-										'OBLYON_COLOR_AMOUNT_REMAIN'			=> '#880000',
-										'OBLYON_COLOR_AMOUNT_PAID'				=> '#008800',
-										'OBLYON_COLOR_AMOUNT_UNPAID'			=> '#550000',
-										'OBLYON_COLOR_STATUS_SUCCESS'			=> '#00a65a',
-										'OBLYON_COLOR_STATUS_INFO'				=> '#00c0ef',
-										'OBLYON_COLOR_STATUS_WARNING'			=> '#f39c12',
-										'OBLYON_COLOR_STATUS_DANGER'			=> '#dd4b39',
-										'OBLYON_COLOR_STATUS_PRIMARY'			=> '#337ab7',
-										'OBLYON_COLOR_PROGRESSBAR'				=> '#3c8dbc',
-										'OBLYON_COLOR_TIMELINEITEM'				=> '#0073b7',
-										'OBLYON_COLOR_WEATHER_LEVEL0'			=> '#cfbf00',
-										'OBLYON_COLOR_WEATHER_LEVEL1'			=> '#bc9526',
-										'OBLYON_COLOR_WEATHER_LEVEL2'			=> '#b16000',
-										'OBLYON_COLOR_WEATHER_LEVEL3'			=> '#b04000',
-										'OBLYON_COLOR_WEATHER_LEVEL4'			=> '#993013',
-										'OBLYON_COLOR_INFOBOX_UPDATE'			=> '#bc9525',
-										'OBLYON_COLOR_BTOTAL'					=> '#FFFFFF',
-										'OBLYON_COLOR_FTOTAL'					=> '#444444',
-										'OBLYON_COLOR_INPUT_ADD_BCKGRD'			=> '#FFFFFF',
-										'OBLYON_COLOR_BOX_SHADOW'				=> '#f0f0f0',
-										'THEME_ELDY_TEXTBTNACTION'				=> '#FFFFFF',
-										'THEME_ELDY_USE_CHECKED'				=> '#F1F1F1',
-										'THEME_ELDY_BACKBODY'					=> '#F4F4F4',
-										'THEME_ELDY_BACKTABCARD1'				=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLELINK'				=> '#1C1C1C',
-										'THEME_ELDY_TOPMENU_BACK1'				=> '#092D5C',
-										'OBLYON_COLOR_AUTOCOMPLETE_BCKGRD'		=> '#0D4185',
-										'OBLYON_COLOR_AUTOCOMPLETE_TEXT'		=> '#FFFFFF',
-										'OBLYON_COLOR_CHIP_BCKGRD'				=> '#E4E4E4',
-										'OBLYON_COLOR_CHIP_TEXT'				=> '#000000',
-										'OBLYON_COLOR_RESULT_BCKGRD'			=> '#444444',
-										'OBLYON_COLOR_RESULT_TEXT'				=> '#FFFFFF',
-										'THEME_ELDY_VERMENU_BACK1'				=> '#092D5C',
-										),
-					'night'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#444444',
-										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#222222',
-										'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER'		=> '#333333',
-										'OBLYON_COLOR_TOPMENU_TXT'				=> '#F4F4F4',
-										'OBLYON_COLOR_TOPMENU_TXT_ACTIVE'		=> '#',
-										'OBLYON_COLOR_TOPMENU_TXT_HOVER'		=> '#',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD'			=> '#2C2C2C',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER'	=> '#222222',
-										'OBLYON_COLOR_LEFTMENU_TXT'				=> '#F4F4F4',
-										'OBLYON_COLOR_LEFTMENU_TXT_ACTIVE'		=> '#',
-										'OBLYON_COLOR_LEFTMENU_TXT_HOVER'		=> '#FFFFFF',
-										'THEME_ELDY_BTNACTION'					=> '#0088CC',
-										'OBLYON_COLOR_BUTTON_ACTION2'			=> '#0044CC',
-										'OBLYON_COLOR_BUTTON_DELETE1'			=> '#CC8800',
-										'OBLYON_COLOR_BUTTON_DELETE2'			=> '#CC4400',
-										'OBLYON_COLOR_INFO_BORDER'				=> '#87cfd2',
-										'OBLYON_COLOR_INFO_BCKGRD'				=> '#eff8fc',
-										'OBLYON_COLOR_INFO_TEXT'				=> '#222222',
-										'OBLYON_COLOR_WARNING_BORDER'			=> '#f2cf87',
-										'OBLYON_COLOR_WARNING_BCKGRD'			=> '#fcf8e3',
-										'OBLYON_COLOR_WARNING_TEXT'				=> '#222222',
-										'OBLYON_COLOR_ERROR_BORDER'				=> '#e0796e',
-										'OBLYON_COLOR_ERROR_BCKGRD'				=> '#f07b6e',
-										'OBLYON_COLOR_ERROR_TEXT'				=> '#222222',
-										'OBLYON_COLOR_NOTIF_INFO_BCKGRD'		=> '#d9e5d1',
-										'OBLYON_COLOR_NOTIF_INFO_TEXT'			=> '#446548',
-										'OBLYON_COLOR_NOTIF_WARNING_BCKGRD'		=> '#fff7d1',
-										'OBLYON_COLOR_NOTIF_WARNING_TEXT'		=> '#a28918',
-										'OBLYON_COLOR_NOTIF_ERROR_BCKGRD'		=> '#d79eac',
-										'OBLYON_COLOR_NOTIF_ERROR_TEXT'			=> '#a72947',
-										'OBLYON_COLOR_MAIN'						=> '#E09430',
-										'OBLYON_COLOR_BCKGRD'					=> '#444444',
-										'OBLYON_COLOR_LOGO_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_LOGIN_BCKGRD'				=> '#333333',
-										'OBLYON_COLOR_BTITLE'					=> '#E09430',
-										'OBLYON_COLOR_FTITLE'					=> '#F4F4F4',
-										'OBLYON_COLOR_STITLE'					=> '#F4F4F4',
-										'OBLYON_COLOR_BLINE'					=> '#444444',
-										'THEME_ELDY_USE_HOVER'					=> '#F1F1F1',
-										'OBLYON_COLOR_FLINE'					=> '#ECECEC',
-										'OBLYON_COLOR_FLINE_HOVER'				=> '#FCFCFC',
-										'OBLYON_COLOR_FDATE_DEFAULT'			=> '#FF0000',
-										'OBLYON_COLOR_FDATE_SELECTED'			=> '#FF0000',
-										'OBLYON_COLOR_TEXTTABACTIVE'			=> '#222222',
-										'OBLYON_COLOR_INPUT_BCKGRD'				=> '#DEDEDE',
-										'OBLYON_COLOR_INFOBOX_BCKGRD1'			=> '#444444',
-										'OBLYON_COLOR_INFOBOX_BCKGRD2'			=> '#E4EFE8',
-										'OBLYON_COLOR_BORDER_ACTIONCOLUMN'		=> '#BBBBBB',
-										'THEME_INVERT_RATIO_FILTER'				=> '0',
-										'THEME_ELDY_TOPBORDER_TITLE1'			=> '#FFFFFF',
-										'THEME_ELDY_BACKTITLE1'					=> '#E9EAED',
-										'THEME_ELDY_BACKTABACTIVE'				=> '#444444',
-										'THEME_ELDY_LINEIMPAIR1'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR2'				=> '#FFFFFF',
-										'THEME_ELDY_LINEPAIR1'					=> '#FBFBFB',
-										'THEME_ELDY_LINEPAIR2'					=> '#FBFBFB',
-										'THEME_ELDY_LINEBREAK'					=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLENOTAB'				=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
-										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
-										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
-										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
-										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
-										'THEME_ELDY_USERBACK'					=> '#79633F',
-										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
-										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
-										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
-										'THEME_ELDY_COLORMEMBER'				=> '#666666',
-										'OBLYON_COLOR_AMOUNT_REMAIN'			=> '#880000',
-										'OBLYON_COLOR_AMOUNT_PAID'				=> '#008800',
-										'OBLYON_COLOR_AMOUNT_UNPAID'			=> '#550000',
-										'OBLYON_COLOR_STATUS_SUCCESS'			=> '#00a65a',
-										'OBLYON_COLOR_STATUS_INFO'				=> '#00c0ef',
-										'OBLYON_COLOR_STATUS_WARNING'			=> '#f39c12',
-										'OBLYON_COLOR_STATUS_DANGER'			=> '#dd4b39',
-										'OBLYON_COLOR_STATUS_PRIMARY'			=> '#337ab7',
-										'OBLYON_COLOR_PROGRESSBAR'				=> '#3c8dbc',
-										'OBLYON_COLOR_TIMELINEITEM'				=> '#0073b7',
-										'OBLYON_COLOR_WEATHER_LEVEL0'			=> '#cfbf00',
-										'OBLYON_COLOR_WEATHER_LEVEL1'			=> '#bc9526',
-										'OBLYON_COLOR_WEATHER_LEVEL2'			=> '#b16000',
-										'OBLYON_COLOR_WEATHER_LEVEL3'			=> '#b04000',
-										'OBLYON_COLOR_WEATHER_LEVEL4'			=> '#993013',
-										'OBLYON_COLOR_INFOBOX_UPDATE'			=> '#bc9525',
-										'OBLYON_COLOR_BTOTAL'					=> '#444444',
-										'OBLYON_COLOR_FTOTAL'					=> '#ECECEC',
-										'OBLYON_COLOR_INPUT_ADD_BCKGRD'			=> '#DEDEDE',
-										'OBLYON_COLOR_BOX_SHADOW'				=> '#222222',
-										'THEME_ELDY_TEXTBTNACTION'				=> '#FFFFFF',
-										'THEME_ELDY_USE_CHECKED'				=> '#F1F1F1',
-										'THEME_ELDY_BACKBODY'					=> '#444444',
-										'THEME_ELDY_BACKTABCARD1'				=> '#DEDEDE',
-										'THEME_ELDY_TEXTTITLELINK'				=> '#1C1C1C',
-										'THEME_ELDY_TOPMENU_BACK1'				=> '#222222',
-										'OBLYON_COLOR_AUTOCOMPLETE_BCKGRD'		=> '#333333',
-										'OBLYON_COLOR_AUTOCOMPLETE_TEXT'		=> '#FFFFFF',
-										'OBLYON_COLOR_CHIP_BCKGRD'				=> '#E4E4E4',
-										'OBLYON_COLOR_CHIP_TEXT'				=> '#000000',
-										'OBLYON_COLOR_RESULT_BCKGRD'			=> '#444444',
-										'OBLYON_COLOR_RESULT_TEXT'				=> '#FFFFFF',
-										'THEME_ELDY_VERMENU_BACK1'				=> '#2C2C2C',
-										),
-					'light'		=> array('OBLYON_INFOXBOX_BACKGROUND'			=> '#FFFFFF',
-										'OBLYON_COLOR_TOPMENU_BCKGRD'			=> '#FFFFFF',
-										'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER'		=> '#D51123',
-										'OBLYON_COLOR_TOPMENU_TXT'				=> '#444444',
-										'OBLYON_COLOR_TOPMENU_TXT_ACTIVE'		=> '#FFFFFF',
-										'OBLYON_COLOR_TOPMENU_TXT_HOVER'		=> '#FFFFFF',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD'			=> '#FFFFFF',
-										'OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER'	=> '#D51123',
-										'OBLYON_COLOR_LEFTMENU_TXT'				=> '#444444',
-										'OBLYON_COLOR_LEFTMENU_TXT_ACTIVE'		=> '#FFFFFF',
-										'OBLYON_COLOR_LEFTMENU_TXT_HOVER'		=> '#FFFFFF',
-										'THEME_ELDY_BTNACTION'					=> '#0083A2',
-										'OBLYON_COLOR_BUTTON_ACTION2'			=> '#0063A2',
-										'OBLYON_COLOR_BUTTON_DELETE1'			=> '#CC8800',
-										'OBLYON_COLOR_BUTTON_DELETE2'			=> '#CC4400',
-										'OBLYON_COLOR_INFO_BORDER'				=> '#87cfd2',
-										'OBLYON_COLOR_INFO_BCKGRD'				=> '#eff8fc',
-										'OBLYON_COLOR_INFO_TEXT'				=> '#222222',
-										'OBLYON_COLOR_WARNING_BORDER'			=> '#f2cf87',
-										'OBLYON_COLOR_WARNING_BCKGRD'			=> '#fcf8e3',
-										'OBLYON_COLOR_WARNING_TEXT'				=> '#222222',
-										'OBLYON_COLOR_ERROR_BORDER'				=> '#e0796e',
-										'OBLYON_COLOR_ERROR_BCKGRD'				=> '#f07b6e',
-										'OBLYON_COLOR_ERROR_TEXT'				=> '#222222',
-										'OBLYON_COLOR_NOTIF_INFO_BCKGRD'		=> '#d9e5d1',
-										'OBLYON_COLOR_NOTIF_INFO_TEXT'			=> '#446548',
-										'OBLYON_COLOR_NOTIF_WARNING_BCKGRD'		=> '#fff7d1',
-										'OBLYON_COLOR_NOTIF_WARNING_TEXT'		=> '#a28918',
-										'OBLYON_COLOR_NOTIF_ERROR_BCKGRD'		=> '#d79eac',
-										'OBLYON_COLOR_NOTIF_ERROR_TEXT'			=> '#a72947',
-										'OBLYON_COLOR_MAIN'						=> '#D51123',
-										'OBLYON_COLOR_BCKGRD'					=> '#FFFFFF',
-										'OBLYON_COLOR_LOGO_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_LOGIN_BCKGRD'				=> '#FFFFFF',
-										'OBLYON_COLOR_BTITLE'					=> '#D51123',
-										'OBLYON_COLOR_FTITLE'					=> '#222222',
-										'OBLYON_COLOR_STITLE'					=> '#222222',
-										'OBLYON_COLOR_BLINE'					=> '#FFFFFF',
-										'THEME_ELDY_USE_HOVER'					=> '#F1F1F1',
-										'OBLYON_COLOR_FLINE'					=> '#444444',
-										'OBLYON_COLOR_FLINE_HOVER'				=> '#D51123',
-										'OBLYON_COLOR_FDATE_DEFAULT'			=> '#FF0000',
-										'OBLYON_COLOR_FDATE_SELECTED'			=> '#FF0000',
-										'OBLYON_COLOR_TEXTTABACTIVE'			=> '#222222',
-										'OBLYON_COLOR_INPUT_BCKGRD'				=> '#F4F4F4',
-										'OBLYON_COLOR_INFOBOX_BCKGRD1'			=> '#444444',
-										'OBLYON_COLOR_INFOBOX_BCKGRD2'			=> '#E4EFE8',
-										'OBLYON_COLOR_BORDER_ACTIONCOLUMN'		=> '#BBBBBB',
-										'THEME_INVERT_RATIO_FILTER'				=> '0',
-										'THEME_ELDY_TOPBORDER_TITLE1'			=> '#FFFFFF',
-										'THEME_ELDY_BACKTITLE1'					=> '#E9EAED',
-										'THEME_ELDY_BACKTABACTIVE'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR1'				=> '#FFFFFF',
-										'THEME_ELDY_LINEIMPAIR2'				=> '#FFFFFF',
-										'THEME_ELDY_LINEPAIR1'					=> '#FBFBFB',
-										'THEME_ELDY_LINEPAIR2'					=> '#FBFBFB',
-										'THEME_ELDY_LINEBREAK'					=> '#FFFFFF',
-										'THEME_ELDY_TEXTTITLENOTAB'				=> '#222222',
-										'THEME_ELDY_TEXTTITLE'					=> '#28283C',
-										'THEME_ELDY_TEXT'						=> '#000000',
-										'THEME_ELDY_TEXTLINK'					=> '#1C1C1C',
-										'THEME_ELDY_PROSPECTBACK'				=> '#A7C5B0',
-										'THEME_ELDY_CUSTOMERBACK'				=> '#55955D',
-										'THEME_ELDY_VENDORBACK'					=> '#599CAF',
-										'THEME_ELDY_USERBACK'					=> '#79633F',
-										'THEME_ELDY_COLORNATURE'				=> '#FFFFFF',
-										'THEME_ELDY_MEMBER_COMPANYBACK'			=> '#E4E4E4',
-										'THEME_ELDY_MEMBER_INDIVIDUALBACK'		=> '#E4E4E4',
-										'THEME_ELDY_COLORMEMBER'				=> '#666666',
-										'OBLYON_COLOR_AMOUNT_REMAIN'			=> '#880000',
-										'OBLYON_COLOR_AMOUNT_PAID'				=> '#008800',
-										'OBLYON_COLOR_AMOUNT_UNPAID'			=> '#550000',
-										'OBLYON_COLOR_STATUS_SUCCESS'			=> '#00a65a',
-										'OBLYON_COLOR_STATUS_INFO'				=> '#00c0ef',
-										'OBLYON_COLOR_STATUS_WARNING'			=> '#f39c12',
-										'OBLYON_COLOR_STATUS_DANGER'			=> '#dd4b39',
-										'OBLYON_COLOR_STATUS_PRIMARY'			=> '#337ab7',
-										'OBLYON_COLOR_PROGRESSBAR'				=> '#3c8dbc',
-										'OBLYON_COLOR_TIMELINEITEM'				=> '#0073b7',
-										'OBLYON_COLOR_WEATHER_LEVEL0'			=> '#cfbf00',
-										'OBLYON_COLOR_WEATHER_LEVEL1'			=> '#bc9526',
-										'OBLYON_COLOR_WEATHER_LEVEL2'			=> '#b16000',
-										'OBLYON_COLOR_WEATHER_LEVEL3'			=> '#b04000',
-										'OBLYON_COLOR_WEATHER_LEVEL4'			=> '#993013',
-										'OBLYON_COLOR_INFOBOX_UPDATE'			=> '#bc9525',
-										'OBLYON_COLOR_BTOTAL'					=> '#FFFFFF',
-										'OBLYON_COLOR_FTOTAL'					=> '#444444',
-										'OBLYON_COLOR_INPUT_ADD_BCKGRD'			=> '#F4F4F4',
-										'OBLYON_COLOR_BOX_SHADOW'				=> '#f0f0f0',
-										'THEME_ELDY_TEXTBTNACTION'				=> '#FFFFFF',
-										'THEME_ELDY_USE_CHECKED'				=> '#F1F1F1',
-										'THEME_ELDY_BACKBODY'					=> '#FFFFFF',
-										'THEME_ELDY_BACKTABCARD1'				=> '#F4F4F4',
-										'THEME_ELDY_TEXTTITLELINK'				=> '#1C1C1C',
-										'THEME_ELDY_TOPMENU_BACK1'				=> '#FFFFFF',
-										'OBLYON_COLOR_AUTOCOMPLETE_BCKGRD'		=> '#D51123',
-										'OBLYON_COLOR_AUTOCOMPLETE_TEXT'		=> '#FFFFFF',
-										'OBLYON_COLOR_CHIP_BCKGRD'				=> '#E4E4E4',
-										'OBLYON_COLOR_CHIP_TEXT'				=> '#000000',
-										'OBLYON_COLOR_RESULT_BCKGRD'			=> '#444444',
-										'OBLYON_COLOR_RESULT_TEXT'				=> '#FFFFFF',
-										'THEME_ELDY_VERMENU_BACK1'				=> '#FFFFFF',
-									)
-					);
+// InfraS change : les presets de couleurs (ex-tableau $listtheme, 5 x 102 constantes) sont des fichiers JSON : presets/*.json du module et presets de l'instance (voir lib/oblyon_presets.lib.php)
 
 // Actions **************************************
 $action		= GETPOST('action','alpha');
@@ -713,19 +254,9 @@ if (preg_match('/update_(.*)/', $action, $reg)) {
 			$result	= dolibarr_set_const($db, $constname, '#'.GETPOST($constname, 'alpha'),	'chaine', 0, 'Oblyon module', $conf->entity);
 		});
 	}
-	if ($confkey == 'theme') {
-		$res	= 1;
-		foreach ($listtheme[GETPOST('value', 'alpha')] as $constname => $constvalue) {
-			$result	= dolibarr_set_const($db, $constname, $constvalue,	'chaine', 0, 'Oblyon module', $conf->entity);
-			$res	= $res * $result;
-		}
-		$result	= $res > 0 ? 2 : -1;
-	}
+	// InfraS change : l'application d'un preset ne passe plus par ce bloc (action apply_preset, lib/oblyon_presets.lib.php)
 }
 // Retour => message Ok ou Ko
-if ($result == 2) {
-	setEventMessages($langs->trans('ThemeApplied').' : '.$langs->trans('Oblyon'.GETPOST('value', 'alpha')), null, 'mesgs');
-}
 if ($result == 1) {
 	setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
 }
@@ -752,6 +283,11 @@ print '	<script type = "text/javascript">
 				});
 			</script>';
 
+// InfraS add begin : presets (cartes, enregistrer sous, importer) : formulaires propres, donc avant le formulaire des couleurs
+print oblyon_print_preset_cards();
+print oblyon_print_preset_forms();
+// InfraS add end
+
 print '<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "POST" enctype = "multipart/form-data">
 				<input type="hidden" name="token" value="'.newToken().'" />
 				<input type="hidden" name="action" value="update">
@@ -763,24 +299,7 @@ print '<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "P
 	clearstatcache();
 	print '		<div class = "div-table-responsive-no-min">
 					<table summary = "edit" class = "noborder centpercent editmode tableforfield as-settings-colors">';
-	$larg	= !empty($listtheme) && count($listtheme) > 0 ? 100 / count($listtheme) : 100;
-	$metas	= array();
-	for ($i = 0; $i < count($listtheme); $i++) {
-		$metas[]	= $larg.'%';
-	}
-	oblyon_print_colgroup($metas);
-	// Infobox enable
-	$metas	= array(array(count($listtheme)), 'Themes');
-	oblyon_print_liste_titre($metas);
-	print '				<tr>';
-	foreach ($listtheme as $name => $values) {
-		print '				<td class = "center">
-								<a title = "'.$langs->trans('Oblyon'.$name).'" href = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'?action=update_theme&token='.newToken().'&value='.urlencode($name).'">'.img_picto($langs->trans('Oblyon'.$name), 'oblyon'.$name.'.png@oblyon', 'width = "50%"').'
-									<br/>'.$langs->trans('Oblyon'.$name).'
-								</a>
-							</td>';
-	}
-	print '				</tr>';
+	oblyon_print_colgroup(array('20%', '20%', '20%', '20%', '20%'));	// InfraS change : la ligne des vignettes de presets est remplacee par les cartes au-dessus du formulaire
 	// Colors
 	// Top menu
 	$metas		= array(array(5), (!getDolGlobalString('MAIN_MENU_INVERT', '') ? 'TopMenu' : 'LeftMenu'));

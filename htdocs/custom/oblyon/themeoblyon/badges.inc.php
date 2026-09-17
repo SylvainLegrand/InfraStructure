@@ -5,16 +5,18 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 ?>
 /* Badge style is based on boostrap framework */
 
+/* InfraS change begin : badges en pilule, graisse 600 */
 .badge {
 	display: inline-block;
-	padding: .1em .35em;
+	padding: .1em .5em;
 	font-size: 80%;
-	font-weight: 700 !important;
+	font-weight: 600 !important;
 	line-height: 1;
 	text-align: center;
 	white-space: nowrap;
 	vertical-align: baseline;
-	border-radius: .25rem;
+	border-radius: var(--oblyon-radius-pill);
+/* InfraS change end */
 	transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 	border-width: 2px;
 	border-style: solid;
@@ -24,7 +26,7 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 
 .badge-status {
 	font-size: 0.95em;
-	padding: .19em .35em;			/* more than 0.19 generate a change into heigth of lines */
+	padding: .19em .55em;			/* more than 0.19 generate a change into heigth of lines */	/* InfraS change : marge laterale de la pilule */
 }
 .tabBar .arearef .statusref .badge-status, .tabBar .arearefnobottom .statusref .badge-status {
 	font-size: 1.1em;
@@ -42,7 +44,7 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 .badge-pill, .tabs .badge {
 	padding-right: .5em;
 	padding-left: .5em;
-	border-radius: 0.25rem;
+	border-radius: var(--oblyon-radius-pill);	/* InfraS change */
 }
 
 .badge-dot {
@@ -62,10 +64,13 @@ a.badge:focus, a.badge:hover {
 }
 
 span.badgeneutral {
-	padding: 2px 7px 2px 7px;
-	background-color: #e4e4e4;
-	color: #666;
-	border-radius: 10px;
+	padding: 2px 8px 2px 8px;
+	/* InfraS change begin : neutres du preset */
+	background-color: var(--oblyon-neutral-bg);
+	color: var(--oblyon-muted-text);
+	border: 1px solid var(--oblyon-border);
+	border-radius: var(--oblyon-radius-pill);
+	/* InfraS change end */
 	white-space: nowrap;
 }
 
@@ -237,23 +242,22 @@ function _createStatusBadgeCss($statusName, $statusVarNamePrefix = '', $commentL
 		$thisBadgeBackgroundColor = $thisBadgeBorderColor = ${$statusVarNamePrefix.'badgeStatus'.$statusName};
 
 		$TBadgeBorderOnly = array('0', '1b', '3', '4b', '5', '7', '10');
-		$thisBadgeTextColor = colorIsLight(${$statusVarNamePrefix.'badgeStatus'.$statusName}) ? '#212529' : '#ffffff';
+		// InfraS change begin : couleurs de texte / fond des badges "bordure seule" prises sur le preset (texte et fond des lignes, texte secondaire)
+		$thisBadgeTextColor = colorIsLight(${$statusVarNamePrefix.'badgeStatus'.$statusName}) ? 'var(--colorfline)' : '#ffffff';
 
 		if (!empty(${$statusVarNamePrefix.'badgeStatus_textColor'.$statusName})) {
 			$thisBadgeTextColor = ${$statusVarNamePrefix.'badgeStatus_textColor'.$statusName};
 		}
 
 		if (in_array((string) $statusName, $TBadgeBorderOnly)) {
-			$thisBadgeTextColor = '#212529';
-			$thisBadgeBackgroundColor = "#fff";
+			$thisBadgeTextColor = 'var(--colorfline)';
+			$thisBadgeBackgroundColor = 'var(--colorbline)';
 		}
 
-		if (in_array((string) $statusName, array('0', '5', '9'))) {
-			$thisBadgeTextColor = '#999999';
+		if (in_array((string) $statusName, array('0', '5', '9', '6'))) {
+			$thisBadgeTextColor = 'var(--oblyon-muted-text)';
 		}
-		if (in_array((string) $statusName, array('6'))) {
-			$thisBadgeTextColor = '#777777';
-		}
+		// InfraS change end
 
 		// badge-statusX
 		print $cssPrefix.".badge-status".$statusName." {\n";
@@ -274,7 +278,7 @@ function _createStatusBadgeCss($statusName, $statusVarNamePrefix = '', $commentL
 
 		print $cssPrefix.".badge-status".$statusName.".focus, ".$cssPrefix.".badge-status".$statusName.":focus {\n";
 		print "    outline: 0;\n";
-		print "    box-shadow: 0 0 0 0.2rem ".colorHexToRgb($thisBadgeBackgroundColor, 0.5)." !important;\n";
+		print "    box-shadow: 0 0 0 0.2rem ".colorHexToRgb($thisBadgeBorderColor, 0.5)." !important;\n";	// InfraS change : la couleur de fond peut etre une variable CSS, l'anneau utilise la couleur de bordure (hex)
 		print "}\n";
 
 		// badge-statusX:focus

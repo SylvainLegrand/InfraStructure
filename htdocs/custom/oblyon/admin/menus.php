@@ -80,6 +80,7 @@ $result = getDolGlobalString('MAIN_MENU_INVERT') && (/*getDolGlobalString('OBLYO
 $result	= getDolGlobalString('OBLYON_HIDE_LEFTMENU') && !getDolGlobalString('OBLYON_EFFECT_LEFTMENU') ? dolibarr_set_const($db, 'OBLYON_EFFECT_LEFTMENU', 'slide', 'chaine', 0, 'Oblyon module', $conf->entity) : '';
 $result	= getDolGlobalString('MAIN_MENU_INVERT') && getDolGlobalString('OBLYON_REDUCE_LEFTMENU') ? dolibarr_set_const($db, 'OBLYON_HIDE_LEFTICONS', 0, 'chaine', 0, 'Oblyon module', $conf->entity) : '';
 $result	= getDolGlobalString('OBLYON_REDUCE_LEFTMENU') && !getDolGlobalString('OBLYON_EFFECT_REDUCE_LEFTMENU') ? dolibarr_set_const($db, 'OBLYON_EFFECT_REDUCE_LEFTMENU', 'hover', 'chaine', 0, 'Oblyon module', $conf->entity) : '';
+$result	= getDolGlobalString('OBLYON_MOBILE_LAYOUT') === '' ? dolibarr_set_const($db, 'OBLYON_MOBILE_LAYOUT', 1, 'chaine', 0, 'Oblyon module', $conf->entity) : '';	// InfraS add : disposition mobile active par defaut (3.5.0) : constante semee a la premiere visite pour que l'interrupteur reflete l'etat reel
 
 // View *****************************************
 $page_name = $langs->trans('OblyonMenusTitle');
@@ -175,18 +176,27 @@ if (getDolGlobalString('MAIN_MENU_INVERT')) {
 	oblyon_print_input('OBLYON_REDUCE_LEFTMENU', 'on_off', $langs->trans('ReduceLeftMenu').$warning, '', $metas, 2, 1);	// Micro left menu
 	// Effect hover leftmenu
 	if (getDolGlobalInt('OBLYON_REDUCE_LEFTMENU')) {
+		// InfraS change begin : libelle propre au menu reduit (OpenEffectReduce) + 3e effet "volets de sous-menus" (flyout)
 		print '			<tr class = "oddeven">
-							<td colspan = "2">'.$langs->trans('OpenEffect').'</td>
+							<td colspan = "2">'.$langs->trans('OpenEffectReduce').(getDolGlobalString('OBLYON_EFFECT_REDUCE_LEFTMENU') == 'flyout' && getDolGlobalString('OBLYON_HIDE_LEFTMENU') ? '<br><span class = "warning">'.$langs->trans('EffectMicroMenuFlyoutHideWarning').'</span>' : '').'</td>
 							<td class = "center">
 								<input type = "radio" value = "hover" id = "hover" class = "flat action" name = "OBLYON_EFFECT_REDUCE_LEFTMENU" '.(getDolGlobalString('OBLYON_EFFECT_REDUCE_LEFTMENU') == "hover" ? ' checked = "checked"' : '').'">&nbsp;<label for = "hover">'.$langs->trans('EffectMicroMenuHover').'</label>
 							<br/>
 								<input type = "radio" value = "only" id = "only" class = "flat action" name = "OBLYON_EFFECT_REDUCE_LEFTMENU" '.(getDolGlobalString('OBLYON_EFFECT_REDUCE_LEFTMENU') == "only" ? ' checked = "checked"' : '').'">&nbsp;<label for = "only">'.$langs->trans('EffectMicroMenuOnly').'</label>
+							<br/>
+								<input type = "radio" value = "flyout" id = "flyout" class = "flat action" name = "OBLYON_EFFECT_REDUCE_LEFTMENU" '.(getDolGlobalString('OBLYON_EFFECT_REDUCE_LEFTMENU') == "flyout" ? ' checked = "checked"' : '').'">&nbsp;<label for = "flyout">'.$langs->trans('EffectMicroMenuFlyout').'</label>
+								<br/><span class = "opacitymedium">'.$langs->trans('EffectMicroMenuFlyoutHelp').'</span>
 							</td>
 						</tr>';
+		// InfraS change end
 	}
 }
 $metas		= array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'menus');
 oblyon_print_input('OBLYON_TOUCH_MENU', 'on_off', $langs->trans('TouchMenu').'<br><span class = "opacitymedium">'.$langs->trans('TouchMenuHelp').'</span>', '', $metas, 2, 1);	// Touch screen menu mode
+// InfraS add begin : disposition mobile (3.5.0)
+$metas		= array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'menus');
+oblyon_print_input('OBLYON_MOBILE_LAYOUT', 'on_off', $langs->trans('OblyonMobileLayout').'<br><span class = "opacitymedium">'.$langs->trans('OblyonMobileLayoutHelp').'</span>', '', $metas, 2, 1);	// Mobile layout
+// InfraS add end
 print '				</table>
 				</div>';
 print dol_get_fiche_end();

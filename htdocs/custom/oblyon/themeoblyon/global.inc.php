@@ -73,22 +73,24 @@
 	--colorboxiconbg: #eee;
 	--refidnocolor:#444;
 	--tableforfieldcolor:#666;
-	--amountremaintopaycolor:<?php print getDolGlobalString('OBLYON_COLOR_AMOUNT_REMAIN', '#880000'); ?>;
-	--amountpaymentcomplete:<?php print getDolGlobalString('OBLYON_COLOR_AMOUNT_PAID', '#008800'); ?>;
-	--colorunpaid: <?php print getDolGlobalString('OBLYON_COLOR_AMOUNT_UNPAID', '#550000'); ?>;
-	--colorstatussuccess: <?php print getDolGlobalString('OBLYON_COLOR_STATUS_SUCCESS', '#00a65a'); ?>;
-	--colorstatusinfo: <?php print getDolGlobalString('OBLYON_COLOR_STATUS_INFO', '#00c0ef'); ?>;
-	--colorstatuswarning: <?php print getDolGlobalString('OBLYON_COLOR_STATUS_WARNING', '#f39c12'); ?>;
-	--colorstatusdanger: <?php print getDolGlobalString('OBLYON_COLOR_STATUS_DANGER', '#dd4b39'); ?>;
-	--colorstatusprimary: <?php print getDolGlobalString('OBLYON_COLOR_STATUS_PRIMARY', '#337ab7'); ?>;
-	--colorprogressbar: <?php print getDolGlobalString('OBLYON_COLOR_PROGRESSBAR', '#3c8dbc'); ?>;
-	--colortimelineitem: <?php print getDolGlobalString('OBLYON_COLOR_TIMELINEITEM', '#0073b7'); ?>;
-	--colorweatherlevel0: <?php print getDolGlobalString('OBLYON_COLOR_WEATHER_LEVEL0', '#cfbf00'); ?>;
-	--colorweatherlevel1: <?php print getDolGlobalString('OBLYON_COLOR_WEATHER_LEVEL1', '#bc9526'); ?>;
-	--colorweatherlevel2: <?php print getDolGlobalString('OBLYON_COLOR_WEATHER_LEVEL2', '#b16000'); ?>;
-	--colorweatherlevel3: <?php print getDolGlobalString('OBLYON_COLOR_WEATHER_LEVEL3', '#b04000'); ?>;
-	--colorweatherlevel4: <?php print getDolGlobalString('OBLYON_COLOR_WEATHER_LEVEL4', '#993013'); ?>;
-	--colorinfoboxupdate: <?php print getDolGlobalString('OBLYON_COLOR_INFOBOX_UPDATE', '#bc9525'); ?>;
+	/* InfraS change begin : couleurs par utilisateur (3.6.0) : oblyon_color_setting() */
+	--amountremaintopaycolor:<?php print oblyon_color_setting('OBLYON_COLOR_AMOUNT_REMAIN', '#880000'); ?>;
+	--amountpaymentcomplete:<?php print oblyon_color_setting('OBLYON_COLOR_AMOUNT_PAID', '#008800'); ?>;
+	--colorunpaid: <?php print oblyon_color_setting('OBLYON_COLOR_AMOUNT_UNPAID', '#550000'); ?>;
+	--colorstatussuccess: <?php print oblyon_color_setting('OBLYON_COLOR_STATUS_SUCCESS', '#00a65a'); ?>;
+	--colorstatusinfo: <?php print oblyon_color_setting('OBLYON_COLOR_STATUS_INFO', '#00c0ef'); ?>;
+	--colorstatuswarning: <?php print oblyon_color_setting('OBLYON_COLOR_STATUS_WARNING', '#f39c12'); ?>;
+	--colorstatusdanger: <?php print oblyon_color_setting('OBLYON_COLOR_STATUS_DANGER', '#dd4b39'); ?>;
+	--colorstatusprimary: <?php print oblyon_color_setting('OBLYON_COLOR_STATUS_PRIMARY', '#337ab7'); ?>;
+	--colorprogressbar: <?php print oblyon_color_setting('OBLYON_COLOR_PROGRESSBAR', '#3c8dbc'); ?>;
+	--colortimelineitem: <?php print oblyon_color_setting('OBLYON_COLOR_TIMELINEITEM', '#0073b7'); ?>;
+	--colorweatherlevel0: <?php print oblyon_color_setting('OBLYON_COLOR_WEATHER_LEVEL0', '#cfbf00'); ?>;
+	--colorweatherlevel1: <?php print oblyon_color_setting('OBLYON_COLOR_WEATHER_LEVEL1', '#bc9526'); ?>;
+	--colorweatherlevel2: <?php print oblyon_color_setting('OBLYON_COLOR_WEATHER_LEVEL2', '#b16000'); ?>;
+	--colorweatherlevel3: <?php print oblyon_color_setting('OBLYON_COLOR_WEATHER_LEVEL3', '#b04000'); ?>;
+	--colorweatherlevel4: <?php print oblyon_color_setting('OBLYON_COLOR_WEATHER_LEVEL4', '#993013'); ?>;
+	--colorinfoboxupdate: <?php print oblyon_color_setting('OBLYON_COLOR_INFOBOX_UPDATE', '#bc9525'); ?>;
+	/* InfraS change end */
 	--amountremaintopaybackcolor:none;
 	--productlinestockod: #002200;
 	--productlinestocktoolow: #884400;
@@ -154,6 +156,28 @@
 	--img_button: url(<?php print $img_button; ?>);
 	--left: <?php print $left; ?>;
 	--right: <?php print $right; ?>;
+	/* InfraS add begin : jetons de design 3.4.1 (rayons, ombres, neutres derives du preset, focus, transition) */
+	--oblyon-radius: var(--infras_radius);
+	--oblyon-radius-sm: calc(var(--infras_radius) / 2);
+	--oblyon-radius-pill: 999px;
+	--oblyon-shadow-sm: 0 1px 2px rgba(0, 0, 0, .06), 0 1px 1px rgba(0, 0, 0, .04);
+	--oblyon-shadow-md: 0 2px 8px rgba(0, 0, 0, .09), 0 1px 2px rgba(0, 0, 0, .06);
+	--oblyon-shadow-lg: 0 8px 24px rgba(0, 0, 0, .14), 0 2px 6px rgba(0, 0, 0, .08);
+	--oblyon-border: <?php print $oblyon_border; ?>;
+	--oblyon-border-strong: <?php print $oblyon_border_strong; ?>;
+	--oblyon-neutral-bg: <?php print $oblyon_neutral_bg; ?>;
+	--oblyon-muted-text: <?php print $oblyon_muted_text; ?>;
+	--oblyon-input-border: <?php print $oblyon_input_border; ?>;
+	--oblyon-focus: var(--maincolor);
+	--oblyon-transition: .15s ease-in-out;
+	--login_bgcolor: <?php print $login_bgcolor; ?>;
+	--login_txtcolor: <?php print $login_txtcolor; ?>;
+	/* densite des listes : une seule valeur pour toutes les pages (compacte) */
+	--oblyon-cell-py: 5px;
+	--oblyon-cell-px: 8px;
+	--oblyon-row-lh: 1.5em;
+	--oblyon-head-h: 34px;
+	/* InfraS add end */
 }
 
 /*------------------------------------*\
@@ -231,7 +255,7 @@ body {
 <?php if (empty($dol_use_jmobile) || 1==1) { ?>
 	font-size: var(--fontsize);
 <?php } ?>
-	-webkit-font-smoothing: subpixel-antialiased;
+	-webkit-font-smoothing: antialiased;	/* InfraS change */
 	margin: 0;
 }
 
@@ -287,19 +311,23 @@ input[name=duration_value], input[name=durationhour]
 }
 input[type=checkbox], input[type=radio] {
 	margin: 0 3px 0 3px;
+	accent-color: var(--maincolor);	/* InfraS add : cases et boutons radio dans la couleur principale */
 }
 input, input.flat, form.flat select, select, select.flat, .dataTables_length label select {
 	border: none;
 }
+/* InfraS change begin : bordure fine complete sur tous les champs (plus marquee avec l'option THEME_SHOW_BORDER_ON_INPUT), rayon du theme, transition */
 input, input.flat, textarea, textarea.flat, form.flat select, select, select.flat, .dataTables_length label select {
 	background-color: var(--inputbackgroundcolor);
 	color: var(--colortext);
-	border-radius: 2px;
+	border-radius: var(--oblyon-radius-sm);
 	font-family: var(--fontfamilydol);
 	outline: none;
 	margin: 0px 0px 0px 0px;
-	border<?php print !getDolGlobalString('THEME_SHOW_BORDER_ON_INPUT') ? '-bottom' : ''; ?>: solid 1px var(--inputbordercolor);
+	border: solid 1px var(--oblyon-input-border);
+	transition: border-color var(--oblyon-transition), box-shadow var(--oblyon-transition);
 }
+/* InfraS change end */
 
 input {
 	line-height: 1.3em;
@@ -323,7 +351,7 @@ input, select {
 
 
 input:invalid, select:invalid {
-	border-color: #ea1212;
+	border-color: var(--colorstatusdanger);	/* InfraS change */
 }
 
 
@@ -354,17 +382,19 @@ h1, h2, h3, h4, h5, h6 {
 	line-height: 1.4;
 }
 
-h1 { font-size: 2.125rem; }
+/* InfraS change begin : echelle des titres liee a la taille de police du theme (--fontsize) */
+h1 { font-size: calc(var(--fontsize) * 2); }
 
-h2 { font-size: 1.6875rem; }
+h2 { font-size: calc(var(--fontsize) * 1.6); }
 
-h3 { font-size: 1.375rem; }
+h3 { font-size: calc(var(--fontsize) * 1.35); }
 
-h4 { font-size: 1.125rem; }
+h4 { font-size: calc(var(--fontsize) * 1.15); }
 
-h5 { font-size: 1.125rem; }
+h5 { font-size: calc(var(--fontsize) * 1.05); }
 
-h6 { font-size: 1rem; }
+h6 { font-size: var(--fontsize); }
+/* InfraS change end */
 
 
 form {
@@ -401,9 +431,15 @@ button[name='button_removefilter_x'] span.fa.fa-remove {
 	opacity: 0.5;
 	font-size: 1.3em;
 }
+/* InfraS change begin : plus de suppression du focus ; anneau visible au clavier (:focus-visible) dans la couleur principale */
 button:focus {
 	outline: none;
 }
+button:focus-visible, a.tab:focus-visible, .button:focus-visible, .butAction:focus-visible, .butActionDelete:focus-visible {
+	outline: 2px solid var(--oblyon-focus);
+	outline-offset: 2px;
+}
+/* InfraS change end */
 .fa-info-circle {
 	padding-<?php print $left; ?>: 3px;
 }
@@ -712,7 +748,7 @@ body[class*="colorblind-"] .text-success{
 	color: var(--colortextlink) !important;
 }
 .editfielda span.fa-pencil-alt:hover, .editfielda span.fa-trash:hover {
-	color: var(--colortexttitle) !important;
+	color: var(--colortext) !important;	/* InfraS change : couleur du texte courant (le texte du bandeau de titre peut etre blanc) */
 }
 a.editfielda.nohover *:hover:before {
 	color: #ccc !important;
@@ -839,14 +875,15 @@ input[type=checkbox] { background-color: transparent; border: none; box-shadow: 
 input[type=radio]	{ background-color: transparent; border: none; box-shadow: none; }
 input[type=image]	{ background-color: transparent; border: none; box-shadow: none; }
 input:-webkit-autofill {
-	background-color: #FDFFF0 !important;
+	background-color: var(--inputbackgroundcolor) !important;	/* InfraS change */
 	background-image:none !important;
-	-webkit-box-shadow: 0 0 0 50px #FDFFF0 inset;
+	-webkit-box-shadow: 0 0 0 50px var(--inputbackgroundcolor) inset;	/* InfraS change */
 }
-::-webkit-input-placeholder { color:#ccc; }
-input:-moz-placeholder { color:#ccc; }
+::-webkit-input-placeholder { color: var(--oblyon-muted-text); }	/* InfraS change */
+input:-moz-placeholder { color: var(--oblyon-muted-text); }	/* InfraS change */
+::placeholder { color: var(--oblyon-muted-text); opacity: 1; }	/* InfraS add */
 input[name=price], input[name=weight], input[name=volume], input[name=surface], input[name=sizeheight], input[name=net_measure], select[name=incoterm_id] { margin-right: 6px; }
-fieldset { border: 1px solid #AAAAAA !important; }
+fieldset { border: 1px solid var(--oblyon-border-strong) !important; border-radius: var(--oblyon-radius); }	/* InfraS change */
 .legendforfieldsetstep { padding-bottom: 10px; }
 input#onlinepaymenturl, input#directdownloadlink {
 	opacity: 0.7;
@@ -976,8 +1013,14 @@ img[src*=stcomm]	{ vertical-align: text-top; }
 
 <?php if (empty($dol_use_jmobile)) { ?>
 
-	input:focus, textarea:focus, button:focus, select:focus {
-		box-shadow: 0 0 2px #8091bf;
+	/* InfraS change begin : focus dans la couleur principale (bordure + anneau au clavier), plus d'ombre creusee ni de bleu-gris code en dur */
+	input:focus, textarea:focus, select:focus {
+		border-color: var(--oblyon-focus);
+		box-shadow: 0 0 0 2px <?php print colorHexToRgb($maincolor, 0.18); ?>;
+	}
+	input:focus-visible, textarea:focus-visible, select:focus-visible {
+		outline: 2px solid var(--oblyon-focus);
+		outline-offset: 1px;
 	}
 
 	textarea,
@@ -990,17 +1033,14 @@ img[src*=stcomm]	{ vertical-align: text-top; }
 	input[type=url],
 	.titlewrap input,
 	select {
-		border-color: rgba(0,0,0, .24);
-		box-shadow: inset 0 1px 2px rgba(0,0,0, .07);
+		border-color: var(--oblyon-input-border);
+		box-shadow: none;
 	}
 
-	textarea:focus, button:focus {
-		/* v6 box-shadow: 0 0 4px #8091BF; */
-		border: 1px solid #aaa !important;
+	textarea:focus {
+		border: 1px solid var(--oblyon-focus) !important;
 	}
-	input:focus, textarea:focus, button:focus, select:focus {
-		border-bottom: 1px solid #666;
-	}
+	/* InfraS change end */
 	input.select2-input {
 		border-bottom: none ! important;
 	}
@@ -1037,8 +1077,8 @@ img[src*=stcomm]	{ vertical-align: text-top; }
 	}
 
 	input, textarea, select {
-		border-color: rgba(0,0,0, .24);
-		box-shadow: inset 0 1px 2px rgba(0,0,0, .07);
+		border-color: var(--oblyon-input-border);	/* InfraS change */
+		box-shadow: none;	/* InfraS change */
 		margin:3px 10px 3px 0;
 	}
 <?php } ?> /* end if (empty($dol_use_jmobile)) */
@@ -1046,8 +1086,8 @@ img[src*=stcomm]	{ vertical-align: text-top; }
 section.setupsection {
 	padding: 20px;
 	/* background-color: var(--colorbacktitle1); */
-	background-color: #f0f0f0;
-	border-radius: 5px;
+	background-color: var(--oblyon-neutral-bg);	/* InfraS change */
+	border-radius: var(--oblyon-radius);	/* InfraS change */
 }
 
 .field-error-icon { color: #ea1212 !important; }
@@ -1228,7 +1268,7 @@ input.removedfile {
 	vertical-align: text-bottom;
 }
 textarea:disabled {
-	background:#ddd;
+	background: var(--oblyon-neutral-bg);	/* InfraS change */
 }
 input[type=file ]	{ background-color: transparent; border-top: none; border-left: none; border-right: none; box-shadow: none; }
 input[type=checkbox] { background-color: transparent; border: none; box-shadow: none; }
@@ -1237,14 +1277,15 @@ input[type=image]	{ background-color: transparent; border: none; box-shadow: non
 input:-webkit-autofill {
 	background-color: var(--inputbackgroundcolor) !important;
 	background-image:none !important;
-	-webkit-box-shadow: 0 0 0 50px #FDFFF0 inset;
+	-webkit-box-shadow: 0 0 0 50px var(--inputbackgroundcolor) inset;	/* InfraS change */
 	color: var(--colortext) !important;
 }
-::-webkit-input-placeholder { color:#ccc; }
-input:-moz-placeholder { color:#ccc; }
+::-webkit-input-placeholder { color: var(--oblyon-muted-text); }	/* InfraS change */
+input:-moz-placeholder { color: var(--oblyon-muted-text); }	/* InfraS change */
+::placeholder { color: var(--oblyon-muted-text); opacity: 1; }	/* InfraS add */
 input[name=price], input[name=weight], input[name=volume], input[name=surface], input[name=sizeheight], select[name=incoterm_id] { margin-right: 6px; }
 input[name=surface] { margin-right: 4px; }
-fieldset { border: 1px solid #AAAAAA !important; }
+fieldset { border: 1px solid var(--oblyon-border-strong) !important; border-radius: var(--oblyon-radius); }	/* InfraS change */
 .legendforfieldsetstep { padding-bottom: 10px; }
 input#onlinepaymenturl, input#directdownloadlink {
 	opacity: 0.7;
@@ -1330,72 +1371,69 @@ a.butActionNewRefused>span.fa-plus-circle { padding-left: 6px; font-size: 1.5em;
 /**
 * State Ok, Warning, Error
 */
-.ok	  { color: #114466; }
-.warning { color: #887711 !important; }
-.error   { color: #b62512 !important; font-weight: bold; }
-.green   { color: #118822 !important; }
+/* InfraS change begin : couleurs semantiques centralisees (theme_vars) au lieu de valeurs en dur ; blocs de message en cartes arrondies avec ombre legere */
+.ok	  { color: var(--colortextlink); }
+.warning { color: var(--textWarning) !important; }
+.error   { color: var(--textDanger) !important; font-weight: bold; }
+.green   { color: var(--textSuccess) !important; }
 
 .bloc_success {
-	background-color: #33cc66;
+	background-color: var(--colorstatussuccess);
 	color: #fff;
 	display: inline-block;
 	margin-bottom: .5em;
 	padding: 1em;
+	border-radius: var(--oblyon-radius);
 }
 
 .bloc_warning {
-	background-color: #f07b6e;
+	background-color: var(--colorstatusdanger);
 	color: #fff;
 	display: inline-block;
 	margin-bottom: .5em;
 	padding: 1em;
+	border-radius: var(--oblyon-radius);
 }
 
 div.ok {
-	color: #114466;
+	color: var(--colortextlink);
 }
 
 /* Warning message */
 div.warning {
-	border-<?php print $left; ?>: solid 5px var(--colorWarningBorder);
-	padding-top: 8px;
-	padding-left: 10px;
-	padding-right: 4px;
-	padding-bottom: 8px;
-	margin: 0.5em 0em 0.5em 0em;
+	border-<?php print $left; ?>: solid 4px var(--colorWarningBorder);
+	padding: 10px 14px;
+	margin: 0.6em 0em 0.6em 0em;
 	background: var(--colorWarningBg);
 	color: var(--colorWarningTxt) !important;
+	border-radius: var(--oblyon-radius-sm);
+	box-shadow: var(--oblyon-shadow-sm);
 }
 
 /* Error message */
 div.error {
-	border-<?php print $left; ?>: solid 5px var(--colorErrorBorder) !important;
+	border-<?php print $left; ?>: solid 4px var(--colorErrorBorder) !important;
 	text-align: var(--left) !important;
-	padding-top: 8px;
-	padding-left: 10px;
-	padding-right: 4px;
-	padding-bottom: 8px;
-	margin: 0.5em 0em 0.5em 0em;
+	padding: 10px 14px;
+	margin: 0.6em 0em 0.6em 0em;
 	background: var(--colorErrorBg);
 	color: var(--colorErrorTxt) !important;
 	font-size: unset !important;
+	border-radius: var(--oblyon-radius-sm);
+	box-shadow: var(--oblyon-shadow-sm);
 }
 
 /* Info admin */
 div.info {
-	border-<?php print $left; ?>: solid 5px var(--colorInfoBorder);
-	padding-top: 8px;
-	padding-left: 10px;
-	padding-right: 4px;
-	padding-bottom: 8px;
-	margin: 0.5em 0em 0.5em 0em;
-
-/* Warning message */
+	border-<?php print $left; ?>: solid 4px var(--colorInfoBorder);
+	padding: 10px 14px;
+	margin: 0.6em 0em 0.6em 0em;
 	background: var(--colorInfoBg);
 	color: var(--colorInfoTxt) !important;
-
-/* Error message */
+	border-radius: var(--oblyon-radius-sm);
+	box-shadow: var(--oblyon-shadow-sm);
 }
+/* InfraS change end */
 
 
 /*
@@ -2416,6 +2454,7 @@ div.login_block_other {
 }
 
 div.fiche {
+	line-height: 1.45;	/* InfraS add : interlignage lisible dans le contenu (le reset global reste a 1 pour les barres) */
 	margin-<?php print $left; ?>: <?php print (GETPOST('optioncss', 'aZ09') == 'print'?6:(empty($conf->dol_optimize_smallscreen)?'15':'6')); ?>px;
 	margin-<?php print $right; ?>: <?php print (GETPOST('optioncss', 'aZ09') == 'print'?6:(empty($conf->dol_optimize_smallscreen)?'15':'6')); ?>px;
 	<?php if (! empty($dol_hide_leftmenu)) print 'margin-bottom: 12px;'."\n"; ?>
@@ -2638,7 +2677,7 @@ div.arearef {
 	<?php } ?>
 	background: inherit;
 	padding-bottom: 20px;
-	border-bottom: 1px solid #DDD;
+	border-bottom: 1px solid var(--oblyon-border);	/* InfraS change */
 <?php } else { ?>
 	padding-bottom: 10px;
 <?php } ?>
@@ -2681,9 +2720,9 @@ div.statusrefbis {
    	vertical-align: text-bottom;
 }
 img.photoref, div.photoref {
-	border: 1px solid #DDD;
-	-webkit-box-shadow: 0px 0px 6px #DDD;
-	box-shadow: 0px 0px 6px #DDD;
+	border: 1px solid var(--oblyon-border);	/* InfraS change */
+	box-shadow: var(--oblyon-shadow-sm);	/* InfraS change */
+	border-radius: var(--oblyon-radius-sm);	/* InfraS add */
 	padding: 4px;
 	height: 80px;
 	width: 80px;
@@ -2850,7 +2889,7 @@ img.photorefnoborder {
 	color: var(--bgnavtop_txt);
 }
 
-.main-nav__item.is-sel a {
+.main-nav__item.is-sel > div > a {	/* InfraS change : lien principal seulement, pas les liens des volets */
 	<?php if (getDolGlobalString('MAIN_MENU_INVERT')) { ?>
 		background-color: var(--bgnavleft_hover);
 		color: var(--bgnavleft_txt_active);
@@ -3595,7 +3634,7 @@ div.login a:hover {
 
 .db-menu__logo__link {
 	display: block;
-	<?php if(getDolGlobalString('OBLYON_COLOR_LOGO_BCKGRD')) { ?>
+	<?php if(oblyon_color_setting('OBLYON_COLOR_LOGO_BCKGRD')) { // InfraS change ?>
 		background: var(--logo_background_color);
 	<?php } else { ?>
 		background: #FFF;
@@ -4279,13 +4318,15 @@ a.tmenusel:active {
 	font-weight: bold !important;
 }
 
-li.tmenusel a,
-li.tmenusel a:hover,
-li.tmenusel a:active,
-li.tmenusel a:link {
+/* InfraS change begin : limite au lien principal de l'entree (li > div > a) ; la regle "li.tmenusel a" s'appliquait aussi aux liens des volets de sous-menus (texte blanc force sur fond clair) */
+li.tmenusel > div > a,
+li.tmenusel > div > a:hover,
+li.tmenusel > div > a:active,
+li.tmenusel > div > a:link {
 	color: #fff!important;
 	font-weight: bold!important;
 }
+/* InfraS change end */
 
 li.tmenuend {
 	display: none;
@@ -4990,22 +5031,24 @@ div.tabsElem a.tab:hover {
 	color: var(--bgnavleft_txt_hover);
 }
 
+/* InfraS change begin : carte de fiche arrondie, ombre legere, plus d'air */
 div.tabBar {
 	background-color: var(--colorbline);
-	border: 1px solid rgba(0,0,0, .16);
-	box-shadow: 0 1px 1px rgba(0,0,0, .04);
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0, .04);
+	border: 1px solid var(--oblyon-border);
+	box-shadow: var(--oblyon-shadow-sm);
+	border-radius: var(--oblyon-radius);
 	color: var(--colorfline);
-	margin-bottom: 10px;
-	padding-top: 8px;
-	padding-left: <?php print ($dol_optimize_smallscreen?'4':'8'); ?>px;
-	padding-right: <?php print ($dol_optimize_smallscreen?'4':'8'); ?>px;
-	padding-bottom: 8px;
+	margin-bottom: 14px;
+	padding-top: 12px;
+	padding-left: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
+	padding-right: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
+	padding-bottom: 12px;
 	width: auto;
 }
+/* InfraS change end */
 
 div.tabsAction {
-	margin: 20px 0 10px 0;
+	margin: 20px 0 30px 0;	/* InfraS change : valeur de l'ancienne definition dupliquee (supprimee plus bas) */
 	padding: 0;
 	text-align: var(--right);
 	<?php if (getDolGlobalString('FIX_ABSOLUTE_BUTTONS_ACTION_CARD')) { ?>
@@ -5050,15 +5093,7 @@ div.tabactive a.tab {
 	height: 38px;
 }
 
-a.tabTitle {
-	color: #666;
-	font-weight: normal;
-	margin: 0 10px;
-	padding: 4px 6px;
-	text-decoration: none;
-	white-space: nowrap;
-}
-
+/* InfraS change begin : definitions dupliquees (a.tabTitle, a.tabimage, td.tab, span.tabspan) regroupees dans le bloc "Buttons for actions" plus bas ; ici seulement les regles uniques, sur les jetons */
 .imgTabTitle {
 	max-height: 14px;
 }
@@ -5066,45 +5101,22 @@ a.tabTitle {
 a.tab {
 	color: var(--colorfline);
 	font-weight: normal;
+	border-radius: var(--oblyon-radius) var(--oblyon-radius) 0 0;
+	transition: background-color var(--oblyon-transition), color var(--oblyon-transition);
 }
 
 a.tab:hover, a.tab:focus {
-	background-color: rgba(0,0,0, .10);
+	background-color: var(--oblyon-neutral-bg);
 	color: var(--maincolor);
 }
 
-a.tabimage {
-	color: #434956;
-	font-family: var(--fontfamilydol);
-	text-decoration: none;
-	white-space: nowrap;
-}
-
-td.tab {
-	background-color: var(--colorbline);
-	border: 1px solid rgba(0,0,0, .16) !important;
-	box-shadow: 0 1px 1px rgba(0,0,0, .04);
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0, .04);
-	margin: 5px;
-	padding: 0 .5em;
-}
-
 table.notopnoleft td.liste_titre {
-	border: 1px solid rgba(0,0,0, .16) !important;
-	box-shadow: 0 1px 1px rgba(0,0,0, .04);
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0, .04);
+	border: 1px solid var(--oblyon-border) !important;
+	box-shadow: var(--oblyon-shadow-sm);
 	margin: 0 0 2px 0;
 	padding: .8em .5em!important;
 }
-
-span.tabspan {
-	background-color: #dee7ec;
-	color: #434956;
-	margin: 0 .2em;
-	padding: 0 6px;
-	text-decoration: none;
-	white-space: nowrap;
-}
+/* InfraS change end */
 
 div.tabBar ul li {
 	margin-<?php print $left; ?>: 30px !important;
@@ -5118,7 +5130,9 @@ div.tabBar ul li {
 div.popuptabset {
 	background-color: var(--colorbline);
 	padding: 5px;
-	border: 1px solid #e5e5e5;
+	border: 1px solid var(--oblyon-border);	/* InfraS change */
+	border-radius: var(--oblyon-radius);	/* InfraS add */
+	box-shadow: var(--oblyon-shadow-md);	/* InfraS add */
 }
 
 div.popuptab {
@@ -5137,11 +5151,7 @@ div.popuptab {
 /* Buttons for actions															*/
 /* ============================================================================== */
 
-div.tabsAction {
-	margin: 20px 0em 30px 0em;
-	padding: 0em 0em;
-	text-align: right;
-}
+/* InfraS change begin : definition dupliquee de div.tabsAction supprimee (fusionnee plus haut) ; titre d'onglets sans text-shadow, couleur secondaire du preset */
 div.tabsActionNoBottom {
 	margin-bottom: 0px;
 }
@@ -5150,8 +5160,7 @@ div.tabsAction > a {
 }
 
 a.tabTitle {
-	color: rgba(0,0,0,0.4) !important;
-	text-shadow:1px 1px 1px #ffffff;
+	color: var(--oblyon-muted-text) !important;
 	font-family: var(--fontfamilydol);
 	font-weight: normal !important;
 	padding: 4px 6px 2px 0px;
@@ -5159,6 +5168,7 @@ a.tabTitle {
 	text-decoration: none;
 	white-space: nowrap;
 }
+/* InfraS change end */
 .tabTitleText {
 	display: none;
 }
@@ -5181,46 +5191,54 @@ a.tab:link, a.tab:visited, a.tab:hover, a.tab#active {
 	background-image: none !important;
 }
 
+/* InfraS change begin : onglet actif signale par un liseret d'accent en haut, coins superieurs arrondis, bordures neutres du preset */
 .tabactive, a.tab#active {
 	color: var(--colortextbacktab) !important;
 	background: var(--colorbacktabcard1) !important;
 	margin: 0 0.2em 0 0.2em !important;
 	text-decoration: none;
 
-	border: 1px solid rgba(0,0,0, .16);
+	border: 1px solid var(--oblyon-border);
 	border-bottom: none;
+	border-radius: var(--oblyon-radius) var(--oblyon-radius) 0 0;
+	box-shadow: inset 0 3px 0 var(--maincolor);
+	font-weight: 600 !important;
 }
 .tabunactive, a.tab#unactive {
-	border: 1px solid rgba(0,0,0, .16);
+	border: 1px solid var(--oblyon-border);
 	border-bottom: 0px !important;
+	border-radius: var(--oblyon-radius) var(--oblyon-radius) 0 0;
 	height: 38px;
 }
 a.tabimage {
-	color: #434956;
+	color: var(--colorfline);
 	font-family: var(--fontfamilydol);
 	text-decoration: none;
 	white-space: nowrap;
 }
 
 td.tab {
-	background: #dee7ec;
+	background-color: var(--colorbline);
+	border: 1px solid var(--oblyon-border) !important;
+	box-shadow: var(--oblyon-shadow-sm);
+	border-radius: var(--oblyon-radius-sm) var(--oblyon-radius-sm) 0 0;
+	margin: 5px;
+	padding: 0 .5em;
 }
 
 span.tabspan {
-	background: #dee7ec;
-	color: #434956;
+	background: var(--oblyon-neutral-bg);
+	color: var(--colorfline);
 	font-family: var(--fontfamilydol);
 	padding: 0px 6px;
 	margin: 0em 0.2em;
 	text-decoration: none;
 	white-space: nowrap;
-	-webkit-border-radius:4px 4px 0px 0px;
-	border-radius:4px 4px 0px 0px;
-
-	border-<?php print $right; ?>: 1px solid #555555;
-	border-<?php print $left; ?>: 1px solid #D8D8D8;
-	border-top: 1px solid #D8D8D8;
+	border-radius: var(--oblyon-radius-sm) var(--oblyon-radius-sm) 0 0;
+	border: 1px solid var(--oblyon-border);
+	border-bottom: none;
 }
+/* InfraS change end */
 
 /* ============================================================================== */
 /* Buttons for actions															*/
@@ -5346,11 +5364,11 @@ td.border {
 table.noborder,
 table.formdoc,
 div.noborder {
-	border: 1px solid rgba(0,0,0, .16);
+	border: 1px solid var(--oblyon-border);	/* InfraS change */
 	border-collapse: separate !important;
 	border-spacing: 0;
-	box-shadow: 0 1px 1px rgba(0,0,0, .08);
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0, .08);
+	box-shadow: var(--oblyon-shadow-sm);	/* InfraS change */
+	border-radius: var(--oblyon-radius);	/* InfraS add */
 	margin: 0 0 2px 0;
 	/*padding: 1px 2px 1px 2px;*/
 	width: 100%;
@@ -5359,12 +5377,12 @@ div.noborder {
 table.noborder[summary="list_of_modules"] tr.oddeven { line-height: 2.2em; }
 
 table.noborder tr, div.noborder form {
-	line-height: 1.7em;
+	line-height: var(--oblyon-row-lh);	/* InfraS change */
 }
 
 /* boxes padding */
 /* table titles main page */
-table.noborder th { padding: 3px; }
+table.noborder th { padding: var(--oblyon-cell-py) var(--oblyon-cell-px); }	/* InfraS change */
 
 table.noborder th:first-child { padding-<?php print $left; ?>: 10px; }
 
@@ -5372,13 +5390,34 @@ table.noborder th:last-child { padding-<?php print $right; ?>: 10px; }
 
 /* table content all pages */
 table.noborder td, div.noborder form, div.noborder form div, table.tableforservicepart1 td, table.tableforservicepart2 td {
-	padding: 4px 6px 4px 6px;			/* t r b l */
+	padding: var(--oblyon-cell-py) var(--oblyon-cell-px);	/* InfraS change : densite unique */
 	vertical-align: unset;
 }
 
 table.noborder td:first-child { padding-<?php print $left; ?>: 10px !important; }
 
 table.noborder td:last-child, div.noborder form div:last-child { padding-<?php print $right; ?>: 10px; }
+
+/* InfraS add begin : coins arrondis des tableaux (le fond des lignes de titre / total suit le rayon du cadre) */
+table.noborder > thead > tr:first-child > th:first-child, table.noborder > thead > tr:first-child > td:first-child,
+table.noborder > tbody:first-child > tr:first-child > th:first-child, table.noborder > tbody:first-child > tr:first-child > td:first-child,
+table.noborder > tr:first-child > th:first-child, table.noborder > tr:first-child > td:first-child {
+	border-top-<?php print $left; ?>-radius: calc(var(--oblyon-radius) - 1px);
+}
+table.noborder > thead > tr:first-child > th:last-child, table.noborder > thead > tr:first-child > td:last-child,
+table.noborder > tbody:first-child > tr:first-child > th:last-child, table.noborder > tbody:first-child > tr:first-child > td:last-child,
+table.noborder > tr:first-child > th:last-child, table.noborder > tr:first-child > td:last-child {
+	border-top-<?php print $right; ?>-radius: calc(var(--oblyon-radius) - 1px);
+}
+table.noborder > tbody:last-child > tr:last-child > td:first-child, table.noborder > tbody:last-child > tr:last-child > th:first-child,
+table.noborder > tr:last-child > td:first-child {
+	border-bottom-<?php print $left; ?>-radius: calc(var(--oblyon-radius) - 1px);
+}
+table.noborder > tbody:last-child > tr:last-child > td:last-child, table.noborder > tbody:last-child > tr:last-child > th:last-child,
+table.noborder > tr:last-child > td:last-child {
+	border-bottom-<?php print $right; ?>-radius: calc(var(--oblyon-radius) - 1px);
+}
+/* InfraS add end */
 
 /* titles others pages */
 table.noborder .liste_titre td { padding: 3px; }
@@ -5443,16 +5482,16 @@ td.borderright {
 
 /* For lists */
 table.liste {
-	border: 1px solid rgba(0,0,0, .42);
+	border: 1px solid var(--oblyon-border);	/* InfraS change */
 	border-collapse: collapse;
 	margin-bottom: 2px;
 	margin-top: 2px;
 	width: 100%;
 }
 
-table.liste .oddeven td { padding: 2px 5px; }
+table.liste .oddeven td { padding: var(--oblyon-cell-py) var(--oblyon-cell-px); }	/* InfraS change : densite unique */
 
-table .liste_titre td { padding: 2px; }
+table .liste_titre td { padding: 3px 6px; }	/* InfraS change */
 
 table.liste td a img {
 	vertical-align: middle;
@@ -5520,7 +5559,7 @@ div.liste_titre {
 
 table td.liste_titre a:link,
 table td.liste_titre a:visited,
-table td.liste_titre a:active { color: #eee; }
+table td.liste_titre a:active { color: var(--colortexttitle); }	/* InfraS change */
 
 table td.liste_titre a:hover { color: var(--maincolor); }
 
@@ -5537,7 +5576,7 @@ table.noborder tr th a:active {
 table.noborder tr td a:hover { color: var(--colorfline_hover); }
 
 table.noborder tr td a.button,
-table.noborder tr td a.button:hover { color: #fff; }
+table.noborder tr td a.button:hover { color: var(--colorTextButtonAction); }	/* InfraS change */
 
 
 .liste tr.liste_titre:nth-child(3) {
@@ -5591,7 +5630,7 @@ form.liste_total {
 tr.liste_total td,
 form.liste_total div {
 	height: 20px;
-	border-top: 1px solid rgba(0,0,0, .42);
+	border-top: 1px solid var(--oblyon-border-strong);	/* InfraS change */
 	color: var(--maincolor);
 	font-weight: normal;
 	white-space: normal;
@@ -5600,7 +5639,7 @@ form.liste_total div {
 
 tr.liste_total td[align=right],
 form.liste_total td[align=right] {
-	color: #3c6;
+	color: var(--colortext);	/* InfraS change : vert #3c6 code en dur retire */
 	font-weight: bold;
 }
 
@@ -5621,7 +5660,7 @@ div .tdtop {
 }
 
 #tablelines tr.liste_titre td, .paymenttable tr.liste_titre td, .margintable tr.liste_titre td, .tableforservicepart1 tr.liste_titre td {
-	border-bottom: 1px solid #AAA !important;
+	border-bottom: 1px solid var(--oblyon-border-strong) !important;	/* InfraS change */
 }
 #tablelines tr td {
 	height: unset;
@@ -5654,13 +5693,21 @@ div .tdtop {
 	margin-top: 5px;
 	margin-bottom: 5px;
 	text-align: center;
-	<?php if(getDolGlobalString('OBLYON_INFOXBOX_BACKGROUND')) { ?>
-		background: <?php print getDolGlobalString('OBLYON_INFOXBOX_BACKGROUND'); ?> !important;
+	<?php if(oblyon_color_setting('OBLYON_INFOXBOX_BACKGROUND')) { // InfraS change ?>
+		background: <?php print oblyon_color_setting('OBLYON_INFOXBOX_BACKGROUND'); ?> !important;	/* InfraS change */
 	<?php } else { ?>
-	background: #fcfcfc;
+	background: var(--colorbline);	/* InfraS change */
 	<?php } ?>
-	border-left: 6px solid var(--colorboxstatsborder);
-	border-radius: 0px;
+	/* InfraS change begin : carte plate (plus de barre laterale de 6 px) : cadre neutre, filet d'accent en haut, rayon et ombre des jetons */
+	border: 1px solid var(--oblyon-border);
+	border-top: 3px solid var(--colorboxstatsborder);
+	border-radius: var(--oblyon-radius);
+	box-shadow: var(--oblyon-shadow-sm);
+	transition: box-shadow var(--oblyon-transition);
+	/* InfraS change end */
+}
+.boxstats:hover, .boxstats130:hover {
+	box-shadow: var(--oblyon-shadow-md);	/* InfraS add */
 }
 .boxstats, .boxstats130, .boxstatscontent {
 	white-space: nowrap;
@@ -5705,9 +5752,9 @@ div .tdtop {
 {
 	.boxstats, .boxstats130 {
 		margin: 3px;
-		border: 1px solid rgba(0,0,0, .24);
+		border: 1px solid var(--oblyon-border);	/* InfraS change */
 		box-shadow: none;
-		background: #ddd;
+		background: var(--oblyon-neutral-bg);	/* InfraS change */
 	}
 	.thumbstat {
 		flex: 1 1 110px;
@@ -5831,7 +5878,7 @@ tr.box_titre {
 	color: var(--colortexttitle);
 	font-family: var(--fontfamilydol), sans-serif;
 	font-weight: <?php print $useboldtitle?'bold':'normal'; ?>;
-	border-bottom: 1px solid #FDFFFF;
+	border-bottom: 1px solid var(--oblyon-border);	/* InfraS change */
 	white-space: nowrap;
 }
 
@@ -5949,11 +5996,11 @@ table.notopnoleftnoright div.titre {
 
 div.titre {
 	color: var(--colorstitle);
-	font-weight: bold;
-	font-size: 1.1em;
+	font-weight: 600;	/* InfraS change */
+	font-size: 1.25em;	/* InfraS change : titre de page un peu plus grand */
 	text-decoration: none;
-	padding-top: 5px;
-	padding-bottom: 5px;
+	padding-top: 6px;
+	padding-bottom: 6px;
 }
 
 table.table-fiche-title .col-title div.titre{
@@ -6056,10 +6103,10 @@ font-size: var(--fontsize) !important;
 */
 
 table.valid {
-	background-color: #f07b6e;
-	border: 1px solid #e0796e;
-	box-shadow: 0 1px 1px rgba(0,0,0, .04);
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0, .04);
+	background-color: var(--colorErrorBg);	/* InfraS change */
+	border: 1px solid var(--colorErrorBorder);	/* InfraS change */
+	box-shadow: var(--oblyon-shadow-sm);	/* InfraS change */
+	border-radius: var(--oblyon-radius-sm);	/* InfraS add */
 	margin: .5em 0em;
 	padding: 1.2em 1.5em;
 }
@@ -6078,18 +6125,18 @@ table.valid img { vertical-align: sub; }
 div.ui-tooltip {
 	max-width: <?php print dol_size(600,'width'); ?>px !important;
 }
+/* InfraS change begin : infobulle plate (plus de biseau 3D), couleurs du theme, rayon et ombre des jetons */
 .mytooltip {
 	width: <?php print dol_size(450,'width'); ?>px;
-	border-top: solid 1px #BBBBBB;
-	border-<?php print $left; ?>: solid 1px #BBBBBB;
-	border-<?php print $right; ?>: solid 1px #444444;
-	border-bottom: solid 1px #444444;
-	padding: 5px 20px;
-	border-radius: 0;
-	box-shadow: 0 0 4px grey;
+	border: solid 1px var(--oblyon-border-strong);
+	background: var(--tooltipbgcolor);
+	color: var(--tooltipfontcolor);
+	padding: 8px 16px;
+	border-radius: var(--oblyon-radius-sm);
+	box-shadow: var(--oblyon-shadow-md);
 	margin: 2px;
-	font-stretch: condensed;
 }
+/* InfraS change end */
 
 /*------------------------------------*\
 #Calc Module
@@ -7026,6 +7073,9 @@ div.cke_notifications_area .cke_notification_warning {
 }
 
 /* CSS To hide the picto menu on smartphone, except when maximize */
+/* InfraS change begin : regle retiree (3.5.0) : elle masquait tous les outils de CKEditor sous 768px, tablettes comprises ;
+   la disposition mobile (mobile.inc.php) donne a l'editeur une largeur lisible et la barre d'outils se replie sur plusieurs lignes */
+/*
 @media only screen and (max-width: 768px)
 {
 	.cke_inner:not(.cke_maximized) .cke_toolbar_separator,
@@ -7034,6 +7084,8 @@ div.cke_notifications_area .cke_notification_warning {
 		display: none;
 	}
 }
+*/
+/* InfraS change end */
 
 /* ============================================================================== */
 /*  ACE editor																	*/
@@ -7389,9 +7441,9 @@ div#ecm-layout-center {
 
 /* use or not ? */
 div.jnotify-background {
-	opacity : 0.95 !important;
-	-webkit-box-shadow: 2px 2px 4px #8888 !important;
-	box-shadow: 2px 2px 4px #8888 !important;
+	opacity : 0.97 !important;	/* InfraS change */
+	box-shadow: var(--oblyon-shadow-lg) !important;	/* InfraS change : valeur #8888 invalide remplacee */
+	border-radius: var(--oblyon-radius) !important;	/* InfraS add */
 }
 
 /* jnotify for the login page */
@@ -7649,10 +7701,10 @@ input.select2-input {
 	/* background-color: var(--inputbackgroundcolor); */
 }
 .select2-default {
-	color: #999 !important;
+	color: var(--oblyon-muted-text) !important;	/* InfraS change */
 }
 .select2-choice, .select2-container .select2-choice {
-	border-bottom: solid 1px rgba(0,0,0,.4);
+	border-bottom: solid 1px var(--oblyon-input-border);	/* InfraS change */
 }
 .select2-container .select2-choice > .select2-chosen {
 	margin-right: 23px;
@@ -7692,41 +7744,29 @@ input.select2-input {
 	border-top: 1px solid #ccc;
 	border-bottom: solid 1px var(--inputbordercolor);
 }
+/* InfraS change begin : listes deroulantes select2 alignees sur les champs (bordure fine complete, rayon du theme, focus couleur principale) */
 .select2-container--default .select2-selection--single
 {
 	outline: none;
-	<?php if (!getDolGlobalString('THEME_SHOW_BORDER_ON_INPUT')) { ?>
-	border-top: none;
-	border-left: none;
-	border-right: none;
-	<?php } ?>
-
-	border<?php print !getDolGlobalString('THEME_SHOW_BORDER_ON_INPUT') ? '-bottom' : ''; ?>: solid 1px var(--inputbordercolor);
-
-	-webkit-box-shadow: none !important;
+	border: solid 1px var(--oblyon-input-border);
 	box-shadow: none !important;
-	border-radius: 3px;
+	border-radius: var(--oblyon-radius-sm);
+	transition: border-color var(--oblyon-transition);
 }
-.select2-container--focus .select2-container--default .select2-selection--single {
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+	border-color: var(--oblyon-focus);
 }
 .select2-container--default.select2-container--focus .select2-selection--multiple {
-	border-top: none;
-	border-left: none;
-	border-right: none;
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
+	border-color: var(--oblyon-focus);
 }
 .select2-container--default .select2-selection--multiple {
-	border-bottom: solid 1px var(--inputbordercolor);
-	border-top: none;
-	border-left: none;
-	border-right: none;
-	border-radius: 3px;
+	border: solid 1px var(--oblyon-input-border);
+	border-radius: var(--oblyon-radius-sm);
 	background: var(--inputbackgroundcolor);
 	line-height: normal;
 }
+/* InfraS change end */
 .select2-container--default .select2-selection--multiple .select2-selection__rendered {
 	line-height: 1.4em;
 }
@@ -7740,21 +7780,16 @@ input.select2-input {
 }
 .select2-selection--multiple input.select2-search__field {
 	border-bottom: none !important;
-}.select2-container--default .select2-selection--single
+}
+/* InfraS change begin : bloc duplique (voir plus haut) aligne sur la meme regle */
+.select2-container--default .select2-selection--single
  {
 	 outline: none;
- <?php if (!getDolGlobalString('THEME_SHOW_BORDER_ON_INPUT')) { ?>
-	 border-top: none;
-	 border-left: none;
-	 border-right: none;
- <?php } ?>
-
-	 border<?php print !getDolGlobalString('THEME_SHOW_BORDER_ON_INPUT') ? '-bottom' : ''; ?>: solid 1px var(--inputbordercolor);
-
-	 -webkit-box-shadow: none !important;
+	 border: solid 1px var(--oblyon-input-border);
 	 box-shadow: none !important;
-	 border-radius: 3px;
+	 border-radius: var(--oblyon-radius-sm);
  }
+/* InfraS change end */
 .select2-container--focus .select2-container--default .select2-selection--single {
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
@@ -8416,7 +8451,7 @@ ul.ulmenu {
 	border-bottom-width: 0px !important;
 }
 .alilevel0 {
-	color: var(--colortexttitle) !important;
+	color: var(--colorfline) !important;	/* InfraS change : hors bandeau de titre, texte des lignes */
 }
 .ulmenu {
 	box-shadow: none !important;
@@ -8919,16 +8954,18 @@ div.pagination li {
 .pagination {
 	display: inline-block;
 	padding-left: 0;
-	border-radius: 4px;
+	border-radius: var(--oblyon-radius-sm);	/* InfraS change */
 }
 
 div.pagination li.pagination a,
 div.pagination li.pagination span {
 	padding: 6px 12px;
 	padding-top: 8px;
-	line-height: 1.42857143;
+	line-height: 1.4;	/* InfraS change */
 	color: var(--colortextlink);
 	text-decoration: none;
+	border-radius: var(--oblyon-radius-sm);	/* InfraS add */
+	transition: background-color var(--oblyon-transition);	/* InfraS add */
 }
 div.pagination li.pagination span.inactive {
 	cursor: default;
@@ -8952,21 +8989,14 @@ div.pagination li.noborder a:hover {
 div.pagination li:first-child a,
 div.pagination li:first-child span {
 	margin-left: 0;
-	border-top-left-radius: 4px;
-	border-bottom-left-radius: 4px;
-}
-div.pagination li:last-child a,
-div.pagination li:last-child span {
-	border-top-right-radius: 4px;
-	border-bottom-right-radius: 4px;
 }
 div.pagination li a:hover,
 div.pagination li span:hover,
 div.pagination li a:focus,
 div.pagination li span:focus {
 	color: var(--colortextbacktab);
-	background-color: transparent;
-	border-color: rgba(0,0,0, .24);
+	background-color: var(--oblyon-neutral-bg);	/* InfraS change */
+	border-color: var(--oblyon-border);	/* InfraS change */
 }
 div.pagination li .active a,
 div.pagination li .active span,
@@ -8986,10 +9016,10 @@ div.pagination .disabled span:focus,
 div.pagination .disabled a,
 div.pagination .disabled a:hover,
 div.pagination .disabled a:focus {
-	color: #777;
+	color: var(--oblyon-muted-text);	/* InfraS change */
 	cursor: not-allowed;
-	background-color: #fff;
-	border-color: rgba(0,0,0, .24);
+	background-color: transparent;	/* InfraS change */
+	border-color: var(--oblyon-border);	/* InfraS change */
 }
 div.pagination li.pagination .active {
 	text-decoration: underline;
@@ -9078,15 +9108,15 @@ td.evenodd {
 	background-color: #<?php print colorArrayToHex(colorStringToArray($colorbacklinebreak)); ?> !important;
 }
 .trforbreak td, table.noborder tr.trforbreak td a:link {
-	color: #000;
+	color: var(--colortext);	/* InfraS change */
 }
 
 table.dataTable td {
-	padding: 5px 8px 5px 8px !important;
+	padding: var(--oblyon-cell-py) var(--oblyon-cell-px) !important;	/* InfraS change */
 }
 tr.pair td, tr.impair td, form.impair div.tagtd, form.pair div.tagtd, div.impair div.tagtd, div.pair div.tagtd, div.liste_titre div.tagtd {
-	padding: 7px 8px 7px 8px;
-	border-bottom: 1px solid #ddd;
+	padding: var(--oblyon-cell-py) var(--oblyon-cell-px);	/* InfraS change : densite unique (compacte) */
+	border-bottom: 1px solid var(--oblyon-border);	/* InfraS change */
 }
 form.pair, form.impair {
 	font-weight: normal;
@@ -9098,7 +9128,7 @@ tr.nobottom td {
 	border-bottom: 0px !important;
 }
 div.tableforcontact form.tagtr:last-of-type div.tagtd {
-	border-bottom: 1px solid #ddd !important;
+	border-bottom: 1px solid var(--oblyon-border) !important;	/* InfraS change */
 }
 tr.pair td .nobordernopadding tr td, tr.impair td .nobordernopadding tr td {
 	border-bottom: 0px !important;
@@ -9137,10 +9167,11 @@ tr.liste_titre, tr.liste_titre_sel, form.liste_titre, form.liste_titre_sel, tabl
 }
 div.colorback	/* for the form "assign user" on time spent view */
 {
-	background: #f8f8f8;
+	background: var(--oblyon-neutral-bg);	/* InfraS change */
 	padding: 10px;
 	margin-top: 5px;
-	border: 1px solid #ddd;
+	border: 1px solid var(--oblyon-border);	/* InfraS change */
+	border-radius: var(--oblyon-radius-sm);	/* InfraS add */
 }
 div.liste_titre_bydiv, .liste_titre div.tagtr, tr.liste_titre, tr.liste_titre_sel, .tagtr.liste_titre, .tagtr.liste_titre_sel, form.liste_titre, form.liste_titre_sel, table.dataTable thead tr
 {
@@ -9165,7 +9196,7 @@ tr.liste_titre th, th.liste_titre, tr.liste_titre td, td.liste_titre, form.liste
 	font-family: var(--fontfamilydol);
 	font-weight: <?php print $useboldtitle ? 'bold' : 'normal'; ?>;
 	vertical-align: middle;
-	height: 38px;
+	height: var(--oblyon-head-h);	/* InfraS change */
 }
 tr.liste_titre th a, th.liste_titre a, tr.liste_titre td a, td.liste_titre a, form.liste_titre div a, div.liste_titre a {
 	text-shadow: none !important;
@@ -9223,20 +9254,20 @@ input.liste_titre {
 	white-space: normal;
 }
 form.liste_total div {
-	border-top: 1px solid #DDDDDD;
+	border-top: 1px solid var(--oblyon-border);	/* InfraS change */
 }
 tr.liste_sub_total, tr.liste_sub_total td {
-	border-bottom: 1px solid #aaa;
+	border-bottom: 1px solid var(--oblyon-border-strong);	/* InfraS change */
 }
 /* to avoid too much border on contract card */
 .tableforservicepart1 .impair, .tableforservicepart1 .pair, .tableforservicepart2 .impair, .tableforservicepart2 .pair {
-	background: #FFF;
+	background: var(--colorbline);	/* InfraS change */
 }
 .tableforservicepart1 tbody tr td, .tableforservicepart2 tbody tr td {
 	border-bottom: none;
 }
 table.tableforservicepart1:first-of-type tr:first-of-type td {
-	border-top: 1px solid #888;
+	border-top: 1px solid var(--oblyon-border-strong);	/* InfraS change */
 }
 table.tableforservicepart1 tr td {
 	border-top: 0px;
@@ -9619,8 +9650,8 @@ ul.ulmenu {
 	border-bottom-width: 0px !important;
 }
 .alilevel0 {
-	color: var(--colortexttitle) !important;
-	background: var(--colorbackmobilemenu);
+	color: var(--colorfline) !important;	/* InfraS change : hors bandeau de titre, texte et fond des lignes (lisible en preset sombre) */
+	background: var(--colorbline);	/* InfraS change */
 }
 .ulmenu {
 	box-shadow: none !important;
@@ -10882,9 +10913,11 @@ div.tabs:first-of-type, .fiche > div.tabs
 <?php
 include dol_buildpath($path.'/theme/'.$theme.'/dropdown.inc.php', 0);
 include dol_buildpath($path.'/theme/'.$theme.'/touchmenu.inc.php', 0);
+include dol_buildpath($path.'/theme/'.$theme.'/flyoutmenu.inc.php', 0);	// InfraS add : sous-menus en volets (effet "flyout" du menu reduit)
 include dol_buildpath($path.'/theme/'.$theme.'/info-box.inc.php', 0);
 include dol_buildpath($path.'/theme/'.$theme.'/progress.inc.php', 0);
 include dol_buildpath($path.'/theme/'.$theme.'/timeline.inc.php', 0);
+include dol_buildpath($path.'/theme/'.$theme.'/mobile.inc.php', 0);	// InfraS add : disposition mobile (3.5.0), avant les CSS des modules pour qu'ils gardent le dernier mot
 
 // Compatibility module
 include dol_buildpath($path.'/theme/'.$theme.'/modules.inc.php', 0);
@@ -10917,7 +10950,7 @@ print getDolGlobalString('THEME_CUSTOM_CSS');
 /* ============================================================================== */
 <?php if (getDolGlobalString('THEME_ADD_BACKGROUND_ON_INPUT')) { // A7 : fond coloré sur les champs (style eldy) ?>
 input.flat, textarea.flat, select.flat, div.tabBar input, div.tabBar select, div.tabBar textarea {
-	background-color: <?php print getDolGlobalString('OBLYON_COLOR_INPUT_ADD_BCKGRD', '#f8f8fa'); ?> !important;
+	background-color: <?php print oblyon_color_setting('OBLYON_COLOR_INPUT_ADD_BCKGRD', '#f8f8fa'); ?> !important;	/* InfraS change */
 }
 <?php } ?>
 <?php if (getDolGlobalString('THEME_SATURATE_RATIO')) { // A8 : saturation des icônes du tableau de bord ?>
@@ -10949,7 +10982,7 @@ table.liste tr:last-child > td:last-child, table.liste tr:last-child > th:last-c
 <?php } ?>
 <?php if (getDolGlobalString('THEME_ELDY_SHADOW_ON_SMALL_BOXES')) { // B2 : ombres petites boîtes ?>
 .firstcolumn table.noborder, .secondcolumn table.noborder {
-	box-shadow: 5px 5px 5px <?php print getDolGlobalString('OBLYON_COLOR_BOX_SHADOW', '#f0f0f0'); ?>;
+	box-shadow: 5px 5px 5px <?php print oblyon_color_setting('OBLYON_COLOR_BOX_SHADOW', '#f0f0f0'); ?>;	/* InfraS change */
 }
 <?php } ?>
 <?php if (getDolGlobalString('THEME_ELDY_USECOMOACTROW')) { // B4 : lignes de tableau plus hautes ?>

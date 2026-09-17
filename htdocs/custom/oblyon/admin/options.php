@@ -47,6 +47,18 @@ $langs->loadLangs(array('admin', 'oblyon@oblyon', 'inovea@oblyon'));
 // Access control *******************************
 if (! $user->admin)				accessforbidden();
 
+// InfraS add begin : habillages (skins) de CKEditor installes sur l'instance - dossier selon la version de Dolibarr (24+ : public/includes, avant : includes),
+// seuls les dossiers avec un editor.css comptent (skin.js n'existe pas pour l'habillage integre a ckeditor.js) ; l'option n'est proposee (et enregistree) que s'il y a le choix, avec le moteur CKEditor
+$ckeditor_skins_dir				= DOL_DOCUMENT_ROOT.((float) DOL_VERSION >= 24.0 ? '/public' : '').'/includes/ckeditor/ckeditor/skins';
+$ckeditor_skins					= array();
+if (is_dir($ckeditor_skins_dir)) {
+	foreach (dol_dir_list($ckeditor_skins_dir, 'directories', 0, '', null, 'name', SORT_ASC, 0, 1) as $ckeditor_skin_dir) {
+		if (file_exists($ckeditor_skins_dir.'/'.$ckeditor_skin_dir['name'].'/editor.css'))	$ckeditor_skins[$ckeditor_skin_dir['name']]	= $ckeditor_skin_dir['name'];
+	}
+}
+$ckeditor_skin_option			= (count($ckeditor_skins) > 1 && getDolGlobalString('FCKEDITOR_EDITORNAME', 'ckeditor') == 'ckeditor');
+// InfraS add end
+
 // Actions **************************************
 $action							= GETPOST('action','alpha');
 $result							= '';
@@ -63,6 +75,7 @@ if (preg_match('/set_(.*)/', $action, $reg)) {
 	// Update buttons management
 if (preg_match('/update_(.*)/', $action, $reg)) {
 	$list									= array('Card'  => array('THEME_ELDY_FONT_SIZE1', 'OBLYON_IMAGE_HEIGHT_TABLE', 'THEME_FONT_FAMILY', 'MAIN_MAXTABS_IN_CARD', 'THEME_ELDY_BORDER_RADIUS'));
+	if ($ckeditor_skin_option)				$list['Card'][]	= 'FCKEDITOR_SKIN';	// InfraS add : enregistre seulement quand le selecteur est affiche (sinon la constante serait videe)
 	$confkey								= $reg[1];
 	$error									= 0;
 	foreach ($list[$confkey] as $constname)	$result	= dolibarr_set_const($db, $constname, GETPOST($constname, 'alpha'), 'chaine', 0, 'Oblyon module', $conf->entity);
@@ -74,7 +87,8 @@ $_SESSION['dol_resetcache']	= dol_print_date(dol_now(), 'dayhourlog');	// Reset 
 
 // init variables *******************************
 // Liste des polices web standards
-$font_options				= array ('Arial' 				=> 'Arial',
+$font_options				= array ('system-ui'			=> $langs->trans('OblyonFontSystem'),	// InfraS add : pile de polices du systeme (rendu natif de l'OS)
+									'Arial' 				=> 'Arial',
 									'Arial Black' 			=> 'Arial Black',
 									'Arial Narrow' 			=> 'Arial Narrow',
 									'Calibri' 				=> 'Calibri',
@@ -427,6 +441,16 @@ $countk++;
 $metas	= array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
 oblyon_print_input('MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML', 'on_off', 'K' . $countk . ' - ' . $langs->trans('MainSecurityAllowUnsecuredLabelsWithHtml').  ' (<i>'. $langs->trans("NotRecommended") . '</i>)', '', $metas, 2, 1);    // Allow HTML tags into products label
 $countk++;
+
+// InfraS add begin : habillage de CKEditor, seulement s'il y a le choix (voir $ckeditor_skins en tete de page)
+if ($ckeditor_skin_option) {
+	$currentSkin	= getDolGlobalString('FCKEDITOR_SKIN', 'moono-lisa');
+	$warning		= !isset($ckeditor_skins[$currentSkin]) ? '<br><span class="warning">'.$langs->trans('FckeditorSkinMissing', $currentSkin).'</span>' : '';
+	$metas			= $form->selectarray('FCKEDITOR_SKIN', $ckeditor_skins, $currentSkin, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+	oblyon_print_input('FCKEDITOR_SKIN', 'select', 'K' . $countk . ' - ' . $langs->trans('FckeditorSkin') . '<br><span class="opacitymedium">' . $langs->trans('FckeditorSkinHelp') . '</span>' . $warning, '', $metas, 2, 1);	// CKEditor skin
+	$countk++;
+}
+// InfraS add end
 
 print '</tbody>';
 print '</table>';

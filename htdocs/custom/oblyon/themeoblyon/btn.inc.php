@@ -109,33 +109,16 @@ input.buttonpaymentstripe {
 	text-align: center;
 	cursor: pointer;
 	text-decoration: none !important;
-	background-color: #f5f5f5;
-	/*
-	background-image: -moz-linear-gradient(to top,  #ffffff, #e6e6e6);
-	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
-	background-image: -webkit-linear-gradient(to top,  #ffffff, #e6e6e6);
-	background-image: -o-linear-gradient(to top,  #ffffff, #e6e6e6);
-	background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
-	*/
-
-	background-repeat: repeat-x;
-	border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-	-webkit-border-radius: 2px;
-	border-radius: 1px;
-
-	font-weight: bold;
-	/* text-transform: capitalize; */
-	color: #444;
-}
-.button:focus, .buttonDelete:focus  {
-	-webkit-box-shadow: 0px 0px 5px 1px rgba(0, 0, 60, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
-	box-shadow: 0px 0px 5px 1px rgba(0, 0, 60, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
+	/* InfraS change begin : bloc structurel uniquement (les couleurs viennent des regles .button / .buttonDelete ci-dessous), rayon et ombre des jetons */
+	border: none;
+	border-radius: var(--oblyon-radius-sm);
+	font-weight: 600;
+	transition: background-color var(--oblyon-transition), box-shadow var(--oblyon-transition), color var(--oblyon-transition);
 }
 .button:hover, .buttonDelete:hover   {
-	/* warning: having a larger shadow has side effect when button is completely on left of a table */
-	-webkit-box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
-	box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.2), 0px 0px 0px rgba(60,60,60,0.1);
+	box-shadow: var(--oblyon-shadow-md);
 }
+/* InfraS change end */
 .button:disabled, .buttonDelete:disabled, .button.disabled {
 	opacity: 0.4;
 	box-shadow: none;
@@ -162,30 +145,30 @@ input.buttonpaymentstripe {
 	/* -webkit-border-radius: 0.30em; */
 	/* -moz-border-radius: 0.30em; */
 	border: none;
-	border-radius: 0.30em;
+	/* InfraS change begin : rayon et transition des jetons, taille de police heritee */
+	border-radius: var(--oblyon-radius-sm);
 	color: var(--colorTextButtonAction);
 	cursor: pointer;
-	font-size: 14px;
+	font-size: var(--fontsize);
 	margin: .2em .5em;
 	/* margin: 2px 1px; */
 	padding: .5em 1em;
-	transition: all .3s ease-in-out;
-	-moz-transition: all .3s ease-in-out;
-	-webkit-transition: all .3s ease-in-out;
+	transition: background-color var(--oblyon-transition), box-shadow var(--oblyon-transition), color var(--oblyon-transition);
 }
 
 .button:hover, .button:focus {
 	background-color: var(--colorButtonAction2);
 	border-color: var(--colorButtonAction2);
-	box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
-	-webkit-box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
+	box-shadow: var(--oblyon-shadow-md);
 	color: var(--colorTextButtonAction);
 }
 
 .button:disabled {
-	background-color: #ddd;
+	background-color: var(--oblyon-neutral-bg);
+	color: var(--oblyon-muted-text);
 	cursor: not-allowed;
 }
+/* InfraS change end */
 
 .buttonajax {
 	background-image: var(--img_button);
@@ -253,10 +236,7 @@ span.butAction, span.butActionDelete {
     background: var(--colorButtonAction1);
     border: 0px;
 
-    border-top-right-radius: 0.30em !important;
-    border-bottom-right-radius: 0.30em !important;
-    border-top-left-radius: 0.30em !important;
-    border-bottom-left-radius: 0.30em !important;
+    border-radius: var(--oblyon-radius-sm) !important;	/* InfraS change : 4 proprietes remplacees par le jeton de rayon */
 }
 
 .butActionNew, .butActionNewRefused, .butActionNew:link, .butActionNew:visited, .butActionNew:hover, .butActionNew:active {
@@ -298,16 +278,16 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
 	box-shadow: none; webkit-box-shadow: none;
 }
 
+/* InfraS change begin : ombres des jetons ; bouton ouvert = couleur de survol (plus d'assombrissement par ombre interne) */
 .butAction:hover, .cke_dialog_ui_button_ok:hover {
 	background: var(--colorButtonAction2) !important;
-    -webkit-box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
-    box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
+    box-shadow: var(--oblyon-shadow-md);
 }
 .dropdown-holder.open > .butAction {
-    /** TODO use css var with hsl from --colortextlink to allow create darken or lighten color */
-    -webkit-box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.1), inset 0px 0px 200px rgba(0, 0, 0, 0.3); /* fix hover feedback : use "inset" background to easily darken background */
-    box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.1), inset 0px 0px 200px rgba(0, 0, 0, 0.3); /* fix hover feedback : use "inset" background to easily darken background */
+    background: var(--colorButtonAction2) !important;
+    box-shadow: var(--oblyon-shadow-md);
 }
+/* InfraS change end */
 .butActionNew:hover   {
     text-decoration: underline;
     box-shadow: unset !important;
@@ -320,8 +300,7 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
 
 .butActionDelete:hover, .cke_dialog_ui_button_cancel:hover, .ui-button:hover, .ui-button:focus {
 	background: var(--colorButtonDelete2) !important;
-    -webkit-box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
-    box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
+    box-shadow: var(--oblyon-shadow-md);	/* InfraS change */
 }
 
 .butActionRefused {
@@ -337,14 +316,14 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
     display: inline-block;
     text-align: center;
     cursor: pointer;
-    color: #999 !important;
-    background: unset;
-    border: 0px;
+    /* InfraS change begin : bouton refuse = plat, gris neutre du preset, sans ombre */
+    color: var(--oblyon-muted-text) !important;
+    background: var(--oblyon-neutral-bg);
+    border: 1px solid var(--oblyon-border);
+    border-radius: var(--oblyon-radius-sm);
     box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -webkit-box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
-    box-shadow: 0px 1px 4px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
+    box-shadow: none;
+    /* InfraS change end */
 }
 
 .butActionNewRefused, .butActionNewRefused:link, .butActionNewRefused:visited, .butActionNewRefused:hover, .butActionNewRefused:active {
@@ -360,46 +339,39 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
     display: inline-block;
     /* text-align: center;  New button are on right of screen */
     cursor: pointer;
-    color: #999 !important;
+    color: var(--oblyon-muted-text) !important;	/* InfraS change */
     padding-top: 0.2em;
     box-shadow: none !important;
-    -webkit-box-shadow: none !important;
 }
 
 /* ===== Fusion 2026-07 : proprietes structurelles portees depuis l'ancien bloc .butAction de global.inc.php ===== */
 /* (couleurs/marges/paddings de l'ancien bloc etaient deja ecrasees par les regles btn ci-dessus ; on ne garde que le vivant) */
 .butActionRefused, .butAction, .butAction:link, .butAction:visited, .butAction:hover, .butAction:active, .butActionDelete, .butActionDelete:link, .butActionDelete:visited, .butActionDelete:hover, .butActionDelete:active, .butActionNewRefused {
 	white-space: nowrap;
-	transition: all .3s ease-in-out;
-	-moz-transition: all .3s ease-in-out;
-	-webkit-transition: all .3s ease-in-out;
+	/* InfraS change begin : transition unique des jetons, plus de reflets teintes (bleute / rose) ni d'ombre sur les boutons refuses */
+	transition: background-color var(--oblyon-transition), box-shadow var(--oblyon-transition), color var(--oblyon-transition);
 }
-.butAction {
-	-webkit-box-shadow: inset 0 1px 0 rgba(170, 200, 210, .6);
-	box-shadow: inset 0 1px 0 rgba(170, 200, 210, .6);
+.butAction, .butActionDelete {
+	box-shadow: none;
 }
-.butAction:active {
-	-webkit-box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
-	box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
-}
-.butActionDelete, .butActionDelete:active {
-	-webkit-box-shadow: inset 0 1px 0 rgba(210, 170, 170, .6);
-	box-shadow: inset 0 1px 0 rgba(210, 170, 170, .6);
+.butAction:active, .butActionDelete:active {
+	box-shadow: var(--oblyon-shadow-sm);
 }
 .butActionNew:hover {
 	color: #f7f7f7;
 }
 .butActionRefused {
-	opacity: .6;
+	opacity: .7;
 }
 .butActionRefused:hover, .butActionRefused:active {
-	background-color: #666;
+	background-color: var(--oblyon-neutral-bg);
 }
 
 .butActionTransparent {
-    color: #222 ! important;
+    color: var(--colortext) ! important;
     background-color: transparent ! important;
 }
+/* InfraS change end */
 
 
 /*
@@ -433,8 +405,8 @@ TITLE BUTTON
 }
 
 a.btnTitle.btnTitleSelected {
-    border: 1px solid #ccc;
-    border-radius: 3px;
+    border: 1px solid var(--oblyon-border-strong);	/* InfraS change */
+    border-radius: var(--oblyon-radius-sm);	/* InfraS change */
 }
 
 .btnTitle > .btnTitle-icon {
@@ -442,12 +414,12 @@ a.btnTitle.btnTitleSelected {
 }
 
 .btnTitle > .btnTitle-label {
-    color: #666666;
+    color: var(--oblyon-muted-text);	/* InfraS change */
 }
 
 .btnTitle:hover, a.btnTitle:hover {
 	border: 0px;
-    border-radius: 3px;
+    border-radius: var(--oblyon-radius-sm);	/* InfraS change */
     position: relative;
     margin: 0 0 0 10px;
     text-align: center;
@@ -485,7 +457,7 @@ div.pagination li:first-child a.btnTitle{
 
 
 .imgforviewmode {
-	color: #aaa;
+	color: var(--oblyon-muted-text);	/* InfraS change */
 }
 
 /* rule to reduce top menu - 2nd reduction: Reduce width of top menu icons again */
@@ -525,16 +497,19 @@ div.pagination li:first-child a.btnTitle{
  * BTN LINK
  */
 
+/* InfraS change begin : lien-bouton en pilule neutre du preset */
 .btn-link{
 	margin-right: 5px;
-	border: 1px solid #ddd;
-	color: #333;
+	border: 1px solid var(--oblyon-border);
+	color: var(--colortext);
 	padding: 5px 10px;
-	border-radius:1em;
+	border-radius: var(--oblyon-radius-pill);
 	text-decoration: none !important;
+	transition: background-color var(--oblyon-transition);
 }
 
 .btn-link:hover{
-	background-color: #ddd;
-	border: 1px solid #ddd;
+	background-color: var(--oblyon-neutral-bg);
+	border: 1px solid var(--oblyon-border-strong);
 }
+/* InfraS change end */

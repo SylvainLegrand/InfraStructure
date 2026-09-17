@@ -25,12 +25,55 @@
  * The mode is enabled when:
  *  - the admin option OBLYON_TOUCH_MENU forces it (CSS var --oblyon-touchmenu-forced = 1), or
  *  - the device is detected as touch only ((hover: none) and (pointer: coarse), or ontouchstart).
+ *
+ * The same file drives the mobile layout drawer (OBLYON_MOBILE_LAYOUT, see themeoblyon/mobile.inc.php).
  */
 jQuery(document).ready(function () {
 	'use strict';
 
 	var $ = jQuery;
 	var OPEN = 'is-touch-open';
+
+	// Read the flags exposed by the theme CSS (touchmenu.inc.php, flyoutmenu.inc.php, mobile.inc.php)
+	function cssFlag(name) {
+		try {
+			return parseInt(getComputedStyle(document.documentElement).getPropertyValue(name), 10) === 1;
+		} catch (e) {
+			return false;
+		}
+	}
+	function cssInt(name, def) {
+		try {
+			var v = parseInt(getComputedStyle(document.documentElement).getPropertyValue(name), 10);
+			return isNaN(v) ? def : v;
+		} catch (e) {
+			return def;
+		}
+	}
+
+	/*
+	 * Mobile layout (OBLYON_MOBILE_LAYOUT, see themeoblyon/mobile.inc.php).
+	 *
+	 * Below the phone breakpoint the main menu is an off-canvas drawer and every desktop behaviour
+	 * of this file (content offset under the sticky bar, flyout positioning, touch toggles) must
+	 * stand aside : mobileActive() is the single test used everywhere. The breakpoint is read from
+	 * the CSS so that the JS and the @media rules can never disagree.
+	 */
+	var mobile = cssFlag('--oblyon-mobile');
+	var mobileMq = (mobile && window.matchMedia) ? window.matchMedia('(max-width: ' + cssInt('--oblyon-mobile-bp', 600) + 'px)') : null;
+	function mobileActive() {
+		return !!(mobileMq && mobileMq.matches);
+	}
+	function onMobileChange(fn) {
+		if (!mobileMq) {
+			return;
+		}
+		if (mobileMq.addEventListener) {
+			mobileMq.addEventListener('change', fn);
+		} else if (mobileMq.addListener) {
+			mobileMq.addListener(fn);
+		}
+	}
 
 	/*
 	 * Inverted top menu (MAIN_MENU_INVERT + THEME_STICKY_TOPMENU) : dynamic content offset.
@@ -46,14 +89,19 @@ jQuery(document).ready(function () {
 	 */
 	(function () {
 		var $bar = $('#tmenu_tooltipinvert');
-		// Only when the bar is sticky (fixed) : otherwise it is in normal flow and pushes the
-		// content by itself, no offset to patch.
-		if (!$bar.length || $bar.css('position') !== 'fixed') {
+		if (!$bar.length) {
 			return;
 		}
 		var $left = $('#id-left');
 		var $right = $('#id-right');
 		function adjustInvertOffset() {
+			// Mobile layout : the bar is a fixed 48px row and the offset is sized by the CSS
+			// Non sticky bar : it is in normal flow and pushes the content by itself, no offset to patch
+			if (mobileActive() || $bar.css('position') !== 'fixed') {
+				$left.css('padding-top', '');
+				$right.css('padding-top', '');
+				return;
+			}
 			var h = $bar.outerHeight();
 			if (!h) {
 				return;
@@ -74,18 +122,279 @@ jQuery(document).ready(function () {
 		});
 	})();
 
-	// Read the flags exposed by the theme CSS (touchmenu.inc.php)
-	function cssFlag(name) {
-		try {
-			return parseInt(getComputedStyle(document.documentElement).getPropertyValue(name), 10) === 1;
-		} catch (e) {
-			return false;
-		}
+	/*
+	 * Mobile drawer.
+	 *
+	 * The drawer is the main menu itself (nav.main-nav), positioned off-canvas by the CSS below the
+	 * phone breakpoint. The button (.oblyon-mnav-btn, printed in the top bar by the menu manager)
+	 * toggles body.oblyon-mnav-open ; the overlay, the close button and the Escape key close it.
+	 * Inside, the chevrons (.oblyon-mnav-toggle) fold / unfold the sub-menu trees (accordion, class
+	 * .is-mobile-open) while the links keep navigating. On the first opening the current module and
+	 * the branch of the current page are unfolded. With classic menus the search form and the
+	 * bookmarks are printed in the (collapsed) left column : they are moved into the drawer while
+	 * the phone layout is active and put back in place above the breakpoint.
+	 */
+	if (mobile) {
+		(function () {
+			var $nav = $('nav.main-nav').first();
+			var $btn = $('.oblyon-mnav-btn');
+			if (!$nav.length || !$btn.length) {
+				return;
+			}
+			var $body = $('body');
+			var BODYOPEN = 'oblyon-mnav-open';
+			var ITEMOPEN = 'is-mobile-open';
+			var $overlay = $('<div class="oblyon-mnav-overlay"></div>').appendTo($body);
+			var expanded = false;
+
+			function setToggleState($li) {
+				$li.children('.oblyon-mnav-toggle').attr('aria-expanded', $li.hasClass(ITEMOPEN) ? 'true' : 'false');
+			}
+			function expandCurrent() {
+				if (expanded) {
+					return;
+				}
+				expanded = true;
+				var $active = $nav.find('.oblyon-flyout li.is-active');
+				$nav.find('.main-nav__item.is-sel, .main-nav__item.tmenusel')
+					.add($active.parents('li.has-children'))
+					.add($active.closest('.main-nav__item'))
+					.addClass(ITEMOPEN)
+					.each(function () {
+						setToggleState($(this));
+					});
+			}
+			function openDrawer() {
+				expandCurrent();
+				$body.addClass(BODYOPEN);
+				$btn.attr('aria-expanded', 'true');
+			}
+			function closeDrawer() {
+				$body.removeClass(BODYOPEN);
+				$btn.attr('aria-expanded', 'false');
+			}
+
+			$btn.on('click', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				if ($body.hasClass(BODYOPEN)) {
+					closeDrawer();
+				} else {
+					openDrawer();
+				}
+			});
+			$nav.on('click', '.oblyon-mnav-close', function (e) {
+				e.preventDefault();
+				closeDrawer();
+			});
+			$overlay.on('click', closeDrawer);
+			$(document).on('keydown', function (e) {
+				if ((e.key === 'Escape' || e.keyCode === 27) && $body.hasClass(BODYOPEN)) {
+					closeDrawer();
+				}
+			});
+
+			// Accordion : a chevron folds / unfolds its module or its entry ; folding also folds everything below it
+			$nav.on('click', '.oblyon-mnav-toggle', function (e) {
+				if (!mobileActive()) {
+					return;
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				var $li = $(this).closest('li');
+				$li.toggleClass(ITEMOPEN);
+				if (!$li.hasClass(ITEMOPEN)) {
+					$li.find('.' + ITEMOPEN).removeClass(ITEMOPEN).each(function () {
+						setToggleState($(this));
+					});
+				}
+				setToggleState($li);
+			});
+
+			// Search form / bookmarks of the left column (classic menus only : with inverted menus they are already inside the drawer)
+			var $extras = $('#id-left').find('#blockvmenusearch, #blockvmenubookmarks').filter(function () {
+				return !$.contains($nav.get(0), this);
+			});
+			var $placeholders = $();
+			function relocateExtras() {
+				if (!$extras.length) {
+					return;
+				}
+				if (mobileActive()) {
+					if (!$placeholders.length) {
+						$extras.each(function () {
+							var $ph = $('<span class="oblyon-mnav-placeholder" hidden></span>').insertBefore(this);
+							$placeholders = $placeholders.add($ph);
+						});
+						var $head = $nav.children('.oblyon-mnav-head');
+						if ($head.length) {
+							$head.after($extras);
+						} else {
+							$nav.prepend($extras);
+						}
+					}
+				} else if ($placeholders.length) {
+					$extras.each(function (i) {
+						$placeholders.eq(i).replaceWith(this);
+					});
+					$placeholders = $();
+				}
+			}
+			relocateExtras();
+			onMobileChange(function () {
+				if (!mobileActive()) {
+					closeDrawer();
+				}
+				relocateExtras();
+			});
+
+			// Lists : the filter row is folded on phones (CSS) ; a button inserted above the table unfolds it.
+			// It is unfolded from the start when a filter is set, and the button shows how many. The button is
+			// hidden by the CSS above the phone breakpoint, and the class has no effect there.
+			var lblFilters = '';
+			try {
+				lblFilters = getComputedStyle(document.documentElement).getPropertyValue('--oblyon-lbl-filters').trim().replace(/^["']|["']$/g, '');
+			} catch (e) {
+				lblFilters = '';
+			}
+			$('div.div-table-responsive, div.div-table-responsive-no-min').each(function () {
+				var $wrap = $(this);
+				var $table = $wrap.find('table.liste').first();
+				var $filter = $table.children('tbody').children('tr.liste_titre_filter');
+				if (!$filter.length) {
+					return;
+				}
+				var count = 0;
+				$filter.find('input, select').each(function () {
+					if (this.type === 'hidden' || this.type === 'button' || this.type === 'submit' || this.type === 'checkbox' || this.type === 'radio') {
+						return;
+					}
+					var v = $(this).val();
+					if (v === null || v === undefined) {
+						return;
+					}
+					if (Array.isArray(v)) {
+						if (v.length) {
+							count++;
+						}
+						return;
+					}
+					v = String(v).trim();
+					if (v !== '' && v !== '-1') {
+						count++;
+					}
+				});
+				var $btn = $('<button type="button" class="oblyon-mfilter-btn"><span class="fa fa-filter" aria-hidden="true"></span><span class="oblyon-mfilter-lbl"></span></button>');
+				$btn.find('.oblyon-mfilter-lbl').text(lblFilters || 'Filters');
+				if (count) {
+					$btn.addClass('is-active').append($('<span class="oblyon-mfilter-count"></span>').text(count));
+					$table.addClass('oblyon-mfilter-open');
+				}
+				$btn.attr('aria-expanded', count ? 'true' : 'false');
+				$wrap.before($btn);
+				$btn.on('click', function () {
+					$table.toggleClass('oblyon-mfilter-open');
+					$btn.attr('aria-expanded', $table.hasClass('oblyon-mfilter-open') ? 'true' : 'false');
+				});
+			});
+		})();
 	}
 
 	var forced = cssFlag('--oblyon-touchmenu-forced');
 	var reduceHover = cssFlag('--oblyon-reduce-hover');
+	var flyout = cssFlag('--oblyon-flyout');
 	var autoTouch = ('ontouchstart' in window) || (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+
+	/*
+	 * Flyout sub-menus (OBLYON_EFFECT_REDUCE_LEFTMENU = flyout, see themeoblyon/flyoutmenu.inc.php) : positioning.
+	 *
+	 * CSS alone (:hover + position:absolute) is enough in the common case. Two cases need a hand:
+	 *  - sticky side bar (OBLYON_STICKY_LEFTBAR): .side-nav is position:fixed with overflow hidden,
+	 *    which would clip the panel -> the level 1 panel is switched to position:fixed and placed
+	 *    next to the bar with viewport coordinates;
+	 *  - a panel taller than the space left below its entry -> shifted up (level 1) or opened
+	 *    upwards / backwards (nested panels) so it stays inside the viewport.
+	 * Runs on every device (mouseenter / focusin), so it stays BEFORE the touch early-return.
+	 * Nothing to do while the mobile drawer is active (panels are an accordion there).
+	 */
+	var placeFlyout = null;
+	if (flyout) {
+		(function () {
+			var $items = $('.main-nav.is-inverted .main-nav__item');
+			if (!$items.length) {
+				return;
+			}
+			var sticky = ($('.side-nav').css('position') === 'fixed');
+			var rtl = (getComputedStyle(document.body).direction === 'rtl');
+			var MARGIN = 4;
+
+			function placeMain($item) {
+				if (mobileActive()) {
+					return;
+				}
+				var $fly = $item.children('.oblyon-flyout');
+				if (!$fly.length) {
+					return;
+				}
+				$fly.removeClass('oblyon-flyout--fixed').css({top: '', left: '', right: '', 'max-height': '', 'overflow-y': ''});
+				var rect = $item.get(0).getBoundingClientRect();
+				var h = $fly.outerHeight();
+				var vh = window.innerHeight;
+				if (!h) {
+					return;
+				}
+				if (sticky) {
+					var bar = $item.closest('.vmenu').get(0).getBoundingClientRect();
+					var top = rect.top;
+					if (top + h > vh - MARGIN) {
+						top = Math.max(MARGIN, vh - h - MARGIN);
+					}
+					$fly.addClass('oblyon-flyout--fixed').css('top', top + 'px');
+					if (rtl) {
+						$fly.css('right', (window.innerWidth - bar.left) + 'px');
+					} else {
+						$fly.css('left', bar.right + 'px');
+					}
+					if (h > vh - 2 * MARGIN) {
+						$fly.css({'max-height': (vh - 2 * MARGIN) + 'px', 'overflow-y': 'auto'});
+					}
+				} else {
+					var overflow = rect.top + h - (vh - MARGIN);
+					if (overflow > 0) {
+						$fly.css('top', (-Math.min(overflow, Math.max(0, rect.top - MARGIN))) + 'px');
+					}
+				}
+			}
+
+			function placeSub($li) {
+				if (mobileActive()) {
+					return;
+				}
+				var $sub = $li.children('.oblyon-flyout__sub');
+				if (!$sub.length) {
+					return;
+				}
+				$sub.removeClass('oblyon-flyout--up oblyon-flyout--back');
+				var rect = $sub.get(0).getBoundingClientRect();
+				var vh = window.innerHeight;
+				var vw = window.innerWidth;
+				if (rect.bottom > vh - MARGIN && rect.height < rect.bottom - MARGIN) {
+					$sub.addClass('oblyon-flyout--up');
+				}
+				if (rtl ? (rect.left < MARGIN) : (rect.right > vw - MARGIN)) {
+					$sub.addClass('oblyon-flyout--back');
+				}
+			}
+
+			placeFlyout = placeMain;
+			$items.on('mouseenter focusin', function () {
+				placeMain($(this));
+			});
+			$(document).on('mouseenter focusin', '.oblyon-flyout li.has-children', function () {
+				placeSub($(this));
+			});
+		})();
+	}
 
 	// Mouse device without forcing: keep the native hover behaviour, do nothing.
 	if (!forced && !autoTouch) {
@@ -145,9 +454,12 @@ jQuery(document).ready(function () {
 
 	// --- Reduced left menu with "hover" effect (OBLYON_REDUCE_LEFTMENU + effect hover) ---
 	// First tap expands the collapsed menu (and swallows that tap to avoid an accidental
-	// navigation on an icon); once expanded, links navigate normally.
+	// navigation on an icon); once expanded, links navigate normally. Not in the mobile drawer.
 	if (reduceHover) {
 		$(document).on('click', '.vmenu', function (e) {
+			if (mobileActive()) {
+				return;
+			}
 			var $vmenu = $(this);
 			if (!$vmenu.hasClass(OPEN)) {
 				e.preventDefault();
@@ -155,6 +467,43 @@ jQuery(document).ready(function () {
 				closeAll($vmenu);
 				$vmenu.addClass(OPEN);
 			}
+		});
+	}
+
+	// --- Flyout sub-menus (OBLYON_EFFECT_REDUCE_LEFTMENU = flyout) ---
+	// First tap on an icon opens its panel (a second tap on the icon closes it); a tap on an entry
+	// with children toggles its nested panel; other entries navigate normally. Not in the mobile
+	// drawer (accordion driven by the chevrons, links navigate).
+	if (flyout) {
+		$(document).on('click', '.main-nav.is-inverted .main-nav__item > div > a.main-nav__link', function (e) {
+			if (mobileActive()) {
+				return;
+			}
+			var $item = $(this).closest('.main-nav__item');
+			if (!$item.children('.oblyon-flyout').length) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			var willOpen = !$item.hasClass(OPEN);
+			closeAll();
+			if (willOpen) {
+				$item.addClass(OPEN);
+				if (placeFlyout) {
+					placeFlyout($item);
+				}
+			}
+		});
+		$(document).on('click', '.oblyon-flyout li.has-children > a.oblyon-flyout__link', function (e) {
+			if (mobileActive()) {
+				return;
+			}
+			var $li = $(this).closest('li');
+			e.preventDefault();
+			e.stopPropagation();
+			var willOpen = !$li.hasClass(OPEN);
+			$li.siblings('.' + OPEN).removeClass(OPEN).find('.' + OPEN).removeClass(OPEN);	// one open branch at a time, ancestors kept open
+			$li.toggleClass(OPEN, willOpen);
 		});
 	}
 

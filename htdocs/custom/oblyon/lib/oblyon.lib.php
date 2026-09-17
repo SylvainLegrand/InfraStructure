@@ -401,7 +401,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 			print '</a>';
 		} elseif ($tag == 'input') {
 			$constantKey		= getDolGlobalString($confkey, 0);
-			$defaultMetas	   = array('type' => 'text', 'class' => 'flat quatrevingtpercent', 'style' => 'padding: 0; font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => $constantKey);
+			$defaultMetas	   = array('type' => 'text', 'class' => 'flat quatrevingtpercent', 'style' => 'padding: 0; font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => dol_escape_htmltag($constantKey));	// InfraS change : valeur echappee (une constante peut venir d'un preset importe)
 			$metas			  = array_merge ($defaultMetas, $metas);
 			$metascompil		= '';
 			foreach ($metas as $key => $value) {

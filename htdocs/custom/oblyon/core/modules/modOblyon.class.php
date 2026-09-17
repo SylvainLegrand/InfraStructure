@@ -65,12 +65,12 @@
 			$this->special					= 0;																					// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
 			$this->picto					= 'inovea@'.$this->name;																// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
 			$this->module_parts				= array('menus'	=> 1,
-													'js'	=> array('/'.$this->name.'/js/pushy.js', '/'.$this->name.'/js/oblyon.js'),
+													'js'	=> array('/'.$this->name.'/js/pushy.js', '/'.$this->name.'/js/oblyon.js?v='.urlencode(trim($this->version))),	// InfraS change : version dans l'adresse (le serveur met les .js en cache 30 jours : sans cela les navigateurs gardent l'ancien script apres une mise a jour)
 													'css'	=> array('css'	=> ('/'.$this->name.'/css/'.$this->name.'.css'), ('/theme/'.$this->name.'/custom.css.php'), ('/'.$this->name.'/css/font.css')),
 													'tpl'	=> 0,
 													'hooks' => array('data' => array('main'), 'entity' => '0')
 													);
-			$this->dirs						= array('/'.$this->name.'/sql');														// Data directories to create when module is enabled. Example: this->dirs = array("/mymodule/temp");
+			$this->dirs						= array('/'.$this->name.'/sql', '/'.$this->name.'/presets');	// InfraS change : dossier des presets JSON de l'instance (3.6.0)														// Data directories to create when module is enabled. Example: this->dirs = array("/mymodule/temp");
 			$this->config_page_url			= array('options.php@'.$this->name);														// List of php page, stored into mymodule/admin directory, to use to setup module.
 			// Dependencies
 			$this->hidden					= false;																				// A condition to hide module
@@ -95,6 +95,7 @@
 					//'ihm_admin:-dashboard',
 					//'ihm_admin:-login',
 					//'ihm_admin:+template_oblyon:Colors:oblyon@oblyon::/oblyon/admin/colors.php',
+					'user:+oblyoncolors:OblyonUserColorsTab:oblyon@oblyon:1:/oblyon/user/colors.php?id=__ID__',	// InfraS add : couleurs par utilisateur (3.6.0) ; condition 1 = visible pour l'utilisateur sur sa propre fiche, la page applique les droits
 				);
 			}
 			if (!isModEnabled('oblyon')) {

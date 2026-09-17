@@ -48,6 +48,10 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_REDUCE_LEFTMENU',							'__ENTITY__', '0',					'chaine',	'0',	'Oblyon module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_EFFECT_REDUCE_LEFTMENU',					'__ENTITY__', 'only',				'chaine',	'0',	'Oblyon module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_TOUCH_MENU',								'__ENTITY__', '0',					'chaine',	'0',	'Oblyon module');
+-- InfraS add : disposition mobile (3.5.0), active par defaut
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_MOBILE_LAYOUT',							'__ENTITY__', '1',					'chaine',	'0',	'Oblyon module');
+-- InfraS add : preset de couleurs actif (3.6.0) : les valeurs par defaut ci-dessous sont celles du preset "blue" (presets/blue.json)
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_CURRENT_PRESET',							'__ENTITY__', 'blue',				'chaine',	'0',	'Oblyon module');
 
 -- ===== Couleurs : valeurs par défaut = preset « Oblyon Blue » =====
 -- Couleurs : menu supérieur (fond, survol, texte)
@@ -221,6 +225,8 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('FIX_ST
 -- Options : éditeur CKEditor / sécurité HTML
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('FCKEDITOR_ALLOW_ANY_CONTENT',						'__ENTITY__', '0',					'yesno',	'0',	'Oblyon module - Allow to enter any content. However, this will totally disable content filtering which is one of the most important CKEditor features. You can use this to keep all your tags and attributes in the html content');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('FCKEDITOR_ENABLE_SCAYT_AUTOSTARTUP',				'__ENTITY__', '0',					'yesno',	'0',	'Oblyon module - Allow to activate the SpellCheckAsYouType (SCAYT) plugins of CKEditor i.e an automatic spell checking');
+-- InfraS add : habillage de CKEditor (3.5.0) ; la ligne deja posee par un autre module (ex. dolinfras) est conservee
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('FCKEDITOR_SKIN',								'__ENTITY__', 'moono-lisa',			'chaine',	'0',	'Oblyon module - Skin of the CKEditor WYSIWYG editor');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML',	'__ENTITY__', '0',					'yesno',	'0',	'Oblyon module - Allow HTML tags into products label');
 
 -- ===== Réglages complémentaires (exhaustivité : FIX_*, options listes/fiches, FontAwesome, comportements THEME_*) — ordre alphabétique =====

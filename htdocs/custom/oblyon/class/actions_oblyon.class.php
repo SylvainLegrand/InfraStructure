@@ -58,6 +58,52 @@ class ActionsOblyon
 		$this->db = $db;
 	}
 
+	// InfraS add begin : couleurs par utilisateur (3.6.0) : l'onglet "Couleurs" declare par le descripteur est ajoute en fin de liste par
+	// complete_head_from_modules() ; ce hook le deplace juste apres l'onglet core "Interface utilisateur" (guisetup) de la fiche utilisateur
+	/**
+	 * Overloading the completeTabsHead function : reorder the tabs of the user card
+	 *
+	 * @param	array		$parameters		Hook metadata (object, mode, head (by reference), filterorigmodule ; type only in Dolibarr >= 24)
+	 * @param	object		$object			Current object
+	 * @param	string		$action			Current action
+	 * @param	HookManager	$hookmanager	Hook manager
+	 * @return	int							0 = head modified in place, nothing to merge
+	 */
+	public function completeTabsHead($parameters, &$object, &$action, $hookmanager)
+	{
+		// 'type' is only given by Dolibarr >= 24 : the user card is recognised by its core "guisetup" tab and our own tab (both present only there)
+		if (empty($parameters['mode']) || $parameters['mode'] != 'add' || empty($parameters['head']) || !is_array($parameters['head'])) {
+			return 0;
+		}
+		$head	= $parameters['head'];
+		$ours	= null;
+		foreach ($head as $key => $tab) {
+			if (isset($tab[2]) && $tab[2] == 'oblyoncolors') {
+				$ours	= $tab;
+				unset($head[$key]);
+				break;
+			}
+		}
+		if ($ours === null) {
+			return 0;
+		}
+		$newhead	= array();
+		$placed		= false;
+		foreach ($head as $tab) {
+			$newhead[]	= $tab;
+			if (!$placed && isset($tab[2]) && $tab[2] == 'guisetup') {
+				$newhead[]	= $ours;
+				$placed		= true;
+			}
+		}
+		if (!$placed) {
+			$newhead[]	= $ours;	// no "Display setup" tab (should not happen) : keep it at the end
+		}
+		$parameters['head']	= $newhead;	// 'head' is passed by reference by complete_head_from_modules()
+		return 0;
+	}
+	// InfraS add end
+
     /*
 	public function addHtmlHeader($parameters){
 		global $conf;

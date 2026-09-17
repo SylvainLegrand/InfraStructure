@@ -6,7 +6,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 
     .bodylogin
     {
-		background: var(--colorbtitle);
+		background: var(--login_bgcolor);	/* InfraS change : couleur "fond de la page de connexion" (OBLYON_COLOR_LOGIN_BCKGRD), jusqu'ici sans effet */
         display: table;
         position: absolute;
         height: 100%;
@@ -14,10 +14,14 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         font-size: 1em;
     }
     .login_center {
-		margin-top: 30vw;
 <?php if (!getDolGlobalString('MAIN_LOGIN_RIGHT')) { ?>
+		/* InfraS change : plus de margin-top 30vw, la carte est centree verticalement par la cellule */
 		display: table-cell;
 		vertical-align: middle;
+<?php } else { ?>
+		/* InfraS change : meme position que l'ancien margin-top 30vw (carte sous le milieu) mais calculee sur la hauteur de l'ecran (30vw = 55vh en 16:9),
+		   plafonnee pour laisser 420px a la carte : plus jamais hors ecran sur une fenetre basse */
+		padding-top: min(55vh, calc(100vh - 420px));
 <?php } ?>
     }
     .login_vertical_align {
@@ -37,50 +41,55 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 		width: 530px;
 <?php } ?>
 		max-width: <?php echo !getDolGlobalString('MAIN_LOGIN_RIGHT') ? '530px' : 'calc(50vw - 70px)'; ?>;
-		color: var(--bgnavtop_txt) !important;
+		color: var(--login_txtcolor) !important;	/* InfraS change : couleur du titre choisie selon la clarte du fond de la page */
 		padding-bottom: 10px;
     }
 	.login_table_title a {
 		margin: auto;
 	}
     .login_table label {
-        text-shadow: 1px 1px 1px #FFF;
+        text-shadow: none;	/* InfraS change */
     }
+    /* InfraS change begin : carte de connexion sur les jetons (ombre douce, rayon du theme, fond des lignes) */
     .login_table {
 		margin: <?php echo !getDolGlobalString('MAIN_LOGIN_RIGHT') ? '0px auto' : '0px calc((50vw - 600px) / 2) 0px auto'; ?>;
 
-		padding: 4px;
+		padding: 12px;
 		width: 600px;
 		max-width: <?php echo !getDolGlobalString('MAIN_LOGIN_RIGHT') ? '600px' : '50vw'; ?>;
 <?php if (getDolGlobalString('MAIN_LOGIN_RIGHT')) { ?>
 		width: 600px;
 <?php } ?>
-		-webkit-box-shadow: 12px 12px 25px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(60,60,60,0.15);
-		box-shadow: 12px 12px 25px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(60,60,60,0.15);
+		box-shadow: var(--oblyon-shadow-lg);
         <?php
             if (getDolGlobalString('MAIN_LOGIN_BACKGROUND')) {
 				print '	background-color: var(--colorbtitle);';
             } else {
-                print '	background-color: #FFFFFF;';
+                print '	background-color: var(--colorbline);';
             }
         ?>
-		border-radius: 4px;
-        /*border-top:solid 1px rgba(180,180,180,.4);
-        border-left:solid 1px rgba(180,180,180,.4);
-        border-right:solid 1px rgba(180,180,180,.4);
-        border-bottom:solid 1px rgba(180,180,180,.4);*/
+		border-radius: var(--oblyon-radius);
+		border: 1px solid var(--oblyon-border);
     }
     .login_table input#username, .login_table input#password, .login_table input#securitycode {
-        border: none;
-        border-bottom: solid 1px rgba(180,180,180,.4);
-        padding: 5px;
+        border: 1px solid var(--oblyon-input-border);
+        border-radius: var(--oblyon-radius-sm);
+        padding: 8px 10px;
         margin-left: 10px;
         margin-top: 5px;
         margin-bottom: 5px;
+        transition: border-color var(--oblyon-transition), box-shadow var(--oblyon-transition);
     }
     .login_table input#username:focus, .login_table input#password:focus, .login_table input#securitycode:focus {
-        outline: none !important;
+        outline: none;
+        border-color: var(--oblyon-focus);
+        box-shadow: 0 0 0 2px <?php print colorHexToRgb($maincolor, 0.18); ?>;
     }
+    .login_table input#username:focus-visible, .login_table input#password:focus-visible, .login_table input#securitycode:focus-visible {
+        outline: 2px solid var(--oblyon-focus);
+        outline-offset: 1px;
+    }
+    /* InfraS change end */
     .login_table .trinputlogin {
         font-size: 1.2em;
         margin: 8px;
@@ -89,7 +98,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         background-color: transparent;
         /* border: 2px solid #ccc; */
         min-width: 220px;
-        border-radius: 2px;
+        border-radius: var(--oblyon-radius-sm);	/* InfraS change */
     }
     .login_table .tdinputlogin .fa {
         padding-left: 10px;
@@ -375,7 +384,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         display: block;
     }
     .login_block_getinfo .atoplogin, .login_block_getinfo .atoplogin:hover {
-    	color: #333 !important;
+    	color: var(--colortext) !important;	/* InfraS change */
     	font-weight: normal !important;
     }
     .alogin, .alogin:hover {
@@ -432,13 +441,13 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
         height: 1.2em;
         background-size: contain;
         vertical-align: middle;
-    	background-color: #FFF;
+    	background-color: var(--colorbline);	/* InfraS change */
     }
     img.userphoto[alt="Gravatar avatar"], img.photouserphoto.dropdown-user-image[alt="Gravatar avatar"] {
-    	background: #fff;
+    	background: var(--colorbline);	/* InfraS change */
     }
     form[name="addtime"] img.userphoto {
-    	border: 1px solid #444;
+    	border: 1px solid var(--oblyon-border-strong);	/* InfraS change */
     }
     .span-icon-user {
         background-image: url(<?php print dol_buildpath($path.'/theme/'.$theme.'/img/object_user.png',1); ?>);

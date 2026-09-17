@@ -43,6 +43,13 @@
 	define('ISLOADEDBYSTEELSHEET', '1');
 	session_cache_limiter('public');
 	require_once __DIR__.'/../../main.inc.php'; // __DIR__ allow this script to be included in custom themes
+	// InfraS add begin : disposition mobile (3.5.0) : la largeur d'ecran decide (mobile.inc.php), jamais l'agent utilisateur : l'indicateur
+	// "petit ecran" du core (base sur le navigateur) ne pilote plus les 30 branches de global.inc.php, qui produisent la feuille bureau
+	if (getDolGlobalInt('OBLYON_MOBILE_LAYOUT', 1) && GETPOST('optioncss', 'aZ09') != 'print') {
+		$conf->dol_optimize_smallscreen	= 0;
+		$conf->browser->layout			= 'classic';	// idem pour les 12 branches "layout == phone" (colonnes des fiches) : gerees par largeur dans mobile.inc.php
+	}
+	// InfraS add end
 	require __DIR__.'/theme_vars.inc.php';
 	if (defined('THEME_ONLY_CONSTANT'))	return;
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
@@ -50,6 +57,7 @@
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 	dol_include_once('/oblyon/backport/v21/core/lib/functions.lib.php');
+	dol_include_once('/oblyon/lib/oblyon_colors.lib.php');	// InfraS add : couleurs par utilisateur (3.6.0) : oblyon_color_setting() lit la conf utilisateur chargee plus bas
 
 	/************************************************
 	*	Select text color from background values
@@ -138,48 +146,49 @@
 	$dol_hide_leftmenu			= $conf->dol_hide_leftmenu;
 	$dol_optimize_smallscreen	= $conf->dol_optimize_smallscreen;
 	$dol_no_mouse_hover			= $conf->dol_no_mouse_hover;
-	dolibarr_set_const($db, 'THEME_ELDY_ENABLE_PERSONALIZED', 1, 'chaine', 0, 'OblyonTheme', $conf->entity);
+	// dolibarr_set_const($db, 'THEME_ELDY_ENABLE_PERSONALIZED', 1, 'chaine', 0, 'OblyonTheme', $conf->entity);	// InfraS change : retire (3.6.0) : DELETE + INSERT a chaque feuille pour rien, les tests lisent la conf utilisateur, jamais cette globale
 	$useboldtitle				= getDolGlobalInt('THEME_ELDY_USEBOLDTITLE', 0);
 
 	// ===================== Couleurs Oblyon (défauts dans theme_vars, surcharge par constantes OBLYON_COLOR_*) =====================
-	$maincolor					= getDolGlobalString('OBLYON_COLOR_MAIN');								// default value: #0083a2
+	// InfraS change begin : couleurs par utilisateur (3.6.0) : getDolGlobalString() -> oblyon_color_setting() (valeur personnelle si OBLYON_USER_COLORS, sinon instance)
+	$maincolor					= oblyon_color_setting('OBLYON_COLOR_MAIN');								// default value: #0083a2
 	$navlinkcolor				= '#f4f4f4';															// default value: #eee
 	$topmenu_hover				= $maincolor;															// default value: #
-	$bgnavtop					= getDolGlobalString('OBLYON_COLOR_TOPMENU_BCKGRD', $bgnavtop);			// default value: #333		//	for main navigation
-	$bgnavtop_txt				= getDolGlobalString('OBLYON_COLOR_TOPMENU_TXT', $bgnavtop_txt);			// default value: #f4f4f4	//	for main navigation
-	$bgnavtop_txt_active		= getDolGlobalString('OBLYON_COLOR_TOPMENU_TXT_ACTIVE', $bgnavtop_txt_active);		// default value: #f4f4f4	//	for main navigation
-	$bgnavtop_txt_hover			= getDolGlobalString('OBLYON_COLOR_TOPMENU_TXT_HOVER', $bgnavtop_txt_hover);		// default value: #f4f4f4	//	for main navigation
-	$bgnavtop_hover				= getDolGlobalString('OBLYON_COLOR_TOPMENU_BCKGRD_HOVER', $bgnavtop_hover);		// default value: #444		//	for main navigation
-	$bgnavleft					= getDolGlobalString('OBLYON_COLOR_LEFTMENU_BCKGRD', $bgnavleft);			// default value: #333		//	for left navigation
-	$bgnavleft_txt				= getDolGlobalString('OBLYON_COLOR_LEFTMENU_TXT', $bgnavleft_txt);			// default value: #f4f4f4	//	for left navigation
-	$bgnavleft_txt_active		= getDolGlobalString('OBLYON_COLOR_LEFTMENU_TXT_ACTIVE', $bgnavleft_txt_active);	// default value: #f4f4f4	//	for left navigation
-	$bgnavleft_txt_hover		= getDolGlobalString('OBLYON_COLOR_LEFTMENU_TXT_HOVER', $bgnavleft_txt_hover);		// default value: #f4f4f4	//	for left navigation
-	$bgnavleft_hover			= getDolGlobalString('OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER', $bgnavleft_hover);		// default value: #444		//	for left navigation
-	$colorButtonAction1			= getDolGlobalString('THEME_ELDY_BTNACTION', $colorButtonAction1);			// default value: #0088cc
-	$colorButtonAction2			= getDolGlobalString('OBLYON_COLOR_BUTTON_ACTION2', $colorButtonAction2);			// default value: #0044cc
-	$colorTextButtonAction		= getDolGlobalString('THEME_ELDY_TEXTBTNACTION', $colorTextButtonAction);
-	$colorButtonDelete1			= getDolGlobalString('OBLYON_COLOR_BUTTON_DELETE1', $colorButtonDelete1);			// default value: #cc8800
-	$colorButtonDelete2			= getDolGlobalString('OBLYON_COLOR_BUTTON_DELETE2', $colorButtonDelete2);			// default value: #cc4400
-	$colorInfoBorder			= getDolGlobalString('OBLYON_COLOR_INFO_BORDER', $colorInfoBorder);			// default value: #87cfd2
-	$colorInfoBg				= getDolGlobalString('OBLYON_COLOR_INFO_BCKGRD', $colorInfoBg);			// default value: #eff8fc
-	$colorInfoTxt				= getDolGlobalString('OBLYON_COLOR_INFO_TEXT', $colorInfoTxt);						// default value: #
-	$colorWarningBorder			= getDolGlobalString('OBLYON_COLOR_WARNING_BORDER', $colorWarningBorder);			// default value: #f2cf87
-	$colorWarningBg				= getDolGlobalString('OBLYON_COLOR_WARNING_BCKGRD', $colorWarningBg);			// default value: #fcf8e3
-	$colorWarningTxt			= getDolGlobalString('OBLYON_COLOR_WARNING_TEXT', $colorWarningTxt);					// default value: #
-	$colorErrorBorder			= getDolGlobalString('OBLYON_COLOR_ERROR_BORDER', $colorErrorBorder);			// default value: #e0796e
-	$colorErrorBg				= getDolGlobalString('OBLYON_COLOR_ERROR_BCKGRD', $colorErrorBg);			// default value: #f07b6e
-	$colorErrorTxt				= getDolGlobalString('OBLYON_COLOR_ERROR_TEXT', $colorErrorTxt);					// default value: #
-	$colorNotifInfoBg			= getDolGlobalString('OBLYON_COLOR_NOTIF_INFO_BCKGRD', $colorNotifInfoBg);		// default value: #d9e5d1
-	$colorNotifInfoTxt			= getDolGlobalString('OBLYON_COLOR_NOTIF_INFO_TEXT', $colorNotifInfoTxt);		// default value: #446548
-	$colorNotifWarningBg		= getDolGlobalString('OBLYON_COLOR_NOTIF_WARNING_BCKGRD', $colorNotifWarningBg);	// default value: #fff7d1
-	$colorNotifWarningTxt		= getDolGlobalString('OBLYON_COLOR_NOTIF_WARNING_TEXT', $colorNotifWarningTxt);		// default value: #a28918
-	$colorNotifErrorBg			= getDolGlobalString('OBLYON_COLOR_NOTIF_ERROR_BCKGRD', $colorNotifErrorBg);		// default value: #d79eac
-	$colorNotifErrorTxt			= getDolGlobalString('OBLYON_COLOR_NOTIF_ERROR_TEXT', $colorNotifErrorTxt);		// default value: #a72947
-	$colorTextTabActive			= getDolGlobalString('OBLYON_COLOR_TEXTTABACTIVE', $colorTextTabActive);			// default value: #222222
-	$colorBckgrdInput			= getDolGlobalString('OBLYON_COLOR_INPUT_BCKGRD', $colorBckgrdInput);			// default value: #DEDEDE
-	$color1BckgrdInfobox		= getDolGlobalString('OBLYON_COLOR_INFOBOX_BCKGRD1', $color1BckgrdInfobox);		// default value: #a2e0b8
-	$color2BckgrdInfobox		= getDolGlobalString('OBLYON_COLOR_INFOBOX_BCKGRD2', $color2BckgrdInfobox);		// default value: #E4EFE8
-	$colorBorderActionColumn	= getDolGlobalString('OBLYON_COLOR_BORDER_ACTIONCOLUMN', $colorBorderActionColumn);	// default value: #BBBBBB
+	$bgnavtop					= oblyon_color_setting('OBLYON_COLOR_TOPMENU_BCKGRD', $bgnavtop);			// default value: #333		//	for main navigation
+	$bgnavtop_txt				= oblyon_color_setting('OBLYON_COLOR_TOPMENU_TXT', $bgnavtop_txt);			// default value: #f4f4f4	//	for main navigation
+	$bgnavtop_txt_active		= oblyon_color_setting('OBLYON_COLOR_TOPMENU_TXT_ACTIVE', $bgnavtop_txt_active);		// default value: #f4f4f4	//	for main navigation
+	$bgnavtop_txt_hover			= oblyon_color_setting('OBLYON_COLOR_TOPMENU_TXT_HOVER', $bgnavtop_txt_hover);		// default value: #f4f4f4	//	for main navigation
+	$bgnavtop_hover				= oblyon_color_setting('OBLYON_COLOR_TOPMENU_BCKGRD_HOVER', $bgnavtop_hover);		// default value: #444		//	for main navigation
+	$bgnavleft					= oblyon_color_setting('OBLYON_COLOR_LEFTMENU_BCKGRD', $bgnavleft);			// default value: #333		//	for left navigation
+	$bgnavleft_txt				= oblyon_color_setting('OBLYON_COLOR_LEFTMENU_TXT', $bgnavleft_txt);			// default value: #f4f4f4	//	for left navigation
+	$bgnavleft_txt_active		= oblyon_color_setting('OBLYON_COLOR_LEFTMENU_TXT_ACTIVE', $bgnavleft_txt_active);	// default value: #f4f4f4	//	for left navigation
+	$bgnavleft_txt_hover		= oblyon_color_setting('OBLYON_COLOR_LEFTMENU_TXT_HOVER', $bgnavleft_txt_hover);		// default value: #f4f4f4	//	for left navigation
+	$bgnavleft_hover			= oblyon_color_setting('OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER', $bgnavleft_hover);		// default value: #444		//	for left navigation
+	$colorButtonAction1			= oblyon_color_setting('THEME_ELDY_BTNACTION', $colorButtonAction1);			// default value: #0088cc
+	$colorButtonAction2			= oblyon_color_setting('OBLYON_COLOR_BUTTON_ACTION2', $colorButtonAction2);			// default value: #0044cc
+	$colorTextButtonAction		= oblyon_color_setting('THEME_ELDY_TEXTBTNACTION', $colorTextButtonAction);
+	$colorButtonDelete1			= oblyon_color_setting('OBLYON_COLOR_BUTTON_DELETE1', $colorButtonDelete1);			// default value: #cc8800
+	$colorButtonDelete2			= oblyon_color_setting('OBLYON_COLOR_BUTTON_DELETE2', $colorButtonDelete2);			// default value: #cc4400
+	$colorInfoBorder			= oblyon_color_setting('OBLYON_COLOR_INFO_BORDER', $colorInfoBorder);			// default value: #87cfd2
+	$colorInfoBg				= oblyon_color_setting('OBLYON_COLOR_INFO_BCKGRD', $colorInfoBg);			// default value: #eff8fc
+	$colorInfoTxt				= oblyon_color_setting('OBLYON_COLOR_INFO_TEXT', $colorInfoTxt);						// default value: #
+	$colorWarningBorder			= oblyon_color_setting('OBLYON_COLOR_WARNING_BORDER', $colorWarningBorder);			// default value: #f2cf87
+	$colorWarningBg				= oblyon_color_setting('OBLYON_COLOR_WARNING_BCKGRD', $colorWarningBg);			// default value: #fcf8e3
+	$colorWarningTxt			= oblyon_color_setting('OBLYON_COLOR_WARNING_TEXT', $colorWarningTxt);					// default value: #
+	$colorErrorBorder			= oblyon_color_setting('OBLYON_COLOR_ERROR_BORDER', $colorErrorBorder);			// default value: #e0796e
+	$colorErrorBg				= oblyon_color_setting('OBLYON_COLOR_ERROR_BCKGRD', $colorErrorBg);			// default value: #f07b6e
+	$colorErrorTxt				= oblyon_color_setting('OBLYON_COLOR_ERROR_TEXT', $colorErrorTxt);					// default value: #
+	$colorNotifInfoBg			= oblyon_color_setting('OBLYON_COLOR_NOTIF_INFO_BCKGRD', $colorNotifInfoBg);		// default value: #d9e5d1
+	$colorNotifInfoTxt			= oblyon_color_setting('OBLYON_COLOR_NOTIF_INFO_TEXT', $colorNotifInfoTxt);		// default value: #446548
+	$colorNotifWarningBg		= oblyon_color_setting('OBLYON_COLOR_NOTIF_WARNING_BCKGRD', $colorNotifWarningBg);	// default value: #fff7d1
+	$colorNotifWarningTxt		= oblyon_color_setting('OBLYON_COLOR_NOTIF_WARNING_TEXT', $colorNotifWarningTxt);		// default value: #a28918
+	$colorNotifErrorBg			= oblyon_color_setting('OBLYON_COLOR_NOTIF_ERROR_BCKGRD', $colorNotifErrorBg);		// default value: #d79eac
+	$colorNotifErrorTxt			= oblyon_color_setting('OBLYON_COLOR_NOTIF_ERROR_TEXT', $colorNotifErrorTxt);		// default value: #a72947
+	$colorTextTabActive			= oblyon_color_setting('OBLYON_COLOR_TEXTTABACTIVE', $colorTextTabActive);			// default value: #222222
+	$colorBckgrdInput			= oblyon_color_setting('OBLYON_COLOR_INPUT_BCKGRD', $colorBckgrdInput);			// default value: #DEDEDE
+	$color1BckgrdInfobox		= oblyon_color_setting('OBLYON_COLOR_INFOBOX_BCKGRD1', $color1BckgrdInfobox);		// default value: #a2e0b8
+	$color2BckgrdInfobox		= oblyon_color_setting('OBLYON_COLOR_INFOBOX_BCKGRD2', $color2BckgrdInfobox);		// default value: #E4EFE8
+	$colorBorderActionColumn	= oblyon_color_setting('OBLYON_COLOR_BORDER_ACTIONCOLUMN', $colorBorderActionColumn);	// default value: #BBBBBB
 	$bgotherbox					= '#f4f4f4';															// default value: #E6E6E6	//	Other information boxes on home page
 	$bgbutton_hover				= '#197489';															// default value: #197489
 	if (!empty($maincolor)) {
@@ -199,54 +208,55 @@
 			$bgbutton_hover = '#'.colorArrayToHex($maincolor_variant);
 		}
 	}
-	$logo_background_color		= getDolGlobalString('OBLYON_COLOR_LOGO_BCKGRD', $logo_background_color);	// default value : #FFFFFF
-	$bgcolor					= getDolGlobalString('OBLYON_COLOR_BCKGRD', $bgcolor);			// default value : #F4F4F4
-	$login_bgcolor				= getDolGlobalString('OBLYON_COLOR_LOGIN_BCKGRD', $login_bgcolor);	// default value : #F4F4F4
-	$colorbtitle				= getDolGlobalString('OBLYON_COLOR_BTITLE', $colorbtitle);			// default value : #E09430
-	$colorstitle				= getDolGlobalString('OBLYON_COLOR_STITLE', $colorstitle);			// default value : #F4F4F4
-	$colorbline					= getDolGlobalString('OBLYON_COLOR_BLINE', $colorbline);			// default value : #FFFFFF
-	$colorbline_hover			= getDolGlobalString('THEME_ELDY_USE_HOVER', $colorbline_hover);
-	$colorbline_checked			= getDolGlobalString('THEME_ELDY_USE_CHECKED', $colorbline_checked);
-	$colorfline					= getDolGlobalString('OBLYON_COLOR_FLINE', $colorfline);			// default value : #444444
-	$colorfline_hover			= getDolGlobalString('OBLYON_COLOR_FLINE_HOVER', $colorfline_hover);	// default value : #222222
-	$colorbtotal				= getDolGlobalString('OBLYON_COLOR_BTOTAL', $colorbtotal);
-	$colorftotal				= getDolGlobalString('OBLYON_COLOR_FTOTAL', $colorftotal);
-	$colorfdatedefault			= getDolGlobalString('OBLYON_COLOR_FDATE_DEFAULT', $colorfdatedefault);	// default value : #FF0000
-	$colorfdateselected			= getDolGlobalString('OBLYON_COLOR_FDATE_SELECTED', $colorfdateselected);	// default value : #FF0000
+	$logo_background_color		= oblyon_color_setting('OBLYON_COLOR_LOGO_BCKGRD', $logo_background_color);	// default value : #FFFFFF
+	$bgcolor					= oblyon_color_setting('OBLYON_COLOR_BCKGRD', $bgcolor);			// default value : #F4F4F4
+	$login_bgcolor				= oblyon_color_setting('OBLYON_COLOR_LOGIN_BCKGRD', $login_bgcolor);	// default value : #F4F4F4
+	$colorbtitle				= oblyon_color_setting('OBLYON_COLOR_BTITLE', $colorbtitle);			// default value : #E09430
+	$colorstitle				= oblyon_color_setting('OBLYON_COLOR_STITLE', $colorstitle);			// default value : #F4F4F4
+	$colorbline					= oblyon_color_setting('OBLYON_COLOR_BLINE', $colorbline);			// default value : #FFFFFF
+	$colorbline_hover			= oblyon_color_setting('THEME_ELDY_USE_HOVER', $colorbline_hover);
+	$colorbline_checked			= oblyon_color_setting('THEME_ELDY_USE_CHECKED', $colorbline_checked);
+	$colorfline					= oblyon_color_setting('OBLYON_COLOR_FLINE', $colorfline);			// default value : #444444
+	$colorfline_hover			= oblyon_color_setting('OBLYON_COLOR_FLINE_HOVER', $colorfline_hover);	// default value : #222222
+	$colorbtotal				= oblyon_color_setting('OBLYON_COLOR_BTOTAL', $colorbtotal);
+	$colorftotal				= oblyon_color_setting('OBLYON_COLOR_FTOTAL', $colorftotal);
+	$colorfdatedefault			= oblyon_color_setting('OBLYON_COLOR_FDATE_DEFAULT', $colorfdatedefault);	// default value : #FF0000
+	$colorfdateselected			= oblyon_color_setting('OBLYON_COLOR_FDATE_SELECTED', $colorfdateselected);	// default value : #FF0000
 	$invertratiofilter			= getDolGlobalString('THEME_INVERT_RATIO_FILTER', 0);			// default value : 0
-	$prospectback				= getDolGlobalString('THEME_ELDY_PROSPECTBACK', $prospectback);	// default value : #A7C5B0
-	$customerback				= getDolGlobalString('THEME_ELDY_CUSTOMERBACK', $customerback);	// default value : #55955D
-	$vendorback					= getDolGlobalString('THEME_ELDY_VENDORBACK', $vendorback);	// default value : #599CAF
-	$userback					= getDolGlobalString('THEME_ELDY_USERBACK', $userback);	// default value : #79633F
-	$colornature				= getDolGlobalString('THEME_ELDY_COLORNATURE', $colornature);	// default value : #FFFFFF
-	$member_companyback			= getDolGlobalString('THEME_ELDY_MEMBER_COMPANYBACK', $member_companyback);	// default value : #E4E4E4
-	$member_individualback		= getDolGlobalString('THEME_ELDY_MEMBER_INDIVIDUALBACK', $member_individualback);	// default value : #E4E4E4
-	$colormember				= getDolGlobalString('THEME_ELDY_COLORMEMBER', $colormember);	// default value : #666666
-	$colorAutocompleteBg		= getDolGlobalString('OBLYON_COLOR_AUTOCOMPLETE_BCKGRD', $colorAutocompleteBg);
-	$colorAutocompleteText		= getDolGlobalString('OBLYON_COLOR_AUTOCOMPLETE_TEXT', $colorAutocompleteText);
-	$colorChipBg				= getDolGlobalString('OBLYON_COLOR_CHIP_BCKGRD', $colorChipBg);
-	$colorChipText				= getDolGlobalString('OBLYON_COLOR_CHIP_TEXT', $colorChipText);
-	$colorResultBg				= getDolGlobalString('OBLYON_COLOR_RESULT_BCKGRD', $colorResultBg);
-	$colorResultText			= getDolGlobalString('OBLYON_COLOR_RESULT_TEXT', $colorResultText);
+	$prospectback				= oblyon_color_setting('THEME_ELDY_PROSPECTBACK', $prospectback);	// default value : #A7C5B0
+	$customerback				= oblyon_color_setting('THEME_ELDY_CUSTOMERBACK', $customerback);	// default value : #55955D
+	$vendorback					= oblyon_color_setting('THEME_ELDY_VENDORBACK', $vendorback);	// default value : #599CAF
+	$userback					= oblyon_color_setting('THEME_ELDY_USERBACK', $userback);	// default value : #79633F
+	$colornature				= oblyon_color_setting('THEME_ELDY_COLORNATURE', $colornature);	// default value : #FFFFFF
+	$member_companyback			= oblyon_color_setting('THEME_ELDY_MEMBER_COMPANYBACK', $member_companyback);	// default value : #E4E4E4
+	$member_individualback		= oblyon_color_setting('THEME_ELDY_MEMBER_INDIVIDUALBACK', $member_individualback);	// default value : #E4E4E4
+	$colormember				= oblyon_color_setting('THEME_ELDY_COLORMEMBER', $colormember);	// default value : #666666
+	$colorAutocompleteBg		= oblyon_color_setting('OBLYON_COLOR_AUTOCOMPLETE_BCKGRD', $colorAutocompleteBg);
+	$colorAutocompleteText		= oblyon_color_setting('OBLYON_COLOR_AUTOCOMPLETE_TEXT', $colorAutocompleteText);
+	$colorChipBg				= oblyon_color_setting('OBLYON_COLOR_CHIP_BCKGRD', $colorChipBg);
+	$colorChipText				= oblyon_color_setting('OBLYON_COLOR_CHIP_TEXT', $colorChipText);
+	$colorResultBg				= oblyon_color_setting('OBLYON_COLOR_RESULT_BCKGRD', $colorResultBg);
+	$colorResultText			= oblyon_color_setting('OBLYON_COLOR_RESULT_TEXT', $colorResultText);
 
 	// ===================== Couleurs Eldy (défauts theme_vars + personnalisation utilisateur) =====================
-	$colorbackhmenu1			= getDolGlobalString('THEME_ELDY_TOPMENU_BACK1', $colorbackhmenu1);
-	$colorbackvmenu1			= getDolGlobalString('THEME_ELDY_VERMENU_BACK1', $colorbackvmenu1);
-	$colortopbordertitle1		= getDolGlobalString('THEME_ELDY_TOPBORDER_TITLE1', $colortopbordertitle1);
-	$colorbacktitle1			= getDolGlobalString('THEME_ELDY_BACKTITLE1', $colorbacktitle1);
-	$colorbacktabcard1			= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_BACKTABCARD1', $colorbacktabcard1) : getDolUserString('THEME_ELDY_BACKTABCARD1', $colorbacktabcard1, $user);
-	$colorbacktabactive			= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_BACKTABACTIVE', $colorbacktabactive) : getDolUserString('THEME_ELDY_BACKTABACTIVE', $colorbacktabactive, $user);
-	$colorbacklineimpair1		= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_LINEIMPAIR1', $colorbacklineimpair1) : getDolUserString('THEME_ELDY_LINEIMPAIR1', $colorbacklineimpair1, $user);
-	$colorbacklineimpair2		= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_LINEIMPAIR2', $colorbacklineimpair2) : getDolUserString('THEME_ELDY_LINEIMPAIR2', $colorbacklineimpair2, $user);
-	$colorbacklinepair1			= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_LINEPAIR1', $colorbacklinepair1) : getDolUserString('THEME_ELDY_LINEPAIR1', $colorbacklinepair1, $user);
-	$colorbacklinepair2			= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_LINEPAIR2', $colorbacklinepair2) : getDolUserString('THEME_ELDY_LINEPAIR2', $colorbacklinepair2, $user);
-	$colorbacklinebreak			= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_LINEBREAK', $colorbacklinebreak) : getDolUserString('THEME_ELDY_LINEBREAK', $colorbacklinebreak, $user);
-	$colorbackbody				= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_BACKBODY', $colorbackbody) : getDolUserString('THEME_ELDY_BACKBODY', $colorbackbody, $user);
-	$colortexttitlenotab		= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_TEXTTITLENOTAB', $colortexttitlenotab) : getDolUserString('THEME_ELDY_TEXTTITLENOTAB', $colortexttitlenotab, $user);
-	$colortexttitle				= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_TEXTTITLE', $colortexttitle) : getDolUserString('THEME_ELDY_TEXTTITLE', $colortexttitle, $user);
-	$colortexttitlelink			= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_TEXTTITLELINK', $colortexttitlelink) : getDolUserString('THEME_ELDY_TEXTTITLELINK', $colortexttitlelink, $user);
-	$colortext					= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_TEXT', $colortext) : getDolUserString('THEME_ELDY_TEXT', $colortext, $user);
-	$colortextlink				= !getDolUserString('THEME_ELDY_ENABLE_PERSONALIZED', '', $user) ? getDolGlobalString('THEME_ELDY_TEXTLINK', $colortextlink) : getDolUserString('THEME_ELDY_TEXTLINK', $colortextlink, $user);
+	$colorbackhmenu1			= oblyon_color_setting('THEME_ELDY_TOPMENU_BACK1', $colorbackhmenu1);
+	$colorbackvmenu1			= oblyon_color_setting('THEME_ELDY_VERMENU_BACK1', $colorbackvmenu1);
+	$colortopbordertitle1		= oblyon_color_setting('THEME_ELDY_TOPBORDER_TITLE1', $colortopbordertitle1);
+	$colorbacktitle1			= oblyon_color_setting('THEME_ELDY_BACKTITLE1', $colorbacktitle1);
+	$colorbacktabcard1			= oblyon_color_setting('THEME_ELDY_BACKTABCARD1', $colorbacktabcard1);
+	$colorbacktabactive			= oblyon_color_setting('THEME_ELDY_BACKTABACTIVE', $colorbacktabactive);
+	$colorbacklineimpair1		= oblyon_color_setting('THEME_ELDY_LINEIMPAIR1', $colorbacklineimpair1);
+	$colorbacklineimpair2		= oblyon_color_setting('THEME_ELDY_LINEIMPAIR2', $colorbacklineimpair2);
+	$colorbacklinepair1			= oblyon_color_setting('THEME_ELDY_LINEPAIR1', $colorbacklinepair1);
+	$colorbacklinepair2			= oblyon_color_setting('THEME_ELDY_LINEPAIR2', $colorbacklinepair2);
+	$colorbacklinebreak			= oblyon_color_setting('THEME_ELDY_LINEBREAK', $colorbacklinebreak);
+	$colorbackbody				= oblyon_color_setting('THEME_ELDY_BACKBODY', $colorbackbody);
+	$colortexttitlenotab		= oblyon_color_setting('THEME_ELDY_TEXTTITLENOTAB', $colortexttitlenotab);
+	$colortexttitle				= oblyon_color_setting('THEME_ELDY_TEXTTITLE', $colortexttitle);
+	$colortexttitlelink			= oblyon_color_setting('THEME_ELDY_TEXTTITLELINK', $colortexttitlelink);
+	$colortext					= oblyon_color_setting('THEME_ELDY_TEXT', $colortext);
+	$colortextlink				= oblyon_color_setting('THEME_ELDY_TEXTLINK', $colortextlink);
+	// InfraS change end
 
 	// ===================== Normalisation + couleurs calculées (contrastes) =====================
 	// Hover color
@@ -262,9 +272,10 @@
 	$colorbacktitle1			= join(',', colorStringToArray($colorbacktitle1));	// Normalize value to 'x,y,z'
 	$autocolorshadow			= txt_color($colorbacktitle1);	// $colorshadowtitle : contraste sur le fond des filtres (comportement d'origine, inchangé)
 	$colorshadowtitle			= ($autocolorshadow == 'FFFFFF') ? '888888' : 'FFFFFF';
-	if (!getDolGlobalString('THEME_ELDY_TEXTTITLE') && !getDolUserString('THEME_ELDY_TEXTTITLE', '', $user)) {
+	if (oblyon_color_setting('THEME_ELDY_TEXTTITLE') === '') {	// InfraS change : meme test (ni instance ni utilisateur) via la fonction commune
 		// contraste auto calculé sur le VRAI fond des titres = $colorbtitle (OBLYON_COLOR_BTITLE), pas sur le fond des filtres
-		$autocolortexttitle	= txt_color(join(',', colorStringToArray($colorbtitle)));
+		$colorbtitle_rgb	= join(',', colorStringToArray($colorbtitle));	// InfraS change : variable intermediaire (txt_color prend une reference : plus de notice PHP)
+		$autocolortexttitle	= txt_color($colorbtitle_rgb);
 		$colortexttitle		= ($autocolortexttitle == '000000') ? '101010' : $autocolortexttitle;
 	}
 	$colorbacktabcard1	= join(',', colorStringToArray($colorbacktabcard1));	// Normalize value to 'x,y,z'
@@ -321,6 +332,36 @@
 	// Rayon des arrondis (variable CSS --infras_radius, utilisee des le bloc :root de global.inc.php)
 	$infras_radius	= getDolGlobalInt('THEME_ELDY_BORDER_RADIUS', 6);
 	if ($infras_radius <= 0)	$infras_radius	= 6;	// valeur nulle => rayon visible par defaut
+
+	// InfraS add begin : jetons de design 3.4.1 - couleurs neutres derivees du preset (melange fond des lignes / texte des lignes), bordure des champs selon l'option
+	if (! function_exists('oblyon_mix_colors')) {
+		/**
+		 *	Mix two colors : $ratio = 0 gives $hex1, 1 gives $hex2
+		 *	@param	string	$hex1	Color 1 (#RRGGBB or r,g,b)
+		 *	@param	string	$hex2	Color 2
+		 *	@param	float	$ratio	Weight of color 2 (0..1)
+		 *	@return	string			#RRGGBB
+		 */
+		function oblyon_mix_colors($hex1, $hex2, $ratio)
+		{
+			$a		= colorStringToArray($hex1);
+			$b		= colorStringToArray($hex2);
+			$out	= array();
+			for ($i = 0; $i < 3; $i++) {
+				$out[]	= max(0, min(255, (int) round($a[$i] + ($b[$i] - $a[$i]) * $ratio)));
+			}
+			return '#'.colorArrayToHex($out);
+		}
+	}
+	$oblyon_border			= oblyon_mix_colors($colorbline, $colorfline, 0.14);	// separateurs, cadres discrets
+	$oblyon_border_strong	= oblyon_mix_colors($colorbline, $colorfline, 0.30);	// cadres marques (champs avec option bordure, fieldset)
+	$oblyon_neutral_bg		= oblyon_mix_colors($colorbline, $colorfline, 0.05);	// fonds discrets (sections, champs desactives)
+	$oblyon_muted_text		= oblyon_mix_colors($colorfline, $colorbline, 0.40);	// textes secondaires (placeholders, aides)
+	$oblyon_input_border	= getDolGlobalString('THEME_SHOW_BORDER_ON_INPUT') ? $oblyon_border_strong : $oblyon_border;
+	// Page de connexion : fond = OBLYON_COLOR_LOGIN_BCKGRD (constante existante, jusqu'ici non branchee), texte du titre choisi selon la clarte de ce fond
+	$login_bgcolor_rgb		= join(',', colorStringToArray($login_bgcolor));	// txt_color() attend une variable (passage par reference)
+	$login_txtcolor			= (txt_color($login_bgcolor_rgb) == 'FFFFFF') ? '#FFFFFF' : $colorfline;
+	// InfraS add end
 
 	require __DIR__.'/global.inc.php';
 
