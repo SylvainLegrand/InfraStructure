@@ -924,7 +924,11 @@ class pdf_cyan extends ModelePDFPropales
 				$posy = $this->drawInfoTable($pdf, $object, $bottomlasttab, $outputlangs);
 
 				// Display total zone
+				// InfraS add begin Arrondis - totaux comptables cohérents (HT + TVA + taxes = TTC, règle de TVA du document), voir pdf_normalizeTotals() dans core/lib/pdf.lib.php
+				pdf_normalizeTotals($object, $this->tva_array, $this->tva, $this->localtax1, $this->localtax2, ((isModEnabled('multicurrency') && $object->multicurrency_tx != 1) ? 1 : 0), 1);
+				// InfraS add end Arrondis
 				$posy = $this->drawTotalTable($pdf, $object, 0, $bottomlasttab, $outputlangs);
+				pdf_restoreTotals($object); // InfraS add Arrondis - l'objet appartient à l'appelant : totaux exacts restaurés
 
 				// Customer signature area
 				if (!getDolGlobalString('PROPAL_DISABLE_SIGNATURE')) {
