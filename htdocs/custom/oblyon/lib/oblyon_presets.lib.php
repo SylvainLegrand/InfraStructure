@@ -769,7 +769,7 @@
 				$out	.= '<button type="submit" name="action" value="apply_preset" class="butAction small oblyon-preset__apply">'.$langs->trans($modified ? 'OblyonPresetRevert' : 'OblyonPresetApply').'</button>';
 				if ($preset['source'] == 'instance' && $modified)	$out	.= '<button type="submit" name="action" value="save_preset" class="butAction small oblyon-preset__apply">'.$langs->trans('OblyonPresetSave').'</button>';
 				$out	.= '<div class="oblyon-preset__row-btn">';
-				$out	.= '<a class="butAction small" href="'.$self.'?action=download_preset&preset_key='.urlencode($key).'&token='.newToken().'" title="'.dol_escape_htmltag($langs->trans('OblyonPresetDownload')).'"><span class="fa fa-download paddingright"></span>'.$langs->trans('Download').'</a>';
+				$out	.= '<a class="butAction small" href="'.$self.'?action=download_preset&preset_key='.urlencode($key).'&token='.newToken().'" title="'.dol_escape_htmltag($langs->trans('OblyonPresetDownload')).'"><span class="fa fa-download"></span></a>';	// InfraS change : icone seule, le libelle Download debordait du bouton (l'infobulle title porte deja le libelle complet)
 				if ($preset['source'] == 'instance')	$out	.= '<button type="submit" name="action" value="delete_preset" class="butActionDelete small" title="'.dol_escape_htmltag($langs->trans('OblyonPresetDelete')).'" onclick="return confirm(\''.dol_escape_js($langs->trans('OblyonPresetDeleteConfirm', $key)).'\');"><span class="fa fa-trash paddingright"></span>'.$langs->trans('OblyonPresetDelete').'</button>';
 				$out	.= '</div></div></form>';
 			}
