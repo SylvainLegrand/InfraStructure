@@ -3,6 +3,13 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 	die('Must be call by steelsheet');
 }
 ?>
+/* ================================================================================================
+   oblyon/themeoblyon/badges.inc.php
+   Role      : Badges (base Bootstrap) et badges de statut : fond par famille OBLYON_COLOR_BADGE_*, texte calcule par contraste (oblyon_text_on)
+   Inclus par : core.inc.php | Garde : ISLOADEDBYSTEELSHEET | Variables PHP : portee de style.css.php / theme_vars.inc.php
+   Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
+   ================================================================================================ */
+
 /* Badge style is based on boostrap framework */
 
 /* InfraS change begin : badges en pilule, graisse 600 */
@@ -243,7 +250,7 @@ function _createStatusBadgeCss($statusName, $statusVarNamePrefix = '', $commentL
 
 		$TBadgeBorderOnly = array('0', '1b', '3', '4b', '5', '7', '10');
 		// InfraS change begin : couleurs de texte / fond des badges "bordure seule" prises sur le preset (texte et fond des lignes, texte secondaire)
-		$thisBadgeTextColor = colorIsLight(${$statusVarNamePrefix.'badgeStatus'.$statusName}) ? 'var(--colorfline)' : '#ffffff';
+		$thisBadgeTextColor = oblyon_text_on(${$statusVarNamePrefix.'badgeStatus'.$statusName});	// InfraS change 3.7.0 : sombre ou blanc selon le meilleur contraste WCAG sur le fond du badge (etait blanc ou texte des lignes selon la clarte)
 
 		if (!empty(${$statusVarNamePrefix.'badgeStatus_textColor'.$statusName})) {
 			$thisBadgeTextColor = ${$statusVarNamePrefix.'badgeStatus_textColor'.$statusName};
@@ -254,7 +261,7 @@ function _createStatusBadgeCss($statusName, $statusVarNamePrefix = '', $commentL
 			$thisBadgeBackgroundColor = 'var(--colorbline)';
 		}
 
-		if (in_array((string) $statusName, array('0', '5', '9', '6'))) {
+		if (in_array((string) $statusName, array('0', '5'))) {	// InfraS change 3.7.0 : texte attenue pour les badges "bordure seule" brouillon / ferme seulement ; 6 et 9 sont des badges pleins, leur texte suit le contraste de leur fond
 			$thisBadgeTextColor = 'var(--oblyon-muted-text)';
 		}
 		// InfraS change end
@@ -271,8 +278,8 @@ function _createStatusBadgeCss($statusName, $statusVarNamePrefix = '', $commentL
 		print "}\n";
 
 		print $cssPrefix.".font-status".$statusName." {\n";
-		if ($thisBadgeBackgroundColor != '') {
-			print "        color: ".$thisBadgeBackgroundColor." !important;\n";
+		if ($thisBadgeBorderColor != '') {	// InfraS change 3.7.0 : couleur du statut (bordure) et non le fond : pour les badges "bordure seule" le fond est celui des lignes, le texte etait invisible
+			print "        color: ".$thisBadgeBorderColor." !important;\n";
 		}
 		print "}\n";
 

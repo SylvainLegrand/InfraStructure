@@ -26,6 +26,13 @@
 ?>
 
 /* <style type="text/css" > dont remove this line it's an ide hack */
+/* ================================================================================================
+   oblyon/themeoblyon/flyoutmenu.inc.php
+   Role      : Sous-menus en volets du menu reduit (OBLYON_EFFECT_REDUCE_LEFTMENU = flyout)
+   Inclus par : global.inc.php | Garde : ISLOADEDBYSTEELSHEET | Variables PHP : portee de style.css.php / theme_vars.inc.php
+   Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
+   ================================================================================================ */
+
 /*
  * Flyout sub-menus mode : third opening effect of the reduced left menu (inverted menus only)
  *

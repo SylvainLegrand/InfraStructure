@@ -1,4 +1,11 @@
 <?php if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
+/* ================================================================================================
+   oblyon/themeoblyon/modules/mbicalls.inc.php
+   Role      : CSS du module tiers mbicalls sur les jetons du theme ; se garde lui-meme (isModEnabled)
+   Inclus par : modules.inc.php | Garde : ISLOADEDBYSTEELSHEET | Variables PHP : portee de style.css.php / theme_vars.inc.php
+   Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
+   ================================================================================================ */
+
 /* InfraS add : fichier ajoute par InfraS (2026-09) */
 /* <style type="text/css" > */
 
