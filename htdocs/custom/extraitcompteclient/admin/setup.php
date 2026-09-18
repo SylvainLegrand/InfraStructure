@@ -149,7 +149,7 @@ if ($action == 'set_extraitcompteclient_options') {
         $error++;
     }
 
-    $value = GETPOST('EXTRAITCOMPTECLIENT_COLOR_LINE_PDF', "aZ09");
+    $value = preg_replace('/[^a-fA-F0-9]/', '', GETPOST('EXTRAITCOMPTECLIENT_COLOR_LINE_PDF', 'alphanohtml')); // InfraS change : le sélecteur HTML5 envoie "#rrggbb", refusé par le filtre aZ09
     $res = dolibarr_set_const($db, 'EXTRAITCOMPTECLIENT_COLOR_LINE_PDF', $value, 'chaine', 0, '', $conf->entity);
     if (!($res > 0)) {
         $errors[] = $db->lasterror();

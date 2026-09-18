@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [14.0.22.1] - 18-09-2026
+- Changement du filtre aZ09 par alphanohtml : car le sélecteur HTML5 envoie "#rrggbb", refusé par le filtre aZ09
+
 ## [14.0.22] - 17-03-2026
 - Correction des requêtes SQL pour compatibilité avec ONLY_FULL_GROUP_BY (MySQL 5.7.5+)
 
