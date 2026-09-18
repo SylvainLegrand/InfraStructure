@@ -159,6 +159,7 @@
 	print '<td class="nowrap left"><input id="check_OBLYON_USER_COLORS" name="check_OBLYON_USER_COLORS" type="checkbox"'.($edit ? '' : ' disabled').($enabled ? ' checked' : '').'> <label for="check_OBLYON_USER_COLORS">'.$langs->trans('UsePersonalValue').'</label></td>';
 	print '<td>&nbsp;</td>';
 	print '</tr>';
+	if (! $edit && $enabled)	oblyon_colors_normalize_stored($object);	// 3.7.0 : couleurs personnelles encore en 'r,g,b' reecrites en '#RRGGBB'
 	$snapshot	= array();
 	foreach (oblyon_user_colors_list() as $group => $names) {
 		print '<tr class="liste_titre"><td colspan="4">'.$langs->trans($group).'</td></tr>';
@@ -189,7 +190,7 @@
 		$low	= oblyon_check_preset_contrast(array('colors' => $snapshot));
 		if (count($low)) {
 			$details	= array();
-			foreach ($low as $c)	$details[]	= oblyon_user_color_label($c['text']).' / '.oblyon_user_color_label($c['background']).' : '.$c['ratio'];
+			foreach ($low as $c)	$details[]	= oblyon_contrast_issue_text($c, 'oblyon_user_color_label');	// 3.7.0 : couples + valeurs invalides
 			print '<div class="warning">'.$langs->trans('OblyonPresetContrastWarning', count($low)).'<br>'.implode('<br>', $details).'</div>';
 		}
 	}

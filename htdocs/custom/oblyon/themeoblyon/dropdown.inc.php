@@ -2,6 +2,13 @@
 if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 
 /* <style type="text/css" > dont remove this line it's an ide hack */
+/* ================================================================================================
+   oblyon/themeoblyon/dropdown.inc.php
+   Role      : Menus deroulants de la barre du haut : recherche, ajout rapide, favoris, connexion
+   Inclus par : global.inc.php | Garde : ISLOADEDBYSTEELSHEET | Variables PHP : portee de style.css.php / theme_vars.inc.php
+   Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
+   ================================================================================================ */
+
 /*
  * Dropdown
  */
@@ -88,8 +95,6 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 	color: var(--colortextlink);
 }
 .side-nav-vert .user-menu .dropdown-menu {
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
     padding: 1px 0 0 0;
     border-top-width: 0;
     width: 300px;
@@ -343,11 +348,11 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
      */
     #topmenu-quickadd-dropdown .dropdown-menu {
         width: 335px !important;
-        color: #444;
+        color: var(--colortext);	/* InfraS change 3.7.0 : texte courant (etait #444 sur le fond de page du preset) */
     }
 
     .quickadd-header {
-        color: #444 !important;
+        color: var(--colortext) !important;	/* InfraS change 3.7.0 */
     }
 
     div.quickadd {
@@ -372,7 +377,7 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
     }
 
     div.quickadd a {
-        color: #444;
+        color: var(--colortext);	/* InfraS change 3.7.0 */
 		height: 60px;
 		width: 110px;
     }

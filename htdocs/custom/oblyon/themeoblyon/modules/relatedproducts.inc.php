@@ -21,6 +21,13 @@
  */
 <?php if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 /* <style type="text/css" > */
+/* ================================================================================================
+   oblyon/themeoblyon/modules/relatedproducts.inc.php
+   Role      : CSS du module tiers relatedproducts sur les jetons du theme ; se garde lui-meme (isModEnabled)
+   Inclus par : modules.inc.php | Garde : ISLOADEDBYSTEELSHEET | Variables PHP : portee de style.css.php / theme_vars.inc.php
+   Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
+   ================================================================================================ */
+
 
 <?php if (isModEnabled('relatedproducts') && getDolGlobalString('FIX_STICKY_HEADER_CARD')) { ?>
 /* Popup « produits associés » (dialogue jQuery UI) : neutraliser l'en-tête sticky

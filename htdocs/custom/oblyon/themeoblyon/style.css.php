@@ -78,6 +78,18 @@
 		return $txtcolor;
 	}
 
+	/**
+	*	txt_color() pour une couleur '#RRGGBB' (ou 'r,g,b') : 'FFFFFF' ou '000000' (InfraS add 3.7.0 : format unique hex)
+	*
+	*	@param		string	$hex		Couleur
+	*	@return		string
+	**/
+	function oblyon_txt_color_hex($hex)
+	{
+		$rgb	= join(',', colorStringToArray($hex));
+		return txt_color($rgb);
+	}
+
 	// Load user to have $user->conf loaded (not done into main because of NOLOGIN constant defined) and permission, so we can later calculate number of top menu ($nbtopmenuentries) according to user profile.
 	if (empty($user->id) && ! empty($_SESSION['dol_login'])) {
 		$user = new User($db);
@@ -237,6 +249,40 @@
 	$colorChipText				= oblyon_color_setting('OBLYON_COLOR_CHIP_TEXT', $colorChipText);
 	$colorResultBg				= oblyon_color_setting('OBLYON_COLOR_RESULT_BCKGRD', $colorResultBg);
 	$colorResultText			= oblyon_color_setting('OBLYON_COLOR_RESULT_TEXT', $colorResultText);
+	// InfraS add begin : jetons dedies 3.7.0 (montants, agenda / calendriers, surfaces flottantes, entree de menu selectionnee) ; valeur '' ou '#' = defaut
+	$colorAmountText			= oblyon_color_setting_hex('OBLYON_COLOR_AMOUNT_TEXT', '#006666');						// texte des montants (span.amount)
+	$colorCalEventTxt			= oblyon_color_setting_hex('OBLYON_COLOR_CAL_EVENT_TXT', '#111111');					// texte des evenements de l'agenda (fond = couleur principale)
+	$colorCalWeekendBg			= oblyon_color_setting_hex('OBLYON_COLOR_CAL_WEEKEND_BCKGRD', '#EEEEEE');				// fond des week-ends (saisie des temps, calendriers)
+	$colorCalHolidayBg			= oblyon_color_setting_hex('OBLYON_COLOR_CAL_HOLIDAY_BCKGRD', '#F4EEDE');				// fond des jours de conges
+	$colorOverlayBg				= oblyon_color_setting_hex('OBLYON_COLOR_OVERLAY_BCKGRD', '#FFFFFF');					// fond des surfaces flottantes (barre de filtre, modales, survol du selecteur de colonnes, edition en ligne)
+	$bgnavtop_sel				= oblyon_color_setting_hex('OBLYON_COLOR_TOPMENU_BCKGRD_SEL', (oblyon_color_is_valid($bgnavtop_hover) && $bgnavtop_hover != '#' ? $bgnavtop_hover : $maincolor));	// fond de l'entree selectionnee du menu principal
+	$bgnavtop_txt_sel			= oblyon_color_setting_hex('OBLYON_COLOR_TOPMENU_TXT_SEL', '#FFFFFF');					// texte de l'entree selectionnee du menu principal
+	$colorStockOk				= oblyon_color_setting_hex('OBLYON_COLOR_STOCK_OK', '#002000');							// stock suffisant, entree de stock
+	$colorStockLow				= oblyon_color_setting_hex('OBLYON_COLOR_STOCK_LOW', '#884400');						// stock trop bas
+	$colorStockExit				= oblyon_color_setting_hex('OBLYON_COLOR_STOCK_EXIT', '#6B5A12');						// sortie de stock
+	$colorIconText				= oblyon_color_setting_hex('OBLYON_COLOR_ICON_TEXT', '#555555');						// pictos secondaires (telephone, mail, lien, corbeille, lecture)
+	$colorTimelineBg			= oblyon_color_setting_hex('OBLYON_COLOR_TIMELINE_BCKGRD', '#FFFFFF');					// fond des messages du fil de discussion (tickets)
+	$colorTimelinePrivateBg		= oblyon_color_setting_hex('OBLYON_COLOR_TIMELINE_PRIVATE_BCKGRD', '#FFFBE5');			// fond des messages prives du fil
+	// Badges de statut : fond / bordure par famille (defauts de theme_vars.inc.php), texte calcule par contraste dans badges.inc.php ; les $badgeStatusN sont rederives
+	$badgeStatusDraft			= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_DRAFT', $badgeStatusDraft);
+	$badgeStatusValidated		= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_VALIDATED', $badgeStatusValidated);
+	$badgeStatusApproved		= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_APPROVED', $badgeStatusApproved);
+	$badgeStatusWaiting			= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_WAITING', $badgeStatusWaiting);
+	$badgeStatusActive			= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_ACTIVE', $badgeStatusActive);
+	$badgeStatusClosed			= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_CLOSED', $badgeStatusClosed);
+	$badgeStatusCanceled		= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_CANCELED', $badgeStatusCanceled);
+	$badgeStatusError			= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_ERROR', $badgeStatusError);
+	$badgeStatusDone			= oblyon_color_setting_hex('OBLYON_COLOR_BADGE_DONE', $badgeStatusDone);
+	$badgeStatus0				= $badgeStatusDraft;
+	$badgeStatus1				= $badgeStatus1b	= $badgeStatusValidated;
+	$badgeStatus2				= $badgeStatusApproved;
+	$badgeStatus3				= $badgeStatusWaiting;
+	$badgeStatus4				= $badgeStatus4b	= $badgeStatus7	= $badgeStatusActive;
+	$badgeStatus5				= $badgeStatus6		= $badgeStatusClosed;
+	$badgeStatus8				= $badgeStatus10	= $badgeStatusError;
+	$badgeStatus9				= $badgeStatusCanceled;
+	$badgeStatus11				= $badgeStatusDone;
+	// InfraS add end
 
 	// ===================== Couleurs Eldy (défauts theme_vars + personnalisation utilisateur) =====================
 	$colorbackhmenu1			= oblyon_color_setting('THEME_ELDY_TOPMENU_BACK1', $colorbackhmenu1);
@@ -259,48 +305,38 @@
 	// InfraS change end
 
 	// ===================== Normalisation + couleurs calculées (contrastes) =====================
-	// Hover color
-	$colorbacklinepairhover		= colorStringToArray($colorbline_hover);
-	$colorbacklinepairchecked	= colorStringToArray($colorbline_checked);
-	$colortopckeditor			= colorArrayToHex(colorStringToArray($colorbackhmenu1));
+	// InfraS change begin : format unique '#RRGGBB' (3.7.0). oblyon_color_setting() a deja converti les valeurs 'r,g,b' (pages "Interface utilisateur" du core) ; les defauts 'r,g,b'
+	// de theme_vars.inc.php et toute valeur restante passent par oblyon_color_to_hex() (repli #585858 = celui de colorStringToArray() pour une valeur illisible, ex. '0.0.0').
+	// Les variables CSS sont imprimees telles quelles dans global.inc.php (plus de rgb()) ; txt_color() garde son entree 'r,g,b' via oblyon_txt_color_hex()
+	$oblyon_color_fallback		= '#585858';
+	$colorbacklinepairhover		= oblyon_color_to_hex($colorbline_hover);
+	$colorbacklinepairchecked	= oblyon_color_to_hex($colorbline_checked);
+	$colorbackhmenu1			= oblyon_color_to_hex($colorbackhmenu1, $oblyon_color_fallback);
+	$colortopckeditor			= ltrim($colorbackhmenu1, '#');
 	setcookie('colortopckeditor', $colortopckeditor, time() + (86400 * 30), "/"); // 86400 = 1 day
 	// Set text color to black or white
-	$colorbackhmenu1			= join(',', colorStringToArray($colorbackhmenu1));	// Normalize value to 'x,y,z'
-	$colortextbackhmenu			= txt_color($colorbackhmenu1);
-	$colorbackvmenu1			= join(',', colorStringToArray($colorbackvmenu1));	// Normalize value to 'x,y,z'
-	$colortextbackvmenu			= txt_color($colorbackvmenu1);
-	$colorbacktitle1			= join(',', colorStringToArray($colorbacktitle1));	// Normalize value to 'x,y,z'
-	$autocolorshadow			= txt_color($colorbacktitle1);	// $colorshadowtitle : contraste sur le fond des filtres (comportement d'origine, inchangé)
+	$colortextbackhmenu			= oblyon_txt_color_hex($colorbackhmenu1);
+	$colorbackvmenu1			= oblyon_color_to_hex($colorbackvmenu1, $oblyon_color_fallback);
+	$colortextbackvmenu			= oblyon_txt_color_hex($colorbackvmenu1);
+	$colorbacktitle1			= oblyon_color_to_hex($colorbacktitle1, $oblyon_color_fallback);
+	$autocolorshadow			= oblyon_txt_color_hex($colorbacktitle1);	// $colorshadowtitle : contraste sur le fond des filtres (comportement d'origine, inchangé)
 	$colorshadowtitle			= ($autocolorshadow == 'FFFFFF') ? '888888' : 'FFFFFF';
-	if (oblyon_color_setting('THEME_ELDY_TEXTTITLE') === '') {	// InfraS change : meme test (ni instance ni utilisateur) via la fonction commune
+	if (oblyon_color_setting('THEME_ELDY_TEXTTITLE') === '') {	// meme test (ni instance ni utilisateur) via la fonction commune
 		// contraste auto calculé sur le VRAI fond des titres = $colorbtitle (OBLYON_COLOR_BTITLE), pas sur le fond des filtres
-		$colorbtitle_rgb	= join(',', colorStringToArray($colorbtitle));	// InfraS change : variable intermediaire (txt_color prend une reference : plus de notice PHP)
-		$autocolortexttitle	= txt_color($colorbtitle_rgb);
-		$colortexttitle		= ($autocolortexttitle == '000000') ? '101010' : $autocolortexttitle;
+		$autocolortexttitle	= oblyon_txt_color_hex($colorbtitle);
+		$colortexttitle		= '#'.(($autocolortexttitle == '000000') ? '101010' : $autocolortexttitle);
 	}
-	$colorbacktabcard1	= join(',', colorStringToArray($colorbacktabcard1));	// Normalize value to 'x,y,z'
-	$colortextbacktab	= txt_color($colorbacktabcard1);
+	$colorbacktabcard1	= oblyon_color_to_hex($colorbacktabcard1, $oblyon_color_fallback);
+	$colortextbacktab	= oblyon_txt_color_hex($colorbacktabcard1);
 	if ($colortextbacktab == '000000') {
 		$colortextbacktab	= '111111';
 	}
-	// Format color value to match expected format (may be 'FFFFFF' or '255,255,255')
-	$colortopbordertitle1	= join(',', colorStringToArray($colortopbordertitle1));
-	$colorbacktabactive		= join(',', colorStringToArray($colorbacktabactive));
-	$colorbacklineimpair1	= join(',', colorStringToArray($colorbacklineimpair1));
-	$colorbacklineimpair2	= join(',', colorStringToArray($colorbacklineimpair2));
-	$colorbacklinepair1		= join(',', colorStringToArray($colorbacklinepair1));
-	$colorbacklinepair2		= join(',', colorStringToArray($colorbacklinepair2));
-	if ($colorbacklinepairhover != '') {
-		$colorbacklinepairhover	= join(',', colorStringToArray($colorbacklinepairhover));
+	// Toutes les autres couleurs Eldy : hex ; une valeur vide ou illisible donne le gris de repli, comme colorStringToArray() le faisait (comportement inchange)
+	foreach (array('colortopbordertitle1', 'colorbacktabactive', 'colorbacklineimpair1', 'colorbacklineimpair2', 'colorbacklinepair1', 'colorbacklinepair2', 'colorbackbody', 'colorbacklinebreak',
+					'colortexttitlelink', 'colortexttitlenotab', 'colortexttitlenotab2', 'colortexttitle', 'colortext', 'colortextlink') as $tmpname) {
+		$$tmpname	= oblyon_color_to_hex($$tmpname, $oblyon_color_fallback);
 	}
-	if ($colorbacklinepairchecked != '') {
-		$colorbacklinepairchecked	= join(',', colorStringToArray($colorbacklinepairchecked));
-	}
-	$colorbackbody			= join(',', colorStringToArray($colorbackbody));
-	$colortexttitlenotab	= join(',', colorStringToArray($colortexttitlenotab));
-	$colortexttitle			= join(',', colorStringToArray($colortexttitle));
-	$colortext				= join(',', colorStringToArray($colortext));
-	$colortextlink			= join(',', colorStringToArray($colortextlink));
+	// InfraS change end
 	// ===================== Métriques du menu haut =====================
 	$nbtopmenuentries		= $menumanager->showmenu('topnb');
 	if ($conf->browser->layout == 'phone') {
@@ -359,8 +395,7 @@
 	$oblyon_muted_text		= oblyon_mix_colors($colorfline, $colorbline, 0.40);	// textes secondaires (placeholders, aides)
 	$oblyon_input_border	= getDolGlobalString('THEME_SHOW_BORDER_ON_INPUT') ? $oblyon_border_strong : $oblyon_border;
 	// Page de connexion : fond = OBLYON_COLOR_LOGIN_BCKGRD (constante existante, jusqu'ici non branchee), texte du titre choisi selon la clarte de ce fond
-	$login_bgcolor_rgb		= join(',', colorStringToArray($login_bgcolor));	// txt_color() attend une variable (passage par reference)
-	$login_txtcolor			= (txt_color($login_bgcolor_rgb) == 'FFFFFF') ? '#FFFFFF' : $colorfline;
+	$login_txtcolor			= (oblyon_txt_color_hex($login_bgcolor) == 'FFFFFF') ? '#FFFFFF' : $colorfline;	// InfraS change 3.7.0 : entree hex
 	// InfraS add end
 
 	require __DIR__.'/global.inc.php';

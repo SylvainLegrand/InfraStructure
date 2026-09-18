@@ -51,6 +51,7 @@ if (! $user->admin) accessforbidden();
 $_SESSION['dol_resetcache']	= dol_print_date(dol_now(), 'dayhourlog');
 
 // InfraS add begin : presets JSON (3.6.0) : telecharger (GET + jeton), appliquer / mettre a jour / enregistrer sous / supprimer / importer (POST + jeton, puis redirection)
+oblyon_colors_normalize_stored();	// InfraS add 3.7.0 : constantes encore en 'r,g,b' (pages "Interface utilisateur" du core) reecrites en '#RRGGBB'
 oblyon_detect_current_preset();	// instance mise a jour par copie de fichiers : OBLYON_CURRENT_PRESET semee si la base correspond exactement a un preset
 $presetaction	= GETPOST('action', 'aZ09');
 $presetkey		= GETPOST('preset_key', 'alphanohtml');
@@ -109,7 +110,9 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 										'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER',
 										'OBLYON_COLOR_TOPMENU_TXT',
 										'OBLYON_COLOR_TOPMENU_TXT_ACTIVE',
-										'OBLYON_COLOR_TOPMENU_TXT_HOVER'
+										'OBLYON_COLOR_TOPMENU_TXT_HOVER',
+										'OBLYON_COLOR_TOPMENU_BCKGRD_SEL',	// InfraS add : entree selectionnee (3.7.0)
+										'OBLYON_COLOR_TOPMENU_TXT_SEL'		// InfraS add
 										),
 					'left'		=> array('OBLYON_COLOR_LEFTMENU_BCKGRD',
 										'OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER',
@@ -143,11 +146,13 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 																				'OBLYON_COLOR_BCKGRD',
 																				'OBLYON_COLOR_INPUT_BCKGRD',
 																				'OBLYON_COLOR_INPUT_ADD_BCKGRD',
+																				'OBLYON_COLOR_OVERLAY_BCKGRD',	// InfraS add : surfaces flottantes (3.7.0)
 																				'OBLYON_COLOR_LOGO_BCKGRD',
 																				'OBLYON_COLOR_LOGIN_BCKGRD'
 																				),
 										'OblyonColorGrpText'			=> array('THEME_ELDY_TEXT',
-																				'THEME_ELDY_TEXTLINK'
+																				'THEME_ELDY_TEXTLINK',
+																				'OBLYON_COLOR_ICON_TEXT'	// InfraS add : pictos secondaires (3.7.0)
 																				),
 										'OblyonColorGrpTitles'			=> array('OBLYON_COLOR_BTITLE',
 																				'OBLYON_COLOR_STITLE',
@@ -177,6 +182,13 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 										'OblyonColorGrpDate'			=> array('OBLYON_COLOR_FDATE_DEFAULT',
 																				'OBLYON_COLOR_FDATE_SELECTED'
 																				),
+										'OblyonColorGrpAgenda'			=> array('OBLYON_COLOR_CAL_EVENT_TXT',	// InfraS add begin : agenda / calendriers (3.7.0)
+																				'OBLYON_COLOR_CAL_WEEKEND_BCKGRD',
+																				'OBLYON_COLOR_CAL_HOLIDAY_BCKGRD'
+																				),	// InfraS add end
+										'OblyonColorGrpTimeline'		=> array('OBLYON_COLOR_TIMELINE_BCKGRD',	// InfraS add begin : fil de discussion des tickets (3.7.0)
+																				'OBLYON_COLOR_TIMELINE_PRIVATE_BCKGRD'
+																				),	// InfraS add end
 										'OblyonColorGrpNatures'			=> array('THEME_ELDY_PROSPECTBACK',
 																				'THEME_ELDY_CUSTOMERBACK',
 																				'THEME_ELDY_VENDORBACK',
@@ -192,10 +204,25 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 																				'OBLYON_COLOR_INFOBOX_BCKGRD2',
 																				'OBLYON_COLOR_BORDER_ACTIONCOLUMN'
 																				),
-										'OblyonColorGrpAmounts'			=> array('OBLYON_COLOR_AMOUNT_REMAIN',
+										'OblyonColorGrpAmounts'			=> array('OBLYON_COLOR_AMOUNT_TEXT',	// InfraS add : texte des montants (3.7.0)
+																				'OBLYON_COLOR_AMOUNT_REMAIN',
 																				'OBLYON_COLOR_AMOUNT_PAID',
 																				'OBLYON_COLOR_AMOUNT_UNPAID'
 																				),
+										'OblyonColorGrpStock'			=> array('OBLYON_COLOR_STOCK_OK',	// InfraS add begin : stock et mouvements (3.7.0)
+																				'OBLYON_COLOR_STOCK_LOW',
+																				'OBLYON_COLOR_STOCK_EXIT'
+																				),
+										'OblyonColorGrpBadges'			=> array('OBLYON_COLOR_BADGE_DRAFT',	// badges de statut : fond / bordure, texte calcule par contraste (3.7.0)
+																				'OBLYON_COLOR_BADGE_VALIDATED',
+																				'OBLYON_COLOR_BADGE_APPROVED',
+																				'OBLYON_COLOR_BADGE_WAITING',
+																				'OBLYON_COLOR_BADGE_ACTIVE',
+																				'OBLYON_COLOR_BADGE_CLOSED',
+																				'OBLYON_COLOR_BADGE_CANCELED',
+																				'OBLYON_COLOR_BADGE_ERROR',
+																				'OBLYON_COLOR_BADGE_DONE'
+																				),	// InfraS add end
 										'OblyonColorGrpStatus'			=> array('OBLYON_COLOR_STATUS_SUCCESS',
 																				'OBLYON_COLOR_STATUS_INFO',
 																				'OBLYON_COLOR_STATUS_WARNING',
@@ -219,6 +246,11 @@ $listcolor	= array('top'		=> array('OBLYON_COLOR_TOPMENU_BCKGRD',
 																				'OBLYON_COLOR_RESULT_BCKGRD',
 																				'OBLYON_COLOR_RESULT_TEXT'
 																				),
+										'OblyonColorGrpEldyOther'		=> array('THEME_ELDY_TOPMENU_BACK1',	// InfraS add begin : lues par le theme et deja proposees sur l'onglet utilisateur, mais absentes ici (3.7.0) ; valeurs invalides '0.0.0' impossibles a corriger depuis le module
+																				'THEME_ELDY_VERMENU_BACK1',
+																				'THEME_ELDY_BACKBODY',
+																				'THEME_ELDY_TEXTTITLELINK'
+																				),	// InfraS add end
 										)
 					);
 // InfraS change : les presets de couleurs (ex-tableau $listtheme, 5 x 102 constantes) sont des fichiers JSON : presets/*.json du module et presets de l'instance (voir lib/oblyon_presets.lib.php)
@@ -286,6 +318,14 @@ print '	<script type = "text/javascript">
 // InfraS add begin : presets (cartes, enregistrer sous, importer) : formulaires propres, donc avant le formulaire des couleurs
 print oblyon_print_preset_cards();
 print oblyon_print_preset_forms();
+// 3.7.0 : couleurs en base (pas seulement les fichiers presets) : couples sous le contraste et valeurs illisibles par le theme
+$oblyon_current	= oblyon_presets_current_values(array('colors', 'dashboard'));
+$oblyon_issues	= oblyon_check_preset_contrast(array('colors' => (isset($oblyon_current['colors']) ? $oblyon_current['colors'] : array()), 'dashboard' => (isset($oblyon_current['dashboard']) ? $oblyon_current['dashboard'] : array())));
+if (count($oblyon_issues)) {
+	$oblyon_details	= array();
+	foreach ($oblyon_issues as $oblyon_issue)	$oblyon_details[]	= oblyon_contrast_issue_text($oblyon_issue);
+	print '<div class="warning">'.$langs->trans('OblyonPresetContrastWarning', count($oblyon_issues)).'<br>'.implode('<br>', $oblyon_details).'</div>';
+}
 // InfraS add end
 
 print '<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "POST" enctype = "multipart/form-data">

@@ -76,7 +76,58 @@
 	}
 
 	/**
-	*	Colour setting : the personal value of the user when his personal colours are on and the value looks like a colour, else the instance value
+	*	Single storage format (3.7.0) : '#RRGGBB'. An 'r,g,b' value (written by the core "Display setup" pages for 14 THEME_ELDY_* constants, or an old default of theme_vars.inc.php)
+	*	is converted ; a 6-digit hex is kept (upper case) ; anything else is returned as is, or replaced by $fallback when given (e.g. '0.0.0')
+	*
+	*	@param		string	$value		Value
+	*	@param		string	$fallback	Value returned when $value is neither '#RRGGBB' nor 'r,g,b' ('' = return $value unchanged)
+	*	@return		string
+	**/
+	function oblyon_color_to_hex($value, $fallback = '')
+	{
+		$value	= trim((string) $value);
+		if (preg_match('/^#[0-9a-f]{6}$/i', $value))	return strtoupper($value);
+		if (preg_match('/^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$/', $value, $reg) && (int) $reg[1] <= 255 && (int) $reg[2] <= 255 && (int) $reg[3] <= 255) {
+			return sprintf('#%02X%02X%02X', (int) $reg[1], (int) $reg[2], (int) $reg[3]);
+		}
+		return ($fallback !== '' ? $fallback : $value);
+	}
+
+	/**
+	*	Rewrite the stored colours that are still 'r,g,b' as '#RRGGBB' (3.7.0) : the instance constants (llx_const, $tmpuser = null) or the personal colours of a user (llx_user_param).
+	*	Idempotent, one write per converted value, CSS revision bumped when something changed. Called when the Colors tabs open.
+	*
+	*	@param		User|null	$tmpuser	User whose personal colours are normalized, null = instance constants
+	*	@return		int					Number of converted values
+	**/
+	function oblyon_colors_normalize_stored($tmpuser = null)
+	{
+		global $db, $conf;
+
+		require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+		$count	= 0;
+		foreach (oblyon_user_colors_keys() as $name) {
+			if ($tmpuser === null) {
+				$value	= getDolGlobalString($name);
+			} else {
+				if (empty($tmpuser->conf) || ! isset($tmpuser->conf->$name))	continue;
+				$value	= (string) $tmpuser->conf->$name;
+			}
+			if (! preg_match('/^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}$/', $value))	continue;
+			$hex	= oblyon_color_to_hex($value);
+			if ($hex === $value)	continue;
+			if ($tmpuser === null) {
+				if (dolibarr_set_const($db, $name, $hex, 'chaine', 0, 'Oblyon module', $conf->entity) > 0)	$count++;
+			} else {
+				if (dol_set_user_param($db, $conf, $tmpuser, array($name => $hex)) > 0)	$count++;
+			}
+		}
+		if ($count)	dolibarr_set_const($db, 'MAIN_IHM_PARAMS_REV', getDolGlobalInt('MAIN_IHM_PARAMS_REV') + 1, 'chaine', 0, '', $conf->entity);
+		return $count;
+	}
+
+	/**
+	*	Colour setting : the personal value of the user when his personal colours are on and the value looks like a colour, else the instance value ; 'r,g,b' converted to '#RRGGBB' (3.7.0)
 	*
 	*	@param		string		$name		Constant name
 	*	@param		string		$default	Default when neither the user nor the instance defines it
@@ -91,9 +142,50 @@
 		}
 		if (oblyon_user_colors_enabled($tmpuser) && isset($tmpuser->conf->$name)) {
 			$value	= (string) $tmpuser->conf->$name;
-			if (oblyon_color_is_valid($value, $name))	return $value;
+			if (oblyon_color_is_valid($value, $name))	return oblyon_color_to_hex($value);
 		}
-		return getDolGlobalString($name, $default);
+		return oblyon_color_to_hex(getDolGlobalString($name, $default));
+	}
+
+	/**
+	*	Colour setting that must be a real colour : the value (user then instance) when it is '#RRGGBB', else the default.
+	*	'' and '#' (inherit convention) fall back to the default : for the tokens painted as plain CSS colours (3.7.0)
+	*
+	*	@param		string		$name		Constant name
+	*	@param		string		$default	Default '#RRGGBB'
+	*	@param		User|null	$tmpuser	User (null = current user)
+	*	@return		string
+	**/
+	function oblyon_color_setting_hex($name, $default, $tmpuser = null)
+	{
+		$value	= oblyon_color_setting($name, '', $tmpuser);
+		return (preg_match('/^#[0-9a-f]{6}$/i', $value) ? $value : $default);
+	}
+
+	/**
+	*	Text colour to paint on a background : the one of two candidates with the best WCAG contrast (3.7.0 : status badges, whose text was white or the row text whatever the background)
+	*
+	*	@param		string	$background		Background '#RRGGBB'
+	*	@param		string	$dark			Dark candidate
+	*	@param		string	$light			Light candidate
+	*	@return		string					$dark or $light ($light when the background is not a colour)
+	**/
+	function oblyon_text_on($background, $dark = '#1C1C1C', $light = '#FFFFFF')
+	{
+		$lum	= function ($hex) {
+			$hex	= ltrim($hex, '#');
+			if (! preg_match('/^[0-9a-f]{6}$/i', $hex))	return null;
+			$out	= array();
+			foreach (str_split($hex, 2) as $part) {
+				$c		= hexdec($part) / 255;
+				$out[]	= ($c <= 0.03928) ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
+			}
+			return 0.2126 * $out[0] + 0.7152 * $out[1] + 0.0722 * $out[2];
+		};
+		$lb	= $lum($background);
+		if ($lb === null)	return $light;
+		$ratio	= function ($l1, $l2) { return (max($l1, $l2) + 0.05) / (min($l1, $l2) + 0.05); };
+		return ($ratio($lum($dark), $lb) >= $ratio($lum($light), $lb)) ? $dark : $light;
 	}
 
 	/**
@@ -104,7 +196,8 @@
 	**/
 	function oblyon_user_colors_list()
 	{
-		$top	= array('OBLYON_COLOR_TOPMENU_BCKGRD', 'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER', 'OBLYON_COLOR_TOPMENU_TXT', 'OBLYON_COLOR_TOPMENU_TXT_ACTIVE', 'OBLYON_COLOR_TOPMENU_TXT_HOVER');
+		$top	= array('OBLYON_COLOR_TOPMENU_BCKGRD', 'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER', 'OBLYON_COLOR_TOPMENU_TXT', 'OBLYON_COLOR_TOPMENU_TXT_ACTIVE', 'OBLYON_COLOR_TOPMENU_TXT_HOVER',
+						'OBLYON_COLOR_TOPMENU_BCKGRD_SEL', 'OBLYON_COLOR_TOPMENU_TXT_SEL');	// 3.7.0 : entree selectionnee
 		$left	= array('OBLYON_COLOR_LEFTMENU_BCKGRD', 'OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER', 'OBLYON_COLOR_LEFTMENU_TXT', 'OBLYON_COLOR_LEFTMENU_TXT_ACTIVE', 'OBLYON_COLOR_LEFTMENU_TXT_HOVER');
 		$list	= array();
 		if (!getDolGlobalString('MAIN_MENU_INVERT')) {
@@ -118,18 +211,23 @@
 		$list['OblyonColorGrpMessages']			= array('OBLYON_COLOR_INFO_BORDER', 'OBLYON_COLOR_INFO_BCKGRD', 'OBLYON_COLOR_INFO_TEXT', 'OBLYON_COLOR_WARNING_BORDER', 'OBLYON_COLOR_WARNING_BCKGRD', 'OBLYON_COLOR_WARNING_TEXT',
 														'OBLYON_COLOR_ERROR_BORDER', 'OBLYON_COLOR_ERROR_BCKGRD', 'OBLYON_COLOR_ERROR_TEXT', 'OBLYON_COLOR_NOTIF_INFO_BCKGRD', 'OBLYON_COLOR_NOTIF_INFO_TEXT',
 														'OBLYON_COLOR_NOTIF_WARNING_BCKGRD', 'OBLYON_COLOR_NOTIF_WARNING_TEXT', 'OBLYON_COLOR_NOTIF_ERROR_BCKGRD', 'OBLYON_COLOR_NOTIF_ERROR_TEXT');
-		$list['OblyonColorGrpBackgrounds']		= array('OBLYON_COLOR_MAIN', 'OBLYON_COLOR_BCKGRD', 'OBLYON_COLOR_INPUT_BCKGRD', 'OBLYON_COLOR_INPUT_ADD_BCKGRD', 'OBLYON_COLOR_LOGO_BCKGRD', 'OBLYON_COLOR_LOGIN_BCKGRD');
-		$list['OblyonColorGrpText']				= array('THEME_ELDY_TEXT', 'THEME_ELDY_TEXTLINK');
+		$list['OblyonColorGrpBackgrounds']		= array('OBLYON_COLOR_MAIN', 'OBLYON_COLOR_BCKGRD', 'OBLYON_COLOR_INPUT_BCKGRD', 'OBLYON_COLOR_INPUT_ADD_BCKGRD', 'OBLYON_COLOR_OVERLAY_BCKGRD', 'OBLYON_COLOR_LOGO_BCKGRD', 'OBLYON_COLOR_LOGIN_BCKGRD');
+		$list['OblyonColorGrpText']				= array('THEME_ELDY_TEXT', 'THEME_ELDY_TEXTLINK', 'OBLYON_COLOR_ICON_TEXT');
 		$list['OblyonColorGrpTitles']			= array('OBLYON_COLOR_BTITLE', 'OBLYON_COLOR_STITLE', 'THEME_ELDY_TEXTTITLE', 'THEME_ELDY_TEXTTITLENOTAB', 'THEME_ELDY_TOPBORDER_TITLE1', 'THEME_ELDY_BACKTITLE1');
 		$list['OblyonColorGrpTabs']				= array('THEME_ELDY_BACKTABACTIVE', 'THEME_ELDY_BACKTABCARD1', 'OBLYON_COLOR_TEXTTABACTIVE');
 		$list['OblyonColorGrpLines']			= array('OBLYON_COLOR_BLINE', 'OBLYON_COLOR_FLINE', 'THEME_ELDY_USE_HOVER', 'THEME_ELDY_USE_CHECKED', 'OBLYON_COLOR_FLINE_HOVER',
 														'THEME_ELDY_LINEIMPAIR1', 'THEME_ELDY_LINEIMPAIR2', 'THEME_ELDY_LINEPAIR1', 'THEME_ELDY_LINEPAIR2', 'THEME_ELDY_LINEBREAK');
 		$list['OblyonColorGrpTotal']			= array('OBLYON_COLOR_BTOTAL', 'OBLYON_COLOR_FTOTAL');
 		$list['OblyonColorGrpDate']				= array('OBLYON_COLOR_FDATE_DEFAULT', 'OBLYON_COLOR_FDATE_SELECTED');
+		$list['OblyonColorGrpAgenda']			= array('OBLYON_COLOR_CAL_EVENT_TXT', 'OBLYON_COLOR_CAL_WEEKEND_BCKGRD', 'OBLYON_COLOR_CAL_HOLIDAY_BCKGRD');	// 3.7.0
+		$list['OblyonColorGrpTimeline']			= array('OBLYON_COLOR_TIMELINE_BCKGRD', 'OBLYON_COLOR_TIMELINE_PRIVATE_BCKGRD');	// 3.7.0
 		$list['OblyonColorGrpNatures']			= array('THEME_ELDY_PROSPECTBACK', 'THEME_ELDY_CUSTOMERBACK', 'THEME_ELDY_VENDORBACK', 'THEME_ELDY_USERBACK', 'THEME_ELDY_COLORNATURE');
 		$list['OblyonColorGrpMembers']			= array('THEME_ELDY_MEMBER_COMPANYBACK', 'THEME_ELDY_MEMBER_INDIVIDUALBACK', 'THEME_ELDY_COLORMEMBER');
 		$list['OblyonColorGrpDashboard']		= array('OBLYON_COLOR_BOX_SHADOW', 'OBLYON_COLOR_INFOBOX_BCKGRD1', 'OBLYON_COLOR_INFOBOX_BCKGRD2', 'OBLYON_COLOR_BORDER_ACTIONCOLUMN');
-		$list['OblyonColorGrpAmounts']			= array('OBLYON_COLOR_AMOUNT_REMAIN', 'OBLYON_COLOR_AMOUNT_PAID', 'OBLYON_COLOR_AMOUNT_UNPAID');
+		$list['OblyonColorGrpAmounts']			= array('OBLYON_COLOR_AMOUNT_TEXT', 'OBLYON_COLOR_AMOUNT_REMAIN', 'OBLYON_COLOR_AMOUNT_PAID', 'OBLYON_COLOR_AMOUNT_UNPAID');
+		$list['OblyonColorGrpStock']			= array('OBLYON_COLOR_STOCK_OK', 'OBLYON_COLOR_STOCK_LOW', 'OBLYON_COLOR_STOCK_EXIT');	// 3.7.0
+		$list['OblyonColorGrpBadges']			= array('OBLYON_COLOR_BADGE_DRAFT', 'OBLYON_COLOR_BADGE_VALIDATED', 'OBLYON_COLOR_BADGE_APPROVED', 'OBLYON_COLOR_BADGE_WAITING', 'OBLYON_COLOR_BADGE_ACTIVE',
+														'OBLYON_COLOR_BADGE_CLOSED', 'OBLYON_COLOR_BADGE_CANCELED', 'OBLYON_COLOR_BADGE_ERROR', 'OBLYON_COLOR_BADGE_DONE');	// 3.7.0 : text colour automatic (oblyon_text_on)
 		$list['OblyonColorGrpStatus']			= array('OBLYON_COLOR_STATUS_SUCCESS', 'OBLYON_COLOR_STATUS_INFO', 'OBLYON_COLOR_STATUS_WARNING', 'OBLYON_COLOR_STATUS_DANGER', 'OBLYON_COLOR_STATUS_PRIMARY', 'OBLYON_COLOR_PROGRESSBAR', 'OBLYON_COLOR_TIMELINEITEM');
 		$list['OblyonColorGrpWeather']			= array('OBLYON_COLOR_WEATHER_LEVEL0', 'OBLYON_COLOR_WEATHER_LEVEL1', 'OBLYON_COLOR_WEATHER_LEVEL2', 'OBLYON_COLOR_WEATHER_LEVEL3', 'OBLYON_COLOR_WEATHER_LEVEL4', 'OBLYON_COLOR_INFOBOX_UPDATE');
 		$list['OblyonColorGrpAutocomplete']		= array('OBLYON_COLOR_AUTOCOMPLETE_BCKGRD', 'OBLYON_COLOR_AUTOCOMPLETE_TEXT');
@@ -373,7 +471,7 @@
 			$out	.= '</div><div class="oblyon-preset__icons">';
 			if ($contrast) {
 				$details	= array();
-				foreach ($contrast as $c)	$details[]	= oblyon_user_color_label($c['text']).' / '.oblyon_user_color_label($c['background']).' : '.$c['ratio'];
+				foreach ($contrast as $c)	$details[]	= oblyon_contrast_issue_text($c, 'oblyon_user_color_label');	// 3.7.0 : couples + valeurs invalides
 				$out	.= '<span class="oblyon-preset__icon oblyon-preset__icon--warn" title="'.dol_escape_htmltag($langs->trans('OblyonPresetContrastWarning', count($contrast))."\n".implode("\n", $details), 0, 1).'"><span class="fa fa-exclamation-triangle"></span></span>';
 			}
 			$out	.= '</div></div>';

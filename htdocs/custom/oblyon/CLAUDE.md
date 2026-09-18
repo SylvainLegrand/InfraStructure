@@ -21,7 +21,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.0.x`
 - Compatibilité PHP : `7.1` à `8.4`
-- Dernière version locale : `3.6.0` (2026-09)
+- Dernière version locale : `3.7.0` (2026-09)
 - Dépendances obligatoires : aucune
 - Conflits : `modQuickUX`
 - Emplacement : `htdocs/custom/oblyon/`
@@ -86,6 +86,8 @@ htdocs/custom/oblyon/
 │   ├── oblyon_presets.lib.php # Presets JSON (3.6.0) : sections, chargement, appliquer, enregistrer sous, mettre à jour, supprimer, importer, contraste, cartes
 │   ├── oblyon_colors.lib.php  # Couleurs par utilisateur (3.6.0) : oblyon_color_setting() (point de lecture unique du thème), liste des constantes de l'onglet, pastille
 │   └── inovea_common.lib.php  # Fonctions communes Inovea (changelog Parsedown)
+├── dev/
+│   └── csscompare.php         # CLI (3.7.0) : comparaison sémantique de deux feuilles servies (valeur finale de chaque propriété par sélecteur), garde-fou avant / après toute modification du thème
 ├── presets/                   # Presets du module (3.6.0) : green, dark, blue, night, light (.json) + accessible.json (scope user : onglet utilisateur seulement)
 ├── sql/
 │   ├── data.sql               # Constantes initiales (~200 INSERT, exhaustif ; preset « Oblyon Blue » par défaut)
@@ -93,8 +95,16 @@ htdocs/custom/oblyon/
 ├── user/
 │   └── colors.php             # Onglet « Couleurs » de la fiche utilisateur (3.6.0) : couleurs personnelles (llx_user_param)
 └── themeoblyon/               # Répertoire du thème CSS
-    ├── style.css.php          # Point d'entrée CSS (~344 lignes)
-    ├── global.inc.php         # Feuille de style principale (~11000 lignes)
+    ├── style.css.php          # Point d'entrée CSS (~400 lignes) : lecture des constantes, normalisation hex, include global.inc.php
+    ├── global.inc.php         # Point d'entrée de la feuille (3.7.0, ~90 lignes) : inclut les 8 fichiers thématiques ci-dessous dans l'ordre, puis dropdown, touchmenu, flyoutmenu, info-box, progress, timeline, mobile, modules, puis la queue conditionnelle (THEME_ADD_BACKGROUND_ON_INPUT, THEME_SATURATE_RATIO, THEME_ELDY_USEBORDERONTABLE…)
+    ├── core.inc.php           # 1. Styles par défaut : variables CSS :root, typographie, liens, champs, module website (inclut badges.inc.php)
+    ├── tools.inc.php          # 2. Outil de scan, objets masqués, utilitaires
+    ├── layout.inc.php         # 3. Structure de page, barre du haut, menu latéral, main-nav, bloc de connexion
+    ├── cards.inc.php          # 4. Fiches : pictos (inclut main_menu_fa_icons), page de connexion (inclut login), onglets, boutons (inclut btn)
+    ├── tables.inc.php         # 5. Listes et tableaux : titres, lignes, totaux, colonnes
+    ├── widgets.inc.php        # 6. Calendrier, agenda, autocomplétion, édition en ligne, CKEditor, ACE, jNotify, blockUI, DataTables, Select2, multiselect
+    ├── public.inc.php         # 7. Kanban, JMobile, POS, pages publiques, tickets, debugbar, copier-coller, cartes de visite, sondages, BookCal
+    ├── fixes.inc.php          # 8. Options globales, en-têtes / colonnes / totaux collants (FIX_*), petits écrans
     ├── custom.css.php         # CSS personnalisé utilisateur
     ├── theme_vars.inc.php     # Variables du thème (couleurs, polices)
     ├── font.css               # Polices embarquées
@@ -107,7 +117,7 @@ htdocs/custom/oblyon/
     ├── flyoutmenu.inc.php     # Styles des sous-menus en volets (effet « flyout » du menu réduit, menus inversés)
     ├── mobile.inc.php         # Disposition mobile (3.5.0) : barre unique + tiroir sous 600 px, fiches, listes, formulaires, dialogues, tableau de bord, connexion
     ├── info-box.inc.php       # Styles infobox dashboard
-    ├── login.inc.php          # Styles page de connexion
+    ├── login.inc.php          # Page de connexion seulement (.bodylogin, .login_table) ; sa copie périmée de la barre du haut a été retirée en 3.7.0
     ├── main_menu_fa_icons.inc.php  # Icônes FA menus
     ├── modules.inc.php        # Styles pages modules
     ├── modules/               # Extensions CSS modules externes
@@ -118,7 +128,7 @@ htdocs/custom/oblyon/
     │   ├── scaninvoices.inc.php
     │   └── subtotal.inc.php
     ├── progress.inc.php       # Styles barres de progression
-    ├── timeline.inc.php       # Styles timeline
+    ├── timeline.inc.php       # Fil de discussion des tickets (jetons OBLYON_COLOR_TIMELINE_*)
     ├── ckeditor/              # Configuration CKEditor propre au thème (config.js)
     ├── tpl/                   # Templates
     ├── img/                   # Images du thème
@@ -188,8 +198,10 @@ Le thème est structuré en plusieurs couches :
 
 1. **`style.css.php`** : point d'entrée principal, charge `theme_vars.inc.php` puis inclut tous les fichiers `.inc.php`
 2. **`theme_vars.inc.php`** : lit les constantes `OBLYON_*` et `THEME_ELDY_*` pour définir les variables PHP utilisées dans le CSS
-3. **`global.inc.php`** : feuille de style principale (~11000 lignes), définit les variables CSS `:root` et l'ensemble des règles
-4. **Fichiers `.inc.php` spécialisés** : badges, boutons, dropdowns, infobox, login, menus FA, modules, progress, timeline
+3. **`global.inc.php`** : point d'entrée de la feuille (3.7.0) : inclut dans l'ordre `core`, `tools`, `layout`, `cards`, `tables`, `widgets`, `public`, `fixes` (découpage de l'ancien fichier de 11 000 lignes, aux frontières de ses sections, feuille servie identique), puis les fichiers spécialisés
+4. **Fichiers `.inc.php` spécialisés** : badges (inclus par core), main_menu_fa_icons / login / btn (inclus par cards), dropdown, touchmenu, flyoutmenu, info-box, progress, timeline, mobile, modules (inclus par global en fin)
+6. **Règle « une règle, un endroit »** (3.7.0) : un sélecteur ne se définit qu'à un seul endroit pour un même contexte `@media` ; compléter une règle existante plutôt que la recopier plus loin. Motif : la copie tardive gagne la cascade et annule silencieusement les corrections faites sur la première (incidents 2026-09-18 : `.alogin:hover`, `div.login_block:hover:after` reprises par la copie de `login.inc.php`). Le lot 1 de 3.7.0 a retiré 160 copies identiques, 22 copies entièrement écrasées, 31 déclarations mortes, 30 règles vides et la copie de 250 lignes de `login.inc.php` ; les compléments partiels (une règle plus loin qui ajoute des propriétés) sont conservés. Chaque fichier porte un en-tête `Role / Inclus par / Garde / Regle`.
+7. **Vérification** : `php dev/csscompare.php avant.css apres.css` sur deux feuilles servies enregistrées avec `curl` (paramètre `revision=` différent) : 0 différence attendue pour un refactor, seules les différences voulues pour une correction
 5. **`custom.css.php`** : CSS personnalisé saisi par l'utilisateur (constante `OBLYON_CUSTOM_CSS`)
 
 ### Gestionnaire de menus
@@ -250,8 +262,8 @@ Le module utilise un grand nombre de constantes (~200, cf. `data.sql` exhaustif)
 
 ### Couleurs — Menus
 
-- `OBLYON_COLOR_TOPMENU_BCKGRD`, `_BCKGRD_HOVER`, `_TXT`, `_TXT_ACTIVE`, `_TXT_HOVER`
-- `OBLYON_COLOR_LEFTMENU_BCKGRD`, `_BCKGRD_HOVER`, `_TXT`, `_TXT_ACTIVE`, `_TXT_HOVER`
+- `OBLYON_COLOR_TOPMENU_BCKGRD`, `_BCKGRD_HOVER`, `_TXT`, `_TXT_ACTIVE`, `_TXT_HOVER`, `_BCKGRD_SEL`, `_TXT_SEL` (3.7.0 : entrée sélectionnée `li.tmenusel` / `.main-nav__item.tmenusel`, texte blanc codé en dur auparavant ; fond par défaut = `_BCKGRD_HOVER`, sinon `OBLYON_COLOR_MAIN`)
+- `OBLYON_COLOR_LEFTMENU_BCKGRD`, `_BCKGRD_HOVER`, `_TXT`, `_TXT_ACTIVE`, `_TXT_HOVER` (les libellés `OBLYON_COLOR_LEFTMENU_BCKGRD_SEL` / `_TXT_SEL` n'existent que pour la permutation des libellés quand les menus sont inversés)
 
 ### Couleurs — Boutons
 
@@ -268,10 +280,18 @@ Le module utilise un grand nombre de constantes (~200, cf. `data.sql` exhaustif)
 
 ### Couleurs — Options générales
 
-- `OBLYON_COLOR_MAIN`, `_BCKGRD`, `_LOGO_BCKGRD`, `_LOGIN_BCKGRD`
+- `OBLYON_COLOR_MAIN`, `_BCKGRD`, `_LOGO_BCKGRD`, `_LOGIN_BCKGRD`, `_OVERLAY_BCKGRD` (3.7.0 : fond des surfaces flottantes jusqu'ici blanches : barre de filtre des listes `.search_component_params`, modales `div.div-for-modal*`, survol du sélecteur de colonnes `.dropdown dd ul li a:hover`, édition en ligne `.editval_*`/`.viewval_hover`)
+- ⚠️ `OBLYON_COLOR_MAIN` est aussi une **couleur de texte** (icônes de type de fichier, survol des onglets, `--oblyon-focus`) et le **fond des événements de l'agenda** (`table.cal_event`) : dans un preset sombre elle doit être claire (accent), pas une nuance du fond (incident fitantanana 2026-09-18 : `#303030` → agenda illisible). Depuis 3.7.0 le texte de survol des liens des menus et de la barre du haut suit `OBLYON_COLOR_TOPMENU_TXT_HOVER` / `LEFTMENU_TXT_HOVER` (11 règles de `global.inc.php`), plus `MAIN`
 - `OBLYON_COLOR_BTITLE`, `_STITLE` (texte des titres migré vers `THEME_ELDY_TEXTTITLE`, ex-`OBLYON_COLOR_FTITLE`)
 - `OBLYON_COLOR_BLINE`, `_FLINE`, `_FLINE_HOVER` (survol de ligne migré vers `THEME_ELDY_USE_HOVER`, + coché `THEME_ELDY_USE_CHECKED`, ex-`OBLYON_COLOR_BLINE_HOVER`)
-- `OBLYON_COLOR_FDATE_DEFAULT`, `_FDATE_SELECTED`
+- `OBLYON_COLOR_FDATE_DEFAULT`, `_FDATE_SELECTED` (le jour actif du calendrier est peint sur `THEME_ELDY_TOPMENU_BACK1`)
+- `OBLYON_COLOR_CAL_EVENT_TXT`, `_CAL_WEEKEND_BCKGRD`, `_CAL_HOLIDAY_BCKGRD` (3.7.0, groupe « Agenda / calendriers » : texte des événements de l'agenda, fond des week-ends `td.weekend` et des congés `td.onholiday*` des feuilles de temps ; codés en dur `#111111` / `#eee` / `#f4eede` auparavant)
+- `OBLYON_COLOR_AMOUNT_TEXT` (3.7.0, groupe Montants : texte de `span.amount`, codé en dur `#006666` auparavant), `_AMOUNT_REMAIN`, `_AMOUNT_PAID`, `_AMOUNT_UNPAID`
+- `OBLYON_COLOR_STOCK_OK`, `_STOCK_LOW`, `_STOCK_EXIT` (3.7.0, groupe « Stock et mouvements » : colonne stock des lignes produit, flèches de mouvement ; codés en dur `#002000` / `#884400` / `#968822`)
+- `OBLYON_COLOR_ICON_TEXT` (3.7.0, groupe Texte : pictos téléphone, mail, lien, corbeille, lecture, codés en dur `#440` / `#304` / `#555` / `#666` / `#444` dans `main_menu_fa_icons.inc.php` ; corbeille survolée = `--colorstatusdanger`)
+- `OBLYON_COLOR_TIMELINE_BCKGRD`, `_TIMELINE_PRIVATE_BCKGRD` (3.7.0, groupe « Fil de discussion (tickets) », `timeline.inc.php` : fonds des messages ; textes, bordures, boutons et pastilles sur `--colortext`, `--oblyon-border*`, `--oblyon-neutral-bg`, `--oblyon-muted-text`)
+- `OBLYON_COLOR_BADGE_DRAFT`, `_VALIDATED`, `_APPROVED`, `_WAITING`, `_ACTIVE`, `_CLOSED`, `_CANCELED`, `_ERROR`, `_DONE` (3.7.0, groupe « Badges de statut » : fond / bordure des familles `$badgeStatus*` de `theme_vars.inc.php`, rederivées dans `style.css.php` ; **texte calculé** par `oblyon_text_on()` (sombre `#1C1C1C` ou blanc selon le meilleur contraste), donc jamais à régler ; brouillon / fermé / en attente / actif (1b, 4b, 7, 10) restent en « bordure seule » sur le fond des lignes ; `.font-statusN` = couleur du statut)
+- Jetons peints comme couleur CSS brute (les 22 ci-dessus) : lus par `oblyon_color_setting_hex()`, valeur `''` ou `#` = défaut du thème. `OBLYON_COLOR_FTITLE` (remplacée par `THEME_ELDY_TEXTTITLE`) n'est plus dans les presets
 - `OBLYON_COLOR_TEXTTABACTIVE`, `_INPUT_BCKGRD`
 - `OBLYON_COLOR_AUTOCOMPLETE_BCKGRD`, `_TEXT` (fond et texte de la ligne surlignée en autocomplétion produit — select2 `--highlighted` + autocomplétion jQuery UI `search-to-select`)
 - `OBLYON_COLOR_RESULT_BCKGRD`, `_TEXT` (fond et texte des **étiquettes sélectionnées affichées dans le champ** multi-select — chips `.select2-selection__choice`, ex. tags/catégories ; le bouton × reprend la couleur du texte)
@@ -283,6 +303,8 @@ Le module utilise un grand nombre de constantes (~200, cf. `data.sql` exhaustif)
 ### Couleurs — Dolibarr core (THEME_ELDY_*)
 
 - `THEME_ELDY_TOPBORDER_TITLE1`, `_BACKTITLE1`, `_BACKTABACTIVE`, `_BACKTABCARD1` (fond de l'onglet actif d'une fiche, `.tabactive` ; ajouté à l'onglet Couleurs en 3.6.0)
+- `THEME_ELDY_TOPMENU_BACK1`, `_VERMENU_BACK1`, `_BACKBODY`, `_TEXTTITLELINK` (groupe « Autres couleurs Dolibarr » de l'onglet Couleurs depuis 3.7.0, onglet utilisateur depuis 3.6.0 : jour actif du calendrier, listes select2, dialogues jQuery UI)
+- **Format de stockage unique : `#RRGGBB`** (3.7.0). Les pages « Interface utilisateur » du core écrivent encore 14 `THEME_ELDY_*` en `r,g,b` : `oblyon_color_setting()` convertit à la lecture, `oblyon_colors_normalize_stored()` réécrit en base à l'ouverture des onglets Couleurs, les presets convertissent à l'import. `style.css.php` n'imprime plus de `rgb()` : les 20 couleurs Eldy sont normalisées par `oblyon_color_to_hex()` (repli `#585858` pour une valeur illisible, comme `colorStringToArray()`), `txt_color()` est alimentée par `oblyon_txt_color_hex()`. Ne jamais réintroduire de valeur `r,g,b` dans `data.sql`, les presets ou les défauts
 - `THEME_ELDY_LINEPAIR1`, `_LINEPAIR2`, `_LINEIMPAIR1`, `_LINEIMPAIR2`, `_LINEBREAK`
 - `THEME_ELDY_TEXTTITLENOTAB`, `_TEXTTITLE`, `_TEXT`, `_TEXTLINK`
 - `THEME_ELDY_ENABLE_PERSONALIZED`
@@ -386,6 +408,7 @@ Si modification SQL / descripteur / thème CSS / menus / constantes :
 
 ## Dernières mises à jour (Recent updates)
 
+- `3.7.0` (2026-09-18) : **jetons pour le sombre** issus de l'audit de contraste du preset d'instance `infras-dark` (fitantanana). 22 constantes `OBLYON_COLOR_AMOUNT_TEXT`, `_CAL_EVENT_TXT`, `_CAL_WEEKEND_BCKGRD`, `_CAL_HOLIDAY_BCKGRD`, `_OVERLAY_BCKGRD`, `_TOPMENU_BCKGRD_SEL`, `_TOPMENU_TXT_SEL`, `_STOCK_*` (3), `_ICON_TEXT`, `_TIMELINE_*` (2), `_BADGE_*` (9, texte calculé par `oblyon_text_on()`, `badges.inc.php`) (voir « Constantes de configuration ») remplaçant des couleurs codées en dur pour fond clair dans `global.inc.php` ; `oblyon_color_setting_hex()` ; `THEME_ELDY_LINEBREAK` / `_TEXTTITLELINK` normalisés dans `style.css.php` (hex imprimé dans `rgb()` = CSS invalide) ; `info-box.inc.php` lit `THEME_AGRESSIVENESS_RATIO` en base (forçait -50) ; contrôle de contraste étendu à 46 couples + 15 tuiles + détection des valeurs invalides (`0.0.0`…), `oblyon_contrast_issue_text()`, clé `OblyonPresetInvalidValue`, rapport aussi sur les couleurs en base dans l'onglet Couleurs ; **réorganisation du thème** : dédoublonnage (voir « Architecture du thème »), `global.inc.php` découpé en `core` / `tools` / `layout` / `cards` / `tables` / `widgets` / `public` / `fixes`, en-têtes uniformes, `dev/csscompare.php` ; **format unique hex** (`oblyon_color_to_hex()`, `oblyon_colors_normalize_stored()`, plus de `rgb()` dans `global.inc.php`) ; texte de survol des menus sur les jetons `*_TXT_HOVER` (plus `MAIN`) ; six presets du module recalibrés (0 alerte) et complétés des 16 couleurs de tuiles ; 16 clés en_US manquantes ajoutées. Fichiers : `themeoblyon/style.css.php`, `global.inc.php`, `info-box.inc.php`, `lib/oblyon_colors.lib.php`, `lib/oblyon_presets.lib.php`, `admin/colors.php`, `user/colors.php`, `sql/data.sql`, `presets/*.json` (version +1, texte des événements blanc quand la couleur principale est sombre), langs fr/en, `VERSION`, `CHANGELOG.md`
 - `3.6.0` (2026-09), second lot : **couleurs par utilisateur** (voir la note technique « Couleurs par utilisateur »). Onglet « Couleurs » sur la fiche utilisateur (`user/colors.php`, déclaré par `$this->tabs`), stockage `llx_user_param` (drapeau `OBLYON_USER_COLORS` + photo complète des 116 couleurs), lecture du thème par `oblyon_color_setting()` (`lib/oblyon_colors.lib.php`, nouveau) dans `style.css.php`, `global.inc.php`, `info-box.inc.php` (121 lectures balisées), écriture inutile de `THEME_ELDY_ENABLE_PERSONALIZED` à chaque feuille retirée, 4 libellés Eldy ajoutés, chapitre `### User colors ###` des langs, CSS `.oblyon-color-swatch`, hook `completeTabsHead` (`class/actions_oblyon.class.php`) qui place l'onglet juste après « Interface utilisateur »
 - `3.6.0` (2026-09) : **presets en fichiers JSON** (voir la note technique « Presets JSON »). Le tableau `$listtheme` de `admin/colors.php` (5 × 102 constantes) est remplacé par `presets/*.json` ; presets d'instance dans `documents/[entité/]oblyon/presets` ; cartes d'aperçu (capture `img/oblyon<clé>.png` pour les presets du module, dessin CSS pour ceux de l'instance) avec Appliquer / Annuler les modifications / Mettre à jour / Télécharger / Supprimer, formulaires « Enregistrer sous » et « Importer » ; un preset s'applique, se met à jour et s'enregistre toujours en entier (le choix de sections n'existe que dans la bibliothèque). Fichiers : `lib/oblyon_presets.lib.php` (nouveau), `admin/colors.php` (actions POST + jeton `apply_preset`, `save_preset`, `saveas_preset`, `delete_preset`, `import_preset`, GET `download_preset` ; cas `theme` du bloc `update_` supprimé), `css/oblyon.css` (cartes), `modOblyon.class.php` (`$this->dirs` + `/oblyon/presets`), `sql/data.sql` (`OBLYON_CURRENT_PRESET = blue`), langs (`OblyonPreset*`, `Oblyon<key>Desc`)
 - `3.5.0` (2026-09) : **disposition mobile** (option `OBLYON_MOBILE_LAYOUT`, onglet Menus, active par défaut). Voir la note technique « Disposition mobile ». Fichiers : `themeoblyon/mobile.inc.php` (nouveau, inclus par `global.inc.php` avant `modules.inc.php`), `js/oblyon.js` (tiroir, accordéon, bouton Filtres des listes, garde `mobileActive()` sur les comportements bureau), `core/menus/standard/oblyon.lib.php` (`oblyon_mobile_nav_enabled()`, `oblyon_flyout_tree_enabled()`, bouton / en-tête / chevrons du tiroir ; `oblyon_flyout_enabled()`, `$usemenuhider` et le bouton pushy ignorent l'agent utilisateur quand l'option est active), `themeoblyon/style.css.php` (indicateur petit écran et `browser->layout` forcés à bureau pour la génération de la feuille), `core/modules/modOblyon.class.php` (version du module dans l'adresse des JS : le serveur met les `.js` en cache 30 jours), `admin/menus.php`, `sql/data.sql`, langs (`OblyonMobileLayout*`, `OblyonMobileMenu*`), `themeoblyon/modules/infrassearch.inc.php` (barre du haut + mobile). Règle CKEditor « picto menu masqué sous 768 px » retirée de `global.inc.php` (commentée, balise InfraS)
@@ -442,7 +465,7 @@ Un preset = un fichier `<clé>.json` (`clé` : `[a-z0-9][a-z0-9_-]{1,39}`) : `{ 
 - Dossiers : module `presets/` (lecture seule) puis instance `DOL_DATA_ROOT/[<entité>/]oblyon/presets` (même logique d'entité que la sauvegarde `oblyon_bkup_module`) ; un preset d'instance de même clé remplace celui du module. Cache statique par requête, `oblyon_get_presets_reset()` après écriture.
 - « Modifié » = comparaison base ↔ fichier sur les sections du preset (`oblyon_preset_modified_sections()`, constante absente en base = `''`). `OBLYON_CURRENT_PRESET` désigne le preset courant ; si elle manque (instance mise à jour par copie de fichiers), `oblyon_detect_current_preset()` (appelée à l'ouverture de l'onglet Couleurs) la sème avec le premier preset identique à la base, sinon aucune carte n'est « Actuel ». Le bouton Enregistrer du formulaire des couleurs n'écrit jamais de fichier ; seuls « Enregistrer sous » (nouveau preset d'instance) et « Mettre à jour » (preset d'instance existant, version +1) écrivent.
 - Application : une transaction, `dolibarr_set_const` par constante (note `Oblyon preset <clé>`), `oblyon_apply_menu_rules()` si la section `menus` est appliquée (mêmes règles que `admin/menus.php`), `OBLYON_CURRENT_PRESET`, `MAIN_IHM_PARAMS_REV` + 1. Codes retour : 1, -1 (rien écrit), -2 inconnu ; export : -2 clé invalide, -3 clé du module, -4 doublon ; import : -5 fichier invalide (256 Ko max).
-- Contraste : `oblyon_check_preset_contrast()` (luminance WCAG 2, 21 couples texte/fond tels que le thème les peint : `FLINE` sur `BLINE` et sur l'onglet actif `BACKTABCARD1`, `THEME_ELDY_TEXT` sur les lignes `LINEPAIR1`/`LINEIMPAIR1` et les champs `INPUT_BCKGRD`, `TEXTLINK` sur lignes et cartes, `TEXTTITLE` sur `BTITLE`, menus, boutons, messages, select2 ; seuil 4,5), avertissement sur la carte seulement. Les cinq presets du module passent le contrôle (version 2, 2026-09) ; Night est entièrement sombre (lignes, champs, onglet actif). Deux règles de `global.inc.php` hors bandeau de titre (crayon d'édition au survol, `.alilevel0`) utilisent `--colortext` et non `--colortexttitle`, ce qui autorise un texte de bandeau blanc.
+- Contraste : `oblyon_check_preset_contrast()` (luminance WCAG 2, 52 couples texte/fond tels que le thème les peint (21 d'origine + 31 en 3.7.0 : stock, pictos et fil de discussion sur `BLINE` / `TEXT`, `MAIN` en icônes de type de fichier / texte de survol des onglets (seuil propre 3) et en fond des événements agenda, montants sur `BLINE`, `FLINE_HOVER` sur `USE_HOVER`/`USE_CHECKED`, notifications, natures, adhérents, entrée de menu sélectionnée, surfaces flottantes / week-ends / congés sous `THEME_ELDY_TEXT`, `TEXTTITLENOTAB` sur `BCKGRD`, `FDATE_SELECTED` sur `TOPMENU_BACK1`, `TEXT` sur `BACKBODY`) + 15 tuiles du tableau de bord (couleur du module en icône sur `BLINE`, ou sous une icône blanche si `THEME_INFOBOX_COLOR_ON_BACKGROUND` ; la section `dashboard` est fusionnée pour ce contrôle) + valeurs de couleur illisibles par le thème (`0.0.0`, `25.5.45`… → entrée `invalid`, libellé `OblyonPresetInvalidValue`). Les six presets du module passent le contrôle étendu (2026-09-18) et portent désormais les 16 couleurs de tuiles : `FLINE` sur `BLINE` et sur l'onglet actif `BACKTABCARD1`, `THEME_ELDY_TEXT` sur les lignes `LINEPAIR1`/`LINEIMPAIR1` et les champs `INPUT_BCKGRD`, `TEXTLINK` sur lignes et cartes, `TEXTTITLE` sur `BTITLE`, menus, boutons, messages, select2 ; seuil 4,5), avertissement sur la carte seulement. Les cinq presets du module passent le contrôle (version 2, 2026-09) ; Night est entièrement sombre (lignes, champs, onglet actif). Deux règles de `global.inc.php` hors bandeau de titre (crayon d'édition au survol, `.alilevel0`) utilisent `--colortext` et non `--colortexttitle`, ce qui autorise un texte de bandeau blanc.
 - Les presets du module sont générés depuis l'ancien tableau par un script jetable avec contrôle d'égalité ; pour en ajouter un, déposer un fichier dans `presets/` (et ses clés de langue).
 - Sécurité (audit 2026-09) : `oblyon_preset_value_is_valid()` valide chaque valeur importée selon son type (couleur `#RRGGBB` / `#RGB` / `#` / `r,g,b`, nombre, texte libre sans `<>"'\` ni caractère de contrôle, `custom_css` sans `<`) car les valeurs finissent dans la feuille CSS et dans les champs de l'onglet Couleurs ; `oblyon_print_input()` échappe la valeur des champs. Écriture des fichiers atomique (`.tmp` + `rename`), détection du preset courant une fois par session (`$_SESSION['oblyon_current_preset_checked']`), clé refusant un `\n` final.
 
@@ -488,11 +511,11 @@ style.css.php est appelé (NOLOGIN, NOCSRFCHECK, NOTOKENRENEWAL)
 theme_vars.inc.php lit les constantes OBLYON_* et THEME_ELDY_*
     → Définit les variables PHP ($colorbackhmenu1, $fontlist, etc.)
     ↓
-global.inc.php génère le CSS principal
-    → Définit les variables CSS :root (--colorbackhmenu1, --fontawesomeFamily, etc.)
-    → Inclut toutes les règles CSS (~11000 lignes)
-    ↓
-Fichiers .inc.php spécialisés (badges, btn, dropdown, info-box, login, etc.)
+global.inc.php inclut dans l'ordre (3.7.0) :
+    → core.inc.php (variables CSS :root, styles par défaut ; inclut badges.inc.php)
+    → tools, layout, cards (inclut main_menu_fa_icons, login, btn), tables, widgets, public, fixes
+    → dropdown, touchmenu, flyoutmenu, info-box, progress, timeline, mobile, modules (CSS des modules tiers activés)
+    → queue conditionnelle (fond des champs, saturation des tuiles, bordures des tables…)
     ↓
 custom.css.php injecte le CSS personnalisé (OBLYON_CUSTOM_CSS)
 ```
@@ -576,7 +599,11 @@ La bibliothèque `lib/oblyon.lib.php` fournit des fonctions utilitaires pour les
 | `oblyon_user_colors_enabled($user)` | Drapeau `OBLYON_USER_COLORS` (ou ancien `THEME_ELDY_ENABLE_PERSONALIZED` utilisateur) ; faux sans utilisateur chargé |
 | `oblyon_color_is_valid($value, $name)` / `oblyon_colors_rgb_allowed()` | `#RRGGBB` (6 chiffres) ou `#` seul ; `r,g,b` seulement pour les constantes normalisées par le thème |
 | `oblyon_color_setting($name, $default, $user)` | Valeur personnelle valide si drapeau, sinon `getDolGlobalString()` : **seul point de lecture des couleurs du thème** |
-| `oblyon_user_colors_list()` / `oblyon_user_colors_keys()` | Groupes → constantes de l'onglet (menus haut/gauche permutés si `MAIN_MENU_INVERT`), liste plate (116) |
+| `oblyon_color_setting_hex($name, $default, $user)` | Idem, mais renvoie `$default` si la valeur n'est pas `#RRGGBB` (3.7.0 : jetons imprimés comme couleur CSS brute) |
+| `oblyon_text_on($background, $dark, $light)` | Texte sombre ou blanc selon le meilleur contraste WCAG sur le fond (3.7.0 : badges de statut) |
+| `oblyon_color_to_hex($value, $fallback)` | `r,g,b` → `#RRGGBB`, hex → hex majuscule, sinon `$fallback` ou la valeur (3.7.0 : **format unique hex**) |
+| `oblyon_colors_normalize_stored($user)` | Réécrit en hex les constantes (ou les couleurs personnelles de `$user`) encore en `r,g,b` ; appelée à l'ouverture des onglets Couleurs ; incrémente la révision CSS (3.7.0) |
+| `oblyon_user_colors_list()` / `oblyon_user_colors_keys()` | Groupes → constantes de l'onglet (menus haut/gauche permutés si `MAIN_MENU_INVERT`), liste plate (116, 138 depuis 3.7.0) |
 | `oblyon_user_color_label($name)` | Libellé (clé de langue = nom de la constante, TOP/LEFT permutés) |
 | `oblyon_color_swatch($value)` | Pastille + code pour le mode lecture |
 | `oblyon_user_presets_dir($userid)` / `oblyon_get_user_presets($userid)` | Dossier et liste des presets personnels (fichiers JSON, source `user`) |
@@ -612,7 +639,8 @@ Incluse par `admin/colors.php` (`dol_include_once`). Toutes les fonctions sont p
 | `oblyon_delete_preset($key)` | Supprime un preset d'instance (et `OBLYON_CURRENT_PRESET` si c'était lui) ; -2 inconnu ou module |
 | `oblyon_import_preset($tmpfile, $key, $replace)` | Fichier téléversé → normalisé → écrit ; -5 fichier invalide, -3 / -4 comme l'export |
 | `oblyon_color_luminance($hex)` / `oblyon_contrast_ratio($a, $b)` | Luminance relative et rapport de contraste WCAG 2 |
-| `oblyon_check_preset_contrast($preset, $threshold)` | Couples texte/fond sous le seuil (21 couples, tels que le thème les peint) |
+| `oblyon_check_preset_contrast($preset, $threshold)` | Couples texte/fond sous le seuil (52 couples + 15 tuiles du tableau de bord, tels que le thème les peint ; un couple peut porter son propre seuil en 3e élément, un nom commençant par `#` est une couleur littérale) + valeurs de couleur illisibles par le thème (entrée `invalid`, 3.7.0) |
+| `oblyon_contrast_issue_text($issue, $labelfn)` | Une ligne du rapport de contraste (couple ou valeur invalide), partagée par les cartes, l'onglet utilisateur et ses presets (3.7.0) |
 | `oblyon_presets_section_label($section)` / `oblyon_preset_text($text)` / `oblyon_preset_color($preset, $name)` | Libellé de section, texte traduit si clé de langue, couleur d'aperçu (`#CCCCCC` si absente) |
 | `oblyon_preset_card_preview($preset, $key, $source)` | Aperçu d'une carte (capture `img/oblyon<clé>.png` si `source = module` et fichier présent, sinon dessin), partagé avec l'onglet utilisateur |
 | `oblyon_print_preset_cards()` | Cartes (module puis instance) : capture `img/oblyon<clé>.png` ou dessin CSS, nom + badges, icône contraste, boutons Appliquer / Mettre à jour / Télécharger / Supprimer |

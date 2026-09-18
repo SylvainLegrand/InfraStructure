@@ -16,6 +16,13 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 @phan-var-force string $left
 ';
 ?>
+/* ================================================================================================
+   oblyon/themeoblyon/info-box.inc.php
+   Role      : Tuiles du tableau de bord (infobox) : couleurs par module, ratio d'agressivite
+   Inclus par : global.inc.php | Garde : ISLOADEDBYSTEELSHEET | Variables PHP : portee de style.css.php / theme_vars.inc.php
+   Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
+   ================================================================================================ */
+
 /* IDE Hack <style type="text/css"> */
 
 /*
@@ -231,10 +238,6 @@ a.info-box-text-a i.fa.fa-exclamation-triangle, span.badge i.fa.fa-exclamation-t
 	transition: opacity 0.5s, visibility 0s 0.5s;
 }
 
-.box-flex-item.info-box-module.--disabled {
-	/* opacity: 0.6; */
-}
-
 .info-box-actions {
 	position: absolute;
 	right: 0;
@@ -335,14 +338,12 @@ a.info-box-text-a i.fa.fa-exclamation-triangle, span.badge i.fa.fa-exclamation-t
 .info-box-text:first-letter{text-transform: uppercase}
 a.info-box-text{ text-decoration: none;}
 
-
 .info-box-more {
 	display: block;
 }
 .progress-description {
 	margin: 0;
 }
-
 
 /* customize section for home box link */
 .infobox-haslink .info-box-icon i {
@@ -372,7 +373,6 @@ a.info-box-text{ text-decoration: none;}
 	margin:auto;
 }
 
-
 /* ICONS INFO BOX */
 <?php
 include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
@@ -381,7 +381,10 @@ $prefix = '';
 if (getDolGlobalString('THEME_INFOBOX_COLOR_ON_BACKGROUND')) {
 	$prefix = 'background-';
 }
-$conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RATIO') ? GETPOST('THEME_AGRESSIVENESS_RATIO', 'int') : -50;
+// InfraS change begin : le ratio enregistre (onglet Tableau de bord, presets) est lu en base ; -50 n'est plus qu'un repli quand la constante est vide
+$oblyon_agressiveness = getDolGlobalString('THEME_AGRESSIVENESS_RATIO');
+$conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RATIO') ? GETPOST('THEME_AGRESSIVENESS_RATIO', 'int') : ($oblyon_agressiveness !== '' ? $oblyon_agressiveness : -50);
+// InfraS change end
 ?>
 .info-box-icon {
 	<?php if ($prefix) { ?>
@@ -482,7 +485,6 @@ $conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RAT
 	<?php echo $prefix; ?>color: <?php print colorAgressiveness(oblyon_color_setting('OBLYON_INFOXBOX_MRP_COLOR'), getDolGlobalString('THEME_AGRESSIVENESS_RATIO')); ?>  !important;
 }	/* InfraS change end */
 
-
 .fa-dol-action:before {
 	content: "\f073";
 }
@@ -504,9 +506,6 @@ $conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RAT
 .fa-dol-contrat:before {
 	content: "\f0f2";
 }
-.fa-dol-ticket:before {
-	content: "\f3ff";
-}
 .fa-dol-bank_account:before {
 	content: "\f19c";
 }
@@ -525,7 +524,6 @@ $conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RAT
 .fa-dol-cubes:before {
 	content: "\f1b3";
 }
-
 
 /* USING FONTAWESOME FOR WEATHER */
 .info-box-weather .info-box-icon{
@@ -551,7 +549,6 @@ $conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RAT
 	content: "\f0e7";
 	color : var(--colorweatherlevel4);
 }
-
 
 .box-flex-container{
 	display: flex; /* or inline-flex */
@@ -633,7 +630,6 @@ $conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RAT
 	display: none;
 }
 
-
 .info-box-title {
 	width: calc(100% - 20px);
 }
@@ -675,9 +671,6 @@ $conf->global->THEME_AGRESSIVENESS_RATIO = GETPOSTISSET('THEME_AGRESSIVENESS_RAT
 		width: 250px;
 	}
 }
-
-
-
 
 .info-box-module .info-box-content {
 	height: 98px;

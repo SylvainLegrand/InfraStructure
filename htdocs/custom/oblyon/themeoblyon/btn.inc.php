@@ -1,6 +1,13 @@
 <?php
 if (!defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 /* <style type="text/css" > */
+/* ================================================================================================
+   oblyon/themeoblyon/btn.inc.php
+   Role      : Boutons d'action, boutons de formulaire, paiement
+   Inclus par : cards.inc.php | Garde : ISLOADEDBYSTEELSHEET | Variables PHP : portee de style.css.php / theme_vars.inc.php
+   Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
+   ================================================================================================ */
+
 
 /* ===== Boutons form/submit + paiement - deplaces depuis global.inc.php ===== */
 
@@ -95,7 +102,6 @@ input.buttonpaymentstripe {
 	background-position: 8px 7px;
 }
 
-
 /* ===== Boutons generiques (.button/.buttonRefused/.buttonajax) - deplaces depuis global.inc.php ===== */
 
 .button, .buttonDelete, input[name="sbmtConnexion"] {
@@ -183,9 +189,6 @@ input.buttonpaymentstripe {
 	margin: 0em .5em;
 	padding: .1em .7em;
 }
-
-
-
 
 /* ============================================================================== */
 /* Buttons for actions                                                            */
@@ -373,7 +376,6 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
 }
 /* InfraS change end */
 
-
 /*
 TITLE BUTTON
  */
@@ -407,10 +409,6 @@ TITLE BUTTON
 a.btnTitle.btnTitleSelected {
     border: 1px solid var(--oblyon-border-strong);	/* InfraS change */
     border-radius: var(--oblyon-radius-sm);	/* InfraS change */
-}
-
-.btnTitle > .btnTitle-icon {
-
 }
 
 .btnTitle > .btnTitle-label {
@@ -455,7 +453,6 @@ div.pagination li:first-child a.btnTitle{
     margin-left: 10px;
 }
 
-
 .imgforviewmode {
 	color: var(--oblyon-muted-text);	/* InfraS change */
 }
@@ -491,7 +488,6 @@ div.pagination li:first-child a.btnTitle{
     display: none !important;
 }
 <?php } ?>
-
 
 /*
  * BTN LINK
