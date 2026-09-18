@@ -218,7 +218,7 @@ function scaninvoicesApiCreateAccount()
 		$retour = false;
 	}
 	if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
-		$mesg .= '<br />' . @implode('', $result['curl_error_msg']);
+		$mesg .= '<br />' . $result['curl_error_msg'];
 	}
 
 	return $retour;

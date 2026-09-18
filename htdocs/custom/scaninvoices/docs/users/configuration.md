@@ -74,9 +74,12 @@ Cet onglet contrôle la façon dont les lignes détaillées de la facture sont e
 | Désactiver l'import automatique des lignes de factures | Si coché, la facture est créée avec une seule ligne globale (montant total + produit par défaut). Sinon, le module tente d'extraire ligne par ligne. |
 | Création d'un produit dans la base Dolibarr | Si coché, un produit/service est créé automatiquement quand une ligne de facture mentionne une référence inconnue. |
 | Mise à jour du libellé du produit à l'import | Si coché, le libellé du produit existant est remplacé par celui présent sur la facture lors de chaque import. |
+| Mise à jour du prix d'achat fournisseur à l'import | Si coché, le prix unitaire HT de chaque ligne importée devient le prix d'achat du produit chez ce fournisseur (onglet **Fournisseurs** de la fiche produit), pour une quantité de 1. |
 | Choix Produits ou Services comme type créé par défaut | Type appliqué aux produits/services créés automatiquement. |
 
 > **Note :** la création automatique de produits est utile pour les fournisseurs récurrents (papeterie, hébergement) où vous voulez retrouver l'historique par référence. Pour les achats ponctuels, désactiver l'option et utiliser le produit par défaut suffit.
+
+> **Note sur le prix d'achat :** seuls les produits identifiés par leur référence (ou créés pendant l'import) reçoivent le prix. Le produit/service par défaut du fournisseur, lui, n'est jamais modifié : c'est un article fourre-tout partagé par toutes les lignes non reconnues. Chaque nouvel import écrase le prix précédent pour ce couple produit/fournisseur, l'historique reste consultable sur la fiche produit. Enregistrer ce prix permet aussi aux imports suivants de retrouver le produit grâce à sa référence fournisseur.
 
 ![Formulaire de configuration de l'import des lignes avec la case desactiver import lignes](screenshots/import-lignes.webp)
 

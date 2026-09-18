@@ -1,5 +1,12 @@
 # CHANGELOG SCANINVOICES FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 1.4.96 - 20260917
+
+ * fix invoices imported without their lines when the issuer leaves the unit price empty
+ * derive the line unit price from the line total on import
+ * show the curl error message when the account creation fails
+ * fix phpstan errors on Dolibarr 21 and 22
+
 ## 1.4.94 - 20260909
 
  * fix import of unit prices below Dolibarr unit precision

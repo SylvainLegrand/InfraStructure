@@ -70,7 +70,7 @@ class modScanInvoices extends DolibarrModules
 		$this->editor_name = 'CAP-REL';
 		$this->editor_url = 'https://cap-rel.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.4.94';
+		$this->version = '1.4.96';
 		// Procol version
 		$this->protocol = '1';
 		// Url to the file with your last numberversion of this module
