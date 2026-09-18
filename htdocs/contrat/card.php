@@ -365,7 +365,7 @@ if (empty($reshook)) {
 
 						$fk_parent_line = 0;
 						$num = count($lines);
-						$rang = 0;
+						$rang = 1;	// Osden change
 
 						for ($i = 0; $i < $num; $i++) {
 							// Osden add begin

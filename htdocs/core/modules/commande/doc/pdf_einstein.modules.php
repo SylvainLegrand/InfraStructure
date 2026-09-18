@@ -1648,48 +1648,7 @@ class pdf_einstein extends ModelePDFCommandes
 				}
 			}
 		}
-		// Osden add begin
-		// Show shipping address
-		if (getDolGlobalInt('SALES_ORDER_SHOW_SHIPPING_ADDRESS')) {
-			$idaddressshipping = $object->getIdContact('external', 'SHIPPING');
 
-			if (!empty($idaddressshipping)) {
-				$contactshipping = $object->fetch_contact($idaddressshipping[0]);
-				$companystatic = new Societe($this->db);
-				$companystatic->fetch($object->contact->fk_soc);
-				$carac_client_name_shipping = pdfBuildThirdpartyName($object->contact, $outputlangs);
-				$carac_client_shipping = pdf_build_address($outputlangs, $this->emetteur, $companystatic, $object->contact, 1, 'target', $object);
-			} else {
-				$carac_client_name_shipping = pdfBuildThirdpartyName($object->thirdparty, $outputlangs);
-				$carac_client_shipping = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, '', 0, 'target', $object);
-			}
-			if (!empty($carac_client_shipping)) {
-				$posy += $hautcadre;
-
-				// $hautcadre -= 10;	// Height for the shipping address does not need to be as high as main box
-
-				// Show shipping frame
-				$pdf->SetXY($posx + 2, $posy - 5);
-				$pdf->SetFont('', '', $default_font_size - 2);
-				$pdf->MultiCell($widthrecbox, 0, $outputlangs->transnoentities('ShippingTo'), 0, 'L', false);
-				$pdf->RoundedRect($posx, $posy, $widthrecbox, $hautcadre, 0, '1234', 'D'); // Backport from develop, we set the radius to 0.
-
-				// Show shipping name
-				$pdf->SetXY($posx + 2, $posy + 1);
-				$pdf->SetFont('', 'B', $default_font_size);
-				$pdf->MultiCell($widthrecbox - 2, 2, $carac_client_name_shipping, '', 'L');
-
-				$posy = $pdf->getY();
-
-				// Show shipping information
-				$pdf->SetXY($posx + 2, $posy);
-				$pdf->SetFont('', '', $default_font_size - 1);
-				$pdf->MultiCell($widthrecbox - 2, 2, $carac_client_shipping, '', 'L');
-
-				$top_shift += $hautcadre + 10;
-			}
-		}
-		// Osden add end
 		$pdf->SetTextColor(0, 0, 0);
 
 		$pagehead = array('top_shift' => $top_shift, 'shipp_shift' => $shipp_shift);

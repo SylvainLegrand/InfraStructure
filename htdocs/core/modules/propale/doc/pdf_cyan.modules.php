@@ -1963,6 +1963,7 @@ class pdf_cyan extends ModelePDFPropales
 			$pdf->SetXY($posx + 2, $posy);
 			// @phan-suppress-next-line PhanPluginSuspiciousParamOrder
 			$pdf->MultiCell($widthrecbox, 4, $carac_client, 0, $ltrdirection);
+			// Osden add begin
 			// Show shipping/delivery addressAdd commentMore actions
 			if (getDolGlobalInt('PROPOSAL_SHOW_SHIPPING_ADDRESS')) {
 				$idaddressshipping = $object->getIdContact('external', 'SHIPPING');
@@ -1980,13 +1981,13 @@ class pdf_cyan extends ModelePDFPropales
 				if (!empty($carac_client_shipping)) {
 					$posy += $hautcadre;
 
-					$hautcadre -= 10;	// Height for the shipping address does not need to be as high as main box
+					$hautcadre -= 5; // Height for the shipping address does not need to be as high as main box
 
 					// Show shipping frame
 					$pdf->SetXY($posx + 2, $posy - 5);
 					$pdf->SetFont('', '', $default_font_size - 2);
 					$pdf->MultiCell($widthrecbox, 0, $outputlangs->transnoentities('ShippingTo'), 0, 'L', false);
-					$pdf->RoundedRect($posx, $posy, $widthrecbox, $hautcadre, 0, '1234', 'D'); // Backport from develop : we set radius to 0.
+					$pdf->RoundedRect($posx, $posy, $widthrecbox, $hautcadre, $this->corner_radius, '1234', 'D');
 
 					// Show shipping name
 					$pdf->SetXY($posx + 2, $posy + 3);
@@ -2003,6 +2004,7 @@ class pdf_cyan extends ModelePDFPropales
 					$top_shift += $hautcadre + 10;
 				}
 			}
+			// Osden add end
 		}
 
 		$pdf->SetTextColor(0, 0, 0);

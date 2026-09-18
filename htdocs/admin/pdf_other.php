@@ -100,10 +100,12 @@ if ($action == 'update') {
 	if (GETPOSTISSET('MAIN_GENERATE_PROPOSALS_WITH_PICTURE')) {
 		dolibarr_set_const($db, "MAIN_GENERATE_PROPOSALS_WITH_PICTURE", GETPOST("MAIN_GENERATE_PROPOSALS_WITH_PICTURE"), 'chaine', 0, '', $conf->entity);
 	}
+	/*	// Osden change begin
 	if (GETPOSTISSET('SALES_ORDER_SHOW_SHIPPING_ADDRESS')) {
 		dolibarr_set_const($db, "SALES_ORDER_SHOW_SHIPPING_ADDRESS", GETPOSTINT("SALES_ORDER_SHOW_SHIPPING_ADDRESS"), 'chaine', 0, '', $conf->entity);
 		dolibarr_del_const($db, "SALES_ORDER_SHOW_SHIPPING_ADDRESS", $conf->entity);
 	}
+	*/	// Osden change end
 	if (GETPOSTISSET('MAIN_GENERATE_DOCUMENTS_SUPPLIER_PROPOSAL_WITHOUT_UNIT_PRICE')) {
 		dolibarr_set_const($db, "MAIN_GENERATE_DOCUMENTS_SUPPLIER_PROPOSAL_WITHOUT_UNIT_PRICE", GETPOST("MAIN_GENERATE_DOCUMENTS_SUPPLIER_PROPOSAL_WITHOUT_UNIT_PRICE"), 'chaine', 0, '', $conf->entity);
 	}
@@ -417,28 +419,7 @@ if (isModEnabled('order')) {
 
 	print '<br>';
 }
-// Osden add begin
-if (isModEnabled('order')) {
-	$langs->load("orders");
-	print load_fiche_titre($langs->trans('CustomersOrders'), '', 'order');
 
-	print '<div class="div-table-responsive-no-min">';
-	print '<table summary="more" class="noborder centpercent">';
-
-	print '<tr class="liste_titre"><td class="titlefieldmiddle">'.$langs->trans("Parameters").'</td><td width="200px"></td></tr>';
-
-	print '<tr class="oddeven"><td>';
-	print $form->textwithpicto($langs->trans("SALES_ORDER_SHOW_SHIPPING_ADDRESS"), $langs->trans("SALES_ORDER_SHOW_SHIPPING_ADDRESSMore"));
-	print '</td><td>';
-	if ($conf->use_javascript_ajax) {
-		print ajax_constantonoff('SALES_ORDER_SHOW_SHIPPING_ADDRESS');
-	} else {
-		$arrval = array('0' => $langs->trans("No"), '1' => $langs->trans("Yes"));
-		print $form->selectarray("SALES_ORDER_SHOW_SHIPPING_ADDRESS", $arrval, getDolGlobalString('SALES_ORDER_SHOW_SHIPPING_ADDRESS'));
-	}
-	print '</td></tr>';
-}
-// Osden add end
 
 if (isModEnabled('invoice')) {
 	print '<div id="#invoice"></div>';
