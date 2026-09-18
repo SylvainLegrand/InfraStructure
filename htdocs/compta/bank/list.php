@@ -178,7 +178,7 @@ if (empty($reshook)) {
 		$search_number = '';
 		$search_status = '';
 		$search_category_list = array();
-		$search_array_options = array();	// Osden add
+		$search_array_options = array();
 	}
 
 	// Mass actions

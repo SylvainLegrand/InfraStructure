@@ -654,7 +654,7 @@ class MouvementStock extends CommonObject
 				}
 			}
 
-			if (empty($donotcleanemptylines) && !getDolGlobalInt('STOCK_MOVEMENT_FORCE_DO_NOT_CLEAN_EMPTY_LINES')) {
+			if (empty($donotcleanemptylines) && !getDolGlobalInt('STOCK_MOVEMENT_FORCE_DO_NOT_CLEAN_EMPTY_LINES')) {	// Osden change
 				// If stock is now 0, we can remove entry into llx_product_stock, but only if there is no child lines into llx_product_batch (detail of batch, because we can imagine
 				// having a lot1/qty=X and lot2/qty=-X, so 0 but we must not loose repartition of different lot.
 				$sql = "DELETE FROM ".$this->db->prefix()."product_stock WHERE reel = 0 AND rowid NOT IN (SELECT fk_product_stock FROM ".$this->db->prefix()."product_batch as pb)";
@@ -1056,7 +1056,9 @@ class MouvementStock extends CommonObject
 					$classname = $origin_type_array[0];
 					$modulename = empty($origin_type_array[1]) ? strtolower($classname) : $origin_type_array[1];
 
-					$result = dol_include_once('/'.$modulename.'/class/'.$classname.'.class.php');
+					// Dolibarr names its class files in lowercase, so use a lowercase file name whatever
+					// the case of the class name (class names themselves are case insensitive in PHP).
+					$result = dol_include_once('/'.$modulename.'/class/'.strtolower($classname).'.class.php');
 
 					if ($result) {
 						$classname = ucfirst($classname);
