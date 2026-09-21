@@ -957,6 +957,11 @@ if (empty($reshook)) {
 
 			$amount_ht = $amount_tva = $amount_ttc = array();
 			$multicurrency_amount_ht = $multicurrency_amount_tva = $multicurrency_amount_ttc = array();
+			// InfraS add begin Arrondis
+			$amount_ht_exact = array();
+			$amount_ttc_exact = array();
+			$vatrate_by_key = array();
+			// InfraS add end Arrondis
 
 			// Loop on each vat rate
 			$i = 0;
@@ -964,30 +969,38 @@ if (empty($reshook)) {
 				if ($line->product_type < 9 && $line->total_ht != 0) { // Remove lines with product_type greater than or equal to 9 and no need to create discount if amount is null
 					$keyforvatrate = $line->tva_tx.($line->vat_src_code ? ' ('.$line->vat_src_code.')' : '');
 
+					// InfraS change begin Arrondis - les lignes sont stockées non arrondies : on cumule les montants de ligne arrondis au
+					// centime (Mode 1, total of round) et on garde les cumuls exacts pour le Mode 2 et l'exception TTC au centime.
 					if (!isset($amount_ht[$keyforvatrate])) {
 						$amount_ht[$keyforvatrate] = 0;
+						$amount_ht_exact[$keyforvatrate] = 0;
+						$amount_ttc_exact[$keyforvatrate] = 0;
+						$vatrate_by_key[$keyforvatrate] = $line->tva_tx;
 					}
-					$amount_ht[$keyforvatrate] += $line->total_ht;
+					$amount_ht[$keyforvatrate] += (float) price2num($line->total_ht, 'MT');
+					$amount_ht_exact[$keyforvatrate] += (float) $line->total_ht;
 					if (!isset($amount_tva[$keyforvatrate])) {
 						$amount_tva[$keyforvatrate] = 0;
 					}
-					$amount_tva[$keyforvatrate] += $line->total_tva;
+					$amount_tva[$keyforvatrate] += (float) price2num($line->total_tva, 'MT');
 					if (!isset($amount_ttc[$keyforvatrate])) {
 						$amount_ttc[$keyforvatrate] = 0;
 					}
-					$amount_ttc[$keyforvatrate] += $line->total_ttc;
+					$amount_ttc[$keyforvatrate] += (float) price2num($line->total_ttc, 'MT');
+					$amount_ttc_exact[$keyforvatrate] += (float) $line->total_ttc;
 					if (!isset($multicurrency_amount_ht[$keyforvatrate])) {
 						$multicurrency_amount_ht[$keyforvatrate] = 0;
 					}
-					$multicurrency_amount_ht[$keyforvatrate] += $line->multicurrency_total_ht;
+					$multicurrency_amount_ht[$keyforvatrate] += (float) price2num($line->multicurrency_total_ht, 'MT');
 					if (!isset($multicurrency_amount_tva[$keyforvatrate])) {
 						$multicurrency_amount_tva[$keyforvatrate] = 0;
 					}
-					$multicurrency_amount_tva[$keyforvatrate] += $line->multicurrency_total_tva;
+					$multicurrency_amount_tva[$keyforvatrate] += (float) price2num($line->multicurrency_total_tva, 'MT');
 					if (!isset($multicurrency_amount_ttc[$keyforvatrate])) {
 						$multicurrency_amount_ttc[$keyforvatrate] = 0;
 					}
-					$multicurrency_amount_ttc[$keyforvatrate] += $line->multicurrency_total_ttc;
+					$multicurrency_amount_ttc[$keyforvatrate] += (float) price2num($line->multicurrency_total_ttc, 'MT');
+					// InfraS change end Arrondis
 					$i++;
 				}
 			}
@@ -1010,10 +1023,35 @@ if (empty($reshook)) {
 						$multicurrency_amount_ht[$vatrate] = price2num($multicurrency_amount_ht[$vatrate] * $ratio, 'MU');
 						$multicurrency_amount_tva[$vatrate] = price2num($multicurrency_amount_tva[$vatrate] * $ratio, 'MU');
 						$multicurrency_amount_ttc[$vatrate] = price2num($multicurrency_amount_ttc[$vatrate] * $ratio, 'MU');
+						$amount_ht_exact[$vatrate] = $amount_ht_exact[$vatrate] * $ratio; // InfraS add Arrondis
+						$amount_ttc_exact[$vatrate] = $amount_ttc_exact[$vatrate] * $ratio; // InfraS add Arrondis
 					}
 				}
 			}
 			//var_dump($amount_ht);var_dump($amount_tva);var_dump($amount_ttc);exit;
+			// InfraS add begin Arrondis - montants de la remise = totaux comptables par taux de TVA (même règle que
+			// CommonObject::getRoundedTotals) : HT et TVA = somme des lignes arrondies (Mode 1) ou TVA = arrondi(HT_taux x taux)
+			// (Mode 2), TTC = HT + TVA arrondis. Exception : TTC exact déjà au centime (saisie TTC) conservé, TVA dérivée.
+			// Sans cela la remise hérite des 8 décimales des lignes et ne peut plus être scindée ni comparée au centime.
+			$calculationrule = $object->getCalculationRule('');
+			foreach ($amount_ht as $vatrate => $val) {
+				$amount_ht[$vatrate] = (float) price2num($amount_ht[$vatrate], 'MT');
+				$amount_tva[$vatrate] = (float) price2num($amount_tva[$vatrate], 'MT');
+				if ($calculationrule == 'roundoftotal') {
+					$amount_tva[$vatrate] = (float) price2num((float) $amount_ht_exact[$vatrate] * (float) $vatrate_by_key[$vatrate] / 100, 'MT');
+				}
+				$ttc_exact = (float) $amount_ttc_exact[$vatrate];
+				if (abs($ttc_exact * 100 - round($ttc_exact * 100)) < 0.00001) {
+					$amount_ttc[$vatrate] = (float) price2num($ttc_exact, 'MT');
+					$amount_tva[$vatrate] = (float) price2num($amount_ttc[$vatrate] - $amount_ht[$vatrate], 'MT');
+				} else {
+					$amount_ttc[$vatrate] = (float) price2num($amount_ht[$vatrate] + $amount_tva[$vatrate], 'MT');
+				}
+				$multicurrency_amount_ht[$vatrate] = (float) price2num($multicurrency_amount_ht[$vatrate], 'MT');
+				$multicurrency_amount_tva[$vatrate] = (float) price2num($multicurrency_amount_tva[$vatrate], 'MT');
+				$multicurrency_amount_ttc[$vatrate] = (float) price2num($multicurrency_amount_ht[$vatrate] + $multicurrency_amount_tva[$vatrate], 'MT');
+			}
+			// InfraS add end Arrondis
 
 			// Insert one discount by VAT rate category
 			$discount = new DiscountAbsolute($db);
