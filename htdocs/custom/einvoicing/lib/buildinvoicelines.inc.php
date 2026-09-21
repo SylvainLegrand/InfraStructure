@@ -453,6 +453,7 @@ $billing_period    	= [];
 $numligne          	= 1;
 $hasServiceLine		= false;	// With the VAT mode below, drives the VAT point date code (BT-8)
 $hasProductLine		= false;
+$textLineNotes		= [];	// Texts of the information lines left out of the XML lines, carried in the note (BT-22) // InfraS add
 // @phan-suppress-current-line PhanTypeArraySuspiciousNullable
 foreach ($object->lines as $line) {
 	$isDepositLine = 0;
@@ -465,6 +466,20 @@ foreach ($object->lines as $line) {
 	if ($isSubTotalLine) {
 		continue;
 	}
+	// InfraS add begin
+	// A free line without product, amount nor VAT (net and gross totals of 0, rate 0, no VAT code) is an
+	// information line, typed to show a text on the invoice (customer order reference, shipping note...).
+	// It weighs nothing in the totals, so leaving it out keeps the XML equal to the PDF, while sending it
+	// to getCategoryRate() would read its rate of 0 as an exemption and demand a VATEX code it cannot
+	// have. Its text is kept in the invoice note (BT-22) so the information reaches the recipient.
+	if (empty($line->fk_product) && empty($line->fk_remise_except) && (float) $line->total_ht == 0 && (float) $line->total_ttc == 0 && (float) $line->tva_tx == 0 && empty($line->vat_src_code)) {
+		$textLineNote = trim(dol_string_nohtmltag((string) $line->desc, 0));
+		if ($textLineNote !== '') {
+			$textLineNotes[] = $textLineNote;
+		}
+		continue;
+	}
+	// InfraS add end
 
 	if ($line->product_type == 1) {		// Product::TYPE_SERVICE
 		$hasServiceLine = true;
@@ -1109,7 +1124,7 @@ $invoiceData = [
 	// PMT the fixed recovery indemnity, PMD the late payment penalties, AAB the early payment discount.
 	// The fallbacks reproduce the wording of the XP Z12-012 annex B examples, because the penalties and the
 	// EUR 40 indemnity are owed by operation of law (art. L.441-10 and D.441-5 C. com.): they cannot be none.
-	'documentNotePublic'   => $object->note_public ?: "",
+	'documentNotePublic'   => trim(($object->note_public ?: "").(!empty($textLineNotes) ? "\n".implode("\n", $textLineNotes) : "")),	// InfraS change : the information lines left out of the XML lines join the note
 	'documentNotePMT'      => getDolGlobalString('EINVOICING_PMT') ?: $outputlangs->transnoentities('RecoveryFeesMention'),
 	'documentNotePMD'      => getDolGlobalString('EINVOICING_PMD') ?: $outputlangs->transnoentities('LatePaymentPenaltiesMention'),
 	'documentNoteAAB'      => getDolGlobalString('EINVOICING_AAB') ?: $outputlangs->transnoentities('EarlyPaymentDiscountMention'),
