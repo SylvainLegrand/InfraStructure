@@ -517,7 +517,7 @@ class CIIProtocol extends AbstractProtocol
 		$filedir = getMultidirOutputCompat($invoice, '', 1, 'temp');    // Example '/mydolibarr/documents/facture/temp/FAYYMM-XXXX'
 		$xmlfile = $filedir . '/' . $filename . '/' .  static::GENERATED_INVOICE_XML_FILE_NAME;
 
-		dol_mkdir(dirname($xmlfile));
+		dol_mkdir(dirname($xmlfile), einvoicingDataRoot(dirname($xmlfile)));
 		dol_delete_file($xmlfile);
 
 		$xmlcontent = $this->buildXML($invoiceData, $linesData, $this->getBuildXmlProfile($object), $outputlangs);
@@ -686,7 +686,7 @@ class CIIProtocol extends AbstractProtocol
 
 		$tempDir = $conf->einvoicing->dir_temp;
 		if (!dol_is_dir($tempDir)) {
-			dol_mkdir($tempDir);
+			dol_mkdir($tempDir, einvoicingDataRoot($tempDir));
 		}
 
 		// Use a unique per-call working file so two concurrent syncs cannot overwrite each other and
@@ -977,7 +977,15 @@ class CIIProtocol extends AbstractProtocol
 		}
 
 		// Check if this invoice has already been imported for this supplier
-		$supplierInvoiceId = SupplierInvoiceHelper::findIdByRef($parsedHeader['documentno'] ?? null, (int) $socId, $parsedHeader['grandTotalAmount'] ?? 0);
+		$announcedTotalTtc = SupplierInvoiceHelper::announcedTotalTtc($parsedHeader) ?? 0.0;
+		// The tolerance is BT-114: the same document imported before the rounding line existed totals a
+		// rounding amount more, and it is the invoice this is looking for (issue #994).
+		$supplierInvoiceId = SupplierInvoiceHelper::findIdByRef(
+			$parsedHeader['documentno'] ?? null,
+			(int) $socId,
+			$announcedTotalTtc,
+			abs(SupplierInvoiceHelper::documentRoundingAmount($parsedHeader))
+		);
 
 		if ($supplierInvoiceId == -3) {
 			$langs->load("bills");
@@ -992,7 +1000,7 @@ class CIIProtocol extends AbstractProtocol
 				'message' => SupplierInvoiceHelper::refLookupErrorMessage($supplierInvoiceId, $parsedHeader['documentno'] ?? '', 'while checking whether it was already imported'),
 				'actioncode' => 'SUPPLIER_INVOICE_FOUND_WITH_BAD_AMOUNT',
 				'actionurl' => 'none',
-				'actiondata' => array('supplierref' => $parsedHeader['documentno'], 'socid' => (int) $socId, 'expectedamount' => $parsedHeader['grandTotalAmount'] ?? 0),
+				'actiondata' => array('supplierref' => $parsedHeader['documentno'], 'socid' => (int) $socId, 'expectedamount' => $announcedTotalTtc),
 				'action' => $action
 			];
 		}
@@ -1250,6 +1258,12 @@ class CIIProtocol extends AbstractProtocol
 				if ($chargeRes['res'] < 0) {
 					return $chargeRes;
 				}
+			}
+
+			// Carry BT-114 as a line of the invoice, so that it totals what is due (issue #994)
+			$roundingRes = $this->createRoundingLine($supplierInvoiceId, $parsedHeader, $return_messages);
+			if ($roundingRes['res'] < 0) {
+				return $roundingRes;
 			}
 
 			// Every line of the invoice exists now, so its totals can be confronted with the ones the
@@ -1654,31 +1668,6 @@ class CIIProtocol extends AbstractProtocol
 		$node = $nodes->item(0);
 		$value = trim($node->nodeValue);
 		return $value !== '' ? $value : null;
-	}
-
-	/**
-	 * Extract all matching nodes as an array of their text values.
-	 *
-	 * @param \DOMXPath			$xpath			XPath
-	 * @param string			$expr			XPath expression or 'NA'
-	 * @param \DOMNode|null		$contextNode	Optional context node for relative XPath queries
-	 * @return string[]
-	 */
-	private function getXPathValues($xpath, $expr, $contextNode = null)
-	{
-		if ($expr === 'NA' || empty($expr))
-			return [];
-
-		$nodes = $xpath->query($expr, $contextNode);
-		$result = [];
-		if ($nodes) {
-			foreach ($nodes as $node) {
-				$v = trim($node->nodeValue);
-				if ($v !== '')
-					$result[] = $v;
-			}
-		}
-		return $result;
 	}
 
 	/**
@@ -3002,11 +2991,32 @@ class CIIProtocol extends AbstractProtocol
 		$sett->appendChild($sum);
 		$sum->appendChild($doc->createElement('ram:LineTotalAmount', number_format($line['lineTotalAmount'], 2, '.', '')));
 
-		// The deposit this line deducts is referenced at document level, in BG-3, where a preceding
-		// invoice belongs (BT-25 with its date BT-26, type 386) - buildinvoicelines.inc.php fills it in
-		// the same place it marks the line. It used to be written here as well, as a line level
-		// ram:AdditionalReferencedDocument with TypeCode 130: that slot is BT-128, the identifier of what
-		// the line bills - a phone number, a meter - and never a document (issue #912).
+		// The deposit this line deducts is referenced here as well as at document level in BG-3:
+		// XP Z12-014 3.2.19, first option - the one this module follows - marks the reprise line with
+		// EXT-FR-FE-BG-06, a ram:InvoiceReferencedDocument whose TypeCode (EXT-FR-FE-137) is 386. Not
+		// the TypeCode 130 AdditionalReferencedDocument this used to write: that slot is BT-128, what
+		// the line bills (issue #912). LineTradeSettlementType declares it from EXTENDED up only.
+		if (!empty($line['isDepositLine']) && $this->isExtendedProfile($profile)) {
+			$depositRef = trim((string) ($line['depositInvoiceRef'] ?? ''));
+
+			// 'NA' is the placeholder the line defaults carry, and an empty IssuerAssignedID would be
+			// refused by BR-FR-01/EXT-FR-FE-136 the way an empty BT-25 is at document level.
+			if ($depositRef !== '' && $depositRef !== 'NA') {
+				$refNode = $doc->createElement('ram:InvoiceReferencedDocument');
+				$refNode->appendChild($doc->createElement('ram:IssuerAssignedID', einvoicingXmlText($depositRef)));
+				$refNode->appendChild($doc->createElement('ram:TypeCode', '386'));
+
+				if (!empty($line['depositInvoiceDate'])) {
+					$dateNode = $doc->createElement('ram:FormattedIssueDateTime');
+					$str = $doc->createElement('qdt:DateTimeString', $line['depositInvoiceDate']->format('Ymd'));
+					$str->setAttribute('format', '102');
+					$dateNode->appendChild($str);
+					$refNode->appendChild($dateNode);
+				}
+
+				$sett->appendChild($refNode);
+			}
+		}
 
 		return $el;
 	}
@@ -3567,7 +3577,7 @@ class CIIProtocol extends AbstractProtocol
 		}
 
 		if (!file_exists($upload_dir)) {
-			if (!dol_mkdir($upload_dir)) {
+			if (!dol_mkdir($upload_dir, einvoicingDataRoot($upload_dir))) {
 				dol_syslog(__METHOD__ . " Failed to create upload directory: $upload_dir", LOG_ERR);
 				return array('res' => -1, 'message' => 'Failed to create upload directory');
 			}
@@ -3735,8 +3745,8 @@ class CIIProtocol extends AbstractProtocol
 	/**
 	 * Resolve multiple line allowances into a single percentage for Dolibarr.
 	 *
-	 * Dolibarr only supports percentage discounts on lines, so BT-136 has to be turned into one. Its base is BT-137
-	 * when the issuer sends it, otherwise it is rebuilt from BT-131 with the allowances added back and the charges
+	 * Dolibarr only supports percentage discounts on lines, so BT-136 has to be turned into one. Its base is the
+	 * amount of the line before its allowances, rebuilt from BT-131 with the allowances added back and the charges
 	 * taken out (issues #735 and #783). BT-136 is read as a magnitude, ram:ChargeIndicator saying which way it goes.
 	 *
 	 * Multiple allowances are summed into one final percentage.
@@ -3781,9 +3791,12 @@ class CIIProtocol extends AbstractProtocol
 		// price of the Dolibarr line.
 		$priceWithoutDiscount = (float) $lineTotalAmount - $totalChargeAmount + $totalDiscountAmount;
 
-		// Base for the percent — BT-137 if given, amount before discount otherwise (issue #783).
-		// A BasisAmount of 0 (some pivots emit it) counts as not given: ?? would keep the 0 and drop the discount.
-		$base = !empty($allowances[0]['basisAmount']) ? $allowances[0]['basisAmount'] : $priceWithoutDiscount;
+		// Base for the percent — the amount of the line before its allowances, never BT-137. Dolibarr applies
+		// remise_percent to quantity times unit price, which is that amount: a BT-137 stating anything else (a
+		// per-unit base, a base covering part of the line, the base of the first of several allowances) yields a
+		// percentage of something the line does not hold. BT-137 is the base of BT-138, and no rule of EN 16931
+		// ties it to BT-131 or to BT-129 x BT-146.
+		$base = $priceWithoutDiscount;
 
 		if (!$base) {
 			return false;
@@ -3819,11 +3832,20 @@ class CIIProtocol extends AbstractProtocol
 			return;
 		}
 		$announcedTva = abs((float) $parsedHeader['taxTotalAmount']);
-		$announcedTtc = abs((float) $parsedHeader['grandTotalAmount']);
+		// BT-112 plus BT-114, which the invoice carries as a line of its own: what is confronted is what
+		// the buyer owes, BT-115 when the document answers BR-CO-16 (issue #994).
+		$announcedTtc = (float) (SupplierInvoiceHelper::announcedTotalTtc($parsedHeader) ?? abs((float) $parsedHeader['grandTotalAmount']));
 		// BT-113 is what the document says was already paid. It moves neither BT-110 nor BT-112, so the
 		// two totals below agree whether or not it was deducted, and an invoice short of its deduction
 		// used to pass this guard and be paid in full (issue #726).
 		$announcedPrepaid = isset($parsedHeader['totalPrepaidAmount']) ? abs((float) $parsedHeader['totalPrepaidAmount']) : null;
+
+		// A document whose BT-115 does not answer BR-CO-16 says two different things about what has to
+		// be paid, and nothing here can pick one: it is marked like any other document the import
+		// cannot reproduce (issue #861), which holds validation and approval back (issue #994).
+		if ($this->flagPayableMismatch($supplierInvoiceId, $parsedHeader, $announcedTva, $announcedTtc, $return_messages)) {
+			return;
+		}
 
 		// Two things say that amount is not a deposit to deduct: BT-23 saying the invoice was already
 		// paid, and a document referencing no preceding invoice (BG-3), which points at nothing - BG-3
@@ -3914,6 +3936,55 @@ class CIIProtocol extends AbstractProtocol
 
 		dol_syslog(__METHOD__ . ' Invoice ' . $supplierInvoiceId . ' does not total the received document (announced ' . $announcedTtc . ' incl. VAT, imported ' . $invoice->total_ttc . '): validation and approval blocked', LOG_WARNING);
 	}
+
+	/**
+	 * Mark an invoice whose document contradicts itself on the amount due for payment.
+	 *
+	 * BR-CO-16 fixes BT-115 as BT-112 - BT-113 + BT-114. When the document announces a payable that its
+	 * own totals do not add up to, the two amounts cannot both be right, and an accounting package
+	 * cannot pick one: the invoice is marked and the operator is told both figures (issue #994).
+	 *
+	 * @param	int						$supplierInvoiceId	Id of the invoice the import created
+	 * @param	array<string,mixed>		$parsedHeader		The parsed header of the received document
+	 * @param	float					$announcedTva		BT-110 of the document, absolute value
+	 * @param	float					$announcedTtc		What the invoice is expected to total, absolute value
+	 * @param	array<int,string>		$return_messages	Messages of the import, completed here
+	 * @return	bool										True when the document contradicts itself and was marked
+	 */
+	protected function flagPayableMismatch($supplierInvoiceId, array $parsedHeader, $announcedTva, $announcedTtc, array &$return_messages): bool
+	{
+		global $langs;
+
+		if (!isset($parsedHeader['duePayableAmount'])) {
+			return false;
+		}
+
+		// BT-113 is deducted beside the invoice and not from its total, so it is added back on both sides
+		$prepaid = isset($parsedHeader['totalPrepaidAmount']) ? abs((float) $parsedHeader['totalPrepaidAmount']) : 0.0;
+		$announcedDue = abs((float) $parsedHeader['duePayableAmount']) + $prepaid;
+		if (abs($announcedDue - (float) $announcedTtc) < 0.005) {
+			return false;
+		}
+
+		// The mark carries BT-115, the amount the document says has to be paid: it is the one the invoice
+		// does not total, so validation stays blocked until someone decides which of the two figures the
+		// vendor really bills. A mark carrying the total the invoice already reaches would lift itself.
+		SupplierInvoiceHelper::flagTotalsMismatch($supplierInvoiceId, $announcedTva, $announcedDue);
+
+		$langs->load('einvoicing@einvoicing');
+		$return_messages[] = $langs->trans(
+			'EInvoiceImportPayableMismatch',
+			dol_escape_htmltag((string) ($parsedHeader['documentno'] ?? '')),
+			price2num(abs((float) $parsedHeader['duePayableAmount']), 'MT'),
+			price2num((float) $announcedTtc - $prepaid, 'MT')
+		);
+		$return_messages[] = $langs->trans('EInvoiceImportTotalsMismatchAction');
+
+		dol_syslog(__METHOD__ . ' Invoice ' . $supplierInvoiceId . ' comes from a document announcing ' . $announcedDue . ' due while its own totals add up to ' . $announcedTtc . ' (BR-CO-16): validation and approval blocked', LOG_WARNING);
+
+		return true;
+	}
+
 
 	/**
 	 * Mark an invoice whose totals are right but which does not carry the deduction its document announces.
@@ -4046,6 +4117,82 @@ class CIIProtocol extends AbstractProtocol
 		}
 
 		return $chargeLines;
+	}
+
+
+	/**
+	 * Carry BT-114, the rounding amount of a received document, as a line of the supplier invoice.
+	 *
+	 * BR-CO-16 makes BT-115 the invoice total plus that amount, and it is BT-115 the buyer actually pays.
+	 * Left out, the invoice totals a cent more than what is debited and can never be settled by the
+	 * payment - an accounting package has to be right to the cent, so the amount is carried where a book
+	 * carries it, on a line of its own, out of every taxable base (issue #994).
+	 *
+	 * @param	int						$supplierInvoiceId	Id of the invoice being imported
+	 * @param	array<string,mixed>		$parsedHeader		Header data of the received document
+	 * @param	array<int,string>		$return_messages	Messages of the import, completed here
+	 * @return	array{res:int,message?:string}				res 1 on success, -1 on failure
+	 */
+	protected function createRoundingLine($supplierInvoiceId, array $parsedHeader, array &$return_messages): array
+	{
+		global $db, $langs;
+
+		$roundingLine = $this->buildRoundingLine($parsedHeader);
+		if ($roundingLine === null) {
+			return ['res' => 1];
+		}
+
+		// Same writer as the document level charges: FactureFournisseur::addline() moved between the
+		// supported cores, and the invoice is handed only the line to add.
+		$carrier = new FactureFournisseur($db);
+		if ($carrier->fetch((int) $supplierInvoiceId) <= 0) {
+			return ['res' => -1, 'message' => 'Failed to reload the supplier invoice to add the rounding amount of its document'];
+		}
+		// The core documents that property as CommonInvoiceLine[] while its own writer fills it with
+		// SupplierInvoiceLine, which extends CommonObjectLine. Same assignment as the charge lines above.
+		$carrier->lines = array($roundingLine);	// @phpstan-ignore assign.propertyType
+
+		if (!$this->createSupplierInvoiceLinesIntoDatabase($carrier)) {
+			return ['res' => -1, 'message' => 'Failed to add the rounding amount of the received document as an invoice line'];
+		}
+
+		$langs->load('einvoicing@einvoicing');
+		$return_messages[] = $langs->trans('EInvoiceImportRoundingLineAdded', price2num($roundingLine->subprice, 'MT'));
+
+		return ['res' => 1];
+	}
+
+	/**
+	 * Build the line that carries BT-114, or nothing when the document rounds no amount.
+	 *
+	 * Split out of createRoundingLine() because it is the whole decision and it touches neither the
+	 * database nor the core. The line bears no VAT of its own: BT-116 and BT-117 are announced without it,
+	 * and it is marked so that every per-rate comparison leaves it out.
+	 *
+	 * @param	array<string,mixed>		$parsedHeader	Header data of the received document
+	 * @return	?SupplierInvoiceLine					The rounding line, or null when there is nothing to carry
+	 */
+	protected function buildRoundingLine(array $parsedHeader)
+	{
+		global $db, $langs;
+
+		$rounding = SupplierInvoiceHelper::documentRoundingAmount($parsedHeader);
+		if (abs($rounding) < 0.005) {
+			return null;
+		}
+
+		$langs->load('einvoicing@einvoicing');
+
+		$line = new SupplierInvoiceLine($db);
+		$line->desc = $langs->transnoentitiesnoconv('EInvoicingRoundingAmount');
+		$line->qty = 1;
+		$line->subprice = $rounding;
+		$line->tva_tx = 0;
+		$line->product_type = 1;	// A rounding is no stocked good
+		$line->remise_percent = 0;
+		$line->special_code = SupplierInvoiceHelper::LINE_SPECIAL_CODE_ROUNDING;
+
+		return $line;
 	}
 
 
@@ -4247,7 +4394,8 @@ class CIIProtocol extends AbstractProtocol
 			// deducted: left in, it puts the taxable base of its rate below the announced one and the rate is
 			// refused, which is what left a correctly attached deposit unable to be validated (issue #948).
 			// Same predicate the module already uses to skip what is not a billed line.
-			if ((int) $line->product_type == 9 || !empty($line->fk_remise_except)) {
+			// The rounding line (BT-114) belongs to no taxable base either (issue #994).
+			if ((int) $line->product_type == 9 || !empty($line->fk_remise_except) || SupplierInvoiceHelper::isRoundingLine($line)) {
 				continue;
 			}
 			$rate = (string) price2num($line->tva_tx);

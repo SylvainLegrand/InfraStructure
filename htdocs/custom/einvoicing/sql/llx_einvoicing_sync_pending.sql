@@ -1,12 +1,23 @@
+-- Copyright (C) 2026		Jose Martinez					<jose.martinez@pichinov.com>
 --
--- Script run when module is reloaded. Whatever is the Dolibarr version.
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
 --
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see https://www.gnu.org/licenses/.
 
--- RoleCodes of the CDAR ExchangedDocument/RecipientTradeParty the status was addressed to, comma
--- separated ("SE", "SE,BY"). Tells a rejection posted at emission from one posted at reception,
--- which no other field of a 213 carries (issue #973). Empty for a status this module sent.
-ALTER TABLE llx_einvoicing_lifecycle_msg ADD COLUMN lc_recipient_roles varchar(50) NULL AFTER lc_reason_code;
-
+-- Queue of flows that could not be synchronized because they need a manual action
+-- (missing product, missing thirdparty, supplier invoice with a different amount, ...).
+-- A blocking flow used to abort the whole synchronization run; it is now recorded here so the
+-- run can carry on with the other flows, and the queued flow is retried on demand once the
+-- manual action is done - it is not lost when it drifts out of the rolling synchronization window.
 CREATE TABLE llx_einvoicing_sync_pending (
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
 	entity integer DEFAULT 1 NOT NULL,				-- Multi-entity support
@@ -31,8 +42,3 @@ CREATE TABLE llx_einvoicing_sync_pending (
 	fk_user_creat integer NOT NULL,
 	fk_user_modif integer
 ) ENGINE = innodb;
-
-ALTER TABLE llx_einvoicing_sync_pending ADD UNIQUE INDEX uk_einvoicing_sync_pending_flow (entity, provider, flow_id);
-
--- The pending list is filtered on status (pending first) and ordered by the flow update date.
-ALTER TABLE llx_einvoicing_sync_pending ADD INDEX idx_einvoicing_sync_pending_status (entity, status, flow_updatedat);
