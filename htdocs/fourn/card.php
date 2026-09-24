@@ -145,7 +145,7 @@ if (empty($reshook)) {
 	// Set payment terms of the settlement
 	if ($action == 'setconditions' && $user->hasRight('societe', 'creer')) {
 		$object->fetch($id);
-		$result = $object->setPaymentTerms(GETPOSTINT('cond_reglement_supplier_id'), GETPOST('cond_reglement_supplier_id_deposit_percent', 'alpha'));
+		$result = $object->setPaymentTerms(GETPOSTINT('cond_reglement_supplier_id'), GETPOST('cond_reglement_supplier_id_deposit_percent', 'alpha'));	// Osden change
 		if ($result < 0) {
 			dol_print_error($db, $object->error);
 		}
@@ -360,9 +360,9 @@ if ($object->id > 0) {
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'editconditions') {
-		$form->form_conditions_reglement($_SERVER['PHP_SELF'].'?socid='.$object->id, (string) $object->cond_reglement_supplier_id, 'cond_reglement_supplier_id', 1, '', 1, (int) $object->deposit_percent);
+		$form->form_conditions_reglement($_SERVER['PHP_SELF'].'?socid='.$object->id, (string) $object->cond_reglement_supplier_id, 'cond_reglement_supplier_id', 1, '', 1, (int) $object->deposit_percent);	// Osden change
 	} else {
-		$form->form_conditions_reglement($_SERVER['PHP_SELF'].'?socid='.$object->id, (string) $object->cond_reglement_supplier_id, 'none', 0, '', 1, (int) $object->deposit_percent);
+		$form->form_conditions_reglement($_SERVER['PHP_SELF'].'?socid='.$object->id, (string) $object->cond_reglement_supplier_id, 'none', 0, '', 1, (int) $object->deposit_percent);	// Osden change
 	}
 	print "</td>";
 	print '</tr>';
@@ -919,8 +919,8 @@ if ($object->id > 0) {
 				$invoicetemplate->total_ht = $objp->total_ht;
 				$invoicetemplate->total_tva = $objp->total_tva;
 				$invoicetemplate->total_ttc = $objp->total_ttc;
-				$invoicetemplate->date_last_gen = $objp->date_last_gen;
-				$invoicetemplate->date_when = $objp->date_when;
+				$invoicetemplate->date_last_gen = $db->jdate($objp->date_last_gen);
+				$invoicetemplate->date_when = $db->jdate($objp->date_when);
 
 				print '<tr class="oddeven">';
 				print '<td class="tdoverflowmax250">';
