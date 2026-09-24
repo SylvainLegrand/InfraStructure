@@ -398,7 +398,7 @@ EOJS;
 						}
 						$db->free($result_freeT);
 						unset($i);
-					} else {
+					} elseif (!empty($rootfreetext)) {	// une requete a ete lancee et a echoue (un element sans racine de mentions n'est pas une erreur)
 						dol_print_error($db);
 					}
 					$arrayFreeT	= [];
@@ -462,7 +462,7 @@ EOJS;
 						}
 						$db->free($result_noteP);
 						unset($i);
-					} else {
+					} elseif (!empty($rootnotepub)) {	// idem : les bons de prelevement / virement (widthdraw) n'ont pas de note publique, ce n'est pas une erreur (page d'erreur technique sur compta/prelevement/card.php avant 21.9.2)
 						dol_print_error($db);
 					}
 					$arrayNoteP	= [];
