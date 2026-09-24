@@ -268,7 +268,11 @@ abstract class AbstractProtocol
 
 		$claimedByDocument = (float) trim($reg[1]);
 		// A credit note is issued with positive amounts, where Dolibarr holds the invoice negative.
-		$claimedByInvoice = ((int) $invoice->type === $invoice::TYPE_CREDIT_NOTE) ? abs((float) $invoice->total_ttc) : (float) $invoice->total_ttc;
+		// InfraS change begin Arrondis
+		// The LTS core stores the totals unrounded (8 decimals): the amount the invoice claims is its rounded total TTC (HT, VAT and taxes rounded separately), the one shown on the PDF and asked for payment
+		$invoiceTtc			= method_exists($invoice, 'getRoundedTotalTTC') ? (float) $invoice->getRoundedTotalTTC(0) : (float) $invoice->total_ttc;
+		$claimedByInvoice	= ((int) $invoice->type === $invoice::TYPE_CREDIT_NOTE) ? abs($invoiceTtc) : $invoiceTtc;
+		// InfraS change end Arrondis
 
 		if (abs($claimedByInvoice - $claimedByDocument) < 0.0001) {
 			return array();

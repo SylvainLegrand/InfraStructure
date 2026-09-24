@@ -993,6 +993,7 @@ class EsalinkPDPProvider extends AbstractPDPProvider
 		$alreadyExist = 0;
 		$syncedFlows = 0;
 		$postponedFlows = 0;	// Flows left unread on purpose, retried on the next run (see 'postponeflow')
+		$failedReceived = array();	// Flows that failed, listed in the email notification of the run // InfraS add
 
 		// Call ID for logging purposes
 		$call_id = $response['call_id'] ?? null;
@@ -1017,6 +1018,13 @@ class EsalinkPDPProvider extends AbstractPDPProvider
 
 				// Do a unitary sync of flow $flow['flowId'] instead the global transaction $call_id
 				$res = $this->syncFlow($flow['flowId'], $call_id);
+
+				// InfraS add begin
+				// A failed reception is not imported, keep it for the email notification of the run
+				if ($res['res'] < 0) {
+					$failedReceived[] = array('flowId' => (string) $flow['flowId'], 'message' => (string) ($res['message'] ?? ''), 'actioncode' => (string) ($res['actioncode'] ?? ''), 'actiondata' => (is_array($res['actiondata'] ?? null) ? $res['actiondata'] : array()));
+				}
+				// InfraS add end
 
 				// If res < 0, rollback
 				if ($res['res'] < 0) {
@@ -1185,6 +1193,13 @@ class EsalinkPDPProvider extends AbstractPDPProvider
             WHERE call_id = '" . $db->escape($call_id) . "'";
 			$db->query($sql);
 		}
+
+		// InfraS add begin
+		// Email the supplier invoices received, the receptions that failed and the anomalies of the run
+		dol_include_once('/einvoicing/class/utils/EInvoicingNotifier.class.php');
+		$notifier = new EInvoicingNotifier($db);
+		$notifier->notifyAfterSync($call_id, $failedReceived);
+		// InfraS add end
 
 		// Return result
 		// 'actions' contains the action to do (in case of business error)
@@ -1391,7 +1406,7 @@ class EsalinkPDPProvider extends AbstractPDPProvider
 				// Getting it is optional, so a failure does not stop the import - but it is traced: the call
 				// is logged like any other, and the reason is said out loud instead of being dropped (#980).
 				$readableViewFile = null;
-				if ($detectedProtocol != 'FACTURX') {
+				if ($detectedProtocol != 'FACTURX' && !getDolGlobalString('EINVOICING_DISABLE_READABLE_PDF')) {	// InfraS change
 					$flowResponse = $this->fetchFlowData($flowId, 'ReadableView', 'get_readable_view_for_invoice');
 					if ($flowResponse['status_code'] != 200) {
 						dol_syslog(__METHOD__ . " No readable view for flowId " . $flowId . ": HTTP " . $flowResponse['status_code'] . (empty($flowResponse['errorMessage']) ? '' : ' - ' . $flowResponse['errorMessage']) . ". The supplier invoice is imported without it.", LOG_WARNING, 0, '_einvoicing');

@@ -89,6 +89,14 @@ function einvoicingAdminPrepareHead()
 		$h++;
 	}
 
+	// InfraS add begin
+	// Debug tab: debug mode, log of the module, check of an emitted XML, dry run of an import
+	$head[$h][0] = dol_buildpath("/einvoicing/admin/setup_debug.php", 1);
+	$head[$h][1] = $langs->trans("EInvDebugTab");
+	$head[$h][2] = 'debug';
+	$h++;
+	// InfraS add end
+
 	// Show more tabs from modules
 	// Entries must be declared in modules descriptor with line
 	//$this->tabs = array(

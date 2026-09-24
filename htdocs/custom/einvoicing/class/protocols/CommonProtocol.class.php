@@ -2495,6 +2495,16 @@ trait CommonProtocol
 			// insertExtraFields() silently ignores keys that are not defined for facture_fourn.
 			$order = new CommandeFournisseur($db);
 			if ($order->fetch($orderId) > 0) {
+				// InfraS add begin
+				// The invoice joins the project of its order when it has none (never overwritten), non-blocking
+				if (empty($supplierInvoice->fk_project) && !empty($order->fk_project)) {
+					if ($supplierInvoice->setProject((int) $order->fk_project) > 0) {
+						$supplierInvoice->fk_project = (int) $order->fk_project;
+					} else {
+						dol_syslog(get_class($this) . '::_linkSupplierInvoiceToPurchaseOrder Could not set project ' . ((int) $order->fk_project) . ' on invoice ' . $supplierInvoice->id . ': ' . $supplierInvoice->error, LOG_WARNING);
+					}
+				}
+				// InfraS add end
 				$order->fetch_optionals();
 				if (!empty($order->array_options)) {
 					$supplierInvoice->fetch_optionals();

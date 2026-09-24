@@ -2,6 +2,22 @@
 
 
 
+<!-- InfraS add begin -->
+## 1.2.0.1
+NEW: The home page of the module shows the follow-up of the e-invoices in collapsible sections: supplier invoices received (period can be chosen), customer invoices sent (to watch / in transit / reception confirmed), anomalies, abandoned invoices, data sent to the platform in the last 24 hours, suppliers without SIREN.
+NEW: The e-invoicing follow-up of a customer invoice in anomaly or not yet received can be abandoned from its card, with a mandatory comment recorded in its events (table llx_einvoicing_dismissed); it then leaves the alerts, the reports and the dashboard, and can be reactivated from the home page.
+NEW: Email notifications to EINVOICING_SYNC_NOTIFY_EMAILS after each synchronization (SuperPDP and Esalink): supplier invoices received, receptions that could not be imported, invoices that entered an anomaly state. A test email can be sent from the Options tab.
+NEW: Three scheduled jobs, disabled by default, email a report to the same recipients: suppliers without SIREN (weekly), status of the invoices sent (daily), data sent to the platform (daily).
+NEW: The reception addresses the directory (AFNOR XP Z12-013) declares for a SIREN can be read from the thirdparty card, with the designation and postal address of each establishment (public business registry), and the chosen ones added to its routing list. The invoice card offers the same list to pick the routing override of the invoice, the address being added to the thirdparty too.
+NEW: The transmission of an invoice to the platform asks for a confirmation showing the thirdparty, the amounts and the electronic address used.
+NEW: A line with a negative amount on a standard invoice is reported on its card (not conformant, BR-27), and on a draft it can be converted into a global discount of the same amounts.
+NEW: The e-invoice status (or "Abandoned") shows as a badge under the status of the banner of the customer and supplier invoice cards.
+NEW: An invoice out of the e-invoicing scope shows a single greyed "E-invoice" button saying why; a disabled "Regenerate" says why instead of "not enough permissions".
+NEW: The free notes of a received invoice (BT-22) are imported as plain text in the public note of the supplier invoice, which joins the project of the purchase order it is linked to.
+NEW: Hidden option EINVOICING_DISABLE_READABLE_PDF to skip the retrieval of the readable PDF of the received invoices.
+NEW: Debug tab in the setup: debug mode, log of the module read and downloaded from the browser, check of an emitted XML (empty elements), dry run of the import of a received CII XML (supplier, products, amounts, totals, public note), with nothing written.
+<!-- InfraS add end -->
+
 ## 1.2.0
 
 FIX: #853 [einvoicing] The dates of a received document keep the day they state

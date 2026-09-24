@@ -479,6 +479,11 @@ foreach ($object->lines as $line) {
 		}
 		continue;
 	}
+	// An optional line (special_code 3) is shown on the document but not invoiced: the totals of the
+	// invoice leave it out, so the XML must too, or the document claims more than the invoice.
+	if ((int) $line->special_code === 3) {
+		continue;
+	}
 	// InfraS add end
 
 	if ($line->product_type == 1) {		// Product::TYPE_SERVICE
@@ -851,6 +856,11 @@ if (!empty($object->situation_counter) && $object->situation_counter > 1
 		if (empty($line->fk_prev_id)) {
 			continue;					// A line that appears in this situation was never invoiced before
 		}
+		// InfraS add begin
+		if ((int) $line->special_code === 3) {
+			continue;					// Optional line, left out of the XML lines above
+		}
+		// InfraS add end
 		// The previous line is read with the class of the core, which is the one that knows the
 		// shape of llx_facturedet. FactureLigne::fetch() answers -1 when the read failed, 0 when the
 		// line is gone and 1 when it is loaded; it is the same method on 18 to 24.
