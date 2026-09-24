@@ -613,6 +613,13 @@ class CIIProtocol extends AbstractProtocol
 		$filename = dol_sanitizeFileName($invoice->ref);
 		$filedir = getMultidirOutputCompat($invoice, '', 1);      // Example '/mydolibarr/documents/facture/FAYYMM-XXXX'
 		$einvoice_path = $filedir . '/' . $filename . '_cii.' . self::INVOICE_FILE_EXTENSION;
+		// InfraS add begin
+		// The directory of the invoice only exists once its PDF was built: with MAIN_DISABLE_PDF_AUTOUPDATE,
+		// a validated invoice may have none yet, and dol_copy() does not create the target directory.
+		if (!dol_is_dir($filedir)) {
+			dol_mkdir($filedir, einvoicingDataRoot($filedir));
+		}
+		// InfraS add end
 
 		if (dol_copy($xmlfile, $einvoice_path) > 0) {
 			dol_syslog(get_class($this) . "::generateInvoice copied XML file to " . $einvoice_path);
@@ -1171,6 +1178,30 @@ class CIIProtocol extends AbstractProtocol
 		$supplierInvoice->note_private = "Imported from PDP";
 
 		// TODO : save AAB, PMD, PMT notes (all notes are grouped into documentNotes)
+
+		// InfraS add begin
+		// Free notes of the supplier (BT-22, no SubjectCode) as plain text in the public note of the invoice.
+		// The coded notes (PMT, PMD, AAB, TXD...) are boilerplate terms and are not copied.
+		$freeNotes = array();
+		foreach ((array) ($parsedHeader['documentNotes'] ?? array()) as $documentNote) {
+			if (trim((string) ($documentNote['subjectCode'] ?? '')) === '') {
+				$freeNotes[] = (string) ($documentNote['content'] ?? '');
+			}
+		}
+		if (empty($freeNotes) && !empty($parsedHeader['documentNotePublic'])) {
+			$freeNotes[] = (string) $parsedHeader['documentNotePublic'];
+		}
+		$cleanNotes = array();
+		foreach ($freeNotes as $freeNote) {
+			$freeNote = trim(str_replace("\xC2\xA0", ' ', dol_string_nohtmltag($freeNote, 0)));
+			if ($freeNote !== '') {
+				$cleanNotes[] = $freeNote;
+			}
+		}
+		if (!empty($cleanNotes)) {
+			$supplierInvoice->note_public = implode("\n", $cleanNotes);
+		}
+		// InfraS add end
 
 		// Create the invoice
 		$supplierInvoiceId = $supplierInvoice->create($user);

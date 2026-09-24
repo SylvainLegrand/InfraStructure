@@ -81,6 +81,7 @@ $langs->loadLangs(array("einvoicing@einvoicing"));
 // Load required classes
 include_once __DIR__ . '/class/providers/PDPProviderManager.class.php';
 include_once __DIR__ . '/class/providers/AbstractPDPProvider.class.php';
+include_once __DIR__ . '/class/EInvoicingDashboard.class.php'; // InfraS add
 
 $action = GETPOST('action', 'aZ09');
 
@@ -110,7 +111,22 @@ if (!$user->hasRight('einvoicing', 'read')) {
  * Actions
  */
 
-// None
+// InfraS change begin
+// Reactivate the e-invoicing follow-up of an invoice listed in the abandoned invoices
+if ($action == 'reactivate_einv' && $user->hasRight('facture', 'creer') && GETPOST('token', 'alpha') === currentToken()) {
+	$reid	= GETPOSTINT('reid');
+	if ($reid > 0) {
+		$followup	= new EInvoicingFollowup($db);
+		if ($followup->reactivate('facture', $reid, $user) > 0) {
+			setEventMessages($langs->trans('EInvAbandonReactivated'), null, 'mesgs');
+		} else {
+			setEventMessages('', $followup->errors, 'errors');
+		}
+	}
+	header('Location: ' . $_SERVER['PHP_SELF']);
+	exit;
+}
+// InfraS change end
 
 
 /*
@@ -361,6 +377,268 @@ if (isModEnabled('einvoicing') && $user->hasRight('einvoicing', 'read')) {
 */
 
 print '</div></div>';
+
+// InfraS add begin
+/*
+ * Dashboard: the content of the email notifications and reports, one collapsible section per subject.
+ */
+$dashboard	= new EInvoicingDashboard($db);
+$einvoicing	= new EInvoicing($db);
+$followup	= new EInvoicingFollowup($db);
+$cur		= getDolGlobalString('MAIN_MONNAIE');
+
+print '<style>	.einv-acc{border:1px solid #ccc;border-radius:5px;margin:6px 0;}
+				.einv-acc>summary{cursor:pointer;padding:10px 12px;font-weight:bold;}
+				.einv-acc .einv-body{padding:6px 12px 12px 12px;overflow-x:auto;}
+				.einv-acc .einv-body h4{margin:10px 0 4px 0;}
+		</style>';
+
+$badge	= function ($n, $warn = false) {
+			return '<span class="badge marginleftonlyshort '.($n == 0 ? 'badge-secondary' : ($warn ? 'badge-danger' : 'badge-info')).'">'.((int) $n).'</span>';
+		};
+$none	= '<div class="opacitymedium">'.$langs->trans('EInvoicingDashNone').'</div>';
+$th		= function ($key) use ($langs) {
+			return '<th>'.$langs->trans($key).'</th>';
+		};
+$resultLabel = function ($v) use ($langs) {
+	$v = strtoupper(trim((string) $v));
+	if ($v === 'OK') {
+		return '<span class="badge badge-status4">'.$langs->trans('EInvoicingOutboundResultOk').'</span>';
+	}
+	if ($v === 'ERROR') {
+		return '<span class="badge badge-status8">'.$langs->trans('EInvoicingOutboundResultError').'</span>';
+	}
+	return '<span class="badge badge-status1">'.$langs->trans('EInvoicingOutboundResultPending').'</span>';
+};
+$invoiceLink	= function ($id, $ref, $supplier = false) {
+		$url	= DOL_URL_ROOT.($supplier ? '/fourn/facture/card.php?id=' : '/compta/facture/card.php?facid=').((int) $id);
+		return '<a href="'.$url.'">'.dol_escape_htmltag($ref).'</a>';
+	};
+
+// Period filters of the received and sent sections
+$recvStartTs	= dol_mktime(0, 0, 0, GETPOSTINT('recvstartmonth'), GETPOSTINT('recvstartday'), GETPOSTINT('recvstartyear'));
+$recvEndTs		= dol_mktime(0, 0, 0, GETPOSTINT('recvendmonth'), GETPOSTINT('recvendday'), GETPOSTINT('recvendyear'));
+$sentStartTs	= dol_mktime(0, 0, 0, GETPOSTINT('sentstartmonth'), GETPOSTINT('sentstartday'), GETPOSTINT('sentstartyear'));
+$sentEndTs		= dol_mktime(0, 0, 0, GETPOSTINT('sentendmonth'), GETPOSTINT('sentendday'), GETPOSTINT('sentendyear'));
+$recvCustom		= ($recvStartTs && $recvEndTs);
+$sentCustom		= ($sentStartTs && $sentEndTs);
+$periodForm		= function ($prefix, $startTs, $endTs) use ($form, $langs) {
+	$html	= '<form method="GET" action="'.$_SERVER['PHP_SELF'].'" class="marginbottomonly">';
+	$html	.= $langs->trans('DateStart').' '.$form->selectDate($startTs ?: -1, $prefix.'start', 0, 0, 1, '', 1, 0).' ';
+	$html	.= $langs->trans('DateEnd').' '.$form->selectDate($endTs ?: -1, $prefix.'end', 0, 0, 1, '', 1, 0).' ';
+	$html	.= '<input type="submit" class="button smallpaddingimp" value="'.dol_escape_htmltag($langs->trans('EInvoicingDashApplyPeriod')).'">';
+	if ($startTs || $endTs) {
+		$html .= ' <a class="button smallpaddingimp" href="'.$_SERVER['PHP_SELF'].'">'.$langs->trans('EInvoicingDashLast7Days').'</a>';
+	}
+	return $html.'</form>';
+};
+print '<div class="fichecenter"><br>';
+print '<span class="opacitymedium">'.$langs->trans('EInvoicingDashIntro').'</span><br><br>';
+
+// Received supplier invoices
+$received	= ($recvCustom ? $dashboard->receivedInvoices(7, $recvStartTs, $recvEndTs) : $dashboard->receivedInvoices(7));
+print '<details class="einv-acc"'.($recvCustom ? ' open' : '').'><summary>'.$langs->trans('EInvoicingDashReceived').$badge(count($received)).'</summary><div class="einv-body">';
+print $periodForm('recv', $recvStartTs, $recvEndTs);
+print '<div class="opacitymedium small">'.($recvCustom ? $langs->trans('EInvoicingDashPeriodLabel', dol_print_date($recvStartTs, 'day'), dol_print_date($recvEndTs, 'day')) : $langs->trans('EInvoicingDashLast7Days')).'</div>';
+if (empty($received)) {
+	print $none;
+} else {
+	print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('Bill').$th('RefSupplier').$th('ThirdParty').$th('EInvoicingColStatus').$th('AmountHT').$th('AmountTTC').$th('Date').'</tr>';
+	foreach ($received as $r) {
+		$estatus = '';
+		if (!empty($r->lc_code)) {
+			$estatus = trim($r->lc_code.' '.$einvoicing->getStatusLabel($r->lc_code, 'invoice_supplier'));
+		} elseif (!empty($r->ack_status)) {
+			$estatus = (string) $r->ack_status;
+		}
+		print '<tr class="oddeven">
+					<td>'.$invoiceLink($r->id, $r->ref, true).'</td>
+					<td>'.dol_escape_htmltag($r->ref_supplier).'</td>
+					<td>'.dol_escape_htmltag($r->socname).'</td>
+					<td>'.dol_escape_htmltag($estatus !== '' ? $estatus : '-').'</td>
+					<td class="right">'.price($r->total_ht, 0, $langs, 1, -1, -1, $cur).'</td>
+					<td class="right">'.price($r->total_ttc, 0, $langs, 1, -1, -1, $cur).'</td>
+					<td>'.dol_print_date($db->jdate($r->dc), 'dayhour').'</td>
+				</tr>';
+	}
+	print '</table>';
+}
+print '</div></details>';
+
+// Customer invoices sent
+$sentstatus	= ($sentCustom ? $dashboard->sentInvoicesStatus(7, $sentStartTs, $sentEndTs) : $dashboard->sentInvoicesStatus(7));
+$nbsent		= count($sentstatus['watch']) + count($sentstatus['intransit']) + count($sentstatus['confirmed']);
+print '<details class="einv-acc"'.($sentCustom ? ' open' : '').'><summary>'.$langs->trans('EInvoicingDashSent').$badge($nbsent, !empty($sentstatus['watch'])).'</summary><div class="einv-body">';
+print $periodForm('sent', $sentStartTs, $sentEndTs);
+print '<div class="opacitymedium small">'.$langs->trans('EInvoicingDashSentPeriodNote').' '.($sentCustom ? $langs->trans('EInvoicingDashPeriodLabel', dol_print_date($sentStartTs, 'day'), dol_print_date($sentEndTs, 'day')) : $langs->trans('EInvoicingDashLast7Days')).'</div>';
+$renderSent	= function ($list) use ($langs, $einvoicing, $sentstatus, $cur, $db, $th, $invoiceLink) {
+	print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('Bill').$th('ThirdParty').$th('Date').$th('EInvoicingColStatus').$th('EInvoicingColAck').$th('EInvoicingColLifecycle').$th('EInvoicingColReason').$th('AmountTTC').'</tr>';
+	foreach ($list as $r) {
+		$doc		= $sentstatus['detail'][(int) $r->element_id] ?? null;
+		$ack		= ($doc && trim((string) $doc->ack_status) !== '') ? trim((string) $doc->ack_status) : '-';
+		$lifecycle	= ($doc ? trim(trim((string) $doc->cdar_lifecycle_code).' '.trim((string) $doc->cdar_lifecycle_label)) : '');
+		$reason		= ($doc && trim((string) $doc->cdar_reason_code) !== '') ? trim((string) $doc->cdar_reason_code) : '-';
+		print '<tr class="oddeven">
+					<td>'.$invoiceLink($r->element_id, $r->ref).'</td>
+					<td>'.dol_escape_htmltag($r->socname).'</td>
+					<td>'.(!empty($r->datef) ? dol_print_date($db->jdate($r->datef), 'day') : '-').'</td>
+					<td>'.dol_escape_htmltag($einvoicing->getStatusLabel($r->syncstatus, 'facture')).'</td>
+					<td>'.dol_escape_htmltag($ack).'</td>
+					<td>'.dol_escape_htmltag($lifecycle !== '' ? $lifecycle : '-').'</td>
+					<td'.($reason !== '-' ? ' class="error"' : '').'>'.dol_escape_htmltag($reason).'</td>
+					<td class="right">'.price($r->total_ttc, 0, $langs, 1, -1, -1, $cur).'</td>
+				</tr>';
+	}
+	print '</table>';
+};
+if ($nbsent == 0) {
+	print $none;
+} else {
+	if (!empty($sentstatus['watch'])) {
+		print '<h4 class="error">'.$langs->trans('EInvoicingReportPendingTitle', count($sentstatus['watch'])).'</h4>';
+		$renderSent($sentstatus['watch']);
+	}
+	if (!empty($sentstatus['intransit'])) {
+		print '<h4>'.$langs->trans('EInvoicingDashSentInTransitTitle', count($sentstatus['intransit'])).'</h4>';
+		$renderSent($sentstatus['intransit']);
+	}
+	if (!empty($sentstatus['confirmed'])) {
+		print '<h4>'.$langs->trans('EInvoicingReportConfirmedTitle', count($sentstatus['confirmed'])).'</h4>';
+		$renderSent($sentstatus['confirmed']);
+	}
+}
+print '</div></details>';
+
+// Anomalies
+$anomalies = $dashboard->anomalies();
+print '<details class="einv-acc"><summary>'.$langs->trans('EInvoicingDashAnomalies').$badge(count($anomalies), true).'</summary><div class="einv-body">';
+if (empty($anomalies)) {
+	print $none;
+} else {
+	print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('Document').$th('EInvoicingDashSens').$th('ThirdParty').$th('EInvoicingColStatus').$th('EInvoicingColReason').$th('AmountTTC').'</tr>';
+	foreach ($anomalies as $r) {
+		$lc	= trim((string) $r->cdar_lifecycle_code);
+		if ($lc !== '') {
+			$statuslabel	= $lc.' '.(trim((string) $r->cdar_lifecycle_label) !== '' ? trim((string) $r->cdar_lifecycle_label) : $einvoicing->getStatusLabel($lc, $r->etype));
+		} else {
+			$statuslabel	= $langs->trans('EInvStatusError');
+		}
+		$reason	= $followup->buildReadableReason($r->ack_status, $r->ack_reason_code, $r->ack_info, $r->cdar_reason_code, $r->cdar_reason_desc, $r->cdar_reason_detail);
+		print '<tr class="oddeven">
+					<td>'.$invoiceLink($r->id, $r->ref, $r->etype !== 'facture').'</td>
+					<td>'.$langs->trans($r->etype === 'facture' ? 'EInvoicingDashIssued' : 'EInvoicingDashReceivedShort').'</td>
+					<td>'.dol_escape_htmltag($r->socname).'</td>
+					<td class="error">'.dol_escape_htmltag($statuslabel).'</td>
+					<td>'.($reason !== '' ? dol_escape_htmltag($reason) : '-').'</td>
+					<td class="right">'.price($r->total_ttc, 0, $langs, 1, -1, -1, $cur).'</td>
+				</tr>';
+	}
+	print '</table>';
+}
+print '</div></details>';
+
+// Abandoned customer invoices
+$dismissed		= $dashboard->dismissedInvoices();
+$canReactivate	= $user->hasRight('facture', 'creer');
+print '<details class="einv-acc"><summary>'.$langs->trans('EInvoicingDashDismissed').$badge(count($dismissed)).'</summary><div class="einv-body">';
+if (empty($dismissed)) {
+	print $none;
+} else {
+	print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('Bill').$th('ThirdParty').$th('EInvAbandonColComment').$th('Date').$th('AmountTTC').($canReactivate ? '<th></th>' : '').'</tr>';
+	foreach ($dismissed as $r) {
+		print '<tr class="oddeven">
+					<td>'.$invoiceLink($r->element_id, $r->ref).'</td>
+					<td>'.dol_escape_htmltag($r->socname).'</td>
+					<td>'.dol_escape_htmltag((string) $r->comment).'</td>
+					<td>'.dol_print_date($db->jdate($r->date_creation), 'dayhour').'</td>
+					<td class="right">'.price($r->total_ttc, 0, $langs, 1, -1, -1, $cur).'</td>';
+		if ($canReactivate) {
+			print '<td class="center"><a class="button smallpaddingimp" href="'.$_SERVER['PHP_SELF'].'?action=reactivate_einv&reid='.((int) $r->element_id).'&token='.newToken().'">'.$langs->trans('EInvAbandonReactivate').'</a></td>';
+		}
+		print '</tr>';
+	}
+	print '</table>';
+}
+print '</div></details>';
+
+// Transmitted to the platform in the last 24 hours
+$out	= $dashboard->outbound(24);
+$nbout	= count($out['cashins']) + count($out['others']) + count($out['sent']);
+print '<details class="einv-acc"><summary>'.$langs->trans('EInvoicingDashOutbound').$badge($nbout).'</summary><div class="einv-body">';
+if ($nbout == 0) {
+	print $none;
+} else {
+	if (!empty($out['cashins'])) {
+		print '<h4>'.$langs->trans('EInvoicingOutboundCashinTitle', count($out['cashins'])).'</h4>';
+		print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('Bill').$th('ThirdParty').$th('EInvoicingOutboundColAmount').$th('EInvoicingOutboundColResult').$th('Date').'</tr>';
+		foreach ($out['cashins'] as $r) {
+			$id = (int) $r->element_id;
+			print '<tr class="oddeven">
+						<td>'.$invoiceLink($id, isset($out['refFact'][$id]) ? $out['refFact'][$id]->ref : '#'.$id).'</td>
+						<td>'.dol_escape_htmltag(isset($out['refFact'][$id]) ? $out['refFact'][$id]->socname : '').'</td>
+						<td class="right">'.($r->cashed !== null ? price($r->cashed, 0, $langs, 1, -1, -1, $cur) : '-').'</td>
+						<td>'.$resultLabel($r->lc_validation_status).'</td>
+						<td>'.dol_print_date($db->jdate($r->date_creation), 'dayhour').'</td>
+					</tr>';
+		}
+		print '</table>';
+	}
+	if (!empty($out['others'])) {
+		print '<h4>'.$langs->trans('EInvoicingOutboundStatusesTitle', count($out['others'])).'</h4>';
+		print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('Document').$th('EInvoicingColStatus').$th('EInvoicingOutboundColResult').$th('EInvoicingColReason').$th('Date').'</tr>';
+		foreach ($out['others'] as $r) {
+			$id	= (int) $r->element_id;
+			if ($r->element_type === 'facture') {
+				$link	= $invoiceLink($id, isset($out['refFact'][$id]) ? $out['refFact'][$id]->ref : '#'.$id);
+			} elseif ($r->element_type === 'invoice_supplier') {
+				$link	= $invoiceLink($id, isset($out['refFourn'][$id]) ? $out['refFourn'][$id]->ref : '#'.$id, true);
+			} else {
+				$link	= dol_escape_htmltag($r->element_type.' #'.$id);
+			}
+			$reason	= trim((string) $r->lc_reason_code);
+			print '<tr class="oddeven"><td>'.$link.'</td>
+						<td>'.((int) $r->lc_status).' '.dol_escape_htmltag($einvoicing->getStatusLabel($r->lc_status, $r->element_type)).'</td>
+						<td>'.$resultLabel($r->lc_validation_status).'</td>
+						<td>'.($reason !== '' ? dol_escape_htmltag($reason) : '-').'</td>
+						<td>'.dol_print_date($db->jdate($r->date_creation), 'dayhour').'</td>
+					</tr>';
+		}
+		print '</table>';
+	}
+	if (!empty($out['sent'])) {
+		print '<h4>'.$langs->trans('EInvoicingOutboundSentTitle', count($out['sent'])).'</h4>';
+		print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('Bill').$th('ThirdParty').$th('AmountHT').$th('AmountTTC').$th('Date').'</tr>';
+		foreach ($out['sent'] as $r) {
+			print '<tr class="oddeven"><td>'.$invoiceLink($r->id, $r->ref).'</td>
+						<td>'.dol_escape_htmltag($r->socname).'</td>
+						<td class="right">'.price($r->total_ht, 0, $langs, 1, -1, -1, $cur).'</td>
+						<td class="right">'.price($r->total_ttc, 0, $langs, 1, -1, -1, $cur).'</td>
+						<td>'.dol_print_date($db->jdate($r->dc), 'dayhour').'</td>
+					</tr>';
+		}
+		print '</table>';
+	}
+}
+print '</div></details>';
+
+// Suppliers without SIREN
+$nosiren = $dashboard->suppliersWithoutSiren();
+print '<details class="einv-acc"><summary>'.$langs->trans('EInvoicingDashNoSiren').$badge(count($nosiren), true).'</summary><div class="einv-body">';
+if (empty($nosiren)) {
+	print $none;
+} else {
+	print '<table class="noborder centpercent"><tr class="liste_titre">'.$th('ThirdParty').$th('EInvoicingColSiret').$th('VATIntra').'</tr>';
+	foreach ($nosiren as $r) {
+		print '<tr class="oddeven"><td><a href="'.DOL_URL_ROOT.'/societe/card.php?socid='.((int) $r->rowid).'">'.dol_escape_htmltag($r->nom).'</a></td>';
+		print '<td>'.(trim((string) $r->siret) !== '' ? dol_escape_htmltag($r->siret) : '<span class="error">-</span>').'</td>';
+		print '<td>'.(trim((string) $r->tva_intra) !== '' ? dol_escape_htmltag($r->tva_intra) : '<span class="error">-</span>').'</td></tr>';
+	}
+	print '</table>';
+}
+print '</div></details>';
+
+print '</div>';
+// InfraS add end
 
 // End of page
 llxFooter();

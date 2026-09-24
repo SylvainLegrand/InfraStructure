@@ -366,12 +366,21 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 				} else {
 					$perm = false;
 				}
+				// InfraS add begin
+				// Disabled for a business reason, not a missing right: say why instead of the core "not enough permission"
+				$regenreason	= $forcedisabling;
+				if (!$perm && !$forcedisabling && $user->hasRight("facture", "creer")) {
+					$perm			= -1;
+					$regenreason	= $langs->trans($locked ? 'RegenerateEinvoiceLockedReason' : 'RegenerateEinvoiceNotReadyReason');
+				}
+				// InfraS add end
 				$url_button[] = array(
 					'lang' => 'einvoicing',
 					'enabled' => true,
 					'perm' => ($forcedisabling ? -1 : $perm),
 					'label' => $langs->trans('RegenerateEinvoice'),
-					'text' => $forcedisabling,
+					'text' => $regenreason, // InfraS change
+					'attr' => ($regenreason ? array('title' => $regenreason) : array()), // InfraS add
 					//'help' => $langs->trans('RegenerateEinvoiceHelp'),
 					'url' => '/compta/facture/card.php?id=' . $object->id . '&action=generate_einvoice&token=' . newToken()
 				);
@@ -419,13 +428,39 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 						'label' => $langs->trans('sendToPDP' . ($resend ? '2' : '')),
 						'text' => $forcedisabling,
 						//'help' => $langs->trans('SendToPDPHelp'),
-						'url' => '/compta/facture/card.php?id=' . $object->id . '&action=send_to_pdp&token=' . newToken()
+						'url' => '/compta/facture/card.php?id=' . $object->id . '&action=preconfirm_send_to_pdp&token=' . newToken() // InfraS change
 					);
 				}
+
+				// InfraS add begin
+				// Abandon the e-invoicing follow-up of an invoice in anomaly or not yet received (handled out of the
+				// platform), so it stops coming back in the alerts, the reports and the dashboard
+				dol_include_once('/einvoicing/class/utils/EInvoicingFollowup.class.php');
+				$followup	= new EInvoicingFollowup($db);
+				if ($followup->isFollowupOpen('facture', (int) $object->id) && !$followup->isDismissed('facture', (int) $object->id)) {
+					$url_button[]	= array('lang'		=> 'einvoicing',
+											'enabled'	=> true,
+											'perm'		=> ($forcedisabling ? -1 : (bool) $user->hasRight('facture', 'creer')),
+											'label'		=> $langs->trans('EInvAbandonAnomaly'),
+											'url'		=> '/compta/facture/card.php?id=' . $object->id . '&action=preconfirm_dismiss_anomaly&token=' . newToken()
+										);
+				}
+				// InfraS add end
 			}
 
 			if (empty($parameters['context']) || !preg_match('/takepospay/', $parameters['context'])) {
 				print '<!-- Current AP: ' . getDolGlobalString('EINVOICING_PDP') . ' -->';
+				// InfraS add begin
+				// Invoice out of the e-invoicing scope: one greyed button saying why, instead of disabled actions
+				if (EInvoicing::isIgnoredStatus($currentStatusDetails['code'] ?? 0)) {
+					if (!is_object($object->thirdparty)) {
+						$object->fetch_thirdparty();
+					}
+					$notapplicable	= $langs->trans((is_object($object->thirdparty) && $object->thirdparty->country_code != 'FR') ? 'EInvoiceNotApplicableForeign' : 'EInvoiceNotApplicableThirdparty');
+					print '<span class="butActionRefused classfortooltip" title="' . dol_escape_htmltag($notapplicable) . '">' . $langs->trans('einvoice') . '</span>';
+					$url_button		= array();
+				}
+				// InfraS add end
 				if (!empty($url_button)) {
 					// dolGetButtonAction() only supports an array $url (dropdown mode) since Dolibarr 18;
 					// use our own polyfill below that version.
@@ -649,6 +684,26 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 			// Action to set an invoice-level routing ID override
 			if ($action == 'setoverriderouting' && $permissiontoedit && is_array($currentStatusDetails)) {
 				$overrideRoutingId = GETPOST('override_routing_id', 'alphanohtml');
+				// InfraS add begin
+				// The override is sent as the buyer address (BT-49): refuse what cannot be an e-invoicing address,
+				// null keeps the override already recorded
+				if (!is_object($object->thirdparty ?? null) && !empty($object->socid)) {
+					$object->fetch_thirdparty();
+				}
+				if ($overrideRoutingId !== '' && !EInvoicing::isValidRoutingId($overrideRoutingId, is_object($object->thirdparty ?? null) ? (string) $object->thirdparty->country_code : '')) {
+					setEventMessages($langs->trans('EInvoiceRoutingIdInvalid', dol_escape_htmltag($overrideRoutingId)), null, 'errors');
+					$overrideRoutingId = null;
+				}
+				// An address picked from the directory is also added to the routing list of the thirdparty
+				if ($overrideRoutingId !== '' && GETPOSTISSET('override_routing_info') && !empty($object->socid)) {
+					dol_include_once('/einvoicing/class/utils/EInvoicingDirectory.class.php');
+					$directory		= new EInvoicingDirectory($db);
+					$directoryerror	= '';
+					if ($directory->addRoutings((int) $object->socid, array($overrideRoutingId), array(GETPOST('override_routing_info', 'alphanohtml')), $directoryerror) < 0) {
+						setEventMessages($langs->trans('FailedToSaveRoutingID') . ' ' . $directoryerror, null, 'warnings');
+					}
+				}
+				// InfraS add end
 				$result = $einvoicing->insertOrUpdateExtLink($object->id, $object->element, '', $currentStatusDetails['code'], $object->ref, $currentStatusDetails['info'], $overrideRoutingId);
 				if ($result < 0) {
 					$error++;
@@ -771,6 +826,40 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					setEventMessages($langs->trans("InvoicePrecheckFailed"), array(), 'errors');
 				}
 			}
+
+			// InfraS add begin
+			// Abandon the e-invoicing follow-up of the invoice, with a mandatory comment logged in its events
+			if ($action == 'confirm_dismiss_anomaly' && GETPOST('confirm', 'alpha') == 'yes' && $permissiontoedit) {
+				$comment	= trim(GETPOST('dismiss_comment', 'restricthtml'));
+				if ($comment === '') {
+					setEventMessages($langs->trans('EInvAbandonCommentRequired'), null, 'errors');
+					$action	= 'preconfirm_dismiss_anomaly';
+				} else {
+					dol_include_once('/einvoicing/class/utils/EInvoicingFollowup.class.php');
+					$followup	= new EInvoicingFollowup($db);
+					if ($followup->dismiss($object, $comment, $user) < 0) {
+						$error++;
+						$this->errors	= array_merge($this->errors, $followup->errors);
+					} else {
+						setEventMessages($langs->trans('EInvAbandonDone'), null, 'mesgs');
+					}
+				}
+			}
+
+			// Convert the lines with a negative amount of a draft invoice into global discounts (BR-27)
+			if ($action == 'einvoicing_fix_negprice' && $permissiontoedit) {
+				dol_include_once('/einvoicing/class/utils/EInvoicingInvoiceTools.class.php');
+				$invoicetools = new EInvoicingInvoiceTools($db);
+				$nbfixed = $invoicetools->convertNegativeLines($object, $user);
+				if ($nbfixed < 0) {
+					$error++;
+					$this->errors[] = $invoicetools->error;
+				} elseif ($nbfixed > 0) {
+					setEventMessages($langs->trans('EInvoiceNegPriceFixed', $nbfixed), null, 'mesgs');
+				}
+				$action = '';
+			}
+			// InfraS add end
 
 			if ($error) {
 				$db->rollback();
@@ -1025,6 +1114,22 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 					}
 				}
 			}
+
+			// InfraS add begin
+			// Add the reception addresses picked from the directory
+			if ($action == 'pdp_addrouting_bulk' && !empty($socId) && $permissiontoedit) {
+				dol_include_once('/einvoicing/class/utils/EInvoicingDirectory.class.php');
+				$directory		= new EInvoicingDirectory($db);
+				$directoryerror = '';
+				$added			= $directory->addRoutings((int) $socId, (array) GETPOST('sel_id', 'array:alphanohtml'), (array) GETPOST('sel_info', 'array:alphanohtml'), $directoryerror);
+				if ($added < 0) {
+					$error++;
+					setEventMessages($langs->trans('FailedToSaveRoutingID') . ' ' . $directoryerror, null, 'errors');
+				} elseif ($added > 0) {
+					setEventMessages($langs->trans('EInvoicingAddressesAdded', $added), null, 'mesgs');
+				}
+			}
+			// InfraS add end
 
 			// Delete a routing entry
 			if ($action == 'pdp_deleterouting' && !empty($socId) && $permissiontoedit) {
@@ -1385,6 +1490,29 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 		}
 		$langs->load("einvoicing@einvoicing");
 
+		// InfraS add begin
+		// Confirmation, with a mandatory comment, to abandon the e-invoicing follow-up of a customer invoice
+		if ($object->element == 'facture' && $action == 'preconfirm_dismiss_anomaly') {
+			$form			= new Form($db);
+			$formquestion	= array(array('type'		=> 'text',
+											'name'		=> 'dismiss_comment',
+											'label'		=> $langs->trans('EInvAbandonComment'),
+											'value'		=> '',
+											'morecss'	=> 'minwidth300',
+										),
+									);
+			$this->resprints .= $form->formconfirm(DOL_URL_ROOT.'/compta/facture/card.php?id='.$object->id, $langs->trans('EInvAbandonConfirmTitle'), $langs->trans('EInvAbandonConfirmQuestion', (string) $object->ref), 'confirm_dismiss_anomaly', $formquestion, 'yes', 1, 280);
+		}
+
+		// Confirmation before the transmission to the platform, with the recap of what is sent and where
+		if ($object->element == 'facture' && $action == 'preconfirm_send_to_pdp' && !$einvoicing->isTransmittedLockActive($object->id, $object->ref)) {
+			dol_include_once('/einvoicing/class/utils/EInvoicingInvoiceTools.class.php');
+			$invoicetools	= new EInvoicingInvoiceTools($db);
+			$form			= new Form($db);
+			$this->resprints .= $form->formconfirm(DOL_URL_ROOT.'/compta/facture/card.php?id='.$object->id, $langs->trans('EInvoicingConfirmSendTitle'), $invoicetools->sendRecap($object), 'send_to_pdp', '', 'yes', 1, 320);
+		}
+		// InfraS add end
+
 		if (in_array($object->element, ['invoice_supplier']) && !einvoicingReceptionDisabled()) {
 			// Clone confirmation
 			if ($action == 'sendStatusMessage') {
@@ -1505,6 +1633,15 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 				'@phan-var-force Facture $object';
 				/** @var Facture $object */
 				$this->resprints .= $einvoicing->EInvoiceCardBlock($object, $action, $parameters);		// Output fields in card, including js for refreshing state
+				// InfraS add begin
+				// E-invoice status badge in the banner, and warning about the lines with a negative amount
+				if ($action != 'create' && $object->id > 0) {
+					dol_include_once('/einvoicing/class/utils/EInvoicingInvoiceTools.class.php');
+					$invoicetools		= new EInvoicingInvoiceTools($db);
+					$this->resprints	.= $invoicetools->bannerStatusBadge($object);
+					$this->resprints	.= $invoicetools->negativeLinesBlock($object);
+				}
+				// InfraS add end
 			}
 
 			// Add block in supplier invoice card (reception only)
@@ -1512,6 +1649,13 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 				'@phan-var-force FactureFournisseur $object';
 				/** @var FactureFournisseur $object */
 				$this->resprints .= $einvoicing->supplierInvoiceCardBlock($object, $action, $parameters);		// Output fields in card, including js for refreshing state
+				// InfraS add begin
+				if ($action != 'create' && $object->id > 0) {
+					dol_include_once('/einvoicing/class/utils/EInvoicingInvoiceTools.class.php');
+					$invoicetools		= new EInvoicingInvoiceTools($db);
+					$this->resprints	.= $invoicetools->bannerStatusBadge($object);
+				}
+				// InfraS add end
 			}
 
 			// Add block in product/service card  (reception only)

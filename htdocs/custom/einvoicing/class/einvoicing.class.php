@@ -1765,7 +1765,8 @@ class EInvoicing
 		// e-invoicing for eligible (FR) invoices. Preselect the qualified default instead: "To generate / STATUS_NOT_GENERATED" for invoices that must be managed,
 		// "Do not manage" otherwise.
 		if ($mode == 'create' || $action == 'create') {
-			if (GETPOSTISSET('seteinvoicestatus')) {
+			// The form is posted again when the thirdparty changes (changecompany = 1): the value posted then is the one computed for the previous thirdparty (none at first), so it must be computed again
+			if (GETPOSTISSET('seteinvoicestatus') && !GETPOSTINT('changecompany')) {	// InfraS change
 				$currentStatusInfo['code'] = GETPOSTINT('seteinvoicestatus');
 			} else {
 				// At creation the hook receives a blank Facture object: its socid is NOT set yet (the
@@ -2030,6 +2031,16 @@ class EInvoicing
 				$resprints .= '</tr>';
 			}
 		}
+
+		// InfraS add begin
+		// Reception addresses of the recipient in the directory, to pick the routing override of the invoice
+		if (($object->element == 'facture' || $object->element == 'invoice') && $action != 'create' && $editenable
+			&& getDolGlobalString('EINVOICING_PDP') && empty($currentStatusInfo['transmitted']) && !einvoicingIsSendDisabled()) {
+			require_once __DIR__ . '/utils/EInvoicingDirectory.class.php';
+			$directory	= new EInvoicingDirectory($this->db);
+			$resprints .= $directory->invoicePickerRow($object, (string) ($currentStatusInfo['override_routing_id'] ?? ''));
+		}
+		// InfraS add end
 
 		// Buyer reference (BT-10): the reference the buyer uses to route the invoice inside its own
 		// organisation (business unit, service reference, internal mailbox...). A core EN 16931 term,
@@ -2505,6 +2516,7 @@ class EInvoicing
 			$resprints .= '<td'.(empty($parameters['colspanvalue']) ? '' : ' colspan="'.(((int) $parameters['colspanvalue']) - 1).'"').'>';
 			$resprints .= '<input type="text" name="routing_id" ';
 			$resprints .= 'value="' . dolPrintHTML($routing_id ?? '') . '" ';
+			$resprints .= 'placeholder="' . dolPrintHTMLForAttribute($langs->trans("EInvoiceRoutingIdPlaceholder")) . '" ';	// InfraS add
 			$resprints .= 'class="flat minwidth300" spellcheck="false" />';
 			$resprints .= '</td>';
 			$resprints .= '</tr>';
@@ -2612,7 +2624,7 @@ class EInvoicing
 		$addToken = newToken();
 		$addUrl   = dol_escape_js($_SERVER["PHP_SELF"] . '?id=' . $object->id);
 		$resprints .= '<div style="margin-top:6px" class="hidden addroutingsection">';
-		$resprints .= '<input type="text" id="pdp_new_routing_id" placeholder="' . dolPrintHTMLForAttribute($langs->trans("RoutingIdFieldShort")) . '" class="flat minwidth100 maxwidth150 valignmiddle">';
+		$resprints .= '<input type="text" id="pdp_new_routing_id" placeholder="' . dolPrintHTMLForAttribute($langs->trans("EInvoiceRoutingIdPlaceholder")) . '" class="flat minwidth100 maxwidth150 valignmiddle">';	// InfraS change
 		$resprints .= ' <input type="text" id="pdp_new_routing_info" placeholder="' . dolPrintHTMLForAttribute($langs->trans("RoutingIdInfo")) . '" title="' . dolPrintHTMLForAttribute($langs->trans("RoutingIdInfo")) . '" class="flat minwidth100 maxwidth100 valignmiddle">';
 		$resprints .= ' <button type="button" class="button small smallpaddingimp" onclick="pdpSubmitAddRouting()">' . $langs->trans("Add") . '</button>';
 		$resprints .= '</div>';
@@ -2636,6 +2648,15 @@ class EInvoicing
 			f.submit();
 		}
 		</script>';
+
+		// InfraS add begin
+		// Reception addresses of the directory, to add to the routing list
+		if (getDolGlobalString('EINVOICING_PDP') && $mode != 'edit') {
+			require_once __DIR__ . '/utils/EInvoicingDirectory.class.php';
+			$directory	= new EInvoicingDirectory($this->db);
+			$resprints	.= $directory->thirdpartyPicker($object, $allRoutings);
+		}
+		// InfraS add end
 
 		$resprints .= '</td>';
 		$resprints .= '</tr>';
@@ -3277,6 +3298,71 @@ class EInvoicing
 	}
 
 
+	// InfraS add begin
+	/**
+	* Check the shape of an e-invoicing address (routing ID) before it is recorded or sent (BT-49).
+	*
+	* A French address is built on the SIREN: SIREN, SIREN_suffix, SIREN_SIRET or SIREN_SIRET_routing code,
+	* optionally with the scheme of the directory ('0225:'), or a bare SIRET. An address of another country
+	* (Peppol participant ID, GLN...) is not checked further than being one identifier: no blank, no comma.
+	* The SIREN key is not checked, so that the fictitious SIRENs of the sandboxes remain usable.
+	*
+	* @param	string	$routingId		Routing ID as entered
+	* @param	string	$countryCode	Country code of the thirdparty ('FR', ...), '' if unknown
+	* @return	bool					True if the value can be an e-invoicing address
+	*/
+	public static function isValidRoutingId($routingId, $countryCode = '')
+	{
+		$raw	= trim((string) $routingId);
+		$clean	= preg_replace('/\s+/', '', $raw);
+		if ($clean === '') {
+			return false;
+		}
+		if (preg_match('/^(0225:)?\d{9}(_[A-Za-z0-9.\-]+)*$/', $clean) || preg_match('/^\d{14}$/', $clean)) {
+			return true;
+		}
+		if ($countryCode == 'FR') {
+			return false;
+		}
+
+		return (bool) preg_match('/^[A-Za-z0-9][A-Za-z0-9._:@\-]*$/', $raw) && (bool) preg_match('/\d/', $raw);
+	}
+
+	/**
+	* Refuse a thirdparty routing ID that cannot be an e-invoicing address (a postal address typed in the field).
+	*
+	* @param	int		$fk_soc			Thirdparty ID
+	* @param	string	$routing_id		Routing ID as entered
+	* @return	bool					True if valid, false otherwise with $this->error set
+	*/
+	private function checkThirdpartyRoutingId($fk_soc, $routing_id)
+	{
+		global $langs;
+
+		$countryCode	= '';
+		$sql			= "SELECT c.code FROM " . $this->db->prefix() . "societe as s";
+		$sql			.= " LEFT JOIN " . $this->db->prefix() . "c_country as c ON c.rowid = s.fk_pays";
+		$sql			.= " WHERE s.rowid = " . ((int) $fk_soc);
+		$resql			= $this->db->query($sql);
+		if ($resql) {
+			$obj = $this->db->fetch_object($resql);
+			if ($obj) {
+				$countryCode = (string) $obj->code;
+			}
+			$this->db->free($resql);
+		}
+		if (self::isValidRoutingId($routing_id, $countryCode)) {
+			return true;
+		}
+		$langs->load('einvoicing@einvoicing');
+		$this->error = $langs->trans('EInvoiceRoutingIdInvalid', dol_escape_htmltag((string) $routing_id));
+		dol_syslog(__METHOD__ . ' Refused routing ID "' . $routing_id . '" for thirdparty ' . $fk_soc . ' (country ' . $countryCode . ')', LOG_WARNING);
+
+		return false;
+	}
+	// InfraS add end
+
+
 	/**
 	 * Create or replace the default routing for a thirdparty.
 	 *
@@ -3299,6 +3385,13 @@ class EInvoicing
 		/*if ($routing_type == 'product') {
 			$routing_id = (int) (str_replace('idprod_', '', $routing_id));
 		}*/
+
+		// InfraS add begin
+		// Checked before the existing routings are deleted, so that a refused value leaves them in place
+		if ($routing_type == 'thirdparty' && $routing_id !== '' && !$this->checkThirdpartyRoutingId($fk_soc, $routing_id)) {
+			return -1;
+		}
+		// InfraS add end
 
 		$db->begin();
 
@@ -3369,6 +3462,11 @@ class EInvoicing
 		if (empty($routing_id)) {
 			return -1;
 		}
+		// InfraS add begin
+		if ($routing_type == 'thirdparty' && !$this->checkThirdpartyRoutingId($fk_soc, $routing_id)) {
+			return -1;
+		}
+		// InfraS add end
 
 		$db->begin();
 

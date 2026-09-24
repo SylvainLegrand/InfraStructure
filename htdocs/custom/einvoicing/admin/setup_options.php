@@ -160,6 +160,18 @@ if ($action == 'savesyncoptions') {
 	exit;
 }
 
+// InfraS add begin
+// Send the supplier invoices received in the last 7 days as a test of the email notification
+if ($action == 'testnotifyemail') {
+	require_once __DIR__.'/../class/utils/EInvoicingNotifier.class.php';
+	$notifier	= new EInvoicingNotifier($db);
+	$restest	= $notifier->sendTest(7);
+	setEventMessages($restest['message'], null, ($restest['res'] > 0 ? 'mesgs' : ($restest['res'] < 0 ? 'errors' : 'warnings')));
+	header("Location: ".$_SERVER["PHP_SELF"]);
+	exit;
+}
+// InfraS add end
+
 // If we use the test mode, sync supplier invoices is not available
 //if (getDolGlobalString('EINVOICING_PDP') == 'TESTPDP') {
 //	$conf->global->EINVOICING_DISABLE_SYNC_AP_TO_DOLI = 1;
@@ -469,6 +481,13 @@ if (!einvoicingReceptionDisabled() || !einvoicingIsSendDisabled()) {
 	$item->fieldAttr['placeholder'] = $langs->transnoentities('Hours');
 	$item->cssClass = 'maxwidth100';
 
+	// InfraS add begin
+	// Recipients of the email notifications and reports (comma or semicolon separated), empty = off
+	$item			= $formSetup->newItem('EINVOICING_SYNC_NOTIFY_EMAILS');
+	$item->helpText	= $langs->transnoentities('EINVOICING_SYNC_NOTIFY_EMAILS_HELP');
+	$item->cssClass	= 'minwidth500';
+	// InfraS add end
+
 	// Setup conf to choose to use Chorus or not
 	$item = $formSetup->newItem('EINVOICING_USE_CHORUS')->setAsYesNo();
 	$item->nameText = $langs->trans("EINVOICING_USE_CHORUS").' <span class="opacitymedium">('.$langs->trans("FeatureNotFullyYetSupported").')</span>';
@@ -583,6 +602,21 @@ if (!empty($formSetup->items)) {
 	print $formSetup->generateOutput(true, true);
 	print '<br>';
 }
+
+// InfraS add begin
+// Test of the email notification, once recipients are configured
+if (getDolGlobalString('EINVOICING_SYNC_NOTIFY_EMAILS')) {
+	print '<form name="testnotify" action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+	print '<input type="hidden" name="token" value="'.newToken().'">';
+	print '<input type="hidden" name="action" value="testnotifyemail">';
+	print '<div class="center">';
+	print '<input type="submit" class="button" value="'.dol_escape_htmltag($langs->trans('EInvoiceNotifyEmailTestButton')).'">';
+	print '<br><span class="opacitymedium">'.$langs->trans('EInvoiceNotifyEmailTestButtonHelp').'</span>';
+	print '</div>';
+	print '</form>';
+	print '<br>';
+}
+// InfraS add end
 
 // on change EINVOICING_PDP reload page to show specific configuration of selected PDP
 print '<script>
