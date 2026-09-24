@@ -93,7 +93,11 @@ if ($action == 'confirm_split' && GETPOST("confirm", "alpha") == 'yes' && $permi
 		$error++;
 		setEventMessages($langs->trans("ErrorFailedToLoadDiscount"), null, 'errors');
 	}
-	if (!$error && price2num((float) $amount_ttc_1 + (float) $amount_ttc_2, 'MT') != $discount->amount_ttc) {
+	// InfraS change begin Arrondis - la remise peut être stockée non arrondie (avoir/acompte converti) : on compare la saisie
+	// (au centime) au TTC comptable de la remise (HT arrondi + TVA arrondie, voir CommonObject::getRoundedTotals), pas au montant exact.
+	$discount_ttc_arrondi = (!$error ? $discount->getRoundedTotalTTC(0) : 0);
+	if (!$error && (float) price2num((float) $amount_ttc_1 + (float) $amount_ttc_2, 'MT') != $discount_ttc_arrondi) {
+	// InfraS change end Arrondis
 		$error++;
 		setEventMessages($langs->trans("TotalOfTwoDiscountMustEqualsOriginal"), null, 'errors');
 	}
@@ -139,7 +143,7 @@ if ($action == 'confirm_split' && GETPOST("confirm", "alpha") == 'yes' && $permi
 		$newdiscount1->vat_src_code = $discount->vat_src_code;
 		$newdiscount2->vat_src_code = $discount->vat_src_code;
 		$newdiscount1->amount_ttc = $amount_ttc_1;
-		$newdiscount2->amount_ttc = price2num($discount->amount_ttc - $newdiscount1->amount_ttc);
+		$newdiscount2->amount_ttc = price2num($discount_ttc_arrondi - (float) $newdiscount1->amount_ttc, 'MT'); // InfraS change Arrondis - les deux nouvelles remises sont au centime
 		$newdiscount1->amount_ht = price2num($newdiscount1->amount_ttc / (1 + $newdiscount1->tva_tx / 100), 'MT');
 		$newdiscount2->amount_ht = price2num($newdiscount2->amount_ttc / (1 + $newdiscount2->tva_tx / 100), 'MT');
 		$newdiscount1->amount_tva = price2num($newdiscount1->amount_ttc - $newdiscount1->amount_ht);
@@ -556,7 +560,13 @@ if ($socid > 0) {
 
 					if ($action == 'split' && GETPOST('remid') == $obj->rowid) {
 						$showconfirminfo['rowid'] = $obj->rowid;
-						$showconfirminfo['amount_ttc'] = $obj->amount_ttc;
+						// InfraS change begin Arrondis - montant proposé = TTC comptable (HT arrondi + TVA arrondie), pas le montant exact stocké
+						$tmpdiscount = new DiscountAbsolute($db);
+						$tmpdiscount->total_ht = $obj->amount_ht;
+						$tmpdiscount->total_tva = $obj->amount_tva;
+						$tmpdiscount->total_ttc = $obj->amount_ttc;
+						$showconfirminfo['amount_ttc'] = $tmpdiscount->getRoundedTotalTTC(0);
+						// InfraS change end Arrondis
 					}
 					$i++;
 				}
@@ -573,7 +583,7 @@ if ($socid > 0) {
 
 			if (count($showconfirminfo)) {
 				$amount1 = price2num($showconfirminfo['amount_ttc'] / 2, 'MT');
-				$amount2 = ($showconfirminfo['amount_ttc'] - (float) $amount1);
+				$amount2 = price2num($showconfirminfo['amount_ttc'] - (float) $amount1, 'MT'); // InfraS change Arrondis
 				$formquestion = array(
 					'text' => $langs->trans('TypeAmountOfEachNewDiscount'),
 					0 => array('type' => 'text', 'name' => 'amount_ttc_1', 'label' => $langs->trans("AmountTTC").' 1', 'value' => $amount1, 'size' => '5'),
@@ -703,7 +713,13 @@ if ($socid > 0) {
 
 					if ($action == 'split' && GETPOST('remid') == $obj->rowid) {
 						$showconfirminfo['rowid'] = $obj->rowid;
-						$showconfirminfo['amount_ttc'] = $obj->amount_ttc;
+						// InfraS change begin Arrondis - montant proposé = TTC comptable (HT arrondi + TVA arrondie), pas le montant exact stocké
+						$tmpdiscount = new DiscountAbsolute($db);
+						$tmpdiscount->total_ht = $obj->amount_ht;
+						$tmpdiscount->total_tva = $obj->amount_tva;
+						$tmpdiscount->total_ttc = $obj->amount_ttc;
+						$showconfirminfo['amount_ttc'] = $tmpdiscount->getRoundedTotalTTC(0);
+						// InfraS change end Arrondis
 					}
 					$i++;
 				}
@@ -720,7 +736,7 @@ if ($socid > 0) {
 
 			if (count($showconfirminfo)) {
 				$amount1 = price2num($showconfirminfo['amount_ttc'] / 2, 'MT');
-				$amount2 = ($showconfirminfo['amount_ttc'] - (float) $amount1);
+				$amount2 = price2num($showconfirminfo['amount_ttc'] - (float) $amount1, 'MT'); // InfraS change Arrondis
 				$formquestion = array(
 					'text' => $langs->trans('TypeAmountOfEachNewDiscount'),
 					0 => array('type' => 'text', 'name' => 'amount_ttc_1', 'label' => $langs->trans("AmountTTC").' 1', 'value' => $amount1, 'size' => '5'),
