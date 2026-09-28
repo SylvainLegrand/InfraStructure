@@ -65,7 +65,7 @@ trait CommonSubtotal
 	 */
 	public function addSubtotalLine($langs, $desc, $depth, $options = array(), $parent_line = 0)
 	{
-		if (empty($desc)) {
+		if (!isset($desc) || trim((string) $desc) === '') {
 			if (isset($this->errors)) {
 				$this->errors[] = $langs->trans("TitleNeedDesc");
 			}
@@ -492,13 +492,15 @@ trait CommonSubtotal
 				}
 			} else {
 				if ($current_module == 'facture') {
+					// Osden add begin
 					// Preserve the original entry mode of the line so the total is not drifted by rounding.
 					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
+					// Osden add end
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
 						$this->lines[$i]->desc, // @phpstan-ignore-line
-						$line_pu, // @phpstan-ignore-line
+						$line_pu, // @phpstan-ignore-line	// Osden change
 						$this->lines[$i]->qty, // @phpstan-ignore-line
 						$mode == 'discount' ? $value : $this->lines[$i]->remise_percent, // @phpstan-ignore-line
 						$this->lines[$i]->date_start, // @phpstan-ignore-line
@@ -506,7 +508,7 @@ trait CommonSubtotal
 						$mode == 'tva' ? $value : $this->lines[$i]->tva_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax1_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax2_tx, // @phpstan-ignore-line
-						$line_price_base_type, // @phpstan-ignore-line
+						$line_price_base_type, // @phpstan-ignore-line	// Osden change
 						$this->lines[$i]->info_bits, // @phpstan-ignore-line
 						$this->lines[$i]->product_type, // @phpstan-ignore-line
 						$this->lines[$i]->fk_parent_line, 0, // @phpstan-ignore-line
@@ -520,19 +522,21 @@ trait CommonSubtotal
 						$this->lines[$i]->multicurrency_subprice // @phpstan-ignore-line
 					);
 				} elseif ($current_module == 'commande') {
+					// Osden add begin
 					// Preserve the original entry mode of the line so the total is not drifted by rounding.
 					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
+					// Osden add end
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
 						$this->lines[$i]->desc, // @phpstan-ignore-line
-						$line_pu, // @phpstan-ignore-line
+						$line_pu, // @phpstan-ignore-line	// Osden change
 						$this->lines[$i]->qty, // @phpstan-ignore-line
 						$mode == 'discount' ? $value : $this->lines[$i]->remise_percent, // @phpstan-ignore-line
 						$mode == 'tva' ? $value : $this->lines[$i]->tva_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax1_rate, // @phpstan-ignore-line
 						$this->lines[$i]->localtax2_rate, // @phpstan-ignore-line
-						$line_price_base_type, // @phpstan-ignore-line
+						$line_price_base_type, // @phpstan-ignore-line	// Osden change
 						$this->lines[$i]->info_bits, // @phpstan-ignore-line
 						$this->lines[$i]->date_start, // @phpstan-ignore-line
 						$this->lines[$i]->date_end, // @phpstan-ignore-line
@@ -547,19 +551,21 @@ trait CommonSubtotal
 						$this->lines[$i]->multicurrency_subprice // @phpstan-ignore-line
 					);
 				} elseif ($current_module == 'propal') {
+					// Osden add begin
 					// Preserve the original entry mode of the line so the total is not drifted by rounding.
 					$line_price_base_type = $this->lines[$i]->getPriceBaseType();
 					$line_pu = ($line_price_base_type === 'TTC') ? $this->lines[$i]->subprice_ttc : $this->lines[$i]->subprice;
+					// Osden add end
 					$result = $this->updateline( // @phpstan-ignore-line
 						$this->lines[$i]->id, // @phpstan-ignore-line
-						$line_pu, // @phpstan-ignore-line
+						$line_pu, // @phpstan-ignore-line	// Osden change
 						$this->lines[$i]->qty, // @phpstan-ignore-line
 						$mode == 'discount' ? $value : $this->lines[$i]->remise_percent, // @phpstan-ignore-line
 						$mode == 'tva' ? $value : $this->lines[$i]->tva_tx, // @phpstan-ignore-line
 						$this->lines[$i]->localtax1_rate, // @phpstan-ignore-line
 						$this->lines[$i]->localtax2_rate, // @phpstan-ignore-line
 						$this->lines[$i]->desc, // @phpstan-ignore-line
-						$line_price_base_type, // @phpstan-ignore-line
+						$line_price_base_type, // @phpstan-ignore-line	// Osden change
 						$this->lines[$i]->info_bits, // @phpstan-ignore-line
 						$this->lines[$i]->special_code, // @phpstan-ignore-line
 						$this->lines[$i]->fk_parent_line, 0, // @phpstan-ignore-line
