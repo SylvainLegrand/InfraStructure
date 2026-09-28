@@ -111,7 +111,12 @@
 			global $langs, $conf, $db;
 
 			$this->_load_tables('/'.$this->name.'/sql/');
-			return $this->_init(array(), $options);
+			$result	= $this->_init(array(), $options);
+			// Pendant l'installation de Dolibarr (constante MAIN_NOT_INSTALLED présente), active les modules de la marque de l'instance (fichier htdocs/BRAND) ou ceux de la liste par défaut
+			if ($result > 0 && getDolGlobalInt('MAIN_NOT_INSTALLED')) {
+				dolinfras_activate_brand_modules();
+			}
+			return $result;
 		}
 
 		/**
