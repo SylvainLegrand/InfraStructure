@@ -1606,7 +1606,6 @@ class Propal extends CommonObject
 								$line->subprice = $pu_ht;
 								$line->tva_tx = $tva_tx;
 								$line->remise_percent = $remise_percent;
-								// InfraS add begin
 								// Refresh the buying price too: current supplier price if one was selected on the line, otherwise let PropaleLigne::insert() recompute it (defineBuyPrice(), according to MARGIN_TYPE)
 								$line->pa_ht = '';
 								if ($line->fk_fournprice > 0) {
@@ -1618,7 +1617,6 @@ class Propal extends CommonObject
 										$line->fk_fournprice = 0;
 									}
 								}
-								// InfraS add end
 							}
 							if ($update_desc === true) {
 								$line->desc = $prod->description;
