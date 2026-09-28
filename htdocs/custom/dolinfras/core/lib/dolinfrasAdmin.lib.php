@@ -195,12 +195,13 @@
 								'modFacture',
 								'modStock',
 								);
-		// Liste complète propre à une marque ('marque' => array('modXxx', ...)) : remplace la liste par défaut
-		$brandmodules	= array('dolinfras2026' => array('modSociete', 'modProduct', 'modService', 'modProjet', 'modBanque', 'modCategorie', 'modPropale', 'modCommande', 'modFicheinter', 'modContrat', 'modExpedition', 'modFacture', 'modStock',
-															'modinfraspackplus', 'modinfrasdiscount', 'modinfrasproject', 'modinfrascusprice', 'modinfrassearch', 'modinfrastructure', 'modinfrashelpdesk', 'modinfras2bridge'
-														),
+		// Liste complète propre à une marque ('marque' => array('modXxx', ...))
+		$brandmodules	= array('dolinfras2026' => array('modinfraspackplus', 'modinfrasdiscount', 'modinfrasproject', 'modinfrascusprice', 'modinfrassearch', 'modinfrastructure', 'modinfrashelpdesk', 'modinfras2bridge'),
 								);
-		return $brand !== '' && isset($brandmodules[$brand]) ? $brandmodules[$brand] : $defaultmodules;
+		if ($brand !== '' && isset($brandmodules[$brand])) {
+			return array_values(array_unique(array_merge($defaultmodules, $brandmodules[$brand])));
+		}
+		return $defaultmodules;
 	}
 
 	/**
