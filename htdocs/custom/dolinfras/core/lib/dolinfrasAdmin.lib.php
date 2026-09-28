@@ -165,6 +165,98 @@
 	}
 
 	/**
+	*	Retourne la liste des modules à activer à l'installation de Dolibarr selon la marque de l'instance (contenu du fichier htdocs/BRAND)
+	*	Chaque module est désigné par le nom de la classe de son descripteur : module natif (ex : modStock) ou externe (ex : modinfraspackplus)
+	*	Marque vide ou sans liste propre : liste par défaut (modules activés auparavant par $force_install_module du modèle install.forced.php)
+	*
+	*	@param		string	$brand	brand name (content of the htdocs/BRAND file, may be empty)
+	*	@return		array	list of module descriptor class names
+	**/
+	function dolinfras_get_brand_modules($brand)
+	{
+		$defaultmodules	= array('modSociete',
+								'modProduct',
+								'modService',
+								'modProjet',
+								'modBanque',
+								'modBookmark',
+								'modCategorie',
+								'modCron',
+								'modECM',
+								'modExport',
+								'modFckeditor',
+								'modImport',
+								'modSocialNetworks',
+								'modPropale',
+								'modCommande',
+								'modFicheinter',
+								'modContrat',
+								'modExpedition',
+								'modFacture',
+								'modStock',
+								);
+		// Liste complète propre à une marque ('marque' => array('modXxx', ...))
+		$brandmodules	= array('dolinfras2026' => array('modinfraspackplus', 'modinfrasdiscount', 'modinfrasproject', 'modinfrascusprice', 'modinfrassearch', 'modinfrastructure', 'modinfrashelpdesk', 'modinfras2bridge'),
+								);
+		if ($brand !== '' && isset($brandmodules[$brand])) {
+			return array_values(array_unique(array_merge($defaultmodules, $brandmodules[$brand])));
+		}
+		return $defaultmodules;
+	}
+
+	/**
+	*	Active, s'ils sont installés, les modules de la marque de l'instance (fichier htdocs/BRAND) ou ceux de la liste par défaut (marque vide ou sans liste propre)
+	*	Appelée par moddolinfras::init() pendant l'installation de Dolibarr
+	*
+	*	@return		int		number of modules activated (dependencies included)
+	**/
+	function dolinfras_activate_brand_modules()
+	{
+		global $conf;
+
+		$brandfile	= DOL_DOCUMENT_ROOT.'/BRAND';
+		$brand		= is_readable($brandfile) ? trim((string) file_get_contents($brandfile)) : '';
+		$modules	= dolinfras_get_brand_modules($brand);
+		if (empty($modules)) {
+			dol_syslog('dolinfrasAdmin.Lib::dolinfras_activate_brand_modules no module to activate for brand = '.$brand);
+			return 0;
+		}
+		// Pendant l'installation, les racines n'ont pas les clés 'main' / 'altN' de l'exécution normale (master.inc.php) : dolGetModulesDirs() omet alors
+		// core/modules et activateModule() ne trouve ni les modules natifs ni leurs dépendances. Clés rétablies le temps de l'activation
+		$documentroots	= $conf->file->dol_document_root;
+		if (!isset($documentroots['main'])) {
+			$roots							= array_values($documentroots);
+			$conf->file->dol_document_root	= array('main' => (string) array_shift($roots));
+			foreach ($roots as $i => $dirroot) {
+				$conf->file->dol_document_root['alt'.$i]	= (string) $dirroot;
+			}
+		}
+		$modulesdir		= dolGetModulesDirs();
+		$nbactivated	= 0;
+		foreach ($modules as $modname) {
+			$modfile	= '';
+			foreach ($modulesdir as $dir) {
+				if (is_readable($dir.$modname.'.class.php')) {
+					$modfile	= $dir.$modname.'.class.php';
+					break;
+				}
+			}
+			if (empty($modfile)) {	// Module non installé : activateModule() provoquerait une erreur fatale (classe introuvable)
+				dol_syslog('dolinfrasAdmin.Lib::dolinfras_activate_brand_modules module not installed = '.$modname.' brand = '.$brand, LOG_WARNING);
+				continue;
+			}
+			$result	= activateModule($modname);
+			if (!empty($result['errors'])) {
+				dol_syslog('dolinfrasAdmin.Lib::dolinfras_activate_brand_modules error on module = '.$modname.' : '.implode(', ', $result['errors']), LOG_ERR);
+			}
+			$nbactivated	+= (int) $result['nbmodules'];
+		}
+		$conf->file->dol_document_root	= $documentroots;
+		dol_syslog('dolinfrasAdmin.Lib::dolinfras_activate_brand_modules brand = '.$brand.' nbactivated = '.$nbactivated);
+		return $nbactivated;
+	}
+
+	/**
 	*	Load a title with picto
 	*
 	*	@param	string	$titre				Title to show

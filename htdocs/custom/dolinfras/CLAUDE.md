@@ -10,7 +10,8 @@
 - affichage du changelog avec détection de mises à jour dans l'onglet aide du descripteur,
 - détection automatique du thème sombre (dark mode) pour le branding sur la page modules,
 - chargement de constantes LTS à l'activation (deux groupes : SaaS by InfraS et options fonctionnelles Dolibarr),
-- pages d'administration (paramètres, à propos, changelog) avec application forcée des constantes LTS de `data.sql`.
+- pages d'administration (paramètres, à propos, changelog) avec application forcée des constantes LTS de `data.sql`,
+- activation, pendant l'installation de Dolibarr, des modules de la marque de l'instance (fichier `htdocs/BRAND`) ou d'une liste par défaut ; le modèle `install.forced.php` ne force plus que dolinfras.
 
 Informations module (issues du code et du changelog local) :
 
@@ -19,7 +20,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.3.0` (2026-09)
+- Dernière version locale : `18.4.0` (2026-09)
 - Emplacement : `htdocs/custom/dolinfras/`
 
 Convention de lecture du descripteur :
@@ -95,6 +96,7 @@ Dans `core/modules/moddolinfras.class.php` :
 
 1. Chargement SQL (`_load_tables('/dolinfras/sql/')`) — injecte les constantes LTS via `data.sql`
 2. Initialisation standard (`_init()`)
+3. Pendant l'installation de Dolibarr uniquement (constante `MAIN_NOT_INSTALLED` présente, supprimée par `install/step5.php` après l'activation des modules) : `dolinfras_activate_brand_modules()` active les modules de la marque de l'instance ou ceux de la liste par défaut. Le module est lui-même activé à l'installation via `$force_install_module` (qui ne contient plus que `moddolinfras`) du modèle `/opt/infras/infrasmagicktools/infrasmagick/install.forced.php` (copié dans chaque nouvelle instance par `infrasmagickinstance.sh`)
 
 ### Désactivation (Lifecycle : `remove()`)
 
@@ -191,6 +193,8 @@ Fichier unique de bibliothèque contenant toutes les fonctions du module :
 | `dolinfras_get_lts_param_type($confkey, $defaultvalue)` | Retourne le type d'option à afficher pour une constante : `on_off`, `lts_value`, `input`, `number`, `textarea`, `select_language` ou `select_featureslevel` (table d'exceptions par nom de constante, sinon déduit de la valeur par défaut : `0`/`1` => `on_off`, autre => `input`) |
 | `dolinfras_lts_onoff_link($confkey, $valueon)` | Retourne le lien HTML de bascule On / Off d'une constante (sans ajax, pour conserver `visible` et `note` — le service ajax du core les écrase) |
 | `dolinfras_force_lts_constants($appliname)` | S'appuie sur `dolinfras_get_lts_constants()` et force chaque constante via `dolibarr_set_const()` dans l'entité courante (transaction avec rollback en cas d'erreur) ; retourne le nombre de constantes appliquées ou -1 |
+| `dolinfras_get_brand_modules($brand)` | Retourne la liste des classes de descripteurs (modules natifs ou externes) à activer à l'installation pour une marque (contenu de `htdocs/BRAND`) : liste propre à la marque (`$brandmodules`, remplace entièrement la liste par défaut) ou, marque vide ou sans liste, liste par défaut (`$defaultmodules`, modules jusqu'ici forcés par `install.forced.php`). **Listes à maintenir ici** |
+| `dolinfras_activate_brand_modules()` | Lit `htdocs/BRAND` et active chaque module de la liste retournée par `dolinfras_get_brand_modules()` via `activateModule()` (dépendances incluses) s'il est installé (fichier du descripteur présent dans `dolGetModulesDirs()`). Pendant l'installation, les racines `$conf->file->dol_document_root` n'ont pas les clés `main` / `altN` de `master.inc.php` (`dolGetModulesDirs()` omet alors `core/modules/`) : elles sont rétablies le temps de l'activation puis restaurées. Modules absents ou en erreur journalisés sans bloquer ; retourne le nombre de modules activés, dépendances comprises |
 | `dolinfras_test_php_ext()` | Vérifie si l'extension PHP XML est chargée, stocke le résultat dans `INFRAS_PHP_EXT_XML` |
 | `dolinfras_getLocalVersionMinDoli($appliname)` | Lit `docs/changelog.xml` et retourne un tableau [version, minDoli, errFlag, versionsArray, maxDoli, minPHP, maxPHP] |
 | `dolinfras_getVersionDolinfras()` | Lit le fichier `VERSION` de Dolibarr et stocke sa valeur dans `DOLINFRAS_VERSION` et la famille dans `DOLINFRAS_FAMILY` |
@@ -290,6 +294,7 @@ Si modification de `sql/data.sql` :
 - Les constantes LTS (`data.sql`) sont injectées avec `INSERT IGNORE` : jamais réécrites si modifiées en base — sauf via le bouton « Forcer l'application des paramètres » qui, lui, écrase les valeurs
 - `dolinfras_get_lts_constants()` (utilisée par le forçage **et** par la page de paramètres) parse `data.sql` par regex : toute nouvelle ligne du fichier doit respecter le format existant (`insert ignore into llx_const (name, entity, value, type, visible, note) values ('NOM', __ENTITY__, 'valeur', 'chaine', 0|1, 'note');`), sans quoi la constante n'apparaît ni dans la page de paramètres ni dans l'application forcée
 - Une constante ne doit être déclarée qu'une seule fois dans `data.sql` : un doublon n'est plus affiché qu'une fois dans la page de paramètres (première déclaration retenue), mais reste une source de confusion
+- Modules par marque (`dolinfras_get_brand_modules()`) : noms de classes de descripteur (`modStock`, `modinfraspackplus`…), jamais `moddolinfras`. Une liste de marque remplace entièrement la liste par défaut : y reprendre les modules de base nécessaires. `install.forced.php` ne forçant plus que dolinfras, une distribution `dolinfras-*` embarquant une version antérieure à 18.4.0 n'activerait plus que dolinfras et les modules natifs `enabled_bydefault` (Agenda, Export, Import, FCKeditor) : déployer dolinfras 18.4.0 dans toutes les distributions avant de réduire le modèle. Le test de présence avant `activateModule()` est indispensable : un module absent y provoque une erreur fatale (« Class not found ») qui interromprait l'installation en pleine transaction
 - `MAIN_HTML_FOOTER` contient du JavaScript : son option est un simple bouton On / Off qui applique ou retire la valeur de `data.sql` (type `lts_value`), la saisie libre étant volontairement interdite (filtrage `restricthtml` des entrées)
 
 ## Notes techniques (Technical notes)

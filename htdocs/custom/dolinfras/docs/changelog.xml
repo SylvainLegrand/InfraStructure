@@ -25,7 +25,10 @@
 		<change type='chg'>La fonction d'application forcée des constantes LTS s'appuie désormais sur la nouvelle fonction de lecture du fichier data.sql</change>
 		<change type='add'>Ajout sur la page de paramètres d'une option par constante du fichier data.sql : section « Paramètres SaaS by InfraS » et section « Options fonctionnelles Dolibarr » (boutons On / Off, champs de saisie, listes déroulantes). Chaque libellé indique si la constante s'affiche dans la page Accueil - Configuration - Divers : (visible) ou (caché)</change>
 	</Version>
-	<InfraS Downloaded="20260914"/>
+	<Version Number="18.4.0" MonthVersion="2026-09">
+		<change type='add'>Activation automatique, pendant l'installation de Dolibarr, des modules de la marque de l'instance (fichier htdocs/BRAND) ou, si la marque est vide ou sans liste propre, d'une liste par défaut reprenant les modules jusqu'ici forcés par le fichier install.forced.php : modules natifs ou externes, activés avec leurs dépendances uniquement s'ils sont installés. Le fichier install.forced.php ne force plus que le module dolinfras</change>
+	</Version>
+	<InfraS Downloaded="20260928"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
