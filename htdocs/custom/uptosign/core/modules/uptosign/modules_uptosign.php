@@ -68,6 +68,9 @@ abstract class ModelePDFUptoSign extends CommonDocGenerator
  */
 abstract class ModeleNumRefUptoSign
 {
+	/**
+	 * @var string Maturity of the numbering model: development, experimental or dolibarr
+	 */
 	public $version;
 
 	/**

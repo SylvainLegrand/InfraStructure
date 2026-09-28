@@ -74,7 +74,7 @@ Pour activer cette fonctionnalité, cochez l'option **Signature locale** dans le
 
 La signature en masse permet d'envoyer un **même document** à plusieurs destinataires, chacun signant **indépendamment** sur sa propre copie. Chaque destinataire reçoit son lien personnel et signe sans voir les autres signataires.
 
-Le mode opératoire complet (création de l'enveloppe, ajout des destinataires depuis 7 sources possibles, format CSV pour l'import, validation, positionnement et envoi, suivi des destinataires) est détaillé sur la page dédiée : [Signature en masse](signature-en-masse.md).
+Le mode opératoire complet (création de l'enveloppe, ajout des destinataires depuis 7 sources possibles, format CSV pour l'import, validation, positionnement et envoi, suivi des destinataires) est détaillé sur la page dédiée : [Signature en masse](/uptosign/signature-en-masse).
 
 > **Limite** : 30 destinataires maximum par enveloppe. Au-delà, créez plusieurs enveloppes successives.
 

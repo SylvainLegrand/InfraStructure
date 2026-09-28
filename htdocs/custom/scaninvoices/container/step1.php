@@ -39,10 +39,10 @@
 							<?php echo $langs->trans("MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER").'...' ?>
 						</div>
 						<div class="info">
-						<p class="card-text">
+						<p class="ScanInvoicesCard-text">
 							<?php echo $langs->trans("MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT1") ?>
 						</p>
-						<p class="card-text hideonsmartphone">
+						<p class="ScanInvoicesCard-text hideonsmartphone">
 							<?php echo $langs->trans("MANUAL_IMPORT_STEP1_CHOOSE_SUPPLIER_TXT2") ?>
 						</p>
 						<ul class="hideonsmartphone">
@@ -65,7 +65,7 @@
 							<?php echo $langs->trans("Next") ?>
 						</button>
 					</div>
-					<p class="card-text"><small class="text-muted opacitymedium">
+					<p class="ScanInvoicesCard-text"><small class="text-muted opacitymedium">
 						<?php echo $langs->trans("MANUAL_IMPORT_STEP1_LEGEND") ?>
 					</small></p>
 				</div>

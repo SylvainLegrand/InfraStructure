@@ -88,15 +88,16 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 	 * @param   Translate  $langs   [$langs description]
 	 * @param   Conf       $conf    [$conf description]
 	 *
+	 * @return  int                 1 = OK
 	 */
-	private function userModify($action, $object, User $user, Translate $langs, Conf $conf)
+	public function userModify($action, $object, User $user, Translate $langs, Conf $conf)
 	{
 		global $db;
 		$toremove = [];
 		// dol_syslog("Custom Trigger uptosign userModify '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 		// dol_syslog("uptosign object : " . json_encode($object));
 		// dol_syslog("uptosign user : " . json_encode($user));
-		$listOfCheckUsers = explode(',', getDolGlobalString('UPTOSIGN_DOLIBARR_USERS_SIGN', '')); // InfraS change $conf->global->X non défini tant que la constante n'a jamais été écrite
+		$listOfCheckUsers = explode(',', getDolGlobalString('UPTOSIGN_DOLIBARR_USERS_SIGN', '')); // $conf->global->X non défini tant que la constante n'a jamais été écrite
 		dol_syslog("uptosign signlist = " . json_encode($listOfCheckUsers));
 
 		//object = user modified, implication uptosign, si on lui a supprimé le droit de signer il faut le supprimer de notre liste de signataire possibles
@@ -131,7 +132,7 @@ class InterfaceUptoSignTriggers extends DolibarrTriggers
 	 * is inside directory core/triggers
 	 *
 	 * @param string 		$action 	Event action code
-	 * @param CommonObject 	$object 	Object
+	 * @param object 		$object 	Object
 	 * @param User 			$user 		Object user
 	 * @param Translate 	$langs 		Object langs
 	 * @param Conf 			$conf 		Object conf

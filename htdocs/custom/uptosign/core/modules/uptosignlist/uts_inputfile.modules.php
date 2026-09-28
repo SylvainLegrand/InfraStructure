@@ -30,11 +30,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
  */
 class uptosignlist_uts_inputfile extends UptosignListTargets
 {
-	public $name = 'EmailsFromFile'; // Identifiant du module mailing
+	public $name = 'EmailsFromFile'; // Identifier of the selector
 	// This label is used if no translation is found for key XXX neither MailingModuleDescXXX where XXX=name is found
-	public $desc = 'EMails from a file'; // Libelle utilise si aucune traduction pour MailingModuleDescXXX ou XXX=name trouv�e
-	public $require_module = array(); // Module mailing actif si modules require_module actifs
-	public $require_admin = 0; // Module mailing actif pour user admin ou non
+	public $desc = 'EMails from a file';
+	public $require_module = array(); // Selector offered only when these modules are enabled
+	public $require_admin = 0; // Selector reserved to admin users or not
 
 	/**
 	 * @var string String with name of icon for myobject. Must be the part after the 'object_' into object_myobject.png
@@ -115,7 +115,6 @@ class uptosignlist_uts_inputfile extends UptosignListTargets
 		if (floatval(DOL_VERSION) < 16.0) {
 			$maxmin = getDolGlobalString('MAIN_UPLOAD_DOC');
 		} else {
-			/** @phpstan-ignore-next-line */
 			$maxfilesizearray = getMaxFileSizeArray();
 			$maxmin = $maxfilesizearray['maxmin'];
 		}

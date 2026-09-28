@@ -29,8 +29,8 @@ Une fois la facture créée, le PDF est attaché à la fiche, les lignes peuvent
 
 ## Prérequis
 
-- Dolibarr 11 ou version ultérieure
-- PHP 7.0 ou version ultérieure
+- Dolibarr 14 ou version ultérieure
+- PHP 7.4 ou version ultérieure
 - Extensions PHP : intl, fileinfo, gd, mbstring
 - Fonction PHP : finfo_open
 - Modules Dolibarr activés : Tiers, Fournisseurs, Produits, Services, Tâches planifiées (Cron)

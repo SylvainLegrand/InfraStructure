@@ -80,7 +80,7 @@ class modUptoSign extends DolibarrModules
 		$this->editor_url = 'https://cap-rel.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.4.14';
+		$this->version = '2.4.16';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = "https://cap-rel.fr/dolibarr/ver.php?m=" . $this->rights_class . "&v=" . $this->version . "&d=" . DOL_VERSION . "&h=" . md5(DOL_DATA_ROOT);
 
@@ -837,6 +837,17 @@ class modUptoSign extends DolibarrModules
 		dolibarr_del_const($db, 'UPTOSIGN_FILENAME_SUFFIX_UPTOSEAL', $conf->entity);
 		dol_syslog("uptosign module end init", LOG_DEBUG);
 
+		// Tell the admin a newer module version exists, best effort: checkForUpdate() uses
+		// a one second timeout, and a network problem is silent (nothing is printed unless
+		// the answer is a version above the installed one). Placed after every critical
+		// operation so it can never break the activation.
+		$langs->load("uptosign@uptosign");
+		$checkRes = $this->checkForUpdate();
+		if ($checkRes > 0) {
+			dol_syslog("uptosign: version " . $this->lastVersion . " is available, installed is " . $this->version);
+			setEventMessages($langs->trans('UptoSignNewVersionAvailable', $this->version, $this->lastVersion), null, 'warnings');
+		}
+
 		// Flush Memcached cache on module activation/upgrade
 		if (isModEnabled('memcached') && class_exists('Memcached')) {
 			$m = new Memcached();
@@ -936,15 +947,13 @@ class modUptoSign extends DolibarrModules
 				'DROP TABLE IF EXISTS ' . MAIN_DB_PREFIX . 'uptosign_uptosignlist;'
 			);
 		} else {
-			//multicomp ?
-			if ((int) $conf->entity == 1) {
-				//dans le cas où ça n'était pas présent, on l'ajoute pour que le init du module sache quoi faire
-				dolibarr_set_const($db, 'UPTOSIGN_MODULE_VERSION', '1.x', 'chaine', 0, 'Active module version', $conf->entity);
-				$sql = array(
-					'RENAME TABLE ' . MAIN_DB_PREFIX . 'uptosign TO ' . MAIN_DB_PREFIX . 'uptosign_old;',
-					'RENAME TABLE ' . MAIN_DB_PREFIX . 'uptosign_config TO ' . MAIN_DB_PREFIX . 'uptosign_config_old;',
-				);
-			}
+			//on est forcément sur l'entité principale ici, les autres sont sorties plus haut
+			//dans le cas où ça n'était pas présent, on l'ajoute pour que le init du module sache quoi faire
+			dolibarr_set_const($db, 'UPTOSIGN_MODULE_VERSION', '1.x', 'chaine', 0, 'Active module version', $conf->entity);
+			$sql = array(
+				'RENAME TABLE ' . MAIN_DB_PREFIX . 'uptosign TO ' . MAIN_DB_PREFIX . 'uptosign_old;',
+				'RENAME TABLE ' . MAIN_DB_PREFIX . 'uptosign_config TO ' . MAIN_DB_PREFIX . 'uptosign_config_old;',
+			);
 		}
 		//manual delete cron due to strange AND test=1
 		$sql[] = "DELETE FROM " . MAIN_DB_PREFIX . "cronjob WHERE module_name = 'uptosign' AND entity = '" . $conf->entity . "';";

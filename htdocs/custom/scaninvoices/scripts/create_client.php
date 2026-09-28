@@ -66,6 +66,13 @@ $vatNumber = $argv[1];
 $c = scaninvoicesApiGetCompanyDetailsWithVatNumber($vatNumber);
 create_client($c);
 
+/**
+ * ask the server for the company details behind a french vat number
+ *
+ * @param   string        $vatNumber  intra community vat number, FR only here
+ *
+ * @return  object|false              company details, false when nothing was found
+ */
 function scaninvoicesApiGetCompanyDetailsWithVatNumber($vatNumber)
 {
 	global $conf, $mesg, $langs, $db;
@@ -125,11 +132,11 @@ function scaninvoicesApiGetCompanyDetailsWithVatNumber($vatNumber)
 
 
 /**
- * create_cleent : création d'un client'
+ * create_client : création d'un client
  *
- * @param mixed $f
+ * @param mixed $f  company details as returned by the vat number lookup
  *
- * @return void
+ * @return int      id of the created thirdparty, <= 0 on error
  */
 function create_client($f)
 {
@@ -146,8 +153,9 @@ function create_client($f)
 	$s->client = 1;
 	$s->tva_assuj = 1;
 	$s->fournisseur = 0;
-	$s->code_client = -1;
-	$s->code_fournisseur = -1;
+	// the core compares with == -1 to assign the code automatically
+	$s->code_client = '-1';
+	$s->code_fournisseur = '-1';
 	$s->tva_intra = $f->VAT;
 	$s->address = $f->Addr1.' '.$f->Addr2.' '.$f->Addr3;
 	$s->zip = $f->AddrCP;

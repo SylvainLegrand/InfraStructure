@@ -35,9 +35,21 @@ include_once __DIR__."/../core/modules/scaninvoices/mod_settings_standard.php";
  */
 class Settings extends CommonObject
 {
+	/**
+	 * @var int Thirdparty the record belongs to
+	 */
 	public $socid;
+
+	/**
+	 * @var string[] Short label of each status, indexed by status code
+	 */
 	public $labelStatusShort;
+
+	/**
+	 * @var string[] Label of each status, indexed by status code
+	 */
 	public $labelStatus;
+
 	public $output;
 	public $user_validation;
 	public $oldref;
@@ -134,19 +146,59 @@ class Settings extends CommonObject
 		'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>-2,),
 		'status' => array('type'=>'smallint', 'label'=>'Status', 'enabled'=>'1', 'position'=>1000, 'notnull'=>1, 'visible'=>1, 'index'=>1, 'arrayofkeyval'=>array('0'=>'Brouillon', '1'=>'Valid&eacute;', '9'=>'Annul&eacute;'),),
 	);
+	/**
+	 * @var int Technical id of the record
+	 */
 	public $rowid;
+
 	public $ref;
+
+	/**
+	 * @var string Label shown to the user, "<supplier name> (demo)" on demo data
+	 */
 	public $label;
+
+	/**
+	 * @var int Supplier these import settings apply to
+	 */
 	public $fk_soc;
+
+	/**
+	 * @var int Product used for the lines the OCR could not match
+	 */
 	public $fk_default_product;
+
+	/**
+	 * @var string YAML filter describing how to read the supplier invoices
+	 */
 	public $yml;
+
+	/**
+	 * @var string Json description of the zones picked by hand on the document
+	 */
 	public $manual_import;
+
 	public $note_private;
+
 	public $date_creation;
+
+	/**
+	 * @var int|string Date of the last modification
+	 */
 	public $tms;
+
+	/**
+	 * @var int User who created the record
+	 */
 	public $fk_user_creat;
+
+	/**
+	 * @var int User who last modified the record
+	 */
 	public $fk_user_modif;
+
 	public $import_key;
+
 	public $status;
 	// END MODULEBUILDER PROPERTIES
 
@@ -278,11 +330,11 @@ class Settings extends CommonObject
 		unset($object->import_key);
 
 		// Clear fields
-		if (property_exists($object, 'ref')) $object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
-		if (property_exists($object, 'label')) $object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
-		if (property_exists($object, 'status')) { $object->status = self::STATUS_DRAFT; }
-		if (property_exists($object, 'date_creation')) { $object->date_creation = dol_now(); }
-		if (property_exists($object, 'date_modification')) { $object->date_modification = null; }
+		$object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
+		$object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
+		$object->status = self::STATUS_DRAFT;
+		$object->date_creation = dol_now();
+		$object->date_modification = null;
 		// ...
 		// Clear extrafields that are unique
 		if (is_array($object->array_options) && count($object->array_options) > 0) {
@@ -314,7 +366,7 @@ class Settings extends CommonObject
 
 		if (!$error) {
 			// copy external contacts if same company
-			if (property_exists($this, 'socid') && $this->socid == $object->socid) {
+			if ($this->socid == $object->socid) {
 				if ($this->copy_linked_contact($object, 'external') < 0)
 					$error++;
 			}
@@ -908,11 +960,16 @@ class Settings extends CommonObject
 				// dol_syslog("Eric : on passe ici, include once : " . json_encode($conf->modules_parts));
 
 				// Load file with numbering class (if found)
-				$mybool |= @include_once $dir.$file;
+				// keep a boolean: with |= the flag became an int, so the test below
+				// never matched and a missing numbering file went unreported
+				$mybool = ((bool) @include_once $dir.$file) || $mybool;
 			}
 
-			if ($mybool === false) {
-				dol_print_error($this->db, "Failed to include file ".$file);
+			// class_exists() too: the class is also included at the top of this file, and
+			// include_once then returns false for the copy reached through the module path
+			if (!$mybool && !class_exists($classname)) {
+				$this->error = "Failed to include file ".$file;
+				dol_syslog(get_class($this)."::getNextNumRef ".$this->error, LOG_ERR);
 				return '';
 			}
 

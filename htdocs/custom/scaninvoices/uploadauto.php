@@ -19,6 +19,16 @@
  */
 define('NOTOKENRENEWAL', 1);
 
+// Capture any stray PHP output (warnings/notices from the antivirus scan, file
+// move or create, but also from the dolibarr core itself while it boots) so it
+// can never corrupt the JSON body. The frontend does JSON.parse(response) right
+// after upload; a leaked warning breaks it and the auto-import chain silently
+// stops (file stays "Waiting"). Flushed before echo. This has to sit before the
+// includes: the core emits a notice on php 8 when it sets CURLOPT_SSL_VERIFYHOST,
+// and an ob_start() placed after them would already be too late. On an exit()
+// inside main.inc.php php flushes the buffer on its own, so error pages still show.
+ob_start();
+
 require_once 'functions.php';
 dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
@@ -29,12 +39,6 @@ dol_include_once('/scaninvoices/class/filestoimport.class.php');
 dol_include_once('/scaninvoices/lib/scaninvoices_settings.lib.php');
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-
-// Capture any stray PHP output (warnings/notices from the antivirus scan, file
-// move or create) so it can never corrupt the JSON body. The frontend does
-// JSON.parse(response) right after upload; a leaked warning breaks it and the
-// auto-import chain silently stops (file stays "Waiting"). Flushed before echo.
-ob_start();
 
 $action = (string) GETPOST('action', 'alpha');
 $maxHeight = (int) GETPOST('maxHeight', 'int');
@@ -47,7 +51,8 @@ $output = [
 ];
 
 $numFile = 0;
-$importKey = time();
+// import_key is a varchar(14) column, keep the batch key a string
+$importKey = (string) time();
 $socid = 0;
 if ($user->socid > 0) {
 	$socid = $user->socid;

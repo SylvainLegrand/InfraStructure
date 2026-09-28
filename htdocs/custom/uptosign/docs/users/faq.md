@@ -104,3 +104,34 @@ La vérification compare la somme de contrôle (empreinte numérique) du fichier
 | Revendeurs | Quotidienne | Met à jour les données de facturation des clients revendeurs (réservé aux comptes revendeurs) |
 
 Ces tâches sont désactivées par défaut. Activez-les dans **Accueil > Configuration > Tâches planifiées** si nécessaire.
+
+### L'archivage automatique peut-il saturer le serveur de signature ?
+
+Non. Le module espace ses téléchargements, s'arrête dès que le serveur signale qu'il
+reçoit trop de demandes, et reprend là où il s'était arrêté à l'exécution suivante.
+Trois constantes permettent d'ajuster ce comportement si votre hébergeur a des
+contraintes particulières. Elles se créent dans **Accueil > Configuration > Divers**.
+
+| Constante | Défaut | Effet |
+|-----------|--------|-------|
+| `UPTOSIGN_API_SLEEP_MS` | 250 | Pause en millisecondes entre deux téléchargements. Mettre 0 supprime la pause |
+| `UPTOSIGN_ARCHIVE_MAX_PER_RUN` | 200 | Nombre maximum de fichiers téléchargés par exécution de la tâche |
+| `UPTOSIGN_API_BACKOFF_UNTIL` | vide | Géré par le module : date jusqu'à laquelle plus aucun appel n'est envoyé |
+
+### Le module dit que les appels sont suspendus, que faire ?
+
+Quand le serveur refuse les demandes (clé d'API invalide, ou trop de demandes en peu
+de temps), le module se met volontairement en pause. Ce silence dure 5 minutes à la
+première alerte, puis s'allonge à chaque nouveau refus jusqu'à une heure. Le but est
+d'éviter que votre serveur ne se fasse bloquer par la protection anti-abus d'UptoSign.
+
+Corrigez d'abord la cause : vérifiez la clé d'API avec le bouton **Tester la connexion**
+de l'onglet Serveur. Enregistrer une nouvelle clé lève la pause immédiatement. Sinon,
+la pause se lève toute seule et le premier appel réussi remet le compteur à zéro.
+
+### Certaines procédures passent en "expiré" toutes seules, pourquoi ?
+
+Le serveur de signature ne conserve pas indéfiniment les documents. Quand la tâche
+d'archivage demande un fichier que le serveur ne connaît plus, la procédure passe en
+statut **expiré** afin de ne plus être redemandée à chaque exécution. Le document
+signé reste disponible localement s'il avait déjà été téléchargé.

@@ -473,7 +473,12 @@ if ($action == 'uptosign' || $action == 'uptoseal') {
 		$socTiers = new Societe($db);
 		if ($socTiers->fetch($contactID) > 0) {
 			$names = explode(' ', $socTiers->name);
-			$firstname = array_shift($names) ?? $langs->trans('Customer');
+			// explode() always yields at least one element, empty when the name is
+			// empty: "?? " never fired, the fallback needs an emptiness test.
+			$firstname = array_shift($names);
+			if ($firstname === '') {
+				$firstname = $langs->trans('Customer');
+			}
 			$lastname = implode(' ', $names);
 			dol_syslog("uptosign: $fieldName socTiers is $firstname / $lastname", LOG_DEBUG);
 
@@ -508,8 +513,9 @@ if ($action == 'uptosign' || $action == 'uptoseal') {
 		dol_syslog("uptosign: sign people (contact+user+societe) data is " . json_encode($listMembers), LOG_DEBUG);
 	}
 
-	//Il faut au moins une signature
-	if ($action == 'uptosign' && $listMembers !== null && count($listMembers) == 0) {
+	// Il faut au moins une signature. $listMembers reste null tant qu'aucun signataire
+	// n'a été retenu : tester "!== null && count() == 0" ne déclenchait jamais l'erreur.
+	if ($action == 'uptosign' && empty($listMembers)) {
 		$error++;
 		setEventMessages($langs->trans("UptoSignErrorErrorSignPosition"), [], 'errors');
 	}
@@ -577,10 +583,18 @@ if (!$standalone && $object->id > 0) {
 		. '&action=' . urlencode($wizardAction)
 		. ($pdfFileChoosed != '' ? '&pdfFileChoosed=' . urlencode($pdfFileChoosed) : '')
 		. '&standalone=1';
-	uptosign_standalone_print_launcher($wizardUrl, $langs->trans('UptoSignWizardOpen'));
+	uptosign_standalone_print_launcher($wizardUrl, $langs->trans('UptoSignWizardOpen'), $object);
 
 	print dol_get_fiche_end();
-} elseif ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'create'))) {
+} elseif ($object->id <= 0) {
+	// Deleted document, stale bookmark, or an id from another entity: say so instead of
+	// rendering an empty page the user cannot do anything with.
+	dol_syslog("uptosign: no object to sign for objectType=$objectType, id=$id", LOG_WARNING);
+	uptosign_standalone_print_object_not_found();
+} else {
+	// Every other case renders the wizard. The branch used to bail out on action=edit
+	// and action=create, two actions no link of the module produces: a forged url was
+	// enough to get a page with nothing on it.
 	$res = $object->fetch_optionals();
 
 	$formconfirm = $lineid = '';
@@ -648,7 +662,7 @@ if (!$standalone && $object->id > 0) {
 					}
 					if ($signStatus == UptoSign::STATUS_WAITING) {
 						$target = dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . $uts->id;
-						print "<button class=\"butAction\" onclick=\"event.preventDefault();window.location.href='" . $target . "'\" title=\"Procédure en cours\">Une procédure est déjà en cours</button>";
+						print uptosign_standalone_leave_link($target, $langs->trans('UptoSignProcedureAlreadyRunning'));
 					}
 				} elseif ($action == 'preseal' && $uts->api_name == 'uptoseal') {
 					$signed = true;
@@ -658,7 +672,7 @@ if (!$standalone && $object->id > 0) {
 					}
 					if ($signStatus == UptoSign::STATUS_WAITING) {
 						$target = dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . $uts->id;
-						print "<button class=\"butAction\" onclick=\"event.preventDefault();window.location.href='" . $target . "'\" title=\"Procédure en cours\">Une procédure est déjà en cours</button>";
+						print uptosign_standalone_leave_link($target, $langs->trans('UptoSignProcedureAlreadyRunning'));
 					}
 				}
 			}

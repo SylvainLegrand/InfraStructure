@@ -293,6 +293,7 @@ function utsbackports_getOnlineSignatureUrl($mode, $type, $ref = '', $localorext
 /**
  * Function to concat keys of fields
  *
+ * @param  CommonObject $obj Object whose $fields keys must be listed
  * @return string
  */
 function utsbackports_getFieldList($obj)
@@ -376,7 +377,6 @@ function utsbackports_getDolGlobalString($key, $default = '')
 			}
 			return $res;
 		} else {
-			/** @phpstan-ignore-next-line */
 			return getDolGlobalString($key, $default);
 		}
 	}

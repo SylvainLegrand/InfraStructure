@@ -212,6 +212,58 @@ function uptosign_standalone_leave($url)
 }
 
 /**
+ * Build a link that takes the user out of the wizard.
+ *
+ * Client side counterpart of uptosign_standalone_leave(). Inside the modal a
+ * window.location.href (or a plain link) only navigates the iframe, which strands the
+ * user on a full Dolibarr page with neither the wizard top bar nor its close button:
+ * from there every further click stays trapped in the frame. target="_top" navigates
+ * the host window instead, so the overlay goes away with the page it belongs to, and
+ * it keeps working without JavaScript. Outside the modal the link is an ordinary one.
+ *
+ * @param	string	$url	Destination, absolute or root-relative
+ * @param	string	$label	Link label, not escaped yet
+ * @param	string	$title	Optional title attribute, not escaped yet
+ * @return	string			HTML of the link
+ */
+function uptosign_standalone_leave_link($url, $label, $title = '')
+{
+	$out = '<a class="butAction"';
+	if (uptosign_standalone_active()) {
+		$out .= ' target="_top"';
+	}
+	$out .= ' href="' . dol_escape_htmltag($url) . '"';
+	if ($title !== '') {
+		$out .= ' title="' . dol_escape_htmltag($title) . '"';
+	}
+
+	return $out . '>' . dol_escape_htmltag($label) . '</a>';
+}
+
+/**
+ * Print the dead end screen: the requested object could not be loaded.
+ *
+ * Reached with a stale bookmark, a deleted document, or an id belonging to another
+ * entity. Before this, neither the launcher nor the wizard was rendered and the user
+ * got a blank page: nothing explaining why, and inside the modal not even a tab bar
+ * to leave with.
+ *
+ * @return	void
+ */
+function uptosign_standalone_print_object_not_found()
+{
+	global $langs;
+
+	print '<div class="center" id="uptosignObjectNotFound">' . "\n";
+	print '	<p class="error">' . dol_escape_htmltag($langs->trans('UptoSignObjectNotFound')) . '</p>' . "\n";
+	print '	' . uptosign_standalone_leave_link(
+		dol_buildpath('/uptosign/uptosign_list.php', 1),
+		$langs->trans('UptoSignBackToProcedures')
+	) . "\n";
+	print '</div>' . "\n";
+}
+
+/**
  * Print the launcher shown in the Dolibarr tab: a button that opens the wizard in
  * an isolated modal, plus the script that opens it right away.
  *
@@ -219,18 +271,24 @@ function uptosign_standalone_leave($url)
  * standalone request, so the tab itself stays cheap. Without JavaScript the button
  * is a plain link to the same URL, which then renders full page.
  *
- * @param	string	$wizardUrl	URL of the standalone wizard (already contains standalone=1)
- * @param	string	$label		Button label
- * @param	bool	$autoOpen	Open the modal as soon as the tab is displayed
+ * @param	string			$wizardUrl	URL of the standalone wizard (already contains standalone=1)
+ * @param	string			$label		Button label
+ * @param	CommonObject	$object		Object being signed, to link back to its card
+ * @param	bool			$autoOpen	Open the modal as soon as the tab is displayed
  * @return	void
  */
-function uptosign_standalone_print_launcher($wizardUrl, $label, $autoOpen = true)
+function uptosign_standalone_print_launcher($wizardUrl, $label, $object = null, $autoOpen = true)
 {
 	global $langs;
 
 	$nonce = function_exists('getNonce') ? ' nonce="' . getNonce() . '"' : '';
 
 	print '<div class="center" id="uptosignWizardLauncher">' . "\n";
+	// Link back to the card. Some object types have no prepare_head() to give this tab
+	// the card tab bar, so this is the only way back that is always there.
+	if (is_object($object) && method_exists($object, 'getNomUrl')) {
+		print '	<p class="uptosignWizardLauncherRef">' . $object->getNomUrl(1) . '</p>' . "\n";
+	}
 	print '	<p>' . $langs->trans('UptoSignWizardLauncherHelp') . '</p>' . "\n";
 	print '	<a class="butAction" id="uptosignWizardLauncherBtn" href="' . dol_escape_htmltag($wizardUrl) . '">' . dol_escape_htmltag($label) . '</a>' . "\n";
 	print '</div>' . "\n";

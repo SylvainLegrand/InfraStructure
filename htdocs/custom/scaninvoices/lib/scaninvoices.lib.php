@@ -42,6 +42,13 @@ if (isset($db)) {
 // $scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
 // print "chargement de la lib, endpoint = $scaninvoices_endpoint\n";
 
+/**
+ * trim a string, including the multibyte spaces php trim() leaves behind
+ *
+ * @param   string  $str  string to trim
+ *
+ * @return  string        trimmed string
+ */
 function scaninvoicesMultibyte_trim($str)
 {
 	if (!function_exists('mb_trim') || !extension_loaded('mbstring')) {
@@ -128,6 +135,14 @@ function scanInvoicesuserAgent()
 	return 'dolibarr/' . scaninvoicesGetDolGlobalString('MAIN_INFO_SOCIETE_NOM') . " (scaninvoices@" . $modScanInvoices->version . ") [" . $uuid . "]";
 }
 
+/**
+ * build the curl headers shared by every call to the OCR webservice
+ *
+ * @param   bool      $withBearer  add the api key as a bearer token
+ * @param   bool      $isJson      announce a json body
+ *
+ * @return  string[]               headers to give to CURLOPT_HTTPHEADER
+ */
 function scanInvoicesApiCommonHeader($withBearer = true, $isJson = true)
 {
 	global $conf;
@@ -273,6 +288,13 @@ function scaninvoicesApiTryLoginWithUserPass()
 	return $retour;
 }
 
+/**
+ * ask the server for the company details behind a vat number
+ *
+ * @param   string        $vatNumberArg  intra community vat number, spaces and dots allowed
+ *
+ * @return  object|false                 company details, false when nothing was found
+ */
 function scaninvoicesApiGetCompanyDetailsWithVatNumber($vatNumberArg)
 {
 	global $conf, $mesg, $langs, $db;
@@ -333,11 +355,11 @@ function scaninvoicesApiGetCompanyDetailsWithVatNumber($vatNumberArg)
 /**
  * scaninvoicesApiRunInvoiceAnalyze call ocr remote server to extract data, that function is called via api.php and AJAX request from client
  *
- * @param   [Filestoimport]  $object            object to import
- * @param   [string]         $completefilename  full local file name
- * @param   [int]            $fourID            to force supplier (fournisseur)
+ * @param   Filestoimport  $object            object to import
+ * @param   string         $completefilename  full local file name
+ * @param   int            $fournID           to force supplier (fournisseur), -1 to let the OCR decide
  *
- * @return  [type]                     [return description]
+ * @return  array                             analyze result, with at least an 'error' key
  */
 function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilename, $fournID = -1)
 {
@@ -561,7 +583,9 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 			$data->ht = $dataJson->meta->amount_untaxed;
 			$data->ttc = $dataJson->meta->amount;
 			$data->fileName = $completefilename;
-			$data->vatFromServer = scaninvoicesGetTaxesRateFromSrv($result);
+			// the meta block, not the raw getURLContent() array: read on an array every
+			// rate fell back on its 0 default
+			$data->vatFromServer = scaninvoicesGetTaxesRateFromSrv($dataJson->meta);
 			$data->exo_tax_base = $dataJson->meta->exo_tax_base;
 			$data->eco_part = $dataJson->meta->eco_part;
 			$data->delivery_untaxed = $dataJson->meta->delivery_untaxed ?? '';
@@ -654,15 +678,67 @@ function scaninvoicesApiRunInvoiceAnalyze(Filestoimport $object, $completefilena
 
 
 /**
+ * Whether this installation knows where the OCR server is
+ *
+ * @return  bool    False when SCANINVOICES_URI is still empty
+ */
+function scaninvoicesApiEndpointIsSet()
+{
+	return scaninvoicesGetDolGlobalString('SCANINVOICES_URI') !== '';
+}
+
+/**
+ * Block shown when the OCR account cannot be used yet, with the way out
+ *
+ * An administrator gets the button to the setup page, anybody else the sentence
+ * telling them who can do it: the error alone ("No host part in the URL") says
+ * nothing and hides the only thing left to do.
+ *
+ * @return  string  Ready to print html block
+ */
+function scaninvoicesApiSetupNotice()
+{
+	global $langs, $user;
+
+	$langs->loadLangs(array('scaninvoices@scaninvoices'));
+
+	$html = '<div id="ocr-caprel-account-status">';
+	$html .= '<h3 align="center"><a href="https://ocr.cap-rel.fr" target="_blank">OCR WebServices by CAP-REL</a></h3>';
+	$html .= '<p>' . $langs->trans('ScanInvoicesAccountNotConfigured') . '</p>';
+
+	if (!empty($user->admin)) {
+		$html .= '<p><a class="butAction" href="' . dol_buildpath('/scaninvoices/admin/setup.php', 1) . '">';
+		$html .= $langs->trans('ScanInvoicesAccountConfigureHere') . '</a></p>';
+	} else {
+		$html .= '<p>' . $langs->trans('ScanInvoicesAccountAskAdmin') . '</p>';
+	}
+
+	$html .= '</div>';
+
+	return $html;
+}
+
+/**
  * scaninvoicesApiGetInfoAboutWebservice get informations about OCR webservice (available, free, heavy loaded ...)
  * that function is directly called from php script (ie not from api.php AJAX)
  *
- * @return  [type]  [return description]
+ * @param   string         $format  'html' for a ready to print block, anything else for the raw data
+ *
+ * @return  string|object           html block, or the decoded server answer
  */
 function scaninvoicesApiGetInfoAboutWebservice($format = 'html')
 {
-	global $conf, $mesg, $langs, $db;
+	global $conf, $mesg, $langs, $db, $user;
 	$scaninvoices_endpoint = scaninvoicesGetDolGlobalString('SCANINVOICES_URI');
+
+	// A fresh installation has no endpoint yet, so the url would be "/api/ruok"
+	// and curl answers "No host part in the URL". Nothing is called here: the
+	// user is told what is missing and where to fix it.
+	if (!scaninvoicesApiEndpointIsSet()) {
+		dol_syslog('ScanInvoices: SCANINVOICES_URI is empty, the OCR server was not called and the setup notice is shown instead', LOG_WARNING);
+
+		return ($format == 'html') ? scaninvoicesApiSetupNotice() : '';
+	}
 
 	$module = new modScanInvoices($db);
 
@@ -711,8 +787,17 @@ function scaninvoicesApiGetInfoAboutWebservice($format = 'html')
             <h3 align=\"center\"><a href=\"https://ocr.cap-rel.fr\" target=\"_blank\">OCR WebServices by CAP-REL</a></h3>
             <p>" . $langs->trans('DEFAULT_OCR_WEBSERVICE_MSG1') . "</p>
             <p><a href=\"https://ocr.cap-rel.fr/tarifs\" target=\"_blank\">" . $langs->trans('DEFAULT_OCR_WEBSERVICE_MSG2') . "</a></p>
-            <p>" . $langs->trans('DEFAULT_OCR_WEBSERVICE_MSG3', scaninvoicesGetMyIP()) . "</p>
-            </div>";
+            <p>" . $langs->trans('DEFAULT_OCR_WEBSERVICE_MSG3', scaninvoicesGetMyIP()) . "</p>";
+
+		// No api key means no account was ever established here, whatever the
+		// server just answered: the button is the next step, and the block used
+		// to offer the price list only.
+		if (!empty($user->admin) && scaninvoicesGetDolGlobalString('SCANINVOICES_KEY_API') === '') {
+			$html .= '<p><a class="butAction" href="' . dol_buildpath('/scaninvoices/admin/setup.php', 1) . '">';
+			$html .= $langs->trans('ScanInvoicesAccountConfigureHere') . '</a></p>';
+		}
+
+		$html .= "</div>";
 	}
 	if (isset($result['curl_error_msg']) && $result['curl_error_msg'] != "") {
 		$mesg = '<div class="error">' . $langs->trans('scaninvoicesApiGetInfoAboutWebservice');
@@ -729,7 +814,10 @@ function scaninvoicesApiGetInfoAboutWebservice($format = 'html')
 /**
  * Ask server to get informations about sensitives zones for a supplier
  *
- * @return  [type]  [return description]
+ * @param   string  $vatNumberArg  intra community vat number of the supplier
+ * @param   string  $exactNameArg  exact name of the supplier, used when the vat number is unknown
+ *
+ * @return  array                  zones description, with at least an 'error' key
  */
 function scaninvoicesApiGetInvoicesZonesForSupplier($vatNumberArg, $exactNameArg)
 {
@@ -768,6 +856,13 @@ function scaninvoicesApiGetInvoicesZonesForSupplier($vatNumberArg, $exactNameArg
 
 
 
+/**
+ * turn a free text into a safe file name part
+ *
+ * @param   string  $text  text to convert
+ *
+ * @return  string         lowercase ascii slug, 'n-a' when nothing is left
+ */
 function scaninvoicesSlugify($text)
 {
 	// replace non letter or digits by -
@@ -789,6 +884,13 @@ function scaninvoicesSlugify($text)
 	return $text;
 }
 
+/**
+ * read a date written in full french words, as the OCR returns it
+ *
+ * @param   string  $str  date to read, for instance "12 janvier 2024"
+ *
+ * @return  string        date as yyyy-mm-dd, the input unchanged when no format matched
+ */
 function scaninvoicesClean_ladate($str)
 {
 	$listeFormatsPossibles = ['dd/MMMM/y', 'dd MMMM y', 'd.M.y'];
@@ -823,6 +925,14 @@ function scaninvoicesClean_ladate($str)
 	return $str;
 }
 
+/**
+ * tell whether a string is a date written in the given format
+ *
+ * @param   string  $date    string to check
+ * @param   string  $format  date format, as understood by DateTime
+ *
+ * @return  bool             true when the string matches the format exactly
+ */
 function scaninvoicesValidateDate($date, $format = 'Y-m-d')
 {
 	$d = DateTime::createFromFormat($format, $date);
@@ -1194,15 +1304,20 @@ function scaninvoicesCreate_fact_fournisseur($data)
 					if ($fk_product <= 0 && $price > 0 && scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT')) {
 						$nproduit = new Product($db);
 						//bug détecté nico : si tout est produit pb de déclaration de TVA !!!!
-						$nproduit->type = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT_TYPE') ?? Product::TYPE_SERVICE;
+						// The setup page seeds this constant, but it stays missing until an admin
+						// opens that page, and a missing constant reads as an empty string, never
+						// as null: without the explicit test the fallback was dead code and every
+						// created line became a product instead of a service.
+						$createProductType = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_CREATE_PRODUCT_TYPE');
+						$nproduit->type = ($createProductType === '' ? Product::TYPE_SERVICE : (int) $createProductType);
 
 						$nproduit->status = 0; //pas en vente
 						$nproduit->status_buy = 1; //en achat
 						$nproduit->ref = $ref;
-						$nproduit->barcode = -1;
+						$nproduit->barcode = '-1'; // the core compares with == -1 to generate one
 						$nproduit->label = scaninvoicesClean_label($line->label);
 						$nproduit->description = $line->desc;
-						$nproduit->price = $price;
+						$nproduit->price = (float) $price;
 						$nproduit->tva_tx = $tauxtva;
 						$retnp = $nproduit->create($user);
 						if ($retnp > 0) {
@@ -1531,10 +1646,23 @@ function scaninvoicesCreate_fact_fournisseur($data)
 	);
 }
 
+/**
+ * copy the scanned document into the attachment directory of the supplier invoice
+ *
+ * @param   FactureFournisseur  $facfou      invoice the document belongs to
+ * @param   string              $fileName    name of the scanned file, without its directory
+ * @param   string              $upload_dir  directory the scanned file sits in
+ *
+ * @return  string                           name of the attached copy, empty when nothing was attached
+ */
 function scaninvoicesJoinFileToInvoice($facfou, $fileName, $upload_dir)
 {
 	global $conf;
 	dol_syslog("  scaninvoicesJoinFileToInvoice fileName=$fileName, upload_dir=$upload_dir");
+
+	// the caller stores this name to show the document in its import report: it was
+	// computed below but never returned, so the report column always stayed empty
+	$justif = "";
 
 	//by default set to pdf due to some bad webservers without magic mime info
 	$extension = ".pdf";
@@ -1609,10 +1737,21 @@ function scaninvoicesJoinFileToInvoice($facfou, $fileName, $upload_dir)
 			dol_syslog("  Error copying file $src to $dest");
 		}
 	} else {
-		dol_syslog("  error: upload_dir ($upload_dir) is not a directoryc or fileName ($fileName) is empty");
+		dol_syslog("  error: upload_dir ($upload_dir) is not a directoryc or fileName ($fileName) is empty", LOG_ERR);
 	}
+
+	return $justif;
 }
 
+/**
+ * build the html report shown to the user when an analysis failed
+ *
+ * @param   string       $code      error code and reason, as shown to the user
+ * @param   object|null  $data      decoded answer of the OCR server
+ * @param   object|null  $dataJson  raw json answer, kept for the debug block
+ *
+ * @return  string                  html list of the reasons and of what to do next
+ */
 function scaninvoicesMessageErreurAnalyse($code, $data, $dataJson = null)
 {
 	global $langs;
@@ -1641,6 +1780,13 @@ function scaninvoicesMessageErreurAnalyse($code, $data, $dataJson = null)
 	return $msg;
 }
 
+/**
+ * search a supplier on its exact name
+ *
+ * @param   string  $label  name read on the invoice
+ *
+ * @return  int             thirdparty id, -1 when not found
+ */
 function scaninvoicesFournisseurIdfromExactName($label)
 {
 	global $db;
@@ -1670,6 +1816,13 @@ function scaninvoicesFournisseurIdfromExactName($label)
 	return $id;
 }
 
+/**
+ * search a supplier on its vat number, trying each candidate read on the invoice
+ *
+ * @param   string|string[]  $vatNumber  vat number, or list of vat numbers to try in order
+ *
+ * @return  int                          thirdparty id, -1 when not found
+ */
 function scaninvoicesFournisseurIdfromVAT($vatNumber)
 {
 	global $db;
@@ -1689,6 +1842,13 @@ function scaninvoicesFournisseurIdfromVAT($vatNumber)
 	return $id;
 }
 
+/**
+ * search a supplier on a single vat number
+ *
+ * @param   string  $vatNumber  vat number, spaces and punctuation allowed
+ *
+ * @return  int                 thirdparty id, -1 when not found
+ */
 function scaninvoicesFournisseurIdfromOneVAT($vatNumber)
 {
 	global $db;
@@ -1803,12 +1963,11 @@ function scaninvoicesCreate_supplier($f)
 /**
  * convert PDF to JPEG via ocr webservice
  *
- * @param   [type]$src   [$src description]
- * @param   [type]$dst   [$dst description]
- * @param   [type]$rect  [$rect description]
- * @param   null         [ description]
+ * @param   string       $src   full name of the PDF to convert
+ * @param   string       $dst   full name of the JPEG to write
+ * @param   string|null  $rect  crop rectangle asked to the OCR server, null for the whole page
  *
- * @return  array with ocrid and some more data in case of ocr success
+ * @return  array               with ocrid and some more data in case of ocr success
  */
 function scaninvoicesPdf2jpeg($src, $dst, $rect = null)
 {
@@ -1879,10 +2038,11 @@ function scaninvoicesPdf2jpeg($src, $dst, $rect = null)
 /**
  * send a JPEG file to server
  *
- * @param   [type]$src   [$src description]
- * @param   null         [ description]
+ * @param   string  $src     full name of the JPEG to send
+ * @param   string  $dst     full name of the local JPEG copy to keep
+ * @param   string  $dstPDF  full name of the local PDF copy to keep
  *
- * @return  array with ocrid and some more data
+ * @return  array            with ocrid and some more data
  */
 function scaninvoicesSendJpeg($src, $dst, $dstPDF)
 {
@@ -1965,7 +2125,9 @@ function scaninvoicesSendJpeg($src, $dst, $dstPDF)
 /**
  * save model into supplier scaninvoices settings database
  *
- * @return  [type]  [return description]
+ * @param   int|string  $fournisseurId  supplier the drawn zones belong to
+ *
+ * @return  stdClass                    report of the save, with a 'message' property
  */
 function scaninvoicesSaveModel($fournisseurId)
 {
@@ -1976,8 +2138,11 @@ function scaninvoicesSaveModel($fournisseurId)
 
 	dol_syslog("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ scaninvoicesSaveModel fournID=$fournisseurId");
 	if (trim($fournisseurId) == "") {
-		dol_syslog("scaninvoicesSaveModel : fournisseurId vide !");
-		return 0;
+		dol_syslog("scaninvoicesSaveModel : fournisseurId vide !", LOG_ERR);
+		// the same shape as the other exits: api.php hands this straight to json(),
+		// and an int 0 there gave the caller nothing to read
+		$data->message = "no supplier given";
+		return $data;
 	}
 
 	// dol_syslog("filename = $filename");
@@ -2040,16 +2205,17 @@ function scaninvoicesSaveModel($fournisseurId)
 /**
  * find a file in a path
  *
- * @param   [type]  $file      [$file description]
- * @param   [type]  $rootPath  [$rootPath description]
+ * @param   string  $file      file name to look for in every direct subdirectory
+ * @param   string  $rootPath  directory to search below, with its trailing slash
  *
- * @return  [type]             [return description]
+ * @return  string             directory holding the file with a trailing slash, empty when not found
  */
 function scaninvoicesFindpathfor($file, $rootPath)
 {
 	// dol_syslog("scaninvoices scaninvoicesFindpathfor $file in $rootPath");
+	// glob() returns false when the pattern cannot be read, and count(false) is fatal on PHP 8
 	$ret = glob($rootPath . "*/" . $file);
-	if (count($ret) >= 1) {
+	if (is_array($ret) && count($ret) >= 1) {
 		// dol_syslog("scaninvoices scaninvoicesFindpathfor $file in $rootPath, result = " . $ret[0]);
 		return dirname($ret[0]) . '/';
 	}
@@ -2057,7 +2223,15 @@ function scaninvoicesFindpathfor($file, $rootPath)
 }
 
 
-//from https://stackoverflow.com/questions/62266717/image-showing-sideways-with-tcpdf-php-library
+/**
+ * rotate a jpeg in place when its exif data says the camera was not held straight
+ *
+ * from https://stackoverflow.com/questions/62266717/image-showing-sideways-with-tcpdf-php-library
+ *
+ * @param   string  $filename  full name of the jpeg to straighten
+ *
+ * @return  void
+ */
 function scaninvoicesCorrectImageOrientation($filename)
 {
 	// dol_syslog("scaninvoices scaninvoicesCorrectImageOrientation for $filename ...");
@@ -2097,7 +2271,7 @@ function scaninvoicesCorrectImageOrientation($filename)
  * -> remove all sql request about "pfp" product prices
  *
  *  @param	int		$socid   			Id of supplier thirdparty (0 = no filter)
- *  @param   int		$selected       	Product price pre-selected (must be 'id' in product_fournisseur_price or 'idprod_IDPROD')
+ *  @param   int|string	$selected       	Product price pre-selected (must be 'id' in product_fournisseur_price or 'idprod_IDPROD')
  *  @param   string	$htmlname       	Name of HTML select
  *  @param	string	$filtertype     	Filter on product type (''=nofilter, 0=product, 1=service)
  *  @param   string	$filtre         	Generic filter. Data must not come from user input.
@@ -2423,6 +2597,14 @@ function scaninvoicesSelect_produits_fournisseurs_list($socid, $selected = '', $
 	return $outarray;
 }
 
+/**
+ * resize a jpeg to the height asked by the caller, keeping its ratio
+ *
+ * @param   string  $fichierJPG  full name of the jpeg to resize
+ * @param   array   $output      filled with the new width, height and ratio
+ *
+ * @return  void
+ */
 function scaninvoicesJpegResizeAndRatio($fichierJPG, &$output)
 {
 	$maxHeight = $_REQUEST['maxHeight'];
@@ -2536,6 +2718,17 @@ function scaninvoicesConvertSynologyURItoSettings()
 }
 
 
+/**
+ * send a report mail from the module
+ *
+ * @param   string  $to       recipients, comma separated
+ * @param   string  $subject  subject of the mail
+ * @param   string  $cc       carbon copy recipients, comma separated
+ * @param   string  $bcc      blind carbon copy recipients, comma separated
+ * @param   string  $html     body of the mail
+ *
+ * @return  int               1 when the mail was handed over, <= 0 on error
+ */
 function scaninvoicesSendMail($to, $subject, $cc, $bcc, $html)
 {
 	global $conf, $user, $langs;
@@ -2568,7 +2761,9 @@ function scaninvoicesSendMail($to, $subject, $cc, $bcc, $html)
 /**
  * get list of taxes returned by docwizon server
  *
- * @return  [type]  [return description]
+ * @param   object  $json  decoded answer of the OCR server
+ *
+ * @return  array          the four vat rates and the four vat amounts, 0 when absent
  */
 function scaninvoicesGetTaxesRateFromSrv($json)
 {
@@ -2584,6 +2779,14 @@ function scaninvoicesGetTaxesRateFromSrv($json)
 	];
 }
 
+/**
+ * guess the date format of a string
+ *
+ * @param   string  $d     date to read
+ * @param   string  $null  value returned when no known format matched
+ *
+ * @return  string         format understood by DateTime, or $null
+ */
 function scaninvoicesDateExtractFormat($d, $null = '')
 {
 	// check Day -> (0[1-9]|[1-2][0-9]|3[0-1])
@@ -2625,6 +2828,16 @@ function scaninvoicesDateExtractFormat($d, $null = '')
 }
 
 
+/**
+ * rewrite a date into another format, guessing the format it is written in
+ *
+ * @param   string  $date       date to rewrite
+ * @param   string  $format     wanted output format
+ * @param   bool    $in_format  keep the format of the input instead of $format
+ * @param   string  $f          value returned when the date could not be read
+ *
+ * @return  string              the rewritten date, or $f
+ */
 function scaninvoicesDateFormating($date, $format = 'd/m/Y H:i', $in_format = false, $f = '')
 {
 	$isformat = scaninvoicesDateExtractFormat($date);
@@ -2641,6 +2854,13 @@ function scaninvoicesDateFormating($date, $format = 'd/m/Y H:i', $in_format = fa
 } // end function
 
 
+/**
+ * convert a date read on an invoice into the sql format
+ *
+ * @param   string  $old  date to convert
+ *
+ * @return  string        date as yyyy-mm-dd, '0000-00-00' when no format matched
+ */
 function scaninvoicesDateConvertFormat($old = '')
 {
 	$old = trim($old);
@@ -2661,9 +2881,9 @@ function scaninvoicesDateConvertFormat($old = '')
 /**
  * clean up text (remove end spaces and non text char)
  *
- * @param   [type]  $txt  [$txt description]
+ * @param   string  $txt  raw label coming from the OCR
  *
- * @return  [type]        [return description]
+ * @return  string        label without surrounding spaces and control characters
  */
 function scaninvoicesClean_label($txt)
 {
@@ -2673,10 +2893,10 @@ function scaninvoicesClean_label($txt)
 /**
  * search product in local database
  *
- * @param   [type]  $ref          [$ref description]
- * @param   [type]  $supplier_id  [$supplier_id description]
+ * @param   string  $ref          product or supplier reference read on the invoice
+ * @param   int     $supplier_id  supplier to restrict the supplier reference search to
  *
- * @return  [type]                [return description]
+ * @return  int                   product id when found, -1 when unknown, -2 on empty reference
  */
 function scaninvoicesSearchProductID($ref, $supplier_id)
 {
@@ -2911,10 +3131,9 @@ function scaninvoicesGetMyIP()
 /**
  * encrypt text with key
  *
- * @param   [type]  $plaintext  [$plaintext description]
- * @param   [type]  $key        [$key description]
+ * @param   int|string  $plaintext  value to obfuscate, xored with the caller public ip
  *
- * @return  [type]              [return description]
+ * @return  string                  base64 encoded payload, as expected by the blacklist page
  */
 function scaninvoices_lightEncryptText($plaintext)
 {
@@ -2927,7 +3146,9 @@ function scaninvoices_lightEncryptText($plaintext)
 /**
  * prise en compte du firewall global cap-rel / inli
  *
- * @return  [type]  [return description]
+ * @param   array  $result  return of the failed getURLContent() call
+ *
+ * @return  void
  */
 function scaninvoiceshandleTimeoutCheckBlacklist($result)
 {

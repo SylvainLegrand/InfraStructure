@@ -40,6 +40,9 @@ dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
  */
 class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 {
+	/**
+	 * @var array Result of the generation, as expected by the core document builders
+	 */
 	public $result;
 
 	/**
@@ -157,14 +160,14 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 	 *  Function to build pdf onto disk
 	 *
 	 *  @param		FactureFournisseur	$object				Object to generate
-	 *  @param		Translate			$outputlangs		Lang output object
+	 *  @param		Translate|null		$outputlangs		Lang output object, null to fall back on the current one
 	 *  @param		string				$srctemplatepath	Full path of source filename for generator using a template file
 	 *  @param		int					$hidedetails		Do not show line details
 	 *  @param		int					$hidedesc			Do not show desc
 	 *  @param		int					$hideref			Do not show ref
 	 *  @return		int										1=OK, 0=KO
 	 */
-	public function write_file($object, $outputlangs = '', $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
+	public function write_file($object, $outputlangs = null, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0)
 	{
 		// phpcs:enable
 		global $user, $langs, $conf, $mysoc, $hookmanager, $nblines;
@@ -242,10 +245,16 @@ class pdf_scaninvoice_stamp extends ModelePDFSuppliersInvoices
 					$othertmp = str_replace(".pdf", "-tmp.pdf", $otherpdfindir);
 					if (is_file("/usr/bin/qpdf")) {
 						$cmd = "/usr/bin/qpdf --decrypt " . escapeshellarg($otherpdfindir) . " "  . escapeshellarg($othertmp);
-						if (false !== exec($cmd, $output)) {
+						// exec() returns the last output line, not a success flag: comparing it
+						// to false never spotted a qpdf failure, so the fallback copy below was
+						// never made and the stamped page silently stayed empty
+						$output = array();
+						$exitCode = 0;
+						exec($cmd, $output, $exitCode);
+						if ($exitCode === 0) {
 							dol_syslog("scaninvoice_stamp : break pdf with qpdf ok $othertmp");
 						} else {
-							dol_syslog("scaninvoice_stamp : break pdf with qpdf error, try to continue, error is " . json_encode($output));
+							dol_syslog("scaninvoice_stamp : break pdf with qpdf error (exit code " . $exitCode . "), try to continue, error is " . json_encode($output), LOG_WARNING);
 							copy($otherpdfindir, $othertmp);
 						}
 					} else {

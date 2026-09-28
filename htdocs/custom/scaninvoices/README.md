@@ -2,11 +2,35 @@
 
 ## Features
 
-One target : easy import supplier invoices into dolibarr. Just put pdf file then let do the magic.
+ScanInvoices automates supplier invoice entry. Drop a PDF (invoice, receipt, expense document), the module sends it to an OCR server to extract the data, then creates the supplier invoice in Dolibarr. When the supplier does not exist yet, it is created on the fly from the VAT number found on the document.
 
-For the moment we try to find a solution for pdf scanned documents ("paper" invoices) because i'm sure it will be very easy to do the same with real numeric pdf invoices (not pictures, PDF with plain text you can select with your mouse).
+- Manual import of a single PDF invoice, with a step by step wizard and on demand OCR
+- Automatic multi-file import by drag and drop
+- Overnight import from a Nextcloud or Synology DAV share
+- Automatic supplier creation from the VAT number (FR, BE, CH)
+- Detailed line extraction with VAT rates, or grouping by rate
+- Automatic creation of products and services when importing lines (optional)
+- ScanInvoices tab on the thirdparty card, to remember the analysis areas of a given supplier
+- Scheduled job (Dolibarr cron) to process queued files in the background
+- Import report by email
+- Payment terms of the Dolibarr thirdparty card applied first (optional)
+
+The module works with the OCR service hosted by CAP-REL (https://ocr.cap-rel.fr), which offers 5 free analysis per month, or with any compatible self-hosted OCR server.
 
 Other modules are available on [Dolistore.com](https://www.dolistore.com).
+
+## Requirements
+
+- Dolibarr 14 or above
+- PHP 7.4 or above
+- PHP extensions: intl, fileinfo, gd, mbstring
+- PHP function: finfo_open
+- Enabled Dolibarr modules: Thirdparties, Suppliers, Products, Services, Scheduled jobs (Cron)
+- Outgoing Internet access to the OCR server
+
+## Documentation
+
+The full user documentation is published on [doc.cap-rel.fr/scaninvoices/](https://doc.cap-rel.fr/scaninvoices/): installation, setup, daily use and frequently asked questions.
 
 ## Translations
 
@@ -69,6 +93,10 @@ From your browser:
   - Log into Dolibarr as a super-administrator
   - Go to "Setup" -> "Modules"
   - You should now be able to find and enable the module
+
+## Support
+
+Support is available from the "About" page of the module, which carries a direct contact form, or by email to commercial+scaninvoices@cap-rel.fr.
 
 ## Licenses
 

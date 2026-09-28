@@ -68,6 +68,9 @@ abstract class ModelePDFFilestoimport extends CommonDocGenerator
  */
 abstract class ModeleNumRefFilestoimport
 {
+	/**
+	 * @var string Maturity of the numbering model: 'development', 'experimental' or 'dolibarr'
+	 */
 	public $version;
 
 	/**

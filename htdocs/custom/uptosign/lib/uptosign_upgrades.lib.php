@@ -33,12 +33,12 @@ dol_include_once('/uptosign/class/uptosignconfig.class.php');
 dol_include_once('/contact/class/contact.class.php');
 dol_include_once('/uptosign/lib/uptosign.lib.php');
 
-/************************************************
-*	Sauvegarde les paramètres du module
-*
-*	@param		string		$appliname	module name
-*	@return		string		1 = Ok or -1 = Ko or or 0 and error message
-************************************************/
+/**
+ *	Sauvegarde les paramètres du module
+ *
+ *	@param		string		$appliname	module name
+ *	@return		int						1 = Ok or -1 = Ko or 0 and error message
+ */
 function uptosign_bkup_module($appliname)
 {
 	global $db, $conf, $langs, $errormsg;
@@ -150,22 +150,26 @@ SET FOREIGN_KEY_CHECKS = 1;
 		// }
 		return 1;
 	}
+
+	// dol_mkdir() reported a success but the directory is still not there
+	dol_syslog("uptosign: uptosign_bkup_module backup directory $path is missing, nothing saved", LOG_ERR);
+	return -1;
 }
 
-/************************************************
-*	Recherche d'un fichier contenant un code langue dans son nom à partir d'une liste
-*
-*	@param	string	$table		table name to backup
-*	@param	string	$sql		sql query to prepare data  for backup
-*	@param	array	$listeCols	list of columns to backup on the table
-*	@param	array	$duplicate	values for 'ON DUPLICATE KEY UPDATE'
-*                               [0] = column to update
-*                               [1] = column name to update
-*                               [2] = key value for conflict control (only postgreSQL)
-*	@param	boolean	$truncate	truncate the table before restore
-*	@param	string	$add		sql data to add on the beginning of the query
-*	@return	string				sql query to restore the datas
-************************************************/
+/**
+ *	Recherche d'un fichier contenant un code langue dans son nom à partir d'une liste
+ *
+ *	@param	string				$table		table name to backup
+ *	@param	string				$sql		sql query to prepare data  for backup
+ *	@param	array<int, string>	$listeCols	list of columns to backup on the table
+ *	@param	array<int, string>	$duplicate	values for 'ON DUPLICATE KEY UPDATE'
+ *                              [0] = column to update
+ *                              [1] = column name to update
+ *                              [2] = key value for conflict control (only postgreSQL)
+ *	@param	int					$truncate	truncate the table before restore
+ *	@param	string				$add		sql data to add on the beginning of the query
+ *	@return	string							sql query to restore the datas
+ */
 function uptosign_bkup_table($table, $sql, $listeCols, $duplicate = array(), $truncate = 0, $add = '')
 {
 	global $db, $conf, $langs, $errormsg;
@@ -224,12 +228,13 @@ function uptosign_bkup_table($table, $sql, $listeCols, $duplicate = array(), $tr
 	return $sqlnewtable;
 }
 
-/************************************************
-*	Restaure les paramètres du module
-*
-*	@param		string		$appliname	module name
-*	@return		string		1 = Ok or -1 = Ko
-************************************************/
+/**
+ *	Restaure les paramètres du module
+ *
+ *	@param		string		$appliname	module name
+ *	@param		string		$tablename	restore only the lines of that table, all when empty
+ *	@return		int						1 = Ok or -1 = Ko
+ */
 function uptosign_restore_module($appliname, $tablename = "")
 {
 	global $conf;
@@ -273,13 +278,13 @@ function uptosign_restore_module($appliname, $tablename = "")
 }
 
 
-/************************************************
-// *	Recupere dans le fichier de backup quelle était la version du module
-*   sauvegardé ... pour pouvoir gérer les gros changements de versions
-*
-*	@param		string		$appliname	module name
-*	@return		string		version, ex 1.2.4, -1 if no backup
-// ************************************************/
+/**
+ *	Recupere dans le fichier de backup quelle était la version du module
+ *  sauvegardé ... pour pouvoir gérer les gros changements de versions
+ *
+ *	@param		string		$appliname	module name
+ *	@return		string					version, ex 1.2.4, "0.0.0" if no backup
+ */
 function uptosign_bkup_get_version($appliname)
 {
 	global $conf;
@@ -387,7 +392,7 @@ function uptosign_migrate_conf_v1_to_v2()
   * @param   string  $basedir   [$basedir description]
   * @param   array  $md5files  [$md5files description]
   *
-  * @return  string             [return description]
+  * @return  string|false       Concatenated md5 of the files found, false when $dir is not a directory
   */
 function uptosign_cleanupModulePath($dir, $basedir, $md5files)
 {

@@ -36,6 +36,9 @@ class mod_uptosign_standard extends ModeleNumRefUptoSign
 	 */
 	public $version = 'dolibarr'; // 'development', 'experimental', 'dolibarr'
 
+	/**
+	 * @var string Prefix of the generated references
+	 */
 	public $prefix = 'UTS';
 
 	/**

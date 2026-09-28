@@ -150,3 +150,94 @@ OcrCopyDetailsIntro=Kopieer de onderstaande details en stuur ze naar de support 
 OcrCopyDetailsButton=Details kopiëren voor support
 OcrDetailsCopied=Details gekopieerd naar klembord
 OcrUploadInvalidResponse=Uploaden mislukt: ongeldig serverantwoord. Probeer opnieuw of neem contact op met de support.
+ScanInvoicesNewVersionAvailable=ScanInvoices: er is een nieuwere versie beschikbaar (geïnstalleerd %s, beschikbaar %s). Overweeg bij te werken.
+
+#
+# Demonstration data set (admin/demo.php)
+#
+ScanInvoicesDemoTitle=Demonstratiegegevens
+ScanInvoicesDemoIntro=Deze pagina schrijft een set fictieve gegevens om de module te tonen: leveranciers, herkenningsinstellingen, importwachtrij en leveranciersfacturen. Zij mag nooit op een productie-installatie worden gebruikt.
+ScanInvoicesDemoState=Momenteel aanwezige demonstratiedocumenten: %s
+ScanInvoicesDemoConfirm=Ik begrijp dat beide acties gegevens massaal wegschrijven of verwijderen
+ScanInvoicesDemoConfirmRequired=Vink het bevestigingsvakje aan voordat u genereert of opschoont.
+ScanInvoicesDemoRefusedOnProduction=Het genereren en opschonen van de demonstratiegegevens is voorbehouden aan demonstratie- of ontwikkelinstallaties.
+ScanInvoicesDemoGenerate=Gegevens genereren
+ScanInvoicesDemoPurge=Gegevens opschonen
+ScanInvoicesDemoJournal=Logboek van de bewerking
+ScanInvoicesDemoGenerated=Demonstratiegegevens gegenereerd
+ScanInvoicesDemoGeneratedWithWarnings=Demonstratiegegevens gegenereerd met %s waarschuwing(en)
+ScanInvoicesDemoGenerateFailed=%s kritieke fout(en), de gegevens zijn teruggedraaid
+ScanInvoicesDemoPurged=Demonstratiegegevens verwijderd
+ScanInvoicesDemoPurgedWithWarnings=Demonstratiegegevens verwijderd met %s waarschuwing(en)
+ScanInvoicesDemoPurgeFailed=%s kritieke fout(en), er is niets verwijderd
+ScanInvoicesDemoAccounts=Demonstratieaccounts (gebruikersnaam / wachtwoord)
+ScanInvoicesDemoLogCreated=%s aangemaakt: %s (ID %s)
+ScanInvoicesDemoLogReused=%s hergebruikt: %s (ID %s)
+ScanInvoicesDemoLogFailed=%s "%s": %s
+ScanInvoicesDemoLogFatal=%s "%s": %s
+ScanInvoicesDemoLogDeleted=%s verwijderd: %s
+ScanInvoicesDemoObjectProduct=Standaarddienst
+ScanInvoicesDemoObjectSupplier=Leverancier
+ScanInvoicesDemoObjectSetting=Herkenningsinstelling
+ScanInvoicesDemoObjectGroup=Gebruikersgroep
+ScanInvoicesDemoObjectGroupMember=Toevoeging aan de groep
+ScanInvoicesDemoObjectUser=Gebruiker
+ScanInvoicesDemoObjectPassword=Wachtwoord
+ScanInvoicesDemoObjectRight=Rechten
+ScanInvoicesDemoObjectDocument=Te importeren document
+ScanInvoicesDemoObjectInvoice=Leveranciersfactuur
+ScanInvoicesDemoObjectInvoiceLine=Factuurregel
+ScanInvoicesDemoObjectFile=Bestand
+ScanInvoicesDemoNoErrorMessage=(geen foutmelding)
+ScanInvoicesDemoNotFoundAfterCreate=aangemaakt maar niet in de database gevonden
+ScanInvoicesDemoCannotCreateDir=de uploadmap kon niet worden aangemaakt
+ScanInvoicesDemoCannotWriteFile=het document kon niet worden weggeschreven
+ScanInvoicesDemoProductLabel=Demonstratie-inkopen
+ScanInvoicesDemoGroupNote=Groep aangemaakt door de demonstratiegegevens van ScanInvoices
+ScanInvoicesDemoInvoiceLine=regel %s
+ScanInvoicesDemoSummary=%s document(en), %s leveranciersfactuur/facturen, %s leverancier(s) en %s demonstratieaccount(s)
+ScanInvoicesDemoSummaryFiles=%s PDF-document(en) weggeschreven, waarvan %s met voorbeeldweergave
+ScanInvoicesDemoMessageWaiting=Document wacht op verzending naar de OCR-server
+ScanInvoicesDemoMessageAnalyzed=Document geanalyseerd, leverancier herkend: %s
+ScanInvoicesDemoMessagePartial=Leverancier %s herkend, maar er kon geen factuur worden aangemaakt
+ScanInvoicesDemoMessageSuccess=Leverancier %s herkend, factuur %s geïmporteerd
+ScanInvoicesDemoMessageError=Het document kon niet worden gelezen, pagina te donker of onleesbaar
+ScanInvoicesDemoNoOcrAccount=Er is geen OCR-account ingesteld: voor het herkennen van nieuwe documenten is een API-sleutel in de moduleconfiguratie nodig.
+
+#
+# OCR account not configured yet
+#
+ScanInvoicesAccountNotConfigured=Het account van de OCR-server is nog niet ingesteld: er kan geen document worden geanalyseerd zolang het serveradres en het account niet zijn ingevuld.
+ScanInvoicesAccountConfigureHere=Klik hier om uw account in te stellen
+ScanInvoicesAccountAskAdmin=Vraag de beheerder van uw Dolibarr om het account van de module in te stellen.
+ScanInvoicesPasswordKept=Leeg laten om het opgeslagen wachtwoord te behouden
+ScanInvoicesPasswordNew=Wachtwoord van het OCR-account
+
+#
+# Welcome page and demonstration mode (index.php)
+#
+ScanInvoicesWelcomeTitle=Welkom bij ScanInvoices
+ScanInvoicesWelcomeIntro=ScanInvoices leest uw leveranciersfacturen in PDF en maakt de leverancier en de factuur in Dolibarr aan, zonder invoer.
+ScanInvoicesWelcomeDemoBanner=U bent in een demonstratie van ScanInvoices
+ScanInvoicesWelcomeDemoBannerDetail=De leveranciers, documenten en facturen die u ziet zijn fictief. U mag alles uitproberen, niets heeft gevolgen.
+ScanInvoicesWelcomeBackToDashboard=Terug naar het Dolibarr-dashboard
+ScanInvoicesWelcomeFigures=In een oogopslag
+ScanInvoicesWelcomeHowTo=Waar te beginnen
+ScanInvoicesWelcomeFigureTotal=Documenten in de wachtrij
+ScanInvoicesWelcomeFigureWaiting=Wachtend op analyse
+ScanInvoicesWelcomeFigureImported=Geïmporteerd
+ScanInvoicesWelcomeFigurePartial=Gedeeltelijk of mislukt
+ScanInvoicesWelcomeFigureInvoices=Aangemaakte leveranciersfacturen
+ScanInvoicesWelcomeFigureSettings=Herkenningsinstellingen
+ScanInvoicesWelcomeStep1=Open de importwachtrij: elke regel is een gescand document, met de herkende leverancier en de aangemaakte factuur.
+ScanInvoicesWelcomeStep1Button=Bekijk de importwachtrij
+ScanInvoicesWelcomeStep2=Upload een factuur in PDF en volg het uitlezen, van het ruwe document tot de leveranciersfactuur.
+ScanInvoicesWelcomeStep2Button=Een factuur importeren
+ScanInvoicesWelcomeStep3=Bekijk een herkenningsinstelling: die bepaalt waar de gegevens op de documenten van een leverancier staan.
+ScanInvoicesWelcomeStep3Button=Bekijk de instellingen
+ScanInvoicesWelcomeStep4=Open de leveranciersfacturen van Dolibarr: die met een referentie zijn door de module aangemaakt.
+ScanInvoicesWelcomeStep4Button=Bekijk de leveranciersfacturen
+ScanInvoicesDemoLogModeActivated=Demonstratiemodus aan, de startpagina van Dolibarr leidt nu naar de module
+ScanInvoicesDemoLogModeActivationFailed=De demonstratiemodus kon niet worden ingeschakeld, de startpagina van Dolibarr blijft ongewijzigd
+ScanInvoicesDemoLogModeDeactivated=Demonstratiemodus uit, de startpagina van Dolibarr is hersteld
+ScanInvoicesDemoLogModeDeactivationFailed=De demonstratiemodus kon niet volledig worden uitgeschakeld

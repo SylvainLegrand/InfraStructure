@@ -43,10 +43,11 @@ if (!defined('NOBROWSERNOTIF')) {
 // Do not use GETPOST here, function is not defined and define must be done before including main.inc.php
 // TODO This should be useless. Because entity must be retrieve from object ref and not from url.
 $entity = (!empty($_GET['entity']) ? (int) $_GET['entity'] : (!empty($_POST['entity']) ? (int) $_POST['entity'] : 1));
+// InfraS change begin
 if (is_numeric($entity)) {
 	define("DOLENTITY", $entity);
 }
-
+// InfraS change end
 // Load Dolibarr environment
 $res = 0;
 // Try main.inc.php into web root known defined into CONTEXT_DOCUMENT_ROOT (not always defined)
@@ -291,7 +292,7 @@ if ($action == "dosign" && empty($cancel)) {
 	$localError = 0;
 
 	//choix d'un contact ?
-	$contactToSignID = GETPOST('contactToSignID') ?? '';
+	$contactToSignID = GETPOST('contactToSignID') ?? '';	// InfraS change
 
 	//creation d'un nouveau contact au vol ? prioritaire si données saisies
 	if (utsbackports_getDolGlobalString('UPTOSIGN_CREATE_SIGN_CONTACT_ONLINE', '') != "") {
@@ -441,6 +442,7 @@ if ($action == 'confirm_refusepropal' && $confirm == 'yes') {
 
 		$message = 'refused';
 		setEventMessages("PropalRefused", [], 'warnings');
+		// InfraS change begin
 		if (method_exists($object, 'call_trigger')) {
 			// Online customer is not a user, so we use the use that validates the documents
 			$user = $uptoSign->findUserToUse($user, $object);
@@ -451,6 +453,7 @@ if ($action == 'confirm_refusepropal' && $confirm == 'yes') {
 				$error++;
 			}
 		}
+		// InfraS change end
 	} else {
 		$db->rollback();
 	}

@@ -112,7 +112,7 @@ if ($action == 'updateMask') {
 		dolibarr_set_const($db, $constforval, $value, 'chaine', 0, '', $conf->entity);
 	}
 } elseif ($action == 'set') {
-	$array = ['SCANINVOICES_EMAIL', 'SCANINVOICES_URI', 'SCANINVOICES_PASS_API'];
+	$array = ['SCANINVOICES_EMAIL', 'SCANINVOICES_URI'];
 	$changes = false;
 	foreach ($array as $key) {
 		$oldvalue = scaninvoicesGetDolGlobalString($key);
@@ -122,6 +122,16 @@ if ($action == 'updateMask') {
 			$changes = true;
 		}
 	}
+
+	// The password field is never pre-filled any more, so an empty one means
+	// "keep the password already stored", never "erase it". Handled apart from
+	// the loop above for that reason.
+	$newpassword = GETPOST('SCANINVOICES_PASS_API');
+	if ($newpassword !== '' && $newpassword !== scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API')) {
+		dolibarr_set_const($db, 'SCANINVOICES_PASS_API', $newpassword, 'chaine', 0, '', $conf->entity);
+		$changes = true;
+	}
+
 	if ($changes) {
 		dolibarr_set_const($db, 'SCANINVOICES_KEY_API', '', 'chaine', 0, '', $conf->entity);
 	}
@@ -135,10 +145,11 @@ $defaultEmail = scaninvoicesGetDolGlobalString('MAIN_INFO_SOCIETE_MAIL');
 if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL'))) {
 	$defaultEmail = scaninvoicesGetDolGlobalString('SCANINVOICES_EMAIL');
 }
-$defaultPassword = "HackMePleaseButHackMeSoft";
-if (!empty(scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API'))) {
-	$defaultPassword = scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API');
-}
+// No default value, and the stored one is never sent back to the browser: it
+// used to travel in the value attribute of the field, readable in the page
+// source. An administrator who saves without touching the field keeps the
+// password already registered.
+$hasPassword = (scaninvoicesGetDolGlobalString('SCANINVOICES_PASS_API') !== '');
 $resetPasswordLink = '';
 
 if ($action == 'checkConnectAPI') {
@@ -259,7 +270,8 @@ if ($resetPasswordLink != "") {
 
 	print '<tr class="oddeven"><td class=""><b>' . $langs->trans("SCANINVOICES_PASS_API") . "</b><br /><i>" . $langs->trans("SCANINVOICES_PASS_APITooltip") .'</i></td>';
 	print '<td>';
-	print '<input type="password" name="SCANINVOICES_PASS_API" value="' . $defaultPassword . '" class="minwidth300" onchange="formChange();">';
+	$passwordPlaceholder = $hasPassword ? $langs->transnoentities("ScanInvoicesPasswordKept") : $langs->transnoentities("ScanInvoicesPasswordNew");
+	print '<input type="password" name="SCANINVOICES_PASS_API" value="" autocomplete="new-password" placeholder="' . dol_escape_htmltag($passwordPlaceholder) . '" class="minwidth300" onchange="formChange();">';
 	print '</td>';
 	print '</tr>';
 
@@ -268,7 +280,7 @@ if ($resetPasswordLink != "") {
 	print '<br><div class="right">';
 
 	$btnDefaultStatus = "";
-	if ($defaultEmail != "" && $defaultPassword != "" && $defaultURI != "") {
+	if ($defaultEmail != "" && $hasPassword && $defaultURI != "") {
 		$btnDefaultStatus = "style='visibility: hidden;'";
 	}
 

@@ -31,11 +31,11 @@ dol_include_once('/uptosign/lib/uptosign.lib.php');
  */
 class uptosignlist_uts_users extends UptosignListTargets
 {
-	public $name = 'DolibarrUsersWithMailAndPhone'; // Identifiant du module mailing
+	public $name = 'DolibarrUsersWithMailAndPhone'; // Identifier of the selector
 	// This label is used if no translation is found for key XXX neither MailingModuleDescXXX where XXX=name is found
-	public $desc = 'Dolibarr users with emails and mobile phone'; // Libelle utilise si aucune traduction pour MailingModuleDescXXX ou XXX=name trouv�e
-	public $require_module = array(); // Module mailing actif si modules require_module actifs
-	public $require_admin = 1; // Module mailing actif pour user admin ou non
+	public $desc = 'Dolibarr users with emails and mobile phone';
+	public $require_module = array(); // Selector offered only when these modules are enabled
+	public $require_admin = 1; // Selector reserved to admin users or not
 
 	/**
 	 * @var string String with name of icon for myobject. Must be the part after the 'object_' into object_myobject.png

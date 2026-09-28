@@ -34,9 +34,9 @@ Cette page détaille le mode opératoire complet, de la création de l'enveloppe
 
 ### Pré-requis
 
-- Le module UptoSign est installé, activé et configuré (voir [Installation](installation.md) et [Configuration](configuration.md))
+- Le module UptoSign est installé, activé et configuré (voir [Installation](/uptosign/installation) et [Configuration](/uptosign/configuration))
 - Vous disposez du PDF à faire signer (fichier déjà préparé sur votre poste)
-- Vous avez les droits **Lire les listes de signatures** et **Créer/modifier les listes** (voir la section Permissions de la page [Utilisation](utilisation.md))
+- Vous avez les droits **Lire les listes de signatures** et **Créer/modifier les listes** (voir la section Permissions de la page [Utilisation](/uptosign/utilisation))
 
 ## Vue d'ensemble du processus
 
@@ -243,6 +243,6 @@ L'enveloppe reste consultable et l'export CSV inclut la colonne **error_text** i
 
 ## Voir aussi
 
-- [Utilisation](utilisation.md) - Vue d'ensemble du module et signature classique
-- [Configuration](configuration.md) - Paramétrage du module (signature locale, modèles, etc.)
-- [FAQ](faq.md) - Questions fréquentes
+- [Utilisation](/uptosign/utilisation) - Vue d'ensemble du module et signature classique
+- [Configuration](/uptosign/configuration) - Paramétrage du module (signature locale, modèles, etc.)
+- [FAQ](/uptosign/faq) - Questions fréquentes

@@ -57,6 +57,24 @@
 		frame.setAttribute('src', url);
 		frame.setAttribute('title', 'UptoSign');
 
+		// Close button of the host page, not of the framed document: it stays reachable
+		// whatever the iframe ends up displaying. The wizard has its own close button,
+		// but a page reached from inside the frame may have none.
+		var close = document.createElement('button');
+		close.type = 'button';
+		close.className = 'uptosign-modal-close';
+		close.setAttribute('aria-label', 'Close');
+		close.innerHTML = '&times;';
+		close.addEventListener('click', closeWizard);
+
+		// Clicking the backdrop, next to the frame, closes too.
+		overlay.addEventListener('click', function (event) {
+			if (event.target === overlay) {
+				closeWizard();
+			}
+		});
+
+		overlay.appendChild(close);
 		overlay.appendChild(frame);
 		document.body.appendChild(overlay);
 		document.body.classList.add('uptosign-modal-open');

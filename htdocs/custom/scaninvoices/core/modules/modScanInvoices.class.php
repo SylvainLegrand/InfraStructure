@@ -34,6 +34,9 @@ dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
  */
 class modScanInvoices extends DolibarrModules
 {
+	/**
+	 * @var string Scheme used to reach the module web pages, 'http' or 'https'
+	 */
 	public $protocol;
 	public $url_last_version;
 	public $tabs;
@@ -70,7 +73,7 @@ class modScanInvoices extends DolibarrModules
 		$this->editor_name = 'CAP-REL';
 		$this->editor_url = 'https://cap-rel.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.4.96';
+		$this->version = '1.4.98';
 		// Procol version
 		$this->protocol = '1';
 		// Url to the file with your last numberversion of this module
@@ -117,7 +120,11 @@ class modScanInvoices extends DolibarrModules
 					'emailcolector',
 					'emailcollectorfilterdao',
 					'emailcollectordao',
-					'invoicesuppliercard'
+					'invoicesuppliercard',
+					// Needed by updateSession, the only hook running before any
+					// output and therefore the only one where the home page of a
+					// demonstration instance can still be diverted.
+					'main'
 				),
 				//   'entity' => '0',
 			],
@@ -137,8 +144,8 @@ class modScanInvoices extends DolibarrModules
 		$this->requiredby = []; // List of module class names as string to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
 		$this->conflictwith = []; // List of module class names as string this module is in conflict with. Example: array('modModuleToDisable1', ...)
 		$this->langfiles = ['scaninvoices@scaninvoices'];
-		$this->phpmin = [7, 0]; // Minimum version of PHP required by module
-		$this->need_dolibarr_version = [11, -3]; // Minimum version of Dolibarr required by module
+		$this->phpmin = [7, 4]; // Minimum version of PHP required by module
+		$this->need_dolibarr_version = [14, 0]; // Minimum version of Dolibarr required by module
 		$this->warnings_activation = []; // Warning to show when we activate module. array('always'='text') or array('FR'='textfr','ES'='textes'...)
 		$this->warnings_activation_ext = []; // Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','ES'='textes'...)
 		//$this->automatic_activation = array('FR'=>'ScanInvoicesWasAutomaticallyActivatedBecauseOfYourCountryChoice');
@@ -462,10 +469,25 @@ class modScanInvoices extends DolibarrModules
 	{
 		global $conf, $langs;
 
+		// Version stored on the last activation, used by the migration blocks below.
+		$installedVersion = explode('.', scaninvoicesGetDolGlobalString('SCANINVOICE_MODULE_VERSION', ''));
+
 		$result = $this->_load_tables('/scaninvoices/sql/');
 		if ($result < 0) {
 			return -1;
 		} // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
+
+		// _load_tables() only runs the llx_*.sql files, so the sql/update_001_*.sql migrations
+		// that used to sit next to them were never applied anywhere. On an installation created
+		// before those columns entered the CREATE TABLE, they are still missing today and every
+		// write on the table fails. Those dead files are gone, this block replaces them.
+		$fixon = explode('.', '1.4.98');
+		if (versioncompare($installedVersion, $fixon) < 0) {
+			dol_syslog('ScanInvoices init: applying schema migrations for versions < 1.4.98', LOG_NOTICE);
+			$this->addColumnIfMissing(MAIN_DB_PREFIX . 'scaninvoices_settings', 'manual_import', ['type' => 'text', 'value' => '', 'null' => 'null']);
+			$this->addColumnIfMissing(MAIN_DB_PREFIX . 'scaninvoices_filestoimport', 'sha1', ['type' => 'varchar', 'value' => '40', 'null' => 'null']);
+			$this->addColumnIfMissing(MAIN_DB_PREFIX . 'scaninvoices_filestoimport', 'entity', ['type' => 'integer', 'value' => '', 'default' => '1']);
+		}
 
 		// Create extrafields during init
 		//include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
@@ -533,6 +555,17 @@ class modScanInvoices extends DolibarrModules
 		}
 
 		dolibarr_set_const($this->db, 'SCANINVOICE_MODULE_VERSION', $this->version, 'chaine', 0, 'Active module version', $conf->entity);
+
+		// Tell the user a newer release exists. Best effort: getURLContent() uses a 1s
+		// timeout, so a down version server never delays the activation.
+		$langs->load("scaninvoices@scaninvoices");
+		$checkRes = $this->checkForUpdate();
+		if ($checkRes > 0) {
+			// an empty array, not null: the core only declares the parameter nullable
+			// since Dolibarr 18, and the module still supports older releases
+			setEventMessages($langs->trans('ScanInvoicesNewVersionAvailable', $this->version, $this->lastVersion), array(), 'warnings');
+		}
+
 		// Flush Memcached if active so menus/permissions/constants do not stay stale after activation/upgrade
 		if (scaninvoicesIsModEnabled('memcached') && class_exists('Memcached')) {
 			$m = new Memcached();
@@ -544,6 +577,32 @@ class modScanInvoices extends DolibarrModules
 			}
 		}
 		return $this->_init($sql, $options);
+	}
+
+	/**
+	 *  Add a column to a module table when it is not there yet.
+	 *
+	 *  Re-entrant: the column is selected first, and the ALTER is only sent when that
+	 *  select fails. The probe is a plain SELECT rather than DDLDescTable(), which
+	 *  issues a DESC only MySQL understands. Used by the migration blocks of init().
+	 *
+	 *  @param	string	$table			Full table name, prefix included
+	 *  @param	string	$field			Column name
+	 *  @param	array	$fielddesc		Column description, as expected by DDLAddField()
+	 *  @return	int						1 if added, 0 if already there, -1 on error
+	 */
+	private function addColumnIfMissing($table, $field, $fielddesc)
+	{
+		if ($this->db->query('SELECT ' . $field . ' FROM ' . $table . ' WHERE 1 = 0')) {
+			return 0;
+		}
+
+		if ($this->db->DDLAddField($table, $field, $fielddesc) < 0) {
+			dol_syslog('ScanInvoices init: failed to add column ' . $table . '.' . $field . ': ' . $this->db->lasterror(), LOG_ERR);
+			return -1;
+		}
+		dol_syslog('ScanInvoices init: added missing column ' . $table . '.' . $field, LOG_NOTICE);
+		return 1;
 	}
 
 	/**

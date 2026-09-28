@@ -1,5 +1,15 @@
 # CHANGELOG SCANINVOICES FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 1.4.98 - 20260917
+
+ * fix the auto import chain stopping on a "parsererror" after a php notice
+ * apply the schema migrations that were never run on existing installations
+ * warn on activation when a newer release is available
+ * translate the labels that were still showing their raw key
+ * add the french readme shown by Dolibarr to french customers
+ * announce Dolibarr 14 and PHP 7.4 as the minimum versions
+ * keep local leftovers out of the release archive
+
 ## 1.4.96 - 20260917
 
  * fix invoices imported without their lines when the issuer leaves the unit price empty

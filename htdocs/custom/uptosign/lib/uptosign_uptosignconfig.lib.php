@@ -99,7 +99,7 @@ function uptosignconfigPrepareHead($object)
  * @param   string $modele             [$modele description]
  * @param   bool   $defaultIfNotFound  [$defaultIfNotFound description]
  *
- * @return  string                     [return description]
+ * @return  string|int                 Base64 of the specimen PDF, -1 when no builder was found
  */
 function uptoSignGetSpecimen($objectType, $modele, $defaultIfNotFound = false)
 {

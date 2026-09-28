@@ -248,6 +248,17 @@ function createTableHeader()
 	return $h;
 }
 
+/**
+ * build one row of the automatic import report table
+ *
+ * @param   int     $nb        line number, also used to build the cell ids
+ * @param   string  $filename  name of the imported file
+ * @param   string  $fourn     supplier cell content, already escaped
+ * @param   string  $fact      invoice cell content, already escaped
+ * @param   string  $justif    document cell content, already escaped
+ *
+ * @return  string             the html row
+ */
 function createTableRow($nb, $filename, $fourn, $fact, $justif)
 {
 	$h = "<tr>";

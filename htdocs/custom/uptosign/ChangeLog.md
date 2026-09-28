@@ -1,5 +1,21 @@
 # CHANGELOG UPTOSIGN FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
+## 2.4.16 -- 2026-09-25
+
+ stop calling the server as soon as it answers "too many requests"
+ the pause now survives from one page or webhook to the next
+ space out the archive job downloads and cap how many run at once
+ a procedure the server forgot is marked expired, no longer asked every night
+ no longer trapped in the signature popup when a procedure is already running
+ the signature popup now has its own close button, whatever it displays
+ the signature tab of a thirdparty keeps the tabs of the card, so you can go back
+ same fix for supplier invoices, supplier orders and bank accounts
+ a deleted or unreachable document now says so instead of showing an empty page
+ the grouped list no longer offers to send a batch that is already running
+ fix missing, duplicated and mistranslated labels in french and english
+ warn on module activation when a newer version of UptoSign is available
+ refuse to start a signature when no signatory position has been placed
+
 ## 2.4.14 -- 2026-09-17
 
  the release archive now ships production dependencies only

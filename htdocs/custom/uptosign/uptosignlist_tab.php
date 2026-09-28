@@ -440,6 +440,10 @@ if ($action == 'uptosign') {
 // if (($action == 'confirm_uptosign' || $action == 'confirm_uptoseal')) {
 // }
 
+// Tells apart "the list is not signable any more" (message printed just below, id then
+// cleared on purpose) from "no list at all", which needs its own dead end screen.
+$objectFound = ($object->id > 0);
+
 if ($object->status != UptoSignList::STATUS_DRAFT) {
 	if (!$standalone) {
 		print dol_get_fiche_head($head, 'uptosignlisttab', $langs->trans("UptoSign"), -1, $object->picto);
@@ -470,10 +474,15 @@ if (!$standalone && $object->id > 0) {
 		. '&action=' . urlencode($wizardAction)
 		. ($pdfFileChoosed != '' ? '&pdfFileChoosed=' . urlencode($pdfFileChoosed) : '')
 		. '&standalone=1';
-	uptosign_standalone_print_launcher($wizardUrl, $langs->trans('UptoSignWizardOpen'));
+	uptosign_standalone_print_launcher($wizardUrl, $langs->trans('UptoSignWizardOpen'), $object);
 
 	print dol_get_fiche_end();
-} elseif ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'create'))) {
+} elseif (!$objectFound) {
+	// Deleted list, stale bookmark, or an id from another entity: say so instead of
+	// rendering an empty page the user cannot do anything with.
+	dol_syslog("uptosign: no uptosignlist to sign for id=$id", LOG_WARNING);
+	uptosign_standalone_print_object_not_found();
+} elseif ($object->id > 0) {
 	$res = $object->fetch_optionals();
 
 	$formconfirm = $lineid = '';
@@ -514,38 +523,32 @@ if (!$standalone && $object->id > 0) {
 
 		// Send
 		$api_name = uptosign_unify_api_name($signOrSeal);
-		$result = $uptoSign->fetchByObject((int) $id, uptosign_unify_object_type($modulepart), array('api_name' => $api_name, 'path_file' => $pdfFileChoosedFullPath));
-		// print "<p>UptoSignSignedNoModify : "  .  json_encode($result). "</p>";
-		// print json_encode($uptoSign);
-		if (is_array($result)) {
-			$uts = reset($result);
-			// print "<p>UptoSignSignedNoModify : "  .  json_encode($uts). "</p>";
-
-			$signStatus = $uts->status;
-			if ($action == '') {
-				$action = 'preseal';
-			}
-			if ($action == 'presign' && $uts->api_name == 'uptosign') {
-				$signed = true;
-				if ($signStatus == UptoSign::STATUS_SIGNED || $signStatus == UptoSign::STATUS_SEALED || $signStatus == UptoSign::STATUS_FILE_FETCHED) {
-					// print "<p>UptoSignSignedNoModify</p>";
-					print '<button class="butAction" onclick="#" href="" title="Document déjà signé">Ce document est déjà signé !</button>';
-				}
-				if ($signStatus == UptoSign::STATUS_WAITING) {
-					$target = dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . $uts->id;
-					print "<button class=\"butAction\" onclick=\"event.preventDefault();window.location.href='". $target . "'\" title=\"Procédure en cours\">Une procédure est déjà en cours</button>";
-				}
-			} elseif ($action == 'preseal' && $uts->api_name == 'uptoseal') {
-				$signed = true;
-				if ($signStatus == UptoSign::STATUS_SIGNED || $signStatus == UptoSign::STATUS_SEALED || $signStatus == UptoSign::STATUS_FILE_FETCHED) {
-					// print "<p>UptoSignSignedNoModify</p>";
-					print '<button class="butAction" onclick="#" href="" title="Document déjà scellé">Ce document est déjà scellé !</button>';
-				}
-				if ($signStatus == UptoSign::STATUS_WAITING) {
-					$target = dol_buildpath('/uptosign/uptosignlist_card.php', 1) . '?id=' . $uts->id;
-					print "<button class=\"butAction\" onclick=\"event.preventDefault();window.location.href='". $target . "'\" title=\"Procédure en cours\">Une procédure est déjà en cours</button>";
+		if ($action == '') {
+			$action = 'preseal';
+		}
+		// A grouped signature never stores the list in fk_object/object_type: those hold
+		// the SIGNER (a contact, a user, a member...), and the only link back to the list
+		// is fk_uptosignlist. Asking fetchByObject() for the list id therefore always came
+		// back empty, and the whole branch below was dead code.
+		$children = $uptoSign->fetchChildsOfList((int) $id, $api_name);
+		$waiting = 0;
+		if (is_array($children)) {
+			foreach ($children as $child) {
+				if ((int) $child->status === UptoSign::STATUS_WAITING) {
+					$waiting++;
 				}
 			}
+		} else {
+			dol_syslog("uptosign: fetchChildsOfList failed for uptosignlist #" . $id . " : " . $uptoSign->error, LOG_ERR);
+		}
+		if ($waiting > 0) {
+			// Hide the send buttons: the batch is running, sending it again would start a
+			// second procedure for every signer. Link to the tracking table rather than to
+			// the list card, it is the page telling where each signer stands.
+			$signed = true;
+			dol_syslog("uptosign: uptosignlist #" . $id . " already has " . $waiting . " " . $api_name . " procedure(s) waiting");
+			$target = dol_buildpath('/uptosign/uptosignlist_docs.php', 1) . '?id=' . (int) $id;
+			print uptosign_standalone_leave_link($target, $langs->trans('UptoSignProcedureAlreadyRunning'));
 		}
 		print '</div> <!-- end of presend -->'."\n";
 	}
@@ -608,23 +611,24 @@ if (!$standalone && $object->id > 0) {
 	print '	  </div>' . "\n";
 
 	print '<div style="clear: both; margin: auto; text-align: center;">'."\n";
-	if ($signed) {
-	} else {
+	// $signed means a batch is already running for that api_name: offering the title
+	// field and the send button again would start a second procedure per signer.
+	if (!$signed) {
 		// print '<button class="butAction" onclick="formSave();" href="" title="Sauvegarder la position des objets">Sauvegarder le paramétrage</button>';
 		$ref_client = $object->ref_client ?? "";
 		$defaultTitle = uptosign_make_document_title($object->ref, $ref_client, $objectType);
 		print "<label for='refTitle'>" . $langs->trans('UptoSignDocumentTitle') . "</label>\n";
 		print "<input type='text' name='refTitle' value='" . dol_escape_htmltag($defaultTitle) . "' size='40'><br />\n";
-	}
 
-	if ($object->getNbContacts() > 30) {
-		print '		 <p>' . $langs->trans("UptoSignSendToSignListMoreThanTen") . '</p>'."\n";
-	} elseif ($object->getNbContacts() == 1) {
-		print '		 <button class="butAction" onclick="submit();" href="" title="' . $langs->trans("UptoSignSendToSignList") . '">' . $langs->trans("UptoSignBtnOnlySignListOne", $object->getNbContacts()) . '</button>'."\n";
-	} elseif ($object->getNbContacts() > 0) {
-		print '		 <button class="butAction" onclick="submit();" href="" title="' . $langs->trans("UptoSignSendToSignList") . '">' . $langs->trans("UptoSignBtnOnlySignList", $object->getNbContacts()) . '</button>'."\n";
-	} else {
-		print '		 <p>' . $langs->trans("UptoSignSendToSignListEmpty") . '</p>'."\n";
+		if ($object->getNbContacts() > 30) {
+			print '		 <p>' . $langs->trans("UptoSignSendToSignListMoreThanTen") . '</p>'."\n";
+		} elseif ($object->getNbContacts() == 1) {
+			print '		 <button class="butAction" onclick="submit();" href="" title="' . $langs->trans("UptoSignSendToSignList") . '">' . $langs->trans("UptoSignBtnOnlySignListOne", $object->getNbContacts()) . '</button>'."\n";
+		} elseif ($object->getNbContacts() > 0) {
+			print '		 <button class="butAction" onclick="submit();" href="" title="' . $langs->trans("UptoSignSendToSignList") . '">' . $langs->trans("UptoSignBtnOnlySignList", $object->getNbContacts()) . '</button>'."\n";
+		} else {
+			print '		 <p>' . $langs->trans("UptoSignSendToSignListEmpty") . '</p>'."\n";
+		}
 	}
 	print '</div>'."\n";
 

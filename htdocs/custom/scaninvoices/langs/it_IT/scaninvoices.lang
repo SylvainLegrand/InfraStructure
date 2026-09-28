@@ -160,3 +160,94 @@ OcrCopyDetailsIntro=Copia i dettagli qui sotto e inviali all'assistenza per velo
 OcrCopyDetailsButton=Copia i dettagli per l'assistenza
 OcrDetailsCopied=Dettagli copiati negli appunti
 OcrUploadInvalidResponse=Caricamento non riuscito: risposta del server non valida. Riprova o contatta l'assistenza.
+ScanInvoicesNewVersionAvailable=ScanInvoices: è disponibile una versione più recente (installata %s, disponibile %s). Si consiglia di aggiornare.
+
+#
+# Demonstration data set (admin/demo.php)
+#
+ScanInvoicesDemoTitle=Set di dimostrazione
+ScanInvoicesDemoIntro=Questa pagina scrive un set di dati fittizi per presentare il modulo: fornitori, impostazioni di riconoscimento, coda di importazione e fatture fornitore. Non deve mai essere usata su un'installazione di produzione.
+ScanInvoicesDemoState=Documenti di dimostrazione attualmente presenti: %s
+ScanInvoicesDemoConfirm=Ho compreso che queste due azioni scrivono o eliminano dati in blocco
+ScanInvoicesDemoConfirmRequired=Spuntare la casella di conferma prima di generare o eliminare.
+ScanInvoicesDemoRefusedOnProduction=La generazione e l'eliminazione dei dati di dimostrazione sono riservate alle installazioni di dimostrazione o di sviluppo.
+ScanInvoicesDemoGenerate=Genera i dati
+ScanInvoicesDemoPurge=Elimina i dati
+ScanInvoicesDemoJournal=Registro dell'operazione
+ScanInvoicesDemoGenerated=Set di dimostrazione generato
+ScanInvoicesDemoGeneratedWithWarnings=Set di dimostrazione generato con %s avviso/i
+ScanInvoicesDemoGenerateFailed=%s errore/i critico/i, i dati sono stati annullati
+ScanInvoicesDemoPurged=Set di dimostrazione eliminato
+ScanInvoicesDemoPurgedWithWarnings=Set di dimostrazione eliminato con %s avviso/i
+ScanInvoicesDemoPurgeFailed=%s errore/i critico/i, non è stato eliminato nulla
+ScanInvoicesDemoAccounts=Account di dimostrazione (utente / password)
+ScanInvoicesDemoLogCreated=%s creato: %s (ID %s)
+ScanInvoicesDemoLogReused=%s riutilizzato: %s (ID %s)
+ScanInvoicesDemoLogFailed=%s "%s": %s
+ScanInvoicesDemoLogFatal=%s "%s": %s
+ScanInvoicesDemoLogDeleted=%s eliminato/i: %s
+ScanInvoicesDemoObjectProduct=Servizio predefinito
+ScanInvoicesDemoObjectSupplier=Fornitore
+ScanInvoicesDemoObjectSetting=Impostazione di riconoscimento
+ScanInvoicesDemoObjectGroup=Gruppo di utenti
+ScanInvoicesDemoObjectGroupMember=Aggiunta al gruppo
+ScanInvoicesDemoObjectUser=Utente
+ScanInvoicesDemoObjectPassword=Password
+ScanInvoicesDemoObjectRight=Permesso
+ScanInvoicesDemoObjectDocument=Documento da importare
+ScanInvoicesDemoObjectInvoice=Fattura fornitore
+ScanInvoicesDemoObjectInvoiceLine=Riga di fattura
+ScanInvoicesDemoObjectFile=File
+ScanInvoicesDemoNoErrorMessage=(nessun messaggio di errore)
+ScanInvoicesDemoNotFoundAfterCreate=creato ma non trovato nel database
+ScanInvoicesDemoCannotCreateDir=non è stato possibile creare la cartella di deposito
+ScanInvoicesDemoCannotWriteFile=non è stato possibile scrivere il documento
+ScanInvoicesDemoProductLabel=Acquisti di dimostrazione
+ScanInvoicesDemoGroupNote=Gruppo creato dal set di dimostrazione di ScanInvoices
+ScanInvoicesDemoInvoiceLine=riga %s
+ScanInvoicesDemoSummary=%s documento/i, %s fattura/e fornitore, %s fornitore/i e %s account di dimostrazione
+ScanInvoicesDemoSummaryFiles=%s documento/i PDF scritto/i, di cui %s con la loro anteprima
+ScanInvoicesDemoMessageWaiting=Documento in attesa di invio al server OCR
+ScanInvoicesDemoMessageAnalyzed=Documento analizzato, fornitore riconosciuto: %s
+ScanInvoicesDemoMessagePartial=Fornitore %s riconosciuto, ma non è stato possibile creare alcuna fattura
+ScanInvoicesDemoMessageSuccess=Fornitore %s riconosciuto, fattura %s importata
+ScanInvoicesDemoMessageError=Non è stato possibile leggere il documento, pagina troppo scura o illeggibile
+ScanInvoicesDemoNoOcrAccount=Nessun account OCR è configurato: il riconoscimento di nuovi documenti richiede una chiave API nella configurazione del modulo.
+
+#
+# OCR account not configured yet
+#
+ScanInvoicesAccountNotConfigured=L'account del server OCR non è ancora configurato: nessun documento può essere analizzato finché non sono indicati l'indirizzo del server e l'account.
+ScanInvoicesAccountConfigureHere=Clicca qui per configurare il tuo account
+ScanInvoicesAccountAskAdmin=Chiedi all'amministratore del tuo Dolibarr di configurare l'account del modulo.
+ScanInvoicesPasswordKept=Lasciare vuoto per conservare la password registrata
+ScanInvoicesPasswordNew=Password dell'account OCR
+
+#
+# Welcome page and demonstration mode (index.php)
+#
+ScanInvoicesWelcomeTitle=Benvenuto in ScanInvoices
+ScanInvoicesWelcomeIntro=ScanInvoices legge le tue fatture fornitore in PDF e crea il fornitore e la fattura in Dolibarr, senza inserire dati.
+ScanInvoicesWelcomeDemoBanner=Sei in una dimostrazione di ScanInvoices
+ScanInvoicesWelcomeDemoBannerDetail=I fornitori, i documenti e le fatture che vedi sono fittizi. Puoi provare tutto, niente ha conseguenze.
+ScanInvoicesWelcomeBackToDashboard=Torna al cruscotto di Dolibarr
+ScanInvoicesWelcomeFigures=In breve
+ScanInvoicesWelcomeHowTo=Da dove cominciare
+ScanInvoicesWelcomeFigureTotal=Documenti in coda
+ScanInvoicesWelcomeFigureWaiting=In attesa di analisi
+ScanInvoicesWelcomeFigureImported=Importati
+ScanInvoicesWelcomeFigurePartial=Parziali o in errore
+ScanInvoicesWelcomeFigureInvoices=Fatture fornitore create
+ScanInvoicesWelcomeFigureSettings=Impostazioni di riconoscimento
+ScanInvoicesWelcomeStep1=Apri la coda di importazione: ogni riga è un documento scansionato, con il fornitore riconosciuto e la fattura creata.
+ScanInvoicesWelcomeStep1Button=Vedi la coda di importazione
+ScanInvoicesWelcomeStep2=Carica una fattura in PDF e segui la lettura, dal documento grezzo alla fattura fornitore.
+ScanInvoicesWelcomeStep2Button=Importa una fattura
+ScanInvoicesWelcomeStep3=Guarda un'impostazione di riconoscimento: è quella che dice dove leggere le informazioni sui documenti di un fornitore.
+ScanInvoicesWelcomeStep3Button=Vedi le impostazioni
+ScanInvoicesWelcomeStep4=Apri le fatture fornitore di Dolibarr: quelle con un riferimento sono state create dal modulo.
+ScanInvoicesWelcomeStep4Button=Vedi le fatture fornitore
+ScanInvoicesDemoLogModeActivated=Modalità dimostrazione attiva, la pagina iniziale di Dolibarr porta ora al modulo
+ScanInvoicesDemoLogModeActivationFailed=Non è stato possibile attivare la modalità dimostrazione, la pagina iniziale di Dolibarr resta invariata
+ScanInvoicesDemoLogModeDeactivated=Modalità dimostrazione disattivata, la pagina iniziale di Dolibarr è ripristinata
+ScanInvoicesDemoLogModeDeactivationFailed=Non è stato possibile disattivare completamente la modalità dimostrazione

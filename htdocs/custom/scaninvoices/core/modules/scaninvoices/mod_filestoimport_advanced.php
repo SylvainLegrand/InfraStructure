@@ -124,7 +124,7 @@ class mod_filestoimport_advanced extends ModeleNumRefFilestoimport
 	 * 	Return next free value
 	 *
 	 *  @param  Object		$object		Object we need next value for
-	 *  @return string      			Value if KO, <0 if KO
+	 *  @return string      			Value if OK, empty if KO
 	 */
 	public function getNextValue($object)
 	{
@@ -137,7 +137,10 @@ class mod_filestoimport_advanced extends ModeleNumRefFilestoimport
 
 		if (!$mask) {
 			$this->error = 'NotConfigured';
-			return 0;
+			dol_syslog("mod_filestoimport_advanced::getNextValue no mask configured", LOG_ERR);
+			// not 0: getNextNumRef() rejects the value on '' and on '-1', and since PHP 8
+			// the int 0 no longer compares equal to '', so it was taken as a valid ref
+			return '';
 		}
 
 		$date = $object->date;

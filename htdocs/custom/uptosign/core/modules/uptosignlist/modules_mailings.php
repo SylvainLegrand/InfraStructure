@@ -31,6 +31,9 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
  */
 class UptosignListTargets // This can't be abstract as it is used for some method
 {
+	/**
+	 * @var array<int, string> Error messages
+	 */
 	public $errors;
 
 	/**
@@ -48,6 +51,9 @@ class UptosignListTargets // This can't be abstract as it is used for some metho
 	 */
 	public $error = '';
 
+	/**
+	 * @var string Help text shown next to the selector name
+	 */
 	public $tooltip = '';
 
 	/**
@@ -55,11 +61,35 @@ class UptosignListTargets // This can't be abstract as it is used for some metho
 	 */
 	public $sql;
 
+	/**
+	 * @var string Description of the selector
+	 */
 	public $desc;
 
+	/**
+	 * @var string Name of the selector
+	 */
 	public $name;
 
-	public $evenunsubscribe = 0;		// Set this to 1 if you want to flag you also want to include email in target that has opt-out.
+	/**
+	 * @var int Set this to 1 if you want to flag you also want to include email in target that has opt-out.
+	 */
+	public $evenunsubscribe = 0;
+
+	/**
+	 * @var array<int, string> Modules that must be enabled for this selector to be offered
+	 */
+	public $require_module = array();
+
+	/**
+	 * @var int Set to 1 when the selector is reserved to admin users
+	 */
+	public $require_admin = 0;
+
+	/**
+	 * @var string Name of the icon shown next to the selector
+	 */
+	public $picto = '';
 
 
 	/**

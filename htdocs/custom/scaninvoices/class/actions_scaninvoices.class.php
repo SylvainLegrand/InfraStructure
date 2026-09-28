@@ -23,10 +23,12 @@
  * Put detailed description here.
  */
 
-dol_include_once('/scaninvoices/class/filestoimport.class.php');
-dol_include_once('/scaninvoices/lib/scaninvoices_filestoimport.lib.php');
+// Only the light libraries here. Since the module declares the "main" context,
+// this file is loaded on every single page of Dolibarr: filestoimport.class.php
+// and scaninvoices.lib.php weigh 170 KB together and are needed by one method,
+// which loads them itself.
 dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
-dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
+dol_include_once('/scaninvoices/lib/scaninvoices_demo_home.lib.php');
 
 /**
  * Class ActionsScanInvoices
@@ -119,55 +121,6 @@ class ActionsScanInvoices
 		// dol_syslog("******************************* addMoreActionsButtons parameters ::" . json_encode($parameters));
 		// dol_syslog("******************************* addMoreActionsButtons object " . json_encode($object));
 		return;
-		// if (in_array($parameters['currentcontext'], array('contractcard'))				// do something only for the context 'contractcard'
-		//     if ($user->rights->sellyoursaas->write) {
-		//         if (in_array($object->array_options['options_deployment_status'], array('processing', 'undeployed'))) {
-		//             $alt = $langs->trans("SellYourSaasSubDomains").' '.scaninvoicesGetDolGlobalString('SELLYOURSAAS_SUB_DOMAIN_NAMES');
-		//             $alt.= '<br>'.$langs->trans("SellYourSaasSubDomainsIP").' '.scaninvoicesGetDolGlobalString('SELLYOURSAAS_SUB_DOMAIN_IP');
-
-		//             print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=deploy&token='.urlencode(newToken()).'" title="'.dol_escape_htmltag($alt).'">' . $langs->trans('Redeploy') . '</a>';
-		//         } else {
-		//             print '<a class="butActionRefused" href="#" title="'.$langs->trans("ContractMustHaveStatusProcessingOrUndeployed").'">' . $langs->trans('Redeploy') . '</a>';
-		//         }
-
-		//         if (in_array($object->array_options['options_deployment_status'], array('done'))) {
-		//             print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=refresh&token='.urlencode(newToken()).'">' . $langs->trans('RefreshRemoteData') . '</a>';
-
-		//             if (empty($object->array_options['options_fileauthorizekey'])) {
-		//                 print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=recreateauthorizedkeys&token='.urlencode(newToken()).'">' . $langs->trans('RecreateAuthorizedKey') . '</a>';
-		//             }
-
-		//             /*if (empty($object->array_options['options_filelock']))
-		//             {
-		//                 print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=recreatelock&token='.newToken().'">' . $langs->trans('RecreateLock') . '</a>';
-		//             }
-		//             else
-		//             {
-		//                 print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=deletelock&token='.newToken().'">' . $langs->trans('SellYourSaasRemoveLock') . '</a>';
-		//             }*/
-		//         } else {
-		//             print '<a class="butActionRefused" href="#" title="'.$langs->trans("ContractMustHaveStatusDone").'">' . $langs->trans('RefreshRemoteData') . '</a>';
-		//         }
-
-		//         if (in_array($object->array_options['options_deployment_status'], array('done'))) {
-		//             if (empty($object->array_options['options_suspendmaintenance_message'])) {
-		//                 print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=suspendmaintenancetoconfirm&token='.urlencode(newToken()).'">' . $langs->trans('Maintenance') . '</a>';
-		//             } else {
-		//                 print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=unsuspend&token='.urlencode(newToken()).'">' . $langs->trans('StopMaintenance') . '</a>';
-		//             }
-		//         }
-
-		//         if (in_array($object->array_options['options_deployment_status'], array('done'))) {
-		//             print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=undeploy&token='.urlencode(newToken()).'">' . $langs->trans('Undeploy') . '</a>';
-		//         } else {
-		//             print '<a class="butActionRefused" href="#" title="'.$langs->trans("ContractMustHaveStatusDone").'">' . $langs->trans('Undeploy') . '</a>';
-		//         }
-
-		//         print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=changecustomer&token='.urlencode(newToken()).'" title="'.$langs->trans("ChangeCustomer").'">' . $langs->trans('ChangeCustomer') . '</a>';
-		//     }
-		// }
-
-		// return 0;
 	}
 
 
@@ -401,15 +354,15 @@ class ActionsScanInvoices
 	/**
 	 * hook to get files attachment on email via dolibarr mail collector core module
 	 *
-	 * @param   [type]  $parameters  [$parameters description]
-	 * @param   [type]  $data        [$data description]
-	 * @param   [type]  $operation   [$operation description]
+	 * @param   array   $parameters  hook parameters given by the caller
+	 * @param   array   $data        attachments of the collected mail, as filename => content
+	 * @param   array   $operation   emailcollector operation being executed
 	 *
-	 * @return  [type]               [return description]
+	 * @return  int                  1 on success, 0 when nothing was imported
 	 */
 	public function addmoduletoeamailcollectorjoinpiece($parameters, &$data, &$operation)
 	{
-		global $user;
+		global $user, $langs;
 		$documentAjoute = 0;
 
 		include_once DOL_DOCUMENT_ROOT.'/emailcollector/lib/emailcollector.lib.php';
@@ -427,6 +380,13 @@ class ActionsScanInvoices
 		if (!isset($operation['actionparam']) || $operation['actionparam'] !== "scaninvoices") {
 			return 0;
 		}
+
+		// Loaded here rather than at the top of the file: this is the only method
+		// of the class that needs them, and the class itself now travels on every
+		// page of Dolibarr.
+		dol_include_once('/scaninvoices/class/filestoimport.class.php');
+		dol_include_once('/scaninvoices/lib/scaninvoices_filestoimport.lib.php');
+		dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 
 		$acceptFiles = ['pdf','jpg','jpeg'];
 		$dirupload = DOL_DATA_ROOT.'/scaninvoices/uploads/later/';
@@ -488,6 +448,38 @@ class ActionsScanInvoices
 		}
 
 		return 1;
+	}
+
+	/**
+	 * Hook updateSession: divert the Dolibarr home page while a demonstration runs.
+	 *
+	 * main.inc.php runs it on every page of an established session, before any
+	 * output, which is what makes header('Location:') possible here. The hooks of
+	 * htdocs/index.php all run after llxHeader(), when the headers are already
+	 * sent: a redirection there is ignored and an exit leaves a truncated page.
+	 *
+	 * @param	array			$parameters		Hook metadata (context...)
+	 * @param	CommonObject	$object			Current object
+	 * @param	string			$action			Current action
+	 * @param	HookManager		$hookmanager	Hook manager
+	 * @return	int								0 to let the other hooks run
+	 */
+	public function updateSession($parameters, &$object, &$action, $hookmanager)
+	{
+		global $user;
+
+		$target = scaninvoicesDemoHomeRedirect(
+			isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : '',
+			GETPOSTISSET(SCANINVOICES_NODEMO_PARAM) ? (int) GETPOST(SCANINVOICES_NODEMO_PARAM, 'int') : null,
+			$user
+		);
+
+		if ($target !== '') {
+			header('Location: ' . $target);
+			exit;
+		}
+
+		return 0;
 	}
 
 	/* Add here any other hooked methods... */

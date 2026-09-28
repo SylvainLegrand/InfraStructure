@@ -418,7 +418,7 @@ if (($id || $ref) && $action == 'edit') {
 
 	print '</div>';
 
-	print displayPDF($object, false);
+	displayPDF($object, false);
 	print '</form>';
 }
 
@@ -560,7 +560,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</div>'."\n";
 	}
 
-	print displayPDF($object, true);
+	displayPDF($object, true);
 
 	print '<div class="clearboth"></div>';
 
@@ -611,6 +611,13 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 llxFooter();
 $db->close();
 
+/**
+ * Print the specimen PDF of the document type the configuration applies to
+ *
+ * @param   UptoSignConfig  $object    Configuration being displayed
+ * @param   bool            $readOnly  Show the preview without the position pickers
+ * @return  void
+ */
 function displayPDF($object, $readOnly = true)
 {
 	$model_pdf = uptosignModel($object);

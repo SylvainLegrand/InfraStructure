@@ -318,7 +318,7 @@ function uptosignuserAgent()
 /**
  * try to login with api key
  *
- * @return  string  [return description]
+ * @return  bool    true when the remote profile could be read
  */
 function uptosignApiTryLoginWithAPIKey()
 {
@@ -386,7 +386,7 @@ function uptosignApiCreateAccount()
 		}
 		dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json['access_token'], 'chaine', 0, '', $conf->entity);
 		// A fresh key deserves a fresh chance: forget the previous auth failures
-		UptoSignAPIClient::resetCircuit();
+		UptoSignAPIClient::resetCircuit($db);
 		$mesg = $langs->trans('CreateAccountOK');
 		$mesgType = "mesgs";
 		$retour = true;
@@ -432,7 +432,7 @@ function uptosignApiTryLoginWithUserPass()
 		}
 		dolibarr_set_const($db, 'UPTOSIGN_KEY_API', $json['access_token'], 'chaine', 0, '', $conf->entity);
 		// A fresh key deserves a fresh chance: forget the previous auth failures
-		UptoSignAPIClient::resetCircuit();
+		UptoSignAPIClient::resetCircuit($db);
 		$mesg = $langs->trans('CheckConnectOK');
 		$mesgType = "mesgs";
 	}
@@ -479,6 +479,7 @@ function uptosignMergeMessage($srvMsg)
  * uptosignApiGetInfoAboutWebservice get informations about remote webservice (available, free, heavy loaded ...)
  * that function is directly called from php script (ie not from api.php AJAX)
  *
+ * @param   string  $format  'html' for a ready to print block, anything else for the raw json
  * @return  string  [return description]
  */
 function uptosignApiGetInfoAboutWebservice($format = 'html')
@@ -542,6 +543,9 @@ function uptosignApiGetInfoAboutWebservice($format = 'html')
 
 /**
  * Build random string $length
+ *
+ * @param   int     $length  Length of the string to build, must be even
+ * @return  string
  */
 function uptosignStrRand($length = 32)
 {
@@ -791,6 +795,12 @@ function uptosign_translate_object_type($code)
 	return $res;
 }
 
+/**
+ * Turn a path relative to the documents directory into an absolute one
+ *
+ * @param   string|null  $path  Relative or already absolute path
+ * @return  string|null         Absolute path
+ */
 function uptosign_full_path($path)
 {
 	if (!empty($path)) {
@@ -801,6 +811,12 @@ function uptosign_full_path($path)
 	return $path;
 }
 
+/**
+ * Turn an absolute path into one relative to the documents directory
+ *
+ * @param   string|null  $path  Absolute or already relative path
+ * @return  string              Relative path
+ */
 function uptosign_relative_path($path)
 {
 	return trim(str_replace(DOL_DATA_ROOT, '', $path ?? ''), '/\\');
@@ -1045,6 +1061,14 @@ function uptosign_find_next_filename($str, $signOrSeal = '', $ts = null)
 	return $str;
 }
 
+/**
+ * Build the title shown to the signatory for a document
+ *
+ * @param   string       $ref           Reference of the Dolibarr object
+ * @param   string|null  $customer_ref  Customer reference, appended between brackets
+ * @param   string       $typeOfObject  Element name (propal, facture, ...)
+ * @return  string
+ */
 function uptosign_make_document_title($ref, $customer_ref, $typeOfObject)
 {
 	global $langs;
@@ -1284,7 +1308,6 @@ function uptosign_auto_position_magic_keywords_smalot($pdffilename, &$arr, $acti
 			}
 		}
 
-		/** @phpstan-ignore-next-line */
 		$keywords = ["SIGN_00" => "UPTOSIGN_SIGN_TO_HERE", "SIGN_00new" => "UPTOSIGN_SIGN_TO_00_HERE", "SIGN_01" => "UPTOSIGN_SIGN_TO_01_HERE", "SIGN_02" => "UPTOSIGN_SIGN_TO_02_HERE"];
 		foreach ($keywords as $key => $keyword) {
 			//bad due to history
@@ -1376,7 +1399,6 @@ function uptosign_auto_position_magic_keywords_pdftotext($pdffilename, &$arr, $a
 			}
 			dol_syslog("uptosign: uptosign_auto_position_magic_keywords_pdftotext::auto_position_pdftotext for " . json_encode($keywords) . ", result is " . json_encode($arr));
 
-			/** @phpstan-ignore-next-line */
 			$keywords = ["SIGN_00" => "UPTOSIGN_SIGN_TO_HERE", "SIGN_00new" => "UPTOSIGN_SIGN_TO_00_HERE", "SIGN_01" => "UPTOSIGN_SIGN_TO_01_HERE", "SIGN_02" => "UPTOSIGN_SIGN_TO_02_HERE"];
 			foreach ($keywords as $key => $keyword) {
 				//bad due to history
@@ -1535,7 +1557,7 @@ function uptosign_send_mail($to, $subject, $message)
 	$from = utsbackports_getDolGlobalString('MAIN_MAIL_EMAIL_FROM', '');
 	if (empty(trim($from)) || empty(trim($to))) {
 		dol_syslog("uptosign: uptosign_send_mail early return, from=$from or to=$to is empty", LOG_INFO);
-		return;
+		return false;
 	}
 
 	$ishtml = 0;
@@ -1589,14 +1611,20 @@ function uptosignApiCheckResellerMode()
 	return null;
 }
 
-//Returns a qrcode of uri
+/**
+ * Returns a qrcode of uri
+ *
+ * @param   string  $uri  Address to encode
+ * @return  string        Raw PNG data of the barcode, empty string when it cannot be built
+ */
 function uptosignQRCode($uri)
 {
 	$qrmodule = new modTcpdfbarcode();
 
 	$tcpdfEncoding = $qrmodule->getTcpdfEncodingType('QRCODE');
 	if (empty($tcpdfEncoding)) {
-		return -1;
+		dol_syslog("uptosign: uptosignQRCode no TCPDF encoding available for QRCODE", LOG_ERR);
+		return '';
 	}
 
 	$color = array(0, 0, 0);
@@ -1604,7 +1632,8 @@ function uptosignQRCode($uri)
 	$width = 3;
 	require_once TCPDF_PATH . 'tcpdf_barcodes_2d.php';
 	$barcodeobj = new TCPDF2DBarcode($uri, $tcpdfEncoding);
-	return $barcodeobj->getBarcodePngData($width, $height, $color);
+	// The callers embed the result in a data: URI, so hand back a string in every case
+	return (string) $barcodeobj->getBarcodePngData($width, $height, $color);
 }
 
 
@@ -1613,7 +1642,7 @@ function uptosignQRCode($uri)
  *
  * @param   string  $email  [$email description]
  *
- * @return  Societe          [return description]
+ * @return  Societe|null     Thirdparty carrying that email, null when none matches
  */
 function uptosignSearchThirdpartWithEmail($email)
 {
@@ -1820,6 +1849,7 @@ function uptosignCreateContract($customerid, $uptosignid)
  * creation automatique d'une facture récurrente dolibarr
  *
  * @param   int  $customerid  id of dolibarr customer
+ * @param   int  $contractid  id du contrat lié à la facture recurrente
  * @param   int  $factureid	id de la facture à cloner comme facture recurrente
  *
  * @return  int               [return description]
@@ -1868,18 +1898,9 @@ function uptosignCreateFactureRec($customerid, $contractid, $factureid)
 	//tous les 2 du mois, le 1er tournera la tache planifiee qui actualisera les compteurs
 	$date_next_execution = dol_mktime(0, 0, 0, date('m') + 1, 2, (int) date('Y'), false);
 	$invoice_rec->date_when = $date_next_execution;
-	// Facture (the invoice header) does not declare localtax1_tx / localtax2_tx -- these
-	// live on the lines (FactureLigne). Read defensively to avoid Undefined property warnings.
-	// Likewise FactureRec may not declare these properties on every Dolibarr version, so
-	// only set them when the class has them as real or already-existing properties.
-	$srcLocaltax1 = $invoice_draft->localtax1_tx ?? 0;
-	$srcLocaltax2 = $invoice_draft->localtax2_tx ?? 0;
-	if (property_exists($invoice_rec, 'localtax1_tx')) {
-		$invoice_rec->localtax1_tx = get_localtax($srcLocaltax1, 1, $invoice_draft->thirdparty);
-	}
-	if (property_exists($invoice_rec, 'localtax2_tx')) {
-		$invoice_rec->localtax2_tx = get_localtax($srcLocaltax2, 2, $invoice_draft->thirdparty);
-	}
+	// No localtax to carry over on the header: neither Facture nor FactureRec declares
+	// localtax1_tx / localtax2_tx on Dolibarr 15 to 21, the rates live on the lines
+	// (FactureLigne) and are recomputed by addline() when the lines are copied.
 
 	// Get first contract linked to invoice used to generate template
 	if ($invoice_draft->id > 0) {
@@ -1970,7 +1991,7 @@ function uptosignCreateFirstFacture($customerid)
 		$srcobject = $contract;
 
 		$lines = $srcobject->lines;
-		if (empty($lines) && method_exists($srcobject, 'fetch_lines')) {
+		if (empty($lines)) {
 			$srcobject->fetch_lines();
 			$lines = $srcobject->lines;
 		}
@@ -2131,7 +2152,7 @@ function uptosignCreateFacture($customerid, $prorataTemporis = false, $validateI
 		$srcobject = $contract;
 
 		$lines = $srcobject->lines;
-		if (empty($lines) && method_exists($srcobject, 'fetch_lines')) {
+		if (empty($lines)) {
 			$srcobject->fetch_lines();
 			$lines = $srcobject->lines;
 		}
@@ -2804,7 +2825,7 @@ function uptosignListOfFilesLinkedTo(CommonObject $obj)
  *
  * @param   CommonObject  $object  $object description
  *
- * @return  int|null           [return description]
+ * @return  bool|null           true/false when the class declares STATUS_SIGNED, null otherwise
  */
 function uptosignCheckStatusSigned($object)
 {
@@ -2820,7 +2841,7 @@ function uptosignCheckStatusSigned($object)
 /**
  * create invoice from proposal
  *
- * @param   $object  dolibarr propal object
+ * @param   CommonObject  $object  dolibarr propal object
  *
  * @return  null|Facture           dolibarr invoice
  */
@@ -3107,6 +3128,18 @@ function uptosignSendInvoiceMailModele($modele, $object, $actionCode = "", $forc
 
 
 
+/**
+ * Record an agenda event about what just happened on an object
+ *
+ * @param   CommonObject        $object              Object the event is attached to
+ * @param   string              $actioncode          Code appended to 'AC_' to build the event code
+ * @param   string              $label               Label of the event
+ * @param   string              $description         Private note of the event
+ * @param   array<int, string>  $postactionmessages  Lines describing what has been done
+ * @param   string              $extraparams         Extra parameters, truncated to 250 chars
+ * @param   int|null            $date                Date of the event, now when empty
+ * @return  void
+ */
 function uptosignAddActionComm($object, $actioncode, $label, $description, $postactionmessages, $extraparams, $date = null)
 {
 	global $db, $user;
@@ -3200,7 +3233,6 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 	} elseif ($objectType == 'delivery') {
 		if (((int) DOL_VERSION) > 12) {
 			require_once DOL_DOCUMENT_ROOT . '/delivery/class/delivery.class.php';
-			/** @phpstan-ignore-next-line */
 			$object = new Delivery($db);
 			$modulepart = "delivery";
 			$pdfpath = isset($conf->expedition->dir_output) ? $conf->expedition->dir_output . '/receipt' : '';
@@ -3227,12 +3259,16 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		$pdfpath = isset($conf->expedition->dir_output) ? $conf->expedition->dir_output . '/sending' : '';
 	} elseif ($objectType == 'invoice_supplier') {
 		require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.facture.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/fourn.lib.php';
 		$object = new FactureFournisseur($db);
 		$modulepart = "supplier_invoice";
+		$functionHead = 'facturefourn_prepare_head';
 		$pdfpath = $conf->fournisseur->facture->dir_output ?? '';
 	} elseif ($objectType == 'societe') {
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 		$object = new Societe($db);
 		$modulepart = "societe";
+		$functionHead = 'societe_prepare_head';
 		$pdfpath = $conf->societe->multidir_output[$conf->entity] ?? '';
 	} elseif ($objectType == 'project' || $objectType == 'projet') {
 		require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
@@ -3272,8 +3308,10 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 	} elseif ($objectType == 'bankaccount') {
 		//TODO verif
 		require_once DOL_DOCUMENT_ROOT . '/compta/bank/class/account.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/bank.lib.php';
 		$object = new Account($db);
 		$modulepart = "bank";
+		$functionHead = 'bank_prepare_head';
 		$pdfpath = $conf->bank->dir_output ?? '';
 	} elseif ($objectType == 'sepamandate') {
 		//TODO verif
@@ -3283,8 +3321,10 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		$pdfpath = $conf->bank->dir_output ?? '';
 	} elseif ($objectType == 'order_supplier') {
 		require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.class.php';
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/fourn.lib.php';
 		$object = new CommandeFournisseur($db);
 		$modulepart = "supplier_order";
+		$functionHead = 'ordersupplier_prepare_head';
 		$pdfpath = $conf->fournisseur->commande->dir_output ?? '';
 	} elseif ($objectType == 'infrassalariescontracts') {
 		dol_include_once('/infrassalariescontracts/class/infrassalariescontracts.class.php');
@@ -3292,7 +3332,6 @@ function uptosign_handle_all_type_of_objects($objectType, $id = null)
 		/** @phpstan-ignore-next-line */
 		$object = new InfraSSalariesContracts($db);
 		$modulepart = "infrassalariescontracts";
-		/** @phpstan-ignore-next-line */
 		$functionHead = 'infrassalariescontracts_prepare_head';
 	}
 

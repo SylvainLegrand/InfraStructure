@@ -36,6 +36,9 @@ class mod_settings_standard extends ModeleNumRefSettings
 	 */
 	public $version = 'dolibarr'; // 'development', 'experimental', 'dolibarr'
 
+	/**
+	 * @var string Prefix of every generated reference
+	 */
 	public $prefix = 'SISETTINGS';
 
 	/**
@@ -113,7 +116,7 @@ class mod_settings_standard extends ModeleNumRefSettings
 	 * 	Return next free value
 	 *
 	 *  @param  Object		$object		Object we need next value for
-	 *  @return string      			Value if KO, <0 if KO
+	 *  @return string      			Value if OK, '-1' if KO
 	 */
 	public function getNextValue($object)
 	{
@@ -136,8 +139,8 @@ class mod_settings_standard extends ModeleNumRefSettings
 			if ($obj) $max = intval($obj->max);
 			else $max = 0;
 		} else {
-			dol_syslog("mod_settings_standard::getNextValue", LOG_DEBUG);
-			return -1;
+			dol_syslog("mod_settings_standard::getNextValue query failed: ".$db->lasterror(), LOG_ERR);
+			return '-1';
 		}
 
 		//$date=time();

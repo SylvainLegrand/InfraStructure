@@ -38,9 +38,21 @@ dol_include_once('/scaninvoices/lib/scaninvoices.lib.php');
 class Filestoimport extends CommonObject
 {
 
+	/**
+	 * @var int Thirdparty the record belongs to
+	 */
 	public $socid;
+
+	/**
+	 * @var string[] Short label of each status, indexed by status code
+	 */
 	public $labelStatusShort;
+
+	/**
+	 * @var string[] Label of each status, indexed by status code
+	 */
 	public $labelStatus;
+
 	public $output;
 	public $user_validation;
 	public $oldref;
@@ -157,21 +169,72 @@ class Filestoimport extends CommonObject
 		'queue' => array('type'=>'smallint', 'label'=>'Queue', 'enabled'=>'1', 'position'=>1001, 'notnull'=>0, 'visible'=>4, 'index'=>1, 'arrayofkeyval'=>array('' => '', 1=>'now', 2=>'later', 3=>'manual', 9=>'Other')),
 		'status' => array('type'=>'smallint', 'label'=>'Status', 'enabled'=>'1', 'position'=>1002, 'notnull'=>0, 'visible'=>4, 'index'=>1, 'arrayofkeyval'=>array('' => '', self::STATUS_DRAFT=>'Waiting', self::STATUS_VALIDATED=>'Analyzed', self::STATUS_CLOSED => 'Success', self::STATUS_ERROR => 'Error',  self::STATUS_HALFSUCCESS => 'Partial', self::STATUS_CANCELED=>'Canceled'),),
 	);
+	/**
+	 * @var int Technical id of the record
+	 */
 	public $rowid;
+
 	public $ref;
+
+	/**
+	 * @var string Name of the uploaded file, inside the module upload directory
+	 */
 	public $filename;
+
+	/**
+	 * @var string SHA1 checksum of the uploaded file, used to spot duplicates
+	 */
 	public $sha1;
+
+	/**
+	 * @var string Html report of the last import attempt
+	 */
 	public $message;
+
 	public $date_creation;
+
+	/**
+	 * @var int|string Date the file was sent to the OCR server
+	 */
 	public $date_ocr_send;
+
+	/**
+	 * @var int|string Date the OCR server answered
+	 */
 	public $date_ocr_return;
+
+	/**
+	 * @var int|string Date of the last modification
+	 */
 	public $tms;
+
+	/**
+	 * @var int Supplier the invoice belongs to
+	 */
 	public $fk_supplier;
+
+	/**
+	 * @var int Supplier invoice created from this file
+	 */
 	public $fk_invoice;
+
+	/**
+	 * @var int User who created the record
+	 */
 	public $fk_user_creat;
+
+	/**
+	 * @var int User who last modified the record
+	 */
 	public $fk_user_modif;
+
 	public $import_key;
+
+	/**
+	 * @var int Queue the file waits in, one of the QUEUE_* constants
+	 */
 	public $queue;
+
 	public $status;
 	// END MODULEBUILDER PROPERTIES
 
@@ -309,21 +372,13 @@ class Filestoimport extends CommonObject
 		unset($object->import_key);
 
 		// Clear fields
-		if (property_exists($object, 'ref')) {
-			$object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
-		}
+		$object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
 		if (property_exists($object, 'label')) {
 			$object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
 		}
-		if (property_exists($object, 'status')) {
-			$object->status = self::STATUS_DRAFT;
-		}
-		if (property_exists($object, 'date_creation')) {
-			$object->date_creation = dol_now();
-		}
-		if (property_exists($object, 'date_modification')) {
-			$object->date_modification = null;
-		}
+		$object->status = self::STATUS_DRAFT;
+		$object->date_creation = dol_now();
+		$object->date_modification = null;
 		// ...
 		// Clear extrafields that are unique
 		if (is_array($object->array_options) && count($object->array_options) > 0) {
@@ -355,7 +410,7 @@ class Filestoimport extends CommonObject
 
 		if (!$error) {
 			// copy external contacts if same company
-			if (property_exists($this, 'socid') && $this->socid == $object->socid) {
+			if ($this->socid == $object->socid) {
 				if ($this->copy_linked_contact($object, 'external') < 0) {
 					$error++;
 				}
@@ -1003,11 +1058,16 @@ class Filestoimport extends CommonObject
 				$dir = dol_buildpath($reldir."core/modules/scaninvoices/");
 
 				// Load file with numbering class (if found)
-				$mybool |= @include_once $dir.$file;
+				// keep a boolean: with |= the flag became an int, so the test below
+				// never matched and a missing numbering file went unreported
+				$mybool = ((bool) @include_once $dir.$file) || $mybool;
 			}
 
-			if ($mybool === false) {
-				dol_print_error($this->db, "Failed to include file ".$file);
+			// class_exists() too: the class may already come from another include, and
+			// include_once then returns false for the copy reached through the module path
+			if (!$mybool && !class_exists($classname)) {
+				$this->error = "Failed to include file ".$file;
+				dol_syslog(get_class($this)."::getNextNumRef ".$this->error, LOG_ERR);
 				return '';
 			}
 
@@ -1141,6 +1201,13 @@ class Filestoimport extends CommonObject
 		return $error;
 	}
 
+	/**
+	 * import a batch of waiting files, as long as the OCR server accepts background tasks
+	 *
+	 * @param   object[]  $list  records to import, only their id is read
+	 *
+	 * @return  bool             true when the batch was stopped before the end of the list
+	 */
 	public function importInvoices($list)
 	{
 		global $db, $user;
@@ -1182,13 +1249,15 @@ class Filestoimport extends CommonObject
 				return true;
 			}
 		}
+
+		return false;
 	}
 
 	/**
 	 * force to import now a file even if it's in "later" queue
 	 *
-	 * @param   [int]   $fourID            to force supplier (fournisseur)
-	 * @return  [type]  [return description]
+	 * @param   int    $fournID  to force supplier (fournisseur), -1 to let the OCR decide
+	 * @return  array            analyze result, with at least an 'error' key
 	 */
 	public function importNow($fournID = -1)
 	{
@@ -1223,7 +1292,7 @@ class Filestoimport extends CommonObject
 	/**
 	 * return true if file exist, false in other case
 	 *
-	 * @return  [type]  [return description]
+	 * @return  bool  true when the uploaded file is still on disk
 	 */
 	public function fileExist()
 	{
@@ -1238,7 +1307,7 @@ class Filestoimport extends CommonObject
 	/**
 	 * return full file name
 	 *
-	 * @return  [type]  [return description]
+	 * @return  string  absolute path of the uploaded file
 	 */
 	public function fullFilename()
 	{
@@ -1276,7 +1345,8 @@ class Filestoimport extends CommonObject
 	{
 		global $conf, $langs, $user, $db;
 
-		$importKey = time();
+		// import_key is a varchar(14) column, keep the batch key a string
+		$importKey = (string) time();
 		$htmlTitle = "<h3>" . $langs->trans("IMPORT_FILES_FROM_NETWORK_SHARE_MAIL") . "</h3>";
 		$html = "";
 		$defaultSHAREtype = scaninvoicesGetDolGlobalString('SCANINVOICES_IMPORT_SHARE_TYPE');

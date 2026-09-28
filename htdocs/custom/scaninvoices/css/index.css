@@ -2,10 +2,6 @@
 	text-align: left;
 }
 
-.col-xxl-2 {
-	width: auto;
-}
-
 .ScanInvoicesWaitModal {
 	display: none;
 	position: fixed;
@@ -22,7 +18,7 @@ body.loading .ScanInvoicesWaitModal {
 	display: block;
 }
 
-.card-text {
+.ScanInvoicesCard-text {
 	padding: 0.1rem 0.1rem;
 }
 
@@ -255,12 +251,6 @@ body.loading .ScanInvoicesWaitModal {
 
 .ScanInvoicesSection input[type="file"] {
 	display: none;
-}
-
-/* Fix bug in bootstrap that overwrite placeholder with no expected class */
-.placeholder {
-	cursor: auto !important;
-	background-color: unset !important;
 }
 
 .ScanInvoicesflex {

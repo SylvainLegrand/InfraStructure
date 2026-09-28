@@ -338,7 +338,6 @@ $sql = 'SELECT ';
 if (((int) DOL_VERSION) < 14) {
 	$sql .= utsbackports_getFieldList($object);
 } else {
-	/** @phpstan-ignore-next-line */
 	$sql .= $object->getFieldList('t');
 }
 // Add fields from extrafields

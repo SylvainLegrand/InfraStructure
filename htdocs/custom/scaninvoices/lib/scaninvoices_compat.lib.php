@@ -43,7 +43,8 @@ if (!function_exists('scaninvoicesIsModEnabled')) {
 		global $conf;
 
 		if (function_exists('isModEnabled')) {
-			return isModEnabled($module);
+			// cast: the helper of the oldest releases answers an int
+			return (bool) isModEnabled($module);
 		}
 
 		// Fix special cases, same mapping as the core helper

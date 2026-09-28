@@ -62,7 +62,7 @@ class UptoSignSignatoryResolver
 	 * @param  CommonObject $object           Business object to sign
 	 * @param  string       $internalExternal 'internal' or 'external'
 	 * @param  string       $configLabel      Contact role label (e.g. CustomerSign, VendorSign)
-	 * @param  ArrayObject  $storeArray       Result array (modified by reference)
+	 * @param  ArrayObject<int, object>  $storeArray       Result array (modified by reference)
 	 * @return void|int     -1 on error
 	 */
 	public function resolveSigners($object, $internalExternal, $configLabel, ArrayObject &$storeArray)
@@ -231,12 +231,13 @@ class UptoSignSignatoryResolver
 				}
 			}
 		}
-
+		// InfraS change begin
 		if (is_countable($storeArray)) {
 			dol_syslog("uptosign: resolveSigners: return size array = " . count($storeArray));
 		} else {
 			dol_syslog("uptosign: resolveSigners: return size array = " . $storeArray->count());
 		}
+		// InfraS change end
 	}
 
 	/**
@@ -252,8 +253,8 @@ class UptoSignSignatoryResolver
 	 * @param  string      $element          Object element the role is declared for (propal, facture, ...)
 	 * @param  string      $internalExternal 'internal' or 'external'
 	 * @param  string      $configLabel      Contact role code, empty means every contact can sign
-	 * @param  ArrayObject $storeArray       Result array (modified by reference)
-	 * @param  array       $dedup            Mobile numbers already used (modified by reference)
+	 * @param  ArrayObject<int, object> $storeArray  Result array (modified by reference)
+	 * @param  array<int, string> $dedup      Mobile numbers already used (modified by reference)
 	 * @param  bool        $onlyModuleRoles  Keep only the roles brought by the uptosign module
 	 * @return void
 	 */

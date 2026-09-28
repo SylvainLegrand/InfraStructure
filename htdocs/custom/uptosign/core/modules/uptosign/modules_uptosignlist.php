@@ -37,7 +37,9 @@ require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php'; // requir
  */
 abstract class ModelePDFUptoSignList extends CommonDocGenerator
 {
-
+	/**
+	 * @var string Maturity of the document model: development, experimental or dolibarr
+	 */
 	public $version;
 
 	/**
@@ -106,6 +108,9 @@ abstract class ModelePDFUptoSignList extends CommonDocGenerator
  */
 abstract class ModeleNumRefUptoSignList
 {
+	/**
+	 * @var string Maturity of the numbering model: development, experimental or dolibarr
+	 */
 	public $version;
 	/**
 	 * @var string Error code (or message)
@@ -162,7 +167,7 @@ abstract class ModeleNumRefUptoSignList
 	 *	Returns next assigned value
 	 *
 	 *	@param	Object		$object		Object we need next value for
-	 *	@return	string      Valeur
+	 *	@return	string|int  Valeur, <0 si erreur
 	 */
 	public function getNextValue($object)
 	{

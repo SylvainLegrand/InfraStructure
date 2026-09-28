@@ -182,7 +182,7 @@ foreach ($user->users as $u) {
 
 	$right = "";
 	$u->getRights();
-	if (!empty($u->rights->uptosign->sign)) { // InfraS change
+	if (!empty($u->rights->uptosign->sign)) {	// InfraS change
 	} else {
 		$right = "<font style='color:red;'>" . $langs->trans('UptoSignUserCannotSign') . "</font>";
 		$disabled = "disabled";

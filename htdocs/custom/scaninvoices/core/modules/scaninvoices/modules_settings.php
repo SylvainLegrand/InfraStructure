@@ -68,6 +68,9 @@ abstract class ModelePDFSettings extends CommonDocGenerator
  */
 abstract class ModeleNumRefSettings
 {
+	/**
+	 * @var string Maturity of the numbering model: 'development', 'experimental' or 'dolibarr'
+	 */
 	public $version;
 
 	/**

@@ -118,6 +118,16 @@ const TEXT_TYPE = 'text';
 $middlewares = [];
 $middlewaresIndex = 0;
 
+/**
+ * run a callback when the current request matches a route
+ *
+ * @param   string|string[]  $httpMethods  http verbs the route answers to
+ * @param   string           $route        regular expression the request path must match
+ * @param   callable         $callback     handler called with the named captures, if any
+ * @param   bool             $exit         stop the script once the handler returned
+ *
+ * @return  void
+ */
 function router($httpMethods, $route, $callback, $exit = true)
 {
 	if (!in_array($_SERVER['REQUEST_METHOD'], (array) $httpMethods)) {
@@ -156,6 +166,13 @@ function router($httpMethods, $route, $callback, $exit = true)
 	}
 }
 
+/**
+ * hand the response over to the next middleware, and write it out after the last one
+ *
+ * @param   array  $res  response, with a 'body' and a 'dataType' key
+ *
+ * @return  void
+ */
 function _next($res)
 {
 	global $middlewares, $middlewaresIndex;
@@ -179,12 +196,27 @@ function _next($res)
 	}
 }
 
+/**
+ * register a middleware, called in registration order
+ *
+ * @param   callable  $func  middleware taking the server environment, the response and a next callback
+ *
+ * @return  void
+ */
 function middleware($func)
 {
 	global $middlewares;
 	array_push($middlewares, $func);
 }
 
+/**
+ * build the route regular expression of an endpoint
+ *
+ * @param   string  $endpoint  name of the endpoint, right after the base verb
+ * @param   string  $params    regular expression of the parameters that follow it
+ *
+ * @return  string             route to give to router()
+ */
 function entry($endpoint, $params)
 {
 	$baseVerb = getenv('BASE_VERB');
@@ -192,6 +224,13 @@ function entry($endpoint, $params)
 	return "^/{$baseVerb}/{$endpoint}/{$params}$";
 }
 
+/**
+ * answer with a json payload
+ *
+ * @param   mixed  $arr  value to encode
+ *
+ * @return  void
+ */
 function json($arr)
 {
 	header('Content-Type: ' . JSON_MIME_TYPE);
@@ -203,6 +242,13 @@ function json($arr)
 	);
 }
 
+/**
+ * answer with an html payload
+ *
+ * @param   string  $code  html to send
+ *
+ * @return  void
+ */
 function html($code)
 {
 	header('Content-Type: ' . HTML_MIME_TYPE);
@@ -214,6 +260,13 @@ function html($code)
 	);
 }
 
+/**
+ * answer with a plain text 404
+ *
+ * @param   string  $msg  message to send
+ *
+ * @return  void
+ */
 function error($msg)
 {
 	header('HTTP/1.0 404 Not Found');

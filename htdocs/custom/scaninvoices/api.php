@@ -20,10 +20,20 @@
  */
 define('NOTOKENRENEWAL', 1);
 
+// Catch anything the core prints while it boots (on php 8 it emits a notice when
+// it sets CURLOPT_SSL_VERIFYHOST, for instance). The route handlers open their own
+// buffer, but that one comes too late: the bootstrap noise would already sit in
+// front of their JSON and the AJAX client would report a "parsererror". Dropped
+// right after the includes, so an exit() inside main.inc.php still shows its page.
+ob_start();
+
 require_once __DIR__ . '/functions.php';
 dol_include_once('/scaninvoices/lib/scaninvoices_compat.lib.php');
 dol_include_once('/scaninvoices/middlewares.php');
 dol_include_once('/scaninvoices/class/filestoimport.class.php');
+
+scaninvoicesStripStrayOutput('api-bootstrap');
+
 $output = "";
 $baseVerb = getenv('BASE_VERB');
 
@@ -172,7 +182,11 @@ router('POST', 'importAuto', function ($params) {
 			dol_syslog('ScanInvoices::api importAuto: OCR unavailable, returning ocr_unavailable=true to client for id=' . $id, LOG_WARNING);
 		}
 	} else {
-		$retour['message'] = scaninvoicesMessageErreurAnalyse('DUPLICATE-001', $object->fk_supplier, $object->fk_invoice);
+		// the function reads a fileName property to build its "import by hand" link:
+		// the supplier and invoice ids passed here were simply ignored
+		$duplicate = new stdClass();
+		$duplicate->fileName = $object->filename;
+		$retour['message'] = scaninvoicesMessageErreurAnalyse('DUPLICATE-001', $duplicate);
 		$s = new Societe($db);
 		if ($fournID != "") {
 			$fourn = $s->fetch($fournID);
