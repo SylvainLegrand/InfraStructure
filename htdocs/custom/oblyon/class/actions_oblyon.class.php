@@ -155,19 +155,4 @@ class ActionsOblyon
 		$this->resprints	= $out;
 		return 0;
 	}
-
-    /*
-	public function addHtmlHeader($parameters){
-		global $conf;
-
-		$style = "<style id='oblyon_custom_css'>";
-		if (getDolGlobalString('OBLYON_CUSTOM_CSS')){
-			$style .= getDolGlobalString('OBLYON_CUSTOM_CSS');
-		}
-		$style .= "</style>";
-
-		$this->resprints = $style;
-		return 0;
-	}
-    */
 }
