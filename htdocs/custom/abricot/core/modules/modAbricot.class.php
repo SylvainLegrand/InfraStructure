@@ -55,7 +55,7 @@ class modAbricot extends DolibarrModules
 		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'ATM Consulting';
 		$this->family = $family;
 		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100022;
+		$this->module_position	= 100056;	// InfraS change
 		// Module label (no space allowed)
 		// used if translation string 'ModuleXXXName' not found
 		// (where XXX is value of numeric property 'numero' of module)
