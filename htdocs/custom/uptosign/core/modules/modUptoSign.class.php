@@ -61,7 +61,7 @@ class modUptoSign extends DolibarrModules
 		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'other';
 		$this->family = $family;
 		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100014;
+		$this->module_position	= 100034;	// InfraS change
 
 		// Module position in the family on 2 digits ('01', '10', '20', ...)
 
