@@ -63,7 +63,7 @@ class modZenFusionMaps extends DolibarrModules
 		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'other';
 		$this->family = $family;
 		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100019;
+		$this->module_position	= 100050;	// InfraS change
         $this->name = preg_replace('/^mod/i', '', get_class($this));
         $this->description = "Google Maps";
         $this->descriptionlong = "Add links to Google Maps on addresses.";
