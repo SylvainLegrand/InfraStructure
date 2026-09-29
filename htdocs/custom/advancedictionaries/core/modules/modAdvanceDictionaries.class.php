@@ -58,7 +58,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Opendsi';
 		$this->family = $family;
 		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100021;
+		$this->module_position	= 100054;	// InfraS change
         // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
         // $this->familyinfo = array('osden' => array('position' => '001', 'label' => $langs->trans("osdenFamily")));
         // Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
