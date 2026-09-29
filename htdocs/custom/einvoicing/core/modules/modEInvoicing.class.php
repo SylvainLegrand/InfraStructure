@@ -62,7 +62,7 @@ class modEInvoicing extends DolibarrModules
 		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));	// InfraS dd
 
 		// Module position in the family on 2 digits ('01', '10', '20', ...)
-		$this->module_position	= 100015;	// InfraS change
+		$this->module_position	= 100030;	// InfraS change
 
 		// Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
 		//$this->familyinfo = array('myownfamily' => array('position' => '01', 'label' => $langs->trans("MyOwnFamily")));
