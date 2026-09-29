@@ -43,7 +43,7 @@ class modEInvoicing extends DolibarrModules
 	 */
 	public function __construct($db)
 	{
-		global $conf;
+		global $conf, $langs;	// InfraS change
 
 		$this->db = $db;
 
@@ -56,10 +56,13 @@ class modEInvoicing extends DolibarrModules
 
 		// Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
 		// It is used to group modules by family in module setup page
-		$this->family = "other";
+		$isDolinfras	= isModEnabled('dolinfras');	// InfraS add
+		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'other';	// InfraS add
+		$this->family = $family;	// InfraS change
+		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));	// InfraS dd
 
 		// Module position in the family on 2 digits ('01', '10', '20', ...)
-		$this->module_position = '90';
+		$this->module_position	= 100015;	// InfraS change
 
 		// Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
 		//$this->familyinfo = array('myownfamily' => array('position' => '01', 'label' => $langs->trans("MyOwnFamily")));
