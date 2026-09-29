@@ -14,10 +14,11 @@ Informations module :
 
 - Éditeur : InfraS - Lucky Ranasolonirina
 - Numéro module : `550100`
+- Position dans la famille (`module_position`) : `100014` — famille `DOLINFRAS_FAMILY` « Dolibarr LTS by InfraS » quand dolinfras est activé
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Version locale : `18.1.0` (2026-09) — 18.0.0 : lots L0 à L4 (squelette et registre, couche documents, bordereau, feuille de comptage, couche mail) ; 18.0.1 : corrections de l'audit du 2026-09-10 ; 18.1.0 : découpage par maison mère, bordereau enrichi, zone de stockage via InfraSWorkflow
+- Version locale : `18.1.1` (2026-09) — 18.0.0 : lots L0 à L4 (squelette et registre, couche documents, bordereau, feuille de comptage, couche mail) ; 18.0.1 : corrections de l'audit du 2026-09-10 ; 18.1.0 : découpage par maison mère, bordereau enrichi, zone de stockage via InfraSWorkflow ; 18.1.1 : renumérotation de la position dans la famille
 - Dépendance obligatoire : aucune (extension PHP `xml` requise pour le changelog)
 - Emplacement : `htdocs/custom/infrasfiles/`
 

@@ -32,6 +32,9 @@
 		<change type='add'>Bordereau : adressé à la maison mère (bloc débiteur / bénéficiaire) ou au tiers avec mention de sa maison mère, colonne « Échéance », avoirs appliqués sous chaque facture, RIB réellement utilisé par la ligne (IBAN sous chaque ligne quand ils diffèrent dans un même PDF).</change>
 		<change type='add'>Feuille de comptage : les filtres de l'inventaire (catégories de produits, produit) sont repris dans l'en-tête.</change>
 	</Version>
+	<Version Number="18.1.1" MonthVersion="2026-09">
+		<change type='chg'>Position du module dans la famille « Dolibarr LTS by InfraS » : 100010 → 100014 (renumérotation de la famille)</change>
+	</Version>
 	<InfraS Downloaded="20260929"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
