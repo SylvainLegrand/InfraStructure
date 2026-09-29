@@ -16,10 +16,11 @@ Informations module (issues du code et du changelog local) :
 
 - Éditeur : InfraS - Sylvain Legrand (fork maintenu, basé sur l'original ATM Consulting)
 - Numéro module : `550090`
+- Position dans la famille (`module_position`) : `100004` — famille `DOLINFRAS_FAMILY` « Dolibarr LTS by InfraS » quand dolinfras est activé
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.5` (2026-09)
+- Dernière version locale : `21.8.6` (2026-09)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -115,7 +116,7 @@ Dans `core/modules/modInfrastructure.class.php` :
 - **Cron** : aucune tâche
 - **Permissions** : aucune (accès via les droits Dolibarr standards des documents concernés)
 - **ExtraFields** : créés automatiquement à l'activation sur `propaldet`, `commandedet`, `facturedet`, `supplier_proposaldet`, `commande_fournisseurdet`, `facture_fourn_det`
-- **Famille** : `Modules InfraS` (ou `easya` si la constante `EASYA_VERSION` est présente)
+- **Famille** : `DOLINFRAS_FAMILY` si dolinfras est activé, sinon `'Modules '.$langs->trans('basenameInfrastructure')`
 - **Constantes prédéfinies** (dans `$this->const`) :
 	- `INFRASTRUCTURE_PDF_TITLE_STYLE_IF_HIDDEN_LINES` (défaut `I`)
 	- `INFRASTRUCTURE_ALLOW_ADD_BLOCK` / `INFRASTRUCTURE_ALLOW_EDIT_BLOCK` / `INFRASTRUCTURE_ALLOW_REMOVE_BLOCK` (défaut `1`)
@@ -469,7 +470,7 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 - Sommaire rapide automatiquement désactivé si `oblyon` + `MAIN_MENU_INVERT`
 - Factures de situation : méthodes de calcul dédiées pour éviter l'accumulation de TVA (DA027405, 3.29.2) ; injection de lignes TVA invisibles pour le calcul Dolibarr (DA027547, 3.29.3)
 - Le descripteur référence `class/techatm.class.php` qui n'est plus présent — `dol_include_once` est tolérant et l'absence est silencieuse
-- Compatibilité Easya : si `EASYA_VERSION` est définie, la famille de module bascule sur `easya`
+- Famille : `DOLINFRAS_FAMILY` si dolinfras est activé, sinon `'Modules '.$langs->trans('basenameInfrastructure')` (l'ancienne bascule `easya` sur `EASYA_VERSION` n'existe plus dans le descripteur)
 
 ## Dernières mises à jour (Recent updates)
 
