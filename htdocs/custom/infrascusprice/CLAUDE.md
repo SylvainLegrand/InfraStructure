@@ -13,10 +13,11 @@ Informations module (issues du code et du changelog local) :
 
 - Éditeur : InfraS
 - Numéro module : `500077`
+- Position dans la famille (`module_position`) : `100018` — famille `DOLINFRAS_FAMILY` « Dolibarr LTS by InfraS » quand dolinfras est activé
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.1.6` (2026-08)
+- Dernière version locale : `18.1.7` (2026-09)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrascusprice/`
 
