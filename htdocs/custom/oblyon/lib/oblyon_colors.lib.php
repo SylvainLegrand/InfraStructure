@@ -163,6 +163,27 @@
 	}
 
 	/**
+	*	Mix two colours : $ratio = 0 gives $hex1, 1 gives $hex2 (design tokens of the theme, tints of the buttons ; moved here from style.css.php in 3.8.0
+	*	so that the Colors tabs can show the derived button colours)
+	*
+	*	@param		string	$hex1		Colour 1 (#RRGGBB or r,g,b)
+	*	@param		string	$hex2		Colour 2
+	*	@param		float	$ratio		Weight of colour 2 (0..1)
+	*	@return		string				#RRGGBB
+	**/
+	function oblyon_mix_colors($hex1, $hex2, $ratio)
+	{
+		if (! function_exists('colorStringToArray'))	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+		$a		= colorStringToArray($hex1);
+		$b		= colorStringToArray($hex2);
+		$out	= array();
+		for ($i = 0; $i < 3; $i++) {
+			$out[]	= max(0, min(255, (int) round($a[$i] + ($b[$i] - $a[$i]) * $ratio)));
+		}
+		return '#'.colorArrayToHex($out);
+	}
+
+	/**
 	*	Text colour to paint on a background : the one of two candidates with the best WCAG contrast (3.7.0 : status badges, whose text was white or the row text whatever the background)
 	*
 	*	@param		string	$background		Background '#RRGGBB'
@@ -189,65 +210,6 @@
 	}
 
 	/**
-	*	Colour setting that must be a real colour : the value (user then instance) when it is '#RRGGBB', else the default.
-	*	'' and '#' (inherit convention) fall back to the default : for the tokens painted as plain CSS colours (3.7.0)
-	*
-	*	@param		string		$name		Constant name
-	*	@param		string		$default	Default '#RRGGBB'
-	*	@param		User|null	$tmpuser	User (null = current user)
-	*	@return		string
-	**/
-	function oblyon_color_setting_hex($name, $default, $tmpuser = null)
-	{
-		$value	= oblyon_color_setting($name, '', $tmpuser);
-		return (preg_match('/^#[0-9a-f]{6}$/i', $value) ? $value : $default);
-	}
-	/**
-	*	Mix two colours : $ratio = 0 gives $hex1, 1 gives $hex2 (design tokens of the theme, tints of the buttons ; moved here from style.css.php in 3.8.0
-	*	so that the Colors tabs can show the derived button colours)
-	*
-	*	@param		string	$hex1		Colour 1 (#RRGGBB or r,g,b)
-	*	@param		string	$hex2		Colour 2
-	*	@param		float	$ratio		Weight of colour 2 (0..1)
-	*	@return		string				#RRGGBB
-	**/
-	function oblyon_mix_colors($hex1, $hex2, $ratio)
-	{
-		if (! function_exists('colorStringToArray'))	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-		$a		= colorStringToArray($hex1);
-		$b		= colorStringToArray($hex2);
-		$out	= array();
-		for ($i = 0; $i < 3; $i++) {
-			$out[]	= max(0, min(255, (int) round($a[$i] + ($b[$i] - $a[$i]) * $ratio)));
-		}
-		return '#'.colorArrayToHex($out);
-	}
-	/**
-	*	Text colour to paint on a background : the one of two candidates with the best WCAG contrast (3.7.0 : status badges, whose text was white or the row text whatever the background)
-	*
-	*	@param		string	$background		Background '#RRGGBB'
-	*	@param		string	$dark			Dark candidate
-	*	@param		string	$light			Light candidate
-	*	@return		string					$dark or $light ($light when the background is not a colour)
-	**/
-	function oblyon_text_on($background, $dark = '#1C1C1C', $light = '#FFFFFF')
-	{
-		$lum	= function ($hex) {
-			$hex	= ltrim($hex, '#');
-			if (! preg_match('/^[0-9a-f]{6}$/i', $hex))	return null;
-			$out	= array();
-			foreach (str_split($hex, 2) as $part) {
-				$c		= hexdec($part) / 255;
-				$out[]	= ($c <= 0.03928) ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
-			}
-			return 0.2126 * $out[0] + 0.7152 * $out[1] + 0.0722 * $out[2];
-		};
-		$lb	= $lum($background);
-		if ($lb === null)	return $light;
-		$ratio	= function ($l1, $l2) { return (max($l1, $l2) + 0.05) / (min($l1, $l2) + 0.05); };
-		return ($ratio($lum($dark), $lb) >= $ratio($lum($light), $lb)) ? $dark : $light;
-	}
-	/**
 	*	Colour constants offered on the user tab, grouped like the Colors tab of the module (admin/colors.php) then the dashboard tiles.
 	*	Group key = lang key. The top / left menu groups are swapped when the menus are inverted (same as admin/colors.php).
 	*
@@ -269,6 +231,7 @@
 		if (strpos($name, 'OBLYON_COLOR_LISTHEAD_FLAT_') === 0)	return (getDolGlobalString('OBLYON_LIST_HEADER_STYLE', 'band') == 'flat');	// 3.8.0 : en-tetes de liste plats (groupe Titres)
 		return true;
 	}
+
 	/**
 	*	Button families of the Colors tabs (3.8.0) : for each family, the five colours the theme paints (background, text, border, hover background, hover text),
 	*	in display order, for a button style. The filled style uses the historical constants (THEME_ELDY_BTNACTION = background, OBLYON_COLOR_BUTTON_ACTION2 = hover
@@ -305,6 +268,7 @@
 		}
 		return $families;
 	}
+
 	/**
 	*	Effective colours of the button families for a style (3.8.0) : the stored colour when it is '#RRGGBB', else the derived one
 	*	(filled : theme defaults ; outline : transparent background, border = text, hover = light tint of the text ; soft : tinted background, stronger on hover).
@@ -360,6 +324,7 @@
 		}
 		return $out;
 	}
+
 	/**
 	*	Button colour constants whose stored value is automatic ('' or '#'), with the real colour the pickers show for them (3.8.0).
 	*	The Colors tabs keep such a constant automatic when the posted colour equals this value (the user did not touch it)
@@ -378,6 +343,7 @@
 		}
 		return $auto;
 	}
+
 	/**
 	*	Constants of the Buttons group for the current button style, in display order
 	*
@@ -389,6 +355,7 @@
 		foreach (oblyon_button_families() as $family)	$list	= array_merge($list, array_values($family['colors']));
 		return $list;
 	}
+
 	/**
 	*	Every button colour constant, whatever the style and the form option (presets, contrast, backup) : 30 constants
 	*
@@ -402,6 +369,7 @@
 		}
 		return array_values(array_unique($list));
 	}
+
 	function oblyon_user_colors_list()
 	{
 		$top	= array('OBLYON_COLOR_TOPMENU_BCKGRD', 'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER', 'OBLYON_COLOR_TOPMENU_TXT', 'OBLYON_COLOR_TOPMENU_TXT_ACTIVE', 'OBLYON_COLOR_TOPMENU_TXT_HOVER',
@@ -421,8 +389,6 @@
 														'OBLYON_COLOR_NOTIF_WARNING_BCKGRD', 'OBLYON_COLOR_NOTIF_WARNING_TEXT', 'OBLYON_COLOR_NOTIF_ERROR_BCKGRD', 'OBLYON_COLOR_NOTIF_ERROR_TEXT');
 		$list['OblyonColorGrpBackgrounds']		= array('OBLYON_COLOR_MAIN', 'OBLYON_COLOR_BCKGRD', 'OBLYON_COLOR_INPUT_BCKGRD', 'OBLYON_COLOR_INPUT_ADD_BCKGRD', 'OBLYON_COLOR_OVERLAY_BCKGRD', 'OBLYON_COLOR_LOGO_BCKGRD', 'OBLYON_COLOR_LOGIN_BCKGRD');
 		$list['OblyonColorGrpText']				= array('THEME_ELDY_TEXT', 'THEME_ELDY_TEXTLINK', 'OBLYON_COLOR_ICON_TEXT');
-		$list['OblyonColorGrpTitles']			= array('OBLYON_COLOR_BTITLE', 'OBLYON_COLOR_STITLE', 'THEME_ELDY_TEXTTITLE', 'THEME_ELDY_TEXTTITLENOTAB', 'THEME_ELDY_TOPBORDER_TITLE1', 'THEME_ELDY_BACKTITLE1');
-		$list['OblyonColorGrpTabs']				= array('THEME_ELDY_BACKTABACTIVE', 'THEME_ELDY_BACKTABCARD1', 'OBLYON_COLOR_TEXTTABACTIVE');
 		$list['OblyonColorGrpTitles']			= array_values(array_filter(array('OBLYON_COLOR_BTITLE', 'OBLYON_COLOR_STITLE', 'THEME_ELDY_TEXTTITLE', 'THEME_ELDY_TEXTTITLENOTAB', 'THEME_ELDY_TOPBORDER_TITLE1', 'THEME_ELDY_BACKTITLE1',
 														'OBLYON_COLOR_LISTHEAD_FLAT_BCKGRD', 'OBLYON_COLOR_LISTHEAD_FLAT_TXT', 'OBLYON_COLOR_LISTHEAD_FLAT_LINE', 'OBLYON_COLOR_LISTHEAD_FLAT_SEL'), 'oblyon_tab_color_visible'));	// 3.8.0 : couleurs des en-tetes plats seulement dans ce style
 		$list['OblyonColorGrpTabs']				= array_values(array_filter(array('THEME_ELDY_BACKTABACTIVE', 'THEME_ELDY_BACKTABCARD1', 'OBLYON_COLOR_TEXTTABACTIVE',
@@ -687,13 +653,6 @@
 			$out	.= '<div class="oblyon-preset__head"><div class="oblyon-preset__name" title="'.dol_escape_htmltag($tooltip, 0, 1).'">'.oblyon_preset_text($preset['name'] !== '' ? $preset['name'] : $key);
 			if ($preset['scope'] === 'user')	$out	.= ' <span class="badge badge-status4 badge-status" title="'.dol_escape_htmltag($langs->trans('OblyonUserPresetAccessible')).'">'.$langs->trans('OblyonUserPresetAccessibleShort').'</span>';
 			if ($source == 'user')			$out	.= ' <span class="badge badge-status0 badge-status">'.$langs->trans('OblyonUserPresetsMineShort').'</span>';
-			$out	.= '</div><div class="oblyon-preset__icons">';
-			if ($contrast) {
-				$details	= array();
-				foreach ($contrast as $c)	$details[]	= oblyon_contrast_issue_text($c, 'oblyon_user_color_label');	// 3.7.0 : couples + valeurs invalides
-				$out	.= '<span class="oblyon-preset__icon oblyon-preset__icon--warn" title="'.dol_escape_htmltag($langs->trans('OblyonPresetContrastWarning', count($contrast))."\n".implode("\n", $details), 0, 1).'"><span class="fa fa-exclamation-triangle"></span></span>';
-			}
-			$out	.= '</div></div>';
 			$out	.= '</div><div class="oblyon-preset__icons"></div></div>';	// 3.8.0 : plus d'icone de contraste (mecanisme retire)
 			$out	.= '<div class="oblyon-preset__actions">';
 			if ($canedit)	$out	.= '<button type="submit" name="action" value="apply_user_preset" class="butAction small oblyon-preset__apply">'.$langs->trans('OblyonUserPresetApply').'</button>';

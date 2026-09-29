@@ -120,6 +120,7 @@ class ActionsOblyon
 	public function printTopRightMenu($parameters, &$object, &$action, $hookmanager)
 	{
 		global $conf, $langs, $user;
+
 		if (empty($user->id) || empty($conf->use_javascript_ajax) || GETPOST('optioncss', 'aZ09') == 'print') {
 			return 0;
 		}
@@ -154,4 +155,19 @@ class ActionsOblyon
 		$this->resprints	= $out;
 		return 0;
 	}
+
+    /*
+	public function addHtmlHeader($parameters){
+		global $conf;
+
+		$style = "<style id='oblyon_custom_css'>";
+		if (getDolGlobalString('OBLYON_CUSTOM_CSS')){
+			$style .= getDolGlobalString('OBLYON_CUSTOM_CSS');
+		}
+		$style .= "</style>";
+
+		$this->resprints = $style;
+		return 0;
+	}
+    */
 }

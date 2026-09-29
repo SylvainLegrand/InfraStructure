@@ -850,10 +850,6 @@ div.tabBar {
 	border-radius: var(--oblyon-radius);
 	color: var(--colorfline);
 	margin-bottom: 14px;
-	padding-top: 12px;
-	padding-left: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
-	padding-right: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
-	padding-bottom: 12px;
 	padding-top: var(--oblyon-card-py);	/* densite (3.8.0) */
 	padding-left: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
 	padding-right: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;

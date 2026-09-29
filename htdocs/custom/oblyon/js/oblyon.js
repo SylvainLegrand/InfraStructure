@@ -396,6 +396,14 @@ jQuery(document).ready(function () {
 		})();
 	}
 
+	/*
+	 * Notification center (OBLYON_NOTIFICATION_CENTER, see themeoblyon/notifcenter.inc.php and the printTopRightMenu hook).
+	 *
+	 * The bell printed in the top right area keeps, per user and per browser (localStorage, 50 entries, 7 days), every message
+	 * shown by jNotify ($.jnotify is wrapped: the original still displays the message briefly, then it lands in the bell).
+	 * With the center on, errors and warnings are no longer sticky: shown 6 s (jNotify queues the messages one after the other), then kept in the list. Labels come from the
+	 * data-lbl-* attributes printed by the hook (nothing hard-coded here). Runs on every device, so it stays BEFORE the touch early-return.
+	 */
 	(function () {
 		var $nc = $('.oblyon-notif').first();
 		if (!$nc.length) {
@@ -405,6 +413,7 @@ jQuery(document).ready(function () {
 		var MAX = 50, TTL = 7 * 86400000, OPENCLASS = 'is-open';
 		var $btn = $nc.find('.oblyon-notif-btn'), $count = $nc.find('.oblyon-notif-count'), $panel = $nc.find('.oblyon-notif-panel');
 		var $list = $nc.find('.oblyon-notif-list'), $empty = $nc.find('.oblyon-notif-empty');
+
 		function lbl(key) {
 			return String($nc.attr('data-lbl-' + key) || '');
 		}
@@ -436,9 +445,11 @@ jQuery(document).ready(function () {
 			try {
 				localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX)));
 			} catch (e) {
+				// private browsing or storage blocked : the bell still shows the messages of this page
 			}
 		}
 		function strip(html) {
+			// DOMParser : the parsed document is inert (no script run, no image fetched, no onerror), unlike innerHTML on a detached element
 			var text = '';
 			try {
 				text = new DOMParser().parseFromString(String(html), 'text/html').body.textContent || '';
@@ -514,6 +525,8 @@ jQuery(document).ready(function () {
 			list.unshift({k: newKey(d), t: type, m: text, d: d, r: false});
 			store(list);
 		}
+
+		// Wrap $.jnotify : record every message, keep the original display, errors / warnings shown 6 s instead of sticky
 		if (typeof $.jnotify === 'function' && !$.jnotify.oblyonWrapped) {
 			var orig = $.jnotify;
 			var wrapped = function (msg, opt) {
@@ -532,6 +545,7 @@ jQuery(document).ready(function () {
 				}
 				return orig.apply(this, args);
 			};
+			// the plugin calls its own helpers through $.jnotify.setup / play / pause / stop... : every property of the original is carried over
 			for (var k in orig) {
 				if (Object.prototype.hasOwnProperty.call(orig, k)) {
 					wrapped[k] = orig[k];
@@ -540,6 +554,7 @@ jQuery(document).ready(function () {
 			wrapped.oblyonWrapped = true;
 			$.jnotify = wrapped;
 		}
+
 		function open() {
 			render();
 			$panel.prop('hidden', false);
@@ -563,6 +578,7 @@ jQuery(document).ready(function () {
 		$panel.on('click', function (e) {
 			e.stopPropagation();
 		});
+		// Handlers are delegated from the panel itself : its click handler above stops the propagation, so nothing bound higher (the bell block) would fire
 		$panel.on('click', '.oblyon-notif-del', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -603,6 +619,14 @@ jQuery(document).ready(function () {
 		});
 		render();
 	})();
+
+	/*
+	 * User block (OBLYON_USER_BLOCK, see the printTopRightMenu hook, layout.inc.php for the avatar and dropdown.inc.php for the redesigned user menu).
+	 *
+	 * The hook prints a hidden marker with the mode and the user's initials. initials: the two <img> of the user block (top bar and header of the
+	 * dropdown) become a circle carrying the initials ; photo: same thing, only when the user has no photo (data-hasphoto = 0), the real photo is kept otherwise.
+	 * The core prints the images itself, so the swap happens here, in the browser (nothing else in the core markup changes).
+	 */
 	(function () {
 		var $ub = $('.oblyon-userblock').first();
 		if (!$ub.length) {
@@ -616,6 +640,12 @@ jQuery(document).ready(function () {
 			$(this).replaceWith($('<span class="oblyon-avatar" aria-hidden="true"></span>').text(initials));
 		});
 	})();
+
+	/*
+	 * Native agenda, "modern" style (OBLYON_AGENDA_STYLE, see widgets.inc.php) : every event card takes a light tint of its own colour.
+	 * The core prints the type / user colour only as an inline left border (and an inline grey background the theme overrides) : read that
+	 * border colour and expose it to the CSS as --oblyon-ev-tint (14 % alpha). Without this script the cards fall back to the neutral background.
+	 */
 	(function () {
 		if (!cssFlag('--oblyon-agenda-modern')) {
 			return;
@@ -627,6 +657,7 @@ jQuery(document).ready(function () {
 			}
 		});
 	})();
+
 	// Mouse device without forcing: keep the native hover behaviour, do nothing.
 	if (!forced && !autoTouch) {
 		return;

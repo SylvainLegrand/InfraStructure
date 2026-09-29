@@ -233,6 +233,7 @@ if (! isset($density_options[$currentDensity]))	$currentDensity	= 'compact';
 $metas = $form->selectarray('OBLYON_DENSITY', $density_options, $currentDensity, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
 oblyon_print_input('OBLYON_DENSITY', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonDensity'), 'OblyonDensityHelp', $metas, 2, 1);	// aide en infobulle (4e parametre)
 $countg++;
+
 // style des onglets des fiches (3.8.0) : boxed (rendu d'origine) / underline / pills, lu par themeoblyon/style.css.php
 $tabs_options	= array('boxed'		=> $langs->trans('OblyonTabsStyleBoxed'),
 						'underline'	=> $langs->trans('OblyonTabsStyleUnderline'),
@@ -250,6 +251,7 @@ if ($currentTabs == 'pills') {	// reglages propres aux pilules, affiches seuleme
 	oblyon_print_input('OBLYON_TAB_PILL_SHADOW', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonTabPillShadow'), '', $metas, 2, 1);
 	$countg++;
 }
+
 // style des boutons (3.8.0) : filled (rendu d'origine) / outline / soft, applique aux boutons d'action, Supprimer et de formulaire ;
 // les couleurs (fond, texte, bordure, survol) par famille sont dans l'onglet Couleurs, groupe Boutons, qui n'affiche que les roles utiles au style choisi
 $button_options	= array('filled'	=> $langs->trans('OblyonButtonStyleFilled'),
@@ -263,6 +265,7 @@ $countg++;
 $metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
 oblyon_print_input('OBLYON_BUTTON_FORM_OWN_COLORS', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonButtonFormOwnColors'), 'OblyonButtonFormOwnColorsHelp', $metas, 2, 1);
 $countg++;
+
 // affichage des statuts (3.8.0) : un seul selecteur = icone du core (ex-interrupteur MAIN_STATUS_USES_IMAGES) ou badge pill (rendu d'origine) / outline / dot ;
 // la valeur affichee vient de MAIN_STATUS_USES_IMAGES quand les icones sont actives, sinon de OBLYON_BADGE_STYLE (lue par themeoblyon/style.css.php ; couleurs : onglet Couleurs, groupe Badges de statut)
 $badge_options	= array('icon'		=> $langs->trans('OblyonBadgeStyleIcon'),
@@ -298,6 +301,7 @@ if (! isset($agenda_options[$currentAgenda]))	$currentAgenda	= 'classic';
 $metas = $form->selectarray('OBLYON_AGENDA_STYLE', $agenda_options, $currentAgenda, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
 oblyon_print_input('OBLYON_AGENDA_STYLE', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonAgendaStyle'), 'OblyonAgendaStyleHelp', $metas, 2, 1);
 $countg++;
+
 $metas = array('type' => 'number', 'class' => 'flat quatrevingtpercent right action', 'dir' => 'rtl', 'min' => '24', 'max' => '128');
 oblyon_print_input('OBLYON_IMAGE_HEIGHT_TABLE', 'input', 'G' . $countg . ' - ' . $langs->trans('OblyonImageHeightTable'), '', $metas, 2, 1);	// Max height for Image on table list
 $countg++;
@@ -370,6 +374,7 @@ print '<td width="20%" class="center">'.$langs->trans("Value").'</td>'."\n";
 print "</tr>\n";
 
 $countl = 1;
+
 // style des en-tetes de liste (3.8.0) : band (bande coloree, rendu d'origine) / flat, lu par themeoblyon/style.css.php (couleurs du style plat : onglet Couleurs, groupe Titres)
 $listhead_options	= array('band'	=> $langs->trans('OblyonListHeaderStyleBand'),
 							'flat'	=> $langs->trans('OblyonListHeaderStyleFlat'));

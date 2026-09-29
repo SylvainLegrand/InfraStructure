@@ -327,20 +327,9 @@ print '	<script type = "text/javascript">
 // InfraS add begin : presets (cartes, enregistrer sous, importer) : formulaires propres, donc avant le formulaire des couleurs
 print oblyon_print_preset_cards();
 print oblyon_print_preset_forms();
-// 3.7.0 : couleurs en base (pas seulement les fichiers presets) : couples sous le contraste et valeurs illisibles par le theme
-$oblyon_current	= oblyon_presets_current_values(array('colors', 'dashboard'));
-$oblyon_issues	= oblyon_check_preset_contrast(array('colors' => (isset($oblyon_current['colors']) ? $oblyon_current['colors'] : array()), 'dashboard' => (isset($oblyon_current['dashboard']) ? $oblyon_current['dashboard'] : array())));
-if (count($oblyon_issues)) {
-	$oblyon_details	= array();
-	foreach ($oblyon_issues as $oblyon_issue)	$oblyon_details[]	= oblyon_contrast_issue_text($oblyon_issue);
-	print '<div class="warning">'.$langs->trans('OblyonPresetContrastWarning', count($oblyon_issues)).'<br>'.implode('<br>', $oblyon_details).'</div>';
-}
 // InfraS add end
-<<<<<<< Updated upstream
-
-=======
 // (3.8.0 : le rapport de contraste texte / fond affiche ici depuis la 3.7.0 est retire, mecanisme juge trop lourd pour son usage)
->>>>>>> Stashed changes
+
 print '<form action = "'.dol_escape_htmltag($_SERVER['PHP_SELF']).'" method = "POST" enctype = "multipart/form-data">
 				<input type="hidden" name="token" value="'.newToken().'" />
 				<input type="hidden" name="action" value="update">

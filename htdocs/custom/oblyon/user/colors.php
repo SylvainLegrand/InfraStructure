@@ -196,16 +196,7 @@
 	}
 	print '</table>';
 	print '</div>';
-
-	// Contrast check of the personal palette (same couples as the preset cards)
-	if (!$edit && $enabled && count($snapshot)) {
-		$low	= oblyon_check_preset_contrast(array('colors' => $snapshot));
-		if (count($low)) {
-			$details	= array();
-			foreach ($low as $c)	$details[]	= oblyon_contrast_issue_text($c, 'oblyon_user_color_label');	// 3.7.0 : couples + valeurs invalides
-			print '<div class="warning">'.$langs->trans('OblyonPresetContrastWarning', count($low)).'<br>'.implode('<br>', $details).'</div>';
-		}
-	}
+	// (3.8.0 : le rapport de contraste de la palette personnelle, affiche ici depuis la 3.6.0, est retire)
 
 	if ($edit) {
 		print $form->buttonsSaveCancel();
