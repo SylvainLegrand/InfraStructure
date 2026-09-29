@@ -1,0 +1,116 @@
+# Dolibarr language file - fr_FR - infrasfiles
+CHARSET                       = UTF-8
+
+basenameFile                  = InfraS
+modnameFile                   = infrasfiles
+modcomnameFile                = InfraSFiles
+Module550100Name              = Documents et emails
+Module550100Desc              = Génération de documents PDF, onglet « Fichiers joints » et envoi par email pour les objets Dolibarr qui n'en disposent pas nativement (bons de prélèvement / virement, inventaires, ...)
+InfraSFilesCautionMess        = <center><b>----- à lire attentivement ! -----</b></center>
+InfraSFilesCaution            = <b>ATTENTION !</b>
+InfraSXMLextError             = <center>L'extension PHP <b>%s</b> n'est pas chargée<br>Certaines fonctionnalités du module ne seront pas disponibles</center>
+InfraSFilesChangelogXMLError  = Erreur changelog.xml
+InfraSFilesnoMinDolVersion    = Pas de version minimum connue
+InfraSFilesnoMaxDolVersion    = Pas de version maximum connue
+InfraSFilesSupportInformation = Informations techniques
+
+### Permissions ###
+InfraSFilesPermMenu    = Voir le menu des paramètres
+InfraSFilesPermSpecif  = Modifier les paramètres du module
+InfraSFilesPermBkpRest = Sauvegarder / Restaurer les paramètres du module
+InfraSFilesPermRead    = Télécharger TOUS les fichiers du module (bons de prélèvement, inventaires...) sans le droit natif de chaque objet (à réserver aux administrateurs ; sans ce droit, chaque fichier exige le droit de lecture natif de son objet)
+
+### infras lib page ###
+InfraSFilesParams          = Paramètres InfraS
+InfraSFilesParamsChangelog = Changelog / Support
+
+### modinfras class page ###
+modfamily = Modules InfraS
+
+### InfraSFiles setup page ###
+InfraSFilesSetupPages       = Documents et emails
+InfraSFilesParamAction1     = Sauvegarder / Restaurer l'ensemble des paramètres du module
+InfraSFilesParamAction2     = (après une restauration rafraichissez la page (F5) pour visualiser le résultat)
+InfraSFilesParamBkup        = Sauvegarder
+InfraSFilesParamRestore     = Restaurer
+InfraSFilesTitleObjects     = <b>Documents pris en charge</b>
+InfraSFilesParamCautionSave = Cliquez sur le bouton '<b>Modifier</b>' après tout changement des options !
+InfraSFilesColEnabled       = Activé
+InfraSFilesColPdf           = Génération PDF + Fichiers joints
+InfraSFilesColEmail         = Envoi par email
+InfraSFilesNeedModule       = Nécessite l'activation d'un de ces modules : %s
+InfraSFilesObjWidthdraw     = Bons de prélèvement et de virement
+InfraSFilesObjInventory     = Inventaires
+InfraSFilesOptSplitMode     = Découpage des PDF
+InfraSFilesOptSplitModeHelp = <b>Un PDF par tiers</b> : chaque tiers reçoit un PDF regroupant ses factures ; sa maison mère éventuelle n'est mentionnée qu'à titre d'information.<br><b>Un PDF par maison mère</b> : les tiers qui ont une <b>maison mère</b> renseignée sur leur fiche <b>et</b> l'option « Adresser les bordereaux à la maison mère » cochée sont regroupés dans un seul PDF adressé à cette maison mère (une facture par ligne, avec le nom du tiers facturé) ; tout autre tiers garde son propre PDF.<br>Exemple : 10 tiers d'une même maison mère dont 8 ont coché l'option = 3 PDF (la maison mère avec ses 8 tiers, plus un par tiers restant).
+InfraSFilesSplitThirdparty  = Un PDF par tiers (regroupe ses factures)
+InfraSFilesSplitParent      = Un PDF par maison mère (regroupe ses tiers ayant coché l'option), sinon un PDF par tiers
+InfraSFilesExtraParent      = Adresser les bordereaux de prélèvement / virement à la maison mère
+InfraSFilesExtraParentHelp  = Avec le découpage « Un PDF par maison mère » du module InfraSFiles, les bordereaux de ce tiers sont regroupés dans celui de sa maison mère (renseignée ci-dessus) et adressés à elle. Sans maison mère, l'option est sans effet.
+InfraSFilesOptFreeText      = Texte libre en pied de page (vide = aucun)
+InfraSFilesOptWatermark     = Filigrane sur les documents brouillon (vide = aucun)
+InfraSFilesOptShowQty       = Afficher la quantité théorique sur la feuille de comptage
+InfraSFilesTitleModels      = <b>Modèles de documents</b>
+InfraSFilesModelsHelp       = Activez les modèles proposés à la génération et choisissez le modèle par défaut, pour chaque document dont la génération PDF est activée ci-dessus
+InfraSFilesNoModel          = Aucun modèle de document disponible pour ce document
+InfraSFilesNoObjectEnabled  = Aucun document avec la génération PDF activée
+
+### Documents layer ###
+InfraSFilesNoModelSelected    = Aucun modèle de document sélectionné : choisissez un modèle par défaut dans les paramètres du module
+InfraSFilesModelBordereauDesc = Bordereau de prélèvement / virement : un document par tiers ou par maison mère selon l'option du module, avec les factures, leurs échéances, les avoirs appliqués et le statut de chaque ligne
+InfraSFilesPdfColDueDate      = Échéance
+InfraSFilesPdfTitleDebit      = Bordereau de prélèvement
+InfraSFilesPdfTitleTransfer   = Bordereau de virement
+InfraSFilesPdfCreditor        = Créancier
+InfraSFilesPdfOrderingParty   = Donneur d'ordre
+InfraSFilesPdfDebtor          = Débiteur
+InfraSFilesPdfBeneficiary     = Bénéficiaire
+InfraSFilesPdfColDocument     = Document
+InfraSFilesPdfNbLines         = %s ligne(s)
+InfraSFilesSpecimen           = Spécimen
+InfraSFilesModelComptageDesc  = Feuille de comptage d'inventaire : références regroupées par zone de stockage, case vide pour la quantité relevée
+InfraSFilesPdfTitleCounting   = Feuille de comptage
+InfraSFilesPdfColCounted      = Quantité relevée
+InfraSFilesPdfZone            = Zone
+InfraSFilesPdfNoZone          = Sans zone
+InfraSFilesPdfNbRefs          = %s référence(s)
+InfraSFilesPdfCountedBy       = Compté par
+InfraSFilesPdfRejected        = dont %s ligne(s) rejetée(s) : %s
+
+### Mail layer ###
+InfraSFilesMailTopicWidthdraw      = Bordereau de prélèvement / virement __REF__
+InfraSFilesMailTopicInventory      = Feuille de comptage d'inventaire __REF__
+InfraSFilesMailTplWidthdrawLabel   = Envoi d'un bordereau de prélèvement / virement
+InfraSFilesMailTplWidthdrawTopic   = Bordereau de prélèvement / virement __REF__
+InfraSFilesMailTplWidthdrawContent = Bonjour,<br><br>Veuillez trouver ci-joint le bordereau de prélèvement / virement __REF__.<br><br>Cordialement,<br>__MYCOMPANY_NAME__
+InfraSFilesMailTplInventoryLabel   = Envoi d'une feuille de comptage d'inventaire
+InfraSFilesMailTplInventoryTopic   = Feuille de comptage d'inventaire __REF__
+InfraSFilesMailTplInventoryContent = Bonjour,<br><br>Veuillez trouver ci-joint la feuille de comptage de l'inventaire __REF__.<br><br>Cordialement,<br>__MYCOMPANY_NAME__
+Notify_WIDTHDRAW_SENTBYMAIL        = Bon de prélèvement / virement envoyé par email
+Notify_INVENTORY_SENTBYMAIL        = Inventaire envoyé par email
+
+### About page ###
+
+### Changelog page ###
+InfraSFilesParamPresent1             = <b>Ce module est une création</b>
+InfraSFilesParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
+InfraSFilesParamSlogan               = Structurez votre croissance !
+InfraSFilesParamLienModules          = Nos Modules
+InfraSFilesParamSupport              = Demande de support
+InfraSFilesParamPreferedPartner1     = Membre du programme officiel
+InfraSFilesParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise
+InfraSFilesParamMoreModulesLink      = Nos modules sur le dolistore
+InfraSFilesParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSFilesParamSkipCheck            = Téléchargement désactivé
+InfraSFilesParamNumberVersion        = N° de version
+InfraSFilesParamDolinfrasVersion     = Numero de version LTS
+InfraSFilesParamMonthVersion         = Date
+InfraSFilesParamChangesVersion       = Modifications
+InfraSFilesParamCheckNewVersion      = Nouveau Changelog
+InfraSFilesParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
+DolibarrVersion                      = Version de Dolibarr
+ModuleVersion                        = Version du module
+WebServerVersion                     = Version du serveur web
+
+### actions InfraSFiles class ###
+InfraSFilesWarningMaxVersion = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSFiles %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>

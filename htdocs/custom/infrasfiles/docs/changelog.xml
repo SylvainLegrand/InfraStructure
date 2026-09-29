@@ -1,0 +1,38 @@
+<changelog>
+	<Version Number="18.0.0" MonthVersion="2026-09">
+		<change type='add'>Version initiale : socle générique de génération de documents PDF, d'onglet « Fichiers joints » et d'envoi par email pour les objets Dolibarr qui n'en disposent pas nativement</change>
+		<change type='add'>Registre déclaratif des objets pris en charge (bons de prélèvement / virement, inventaires) extensible par les modules tiers via le hook infrasFilesRegisterObjects</change>
+		<change type='add'>Page de paramètres : activation par document, avec choix indépendant de la génération PDF + fichiers joints et de l'envoi par email</change>
+		<change type='add'>Bons de prélèvement : option de découpage des PDF => un PDF par tiers (regroupant ses lignes) ou un PDF par ligne</change>
+		<change type='add'>Table llx_infrasfiles_document mémorisant le dernier modèle utilisé et le dernier fichier généré sans modifier les tables natives</change>
+		<change type='add'>Couche documents : classes filles des objets natifs (generateDocument), section « Fichiers joints » avec génération en bas de la fiche native (insérée après les boutons d'action, compatible Dolibarr 18 à 24), onglet « Fichiers joints » avec badge de comptage, page document.php générique (fichiers joints et liés, rendu natif)</change>
+		<change type='add'>Modèles PDF : classe de base commune (en-tête logo, blocs, tableau, sauts de page, pied natif) et premier modèle « bordereau » pour les bons de prélèvement / virement</change>
+		<change type='add'>Téléchargement des fichiers : contrôle d'accès par la permission native de chaque objet (hook checkSecureAccess)</change>
+		<change type='add'>Paramètres : aperçu SPECIMEN de chaque modèle (objet spécimen sans enregistrement en base), options par document « texte libre en pied de page » et « filigrane sur les brouillons »</change>
+		<change type='add'>Inventaires : modèle « comptage » (feuille de comptage) avec références regroupées par zone de stockage — attribut produit choisi dans les paramètres, ordre des zones = ordre de la liste de l'attribut —, colonne lot/série si besoin, case vide de relevé, quantité théorique masquée par défaut (option), zone de signature</change>
+		<change type='add'>Couche mail : bouton « Envoyer par email » sur les fiches natives, écran d'envoi natif (dernier PDF pré-attaché, modèles de mails avec types dédiés « infrasfiles_widthdraw » / « infrasfiles_inventory » déclarés dans la page des modèles, substitutions), destinataires proposés = contacts des tiers des lignes du bon (adresse du tiers en saisie libre à défaut), événement agenda automatique via les déclencheurs WIDTHDRAW_SENTBYMAIL / INVENTORY_SENTBYMAIL</change>
+		<change type='add'>Modèles de mails par défaut (un par document, dans la langue de l'activation) créés à l'activation s'ils n'existent pas</change>
+		<change type='add'>Bordereau : colonne « Statut » par ligne (en attente, débité / crédité, rejeté), lignes rejetées en rouge et montant rejeté récapitulé sous le total</change>
+	</Version>
+	<Version Number="18.0.1" MonthVersion="2026-09">
+		<change type='fix'>Paramètres, modèles de documents : l'activation d'un modèle rejouée (double clic, F5 sur la page après l'action) tentait un second INSERT dans llx_document_model et affichait l'erreur DB_ERROR_RECORD_ALREADY_EXISTS (uk_document_model). Les actions activer / désactiver / défaut vérifient désormais l'état en base avant d'écrire (infrasfiles_document_model_is_active()) et redirigent vers la page sans l'action dans l'URL (POST-redirect-GET), un rechargement ne peut plus la rejouer.</change>
+		<change type='fix'>Onglet « Fichiers joints » : l'ajout manuel d'un fichier ou d'un lien, et la page après suppression d'un fichier, répondaient « accès refusé » (les templates natifs construisent leurs URL en PHP_SELF?id= sans le paramètre element de la page du module). Les variables $moreparam et $backtopage attendues par le core portent désormais ce paramètre.</change>
+		<change type='fix'>Suppression d'un PDF depuis une fiche native (remove_file) : le fichier demandé doit appartenir à l'élément de la fiche (un fichier d'inventaire ne peut plus être supprimé avec le droit d'écriture des bons de prélèvement, et inversement) ; règle isolée dans infrasfiles_element_from_file(), testée.</change>
+		<change type='fix'>Contrôle d'accès aux fichiers (hook checkSecureAccess) : le core n'appliquant qu'une réponse positive du hook, la branche « refus » était sans effet ; le hook n'accorde plus l'accès que sur le droit natif de l'objet (pour l'utilisateur transmis par le core) et laisse sinon la décision générique, qui repose sur la permission « read » du module — dont le libellé indique désormais qu'elle ouvre TOUS les fichiers du module (à réserver aux administrateurs).</change>
+		<change type='fix'>Onglet « Fichiers joints » des inventaires : avertissement PHP à chaque affichage (fonction d'onglets native appelée par call_user_func() alors qu'elle attend l'objet par référence) ; appel direct.</change>
+		<change type='fix'>Modèles PDF : le fond de page MAIN_ADD_PDF_BACKGROUND était importé mais jamais appliqué ; il est posé sur chaque page (infrasfilesAddPage()).</change>
+		<change type='chg'>Descripteur : condition des onglets « Fichiers joints » écrite avec $user->hasRight() (acceptée par dol_eval() depuis Dolibarr 18) au lieu de $user->rights->…, qui émet un avertissement quand l'utilisateur n'a aucun droit sur le module natif ; chaînes SQL en guillemets simples et suppression de FROM DUAL (portabilité ANSI_QUOTES / PostgreSQL) ; libellé de la permission « read » reformulé ; clés de traduction inutilisées retirées.</change>
+		<change type='chg'>Paramètres : icône d'aide (infobulle) sur les options du registre qui portent une clé « help »</change>
+	</Version>
+	<Version Number="18.1.0" MonthVersion="2026-09">
+		<change type='fix'>Inventaires : une erreur SQL au chargement des lignes produisait une feuille vide sans message ; l'erreur est désormais remontée.</change>
+		<change type='chg'>Bons de prélèvement : le découpage « un PDF par ligne » est retiré (une valeur mémorisée « line » retombe sur « un PDF par tiers »).</change>
+		<change type='chg'>Inventaires : l'option « attribut supplémentaire produit définissant la zone de stockage » est retirée ; la feuille de comptage suit désormais la colonne « Zone » du module InfraSWorkflow (section « Gestion des inventaires » : attribut supplémentaire du produit, dans l'ordre des valeurs de la liste, ou sous-catégories de la catégorie de localisation, dans leur ordre de création), la source étant décidée par InfraSWorkflow lui-même. Sans InfraSWorkflow ou colonne désactivée : pas de regroupement.</change>
+		<change type='add'>Bons de prélèvement : découpage « un PDF par maison mère » => les tiers qui ont une maison mère renseignée et l'attribut « Adresser les bordereaux à la maison mère » coché (attribut créé sur les tiers à l'activation, dans l'entité qui active le module) sont regroupés dans le PDF de leur maison mère, adressé à elle ; les autres tiers gardent leur propre PDF. Une maison mère ayant elle-même des factures dans le bon obtient un seul PDF.</change>
+		<change type='add'>Bordereau : adressé à la maison mère (bloc débiteur / bénéficiaire) ou au tiers avec mention de sa maison mère, colonne « Échéance », avoirs appliqués sous chaque facture, RIB réellement utilisé par la ligne (IBAN sous chaque ligne quand ils diffèrent dans un même PDF).</change>
+		<change type='add'>Feuille de comptage : les filtres de l'inventaire (catégories de produits, produit) sont repris dans l'en-tête.</change>
+	</Version>
+	<InfraS Downloaded="20260929"/>
+	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
+	<PHP minVersion="7.4" maxVersion="8.4"/>
+</changelog>

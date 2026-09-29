@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Config PHPUnit du module infrasfiles (gabarit infras-module-selftest).
+	Pas d'attribut bootstrap : chaque fichier de test fait son propre bootstrap portable (DOLIBARR_HTDOCS, repli relatif).
+	Lancement : bash /etc/claude-code/skills/infras-module-selftest/scripts/run-tests.sh <htdocs> infrasfiles
+-->
+<phpunit
+	colors="true"
+	stopOnFailure="false"
+>
+	<testsuites>
+		<testsuite name="infrasfiles">
+			<directory>.</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>
