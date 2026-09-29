@@ -13,10 +13,11 @@ Informations module (issues du code et du changelog local) :
 
 - Éditeur : InfraS - Sylvain Legrand
 - Numéro module : `550080`
+- Position dans la famille (`module_position`) : `100006` — famille `DOLINFRAS_FAMILY` « Dolibarr LTS by InfraS » quand dolinfras est activé
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.5.0` (2026-07)
+- Dernière version locale : `15.5.1` (2026-09)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrassearch/`
 
