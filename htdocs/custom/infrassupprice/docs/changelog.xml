@@ -111,7 +111,10 @@
 		<change type='fix'>Hook : Correction des warnings PHP 8 (Undefined property: Conf::$multicurrency) quand le module Multi-devises est désactivé, remplacement de $conf->multicurrency->enabled par isModEnabled('multicurrency')</change>
 		<change type='chg'>Hook : Harmonisation de la détection du module Multi-devises avec isModEnabled() dans l'en-tête du tableau</change>
 	</Version>
-	<InfraS Downloaded="20260708"/>
+	<Version Number="15.3.6" MonthVersion="2026-09">
+		<change type='chg'>Position du module dans la famille « Dolibarr LTS by InfraS » : 100007 → 100016 (renumérotation de la famille)</change>
+	</Version>
+	<InfraS Downloaded="20260929"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
