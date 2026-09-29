@@ -55,7 +55,7 @@
 			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameInfraSHelpdesk');
 			$this->family			= $family;																									// used to group modules in module setup page
 			$this->familyinfo		= [$family => ['position' => '001', 'label' => $langs->trans($family)]];
-			$this->module_position	= 100009;
+			$this->module_position	= 100022;
 			$this->description		= $langs->trans('Module500101Desc');													// Module description
 			$this->version			= $this->getLocalVersion();																// Version read from docs/changelog.xml
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);

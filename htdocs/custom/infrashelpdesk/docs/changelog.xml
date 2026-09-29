@@ -33,6 +33,9 @@
 	<Version Number="18.2.6" MonthVersion="2026-09">
 		<change type='chg'>Ajout d'une nouvelle famille dédiée aux modules d'hébergement</change>
 	</Version>
+	<Version Number="18.2.7" MonthVersion="2026-09">
+		<change type='chg'>Position du module dans la famille « Dolibarr LTS by InfraS » : 100009 → 100022 (renumérotation de la famille)</change>
+	</Version>
 	<InfraS Downloaded="20260929"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

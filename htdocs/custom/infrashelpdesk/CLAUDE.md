@@ -16,10 +16,11 @@ Informations module (issues du code et du changelog local) :
 
 - Éditeur : InfraS - Sylvain Legrand
 - Numéro module : `500101`
+- Position dans la famille (`module_position`) : `100022` — famille `DOLINFRAS_FAMILY` « Dolibarr LTS by InfraS » quand dolinfras est activé
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `18.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `18.2.5` (2026-09)
+- Dernière version locale : `18.2.7` (2026-09)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrashelpdesk/`
 
@@ -82,7 +83,7 @@ Dans `core/modules/modinfrashelpdesk.class.php` :
 	- `paramInfraSHelpDeskBtn` — voir le bouton flottant de contexte (sans être admin)
 	- `paramBkpRest` — sauvegarde/restauration des paramètres
 - **Page de configuration** : `config_page_url = array('infrashelpdesksetup.php@infrashelpdesk')`
-- **Famille** : `Modules basenameInfraSHelpdesk` (clé de traduction ; position `001` dans la page des modules)
+- **Famille** : `DOLINFRAS_FAMILY` si dolinfras est activé, sinon `'Modules '.$langs->trans('basenameInfraSHelpdesk')` (position de la famille `001` dans la page des modules)
 
 ### Initialisation (Lifecycle : `init()`)
 
