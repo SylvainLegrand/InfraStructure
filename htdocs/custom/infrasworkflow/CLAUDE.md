@@ -17,10 +17,11 @@ Informations module (issues du code et du changelog local) :
 
 - Éditeur : InfraS - Sylvain Legrand
 - Numéro module : `500080`
+- Position dans la famille (`module_position`) : `100010` — famille `DOLINFRAS_FAMILY` « Dolibarr LTS by InfraS » quand dolinfras est activé
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.0` (2026-09)
+- Dernière version locale : `21.8.2` (2026-09)
 - Dépendance obligatoire : extension PHP `xml`
 - Intégration optionnelle : `infraspackplus` (modèles PDF, notes publiques)
 - Emplacement : `htdocs/custom/infrasworkflow/`

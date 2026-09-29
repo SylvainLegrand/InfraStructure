@@ -52,7 +52,7 @@
 			$family					= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Modules '.$langs->trans('basenameInfraSWorkflow');
 			$this->family			= $family;																				// used to group modules in module setup page
 			$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-			$this->module_position	= 100008;
+			$this->module_position	= 100010;
 			$this->description		= $langs->trans('Module500080Desc');													// Module description
 			$this->version			= $this->getLocalVersion();																// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);												// llx_const table to save module status enabled/disabled
