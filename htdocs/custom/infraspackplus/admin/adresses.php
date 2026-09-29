@@ -390,7 +390,7 @@
 		$selected_addr	= getDolGlobalString('INFRASPLUS_PDF_DEFAULT_ADDR_DELIV', '');
 		foreach ($address->lines as $lineaddress) {
 			print '					<option name = "defaultaddrdeliv" value = "'.$lineaddress->id.'"';
-			if ($selected_addr === $lineaddress->id) {
+			if ((int) $selected_addr === (int) $lineaddress->id) {
 				print ' selected';
 			}
 			print '					>'.$lineaddress->name.' ('.$lineaddress->label.')</option>';

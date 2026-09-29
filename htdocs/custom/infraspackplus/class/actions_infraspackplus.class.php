@@ -329,7 +329,7 @@ EOJS;
 															<option name = "adr" value = "" data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusDefaultAddress')).'">'.$langs->trans('PDFInfraSPlusDefaultAddress').'</option>';
 						if ($res_adr > 0) {
 							foreach ($adrtmp->lines as $lineadr) {
-								$this->resprints	.= '	<option name = "adr" value = "'.$lineadr->id.'" '.($selected_adr === $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($lineadr->name.' ('.$lineadr->label.')').'">'.$lineadr->name.' ('.$lineadr->label.')</option>';
+								$this->resprints	.= '	<option name = "adr" value = "'.$lineadr->id.'" '.((int) $selected_adr === (int) $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($lineadr->name.' ('.$lineadr->label.')').'">'.$lineadr->name.' ('.$lineadr->label.')</option>';
 							}
 						}
 						$this->resprints	.= '		</select>';
@@ -536,7 +536,7 @@ EOJS;
 															<option name = "adrlivr" value = "-1"'.($adrlivrPost == -1 ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
 						if ($res_adrlivr > 0) {
 							foreach ($adrlivrtmp->lines as $lineadr) {
-								$this->resprints	.= '	<option name = "adrlivr" value = "'.$lineadr->id.'" '.($adrlivrPost === $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($lineadr->name.' ('.$lineadr->label.')').'">'.$lineadr->name.' ('.$lineadr->label.')</option>';
+								$this->resprints	.= '	<option name = "adrlivr" value = "'.$lineadr->id.'" '.((int) $adrlivrPost === (int) $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($lineadr->name.' ('.$lineadr->label.')').'">'.$lineadr->name.' ('.$lineadr->label.')</option>';
 							}
 						}
 						$this->resprints	.= '		</select>';
@@ -569,16 +569,16 @@ EOJS;
 														<td colspan = "'.$colspan.'" align = "right">
 															<label for = "Sst">'.$langs->trans('PDFInfraSPlusListSsT').'</label>&nbsp;
 															<select class = "flat cursorpointer width200" id = "selectSst" name = "Sst" onchange="funcListSsT('.$doc_id.', this.value)">
-																<option name = "Sst" value = "-2"'.($SstPost === -2 ? ' selected' : '').'>&nbsp;</option>';
+																<option name = "Sst" value = "-2"'.((int) $SstPost === -2 ? ' selected' : '').'>&nbsp;</option>';
 							for ($i = 0; $i < $num_SsT; $i++) {
 								$ar_listSsT			= $db->fetch_array($res_listSsT);
-								$this->resprints	.= '		<option name = "Sst" value = "'.$ar_listSsT['rowid'].'"'.($SstPost === $ar_listSsT['rowid'] ? ' selected' : '').' data-html = "'.dol_escape_htmltag($ar_listSsT['nom']).'">'.$ar_listSsT['nom'].'</option>';
+								$this->resprints	.= '		<option name = "Sst" value = "'.$ar_listSsT['rowid'].'"'.((int) $SstPost === (int) $ar_listSsT['rowid'] ? ' selected' : '').' data-html = "'.dol_escape_htmltag($ar_listSsT['nom']).'">'.$ar_listSsT['nom'].'</option>';
 							}
 							$this->resprints	.= '		</select>';
 							$this->resprints	.= ajax_combobox('selectSst', [], 0, 0, 'resolve');
 							$this->resprints	.= '	</td>
 													</tr>';
-							if ($SstPost !== -2 || $num_SsT == 1) {
+							if ((int) $SstPost !== -2 || $num_SsT == 1) {
 								$idCustomer			= $num_SsT > 1 ? $SstPost : $ar_listSsT['rowid'];
 								$adrSsttmp			= new Address($db);
 								$res_adrSst			= $adrSsttmp->fetch_lines($idCustomer);
@@ -586,11 +586,11 @@ EOJS;
 															<td colspan = "'.$colspan.'" align = "right">
 																<label for = "adrSst">'.$langs->trans('PDFInfraSPlusAdrSsT').'</label>&nbsp;
 																<select class = "flat cursorpointer width200" id = "selectadrSst" name = "adrSst">
-																	<option name = "adrSst" value = "-2"'.($adrSstPost === -2 ? ' selected' : '').'>&nbsp;</option>
-																	<option name = "adrSst" value = "-1"'.($adrSstPost === -1 ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
+																	<option name = "adrSst" value = "-2"'.((int) $adrSstPost === -2 ? ' selected' : '').'>&nbsp;</option>
+																	<option name = "adrSst" value = "-1"'.((int) $adrSstPost === -1 ? ' selected' : '').' data-html = "'.dol_escape_htmltag($langs->trans('PDFInfraSPlusBaseAddress')).'">'.$langs->trans('PDFInfraSPlusBaseAddress').'</option>';
 								if ($res_adrSst > 0) {
 									foreach ($adrSsttmp->lines as $lineadr) {
-										$this->resprints	.= '	<option name = "adrSst" value = "'.$lineadr->id.'" '.($adrSstPost === $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($lineadr->name.' ('.$lineadr->label.')').'">'.$lineadr->name.' ('.$lineadr->label.')</option>';
+										$this->resprints	.= '	<option name = "adrSst" value = "'.$lineadr->id.'" '.((int) $adrSstPost === (int) $lineadr->id ? ' selected' : '').' data-html = "'.dol_escape_htmltag($lineadr->name.' ('.$lineadr->label.')').'">'.$lineadr->name.' ('.$lineadr->label.')</option>';
 									}
 								}
 								$this->resprints	.= '		</select>';
