@@ -214,7 +214,7 @@
 								'keaticerpfsm'				=> array('modFicheinter', 'modContrat', 'modTicket', 'modKnowledgeManagement', 'modPrelevement', 'modStock'),
 								'keaticerpdistributeurs'	=> array('modExpedition', 'modSupplierProposal', 'modPaymentByBankTransfer', 'modPrelevement', 'modStock', 'modBarcode'),
 								'keaticerpmanufacturing'	=> array('modBom', 'modMrp', 'modProductBatch', 'modStock', ),
-								'keaticerpesn'				=> array('modExpedition', 'modSupplierProposal', 'modPaymentByBankTransfer', 'modPrelevement', 'modBarcode', 'modWebsite'),
+								'keaticerpesn'				=> array('modFicheinter', 'modSupplierProposal', 'modPaymentByBankTransfer', 'modPrelevement', 'modBarcode', 'modWebsite'),
 								'keaticerpevents'			=> array('modEventOrganization', 'modResource')
 								);
 		if ($brand !== '' && isset($brandmodules[$brand])) {
