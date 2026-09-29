@@ -321,7 +321,6 @@
 	$colorbacktitle1			= oblyon_color_to_hex($colorbacktitle1, $oblyon_color_fallback);
 	$autocolorshadow			= oblyon_txt_color_hex($colorbacktitle1);	// $colorshadowtitle : contraste sur le fond des filtres (comportement d'origine, inchangé)
 	$colorshadowtitle			= ($autocolorshadow == 'FFFFFF') ? '888888' : 'FFFFFF';
-	if (oblyon_color_setting('THEME_ELDY_TEXTTITLE') === '') {	// meme test (ni instance ni utilisateur) via la fonction commune
 	if (in_array(oblyon_color_setting('THEME_ELDY_TEXTTITLE'), array('', '#'), true)) {	// meme test (ni instance ni utilisateur) via la fonction commune ; InfraS change 3.8.0 : '#' (champ laisse vide dans l'onglet Couleurs, enregistre '#') = contraste automatique aussi
 		// contraste auto calculé sur le VRAI fond des titres = $colorbtitle (OBLYON_COLOR_BTITLE), pas sur le fond des filtres
 		$autocolortexttitle	= oblyon_txt_color_hex($colorbtitle);

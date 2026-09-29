@@ -200,11 +200,6 @@
 	--oblyon-transition: .15s ease-in-out;
 	--login_bgcolor: <?php print $login_bgcolor; ?>;
 	--login_txtcolor: <?php print $login_txtcolor; ?>;
-	/* densite des listes : une seule valeur pour toutes les pages (compacte) */
-	--oblyon-cell-py: 5px;
-	--oblyon-cell-px: 8px;
-	--oblyon-row-lh: 1.5em;
-	--oblyon-head-h: 34px;
 	/* densite des listes, champs, boutons et fiches : option OBLYON_DENSITY (3.8.0), valeurs choisies dans style.css.php (compact = valeurs d'origine) */
 	--oblyon-cell-py: <?php print $oblyon_density_tokens['cell_py']; ?>;
 	--oblyon-cell-px: <?php print $oblyon_density_tokens['cell_px']; ?>;
@@ -392,16 +387,6 @@ input, input.flat, textarea, textarea.flat, form.flat select, select, select.fla
 
 input {
 	line-height: 1.3em;
-	padding: 5px;
-}
-.liste_titre input {
-	padding: 5px;
-	font-family: var(--fontfamilydol);
-}
-select {
-	padding-top: 5px;
-	padding-right: 4px;
-	padding-bottom: 5px;
 	padding: var(--oblyon-control-py) 5px;	/* densite (3.8.0) */
 }
 .liste_titre input {
@@ -1062,7 +1047,6 @@ section.setupsection {
 select.flat, form.flat select {
 	font-weight: normal;
 	font-size: unset;
-	height: 2em;
 	height: calc(1.3em + 2 * var(--oblyon-control-py) + 2px);	/* densite (3.8.0) : meme hauteur que les champs (interligne + 2 x remplissage + bordures), etait 2em */
 }
 

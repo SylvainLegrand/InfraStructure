@@ -1306,40 +1306,6 @@ div#ecm-layout-center {
 /*  jNotify																	   */
 /* ============================================================================== */
 
-.jnotify-container {
-	position: fixed !important;
-<?php if (getDolGlobalString('MAIN_JQUERY_JNOTIFY_BOTTOM')) { ?>
-	top: auto !important;
-	bottom: 4px !important;
-<?php } ?>
-	text-align: center;
-	min-width: <?php print $dol_optimize_smallscreen ? '200' : '480'; ?>px;
-	width: auto;
-	max-width: 1024px;
-	padding-left: 10px !important;
-	padding-right: 10px !important;
-	padding-top: 10px !important;
-	word-wrap: break-word;
-}
-.jnotify-container .jnotify-notification .jnotify-message {
-	font-weight: normal;
-	text-align: start;
-	word-break: break-word;
-}
-.jnotify-container .jnotify-notification-warning .jnotify-close, .jnotify-container .jnotify-notification-warning .jnotify-message {
-	color: #a28918 !important;
-}
-.jnotify-container .jnotify-close {
-	top: 4px !important;
-	font-size: 1.6em !important;
-}
-
-/* use or not ? */
-div.jnotify-background {
-	opacity : 0.97 !important;	/* InfraS change */
-	box-shadow: var(--oblyon-shadow-lg) !important;	/* InfraS change : valeur #8888 invalide remplacee */
-	border-radius: var(--oblyon-radius) !important;	/* InfraS add */
-}
 /* messages jNotify en cartes sous la barre du haut, a droite : fond et texte des couleurs "Messages et notifications"
    (OBLYON_COLOR_NOTIF_*, jusqu'ici lues mais jamais peintes), liseret et icone de la couleur du texte, croix discrete, glissement a l'apparition (option Animations) */
 .jnotify-container {

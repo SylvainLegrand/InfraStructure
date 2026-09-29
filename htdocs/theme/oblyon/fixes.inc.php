@@ -35,7 +35,6 @@ div.fiche>form>div.div-table-responsive, div.fiche>form>div.div-table-responsive
 		<?php } else { ?>
 			top: 0;
 		<?php } ?>
-		background-color: var(--colorbtitle);
 		background-color: <?php print ($oblyon_listhead_style == 'flat' ? 'var(--oblyon-listhead-bg)' : 'var(--colorbtitle)'); ?>;	/* fond opaque de l'en-tete collant selon le style d'en-tete (plat = fond du style) */
 		z-index: 1;
 	}
@@ -591,6 +590,7 @@ div.tabs:first-of-type, .fiche > div.tabs
 		width: 95%;
 	}
 }
+
 <?php if ($oblyon_listhead_style == 'flat') { ?>
 /* en-tetes de liste "plats" (OBLYON_LIST_HEADER_STYLE = flat, 3.8.0), ecrits apres tables.inc.php et public.inc.php (cascade) :
    la ligne de titre repose sur le fond du style (fond des lignes par defaut) avec un texte attenue, graisse 600, ferme par un filet ;
