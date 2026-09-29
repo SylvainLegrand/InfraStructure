@@ -36,6 +36,7 @@ div.fiche>form>div.div-table-responsive, div.fiche>form>div.div-table-responsive
 			top: 0;
 		<?php } ?>
 		background-color: var(--colorbtitle);
+		background-color: <?php print ($oblyon_listhead_style == 'flat' ? 'var(--oblyon-listhead-bg)' : 'var(--colorbtitle)'); ?>;	/* fond opaque de l'en-tete collant selon le style d'en-tete (plat = fond du style) */
 		z-index: 1;
 	}
 	tr.liste_titre.box_titre th {
@@ -82,6 +83,14 @@ div.tabs:first-of-type, .fiche > div.tabs
 	margin: 0 auto 0 0 !important;
 	height: auto;
 	z-index: 50;
+<?php if ($oblyon_tabs_style == 'pills') { // styles d'onglets 3.8.0 (apres le raccourci margin, qui ecraserait margin-bottom) : pas de filet sous des pilules, l'espace de 12 px avant la carte passe en remplissage interieur du bandeau (couvert par son fond quand il est colle en haut) ; onglets soulignes : filet neutre et marge sous le filet ?>
+	border-bottom: 0 !important;
+	padding-bottom: 12px;
+<?php } elseif ($oblyon_tabs_style == 'underline') { ?>
+	background-color: var(--oblyon-tab-under-band);	/* bande du style (le fond de page ci-dessus est celui des boites) */
+	border-bottom: solid 1px var(--oblyon-tab-under-border) !important;
+	margin-bottom: 12px !important;
+<?php } ?>
 }
 
 #dialogforpopup .tabs {
@@ -582,3 +591,59 @@ div.tabs:first-of-type, .fiche > div.tabs
 		width: 95%;
 	}
 }
+<?php if ($oblyon_listhead_style == 'flat') { ?>
+/* en-tetes de liste "plats" (OBLYON_LIST_HEADER_STYLE = flat, 3.8.0), ecrits apres tables.inc.php et public.inc.php (cascade) :
+   la ligne de titre repose sur le fond du style (fond des lignes par defaut) avec un texte attenue, graisse 600, ferme par un filet ;
+   la colonne triee prend la couleur "colonne triee" (couleur principale par defaut) sans fond ; la ligne de filtres passe sur un fond a peine teinte ;
+   les totaux "comme l'en-tete" suivent le style (fond du style, filet double au-dessus). Les titres des widgets (tr.box_titre) et les autres usages de
+   --colorbtitle ne sont pas touches. Jetons --oblyon-listhead-* (couleurs OBLYON_COLOR_LISTHEAD_FLAT_*, groupe Titres, visibles en style plat) */
+div.liste_titre_bydiv, .liste_titre div.tagtr, tr.liste_titre, tr.liste_titre_sel, .tagtr.liste_titre, .tagtr.liste_titre_sel, form.liste_titre, form.liste_titre_sel, table.dataTable thead tr,
+tr.liste_titre th, th.liste_titre, tr.liste_titre td, td.liste_titre, form.liste_titre div {
+	background-color: var(--oblyon-listhead-bg);
+	color: var(--oblyon-listhead-txt);
+}
+tr.liste_titre th, th.liste_titre, tr.liste_titre td, td.liste_titre, form.liste_titre div.tagtd {
+	font-size: .95em;
+	font-weight: 600;
+	border-bottom: 1px solid var(--oblyon-listhead-line) !important;
+}
+tr.liste_titre th a, th.liste_titre a, tr.liste_titre td a, td.liste_titre a, form.liste_titre div a, div.liste_titre a, .liste_titre td a,
+table td.liste_titre a:link, table td.liste_titre a:visited, table td.liste_titre a:active {
+	color: var(--oblyon-listhead-txt) !important;
+}
+table td.liste_titre a:hover, tr.liste_titre th a:hover, th.liste_titre a:hover {
+	color: var(--oblyon-listhead-sel) !important;
+}
+tr.liste_titre_sel th, th.liste_titre_sel, tr.liste_titre_sel td, td.liste_titre_sel, form.liste_titre_sel div, .liste_titre_sel {
+	background-color: var(--oblyon-listhead-bg) !important;
+	color: var(--oblyon-listhead-sel) !important;
+	font-weight: 700 !important;
+}
+tr.liste_titre th.liste_titre_sel a, tr.liste_titre td.liste_titre_sel a, th.liste_titre_sel a, td.liste_titre_sel a, tr.liste_titre_sel a, tr.liste_titre_sel th a, tr.liste_titre_sel td a {
+	color: var(--oblyon-listhead-sel) !important;	/* specificite superieure a "tr.liste_titre th a" ci-dessus, sinon la colonne triee reste attenuee */
+}
+div.liste_titre_bydiv, tr.liste_titre_topborder td {
+	border-top: 0;	/* plus de liseret de couleur au-dessus (--colortopbordertitle1) */
+}
+tr.liste_titre_filter, tr.liste_titre_filter td, .liste_titre_filter {
+	background: var(--oblyon-listhead-filter) !important;
+	font-weight: normal;
+}
+tr.liste_titre_filter td {
+	padding: var(--oblyon-cell-py) var(--oblyon-cell-px);	/* les cellules de filtres n'ont aucun remplissage dans le theme (la regle "table .liste_titre td" vise les cellules sous un .liste_titre, pas celles qui portent la classe) : le dernier champ collait au bord */
+}
+tr.liste_titre_filter td button.liste_titre span, tr.liste_titre_filter .button_search span, tr.liste_titre_filter .button_removefilter span {
+	color: var(--oblyon-listhead-txt) !important;	/* loupe et croix : la regle "td button.liste_titre span" leur donne le texte de la bande (blanc sur une bande sombre), invisible sur le fond plat */
+	opacity: 1;
+}
+tr.liste_titre_filter .button_search:hover span, tr.liste_titre_filter .button_removefilter:hover span {
+	color: var(--oblyon-listhead-sel) !important;
+}
+<?php if (getDolGlobalString('THEME_ELDY_TOTAL_BACKGROUND_LIKE_HEAD', '1') != '0') { ?>
+tr.liste_total td, form.liste_total div {
+	background-color: var(--oblyon-listhead-bg) !important;
+	color: var(--colorfline) !important;
+	border-top: 2px solid var(--oblyon-listhead-line);
+}
+<?php } ?>
+<?php } ?>

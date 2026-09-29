@@ -175,6 +175,13 @@
 				}
 				dolibarr_del_const($this->db, 'OBLYON_DISABLE_KANBAN_VIEW_IN_LIST', $conf->entity);
 			}
+			// migration 3.8.0 : "lignes de tableau plus espacees" (THEME_ELDY_USECOMOACTROW) -> densite "comfortable" (OBLYON_DENSITY), puis suppression (idem admin/options.php)
+			if (getDolGlobalString('THEME_ELDY_USECOMOACTROW')) {
+				if (getDolGlobalString('OBLYON_DENSITY', 'compact') == 'compact') {
+					dolibarr_set_const($this->db, 'OBLYON_DENSITY', 'comfortable', 'chaine', 0, 'Oblyon module', $conf->entity);
+				}
+				dolibarr_del_const($this->db, 'THEME_ELDY_USECOMOACTROW', $conf->entity);
+			}
 			return $this->_init($sql, $options);
 		}
 

@@ -401,8 +401,17 @@ SET FOREIGN_KEY_CHECKS = 1;
 			print '</a>';
 		} elseif ($tag == 'input') {
 			$constantKey		= getDolGlobalString($confkey, 0);
+			$ownvalue		= isset($metas['value']);	// valeur imposee par l'appelant (ex. couleur effective d'un bouton) : affichee telle quelle
 			$defaultMetas	   = array('type' => 'text', 'class' => 'flat quatrevingtpercent', 'style' => 'padding: 0; font-size: inherit;', 'name' => $confkey, 'id' => $confkey, 'value' => dol_escape_htmltag($constantKey));	// InfraS change : valeur echappee (une constante peut venir d'un preset importe)
 			$metas			  = array_merge ($defaultMetas, $metas);
+			// champ couleur sans valeur ('' ou '#' = heriter / derivee) : jscolor (required par defaut) remplacait la valeur par FFFFFF dans le champ,
+			// enregistre ensuite en #FFFFFF (texte du menu haut passe en blanc sur plusieurs instances). Le champ reste vide, jscolor accepte le vide ({required:false}),
+			// un repere "Automatique" est affiche ; a l'enregistrement le vide redevient '#' (convention du module)
+			if (! $ownvalue && preg_match('/\bcolor\b/', $metas['class']) && in_array((string) $constantKey, array('', '#', '0'), true)) {	// '0' = constante absente (defaut de getDolGlobalString ci-dessus), jamais une couleur
+				$metas['value']			= '';
+				$metas['class']			= preg_replace('/\bcolor\b/', 'color {required:false}', $metas['class'], 1);
+				$metas['placeholder']	= $langs->trans('Automatic');
+			}
 			$metascompil		= '';
 			foreach ($metas as $key => $value) {
 				$metascompil	.= ' '.$key.($key == 'enabled' || $key == 'disabled' ? '' : ' = "'.$value.'"');

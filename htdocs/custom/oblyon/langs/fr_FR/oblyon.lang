@@ -86,7 +86,6 @@ General                              = Paramètres généraux
 OblyonFontSize                       = Taille du texte de base en pixels (doit être entre 10 et 16)
 OblyonFontFamily                     = Police de caractères utilisée pour l'interface Dolibarr
 OblyonFontSystem                     = Police du système (Segoe UI, Roboto, San Francisco… selon l'appareil)
-MainStatusUseImages                  = Les différents statuts des éléments seront affichés sous forme d'icône avec ou sans texte explicatif (sinon un libellé coloré sera utilisé)
 
 #
 # Warnings
@@ -116,6 +115,10 @@ OBLYON_COLOR_LOGIN_BCKGRD            = Couleur de fond de la page de connexion
 OBLYON_COLOR_BTITLE                  = Couleur de fond des titres
 OBLYON_COLOR_FTITLE                  = Couleur de texte des titres
 OBLYON_COLOR_STITLE                  = Couleur de texte du titre principal
+OBLYON_COLOR_LISTHEAD_FLAT_BCKGRD    = En-têtes de liste plats : fond (vide = fond des lignes)
+OBLYON_COLOR_LISTHEAD_FLAT_TXT       = En-têtes de liste plats : texte (vide = texte des lignes atténué)
+OBLYON_COLOR_LISTHEAD_FLAT_LINE      = En-têtes de liste plats : filet (vide = cadre neutre)
+OBLYON_COLOR_LISTHEAD_FLAT_SEL       = En-têtes de liste plats : colonne triée et survol (vide = couleur principale)
 OBLYON_COLOR_BLINE                   = Couleur de fond des lignes
 OBLYON_COLOR_BLINE_HOVER             = Couleur de fond des lignes survolées
 OBLYON_COLOR_FDATE_DEFAULT           = Couleur de date par défaut (date du jour) dans le sélecteur de date
@@ -160,6 +163,34 @@ OBLYON_COLOR_BUTTON_ACTION1          = Couleur 1 de fond des boutons
 OBLYON_COLOR_BUTTON_ACTION2          = Couleur 2 de fond des boutons
 OBLYON_COLOR_BUTTON_DELETE1          = Couleur 1 de fond des boutons dangereux
 OBLYON_COLOR_BUTTON_DELETE2          = Couleur 2 de fond des boutons dangereux
+OBLYON_COLOR_BUTTON_ACTION2          = Boutons d'action : fond au survol
+OBLYON_COLOR_BUTTON_BORDER           = Boutons d'action : bordure
+OBLYON_COLOR_BUTTON_TXT_HOVER        = Boutons d'action : texte au survol
+OBLYON_COLOR_BUTTON_DELETE1          = Bouton Supprimer : fond
+OBLYON_COLOR_BUTTON_DELETE2          = Bouton Supprimer : fond au survol
+OBLYON_COLOR_BUTTON_DELETE_TXT       = Bouton Supprimer : texte
+OBLYON_COLOR_BUTTON_DELETE_BORDER    = Bouton Supprimer : bordure
+OBLYON_COLOR_BUTTON_DELETE_TXT_HOVER = Bouton Supprimer : texte au survol
+OBLYON_COLOR_BUTTON_FORM_BCKGRD      = Boutons de formulaire : fond
+OBLYON_COLOR_BUTTON_FORM_TXT         = Boutons de formulaire : texte
+OBLYON_COLOR_BUTTON_FORM_BORDER      = Boutons de formulaire : bordure
+OBLYON_COLOR_BUTTON_FORM_BCKGRD_HOVER = Boutons de formulaire : fond au survol
+OBLYON_COLOR_BUTTON_FORM_TXT_HOVER   = Boutons de formulaire : texte au survol
+OBLYON_COLOR_BUTTON_FLAT_BCKGRD      = Boutons d'action : fond (Contour / Doux)
+OBLYON_COLOR_BUTTON_FLAT_TXT         = Boutons d'action : texte (Contour / Doux)
+OBLYON_COLOR_BUTTON_FLAT_BORDER      = Boutons d'action : bordure (Contour / Doux)
+OBLYON_COLOR_BUTTON_FLAT_BCKGRD_HOVER= Boutons d'action : fond au survol (Contour / Doux)
+OBLYON_COLOR_BUTTON_FLAT_TXT_HOVER   = Boutons d'action : texte au survol (Contour / Doux)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_BCKGRD= Bouton Supprimer : fond (Contour / Doux)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_TXT  = Bouton Supprimer : texte (Contour / Doux)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_BORDER= Bouton Supprimer : bordure (Contour / Doux)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_BCKGRD_HOVER= Bouton Supprimer : fond au survol (Contour / Doux)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_TXT_HOVER= Bouton Supprimer : texte au survol (Contour / Doux)
+OBLYON_COLOR_BUTTON_FORM_FLAT_BCKGRD = Boutons de formulaire : fond (Contour / Doux)
+OBLYON_COLOR_BUTTON_FORM_FLAT_TXT    = Boutons de formulaire : texte (Contour / Doux)
+OBLYON_COLOR_BUTTON_FORM_FLAT_BORDER = Boutons de formulaire : bordure (Contour / Doux)
+OBLYON_COLOR_BUTTON_FORM_FLAT_BCKGRD_HOVER= Boutons de formulaire : fond au survol (Contour / Doux)
+OBLYON_COLOR_BUTTON_FORM_FLAT_TXT_HOVER= Boutons de formulaire : texte au survol (Contour / Doux)
 OBLYON_COLOR_INFO_BORDER             = Couleur des bordures des messages d'information
 OBLYON_COLOR_INFO_BCKGRD             = Couleur de fond des messages d'information
 OBLYON_COLOR_INFO_TEXT               = Couleur de texte des messages d'information
@@ -176,6 +207,12 @@ OBLYON_COLOR_NOTIF_WARNING_TEXT      = Couleur de texte des notifications d'aver
 OBLYON_COLOR_NOTIF_ERROR_BCKGRD      = Couleur de fond des notifications d'erreur
 OBLYON_COLOR_NOTIF_ERROR_TEXT        = Couleur de texte des notifications d'erreur
 OBLYON_COLOR_TEXTTABACTIVE           = Couleur de texte des onglets actifs
+OBLYON_COLOR_TAB_PILL_BCKGRD         = Couleur de fond de l'onglet actif (pilules ; vide = teinte de la couleur principale)
+OBLYON_COLOR_TAB_PILL_TXT            = Couleur de texte de l'onglet actif (pilules ; vide = couleur principale)
+OBLYON_COLOR_TAB_PILL_BORDER         = Couleur de bordure des onglets (pilules, avec l'option Bordure ; vide = cadre neutre)
+OBLYON_COLOR_TAB_UNDER_BAND          = Couleur de fond de la bande des onglets (soulignés ; vide = fond neutre)
+OBLYON_COLOR_TAB_UNDER_TXT           = Couleur de texte de l'onglet actif (soulignés ; vide = couleur principale)
+OBLYON_COLOR_TAB_UNDER_LINE          = Couleur du trait de soulignement (soulignés ; vide = couleur principale)
 OBLYON_COLOR_INPUT_BCKGRD            = Couleur de fond des zones de saisie
 OBLYON_COLOR_INPUT_ADD_BCKGRD        = Couleur de fond des champs (si option "Fond gris sur les champs de saisie" active)
 OBLYON_COLOR_BOX_SHADOW              = Couleur de l'ombre des petites boîtes (si option "Ombre portée" active)
@@ -201,6 +238,8 @@ OBLYON_COLOR_WEATHER_LEVEL4          = Couleur météo niveau 4 (tableau de bord
 OBLYON_COLOR_INFOBOX_UPDATE          = Couleur du badge « mise à jour disponible »
 THEME_ELDY_BTNACTION                 = Couleur de fond des boutons d'action (thème Eldy)
 THEME_ELDY_TEXTBTNACTION             = Couleur du texte des boutons d'action (thème Eldy)
+THEME_ELDY_BTNACTION                 = Boutons d'action : fond (thème Eldy)
+THEME_ELDY_TEXTBTNACTION             = Boutons d'action : texte (thème Eldy)
 THEME_ELDY_USE_HOVER                 = Couleur de fond des lignes survolées (thème Eldy)
 THEME_ELDY_USE_CHECKED               = Couleur de fond des lignes cochées (thème Eldy)
 InvertRatioDesc                      = Ratio du filtre d'inversion des couleurs (Applicable aux icones basées sur des fichiers images PNG)
@@ -381,7 +420,6 @@ ThemeUseBorderOnTable          = Activer les arrondis sur tableaux et boîtes
 ThemeBorderRadius              = Rayon des arrondis (px)
 ThemeShadowOnSmallBoxes        = Ombre portée sur les petites boîtes
 ThemeTotalBackgroundLikeHead   = Fond des lignes de total identique à l'entête
-ThemeUseComoActRow             = Lignes de tableau plus espacées (mode confort)
 ThemeSaturateRatio             = Saturation des icônes du tableau de bord (0 à 1)
 ThemeMenuColorLogo             = Conserver la couleur d'origine des icônes du menu
 
@@ -488,3 +526,68 @@ OblyonUserPresetAccessible     = Preset conçu pour les personnes daltoniennes o
 OblyonUserPresetAccessibleShort = accessibilité
 OblyonUserPresetSaveTitle      = Enregistrer mes couleurs actuelles comme preset
 OblyonUserPresetSaveHelp       = Crée un preset personnel avec les couleurs affichées dans le tableau (vos couleurs personnelles si la case est cochée, sinon celles de l'instance). Couleurs uniquement.
+### Interface styles (3.8.0) ###
+OblyonDensity                  = Densité de l'interface
+OblyonDensityHelp              = Hauteur des lignes et des en-têtes de tableau, des champs de saisie, des boutons d'action et marges intérieures des fiches
+OblyonDensityCompact           = Compacte (rendu d'origine)
+OblyonDensityNormal            = Normale
+OblyonDensityComfortable       = Confortable
+OblyonTabsStyle                = Style des onglets des fiches
+OblyonTabsStyleHelp            = Boîtes : onglets encadrés posés sur la carte (rendu d'origine). Soulignés : onglets plats sur un filet, l'actif est souligné de la couleur principale. Pilules : onglets arrondis, l'actif sur un fond teinté de la couleur principale
+OblyonTabsStyleBoxed           = Boîtes (rendu d'origine)
+OblyonTabsStyleUnderline       = Soulignés
+OblyonTabsStylePills           = Pilules
+OblyonTabPillBorder            = Onglets en pilules : bordure (couleur dans l'onglet Couleurs, groupe Onglets)
+OblyonTabPillShadow            = Onglets en pilules : ombre portée
+OblyonButtonStyle              = Style des boutons d'action
+OblyonButtonStyleHelp          = S'applique aux boutons d'action des fiches, au bouton Supprimer et aux boutons de formulaire (Enregistrer, Annuler…). Pleins : fond de couleur (rendu d'origine). Contour : fond transparent, cadre et texte de couleur. Doux : fond légèrement teinté, texte de couleur. Les couleurs de chaque famille (fond, texte, bordure, survol) se règlent dans l'onglet Couleurs, groupe Boutons
+OblyonButtonStyleFilled        = Pleins (rendu d'origine)
+OblyonButtonStyleOutline       = Contour
+OblyonButtonStyleSoft          = Doux
+OblyonButtonFormOwnColors      = Couleurs propres aux boutons de formulaire
+OblyonButtonFormOwnColorsHelp  = Par défaut, les boutons de formulaire (Enregistrer, Annuler, Rechercher…) reprennent les couleurs des boutons d'action. Activez pour leur donner leurs propres couleurs (nouvelle famille dans l'onglet Couleurs, groupe Boutons)
+OblyonBtnGroupHelp             = Style de boutons en cours : %s (onglet Options). Les couleurs affichées sont celles réellement appliquées. Une couleur que vous ne modifiez pas reste automatique : elle suit le style de boutons et les couleurs de base ; une couleur modifiée est conservée telle quelle
+OblyonBtnFamilyAction          = Boutons d'action (Modifier, Valider, Envoyer…)
+OblyonBtnFamilyDelete          = Bouton Supprimer
+OblyonBtnFamilyForm            = Boutons de formulaire (Enregistrer, Annuler, Rechercher…)
+OblyonBtnRoleBg                = Fond
+OblyonBtnRoleTxt               = Texte
+OblyonBtnRoleBorder            = Bordure
+OblyonBtnRoleBgHover           = Fond au survol
+OblyonBtnRoleTxtHover          = Texte au survol
+OblyonBadgeStyle               = Affichage des statuts
+OblyonBadgeStyleHelp           = Icône : pastille image du core, sans libellé. Pilule pleine : badge au fond de la couleur du statut (rendu d'origine). Contour : badge au fond des lignes, cadre et texte de la couleur du statut. Point + texte : un disque de la couleur du statut devant le libellé, sans fond ni cadre (listes plus légères). Les couleurs des badges se règlent dans l'onglet Couleurs, groupe Badges de statut
+OblyonBadgeStyleIcon           = Icône (pastille image)
+OblyonBadgeStylePill           = Badge pilule pleine (rendu d'origine)
+OblyonBadgeStyleOutline        = Badge contour
+OblyonBadgeStyleDot            = Point + texte
+OblyonStatusPulse              = Pulsation du statut de la fiche ouverte
+OblyonStatusPulseHelp          = Le statut affiché dans le bandeau de la fiche (à droite de la référence) passe doucement de pleine opacité à 55 %% et revient, en 2,4 secondes, dans sa couleur, sans changer de taille ; en pause au survol pour la lecture. Jamais dans les listes. En style « Point + texte », seul le disque pulse
+OblyonListHeaderStyle          = Style des en-têtes de liste
+OblyonListHeaderStyleHelp      = Bande colorée : ligne de titre et ligne de filtres sur le fond des titres (rendu d'origine). Plat : titre sur le fond des lignes, texte atténué fermé par un filet, colonne triée en couleur principale, filtres sur un fond à peine teinté, totaux « comme l'en-tête » assortis. Les couleurs du style plat se règlent dans l'onglet Couleurs, groupe Titres. Les titres des widgets du tableau de bord ne changent pas
+OblyonListHeaderStyleBand      = Bande colorée (rendu d'origine)
+OblyonListHeaderStyleFlat      = Plat
+OblyonMotion                   = Animations
+OblyonMotionHelp               = S'applique à toutes les transitions et animations du thème : menus et volets, tiroir mobile, boutons, onglets, tuiles du tableau de bord, pulsation du statut. Normales : animations du thème, sauf si le poste demande moins d'animations (Windows « Effets d'animation », macOS « Réduire les animations », téléphone), auquel cas elles sont réduites automatiquement. Réduites : transitions ramenées à 50 ms et animations coupées pour tout le monde
+OblyonMotionNormal             = Normales (réduites si le poste le demande)
+OblyonMotionReduced            = Réduites
+OblyonNotifCenter              = Centre de notifications
+OblyonNotifCenterHelp          = Affiche une cloche en haut à droite, près du bloc utilisateur. Chaque message de Dolibarr (confirmation, avertissement, erreur) s'affiche brièvement comme aujourd'hui puis reste consultable dans la cloche, avec une pastille du nombre de messages non lus. Les erreurs et avertissements ne restent plus affichés en permanence : 6 secondes, puis la cloche. Historique conservé dans le navigateur de l'utilisateur (50 messages, 7 jours), aucune donnée en base
+OblyonNotifTitle               = Notifications
+OblyonNotifEmpty               = Aucune notification
+OblyonNotifMarkRead            = Tout marquer comme lu
+OblyonNotifClear               = Tout effacer
+OblyonNotifDelete              = Supprimer cette notification
+OblyonNotifNow                 = à l'instant
+OblyonNotifMin                 = il y a %s min
+OblyonNotifHour                = il y a %s h
+OblyonNotifDay                 = il y a %s j
+OblyonUserBlock                = Bloc utilisateur (barre du haut)
+OblyonUserBlockHelp            = Par défaut : photo de l'utilisateur ou silhouette générique, menu déroulant d'origine. Initiales : cercle de la couleur principale portant les initiales de l'utilisateur (prénom + nom, sinon identifiant) à la place de la photo, dans la barre et dans le menu déroulant. Photo : la photo de l'utilisateur si elle est renseignée, sinon les initiales. Avec Initiales ou Photo, le menu déroulant de l'utilisateur est redessiné : carte flottante, en-tête centré sur la teinte d'accent, liens « Afficher… » en lignes cliquables, boutons Fiche et Déconnexion aux couleurs des boutons du thème
+OblyonUserBlockDefault         = Par défaut (rendu d'origine)
+OblyonUserBlockInitials        = Initiales
+OblyonUserBlockPhoto           = Photo, sinon initiales
+OblyonAgendaStyle              = Style de l'agenda
+OblyonAgendaStyleHelp          = Vues mois, semaine et jour de l'agenda natif. Classique : rendu d'origine. Moderne : jours du mois sur le fond des lignes, jours hors mois atténués, aujourd'hui sur la teinte d'accent avec le numéro dans une pastille de la couleur principale, bouton « + » visible au survol, en-tête des jours plat, chaque événement en carte teintée de sa propre couleur (type ou utilisateur) avec un texte lisible. Ne concerne pas les modules d'agenda tiers (FullCalendar…)
+OblyonAgendaStyleClassic       = Classique (rendu d'origine)
+OblyonAgendaStyleModern        = Moderne

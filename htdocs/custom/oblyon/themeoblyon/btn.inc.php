@@ -230,7 +230,7 @@ span.butAction, span.butActionDelete {
     font-weight: bold;
 
     margin: 0em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.9'); ?>em !important;
-    padding: 0.6em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.7'); ?>em;
+    padding: var(--oblyon-btn-py) <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.7'); ?>em;	/* densite (3.8.0) */
     font-family: var(--fontlist);
     display: inline-block;
     text-align: center;
@@ -314,7 +314,7 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
     white-space: nowrap !important;
     cursor: not-allowed !important;
     margin: 0em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.9'); ?>em;
-    padding: 0.6em <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.7'); ?>em;
+    padding: var(--oblyon-btn-py) <?php echo ($dol_optimize_smallscreen ? '0.6' : '0.7'); ?>em;	/* densite (3.8.0) */
     font-family: var(--fontlist) !important;
     display: inline-block;
     text-align: center;
@@ -375,6 +375,72 @@ span.butActionNewRefused>span.fa, span.butActionNewRefused>span.fa:hover
     background-color: transparent ! important;
 }
 /* InfraS change end */
+
+<?php $oblyon_btn_custom = false; foreach (oblyon_button_families('filled', true) as $oblyon_btn_f) { foreach (array('border', 'txt_hover') as $oblyon_btn_r) { if (getDolGlobalString($oblyon_btn_f['colors'][$oblyon_btn_r]) && getDolGlobalString($oblyon_btn_f['colors'][$oblyon_btn_r]) != '#') $oblyon_btn_custom = true; } } if ($oblyon_button_style != 'filled' || getDolGlobalInt('OBLYON_BUTTON_FORM_OWN_COLORS') || $oblyon_btn_custom || (getDolGlobalString('OBLYON_COLOR_BUTTON_DELETE_TXT') && getDolGlobalString('OBLYON_COLOR_BUTTON_DELETE_TXT') != '#')) { ?>
+/* couleurs des boutons par famille (3.8.0) : action / suppression / formulaire, chacune avec fond, texte, bordure, fond et texte au survol
+   (jetons --oblyon-btn-<famille>-<role>, resolus selon OBLYON_BUTTON_STYLE dans style.css.php : contour = fond transparent + cadre, doux = fond teinte, pleins = defauts d'origine).
+   Bloc imprime seulement quand il change quelque chose (style autre que pleins, couleurs propres de formulaire, ou une bordure / un texte de survol / un texte de Supprimer renseigne) :
+   en pleins sans reglage, les regles d'origine ci-dessus suffisent et la feuille reste identique. Ecrit apres les regles d'origine avec les memes selecteurs et !important.
+   Exclus : les entrees des listes deroulantes d'actions (.dropdown-content, style plat propre dans dropdown.inc.php), les boutons refuses (neutres), les boutons de paiement */
+.butAction, .butAction:link, .butAction:visited, .butAction:active, .cke_dialog_ui_button_ok {
+	background: var(--oblyon-btn-action-bg) !important;
+	color: var(--oblyon-btn-action-txt) !important;
+	border: 1px solid var(--oblyon-btn-action-border) !important;
+	box-sizing: border-box;
+}
+.butAction:hover, .cke_dialog_ui_button_ok:hover, .dropdown-holder.open > .butAction {
+	background: var(--oblyon-btn-action-bg-hover) !important;
+	color: var(--oblyon-btn-action-txt-hover) !important;
+<?php if ($oblyon_button_style != 'filled') { ?>
+	box-shadow: none;
+<?php } ?>
+}
+.butActionDelete, .butActionDelete:link, .butActionDelete:visited, .butActionDelete:active, .buttonDelete {
+	background: var(--oblyon-btn-delete-bg) !important;
+	color: var(--oblyon-btn-delete-txt) !important;
+	border: 1px solid var(--oblyon-btn-delete-border) !important;
+	box-sizing: border-box;
+}
+.butActionDelete:hover, .buttonDelete:hover {
+	background: var(--oblyon-btn-delete-bg-hover) !important;
+	color: var(--oblyon-btn-delete-txt-hover) !important;
+<?php if ($oblyon_button_style != 'filled') { ?>
+	box-shadow: none;
+<?php } ?>
+}
+/* boutons de formulaire (.button : Enregistrer, Annuler, Rechercher, Creer...) : memes couleurs que les boutons d'action, ou couleurs propres (OBLYON_BUTTON_FORM_OWN_COLORS) */
+.button, .button:link, .button:active, .button:visited, input.button, button.button {
+	background-color: var(--oblyon-btn-form-bg) !important;
+	color: var(--oblyon-btn-form-txt) !important;
+	border: 1px solid var(--oblyon-btn-form-border) !important;
+	box-sizing: border-box;
+}
+.button:hover, .button:focus, input.button:hover, button.button:hover {
+	background-color: var(--oblyon-btn-form-bg-hover) !important;
+	border-color: var(--oblyon-btn-form-border) !important;
+	color: var(--oblyon-btn-form-txt-hover) !important;
+<?php if ($oblyon_button_style != 'filled') { ?>
+	box-shadow: none;
+<?php } ?>
+}
+.button:disabled, .button.disabled {
+	background-color: var(--oblyon-neutral-bg) !important;
+	color: var(--oblyon-muted-text) !important;
+	border-color: var(--oblyon-border) !important;
+}
+.dropdown-content .butAction, .dropdown-content a.butAction, .dropdown-content .butActionDelete {
+	background: none !important;
+	border: 0 !important;
+	color: var(--colortext) !important;
+}
+.buttonpayment, input.buttonpayment, button.buttonpayment, div.buttonpayment, input.buttonreset, .button.bordertransp, .buttonRefused {
+	border: 0 !important;
+}
+input.buttonreset {
+	background-color: transparent !important;
+	color: var(--colortextlink) !important;
+}
+<?php } ?>
 
 /*
 TITLE BUTTON

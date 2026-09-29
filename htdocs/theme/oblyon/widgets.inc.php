@@ -449,6 +449,122 @@ table.cal_event td.cal_event_right {
 .cal_peruserviewname {
 	max-width: 140px; height: 22px;
 }
+<?php if ($oblyon_agenda_style == 'modern') { ?>
+/* agenda natif "moderne" (OBLYON_AGENDA_STYLE = modern, 3.8.0), ecrit apres les regles d'origine (memes selecteurs + !important) ; vues mois, semaine, jour
+   (toutes imprimees dans table.cal_month par comm/action/index.php). Grille : jours du mois sur le fond des lignes, jours hors mois sur le fond neutre avec numero attenue,
+   filets --oblyon-border, cadre arrondi, aujourd'hui sur la teinte d'accent avec le numero dans une pastille de la couleur principale, "+" visible au survol de la case.
+   En-tete des jours plat (texte attenue en petites capitales). Evenements : carte teintee de sa propre couleur (le core imprime la couleur du type / de l'utilisateur en
+   liseret gauche inline et un fond gris inline : js/oblyon.js lit le liseret et pose --oblyon-ev-tint, repli fond neutre sans JS), texte des lignes, coins du theme, ombre au survol */
+:root {
+	--oblyon-agenda-modern: 1;	/* lu par js/oblyon.js (teinte des evenements) */
+}
+table.cal_month {
+	border-collapse: separate;
+	border-spacing: 0;
+	border: 1px solid var(--oblyon-border);
+	border-radius: var(--oblyon-radius);
+	overflow: hidden;
+	background: var(--colorbline);
+}
+table.cal_month tr.liste_titre td, table.cal_month tr.liste_titre th {
+	background: var(--colorbline) !important;
+	color: var(--oblyon-muted-text) !important;
+	font-size: .78em;
+	font-weight: 600;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	border-bottom: 1px solid var(--oblyon-border);
+	padding: 9px 4px;
+}
+table.cal_month td.weeknumber {
+	color: var(--oblyon-muted-text);
+	font-size: .75em;
+	background: var(--oblyon-neutral-bg);
+	border-right: 1px solid var(--oblyon-border);
+	border-bottom: 1px solid var(--oblyon-border);
+}
+.cal_current_month, .cal_current_month_oneday, .cal_today, .cal_other_month, .cal_past_month {
+	border: 0 !important;
+	border-<?php print $right; ?>: 1px solid var(--oblyon-border) !important;
+	border-bottom: 1px solid var(--oblyon-border) !important;
+	padding: 4px 5px !important;
+	vertical-align: top;
+}
+.cal_current_month, .cal_current_month_oneday {
+	background: var(--colorbline) !important;
+}
+.cal_other_month, .cal_past_month {
+	background: var(--oblyon-neutral-bg) !important;
+}
+.cal_today {
+	background: var(--oblyon-accent-tint) !important;
+}
+table.cal_month td:last-child {
+	border-<?php print $right; ?>: 0 !important;
+}
+.dayevent-aday {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	height: 24px;
+	padding: 0 6px;
+	border-radius: 12px;
+	font-weight: 600;
+	font-size: .85em;
+	color: var(--colortext) !important;	/* le core imprime color: #666 en style inline */
+	text-decoration: none !important;
+}
+.cal_other_month .dayevent-aday, .cal_past_month .dayevent-aday {
+	color: var(--oblyon-muted-text) !important;
+	font-weight: 500;
+}
+.cal_today .dayevent-aday {
+	background: var(--maincolor);
+	color: var(--oblyon-on-accent) !important;
+}
+.dayevent .tagtr:first-of-type {
+	height: 28px;
+}
+.dayevent .cursoradd {
+	opacity: 0;
+	color: var(--oblyon-muted-text);
+	transition: opacity var(--oblyon-transition);
+}
+td:hover .dayevent .cursoradd, .dayevent .cursoradd:focus {
+	opacity: 1;
+}
+.agendacell {
+	height: 72px;
+}
+.event {
+	margin-bottom: 3px;
+}
+table.cal_event {
+	background: var(--oblyon-ev-tint, var(--oblyon-neutral-bg)) !important;
+	border-radius: var(--oblyon-radius-sm) !important;
+	border-<?php print $left; ?>-width: 4px !important;
+	transition: box-shadow var(--oblyon-transition);
+}
+table.cal_event:hover {
+	box-shadow: var(--oblyon-shadow-md);
+}
+table.cal_event td.cal_event {
+	padding: 3px 6px !important;
+	color: var(--colortext);
+	font-size: .85em;
+	line-height: 1.35;
+}
+.cal_event a:link, .cal_event a:visited, .cal_event a:active, .cal_event_busy a:hover {
+	color: var(--colortext) !important;
+}
+table.cal_event td.cal_event_right {
+	padding: 3px 6px !important;
+}
+.cal_event_notbusy {
+	opacity: .7;
+}
+<?php } ?>
 
 .topmenuimage {
 	background-size: 28px auto;
@@ -1223,6 +1339,97 @@ div.jnotify-background {
 	opacity : 0.97 !important;	/* InfraS change */
 	box-shadow: var(--oblyon-shadow-lg) !important;	/* InfraS change : valeur #8888 invalide remplacee */
 	border-radius: var(--oblyon-radius) !important;	/* InfraS add */
+}
+/* messages jNotify en cartes sous la barre du haut, a droite : fond et texte des couleurs "Messages et notifications"
+   (OBLYON_COLOR_NOTIF_*, jusqu'ici lues mais jamais peintes), liseret et icone de la couleur du texte, croix discrete, glissement a l'apparition (option Animations) */
+.jnotify-container {
+	position: fixed !important;
+	top: <?php print (getDolGlobalString('THEME_STICKY_TOPMENU') ? (getDolGlobalString('MAIN_MENU_INVERT') ? 40 : 54) : 0) + 8; ?>px !important;
+	<?php print $right; ?>: 12px !important;
+	<?php print $left; ?>: auto !important;
+<?php if (getDolGlobalString('MAIN_JQUERY_JNOTIFY_BOTTOM')) { ?>
+	top: auto !important;
+	bottom: 12px !important;
+<?php } ?>
+	width: 380px !important;
+	min-width: 0;
+	max-width: calc(100vw - 24px);
+	max-height: none;
+	overflow: visible;
+	padding: 0 !important;
+	text-align: start;
+	word-wrap: break-word;
+	z-index: 100000;
+}
+@keyframes oblyon-toast-in {
+	from { opacity: 0; transform: translateX(16px); }
+	to { opacity: 1; transform: none; }
+}
+.jnotify-container .jnotify-notification {
+	margin: 0 0 8px 0 !important;
+	animation: oblyon-toast-in .2s ease-out;
+}
+.jnotify-container .jnotify-notification .jnotify-background {
+	opacity: 1 !important;
+	background-color: var(--colorNotifInfoBg) !important;
+	border: 1px solid var(--oblyon-border);
+	border-<?php print $left; ?>: 4px solid var(--colorNotifInfoTxt);
+	border-radius: var(--oblyon-radius) !important;
+	box-shadow: var(--oblyon-shadow-lg) !important;
+}
+.jnotify-container .jnotify-notification .jnotify-message {
+	position: relative;
+	z-index: 2;
+	padding: 12px 38px 12px 44px !important;
+	font-weight: normal;
+	text-align: start;
+	word-break: break-word;
+	line-height: 1.4;
+	color: var(--colorNotifInfoTxt) !important;
+}
+.jnotify-container .jnotify-notification .jnotify-message::before {
+	content: "\f058";	/* check-circle */
+	font-family: var(--fontawesomeFamily);
+	font-weight: var(--fontawesomeWeight);
+	position: absolute;
+	<?php print $left; ?>: 14px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 18px;
+}
+.jnotify-container .jnotify-notification-warning .jnotify-background {
+	background-color: var(--colorNotifWarningBg) !important;
+	border-<?php print $left; ?>-color: var(--colorNotifWarningTxt);
+}
+.jnotify-container .jnotify-notification-warning .jnotify-message {
+	color: var(--colorNotifWarningTxt) !important;
+}
+.jnotify-container .jnotify-notification-warning .jnotify-message::before {
+	content: "\f071";	/* exclamation-triangle */
+}
+.jnotify-container .jnotify-notification-error .jnotify-background {
+	background-color: var(--colorNotifErrorBg) !important;
+	border-<?php print $left; ?>-color: var(--colorNotifErrorTxt);
+}
+.jnotify-container .jnotify-notification-error .jnotify-message {
+	color: var(--colorNotifErrorTxt) !important;
+}
+.jnotify-container .jnotify-notification-error .jnotify-message::before {
+	content: "\f057";	/* times-circle */
+}
+.jnotify-container .jnotify-notification a.jnotify-close, .jnotify-container .jnotify-close {
+	position: absolute;
+	top: 6px !important;
+	<?php print $right; ?>: 10px;
+	z-index: 3;
+	font-size: 1.4em !important;
+	line-height: 1;
+	color: var(--oblyon-muted-text) !important;
+	text-decoration: none !important;
+	opacity: .7;
+}
+.jnotify-container .jnotify-close:hover {
+	opacity: 1;
 }
 
 /* jnotify for the login page */

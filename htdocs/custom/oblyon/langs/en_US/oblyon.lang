@@ -87,7 +87,6 @@ General                              = General parameters
 OblyonFontSize                       = Basic text size in pixels (must be between 10 and 16)
 OblyonFontFamily                     = Change Font family for Dolibarr interface
 OblyonFontSystem                     = System font (Segoe UI, Roboto, San Francisco... depending on the device)
-MainStatusUseImages                  = The different statuses of the elements will be displayed as icons with or without explanatory text (otherwise a colored label will be used)
 
 #
 # Warnings
@@ -117,6 +116,10 @@ OBLYON_COLOR_LOGIN_BCKGRD            = Login background color
 OBLYON_COLOR_BTITLE                  = Title background color
 OBLYON_COLOR_FTITLE                  = Text color of the titles
 OBLYON_COLOR_STITLE                  = Text color of the Main titles
+OBLYON_COLOR_LISTHEAD_FLAT_BCKGRD    = Flat list headers: background (empty = row background)
+OBLYON_COLOR_LISTHEAD_FLAT_TXT       = Flat list headers: text (empty = muted row text)
+OBLYON_COLOR_LISTHEAD_FLAT_LINE      = Flat list headers: rule (empty = neutral frame)
+OBLYON_COLOR_LISTHEAD_FLAT_SEL       = Flat list headers: sorted column and hover (empty = main colour)
 OBLYON_COLOR_BLINE                   = Lines background color
 OBLYON_COLOR_BLINE_HOVER             = Background color of the hovered lines
 OBLYON_COLOR_FDATE_DEFAULT           = Default date color (today's date) in date picker
@@ -161,6 +164,34 @@ OBLYON_COLOR_BUTTON_ACTION1          = Button background color 1
 OBLYON_COLOR_BUTTON_ACTION2          = Button background color 2
 OBLYON_COLOR_BUTTON_DELETE1          = Color 1 of the background of the dangerous buttons
 OBLYON_COLOR_BUTTON_DELETE2          = Color 2 background of the dangerous buttons
+OBLYON_COLOR_BUTTON_ACTION2          = Action buttons: hover background
+OBLYON_COLOR_BUTTON_BORDER           = Action buttons: border
+OBLYON_COLOR_BUTTON_TXT_HOVER        = Action buttons: hover text
+OBLYON_COLOR_BUTTON_DELETE1          = Delete button: background
+OBLYON_COLOR_BUTTON_DELETE2          = Delete button: hover background
+OBLYON_COLOR_BUTTON_DELETE_TXT       = Delete button: text
+OBLYON_COLOR_BUTTON_DELETE_BORDER    = Delete button: border
+OBLYON_COLOR_BUTTON_DELETE_TXT_HOVER = Delete button: hover text
+OBLYON_COLOR_BUTTON_FORM_BCKGRD      = Form buttons: background
+OBLYON_COLOR_BUTTON_FORM_TXT         = Form buttons: text
+OBLYON_COLOR_BUTTON_FORM_BORDER      = Form buttons: border
+OBLYON_COLOR_BUTTON_FORM_BCKGRD_HOVER = Form buttons: hover background
+OBLYON_COLOR_BUTTON_FORM_TXT_HOVER   = Form buttons: hover text
+OBLYON_COLOR_BUTTON_FLAT_BCKGRD      = Action buttons : background (Outline / Soft)
+OBLYON_COLOR_BUTTON_FLAT_TXT         = Action buttons : text (Outline / Soft)
+OBLYON_COLOR_BUTTON_FLAT_BORDER      = Action buttons : border (Outline / Soft)
+OBLYON_COLOR_BUTTON_FLAT_BCKGRD_HOVER= Action buttons : hover background (Outline / Soft)
+OBLYON_COLOR_BUTTON_FLAT_TXT_HOVER   = Action buttons : hover text (Outline / Soft)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_BCKGRD= Delete button : background (Outline / Soft)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_TXT  = Delete button : text (Outline / Soft)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_BORDER= Delete button : border (Outline / Soft)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_BCKGRD_HOVER= Delete button : hover background (Outline / Soft)
+OBLYON_COLOR_BUTTON_DELETE_FLAT_TXT_HOVER= Delete button : hover text (Outline / Soft)
+OBLYON_COLOR_BUTTON_FORM_FLAT_BCKGRD = Form buttons : background (Outline / Soft)
+OBLYON_COLOR_BUTTON_FORM_FLAT_TXT    = Form buttons : text (Outline / Soft)
+OBLYON_COLOR_BUTTON_FORM_FLAT_BORDER = Form buttons : border (Outline / Soft)
+OBLYON_COLOR_BUTTON_FORM_FLAT_BCKGRD_HOVER= Form buttons : hover background (Outline / Soft)
+OBLYON_COLOR_BUTTON_FORM_FLAT_TXT_HOVER= Form buttons : hover text (Outline / Soft)
 OBLYON_COLOR_INFO_BORDER             = Color border on information message
 OBLYON_COLOR_INFO_BCKGRD             = Color background on information message
 OBLYON_COLOR_INFO_TEXT               = Color text on information message
@@ -177,6 +208,12 @@ OBLYON_COLOR_NOTIF_WARNING_TEXT      = Color text on notification warning messag
 OBLYON_COLOR_NOTIF_ERROR_BCKGRD      = Color background on notification error message
 OBLYON_COLOR_NOTIF_ERROR_TEXT        = Color text on notification error message
 OBLYON_COLOR_TEXTTABACTIVE           = Color text of active tabs
+OBLYON_COLOR_TAB_PILL_BCKGRD         = Background colour of the active tab (pills; empty = tint of the main colour)
+OBLYON_COLOR_TAB_PILL_TXT            = Text colour of the active tab (pills; empty = main colour)
+OBLYON_COLOR_TAB_PILL_BORDER         = Border colour of the tabs (pills, with the Border option; empty = neutral frame)
+OBLYON_COLOR_TAB_UNDER_BAND          = Background colour of the tab band (underlined; empty = neutral background)
+OBLYON_COLOR_TAB_UNDER_TXT           = Text colour of the active tab (underlined; empty = main colour)
+OBLYON_COLOR_TAB_UNDER_LINE          = Colour of the underline (underlined; empty = main colour)
 OBLYON_COLOR_INPUT_BCKGRD            = Background color of inputs
 OBLYON_COLOR_INPUT_ADD_BCKGRD        = Input fields background color (when 'Grey background on inputs' is on)
 OBLYON_COLOR_BOX_SHADOW              = Small boxes shadow color (when 'Drop shadow on boxes' is on)
@@ -202,6 +239,8 @@ OBLYON_COLOR_WEATHER_LEVEL4          = Weather level 4 color
 OBLYON_COLOR_INFOBOX_UPDATE          = 'Update available' badge color
 THEME_ELDY_BTNACTION                 = Action buttons background color (Eldy theme)
 THEME_ELDY_TEXTBTNACTION             = Action buttons text color (Eldy theme)
+THEME_ELDY_BTNACTION                 = Action buttons: background (Eldy theme)
+THEME_ELDY_TEXTBTNACTION             = Action buttons: text (Eldy theme)
 THEME_ELDY_USE_HOVER                 = Hovered rows background color (Eldy theme)
 THEME_ELDY_USE_CHECKED               = Checked rows background color (Eldy theme)
 InvertRatioDesc                      = Color Inversion Filter Ratio (Applicable to icons based on PNG image files)
@@ -382,7 +421,6 @@ ThemeUseBorderOnTable          = Enable rounded corners on tables and boxes
 ThemeBorderRadius              = Corner radius (px)
 ThemeShadowOnSmallBoxes        = Drop shadow on small boxes
 ThemeTotalBackgroundLikeHead   = Total rows background same as header
-ThemeUseComoActRow             = Taller table rows (comfort mode)
 ThemeSaturateRatio             = Dashboard icons saturation (0 to 1)
 ThemeMenuColorLogo             = Keep original color of menu icons
 
@@ -489,3 +527,68 @@ OblyonUserPresetAccessible     = Preset made for colour-blind or visually impair
 OblyonUserPresetAccessibleShort = accessibility
 OblyonUserPresetSaveTitle      = Save my current colours as a preset
 OblyonUserPresetSaveHelp       = Creates a personal preset with the colours shown in the table (your personal colours when the box is ticked, else the instance ones). Colours only.
+### Interface styles (3.8.0) ###
+OblyonDensity                  = Interface density
+OblyonDensityHelp              = Height of the table rows and headers, of the input fields, of the action buttons and inner margins of the cards
+OblyonDensityCompact           = Compact (original rendering)
+OblyonDensityNormal            = Normal
+OblyonDensityComfortable       = Comfortable
+OblyonTabsStyle                = Style of the card tabs
+OblyonTabsStyleHelp            = Boxed: framed tabs standing on the card (original rendering). Underlined: flat tabs on a rule, the active one is underlined with the main colour. Pills: rounded tabs, the active one on a background tinted with the main colour
+OblyonTabsStyleBoxed           = Boxed (original rendering)
+OblyonTabsStyleUnderline       = Underlined
+OblyonTabsStylePills           = Pills
+OblyonTabPillBorder            = Pill tabs: border (colour in the Colors tab, Tabs group)
+OblyonTabPillShadow            = Pill tabs: drop shadow
+OblyonButtonStyle              = Style of the action buttons
+OblyonButtonStyleHelp          = Applies to the action buttons of the cards, to the Delete button and to the form buttons (Save, Cancel...). Filled: coloured background (original rendering). Outline: transparent background, coloured frame and text. Soft: lightly tinted background, coloured text. The colours of each family (background, text, border, hover) are set in the Colors tab, Buttons group
+OblyonButtonStyleFilled        = Filled (original rendering)
+OblyonButtonStyleOutline       = Outline
+OblyonButtonStyleSoft          = Soft
+OblyonButtonFormOwnColors      = Own colours for the form buttons
+OblyonButtonFormOwnColorsHelp  = By default the form buttons (Save, Cancel, Search...) take the colours of the action buttons. Enable to give them their own colours (new family in the Colors tab, Buttons group)
+OblyonBtnGroupHelp             = Current button style: %s (Options tab). The colours shown are the ones really applied. A colour you do not change stays automatic: it follows the button style and the base colours; a changed colour is kept as is
+OblyonBtnFamilyAction          = Action buttons (Modify, Validate, Send...)
+OblyonBtnFamilyDelete          = Delete button
+OblyonBtnFamilyForm            = Form buttons (Save, Cancel, Search...)
+OblyonBtnRoleBg                = Background
+OblyonBtnRoleTxt               = Text
+OblyonBtnRoleBorder            = Border
+OblyonBtnRoleBgHover           = Hover background
+OblyonBtnRoleTxtHover          = Hover text
+OblyonBadgeStyle               = Display of the statuses
+OblyonBadgeStyleHelp           = Icon: image dot of the core, without label. Filled pill: badge with the status colour as background (original rendering). Outline: badge on the row background, frame and text of the status colour. Dot + text: a disc of the status colour before the label, no background nor frame (lighter lists). The badge colours are set in the Colors tab, Status badges group
+OblyonBadgeStyleIcon           = Icon (image dot)
+OblyonBadgeStylePill           = Filled pill badge (original rendering)
+OblyonBadgeStyleOutline        = Outline badge
+OblyonBadgeStyleDot            = Dot + text
+OblyonStatusPulse              = Pulse of the status of the open card
+OblyonStatusPulseHelp          = The status shown in the card banner (right of the reference) softly fades from full opacity to 55 %% and back over 2.4 seconds, in its own colour, without resizing; paused on hover for reading. Never in the lists. With the "Dot + text" style only the disc pulses
+OblyonListHeaderStyle          = Style of the list headers
+OblyonListHeaderStyleHelp      = Coloured band: title row and filter row on the title background (original rendering). Flat: title on the row background, muted text closed by a rule, sorted column in the main colour, filters on a barely tinted background, matching "like the header" totals. The colours of the flat style are set in the Colors tab, Titles group. The dashboard widget titles do not change
+OblyonListHeaderStyleBand      = Coloured band (original rendering)
+OblyonListHeaderStyleFlat      = Flat
+OblyonMotion                   = Animations
+OblyonMotionHelp               = Applies to every transition and animation of the theme: menus and flyouts, mobile drawer, buttons, tabs, dashboard tiles, status pulse. Normal: theme animations, unless the device asks for reduced motion (Windows "Animation effects", macOS "Reduce motion", phones), in which case they are reduced automatically. Reduced: transitions cut to 50 ms and animations disabled for everybody
+OblyonMotionNormal             = Normal (reduced when the device asks for it)
+OblyonMotionReduced            = Reduced
+OblyonNotifCenter              = Notification center
+OblyonNotifCenterHelp          = Shows a bell at the top right, next to the user block. Every Dolibarr message (confirmation, warning, error) is shown briefly as today, then stays available in the bell, with a badge of the unread count. Errors and warnings are no longer displayed permanently: 6 seconds, then the bell. History kept in the user's browser (50 messages, 7 days), nothing in the database
+OblyonNotifTitle               = Notifications
+OblyonNotifEmpty               = No notification
+OblyonNotifMarkRead            = Mark all as read
+OblyonNotifClear               = Clear all
+OblyonNotifDelete              = Delete this notification
+OblyonNotifNow                 = just now
+OblyonNotifMin                 = %s min ago
+OblyonNotifHour                = %s h ago
+OblyonNotifDay                 = %s d ago
+OblyonUserBlock                = User block (top bar)
+OblyonUserBlockHelp            = Default: the user's photo or a generic silhouette, original dropdown menu. Initials: a circle of the main colour carrying the user's initials (first name + last name, else login) instead of the photo, in the bar and in the dropdown. Photo: the user's photo when set, else the initials. With Initials or Photo, the user dropdown is redesigned: floating card, centred header on the accent tint, "Show..." links as clickable rows, Card and Logout buttons in the theme button colours
+OblyonUserBlockDefault         = Default (original rendering)
+OblyonUserBlockInitials        = Initials
+OblyonUserBlockPhoto           = Photo, else initials
+OblyonAgendaStyle              = Agenda style
+OblyonAgendaStyleHelp          = Month, week and day views of the native agenda. Classic: original rendering. Modern: days of the month on the row background, other days muted, today on the accent tint with the number in a disc of the main colour, "+" button shown on hover, flat day header, every event as a card tinted with its own colour (type or user) with readable text. Third-party agenda modules (FullCalendar...) are not affected
+OblyonAgendaStyleClassic       = Classic (original rendering)
+OblyonAgendaStyleModern        = Modern

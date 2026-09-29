@@ -264,6 +264,161 @@ if (! defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 		-webkit-box-shadow: inset 0 1px 0 rgba(235,235,235, .6);
 		color: #fff;
 	}
+<?php if ($oblyon_user_block != 'default') { ?>
+/* menu deroulant utilisateur redessine (OBLYON_USER_BLOCK = initials / photo, variable de style.css.php) : carte flottante sur les jetons
+   du theme (fond flottant, bordure, rayon, ombre), en-tete centre sur la teinte d'accent avec la photo ou l'avatar cercle de la couleur principale, nom en 600 et
+   dates de connexion attenuees, corps avec les deux liens "Afficher..." du core en lignes cliquables (fond neutre au survol), pied en flex avec les boutons Fiche /
+   Deconnexion sur les jetons de boutons (--oblyon-btn-action-* / --oblyon-btn-delete-*, donc le style de boutons choisi). Le balisage du core (top_menu_user())
+   n'est pas modifie ; les selecteurs portent #topmenu-login-dropdown pour passer devant les regles .side-nav-vert ci-dessus */
+.login_block #topmenu-login-dropdown .dropdown-menu {
+	width: 320px;
+	max-width: calc(100vw - 16px);
+	margin-top: 6px;
+	padding: 0;
+	overflow: hidden;
+	background: var(--colorOverlayBg);
+	color: var(--colortext);
+	border: 1px solid var(--oblyon-border);
+	border-radius: var(--oblyon-radius);
+	box-shadow: var(--oblyon-shadow-lg);
+	line-height: 1.45;
+}
+.login_block #topmenu-login-dropdown .dropdown-menu > .user-header {
+	min-height: 0;
+	padding: 20px 16px 14px;
+	text-align: center;
+	white-space: normal;
+	background: var(--oblyon-accent-tint);
+	border-bottom: 1px solid var(--oblyon-border);
+}
+.login_block #topmenu-login-dropdown .user-header img.dropdown-user-image,
+.login_block #topmenu-login-dropdown .user-header .oblyon-avatar {
+	width: 72px;
+	height: 72px;
+	border: 3px solid var(--colorOverlayBg);
+	box-shadow: 0 0 0 2px var(--maincolor);
+	background-color: var(--colorOverlayBg);
+}
+.login_block #topmenu-login-dropdown .user-header .oblyon-avatar {
+	font-size: 24px;
+	background-color: var(--maincolor);
+}
+.login_block #topmenu-login-dropdown .user-header p {
+	margin: 10px 0 0;
+	color: var(--colortext);
+	font-size: 1.05em;
+	font-weight: 600;
+}
+.login_block #topmenu-login-dropdown .user-header p small {
+	font-size: .82em;
+	font-weight: 400;
+	color: var(--oblyon-muted-text);
+}
+.login_block #topmenu-login-dropdown .user-header p .fa-star {
+	color: var(--maincolor);
+}
+.login_block #topmenu-login-dropdown .dropdown-menu > .user-body {
+	padding: 8px 10px;
+	border: 0;
+	color: var(--colortext);
+}
+.login_block #topmenu-login-dropdown .user-body > br {
+	display: none;	/* le core separe les deux liens par un saut de ligne : les lignes cliquables portent leur propre espacement */
+}
+.login_block #topmenu-login-dropdown #topmenuloginmoreinfo-btn,
+.login_block #topmenu-login-dropdown #topmenulogincompanyinfo-btn {
+	text-align: <?php print $left; ?>;
+	padding: 8px 10px;
+	border-radius: var(--oblyon-radius-sm);
+	color: var(--colortext);
+	font-weight: 500;
+	transition: background-color var(--oblyon-transition), color var(--oblyon-transition);
+}
+.login_block #topmenu-login-dropdown #topmenuloginmoreinfo-btn:hover,
+.login_block #topmenu-login-dropdown #topmenulogincompanyinfo-btn:hover {
+	background: var(--oblyon-neutral-bg);
+	color: var(--maincolor);
+}
+.login_block #topmenu-login-dropdown #topmenuloginmoreinfo-btn i,
+.login_block #topmenu-login-dropdown #topmenulogincompanyinfo-btn i {
+	width: 1em;
+	margin-<?php print $right; ?>: 4px;
+	text-align: center;
+	color: var(--oblyon-muted-text);
+}
+.login_block #topmenu-login-dropdown #topmenuloginmoreinfo,
+.login_block #topmenu-login-dropdown #topmenulogincompanyinfo {
+	padding: 2px 10px 10px 24px;
+	font-size: .92em;
+	line-height: 1.6;
+	color: var(--colortext);
+}
+.login_block #topmenu-login-dropdown #topmenuloginmoreinfo > br:first-child,
+.login_block #topmenu-login-dropdown #topmenulogincompanyinfo > br:first-child {
+	display: none;	/* le core ouvre chaque bloc d'informations par un saut de ligne : le padding du bloc suffit */
+}
+.login_block #topmenu-login-dropdown #topmenuloginmoreinfo b,
+.login_block #topmenu-login-dropdown #topmenulogincompanyinfo b {
+	font-weight: 600;
+}
+.login_block #topmenu-login-dropdown #topmenuloginmoreinfo u {
+	text-decoration: none;
+	font-weight: 600;
+	color: var(--maincolor);
+}
+.login_block #topmenu-login-dropdown .dropdown-menu > .user-footer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 16px;
+	background: var(--oblyon-neutral-bg);
+	border-top: 1px solid var(--oblyon-border);
+}
+.login_block #topmenu-login-dropdown .user-footer .pull-left,
+.login_block #topmenu-login-dropdown .user-footer .pull-right {
+	float: none;
+}
+.login_block #topmenu-login-dropdown .user-footer .pull-right {
+	margin-<?php print $left; ?>: auto;
+}
+.login_block #topmenu-login-dropdown .user-footer .clearboth {
+	display: none;
+}
+.login_block #topmenu-login-dropdown .user-footer .button-top-menu-dropdown {
+	padding: 7px 12px;
+	font-size: var(--fontsize);
+	font-weight: 500;
+	line-height: 1.3;
+	border: 1px solid transparent;
+	border-radius: var(--oblyon-radius-sm);
+	box-shadow: none;
+	transition: background-color var(--oblyon-transition), color var(--oblyon-transition), border-color var(--oblyon-transition);
+}
+.login_block #topmenu-login-dropdown .user-footer .pull-left .button-top-menu-dropdown {
+	background-color: var(--oblyon-btn-action-bg);
+	color: var(--oblyon-btn-action-txt);
+	border-color: var(--oblyon-btn-action-border);
+}
+.login_block #topmenu-login-dropdown .user-footer .pull-left .button-top-menu-dropdown:hover,
+.login_block #topmenu-login-dropdown .user-footer .pull-left .button-top-menu-dropdown:focus {
+	background-color: var(--oblyon-btn-action-bg-hover);
+	color: var(--oblyon-btn-action-txt-hover);
+	border-color: var(--oblyon-btn-action-bg-hover);
+	box-shadow: none;
+}
+.login_block #topmenu-login-dropdown .user-footer .pull-right .button-top-menu-dropdown {
+	background-color: var(--oblyon-btn-delete-bg);
+	color: var(--oblyon-btn-delete-txt);
+	border-color: var(--oblyon-btn-delete-border);
+}
+.login_block #topmenu-login-dropdown .user-footer .pull-right .button-top-menu-dropdown:hover,
+.login_block #topmenu-login-dropdown .user-footer .pull-right .button-top-menu-dropdown:focus {
+	background-color: var(--oblyon-btn-delete-bg-hover);
+	color: var(--oblyon-btn-delete-txt-hover);
+	border-color: var(--oblyon-btn-delete-bg-hover);
+	box-shadow: none;
+}
+<?php } ?>
 
     .dropdown-menu a.top-menu-dropdown-link {
         color: var(--colorfline) !important;

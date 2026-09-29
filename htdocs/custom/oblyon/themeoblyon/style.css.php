@@ -322,6 +322,7 @@
 	$autocolorshadow			= oblyon_txt_color_hex($colorbacktitle1);	// $colorshadowtitle : contraste sur le fond des filtres (comportement d'origine, inchangé)
 	$colorshadowtitle			= ($autocolorshadow == 'FFFFFF') ? '888888' : 'FFFFFF';
 	if (oblyon_color_setting('THEME_ELDY_TEXTTITLE') === '') {	// meme test (ni instance ni utilisateur) via la fonction commune
+	if (in_array(oblyon_color_setting('THEME_ELDY_TEXTTITLE'), array('', '#'), true)) {	// meme test (ni instance ni utilisateur) via la fonction commune ; InfraS change 3.8.0 : '#' (champ laisse vide dans l'onglet Couleurs, enregistre '#') = contraste automatique aussi
 		// contraste auto calculé sur le VRAI fond des titres = $colorbtitle (OBLYON_COLOR_BTITLE), pas sur le fond des filtres
 		$autocolortexttitle	= oblyon_txt_color_hex($colorbtitle);
 		$colortexttitle		= '#'.(($autocolortexttitle == '000000') ? '101010' : $autocolortexttitle);
@@ -369,26 +370,19 @@
 	$infras_radius	= getDolGlobalInt('THEME_ELDY_BORDER_RADIUS', 6);
 	if ($infras_radius <= 0)	$infras_radius	= 6;	// valeur nulle => rayon visible par defaut
 
+	// densite de l'interface (3.8.0, option OBLYON_DENSITY) : une seule commande pour la hauteur des cellules et des lignes,
+	// des en-tetes de liste, des champs, des boutons d'action et les marges des fiches ; les valeurs "compact" sont celles de la 3.4.1 (rendu inchange par defaut)
+	$oblyon_density_values	= array(
+		'compact'		=> array('cell_py' => '5px',	'cell_px' => '8px',		'row_lh' => '1.5em',	'head_h' => '34px',	'control_py' => '5px',	'btn_py' => '0.6em',	'card_py' => '12px'),
+		'normal'		=> array('cell_py' => '7px',	'cell_px' => '10px',	'row_lh' => '1.6em',	'head_h' => '38px',	'control_py' => '7px',	'btn_py' => '0.7em',	'card_py' => '16px'),
+		'comfortable'	=> array('cell_py' => '10px',	'cell_px' => '12px',	'row_lh' => '1.75em',	'head_h' => '44px',	'control_py' => '9px',	'btn_py' => '0.85em',	'card_py' => '20px'),
+	);
+	$oblyon_density			= getDolGlobalString('OBLYON_DENSITY', 'compact');
+	if (! isset($oblyon_density_values[$oblyon_density]))	$oblyon_density	= 'compact';	// valeur inconnue => densite d'origine
+	$oblyon_density_tokens	= $oblyon_density_values[$oblyon_density];
+
 	// InfraS add begin : jetons de design 3.4.1 - couleurs neutres derivees du preset (melange fond des lignes / texte des lignes), bordure des champs selon l'option
-	if (! function_exists('oblyon_mix_colors')) {
-		/**
-		 *	Mix two colors : $ratio = 0 gives $hex1, 1 gives $hex2
-		 *	@param	string	$hex1	Color 1 (#RRGGBB or r,g,b)
-		 *	@param	string	$hex2	Color 2
-		 *	@param	float	$ratio	Weight of color 2 (0..1)
-		 *	@return	string			#RRGGBB
-		 */
-		function oblyon_mix_colors($hex1, $hex2, $ratio)
-		{
-			$a		= colorStringToArray($hex1);
-			$b		= colorStringToArray($hex2);
-			$out	= array();
-			for ($i = 0; $i < 3; $i++) {
-				$out[]	= max(0, min(255, (int) round($a[$i] + ($b[$i] - $a[$i]) * $ratio)));
-			}
-			return '#'.colorArrayToHex($out);
-		}
-	}
+	// (oblyon_mix_colors() vit dans lib/oblyon_colors.lib.php depuis 3.8.0 : partagee avec les onglets Couleurs)
 	$oblyon_border			= oblyon_mix_colors($colorbline, $colorfline, 0.14);	// separateurs, cadres discrets
 	$oblyon_border_strong	= oblyon_mix_colors($colorbline, $colorfline, 0.30);	// cadres marques (champs avec option bordure, fieldset)
 	$oblyon_neutral_bg		= oblyon_mix_colors($colorbline, $colorfline, 0.05);	// fonds discrets (sections, champs desactives)
@@ -397,6 +391,61 @@
 	// Page de connexion : fond = OBLYON_COLOR_LOGIN_BCKGRD (constante existante, jusqu'ici non branchee), texte du titre choisi selon la clarte de ce fond
 	$login_txtcolor			= (oblyon_txt_color_hex($login_bgcolor) == 'FFFFFF') ? '#FFFFFF' : $colorfline;	// InfraS change 3.7.0 : entree hex
 	// InfraS add end
+
+	// styles d'interface 3.8.0 - teintes d'accent partagees par les onglets, boutons, badges et avatar, puis le style choisi pour chaque composant
+	$oblyon_accent_tint			= oblyon_mix_colors($colorbline, $maincolor, 0.12);	// fond teinte leger (onglet pilule actif, bouton "doux")
+	$oblyon_accent_tint_strong	= oblyon_mix_colors($colorbline, $maincolor, 0.20);	// survol du fond teinte
+	$oblyon_on_accent			= oblyon_text_on($maincolor);						// texte lisible (sombre ou blanc) sur la couleur principale
+	$oblyon_tabs_style			= getDolGlobalString('OBLYON_TABS_STYLE', 'boxed');	// onglets des fiches : boxed (rendu d'origine) / underline / pills
+	if (! in_array($oblyon_tabs_style, array('boxed', 'underline', 'pills')))	$oblyon_tabs_style	= 'boxed';
+	// Pilules : couleurs propres (fond, texte, bordure), chacune "derivee" quand elle est vide ou '#' (teinte d'accent, couleur principale, cadre neutre)
+	$oblyon_tab_pill_bg			= oblyon_color_setting_hex('OBLYON_COLOR_TAB_PILL_BCKGRD', $oblyon_accent_tint);
+	$oblyon_tab_pill_txt		= oblyon_color_setting_hex('OBLYON_COLOR_TAB_PILL_TXT', $maincolor);
+	$oblyon_tab_pill_border		= oblyon_color_setting_hex('OBLYON_COLOR_TAB_PILL_BORDER', $oblyon_border);
+	$oblyon_tab_pill_bg_hover	= oblyon_mix_colors($oblyon_tab_pill_bg, $oblyon_tab_pill_txt, 0.10);	// survol de la pilule active : fond legerement tire vers son texte
+	// Soulignes : couleurs propres (fond de la bande, texte de l'onglet actif, trait), derivees quand elles sont vides ou '#' (fond neutre, couleur principale, couleur principale)
+	$oblyon_tab_under_band		= oblyon_color_setting_hex('OBLYON_COLOR_TAB_UNDER_BAND', $oblyon_neutral_bg);
+	$oblyon_tab_under_txt		= oblyon_color_setting_hex('OBLYON_COLOR_TAB_UNDER_TXT', $maincolor);
+	$oblyon_tab_under_line		= oblyon_color_setting_hex('OBLYON_COLOR_TAB_UNDER_LINE', $maincolor);
+	$oblyon_tab_under_border	= oblyon_mix_colors($oblyon_tab_under_band, $colorfline, 0.12);	// filet sous la bande : bande tiree vers le texte des lignes
+	// Boutons (lot 3) : style filled (rendu d'origine) / outline / soft, applique aux boutons d'action, au bouton Supprimer et (sauf couleurs propres) aux boutons de formulaire.
+	// Chaque famille a cinq couleurs (fond, texte, bordure, fond au survol, texte au survol, cf. oblyon_button_families()) ; une couleur vide ou '#' est derivee selon le style :
+	//   filled  : fond et texte obligatoires (defauts du theme), bordure = aucune, survol = fond de survol / texte
+	//   outline : fond = transparent, bordure = texte, survol = teinte du texte a 12 % / texte
+	//   soft    : fond = teinte du texte a 12 %, bordure = aucune, survol = teinte a 22 % / texte
+	$oblyon_button_style		= getDolGlobalString('OBLYON_BUTTON_STYLE', 'filled');
+	if (! in_array($oblyon_button_style, array('filled', 'outline', 'soft')))	$oblyon_button_style	= 'filled';
+	// Couleurs effectives par famille et role (lib/oblyon_colors.lib.php, partagee avec les onglets Couleurs qui affichent ces valeurs) : 'css' = valeur peinte ('transparent' possible)
+	$oblyon_btn_effective	= oblyon_button_effective_colors($oblyon_button_style);
+	$oblyon_btn_css			= function ($roles) { $c = array(); foreach ($roles as $role => $v) $c[$role] = $v['css']; return $c; };
+	$oblyon_btn_action	= $oblyon_btn_css($oblyon_btn_effective['action']);
+	$oblyon_btn_delete	= $oblyon_btn_css($oblyon_btn_effective['delete']);
+	$oblyon_btn_form	= getDolGlobalInt('OBLYON_BUTTON_FORM_OWN_COLORS') ? $oblyon_btn_css($oblyon_btn_effective['form']) : $oblyon_btn_action;	// boutons de formulaire = boutons d'action, sauf couleurs propres
+	// Badges de statut (lot 4) : pill (rendu d'origine) / outline (fond des lignes, cadre et texte de la couleur du statut) / dot (point colore devant le libelle, texte des lignes) ;
+	// les couleurs restent celles du groupe "Badges de statut" (OBLYON_COLOR_BADGE_*), lues par badges.inc.php (_createStatusBadgeCss)
+	$oblyon_badge_style			= getDolGlobalString('OBLYON_BADGE_STYLE', 'pill');
+	if (! in_array($oblyon_badge_style, array('pill', 'outline', 'dot')))	$oblyon_badge_style	= 'pill';
+	$oblyon_status_pulse		= getDolGlobalInt('OBLYON_STATUS_PULSE');	// pulsation douce du statut dans le bandeau de la fiche ouverte (badges.inc.php)
+	// En-tetes de liste (lot 5) : band (bande coloree, rendu d'origine) / flat (en-tete sur le fond des lignes, texte attenue en capitales, filet, colonne triee en couleur principale) ;
+	// couleurs propres du style plat (groupe Titres, visibles en style plat), derivees quand elles sont vides
+	$oblyon_listhead_style		= getDolGlobalString('OBLYON_LIST_HEADER_STYLE', 'band');
+	if (! in_array($oblyon_listhead_style, array('band', 'flat')))	$oblyon_listhead_style	= 'band';
+	$oblyon_listhead_bg			= oblyon_color_setting_hex('OBLYON_COLOR_LISTHEAD_FLAT_BCKGRD', $colorbline);
+	$oblyon_listhead_txt		= oblyon_color_setting_hex('OBLYON_COLOR_LISTHEAD_FLAT_TXT', oblyon_mix_colors($colorfline, $colorbline, 0.25));
+	$oblyon_listhead_line		= oblyon_color_setting_hex('OBLYON_COLOR_LISTHEAD_FLAT_LINE', $oblyon_border);
+	$oblyon_listhead_sel		= oblyon_color_setting_hex('OBLYON_COLOR_LISTHEAD_FLAT_SEL', $maincolor);
+	$oblyon_listhead_filter		= oblyon_mix_colors($oblyon_listhead_bg, $colorfline, 0.04);	// ligne de filtres : fond de l'en-tete a peine teinte
+	// Animations (lot 6) : normal (defaut ; le reglage "moins d'animations" du poste est toujours respecte) / reduced, appliquee par motion.inc.php (inclus en dernier)
+	$oblyon_motion				= getDolGlobalString('OBLYON_MOTION', 'normal');
+	if ($oblyon_motion == 'none')	$oblyon_motion	= 'reduced';	// anciennes valeurs d'une premiere version : none -> reduced, system -> normal
+	if ($oblyon_motion != 'reduced')	$oblyon_motion	= 'normal';
+	// Bloc utilisateur (lot 8) : default (rendu d'origine) / initials (cercle aux initiales) / photo (photo si renseignee, sinon initiales) ; les deux nouvelles valeurs
+	// activent aussi le menu deroulant utilisateur redessine (dropdown.inc.php) ; l'avatar est dessine par layout.inc.php, les images remplacees par js/oblyon.js
+	$oblyon_user_block			= getDolGlobalString('OBLYON_USER_BLOCK', 'default');
+	if (!in_array($oblyon_user_block, array('initials', 'photo')))	$oblyon_user_block	= 'default';
+	// Agenda natif (lot 10) : classic (rendu d'origine) / modern (grille sur le fond des lignes, aujourd'hui en teinte d'accent, cartes d'evenements teintees de leur couleur) ; widgets.inc.php + js/oblyon.js
+	$oblyon_agenda_style		= getDolGlobalString('OBLYON_AGENDA_STYLE', 'classic');
+	if ($oblyon_agenda_style != 'modern')	$oblyon_agenda_style	= 'classic';
 
 	require __DIR__.'/global.inc.php';
 

@@ -396,6 +396,237 @@ jQuery(document).ready(function () {
 		})();
 	}
 
+	(function () {
+		var $nc = $('.oblyon-notif').first();
+		if (!$nc.length) {
+			return;
+		}
+		var KEY = 'oblyon_notif_' + (parseInt($nc.attr('data-userid'), 10) || 0);
+		var MAX = 50, TTL = 7 * 86400000, OPENCLASS = 'is-open';
+		var $btn = $nc.find('.oblyon-notif-btn'), $count = $nc.find('.oblyon-notif-count'), $panel = $nc.find('.oblyon-notif-panel');
+		var $list = $nc.find('.oblyon-notif-list'), $empty = $nc.find('.oblyon-notif-empty');
+		function lbl(key) {
+			return String($nc.attr('data-lbl-' + key) || '');
+		}
+		function load() {
+			try {
+				var now = Date.now();
+				return (JSON.parse(localStorage.getItem(KEY) || '[]') || []).filter(function (n) {
+					return n && typeof n.m === 'string' && (now - n.d) < TTL;
+				}).map(function (n) {
+					n.k = n.k || String(n.d);	// entries stored before the key existed
+					return n;
+				});
+			} catch (e) {
+				return [];
+			}
+		}
+		function newKey(d) {
+			return d + '-' + Math.random().toString(36).slice(2, 7);
+		}
+		function indexOfKey(list, k) {
+			for (var i = 0; i < list.length; i++) {
+				if (list[i].k === k) {
+					return i;
+				}
+			}
+			return -1;
+		}
+		function save(list) {
+			try {
+				localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX)));
+			} catch (e) {
+			}
+		}
+		function strip(html) {
+			var text = '';
+			try {
+				text = new DOMParser().parseFromString(String(html), 'text/html').body.textContent || '';
+			} catch (e) {
+				text = String(html).replace(/<[^>]*>/g, ' ');
+			}
+			return text.replace(/\s+/g, ' ').trim();
+		}
+		function typeOf(opt) {
+			var t = '';
+			if (typeof opt === 'string') {
+				t = opt;
+			} else if (opt && typeof opt === 'object' && opt.type) {
+				t = String(opt.type);
+			}
+			t = t.toLowerCase();
+			if (t.indexOf('error') !== -1) {
+				return 'error';
+			}
+			if (t.indexOf('warn') !== -1) {
+				return 'warning';
+			}
+			return 'info';
+		}
+		function relative(d) {
+			var s = Math.round((Date.now() - d) / 1000);
+			if (s < 60) {
+				return lbl('now');
+			}
+			var m = Math.round(s / 60);
+			if (m < 60) {
+				return lbl('min').replace('%s', m);
+			}
+			var h = Math.round(m / 60);
+			if (h < 24) {
+				return lbl('hour').replace('%s', h);
+			}
+			return lbl('day').replace('%s', Math.round(h / 24));
+		}
+		var memory = null;	// list of this page when localStorage is unavailable
+		function current() {
+			var list = load();
+			return (list.length || !memory) ? list : memory;
+		}
+		function render() {
+			var list = current(), unread = 0;
+			$list.empty();
+			list.forEach(function (n, i) {
+				if (!n.r) {
+					unread++;
+				}
+				var $li = $('<li class="oblyon-notif-item"></li>').addClass('oblyon-notif-' + n.t).toggleClass('is-unread', !n.r).attr('data-k', n.k);	// key, not index : another tab may have changed the list meanwhile
+				var $body = $('<span class="oblyon-notif-body"></span>').appendTo($li);
+				$('<span class="oblyon-notif-msg"></span>').text(n.m).appendTo($body);
+				$('<span class="oblyon-notif-time"></span>').text(relative(n.d)).appendTo($body);
+				$('<a href="#" class="oblyon-notif-del" aria-label="' + lbl('delete').replace(/"/g, '&quot;') + '" title="' + lbl('delete').replace(/"/g, '&quot;') + '">&times;</a>').appendTo($li);
+				$list.append($li);
+			});
+			$empty.prop('hidden', list.length > 0);
+			$count.text(unread > 99 ? '99+' : String(unread)).prop('hidden', unread === 0);
+			$btn.toggleClass('has-unread', unread > 0);
+		}
+		function store(list) {
+			memory = list;
+			save(list);
+			render();
+		}
+		function add(type, text) {
+			if (!text) {
+				return;
+			}
+			var list = current(), d = Date.now();
+			list.unshift({k: newKey(d), t: type, m: text, d: d, r: false});
+			store(list);
+		}
+		if (typeof $.jnotify === 'function' && !$.jnotify.oblyonWrapped) {
+			var orig = $.jnotify;
+			var wrapped = function (msg, opt) {
+				var type = typeOf(opt);
+				add(type, strip(msg));
+				var args = Array.prototype.slice.call(arguments);
+				if (type !== 'info') {
+					if (typeof opt === 'string') {
+						args[1] = {type: opt, sticky: false, delay: 6000};
+						if (args.length > 2 && (typeof args[2] === 'boolean' || typeof args[2] === 'number')) {
+							args.splice(2, 1);
+						}
+					} else if (opt && typeof opt === 'object') {
+						args[1] = $.extend({}, opt, {sticky: false, delay: Math.max(parseInt(opt.delay, 10) || 0, 6000)});
+					}
+				}
+				return orig.apply(this, args);
+			};
+			for (var k in orig) {
+				if (Object.prototype.hasOwnProperty.call(orig, k)) {
+					wrapped[k] = orig[k];
+				}
+			}
+			wrapped.oblyonWrapped = true;
+			$.jnotify = wrapped;
+		}
+		function open() {
+			render();
+			$panel.prop('hidden', false);
+			$nc.addClass(OPENCLASS);
+			$btn.attr('aria-expanded', 'true');
+		}
+		function close() {
+			$panel.prop('hidden', true);
+			$nc.removeClass(OPENCLASS);
+			$btn.attr('aria-expanded', 'false');
+		}
+		$btn.on('click', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if ($panel.prop('hidden')) {
+				open();
+			} else {
+				close();
+			}
+		});
+		$panel.on('click', function (e) {
+			e.stopPropagation();
+		});
+		$panel.on('click', '.oblyon-notif-del', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var list = current(), i = indexOfKey(list, String($(this).closest('.oblyon-notif-item').attr('data-k')));
+			if (i >= 0) {
+				list.splice(i, 1);
+				store(list);
+			}
+		});
+		$panel.on('click', '.oblyon-notif-item', function () {
+			var list = current(), i = indexOfKey(list, String($(this).attr('data-k')));
+			if (i >= 0 && !list[i].r) {
+				list[i].r = true;
+				store(list);
+			}
+		});
+		$panel.on('click', '.oblyon-notif-readall', function (e) {
+			e.preventDefault();
+			var list = current();
+			list.forEach(function (n) {
+				n.r = true;
+			});
+			store(list);
+		});
+		$panel.on('click', '.oblyon-notif-clear', function (e) {
+			e.preventDefault();
+			store([]);
+		});
+		$(document).on('click', function () {
+			if (!$panel.prop('hidden')) {
+				close();
+			}
+		});
+		$(document).on('keydown', function (e) {
+			if ((e.key === 'Escape' || e.keyCode === 27) && !$panel.prop('hidden')) {
+				close();
+			}
+		});
+		render();
+	})();
+	(function () {
+		var $ub = $('.oblyon-userblock').first();
+		if (!$ub.length) {
+			return;
+		}
+		var mode = String($ub.attr('data-mode') || ''), initials = String($ub.attr('data-initials') || '');
+		if (!initials || mode === 'default' || (mode === 'photo' && $ub.attr('data-hasphoto') === '1')) {
+			return;
+		}
+		$('#topmenu-login-dropdown img.userphoto, #topmenu-login-dropdown img.dropdown-user-image').each(function () {
+			$(this).replaceWith($('<span class="oblyon-avatar" aria-hidden="true"></span>').text(initials));
+		});
+	})();
+	(function () {
+		if (!cssFlag('--oblyon-agenda-modern')) {
+			return;
+		}
+		$('table.cal_event').each(function () {
+			var m = String(getComputedStyle(this).borderLeftColor || '').match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+			if (m) {
+				this.style.setProperty('--oblyon-ev-tint', 'rgba(' + m[1] + ',' + m[2] + ',' + m[3] + ',.14)');
+			}
+		});
+	})();
 	// Mouse device without forcing: keep the native hover behaviour, do nothing.
 	if (!forced && !autoTouch) {
 		return;

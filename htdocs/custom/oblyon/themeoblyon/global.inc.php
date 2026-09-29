@@ -13,6 +13,7 @@
 /* InfraS change end */
 <?php
 include dol_buildpath($path.'/theme/'.$theme.'/dropdown.inc.php', 0);
+include dol_buildpath($path.'/theme/'.$theme.'/notifcenter.inc.php', 0);	// centre de notifications (3.8.0)
 include dol_buildpath($path.'/theme/'.$theme.'/touchmenu.inc.php', 0);
 include dol_buildpath($path.'/theme/'.$theme.'/flyoutmenu.inc.php', 0);	// InfraS add : sous-menus en volets (effet "flyout" du menu reduit)
 include dol_buildpath($path.'/theme/'.$theme.'/info-box.inc.php', 0);
@@ -22,6 +23,7 @@ include dol_buildpath($path.'/theme/'.$theme.'/mobile.inc.php', 0);	// InfraS ad
 
 // Compatibility module
 include dol_buildpath($path.'/theme/'.$theme.'/modules.inc.php', 0);
+include dol_buildpath($path.'/theme/'.$theme.'/motion.inc.php', 0);	// option Animations (3.8.0), en dernier pour l'emporter sur toutes les transitions / animations
 
 // Add custom CSS if defined
 print getDolGlobalString('THEME_CUSTOM_CSS');
@@ -86,7 +88,7 @@ table.liste tr:last-child > td:last-child, table.liste tr:last-child > th:last-c
 	box-shadow: 5px 5px 5px <?php print oblyon_color_setting('OBLYON_COLOR_BOX_SHADOW', '#f0f0f0'); ?>;	/* InfraS change */
 }
 <?php } ?>
-<?php if (getDolGlobalString('THEME_ELDY_USECOMOACTROW')) { // B4 : lignes de tableau plus hautes ?>
+<?php if (getDolGlobalString('THEME_ELDY_USECOMOACTROW')) { // B4 : lignes de tableau plus hautes ; option retiree de l'onglet Options (remplacee par la densite OBLYON_DENSITY, migration a l'ouverture de la page et a l'activation), regle conservee pour une instance pas encore migree ?>
 .div-table-responsive, .div-table-responsive-no-min {
 	line-height: 300%;
 }

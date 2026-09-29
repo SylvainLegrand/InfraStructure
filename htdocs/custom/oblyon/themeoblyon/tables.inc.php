@@ -116,6 +116,26 @@ table.border td {
 }
 
 table.border td img { margin: 0 .1em; }
+/* tableaux "border" imprimes hors de la carte (apres dol_get_fiche_end() : rapprochement bancaire, traductions produit / categorie, prix, documents,
+   statistiques...) : poses sur le fond de page, leurs cellules n'avaient que le quadrillage --colortopbordertitle1 (blanc quand le liseret des titres est blanc : cases grises
+   separees de traits blancs) ; ils prennent l'habillage d'une carte (fond des lignes, cadre arrondi, filets horizontaux, remplissage de la densite).
+   Les tableaux DANS la carte (.tabBar) ne changent pas */
+table.border:not(.tabBar table) {
+	background: var(--colorbline);
+	border: 1px solid var(--oblyon-border);
+	border-radius: var(--oblyon-radius);
+	border-collapse: separate;
+	border-spacing: 0;
+	overflow: hidden;
+}
+table.border:not(.tabBar table) > tbody > tr > td {
+	border: 0;
+	border-bottom: 1px solid var(--oblyon-border);
+	padding: var(--oblyon-cell-py) var(--oblyon-cell-px);
+}
+table.border:not(.tabBar table) > tbody > tr:last-child > td {
+	border-bottom: 0;
+}
 
 td.border {
 	border: 1px solid #000;

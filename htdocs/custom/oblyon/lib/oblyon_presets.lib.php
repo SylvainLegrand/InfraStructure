@@ -19,7 +19,7 @@
 	/************************************************
 	* 	\file		../oblyon/lib/oblyon_presets.lib.php
 	* 	\ingroup	oblyon
-	* 	\brief		Presets (JSON files) of the Oblyon settings : load, apply, export, update, delete, import, contrast check, cards
+	* 	\brief		Presets (JSON files) of the Oblyon settings : load, apply, export, update, delete, import, cards (contrast check removed in 3.8.0)
 	*
 	*	A preset is a JSON file :
 	*		{ "name": "...", "description": "...", "author": "...", "version": "1",
@@ -59,25 +59,27 @@
 				'scalar'	=> false),
 			'typography'	=> array(
 				'names'		=> array('THEME_FONT_FAMILY', 'THEME_ELDY_FONT_SIZE1', 'THEME_ELDY_BORDER_RADIUS', 'THEME_SHOW_BORDER_ON_INPUT', 'THEME_ADD_BACKGROUND_ON_INPUT',
-									'THEME_ELDY_USEBORDERONTABLE', 'THEME_ELDY_SHADOW_ON_SMALL_BOXES', 'THEME_ELDY_TOTAL_BACKGROUND_LIKE_HEAD', 'THEME_ELDY_USECOMOACTROW',
-									'THEME_ELDY_USEBOLDTITLE', 'OBLYON_IMAGE_HEIGHT_TABLE'),
+									'THEME_ELDY_USEBORDERONTABLE', 'THEME_ELDY_SHADOW_ON_SMALL_BOXES', 'THEME_ELDY_TOTAL_BACKGROUND_LIKE_HEAD',
+									'THEME_ELDY_USEBOLDTITLE', 'OBLYON_IMAGE_HEIGHT_TABLE', 'OBLYON_DENSITY', 'OBLYON_TABS_STYLE', 'OBLYON_TAB_PILL_BORDER', 'OBLYON_TAB_PILL_SHADOW',
+									'OBLYON_BUTTON_STYLE', 'OBLYON_BUTTON_FORM_OWN_COLORS', 'OBLYON_BADGE_STYLE', 'OBLYON_STATUS_PULSE', 'OBLYON_AGENDA_STYLE'),	// options d'interface 3.8.0 (densite, style des onglets, bordure / ombre des pilules, style des boutons, agenda)
 				'patterns'	=> array(),
 				'scalar'	=> false),
 			'menus'			=> array(
 				'names'		=> array('MAIN_MENU_INVERT', 'OBLYON_FULLSIZE_TOPBAR', 'MAIN_SHOW_LOGO', 'THEME_STICKY_TOPMENU', 'OBLYON_HIDE_TOPICONS', 'THEME_MENU_COLORLOGO',
 									'OBLYON_SHOW_COMPNAME', 'OBLYON_STICKY_LEFTBAR', 'OBLYON_HIDE_LEFTMENU', 'OBLYON_EFFECT_LEFTMENU', 'OBLYON_HIDE_LEFTICONS',
-									'OBLYON_REDUCE_LEFTMENU', 'OBLYON_EFFECT_REDUCE_LEFTMENU', 'OBLYON_TOUCH_MENU', 'OBLYON_MOBILE_LAYOUT', 'OBLYON_LOGO_PADDING', 'OBLYON_LOGO_SIZE'),
+									'OBLYON_REDUCE_LEFTMENU', 'OBLYON_EFFECT_REDUCE_LEFTMENU', 'OBLYON_TOUCH_MENU', 'OBLYON_MOBILE_LAYOUT', 'OBLYON_LOGO_PADDING', 'OBLYON_LOGO_SIZE',
+									'OBLYON_USER_BLOCK'),	// bloc utilisateur (3.8.0)
 				'patterns'	=> array(),
 				'scalar'	=> false),
 			'general'		=> array(
 				'names'		=> array('OBLYON_DISABLE_VERSION', 'MAIN_STATUS_USES_IMAGES', 'MAIN_USE_TOP_MENU_QUICKADD_DROPDOWN', 'MAIN_USE_TOP_MENU_SEARCH_DROPDOWN',
-									'MAIN_USE_TOP_MENU_BOOKMARK_DROPDOWN', 'OBLYON_PADDING_RIGHT_BOTTOM', 'MAIN_LOGIN_RIGHT'),
+									'MAIN_USE_TOP_MENU_BOOKMARK_DROPDOWN', 'OBLYON_PADDING_RIGHT_BOTTOM', 'MAIN_LOGIN_RIGHT', 'OBLYON_MOTION', 'OBLYON_NOTIFICATION_CENTER'),	// animations (3.8.0)
 				'patterns'	=> array(),
 				'scalar'	=> false),
 			'lists_cards'	=> array(
 				'names'		=> array('MAIN_CHECKBOX_LEFT_COLUMN', 'FIX_TITLE_IN_LIST', 'DISABLE_KANBAN_VIEW_IN_LIST', 'FIX_STICKY_HEADER_CARD', 'FIX_STICKY_COLUMN_FIRST',
 									'FIX_STICKY_COLUMN_LAST', 'FIX_STICKY_TOTAL_BAR', 'MAIN_GRANDTOTAL_LIST_SHOW', 'FIX_STICKY_GRANDTOTAL_BAR', 'FIX_STICKY_TABS_CARD',
-									'FIX_AREAREF_CARD', 'MAIN_MAXTABS_IN_CARD', 'FIX_ABSOLUTE_BUTTONS_ACTION_CARD', 'MAIN_VIEW_LINE_NUMBER'),
+									'FIX_AREAREF_CARD', 'MAIN_MAXTABS_IN_CARD', 'FIX_ABSOLUTE_BUTTONS_ACTION_CARD', 'MAIN_VIEW_LINE_NUMBER', 'OBLYON_LIST_HEADER_STYLE'),	// style des en-tetes de liste (3.8.0)
 				'patterns'	=> array(),
 				'scalar'	=> false),
 			'dashboard'		=> array(
@@ -584,26 +586,9 @@
 		return oblyon_write_preset_file($key, $out);
 	}
 
-	// Contrast *************************************
+	// (3.8.0 : the contrast report (oblyon_color_luminance, oblyon_contrast_ratio, oblyon_check_preset_contrast, oblyon_contrast_issue_text, 3.6.0 / 3.7.0) is removed :
+	// too heavy for its use ; oblyon_text_on() of lib/oblyon_colors.lib.php has its own luminance computation and stays)
 
-	/**
-	*	Relative luminance of a color (WCAG 2)
-	*
-	*	@param		string	$hex		'#RRGGBB' or '#RGB'
-	*	@return		float|null			0 (black) to 1 (white), null if not a color
-	**/
-	function oblyon_color_luminance($hex)
-	{
-		$hex	= ltrim(trim((string) $hex), '#');
-		if (strlen($hex) == 3)	$hex	= $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
-		if (! preg_match('/^[0-9a-f]{6}$/i', $hex))	return null;
-		$lum	= array();
-		foreach (array(0, 2, 4) as $i) {
-			$c		= hexdec(substr($hex, $i, 2)) / 255;
-			$lum[]	= ($c <= 0.03928) ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
-		}
-		return 0.2126 * $lum[0] + 0.7152 * $lum[1] + 0.0722 * $lum[2];
-	}
 
 	/**
 	*	Contrast ratio between two colors (WCAG 2), 1 to 21
@@ -803,11 +788,10 @@
 			foreach ($group as $key => $preset) {
 				$iscurrent	= ($current === $key);
 				$modified	= $iscurrent ? oblyon_preset_modified_sections($preset) : array();
-				$contrast	= oblyon_check_preset_contrast($preset);
 				$out	.= '<form method="POST" action="'.$self.'" class="oblyon-preset'.($iscurrent ? ' is-current' : '').($modified ? ' is-modified' : '').'">';
 				$out	.= '<input type="hidden" name="token" value="'.newToken().'"><input type="hidden" name="preset_key" value="'.dol_escape_htmltag($key).'">';
 				$out	.= oblyon_preset_card_preview($preset, $key, $source);	// InfraS change : apercu partage avec l'onglet utilisateur
-				// Head : name (description as tooltip) + badges, then small icons (contrast warning, download, update, delete)
+				// Head : name (description as tooltip) + badges (3.8.0 : the contrast warning icon is gone with the contrast mechanism)
 				$sections	= implode(', ', array_map('oblyon_presets_section_label', array_keys($preset['sections'])));
 				$tooltip	= ($preset['description'] !== '' ? oblyon_preset_text($preset['description'])."\n" : '').$langs->trans('OblyonPresetSections').' : '.$sections;
 				$out	.= '<div class="oblyon-preset__head"><div class="oblyon-preset__name" title="'.dol_escape_htmltag($tooltip, 0, 1).'">'.oblyon_preset_text($preset['name'] !== '' ? $preset['name'] : $key);

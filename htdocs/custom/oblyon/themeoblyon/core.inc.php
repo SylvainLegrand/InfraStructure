@@ -125,6 +125,13 @@
 	--colorWarningBg: <?php print $colorWarningBg; ?>;
 	--colorWarningBorder: <?php print $colorWarningBorder; ?>;
 	--colorWarningTxt: <?php print $colorWarningTxt; ?>;
+	/* couleurs des notifications jNotify (groupe Messages), lues par style.css.php mais jamais imprimees jusqu'ici */
+	--colorNotifInfoBg: <?php print $colorNotifInfoBg; ?>;
+	--colorNotifInfoTxt: <?php print $colorNotifInfoTxt; ?>;
+	--colorNotifWarningBg: <?php print $colorNotifWarningBg; ?>;
+	--colorNotifWarningTxt: <?php print $colorNotifWarningTxt; ?>;
+	--colorNotifErrorBg: <?php print $colorNotifErrorBg; ?>;
+	--colorNotifErrorTxt: <?php print $colorNotifErrorTxt; ?>;
 	--colorButtonAction1: <?php print $colorButtonAction1; ?>;
 	--colorButtonAction2: <?php print $colorButtonAction2; ?>;
 	--colorTextButtonAction: <?php print $colorTextButtonAction; ?>;
@@ -198,6 +205,40 @@
 	--oblyon-cell-px: 8px;
 	--oblyon-row-lh: 1.5em;
 	--oblyon-head-h: 34px;
+	/* densite des listes, champs, boutons et fiches : option OBLYON_DENSITY (3.8.0), valeurs choisies dans style.css.php (compact = valeurs d'origine) */
+	--oblyon-cell-py: <?php print $oblyon_density_tokens['cell_py']; ?>;
+	--oblyon-cell-px: <?php print $oblyon_density_tokens['cell_px']; ?>;
+	--oblyon-row-lh: <?php print $oblyon_density_tokens['row_lh']; ?>;
+	--oblyon-head-h: <?php print $oblyon_density_tokens['head_h']; ?>;
+	--oblyon-control-py: <?php print $oblyon_density_tokens['control_py']; ?>;
+	--oblyon-btn-py: <?php print $oblyon_density_tokens['btn_py']; ?>;
+	--oblyon-card-py: <?php print $oblyon_density_tokens['card_py']; ?>;
+	/* teintes d'accent (3.8.0) : fond des lignes melange a la couleur principale (12 % / 20 %), texte lisible sur la couleur principale */
+	--oblyon-accent-tint: <?php print $oblyon_accent_tint; ?>;
+	--oblyon-accent-tint-strong: <?php print $oblyon_accent_tint_strong; ?>;
+	--oblyon-on-accent: <?php print $oblyon_on_accent; ?>;
+	/* onglets en pilules (OBLYON_TABS_STYLE = pills) : couleurs propres OBLYON_COLOR_TAB_PILL_*, derivees quand elles sont vides */
+	--oblyon-tab-pill-bg: <?php print $oblyon_tab_pill_bg; ?>;
+	--oblyon-tab-pill-txt: <?php print $oblyon_tab_pill_txt; ?>;
+	--oblyon-tab-pill-bg-hover: <?php print $oblyon_tab_pill_bg_hover; ?>;
+	--oblyon-tab-pill-border: <?php print $oblyon_tab_pill_border; ?>;
+	/* onglets soulignes (OBLYON_TABS_STYLE = underline) : couleurs propres OBLYON_COLOR_TAB_UNDER_*, derivees quand elles sont vides */
+	--oblyon-tab-under-band: <?php print $oblyon_tab_under_band; ?>;
+	--oblyon-tab-under-txt: <?php print $oblyon_tab_under_txt; ?>;
+	--oblyon-tab-under-line: <?php print $oblyon_tab_under_line; ?>;
+	--oblyon-tab-under-border: <?php print $oblyon_tab_under_border; ?>;
+	/* boutons (OBLYON_BUTTON_STYLE) : trois familles x fond, texte, bordure, fond et texte au survol, resolues selon le style par oblyon_button_effective_colors() (lib/oblyon_colors.lib.php) */
+<?php foreach (array('action' => $oblyon_btn_action, 'delete' => $oblyon_btn_delete, 'form' => $oblyon_btn_form) as $oblyon_btn_family => $oblyon_btn_c) {
+	foreach ($oblyon_btn_c as $oblyon_btn_role => $oblyon_btn_v) {
+		print "\t--oblyon-btn-".$oblyon_btn_family.'-'.str_replace('_', '-', $oblyon_btn_role).': '.$oblyon_btn_v.";\n";
+	}
+} ?>
+	/* en-tetes de liste en style plat (OBLYON_LIST_HEADER_STYLE = flat) : couleurs propres OBLYON_COLOR_LISTHEAD_FLAT_*, derivees quand elles sont vides */
+	--oblyon-listhead-bg: <?php print $oblyon_listhead_bg; ?>;
+	--oblyon-listhead-txt: <?php print $oblyon_listhead_txt; ?>;
+	--oblyon-listhead-line: <?php print $oblyon_listhead_line; ?>;
+	--oblyon-listhead-sel: <?php print $oblyon_listhead_sel; ?>;
+	--oblyon-listhead-filter: <?php print $oblyon_listhead_filter; ?>;
 	/* InfraS add end */
 }
 
@@ -361,6 +402,16 @@ select {
 	padding-top: 5px;
 	padding-right: 4px;
 	padding-bottom: 5px;
+	padding: var(--oblyon-control-py) 5px;	/* densite (3.8.0) */
+}
+.liste_titre input {
+	padding: var(--oblyon-control-py) 5px;	/* densite (3.8.0) */
+	font-family: var(--fontfamilydol);
+}
+select {
+	padding-top: var(--oblyon-control-py);	/* densite (3.8.0) */
+	padding-right: 4px;
+	padding-bottom: var(--oblyon-control-py);	/* densite (3.8.0) */
 	padding-left: 2px;
 }
 input, select {
@@ -1012,6 +1063,7 @@ select.flat, form.flat select {
 	font-weight: normal;
 	font-size: unset;
 	height: 2em;
+	height: calc(1.3em + 2 * var(--oblyon-control-py) + 2px);	/* densite (3.8.0) : meme hauteur que les champs (interligne + 2 x remplissage + bordures), etait 2em */
 }
 
 input:disabled,

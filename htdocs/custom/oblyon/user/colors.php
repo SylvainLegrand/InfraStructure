@@ -32,7 +32,7 @@
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 	dol_include_once('/oblyon/lib/oblyon_colors.lib.php');
-	dol_include_once('/oblyon/lib/oblyon_presets.lib.php');				// oblyon_check_preset_contrast
+	dol_include_once('/oblyon/lib/oblyon_presets.lib.php');				// presets (oblyon_get_presets_for_user, oblyon_preset_key_is_valid...)
 
 	// Translations *********************************
 	$langs->loadLangs(array('users', 'admin', 'main', 'other', 'oblyon@oblyon'));
@@ -61,6 +61,7 @@
 		if (!GETPOST('cancel')) {
 			$tabparam	= array();
 			$enable		= (GETPOST('check_OBLYON_USER_COLORS') == 'on');
+			$btnauto	= oblyon_button_auto_values($object);	// 3.8.0 : couleurs de boutons automatiques pour cet utilisateur (calculees avant toute ecriture)
 			foreach ($keys as $key) {
 				if ($enable) {
 					// full snapshot : the posted value (jscolor posts the hex without '#'), else the instance value.
@@ -68,6 +69,7 @@
 					$posted	= GETPOST($key, 'alpha');
 					$value	= ($posted === '' ? '' : '#'.strtoupper(ltrim($posted, '#')));
 					if ($value === '' || !preg_match('/^#([0-9A-F]{6})?$/', $value))	$value	= getDolGlobalString($key);
+					if (isset($btnauto[$key]) && $value === $btnauto[$key])	$value	= getDolGlobalString($key);	// 3.8.0 : couleur de bouton non modifiee (= valeur affichee) : reste automatique, comme l'instance
 					$tabparam[$key]	= $value;
 				} else {
 					$tabparam[$key]	= '';		// '' = row deleted by dol_set_user_param
@@ -161,22 +163,32 @@
 	print '</tr>';
 	if (! $edit && $enabled)	oblyon_colors_normalize_stored($object);	// 3.7.0 : couleurs personnelles encore en 'r,g,b' reecrites en '#RRGGBB'
 	$snapshot	= array();
+	// 3.8.0 : couleurs de boutons : valeurs reellement appliquees (instance seule pour la colonne "valeur par defaut", cet utilisateur pour la colonne personnelle)
+	$btnkeys	= array();
+	foreach (oblyon_button_families() as $familykey => $family) {
+		foreach ($family['colors'] as $role => $key)	$btnkeys[$key]	= array($familykey, $role);
+	}
+	$btninstance	= oblyon_button_effective_colors('', new User($db));	// utilisateur sans id : couleurs de l'instance
+	$btnuser		= oblyon_button_effective_colors('', $object);
 	foreach (oblyon_user_colors_list() as $group => $names) {
 		print '<tr class="liste_titre"><td colspan="4">'.$langs->trans($group).'</td></tr>';
 		foreach ($names as $key) {
 			$instance	= getDolGlobalString($key);
 			$personal	= (isset($object->conf->$key) ? (string) $object->conf->$key : '');
 			if ($enabled && $personal !== '')	$snapshot[$key]	= $personal;
+			$isbtn		= isset($btnkeys[$key]);
 			print '<tr class="oddeven">';
 			print '<td>'.oblyon_user_color_label($key).'</td>';
-			print '<td>'.oblyon_color_swatch($instance, $key).'</td>';
+			print '<td>'.oblyon_color_swatch($isbtn ? $btninstance[$btnkeys[$key][0]][$btnkeys[$key][1]]['hex'] : $instance, $key).'</td>';
 			print '<td>&nbsp;</td>';
 			print '<td>';
 			if ($edit) {
 				$value	= ($personal !== '' && oblyon_color_is_valid($personal, $key) ? $personal : $instance);
-				print '<input type="text" name="'.$key.'" id="'.$key.'" class="flat color oblyon-user-color" size="8" maxlength="7" value="'.dol_escape_htmltag($value).'"'.($enabled ? '' : ' disabled').'>';
+				if ($isbtn)	$value	= $btnuser[$btnkeys[$key][0]][$btnkeys[$key][1]]['hex'];	// couleur effective : jamais vide
+				if ($value === '#')	$value	= '';	// InfraS add : '#' (heriter) affiche vide ; {required:false} : jscolor ne remplace plus un champ vide par FFFFFF (enregistre ensuite comme couleur blanche)
+				print '<input type="text" name="'.$key.'" id="'.$key.'" class="flat color {required:false} oblyon-user-color" size="8" maxlength="7" value="'.dol_escape_htmltag($value).'" placeholder="'.dol_escape_htmltag($langs->trans('Automatic')).'"'.($enabled ? '' : ' disabled').'>';
 			} else {
-				print ($enabled && $personal !== '' ? oblyon_color_swatch($personal, $key) : '&nbsp;');
+				print ($enabled && $personal !== '' ? oblyon_color_swatch($isbtn && $personal === '#' ? $btnuser[$btnkeys[$key][0]][$btnkeys[$key][1]]['hex'] : $personal, $key) : '&nbsp;');
 			}
 			print '</td>';
 			print '</tr>';

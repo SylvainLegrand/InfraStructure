@@ -854,6 +854,10 @@ div.tabBar {
 	padding-left: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
 	padding-right: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
 	padding-bottom: 12px;
+	padding-top: var(--oblyon-card-py);	/* densite (3.8.0) */
+	padding-left: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
+	padding-right: <?php print ($dol_optimize_smallscreen?'6':'14'); ?>px;
+	padding-bottom: var(--oblyon-card-py);	/* densite (3.8.0) */
 	width: auto;
 }
 /* InfraS change end */
@@ -1011,6 +1015,136 @@ a.tab:link, a.tab:visited, a.tab:hover, a.tab#active {
 	border-radius: var(--oblyon-radius) var(--oblyon-radius) 0 0;
 	height: 38px;
 }
+<?php if ($oblyon_tabs_style == 'underline') { ?>
+/* style des onglets "soulignes" (OBLYON_TABS_STYLE = underline, 3.8.0) : bande neutre a coins superieurs arrondis, fermee par un filet ;
+   onglets inactifs en texte attenue, survol en texte des lignes sur fond des lignes, actif en couleur principale sur fond des lignes avec un soulignement de 3 px
+   qui recouvre le filet. Le core enveloppe chaque lien dans div.tab.tabactive / div.tab.tabunactive : le soulignement est porte par cette boite seulement (le lien n'en a pas).
+   La rangee devient une boite flexible : sa hauteur est reelle (height: 100% d'origine ne calcule rien) et sa marge basse ecarte la carte */
+div.tabs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	height: auto;
+	margin-bottom: 12px;
+	padding: 4px 6px 0;
+	background: var(--oblyon-tab-under-band);	/* OBLYON_COLOR_TAB_UNDER_BAND (fond neutre par defaut) */
+	border-radius: var(--oblyon-radius) var(--oblyon-radius) 0 0;
+	border-bottom: 1px solid var(--oblyon-tab-under-border);	/* avec l'option "bandeau des onglets fixe", fixes.inc.php reprend ce fond, ce filet et l'espace avant la carte (sa regle est prioritaire) */
+}
+div.tabs > div.tabsElem.floatright {
+	order: 99;	/* le core imprime la zone de droite en premier et la flotte a droite ; dans une boite flexible le flottement n'agit plus : renvoyee en fin de rangee */
+	margin-<?php print $left; ?>: auto;	/* et poussee au bout de la rangee */
+	align-self: center;
+}
+div.tabsElem {
+	margin-top: 0;
+	margin-left: 0;
+}
+div.tabs > div.tabsElem > div.tab, .tabactive, a.tab#active, .tabunactive, a.tab#unactive {
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: var(--oblyon-radius-sm) var(--oblyon-radius-sm) 0 0;
+	box-shadow: none;
+	margin: 0 !important;
+	height: auto;
+}
+div.tabs > div.tabsElem > div.tab {
+	border-bottom: 3px solid transparent !important;	/* reserve la place du soulignement : les onglets ne bougent pas quand l'actif change */
+	margin-bottom: -1px !important;	/* le soulignement de l'actif recouvre le filet de la bande */
+	transition: background-color var(--oblyon-transition), border-color var(--oblyon-transition);
+}
+div.tabs > div.tabsElem > div.tab.tabactive {
+	background: var(--colorbline) !important;
+	border-bottom-color: var(--oblyon-tab-under-line) !important;	/* OBLYON_COLOR_TAB_UNDER_LINE (couleur principale par defaut) */
+}
+div.tabs > div.tabsElem > div.tab:hover {
+	background: var(--colorbline) !important;
+}
+a.tab, div.tabactive a.tab {
+	background: transparent !important;
+	color: var(--oblyon-muted-text);
+	font-weight: 500 !important;
+	height: auto;
+}
+div.tabactive a.tab, a.tab#active {
+	color: var(--oblyon-tab-under-txt) !important;	/* OBLYON_COLOR_TAB_UNDER_TXT (couleur principale par defaut) */
+	font-weight: 600 !important;
+}
+a.tab:link, a.tab:visited, a.tab:hover, a.tab#active {
+	padding: 9px 14px 8px;
+}
+a.tab:hover, a.tab:focus, div.tabsElem:hover, div.tabsElem a.tab:hover {
+	background-color: transparent !important;	/* le fond de survol est sur la boite div.tab, pas sur le lien */
+	color: var(--colorfline) !important;
+}
+div.tabactive a.tab:hover, a.tab#active:hover {
+	color: var(--oblyon-tab-under-txt) !important;
+}
+<?php } elseif ($oblyon_tabs_style == 'pills') { ?>
+/*  style des onglets "pilules" (OBLYON_TABS_STYLE = pills, 3.8.0) : pilules arrondies, l'active sur un fond teinte de la couleur principale.
+   Rangee en boite flexible (hauteur reelle, voir le style "soulignes") avec un espace de 6 px entre pilules et 12 px avant la carte */
+div.tabs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	height: auto;
+	margin-bottom: 12px;
+	padding-left: 0;
+}
+div.tabs > div.tabsElem.floatright {
+	order: 99;	/* zone de droite imprimee en premier par le core : renvoyee en fin de rangee (voir le style "soulignes") */
+	margin-<?php print $left; ?>: auto;	/* avec l'option "bandeau des onglets fixe", fixes.inc.php retire le filet et garde l'espace avant la carte */
+}
+div.tabsElem {
+	margin-top: 0;
+	margin-left: 0;
+}
+div.tabs > div.tabsElem > div.tab, .tabactive, a.tab#active, .tabunactive, a.tab#unactive {
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: var(--oblyon-radius-pill) !important;
+	box-shadow: none;
+	margin: 0 !important;
+	height: auto;
+}
+a.tab, div.tabactive a.tab {
+	background: transparent !important;
+	color: var(--colorfline);
+	border-radius: var(--oblyon-radius-pill);
+	height: auto;
+}
+div.tab.tabactive, a.tab#active, div.tabactive a.tab {
+	background: var(--oblyon-tab-pill-bg) !important;
+	color: var(--oblyon-tab-pill-txt) !important;
+	font-weight: 600 !important;
+}
+a.tab:link, a.tab:visited, a.tab:hover, a.tab#active {
+	padding: 7px 14px;
+}
+a.tab:hover, a.tab:focus, div.tabsElem:hover, div.tabsElem a.tab:hover {
+	background-color: var(--oblyon-neutral-bg) !important;
+	color: var(--oblyon-tab-pill-txt) !important;
+}
+div.tabactive a.tab:hover, div.tabactive:hover {
+	background-color: var(--oblyon-tab-pill-bg-hover) !important;
+}
+<?php if (getDolGlobalInt('OBLYON_TAB_PILL_BORDER')) { ?>
+/* option "bordure des pilules" : cadre de 1 px sur chaque pilule (couleur OBLYON_COLOR_TAB_PILL_BORDER, cadre neutre par defaut) */
+div.tabs > div.tabsElem > div.tab {
+	border: 1px solid var(--oblyon-tab-pill-border) !important;
+}
+<?php } ?>
+<?php if (getDolGlobalInt('OBLYON_TAB_PILL_SHADOW')) { ?>
+/* option "ombre des pilules" : ombre legere, plus marquee au survol (jetons d'ombre du theme) */
+div.tabs > div.tabsElem > div.tab {
+	box-shadow: var(--oblyon-shadow-sm);
+}
+div.tabs > div.tabsElem > div.tab:hover {
+	box-shadow: var(--oblyon-shadow-md);
+}
+<?php } ?>
+<?php } ?>
 a.tabimage {
 	color: var(--colorfline);
 	font-family: var(--fontfamilydol);

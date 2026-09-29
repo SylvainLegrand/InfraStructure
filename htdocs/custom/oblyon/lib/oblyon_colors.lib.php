@@ -189,11 +189,219 @@
 	}
 
 	/**
+	*	Colour setting that must be a real colour : the value (user then instance) when it is '#RRGGBB', else the default.
+	*	'' and '#' (inherit convention) fall back to the default : for the tokens painted as plain CSS colours (3.7.0)
+	*
+	*	@param		string		$name		Constant name
+	*	@param		string		$default	Default '#RRGGBB'
+	*	@param		User|null	$tmpuser	User (null = current user)
+	*	@return		string
+	**/
+	function oblyon_color_setting_hex($name, $default, $tmpuser = null)
+	{
+		$value	= oblyon_color_setting($name, '', $tmpuser);
+		return (preg_match('/^#[0-9a-f]{6}$/i', $value) ? $value : $default);
+	}
+	/**
+	*	Mix two colours : $ratio = 0 gives $hex1, 1 gives $hex2 (design tokens of the theme, tints of the buttons ; moved here from style.css.php in 3.8.0
+	*	so that the Colors tabs can show the derived button colours)
+	*
+	*	@param		string	$hex1		Colour 1 (#RRGGBB or r,g,b)
+	*	@param		string	$hex2		Colour 2
+	*	@param		float	$ratio		Weight of colour 2 (0..1)
+	*	@return		string				#RRGGBB
+	**/
+	function oblyon_mix_colors($hex1, $hex2, $ratio)
+	{
+		if (! function_exists('colorStringToArray'))	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+		$a		= colorStringToArray($hex1);
+		$b		= colorStringToArray($hex2);
+		$out	= array();
+		for ($i = 0; $i < 3; $i++) {
+			$out[]	= max(0, min(255, (int) round($a[$i] + ($b[$i] - $a[$i]) * $ratio)));
+		}
+		return '#'.colorArrayToHex($out);
+	}
+	/**
+	*	Text colour to paint on a background : the one of two candidates with the best WCAG contrast (3.7.0 : status badges, whose text was white or the row text whatever the background)
+	*
+	*	@param		string	$background		Background '#RRGGBB'
+	*	@param		string	$dark			Dark candidate
+	*	@param		string	$light			Light candidate
+	*	@return		string					$dark or $light ($light when the background is not a colour)
+	**/
+	function oblyon_text_on($background, $dark = '#1C1C1C', $light = '#FFFFFF')
+	{
+		$lum	= function ($hex) {
+			$hex	= ltrim($hex, '#');
+			if (! preg_match('/^[0-9a-f]{6}$/i', $hex))	return null;
+			$out	= array();
+			foreach (str_split($hex, 2) as $part) {
+				$c		= hexdec($part) / 255;
+				$out[]	= ($c <= 0.03928) ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
+			}
+			return 0.2126 * $out[0] + 0.7152 * $out[1] + 0.0722 * $out[2];
+		};
+		$lb	= $lum($background);
+		if ($lb === null)	return $light;
+		$ratio	= function ($l1, $l2) { return (max($l1, $l2) + 0.05) / (min($l1, $l2) + 0.05); };
+		return ($ratio($lum($dark), $lb) >= $ratio($lum($light), $lb)) ? $dark : $light;
+	}
+	/**
 	*	Colour constants offered on the user tab, grouped like the Colors tab of the module (admin/colors.php) then the dashboard tiles.
 	*	Group key = lang key. The top / left menu groups are swapped when the menus are inverted (same as admin/colors.php).
 	*
 	*	@return		array		group lang key => array of constant names
 	**/
+	/**
+	*	Is a colour of the Tabs group offered for the current tab style (3.8.0) ? Boxed : the three historical colours ; pills : OBLYON_COLOR_TAB_PILL_* ;
+	*	underline : OBLYON_COLOR_TAB_UNDER_*. Any other constant is always offered.
+	*
+	*	@param		string	$name		Constant name
+	*	@return		bool
+	**/
+	function oblyon_tab_color_visible($name)
+	{
+		$style	= getDolGlobalString('OBLYON_TABS_STYLE', 'boxed');
+		if (strpos($name, 'OBLYON_COLOR_TAB_PILL_') === 0)	return ($style == 'pills');
+		if (strpos($name, 'OBLYON_COLOR_TAB_UNDER_') === 0)	return ($style == 'underline');
+		if (in_array($name, array('THEME_ELDY_BACKTABACTIVE', 'THEME_ELDY_BACKTABCARD1', 'OBLYON_COLOR_TEXTTABACTIVE')))	return ($style == 'boxed');
+		if (strpos($name, 'OBLYON_COLOR_LISTHEAD_FLAT_') === 0)	return (getDolGlobalString('OBLYON_LIST_HEADER_STYLE', 'band') == 'flat');	// 3.8.0 : en-tetes de liste plats (groupe Titres)
+		return true;
+	}
+	/**
+	*	Button families of the Colors tabs (3.8.0) : for each family, the five colours the theme paints (background, text, border, hover background, hover text),
+	*	in display order, for a button style. The filled style uses the historical constants (THEME_ELDY_BTNACTION = background, OBLYON_COLOR_BUTTON_ACTION2 = hover
+	*	background...) ; the outline and soft styles ("flat") share their own set (OBLYON_COLOR_BUTTON_[DELETE_|FORM_]FLAT_*, empty = derived from the filled button colour),
+	*	because the filled text (white) and background would give an invisible flat button. Form buttons (.button : Save, Cancel...) follow the action buttons
+	*	unless OBLYON_BUTTON_FORM_OWN_COLORS is set.
+	*
+	*	@param		string	$style		filled / outline / soft ('' = current OBLYON_BUTTON_STYLE)
+	*	@param		bool	$all		True = the form family too, whatever OBLYON_BUTTON_FORM_OWN_COLORS
+	*	@return		array		family key => array('label' => lang key, 'colors' => array(role => constant))
+	**/
+	function oblyon_button_families($style = '', $all = false)
+	{
+		if ($style === '')	$style	= getDolGlobalString('OBLYON_BUTTON_STYLE', 'filled');
+		$flat		= ($style == 'outline' || $style == 'soft');
+		$roles		= array('bg' => 'BCKGRD', 'txt' => 'TXT', 'border' => 'BORDER', 'bg_hover' => 'BCKGRD_HOVER', 'txt_hover' => 'TXT_HOVER');
+		$families	= array();
+		foreach (array('action' => 'OblyonBtnFamilyAction', 'delete' => 'OblyonBtnFamilyDelete', 'form' => 'OblyonBtnFamilyForm') as $key => $label) {
+			if ($key == 'form' && ! $all && ! getDolGlobalInt('OBLYON_BUTTON_FORM_OWN_COLORS'))	continue;
+			$prefix	= 'OBLYON_COLOR_BUTTON_'.($key == 'action' ? '' : strtoupper($key).'_').($flat ? 'FLAT_' : '');
+			$colors	= array();
+			foreach ($roles as $role => $suffix)	$colors[$role]	= $prefix.$suffix;
+			if (! $flat) {	// filled : historical constants
+				if ($key == 'action') {
+					$colors['bg']			= 'THEME_ELDY_BTNACTION';
+					$colors['txt']			= 'THEME_ELDY_TEXTBTNACTION';
+					$colors['bg_hover']		= 'OBLYON_COLOR_BUTTON_ACTION2';
+				} elseif ($key == 'delete') {
+					$colors['bg']			= 'OBLYON_COLOR_BUTTON_DELETE1';
+					$colors['bg_hover']		= 'OBLYON_COLOR_BUTTON_DELETE2';
+				}
+			}
+			$families[$key]	= array('label' => $label, 'colors' => $colors);
+		}
+		return $families;
+	}
+	/**
+	*	Effective colours of the button families for a style (3.8.0) : the stored colour when it is '#RRGGBB', else the derived one
+	*	(filled : theme defaults ; outline : transparent background, border = text, hover = light tint of the text ; soft : tinted background, stronger on hover).
+	*	Shared by style.css.php (CSS tokens) and by the two Colors tabs, which show these real values in the pickers instead of an empty "automatic" field.
+	*	'css' = value painted by the theme ('transparent' possible for the background and the border) ; 'hex' = the same as a real colour for the pickers
+	*	(transparent background = page background, transparent border = the button background) ; 'auto' = derived (nothing stored)
+	*
+	*	@param		string		$style		filled / outline / soft ('' = current style)
+	*	@param		User|null	$tmpuser	User (null = current user) : personal colours when enabled
+	*	@return		array					family => role => array('css' => string, 'hex' => string, 'auto' => bool)
+	**/
+	function oblyon_button_effective_colors($style = '', $tmpuser = null)
+	{
+		if ($style === '')	$style	= getDolGlobalString('OBLYON_BUTTON_STYLE', 'filled');
+		if (! in_array($style, array('filled', 'outline', 'soft')))	$style	= 'filled';
+		$rowbg		= oblyon_color_setting_hex('OBLYON_COLOR_BLINE', '#FFFFFF', $tmpuser);
+		$pagebg		= oblyon_color_setting_hex('THEME_ELDY_BACKBODY', '#FFFFFF', $tmpuser);
+		$action		= array('bg' => oblyon_color_setting_hex('THEME_ELDY_BTNACTION', '#0088CC', $tmpuser), 'txt' => oblyon_color_setting_hex('THEME_ELDY_TEXTBTNACTION', '#FFFFFF', $tmpuser),
+							'bg_hover' => oblyon_color_setting_hex('OBLYON_COLOR_BUTTON_ACTION2', '#0044CC', $tmpuser));	// theme_vars.inc.php defaults
+		$delete		= array('bg' => oblyon_color_setting_hex('OBLYON_COLOR_BUTTON_DELETE1', '#CC8800', $tmpuser), 'txt' => $action['txt'],
+							'bg_hover' => oblyon_color_setting_hex('OBLYON_COLOR_BUTTON_DELETE2', '#CC4400', $tmpuser));
+		$defaults	= array('action' => $action, 'delete' => $delete, 'form' => $action);
+		$out		= array();
+		foreach (oblyon_button_families($style, true) as $key => $family) {
+			$d		= $defaults[$key];
+			$c		= array();
+			$auto	= array();
+			foreach ($family['colors'] as $role => $name) {
+				$c[$role]		= oblyon_color_setting_hex($name, '', $tmpuser);
+				$auto[$role]	= ($c[$role] === '');
+			}
+			if ($c['txt'] === '')	$c['txt']	= ($style == 'filled') ? $d['txt'] : $d['bg'];	// outline / soft : the text takes the button colour (background of the filled style)
+			if ($style == 'outline') {
+				if ($c['bg'] === '')		$c['bg']		= 'transparent';
+				if ($c['border'] === '')	$c['border']	= $c['txt'];
+				if ($c['bg_hover'] === '')	$c['bg_hover']	= oblyon_mix_colors($rowbg, $c['txt'], 0.12);
+			} elseif ($style == 'soft') {
+				if ($c['bg'] === '')		$c['bg']		= oblyon_mix_colors($rowbg, $c['txt'], 0.12);
+				if ($c['border'] === '')	$c['border']	= 'transparent';
+				if ($c['bg_hover'] === '')	$c['bg_hover']	= oblyon_mix_colors($rowbg, $c['txt'], 0.22);
+			} else {
+				if ($c['bg'] === '')		$c['bg']		= $d['bg'];
+				if ($c['border'] === '')	$c['border']	= 'transparent';
+				if ($c['bg_hover'] === '')	$c['bg_hover']	= $d['bg_hover'];
+			}
+			if ($c['txt_hover'] === '')	$c['txt_hover']	= $c['txt'];
+			$out[$key]	= array();
+			foreach ($c as $role => $css) {
+				$hex	= $css;
+				if ($css === 'transparent')	$hex	= ($role == 'bg' ? $pagebg : ($c['bg'] === 'transparent' ? $pagebg : $c['bg']));
+				$out[$key][$role]	= array('css' => $css, 'hex' => strtoupper($hex), 'auto' => $auto[$role]);
+			}
+		}
+		return $out;
+	}
+	/**
+	*	Button colour constants whose stored value is automatic ('' or '#'), with the real colour the pickers show for them (3.8.0).
+	*	The Colors tabs keep such a constant automatic when the posted colour equals this value (the user did not touch it)
+	*
+	*	@param		User|null	$tmpuser	User (null = current user)
+	*	@return		array					constant name => '#RRGGBB'
+	**/
+	function oblyon_button_auto_values($tmpuser = null)
+	{
+		$auto		= array();
+		$families	= oblyon_button_families('', true);
+		foreach (oblyon_button_effective_colors('', $tmpuser) as $key => $roles) {
+			foreach ($roles as $role => $c) {
+				if ($c['auto'])	$auto[$families[$key]['colors'][$role]]	= $c['hex'];
+			}
+		}
+		return $auto;
+	}
+	/**
+	*	Constants of the Buttons group for the current button style, in display order
+	*
+	*	@return		array		Constant names
+	**/
+	function oblyon_button_colors_list()
+	{
+		$list	= array();
+		foreach (oblyon_button_families() as $family)	$list	= array_merge($list, array_values($family['colors']));
+		return $list;
+	}
+	/**
+	*	Every button colour constant, whatever the style and the form option (presets, contrast, backup) : 30 constants
+	*
+	*	@return		array		Constant names
+	**/
+	function oblyon_button_colors_all()
+	{
+		$list	= array();
+		foreach (array('filled', 'outline') as $style) {
+			foreach (oblyon_button_families($style, true) as $family)	$list	= array_merge($list, array_values($family['colors']));
+		}
+		return array_values(array_unique($list));
+	}
 	function oblyon_user_colors_list()
 	{
 		$top	= array('OBLYON_COLOR_TOPMENU_BCKGRD', 'OBLYON_COLOR_TOPMENU_BCKGRD_HOVER', 'OBLYON_COLOR_TOPMENU_TXT', 'OBLYON_COLOR_TOPMENU_TXT_ACTIVE', 'OBLYON_COLOR_TOPMENU_TXT_HOVER',
@@ -207,7 +415,7 @@
 			$list['LeftMenu']	= $top;
 			$list['TopMenu']	= $left;
 		}
-		$list['Buttons']						= array('THEME_ELDY_BTNACTION', 'OBLYON_COLOR_BUTTON_ACTION2', 'THEME_ELDY_TEXTBTNACTION', 'OBLYON_COLOR_BUTTON_DELETE1', 'OBLYON_COLOR_BUTTON_DELETE2');
+		$list['Buttons']						= oblyon_button_colors_list();	// 3.8.0 : familles (action, suppression, formulaire) x roles utiles au style de boutons choisi
 		$list['OblyonColorGrpMessages']			= array('OBLYON_COLOR_INFO_BORDER', 'OBLYON_COLOR_INFO_BCKGRD', 'OBLYON_COLOR_INFO_TEXT', 'OBLYON_COLOR_WARNING_BORDER', 'OBLYON_COLOR_WARNING_BCKGRD', 'OBLYON_COLOR_WARNING_TEXT',
 														'OBLYON_COLOR_ERROR_BORDER', 'OBLYON_COLOR_ERROR_BCKGRD', 'OBLYON_COLOR_ERROR_TEXT', 'OBLYON_COLOR_NOTIF_INFO_BCKGRD', 'OBLYON_COLOR_NOTIF_INFO_TEXT',
 														'OBLYON_COLOR_NOTIF_WARNING_BCKGRD', 'OBLYON_COLOR_NOTIF_WARNING_TEXT', 'OBLYON_COLOR_NOTIF_ERROR_BCKGRD', 'OBLYON_COLOR_NOTIF_ERROR_TEXT');
@@ -215,6 +423,11 @@
 		$list['OblyonColorGrpText']				= array('THEME_ELDY_TEXT', 'THEME_ELDY_TEXTLINK', 'OBLYON_COLOR_ICON_TEXT');
 		$list['OblyonColorGrpTitles']			= array('OBLYON_COLOR_BTITLE', 'OBLYON_COLOR_STITLE', 'THEME_ELDY_TEXTTITLE', 'THEME_ELDY_TEXTTITLENOTAB', 'THEME_ELDY_TOPBORDER_TITLE1', 'THEME_ELDY_BACKTITLE1');
 		$list['OblyonColorGrpTabs']				= array('THEME_ELDY_BACKTABACTIVE', 'THEME_ELDY_BACKTABCARD1', 'OBLYON_COLOR_TEXTTABACTIVE');
+		$list['OblyonColorGrpTitles']			= array_values(array_filter(array('OBLYON_COLOR_BTITLE', 'OBLYON_COLOR_STITLE', 'THEME_ELDY_TEXTTITLE', 'THEME_ELDY_TEXTTITLENOTAB', 'THEME_ELDY_TOPBORDER_TITLE1', 'THEME_ELDY_BACKTITLE1',
+														'OBLYON_COLOR_LISTHEAD_FLAT_BCKGRD', 'OBLYON_COLOR_LISTHEAD_FLAT_TXT', 'OBLYON_COLOR_LISTHEAD_FLAT_LINE', 'OBLYON_COLOR_LISTHEAD_FLAT_SEL'), 'oblyon_tab_color_visible'));	// 3.8.0 : couleurs des en-tetes plats seulement dans ce style
+		$list['OblyonColorGrpTabs']				= array_values(array_filter(array('THEME_ELDY_BACKTABACTIVE', 'THEME_ELDY_BACKTABCARD1', 'OBLYON_COLOR_TEXTTABACTIVE',
+														'OBLYON_COLOR_TAB_PILL_BCKGRD', 'OBLYON_COLOR_TAB_PILL_TXT', 'OBLYON_COLOR_TAB_PILL_BORDER',
+														'OBLYON_COLOR_TAB_UNDER_BAND', 'OBLYON_COLOR_TAB_UNDER_TXT', 'OBLYON_COLOR_TAB_UNDER_LINE'), 'oblyon_tab_color_visible'));	// 3.8.0 : seulement les couleurs du style d'onglets choisi
 		$list['OblyonColorGrpLines']			= array('OBLYON_COLOR_BLINE', 'OBLYON_COLOR_FLINE', 'THEME_ELDY_USE_HOVER', 'THEME_ELDY_USE_CHECKED', 'OBLYON_COLOR_FLINE_HOVER',
 														'THEME_ELDY_LINEIMPAIR1', 'THEME_ELDY_LINEIMPAIR2', 'THEME_ELDY_LINEPAIR1', 'THEME_ELDY_LINEPAIR2', 'THEME_ELDY_LINEBREAK');
 		$list['OblyonColorGrpTotal']			= array('OBLYON_COLOR_BTOTAL', 'OBLYON_COLOR_FTOTAL');
@@ -267,6 +480,13 @@
 		if (getDolGlobalString('MAIN_MENU_INVERT')) {
 			if (strpos($name, 'OBLYON_COLOR_TOPMENU_') === 0)		$transkey	= str_replace('TOP', 'LEFT', $name);
 			elseif (strpos($name, 'OBLYON_COLOR_LEFTMENU_') === 0)	$transkey	= str_replace('LEFT', 'TOP', $name);
+		}
+		// 3.8.0 : couleurs de boutons : "<famille> : <role>", memes libelles que l'onglet Couleurs du module (les champs montrent la couleur reelle, plus de mention "automatique")
+		foreach (oblyon_button_families() as $family) {
+			$role	= array_search($name, $family['colors'], true);
+			if ($role !== false) {
+				return $langs->trans($family['label']).' : '.$langs->trans('OblyonBtnRole'.ucfirst(str_replace('_', '', ucwords($role, '_'))));
+			}
 		}
 		return $langs->trans($transkey);
 	}
@@ -460,7 +680,6 @@
 		foreach (oblyon_get_presets_for_user($id) as $key => $preset) {
 			$source		= ($preset['source'] == 'user' ? 'user' : 'module');
 			if ($source == 'user')	$mine++;
-			$contrast	= oblyon_check_preset_contrast(array('colors' => oblyon_preset_user_colors($preset)));
 			$out	.= '<form method="POST" action="'.$self.'" class="oblyon-preset">';
 			$out	.= '<input type="hidden" name="token" value="'.newToken().'"><input type="hidden" name="id" value="'.$id.'"><input type="hidden" name="preset_key" value="'.dol_escape_htmltag($key).'"><input type="hidden" name="preset_source" value="'.$source.'">';
 			$out	.= oblyon_preset_card_preview($preset, $key, $source);
@@ -475,6 +694,7 @@
 				$out	.= '<span class="oblyon-preset__icon oblyon-preset__icon--warn" title="'.dol_escape_htmltag($langs->trans('OblyonPresetContrastWarning', count($contrast))."\n".implode("\n", $details), 0, 1).'"><span class="fa fa-exclamation-triangle"></span></span>';
 			}
 			$out	.= '</div></div>';
+			$out	.= '</div><div class="oblyon-preset__icons"></div></div>';	// 3.8.0 : plus d'icone de contraste (mecanisme retire)
 			$out	.= '<div class="oblyon-preset__actions">';
 			if ($canedit)	$out	.= '<button type="submit" name="action" value="apply_user_preset" class="butAction small oblyon-preset__apply">'.$langs->trans('OblyonUserPresetApply').'</button>';
 			if ($source == 'user') {

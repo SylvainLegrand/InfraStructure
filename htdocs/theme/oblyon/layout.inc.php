@@ -1138,6 +1138,30 @@ img.login, img.printer, img.help, img.entity {
 	border: 1px solid;
 	border-color: rgba(255, 255, 255, 0.2);
 }
+<?php if ($oblyon_user_block != 'default') { ?>
+/* avatar aux initiales (OBLYON_USER_BLOCK = initials, ou photo sans photo renseignee) : span imprime par js/oblyon.js a la place de l'image
+   du bloc utilisateur ; meme taille que la photo de la barre, cercle de la couleur principale entoure d'un anneau du texte de la barre (reste visible quand
+   la barre est de la couleur principale) ; le menu deroulant le redimensionne (dropdown.inc.php) */
+.oblyon-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: <?php print $disableimages ? '26' : '32'; ?>px;
+	height: <?php print $disableimages ? '26' : '32'; ?>px;
+	box-sizing: border-box;
+	border-radius: 50%;
+	box-shadow: 0 0 0 1px <?php print getDolGlobalString('MAIN_MENU_INVERT') ? 'var(--bgnavleft_txt)' : 'var(--bgnavtop_txt)'; ?>;
+	background-color: var(--maincolor);
+	color: var(--oblyon-on-accent);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .03em;
+	line-height: 1;
+	text-transform: uppercase;
+	vertical-align: middle;
+	user-select: none;
+}
+<?php } ?>
 img.userphoto {				/* size for user photo in lists */
 	border-radius: 0.72em;
 	width: 1.4em;

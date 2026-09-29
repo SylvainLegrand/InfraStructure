@@ -74,11 +74,23 @@ if (preg_match('/set_(.*)/', $action, $reg)) {
 }
 	// Update buttons management
 if (preg_match('/update_(.*)/', $action, $reg)) {
-	$list									= array('Card'  => array('THEME_ELDY_FONT_SIZE1', 'OBLYON_IMAGE_HEIGHT_TABLE', 'THEME_FONT_FAMILY', 'MAIN_MAXTABS_IN_CARD', 'THEME_ELDY_BORDER_RADIUS'));
+	$list									= array('Card'  => array('THEME_ELDY_FONT_SIZE1', 'OBLYON_IMAGE_HEIGHT_TABLE', 'THEME_FONT_FAMILY', 'MAIN_MAXTABS_IN_CARD', 'THEME_ELDY_BORDER_RADIUS', 'OBLYON_DENSITY', 'OBLYON_TABS_STYLE', 'OBLYON_BUTTON_STYLE', 'OBLYON_BADGE_STYLE', 'OBLYON_LIST_HEADER_STYLE', 'OBLYON_MOTION', 'OBLYON_AGENDA_STYLE'));	// options d'interface 3.8.0 (densite, style des onglets, des boutons, des badges, des en-tetes de liste, animations, agenda)
 	if ($ckeditor_skin_option)				$list['Card'][]	= 'FCKEDITOR_SKIN';	// InfraS add : enregistre seulement quand le selecteur est affiche (sinon la constante serait videe)
 	$confkey								= $reg[1];
 	$error									= 0;
 	foreach ($list[$confkey] as $constname)	$result	= dolibarr_set_const($db, $constname, GETPOST($constname, 'alpha'), 'chaine', 0, 'Oblyon module', $conf->entity);
+	// "Affichage des statuts" (3.8.0) = un seul selecteur pour l'ancien interrupteur MAIN_STATUS_USES_IMAGES (icone) et le style de badge :
+	// la valeur "icon" active les icones du core, toute autre valeur les desactive et choisit la forme du badge
+	if ($result == 1 && GETPOSTISSET('OBLYON_BADGE_STYLE')) {
+		$result	= dolibarr_set_const($db, 'MAIN_STATUS_USES_IMAGES', (GETPOST('OBLYON_BADGE_STYLE', 'alpha') == 'icon' ? '1' : '0'), 'chaine', 0, 'Oblyon module', $conf->entity);
+	}
+}
+// migration (3.8.0) : l'ancien interrupteur "lignes de tableau plus espacees" (THEME_ELDY_USECOMOACTROW, G20) est remplace par la densite "confortable" (G3), puis supprime
+if (getDolGlobalString('THEME_ELDY_USECOMOACTROW')) {
+	if (getDolGlobalString('OBLYON_DENSITY', 'compact') == 'compact') {
+		dolibarr_set_const($db, 'OBLYON_DENSITY', 'comfortable', 'chaine', 0, 'Oblyon module', $conf->entity);
+	}
+	dolibarr_del_const($db, 'THEME_ELDY_USECOMOACTROW', $conf->entity);
 }
 // Retour => message Ok ou Ko
 if ($result == 1)			setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
@@ -212,6 +224,80 @@ $metas = $form->selectarray('THEME_FONT_FAMILY', $font_options, $currentFont, 0,
 oblyon_print_input('THEME_FONT_FAMILY', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonFontFamily') . ' (thème Eldy)', '', $metas, 2, 1);
 $countg++;
 
+// densite de l'interface (3.8.0) : compact (rendu d'origine) / normal / comfortable, lue par themeoblyon/style.css.php
+$density_options	= array('compact'		=> $langs->trans('OblyonDensityCompact'),
+							'normal'		=> $langs->trans('OblyonDensityNormal'),
+							'comfortable'	=> $langs->trans('OblyonDensityComfortable'));
+$currentDensity		= getDolGlobalString('OBLYON_DENSITY', 'compact');
+if (! isset($density_options[$currentDensity]))	$currentDensity	= 'compact';
+$metas = $form->selectarray('OBLYON_DENSITY', $density_options, $currentDensity, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('OBLYON_DENSITY', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonDensity'), 'OblyonDensityHelp', $metas, 2, 1);	// aide en infobulle (4e parametre)
+$countg++;
+// style des onglets des fiches (3.8.0) : boxed (rendu d'origine) / underline / pills, lu par themeoblyon/style.css.php
+$tabs_options	= array('boxed'		=> $langs->trans('OblyonTabsStyleBoxed'),
+						'underline'	=> $langs->trans('OblyonTabsStyleUnderline'),
+						'pills'		=> $langs->trans('OblyonTabsStylePills'));
+$currentTabs	= getDolGlobalString('OBLYON_TABS_STYLE', 'boxed');
+if (! isset($tabs_options[$currentTabs]))	$currentTabs	= 'boxed';
+$metas = $form->selectarray('OBLYON_TABS_STYLE', $tabs_options, $currentTabs, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('OBLYON_TABS_STYLE', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonTabsStyle'), 'OblyonTabsStyleHelp', $metas, 2, 1);
+$countg++;
+if ($currentTabs == 'pills') {	// reglages propres aux pilules, affiches seulement quand ce style est choisi (les couleurs sont dans l'onglet Couleurs, groupe Onglets)
+	$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
+	oblyon_print_input('OBLYON_TAB_PILL_BORDER', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonTabPillBorder'), '', $metas, 2, 1);
+	$countg++;
+	$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
+	oblyon_print_input('OBLYON_TAB_PILL_SHADOW', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonTabPillShadow'), '', $metas, 2, 1);
+	$countg++;
+}
+// style des boutons (3.8.0) : filled (rendu d'origine) / outline / soft, applique aux boutons d'action, Supprimer et de formulaire ;
+// les couleurs (fond, texte, bordure, survol) par famille sont dans l'onglet Couleurs, groupe Boutons, qui n'affiche que les roles utiles au style choisi
+$button_options	= array('filled'	=> $langs->trans('OblyonButtonStyleFilled'),
+						'outline'	=> $langs->trans('OblyonButtonStyleOutline'),
+						'soft'		=> $langs->trans('OblyonButtonStyleSoft'));
+$currentButton	= getDolGlobalString('OBLYON_BUTTON_STYLE', 'filled');
+if (! isset($button_options[$currentButton]))	$currentButton	= 'filled';
+$metas = $form->selectarray('OBLYON_BUTTON_STYLE', $button_options, $currentButton, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('OBLYON_BUTTON_STYLE', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonButtonStyle'), 'OblyonButtonStyleHelp', $metas, 2, 1);
+$countg++;
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
+oblyon_print_input('OBLYON_BUTTON_FORM_OWN_COLORS', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonButtonFormOwnColors'), 'OblyonButtonFormOwnColorsHelp', $metas, 2, 1);
+$countg++;
+// affichage des statuts (3.8.0) : un seul selecteur = icone du core (ex-interrupteur MAIN_STATUS_USES_IMAGES) ou badge pill (rendu d'origine) / outline / dot ;
+// la valeur affichee vient de MAIN_STATUS_USES_IMAGES quand les icones sont actives, sinon de OBLYON_BADGE_STYLE (lue par themeoblyon/style.css.php ; couleurs : onglet Couleurs, groupe Badges de statut)
+$badge_options	= array('icon'		=> $langs->trans('OblyonBadgeStyleIcon'),
+						'pill'		=> $langs->trans('OblyonBadgeStylePill'),
+						'outline'	=> $langs->trans('OblyonBadgeStyleOutline'),
+						'dot'		=> $langs->trans('OblyonBadgeStyleDot'));
+$currentBadge	= getDolGlobalString('MAIN_STATUS_USES_IMAGES') ? 'icon' : getDolGlobalString('OBLYON_BADGE_STYLE', 'pill');
+if (! isset($badge_options[$currentBadge]))	$currentBadge	= 'pill';
+$metas = $form->selectarray('OBLYON_BADGE_STYLE', $badge_options, $currentBadge, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('OBLYON_BADGE_STYLE', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonBadgeStyle'), 'OblyonBadgeStyleHelp', $metas, 2, 1);
+$countg++;
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
+oblyon_print_input('OBLYON_STATUS_PULSE', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonStatusPulse'), 'OblyonStatusPulseHelp', $metas, 2, 1);	// pulsation du statut de la fiche ouverte
+$countg++;
+// animations (3.8.0) : normal (le reglage du poste est toujours respecte) / reduced, appliquee par themeoblyon/motion.inc.php a toutes les transitions et animations du theme
+$motion_options	= array('normal'	=> $langs->trans('OblyonMotionNormal'),
+						'reduced'	=> $langs->trans('OblyonMotionReduced'));
+$currentMotion	= getDolGlobalString('OBLYON_MOTION', 'normal');
+if ($currentMotion == 'none')	$currentMotion	= 'reduced';
+if (! isset($motion_options[$currentMotion]))	$currentMotion	= 'normal';
+$metas = $form->selectarray('OBLYON_MOTION', $motion_options, $currentMotion, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('OBLYON_MOTION', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonMotion'), 'OblyonMotionHelp', $metas, 2, 1);
+$countg++;
+// centre de notifications (3.8.0) : cloche en haut a droite (hook printTopRightMenu), contenu gere par js/oblyon.js dans le navigateur
+$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
+oblyon_print_input('OBLYON_NOTIFICATION_CENTER', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonNotifCenter'), 'OblyonNotifCenterHelp', $metas, 2, 1);
+$countg++;
+// agenda natif (3.8.0) : classic (rendu d'origine) / modern, lu par themeoblyon/style.css.php (widgets.inc.php + js/oblyon.js)
+$agenda_options	= array('classic'	=> $langs->trans('OblyonAgendaStyleClassic'),
+						'modern'	=> $langs->trans('OblyonAgendaStyleModern'));
+$currentAgenda	= getDolGlobalString('OBLYON_AGENDA_STYLE', 'classic');
+if (! isset($agenda_options[$currentAgenda]))	$currentAgenda	= 'classic';
+$metas = $form->selectarray('OBLYON_AGENDA_STYLE', $agenda_options, $currentAgenda, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('OBLYON_AGENDA_STYLE', 'select', 'G' . $countg . ' - ' . $langs->trans('OblyonAgendaStyle'), 'OblyonAgendaStyleHelp', $metas, 2, 1);
+$countg++;
 $metas = array('type' => 'number', 'class' => 'flat quatrevingtpercent right action', 'dir' => 'rtl', 'min' => '24', 'max' => '128');
 oblyon_print_input('OBLYON_IMAGE_HEIGHT_TABLE', 'input', 'G' . $countg . ' - ' . $langs->trans('OblyonImageHeightTable'), '', $metas, 2, 1);	// Max height for Image on table list
 $countg++;
@@ -220,9 +306,7 @@ $metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
 oblyon_print_input('OBLYON_DISABLE_VERSION', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonDisableVersion'), '', $metas, 2, 1);	// Disable version of Dolibarr
 $countg++;
 
-$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
-oblyon_print_input('MAIN_STATUS_USES_IMAGES', 'on_off', 'G' . $countg . ' - ' . $langs->trans('MainStatusUseImages'), '', $metas, 2, 1);	// Status use images
-$countg++;
+// l'interrupteur MAIN_STATUS_USES_IMAGES (statuts en icones) est fusionne dans le selecteur "Affichage des statuts" ci-dessus (3.8.0)
 
 $metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 0, '', 'options');
 oblyon_print_input('MAIN_USE_TOP_MENU_QUICKADD_DROPDOWN', 'on_off', 'G' . $countg . ' - ' . $langs->trans('OblyonMainUseQuickAddDropdown') . ' (' . $stringforfirstkey . ' a)', '', $metas, 2, 1);	// Quickadd dropdown menu
@@ -262,9 +346,7 @@ $metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'options');
 oblyon_print_input('THEME_ELDY_TOTAL_BACKGROUND_LIKE_HEAD', 'on_off', 'G' . $countg . ' - ' . $langs->trans('ThemeTotalBackgroundLikeHead') . ' (thème Eldy)', '', $metas, 2, 1);	// B3
 $countg++;
 
-$metas = array(array(), $conf->entity, 0, 0, 1, 0, 0, 1, '', 'options');
-oblyon_print_input('THEME_ELDY_USECOMOACTROW', 'on_off', 'G' . $countg . ' - ' . $langs->trans('ThemeUseComoActRow') . ' (thème Eldy)', '', $metas, 2, 1);	// B4
-$countg++;
+// l'interrupteur THEME_ELDY_USECOMOACTROW (lignes de tableau plus espacees, B4) est remplace par la densite de l'interface (G3) et migre en tete de page (3.8.0)
 
 
 /* Login
@@ -288,6 +370,14 @@ print '<td width="20%" class="center">'.$langs->trans("Value").'</td>'."\n";
 print "</tr>\n";
 
 $countl = 1;
+// style des en-tetes de liste (3.8.0) : band (bande coloree, rendu d'origine) / flat, lu par themeoblyon/style.css.php (couleurs du style plat : onglet Couleurs, groupe Titres)
+$listhead_options	= array('band'	=> $langs->trans('OblyonListHeaderStyleBand'),
+							'flat'	=> $langs->trans('OblyonListHeaderStyleFlat'));
+$currentListhead	= getDolGlobalString('OBLYON_LIST_HEADER_STYLE', 'band');
+if (! isset($listhead_options[$currentListhead]))	$currentListhead	= 'band';
+$metas = $form->selectarray('OBLYON_LIST_HEADER_STYLE', $listhead_options, $currentListhead, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
+oblyon_print_input('OBLYON_LIST_HEADER_STYLE', 'select', 'L' . $countl . ' - ' . $langs->trans('OblyonListHeaderStyle'), 'OblyonListHeaderStyleHelp', $metas, 2, 1);
+$countl++;
 
 if ($easyaVersion >= "2024.0.0" || (float) DOL_VERSION >= 18.0) {
     // Select Column on left - MAIN_CHECKBOX_LEFT_COLUMN
@@ -447,7 +537,7 @@ if ($ckeditor_skin_option) {
 	$currentSkin	= getDolGlobalString('FCKEDITOR_SKIN', 'moono-lisa');
 	$warning		= !isset($ckeditor_skins[$currentSkin]) ? '<br><span class="warning">'.$langs->trans('FckeditorSkinMissing', $currentSkin).'</span>' : '';
 	$metas			= $form->selectarray('FCKEDITOR_SKIN', $ckeditor_skins, $currentSkin, 0, 0, 0, 'class = "fontsizeinherit nopadding cursorpointer"', 0, 0, 0, '', 'maxwidth200');
-	oblyon_print_input('FCKEDITOR_SKIN', 'select', 'K' . $countk . ' - ' . $langs->trans('FckeditorSkin') . '<br><span class="opacitymedium">' . $langs->trans('FckeditorSkinHelp') . '</span>' . $warning, '', $metas, 2, 1);	// CKEditor skin
+	oblyon_print_input('FCKEDITOR_SKIN', 'select', 'K' . $countk . ' - ' . $langs->trans('FckeditorSkin') . $warning, 'FckeditorSkinHelp', $metas, 2, 1);	// CKEditor skin ; aide en infobulle, l'avertissement (habillage absent) reste visible
 	$countk++;
 }
 // InfraS add end
