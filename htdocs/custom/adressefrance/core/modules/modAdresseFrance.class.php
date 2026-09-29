@@ -56,7 +56,7 @@ class modAdresseFrance extends DolibarrModules
 		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'other';
 		$this->family = $family;
 		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100024;
+		$this->module_position	= 100044;	// InfraS change
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
