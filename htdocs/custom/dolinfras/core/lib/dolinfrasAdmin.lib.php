@@ -213,7 +213,7 @@
 								'keaticerpartisans'			=> array('modinfrasproject', 'modinfrastechinfos', 'modSirene', 'modExtraitCompteClient'),
 								'keaticerpfsm'				=> array('modFicheinter', 'modContrat', 'modTicket', 'modKnowledgeManagement', 'modPrelevement', 'modStock'),
 								'keaticerpdistributeurs'	=> array('modExpedition', 'modSupplierProposal', 'modPaymentByBankTransfer', 'modPrelevement', 'modStock', 'modBarcode'),
-								'keaticerpmanufacturing'	=> array('modBom', 'modMrp', 'modProductBatch', 'modStock', ),
+								'keaticerpmanufacturing'	=> array('modBom', 'modVariants', 'modWorkstation', 'modMrp', 'modProductBatch', 'modStock', ),
 								'keaticerpesn'				=> array('modFicheinter', 'modSupplierProposal', 'modPaymentByBankTransfer', 'modPrelevement', 'modBarcode', 'modWebsite'),
 								'keaticerpevents'			=> array('modEventOrganization', 'modResource')
 								);
