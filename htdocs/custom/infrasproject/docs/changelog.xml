@@ -290,7 +290,10 @@
 		<change type='fix'>Hook printObjectLine (actions_infrasproject.class.php, mode vue sans infraspackplus) : la colonne « P.U TTC » des lignes affichait 0,00 sur les lignes saisies en HT. La valeur subprice_ttc est lue depuis une colonne DOUBLE(24,8) que le pilote MariaDB renvoie sous forme de chaîne « 0.00000000 », considérée comme non vide par PHP : le repli sur total_ttc / qty n'était jamais appliqué. La valeur est désormais convertie en nombre avant le test.</change>
 		<change type='chg'>Mise à jour des Templates (v21 à v24, y compris v22-DolInfraS)</change>
 	</Version>
-	<InfraS Downloaded="20260904"/>
+	<Version Number="21.1.12" MonthVersion="2026-09">
+		<change type='chg'>Position du module dans la famille « Dolibarr LTS by InfraS » : 100005 → 100012 (renumérotation de la famille)</change>
+	</Version>
+	<InfraS Downloaded="20260929"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
