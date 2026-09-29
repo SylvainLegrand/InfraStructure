@@ -58,7 +58,7 @@
 			$family							= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Inovea Conseil';
 			$this->family					= $family;																		// used to group modules in module setup page
 			$this->familyinfo				= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-			$this->module_position			= 100016;
+			$this->module_position			= 100042;	// InfraS change
 			$this->description				= $langs->trans('Module432573Desc');												// Module description
 			$this->version					= file_get_contents(__DIR__.'/../../VERSION');								// Version : 'development', 'experimental', 'dolibarr' or 'dolibarr_deprecated' or version
 			$this->const_name				= 'MAIN_MODULE_'.strtoupper($this->name);										// llx_const table to save module status enabled/disabled
