@@ -179,24 +179,43 @@
 								'modService',
 								'modProjet',
 								'modBanque',
-								'modBookmark',
-								'modCategorie',
-								'modCron',
-								'modECM',
-								'modExport',
-								'modFckeditor',
-								'modImport',
-								'modSocialNetworks',
 								'modPropale',
 								'modCommande',
-								'modFicheinter',
-								'modContrat',
-								'modExpedition',
+								'modFournisseur',
+								'modReception',
 								'modFacture',
-								'modStock',
+								'modTax',
+								'modMargin',
+								'modAccounting',
+								'modECM',
+								'modFckeditor',
+								'modCategorie',
+								'modBookmark',
+								'modWorkflow',
+								'modImport',
+								'modExport',
+								'modCron',
+								'modAgenda',
+								'modinfraspackplus',
+								'modinfrasdiscount',
+								'modinfrassearch',
+								'modinfrascusprice',
+								'modInfrastructure',
+								'modAdresseFrance',
+								'modListExportImport',
+								'modEInvoicing',
+								'modOblyon',
+								'modDbadmin',
+								'modScrollTo'
 								);
 		// Liste complète propre à une marque ('marque' => array('modXxx', ...))
-		$brandmodules	= array('dolinfras2026' => array('modinfraspackplus', 'modinfrasdiscount', 'modinfrasproject', 'modinfrascusprice', 'modinfrassearch', 'modinfrastructure', 'modinfrashelpdesk', 'modinfras2bridge'),
+		$brandmodules	= array('keaticerpbtp'				=> array('modinfrasproject', 'modinfrastechinfos', 'modSirene', 'modExtraitCompteClient', 'modStock'),
+								'keaticerpartisans'			=> array('modinfrasproject', 'modinfrastechinfos', 'modSirene', 'modExtraitCompteClient'),
+								'keaticerpfsm'				=> array('modFicheinter', 'modContrat', 'modTicket', 'modKnowledgeManagement', 'modPrelevement', 'modStock'),
+								'keaticerpdistributeurs'	=> array('modExpedition', 'modSupplierProposal', 'modPaymentByBankTransfer', 'modPrelevement', 'modStock', 'modBarcode'),
+								'keaticerpmanufacturing'	=> array('modBom', 'modMrp', 'modProductBatch', 'modStock', ),
+								'keaticerpesn'				=> array('modExpedition', 'modSupplierProposal', 'modPaymentByBankTransfer', 'modPrelevement', 'modBarcode', 'modWebsite'),
+								'keaticerpevents'			=> array('modEventOrganization', 'modResource')
 								);
 		if ($brand !== '' && isset($brandmodules[$brand])) {
 			return array_values(array_unique(array_merge($defaultmodules, $brandmodules[$brand])));
@@ -217,10 +236,6 @@
 		$brandfile	= DOL_DOCUMENT_ROOT.'/BRAND';
 		$brand		= is_readable($brandfile) ? trim((string) file_get_contents($brandfile)) : '';
 		$modules	= dolinfras_get_brand_modules($brand);
-		if (empty($modules)) {
-			dol_syslog('dolinfrasAdmin.Lib::dolinfras_activate_brand_modules no module to activate for brand = '.$brand);
-			return 0;
-		}
 		// Pendant l'installation, les racines n'ont pas les clés 'main' / 'altN' de l'exécution normale (master.inc.php) : dolGetModulesDirs() omet alors
 		// core/modules et activateModule() ne trouve ni les modules natifs ni leurs dépendances. Clés rétablies le temps de l'activation
 		$documentroots	= $conf->file->dol_document_root;
