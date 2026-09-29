@@ -59,7 +59,7 @@ class modSirene extends DolibarrModules
 		$family			= $isDolinfras ? getDolGlobalString('DOLINFRAS_FAMILY') : 'Opendsi';
 		$this->family = $family;
 		$this->familyinfo		= array($family => array('position' => '001', 'label' => $langs->trans($family)));
-		$this->module_position	= 100010;
+		$this->module_position	= 100032;	// InfraS change
 		// Module position in the family
 		// Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
 		// $this->familyinfo = array('osden' => array('position' => '001', 'label' => $langs->trans("osdenFamily")));
