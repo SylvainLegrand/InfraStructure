@@ -111,6 +111,7 @@ $search_sale = GETPOST('search_sale', 'intcomma');
 $search_categ = GETPOST("search_categ", 'intcomma');
 $search_categ_thirdparty = GETPOST("search_categ_thirdparty", 'intcomma');
 $search_categ_supplier = GETPOST("search_categ_supplier", 'intcomma');
+$search_type_thirdparty = GETPOST("search_type_thirdparty", 'intcomma');	// InfraS add
 $search_status = GETPOST("search_status", "intcomma");
 $search_type = GETPOST('search_type', 'alpha');
 $search_address = GETPOST('search_address', 'alpha');
@@ -250,6 +251,7 @@ $arrayfields['country.code_iso'] = array('label' => "Country", 'position' => 66,
 if (!getDolGlobalString('SOCIETE_DISABLE_CONTACTS')) {
 	$arrayfields['s.nom'] = array('label' => "ThirdParty", 'position' => 113, 'checked' => '1');
 	$arrayfields['s.name_alias'] = array('label' => "AliasNameShort", 'position' => 114, 'checked' => '1');
+	$arrayfields['typent.code'] = array('label' => "ThirdPartyType", 'position' => 115, 'checked' => '1');	// InfraS add
 }
 
 $arrayfields['unsubscribed'] = array(
@@ -400,6 +402,7 @@ if (empty($reshook)) {
 		$search_categ = '';
 		$search_categ_thirdparty = '';
 		$search_categ_supplier = '';
+		$search_type_thirdparty = '';	// InfraS add
 		$search_import_key = '';
 		$toselect = array();
 		$search_array_options = array();
@@ -489,6 +492,7 @@ $sql .= " p.phone as phone_pro, p.phone_mobile, p.phone_perso, p.fax, p.fk_pays,
 $sql .= " p.import_key, p.fk_stcommcontact as stcomm_id, p.fk_prospectlevel,";
 $sql .= " st.libelle as stcomm, st.picto as stcomm_picto,";
 $sql .= " co.label as country, co.code as country_code";
+$sql .= ", typent.code as typent_code";	// InfraS add
 // Add fields from extrafields
 if (!empty($extrafields->attributes[$object->table_element]['label'])) {
 	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) {
@@ -514,6 +518,7 @@ if (isset($extrafields->attributes[$object->table_element]['label']) && is_array
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_country as co ON co.rowid = p.fk_pays";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON s.rowid = p.fk_soc";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_stcommcontact as st ON st.id = p.fk_stcommcontact";
+$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_typent as typent ON typent.id = s.fk_typent";	// InfraS add
 
 // Add fields from hooks - ListFrom
 $parameters = array();
@@ -681,6 +686,11 @@ if (empty($arrayfields['s.name_alias']['checked']) && $search_societe) {
 		$sql .= natural_search('s.name_alias', $search_societe_alias);
 	}
 }
+// InfraS add begin
+if ($search_type_thirdparty && $search_type_thirdparty > 0) {
+	$sql .= natural_search("s.fk_typent", $search_type_thirdparty, 2);
+}
+// InfraS add end
 if ($search_country) {
 	$sql .= " AND p.fk_pays IN (".$db->sanitize($search_country).')';
 }
@@ -859,6 +869,11 @@ if (!empty($search_categ_thirdparty) && $search_categ_thirdparty != '-1') {
 if (!empty($search_categ_supplier) && $search_categ_supplier != '-1') {
 	$param .= '&search_categ_supplier='.urlencode((string) ($search_categ_supplier));
 }
+// InfraS add begin
+if ($search_type_thirdparty != '' && $search_type_thirdparty > 0) {
+	$param .= '&search_type_thirdparty='.urlencode((string) ($search_type_thirdparty));
+}
+// InfraS add end
 if ($search_all != '') {
 	$param .= '&search_all='.urlencode($search_all);
 }
@@ -1204,6 +1219,14 @@ if (!empty($arrayfields['s.name_alias']['checked'])) {
 	print '<input class="flat maxwidth100" type="text" name="search_societe_alias" value="'.dol_escape_htmltag($search_societe_alias).'">';
 	print '</td>';
 }
+// InfraS add begin
+// Type of ThirdParty
+if (!empty($arrayfields['typent.code']['checked'])) {
+	print '<td class="liste_titre maxwidthonsmartphone center">';
+	print $form->selectarray("search_type_thirdparty", $formcompany->typent_array(0), $search_type_thirdparty, 1, 0, 0, '', 0, 0, 0, getDolGlobalString('SOCIETE_SORT_ON_TYPEENT', 'ASC'), 'minwidth50 maxwidth125', 1);
+	print '</td>';
+}
+// InfraS add end
 if (!empty($arrayfields['p.priv']['checked'])) {
 	print '<td class="liste_titre center">';
 	$selectarray = array('0' => $langs->trans("ContactPublic"), '1' => $langs->trans("ContactPrivate"));
@@ -1372,6 +1395,12 @@ if (!empty($arrayfields['s.name_alias']['checked'])) {
 	print_liste_field_titre($arrayfields['s.name_alias']['label'], $_SERVER["PHP_SELF"], "s.name_alias", $begin, $param, '', $sortfield, $sortorder);
 	$totalarray['nbfield']++;
 }
+// InfraS add begin
+if (!empty($arrayfields['typent.code']['checked'])) {
+	print_liste_field_titre($arrayfields['typent.code']['label'], $_SERVER["PHP_SELF"], "typent.code", $begin, $param, '', $sortfield, $sortorder, 'center ');
+	$totalarray['nbfield']++;
+}
+// InfraS add end
 if (!empty($arrayfields['p.priv']['checked'])) {
 	print_liste_field_titre($arrayfields['p.priv']['label'], $_SERVER["PHP_SELF"], "p.priv", $begin, $param, '', $sortfield, $sortorder, 'center ');
 	$totalarray['nbfield']++;
@@ -1714,6 +1743,21 @@ while ($i < $imaxinloop) {
 			}
 		}
 
+		// InfraS add begin
+		// Type of ThirdParty
+		if (!empty($arrayfields['typent.code']['checked'])) {
+			if (!isset($typentArray)) {
+				$typentArray = $formcompany->typent_array(1);	// Loaded once for all lines
+			}
+			$labeltypeofcompany = empty($typentArray[$obj->typent_code]) ? '' : $typentArray[$obj->typent_code];
+			print '<td class="center tdoverflowmax125" title="'.dol_escape_htmltag($labeltypeofcompany).'">';
+			print dol_escape_htmltag($labeltypeofcompany);
+			print '</td>';
+			if (!$i) {
+				$totalarray['nbfield']++;
+			}
+		}
+		// InfraS add end
 		// Private/Public
 		if (!empty($arrayfields['p.priv']['checked'])) {
 			print '<td class="center">'.$contactstatic->LibPubPriv($obj->priv).'</td>';
