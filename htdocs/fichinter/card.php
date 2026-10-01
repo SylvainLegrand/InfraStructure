@@ -436,7 +436,7 @@ if (empty($reshook)) {
 												$outputlangs = new Translate("", $conf);
 												$outputlangs->setDefaultLang($newlang);
 											}
-											$label = (!empty($prod->multilangs[$outputlangs->defaultlang]["libelle"])) ? $prod->multilangs[$outputlangs->defaultlang]["libelle"] : $lines[$i]->product_label;
+											$label = (!empty($prod->multilangs[$outputlangs->defaultlang]["label"])) ? $prod->multilangs[$outputlangs->defaultlang]["label"] : $lines[$i]->product_label;
 										} else {
 											$prod->fetch($lines[$i]->fk_product);
 											$label = $lines[$i]->product_label;
@@ -820,7 +820,7 @@ if (empty($reshook)) {
 	include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
 
 	// Actions to build doc
-	$upload_dir = getMultidirOutput($object);	// Osden change
+	$upload_dir = getMultidirOutput($object);
 	$permissiontoadd = $user->hasRight('ficheinter', 'creer');
 	include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
 
@@ -1895,11 +1895,11 @@ if ($action == 'create') {
 		 * Built documents
 		 */
 		$filename = dol_sanitizeFileName($object->ref);
-		$filedir = getMultidirOutput($object)."/".$filename;	// Osden change
+		$filedir = getMultidirOutput($object)."/".$filename;
 		$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 		$genallowed = $user->hasRight('ficheinter', 'lire');
 		$delallowed = $user->hasRight('ficheinter', 'creer');
-		print $formfile->showdocuments('ficheinter', $filename, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $soc->default_lang, '', $object);	// Osden change
+		print $formfile->showdocuments('ficheinter', $filename, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $soc->default_lang, '', $object);
 
 		// Show links to link elements
 		$tmparray = $form->showLinkToObjectBlock($object, array(), array(), 1);	// InfraS change
@@ -1946,7 +1946,7 @@ if ($action == 'create') {
 	// Presend form
 	$modelmail = 'fichinter_send';
 	$defaulttopic = 'SendInterventionRef';
-	$diroutput = $conf->ficheinter->multidir_output[$object->entity];	// Osden change
+	$diroutput = $conf->ficheinter->multidir_output[$object->entity];
 	$trackid = 'int'.$object->id;
 
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';

@@ -136,8 +136,6 @@ if (!$action) {
 $thirdparty = null; // Init for static analysis
 $stripecu = null; // Init for static analysis
 $paymentintent = null; // Init for static analysis
-$customer = null; // Init for static analysis // InfraS add
-$charge = null; // Init for static analysis // InfraS add
 
 // Load data required later for actions and view
 
@@ -590,6 +588,9 @@ if ($action == 'charge' && isModEnabled('stripe')) {	// Test on permission not r
 	$error = 0;
 	$errormessage = '';
 	$stripeacc = null;
+	$customer = null;
+	$charge = null;
+	$paymentintent = null;
 
 	// When using the old Charge API architecture
 	if (!getDolGlobalInt('STRIPE_USE_INTENT_WITH_AUTOMATIC_CONFIRMATION')) {

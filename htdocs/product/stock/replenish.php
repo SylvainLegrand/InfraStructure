@@ -1046,7 +1046,7 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 		}
 		// Osden add end
 		// Force call prod->load_stats_xxx to choose status to count (otherwise it is loaded by load_stock function)
-		if (isset($draftchecked)) {
+		if (!empty($draftchecked)) {
 			$result = $prod->load_stats_commande_fournisseur(0, '0,1,2,3,4', 0, null, $other_filters['load_stats_commande_fournisseur'] ?? '');	// Osden change
 		} elseif (!$usevirtualstock) {
 			$result = $prod->load_stats_commande_fournisseur(0, '1,2,3,4', 0, null, $other_filters['load_stats_commande_fournisseur'] ?? '');	// Osden change
