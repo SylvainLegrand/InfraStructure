@@ -18,7 +18,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `23.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.3.9` (2026-09)
+- Dernière version locale : `15.3.11` (2026-10)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrasdiscount/`
 
@@ -240,6 +240,12 @@ Le fichier `infrasdiscount.lib.php` contient le moteur central de calcul, struct
 **Fonctions de recalcul** (appelées depuis le trigger et le hook `formObjectOptions`) :
 - `infrasdiscount_recalculatePercentDiscounts()` — recalcule toutes les remises % en mode cascade
 - `infrasdiscount_recalculateProrataDiscounts()` — recalcule toutes les paires prorata en mode cascade
+- depuis v15.3.10 : les deux ne s'exécutent que sur un document en brouillon (`infrasdiscount_isDraft()`) et comparent le montant **signé** attendu ; le signe vient de `infrasdiscount_getDiscountSign()` (−1 dans le cas général, +1 sur un avoir, dont les lignes sont inversées), également utilisé par `infrasdiscount_addDiscountLine()` et `infrasdiscount_updateRemLine()`
+- depuis v15.3.11 : appeler `infrasdiscount_recalculateAllDiscounts($object, $excludeLineId)` plutôt que les deux fonctions séparément. Elle enchaîne les passes jusqu'à stabilité (une remise dépend des remises placées au-dessus) et ignore la ligne `$excludeLineId` : Dolibarr appelle les triggers `LINE*_DELETE` **avant** d'effacer la ligne en base
+- depuis v15.3.11 : le pourcentage d'une remise % est lu par `infrasdiscount_getLinePercent()` dans l'extrafield caché de ligne `specialvalue` (créé par `init()`), avec repli sur la description pour les remises antérieures ; `infrasdiscount_hasSpecialValue()` teste la présence du champ (instance non réactivée) avant toute écriture
+- depuis v15.3.11 : `infrasdiscount_getProrataGroups()` définit une paire prorata comme une ligne produits **immédiatement suivie** d'une ligne services ; une ligne prorata isolée n'est jamais recalculée (elle porte tout le montant) et se modifie comme un montant fixe
+- depuis v15.3.11 : `Facture::addline()` force un prix négatif sur un avoir, `infrasdiscount_addDiscountLine()` remet donc la ligne en positif par `infrasdiscount_updateRemLine()` juste après l'ajout
+- limites connues, laissées en l'état sur décision du 2026-10-01 : une remise en % ou en montant porte un seul taux de TVA (faux sur un document multi-taux, seul le total TTC cible répartit par taux) ; une ligne ajoutée sous les remises n'est pas remisée (cascade par position)
 
 **Fonctions utilitaires** :
 - `infrasdiscount_addDiscountLine()` — wrapper unifié pour `addline()` (propal/commande/facture)

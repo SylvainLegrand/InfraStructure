@@ -24,6 +24,7 @@ InfraSDiscountPermAdd     = Saisir des Remises
 ### infras lib page ###
 
 ### modinfras class page ###
+InfraSDiscountExtraSpecialValue = InfraSDiscount - valeur de la remise
 
 ### settings page ###
 InfraSDiscountSetup                         = Paramétrage des remises globales
@@ -89,6 +90,9 @@ InfraSDiscountParamMonthVersion         = Date
 InfraSDiscountParamChangesVersion       = Modifications
 InfraSDiscountParamCheckNewVersion      = Nouveau Changelog
 InfraSDiscountParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
+DolibarrVersion                         = Version de Dolibarr
+ModuleVersion                           = Version du module
+WebServerVersion                        = Serveur web
 
 ### actions InfraSDiscount class ###
 PDFInfraSDiscountWarningMaxVersion = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSDiscount %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
@@ -120,3 +124,15 @@ InfraSDiscountDiscountValuecurrency = Montant en multidevise
 TTC                                 = TTC
 Arrondi                             = Arrondi à
 InfraSDiscountBothCurrencies        = Les deux entrée ne dois pas être renseigné en même temps.
+### Errors ###
+InfraSDiscountErrorRecalculating       = Erreur lors du recalcul de la remise :
+InfraSDiscountErrorInvalidTargetAmount = Le montant TTC cible doit être supérieur à zéro
+InfraSDiscountErrorNoLines             = Aucune ligne sur laquelle calculer la remise
+InfraSDiscountErrorAmountToHigh        = Le montant TTC cible doit être inférieur au total TTC actuel du document
+InfraSDiscountErrorMargin              = La remise demandée dépasse la marge du document
+InfraSDiscountErrorValueRequired       = Saisissez une valeur pour ce type de remise
+InfraSDiscountErrorPercentRange        = Le pourcentage de remise doit être supérieur à 0 et inférieur ou égal à 100
+InfraSDiscountErrorAmountInvalid       = Le montant de la remise doit être supérieur à zéro
+InfraSDiscountErrorAmountTooHigh       = Le montant de la remise (%s) dépasse le total des lignes concernées (%s)
+InfraSDiscountErrorNotAllowed          = Vous n'avez pas les droits nécessaires pour saisir ou modifier une remise sur ce document
+InfraSDiscountErrorNotDraft            = Les remises ne se saisissent et ne se modifient que sur un document à l'état brouillon

@@ -9,6 +9,8 @@
 	 * Les remises en pourcentage s'appliquent en cascade sur le total du document (ces remises sont cumulables : 10% + 5%)
 	 * Le calcul de la valeur des remises en pourcentage peut être fait à partir des produits uniquement (les lignes de services sont alors exclues du calcul) et inversement pour les remises sur les services uniquement
 	 * Le calcul de la valeur des remises en pourcentage est dynamique (toute modification du document, ajout/suppression de lignes, modification de prix et/ou de quantité, entraîne un recalcule du montant des remises présentes)
+	 * Une remise porte sur les lignes placées au-dessus d'elle : une ligne ajoutée sous une remise n'est pas remisée tant qu'elle n'est pas déplacée au-dessus (utile pour des frais de port non remisés)
+	 * Une remise en pourcentage ou en valeur porte un seul taux de TVA, choisi à la saisie : sur un document à plusieurs taux, la valeur cible TTC est la seule remise répartie par taux
 	 * La gestion des marges est respectée
 	 * Vous pouvez choisir d'appliquer les remises sur les produits, sur les services ou sur les deux types d'articles
 	 * Les remises en valeur (monétaire) sont équitablement réparties entre les produits et les services (prorata) pour conserver la cohérence des calculs de marge

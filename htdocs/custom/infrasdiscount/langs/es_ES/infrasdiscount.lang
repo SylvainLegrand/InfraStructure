@@ -24,6 +24,7 @@ InfraSDiscountPermAdd     = Obtenga descuentos
 ### infras lib page ###
 
 ### modinfras class page ###
+InfraSDiscountExtraSpecialValue = InfraSDiscount - valor del descuento
 
 ### settings page ###
 InfraSDiscountSetup                         = Configuración de descuentos globales
@@ -89,6 +90,9 @@ InfraSDiscountParamMonthVersion         = Fecha
 InfraSDiscountParamChangesVersion       = Modificaciones
 InfraSDiscountParamCheckNewVersion      = NUEVO CHANGELOG
 InfraSDiscountParamCheckNewVersionTitle = Haga clic para descargar el ChangeLog de la última versión disponible
+DolibarrVersion                         = Versión de Dolibarr
+ModuleVersion                           = Versión del módulo
+WebServerVersion                        = Servidor web
 
 ### actions InfraSDiscount class ###
 PDFInfraSDiscountWarningMaxVersion = <center><br>Su versión de Dolibarr (%s) aún no es compatible con el módulo InfraSDiscount %s.<br>La versión máxima de Dolibarr admitida es la versión %s.<br>Por lo tanto, utiliza este módulo sin garantía de funcionamiento adecuado.</center>
@@ -120,3 +124,15 @@ InfraSDiscountDiscountValuecurrency = Tasa de múltiples
 TTC                                 = TTC
 Arrondi                             = Redondeado
 InfraSDiscountBothCurrencies        = No se deben ingresar ambas entradas al mismo tiempo.
+### Errors ###
+InfraSDiscountErrorRecalculating       = Error al recalcular el descuento:
+InfraSDiscountErrorInvalidTargetAmount = El importe objetivo (IVA incluido) debe ser superior a cero
+InfraSDiscountErrorNoLines             = Ninguna línea sobre la que calcular el descuento
+InfraSDiscountErrorAmountToHigh        = El importe objetivo (IVA incluido) debe ser inferior al total actual (IVA incluido) del documento
+InfraSDiscountErrorMargin              = El descuento solicitado supera el margen del documento
+InfraSDiscountErrorValueRequired       = Introduzca un valor para este tipo de descuento
+InfraSDiscountErrorPercentRange        = El porcentaje de descuento debe ser superior a 0 e inferior o igual a 100
+InfraSDiscountErrorAmountInvalid       = El importe del descuento debe ser superior a cero
+InfraSDiscountErrorAmountTooHigh       = El importe del descuento (%s) supera el total de las líneas afectadas (%s)
+InfraSDiscountErrorNotAllowed          = No tiene los permisos necesarios para introducir o modificar un descuento en este documento
+InfraSDiscountErrorNotDraft            = Los descuentos solo se pueden introducir o modificar en un documento en estado borrador

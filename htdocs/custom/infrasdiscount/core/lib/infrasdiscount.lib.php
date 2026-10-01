@@ -272,6 +272,149 @@
 	}
 
 	/**
+	* Indique si le document est au statut brouillon, seul statut où Dolibarr accepte de modifier une ligne
+	*
+	* @param	CommonObject	$object		L'objet à traiter (propal, commande, facture)
+	* @return	bool						true si le document est en brouillon, false sinon
+	**/
+	function infrasdiscount_isDraft($object)
+	{
+		// status ou statut selon la version de Dolibarr (0 = brouillon pour propal, commande et facture)
+		$status	= isset($object->status) ? $object->status : (isset($object->statut) ? $object->statut : 0);
+		return ((int) $status === 0);
+	}
+	/**
+	* Retourne le signe à donner au montant d'une ligne de remise
+	* Cas général : la remise est négative (elle diminue le total du document)
+	* Avoir : les lignes sont inversées (montants négatifs), la remise est donc positive
+	*
+	* @param	CommonObject	$object		L'objet à traiter (propal, commande, facture)
+	* @return	int							-1 = remise négative, 1 = remise positive (avoir)
+	**/
+	function infrasdiscount_getDiscountSign($object)
+	{
+		if ($object->element == 'facture' && isset($object->type) && $object->type == Facture::TYPE_CREDIT_NOTE) {
+			return 1;
+		}
+		return -1;
+	}
+	/**
+	* Retourne la base utile d'une remise : la base dans le sens normal du document, en valeur positive
+	* Une base de sens contraire (il ne reste que des remises au-dessus, sans ligne à remiser) vaut 0 : aucune remise ne se calcule dessus
+	*
+	* @param	CommonObject	$object		L'objet à traiter (propal, commande, facture)
+	* @param	float			$base		Somme HT des lignes sur lesquelles porte la remise
+	* @return	float						Base utile, toujours positive ou nulle
+	**/
+	function infrasdiscount_usefulBase($object, $base)
+	{
+		return max(0, -infrasdiscount_getDiscountSign($object) * (float) $base);
+	}
+	/**
+	* Indique si l'utilisateur courant a le droit de modifier le document (même droit que la fiche Dolibarr du document)
+	*
+	* @param	CommonObject	$object		L'objet à traiter (propal, commande, facture)
+	* @return	bool						true si l'utilisateur peut modifier le document, false sinon
+	**/
+	function infrasdiscount_userCanModify($object)
+	{
+		global $user;
+		if (in_array($object->element, array('propal', 'commande', 'facture'))) {
+			return $user->hasRight($object->element, 'creer') ? true : false;
+		}
+		return false;
+	}
+	/**
+	* Indique si l'extrafield de ligne « specialvalue » (valeur de la remise, créé à l'activation du module) existe pour ce type de document
+	* Tant qu'il n'existe pas (module non réactivé après mise à jour), le pourcentage reste lu dans la description de la ligne
+	*
+	* @param	CommonObject	$object		L'objet à traiter (propal, commande, facture)
+	* @return	bool						true si l'extrafield existe, false sinon
+	**/
+	function infrasdiscount_hasSpecialValue($object)
+	{
+		global $db;
+		static $cache	= array();
+		$table	= $object->table_element_line;
+		if (!isset($cache[$table])) {
+			require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+			$extrafields	= new ExtraFields($db);
+			$extrafields->fetch_name_optionals_label($table);
+			$cache[$table]	= isset($extrafields->attributes[$table]['label']['specialvalue']);
+		}
+		return $cache[$table];
+	}
+	/**
+	* Retourne le pourcentage d'une ligne de remise en pourcentage
+	* Lu dans l'extrafield specialvalue s'il est renseigné, sinon dans la description (remises créées avant la version 15.3.11)
+	*
+	* @param	object	$line	La ligne de remise
+	* @return	float			Pourcentage de la remise, 0 si introuvable
+	**/
+	function infrasdiscount_getLinePercent($line)
+	{
+		if (isset($line->array_options['options_specialvalue']) && (float) $line->array_options['options_specialvalue'] != 0) {
+			return (float) $line->array_options['options_specialvalue'];
+		}
+		$matches	= array();
+		if (preg_match('/([\d\.,]+)\s*%/', (string) $line->desc, $matches)) {
+			return (float) price2num($matches[1], 'CU', 2);
+		}
+		return 0;
+	}
+	/**
+	* Regroupe les lignes de remise au prorata (specialtype = 3)
+	* Une paire = une ligne « produits » immédiatement suivie d'une ligne « services » (ordre de création)
+	* Toute autre ligne prorata (sa jumelle a été supprimée ou déplacée) forme un groupe d'une seule ligne
+	*
+	* @param	CommonObject	$object		L'objet à traiter
+	* @return	array						Groupes : 'lines' => array(array('line' => ligne, 'index' => position)), 'total' => somme des montants HT en valeur absolue, 'position' => position de la première ligne
+	**/
+	function infrasdiscount_getProrataGroups($object)
+	{
+		$groups	= array();
+		$lines	= array_values($object->lines);
+		$nb		= count($lines);
+		for ($i = 0; $i < $nb; $i++) {
+			$line	= $lines[$i];
+			if (!isset($line->array_options['options_specialtype']) || $line->array_options['options_specialtype'] != 3) {
+				continue;
+			}
+			$group	= array('lines'		=> array(array('line' => $line, 'index' => $i)),
+							'total'		=> abs((float) $line->total_ht),
+							'position'	=> $i
+							);
+			$next	= ($i + 1 < $nb) ? $lines[$i + 1] : null;
+			if ($line->product_type == 0 && is_object($next) && $next->product_type == 1 && isset($next->array_options['options_specialtype']) && $next->array_options['options_specialtype'] == 3) {
+				$group['lines'][]	= array('line' => $next, 'index' => $i + 1);
+				$group['total']		+= abs((float) $next->total_ht);
+				$i++;
+			}
+			$groups[]	= $group;
+		}
+		return $groups;
+	}
+	/**
+	* Retire une ligne de la liste des lignes en mémoire (sans toucher à la base)
+	* Sert pendant la suppression d'une ligne : Dolibarr appelle le trigger AVANT de supprimer la ligne en base
+	*
+	* @param	CommonObject	$object		L'objet à traiter
+	* @param	int				$lineId		Identifiant de la ligne à ignorer
+	* @return	void
+	**/
+	function infrasdiscount_excludeLine(&$object, $lineId)
+	{
+		if (empty($lineId) || empty($object->lines)) {
+			return;
+		}
+		foreach ($object->lines as $key => $line) {
+			if ($line->id == $lineId) {
+				unset($object->lines[$key]);
+			}
+		}
+		$object->lines	= array_values($object->lines);
+	}
+	/**
 	* Fonction pour ajouter une ligne de remise (utilise la fonction addline() d'un document (Propal, Factures, commande)).
 	* Elle combine tous les paramètres de addline() en une seule fonction.
 	*
@@ -288,12 +431,14 @@
 	**/
 	function infrasdiscount_addDiscountLine($object, $descRemise, $pu_ht, $type, $tva_tx, $localtax1_tx, $localtax2_tx, $remiseLinkTo, $array_options = null, $pu_ht_devise = 0)
 	{
-		$prices			= infrasdiscount_prepare_prices($pu_ht, $pu_ht_devise, $object);
-		$pu_ht			= $prices['pu_ht'];
-		$pu_ht_devise	= $prices['pu_ht_devise'];
+		// Signe de la remise : négatif dans le cas général, positif sur un avoir
+		$sign			= infrasdiscount_getDiscountSign($object);
+		$prices			= infrasdiscount_prepare_prices(abs($pu_ht), abs($pu_ht_devise), $object);
+		$pu_ht			= $sign * abs($prices['pu_ht']);
+		$pu_ht_devise	= $sign * abs($prices['pu_ht_devise']);
 		if ($object->element == 'propal') {
 			$result	= $object->addline ($descRemise,	// $desc
-										$pu_ht * -1,	// $pu_ht
+										$pu_ht,			// $pu_ht
 										1,				// $qty
 										$tva_tx,		// $txtva
 										$localtax1_tx,	// $txlocaltax1
@@ -316,13 +461,13 @@
 										null,			// $fk_unit
 										'',				// $origin
 										0,				// $origin_id
-										$pu_ht_devise * -1,	// $pu_ht_devise
+										$pu_ht_devise,	// $pu_ht_devise
 										0,				// $fk_remise_except
 										);
 		}
 		if ($object->element == 'commande') {
 			$result	= $object->addline ($descRemise,	// $desc
-										$pu_ht * -1,	// $pu_ht
+										$pu_ht,			// $pu_ht
 										1,				// $qty
 										$tva_tx,		// $txtva
 										$localtax1_tx,	// $txlocaltax1
@@ -346,13 +491,13 @@
 										null,			// $fk_unit
 										'',				// $origin
 										0,				// $origin_id
-										$pu_ht_devise * -1,	// $pu_ht_devise
+										$pu_ht_devise,	// $pu_ht_devise
 										'',				// $ref_ext
 										);
 		}
 		if ($object->element == 'facture') {
 			$result	= $object->addline ($descRemise,	// $desc
-										$pu_ht * -1,	// $pu_ht
+										$pu_ht,			// $pu_ht
 										1,				// $qty
 										$tva_tx,		// $txtva
 										$localtax1_tx,	// $txlocaltax1
@@ -379,13 +524,26 @@
 										100,			// $situation_percent
 										0,				// $fk_prev_id
 										null,			// $fk_unit
-										$pu_ht_devise * -1,	// $pu_ht_devise
+										$pu_ht_devise,	// $pu_ht_devise
 										''				// $ref_ext
 										);
 		}
 		if ($result <= 0) {
 			setEventMessages($object->error, $object->errors, 'errors');
 			return -1;
+		}
+		// Sur un avoir, Facture::addline() force un prix négatif : la ligne est remise dans le bon sens juste après sa création
+		if ($sign > 0 && $object->element == 'facture') {
+			$object->fetch_lines();
+			foreach ($object->lines as $line) {
+				if ($line->id == $result) {
+					if (infrasdiscount_updateRemLine($object, $line, abs($pu_ht), abs($pu_ht_devise), $descRemise) < 0) {
+						setEventMessages($object->error, $object->errors, 'errors');
+						return -1;
+					}
+					break;
+				}
+			}
 		}
 		return $result;
 	}
@@ -402,12 +560,13 @@
 	**/
 	function infrasdiscount_updateRemLine($element, $line, $pu_ht, $pu_ht_devise = 0, $desc = '')
 	{
-		// Force la remise à être négative
 		$desc				= !empty($desc) ? $desc : $line->desc; // Utilise la description fournie ou la description de la ligne
+		// Signe de la remise : négatif dans le cas général, positif sur un avoir
+		$sign				= infrasdiscount_getDiscountSign($element);
 		// Gère le multidevise
 		$prices				= infrasdiscount_prepare_prices(abs($pu_ht), abs($pu_ht_devise), $element);
-		$pu_ht				= -abs($prices['pu_ht']); // Force négatif pour remise
-		$pu_ht_devise		= -abs($prices['pu_ht_devise']); // Force négatif pour remise
+		$pu_ht				= $sign * abs($prices['pu_ht']);
+		$pu_ht_devise		= $sign * abs($prices['pu_ht_devise']);
 
 		if ($element->element == 'propal') {
 			return $element->updateline($line->id,				// $rowid
@@ -578,15 +737,24 @@
 
 		$langs->load('infrasdiscount@infrasdiscount');
 
+		// Contrôle de la valeur saisie avant tout calcul
+		if ($remise_is == 'percent' && (!is_numeric($remiseValue) || $remiseValue <= 0 || $remiseValue > 100)) {
+			setEventMessages($langs->trans('InfraSDiscountErrorPercentRange'), null, 'errors');
+			return -1;
+		}
+		if ($remise_is == 'amount' && (float) $remiseValue <= 0 && (float) $remiseValueCurrency <= 0) {
+			setEventMessages($langs->trans('InfraSDiscountErrorAmountInvalid'), null, 'errors');
+			return -1;
+		}
 		$refs			= infrasdiscount_getDiscountProductRefs();
 		$remProductRef	= $refs['product'];
 		$remServiceRef	= $refs['service'];
 
 		$newRemiseIndex		= count($object->lines);
 
-		// Calculer les bases pour produits et services
-		$totalProductPrice	= infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, true, $remProductRef, $remServiceRef);
-		$totalServicePrice	= infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, false, $remProductRef, $remServiceRef);
+		// Calculer les bases utiles pour produits et services (0 s'il ne reste que des remises pour ce type)
+		$totalProductPrice	= infrasdiscount_usefulBase($object, infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, true, $remProductRef, $remServiceRef));
+		$totalServicePrice	= infrasdiscount_usefulBase($object, infrasdiscount_calculateCascadeBase($object, $newRemiseIndex, false, $remProductRef, $remServiceRef));
 
 		// Définir les types à traiter selon remise_type
 		$typesToProcess		= infrasdiscount_getTypesToProcess($remise_type, $totalProductPrice, $totalServicePrice);
@@ -671,9 +839,17 @@
 		$array_options	= isset($params['array_options']) ? $params['array_options'] : array();
 
 		$array_options['options_specialtype']	= 1; // discount percent
+		// Le pourcentage est stocké dans un champ dédié : le recalcul ne dépend plus du texte de la description
+		if (infrasdiscount_hasSpecialValue($object)) {
+			$array_options['options_specialvalue']	= $percent;
+		}
 
 		foreach ($typesToProcess as $typeInfo) {
-			$remise			= $typeInfo['total'] * $percent / 100;
+			// Montant arrondi au centime dès la création, comme le fait le recalcul
+			$remise			= round($typeInfo['total'] * $percent / 100, 2, PHP_ROUND_HALF_UP);
+			if ($remise == 0) {
+				continue; // Remise inférieure au centime : aucune ligne à créer
+			}
 			$descRemise		= $percent.' % - '.$langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.$langs->trans($typeInfo['label_key']);
 			$remiseLinkTo	= getDolGlobalInt($typeInfo['link_config'], 0);
 
@@ -732,8 +908,17 @@
 
 		// Préparer les montants
 		$preparedPrices	= infrasdiscount_prepare_prices($amount, $amountCurrency, $object);
-		$pu_ht			= $preparedPrices['pu_ht'];
+		$pu_ht			= round($preparedPrices['pu_ht'], 2, PHP_ROUND_HALF_UP);
 		$pu_ht_devise	= $preparedPrices['pu_ht_devise'];
+		// La remise ne peut pas dépasser le total des lignes sur lesquelles elle porte (le document deviendrait négatif)
+		$totalBase		= 0;
+		foreach ($typesToProcess as $typeInfo) {
+			$totalBase	+= $typeInfo['total'];
+		}
+		if (abs($pu_ht) > abs($totalBase) + 0.005) {
+			setEventMessages($langs->trans('InfraSDiscountErrorAmountTooHigh', price(abs($pu_ht), 0, $langs, 1, -1, -1, $conf->currency), price(abs($totalBase), 0, $langs, 1, -1, -1, $conf->currency)), null, 'errors');
+			return -1;
+		}
 
 		// Si un seul type à traiter : montant fixe simple
 		if (count($typesToProcess) == 1) {
@@ -809,8 +994,14 @@
 
 		$array_options['options_specialtype']	= 3; // discount amount prorata
 
+		// La dernière ligne reçoit le reste : la somme des lignes est exactement le montant demandé
+		$remaining	= round($totalAmount, 2, PHP_ROUND_HALF_UP);
+		$nbTypes	= count($typesToProcess);
+		$numType	= 0;
 		foreach ($typesToProcess as $typeInfo) {
-			$remise			= round($typeInfo['total'] * $remiseRate, 2, PHP_ROUND_HALF_UP);
+			$numType++;
+			$remise			= ($numType == $nbTypes) ? $remaining : round($typeInfo['total'] * $remiseRate, 2, PHP_ROUND_HALF_UP);
+			$remaining		= round($remaining - $remise, 2, PHP_ROUND_HALF_UP);
 			$remiseDevise	= $is_multicurrency ? infrasdiscount_to_foreign($remise, $object) : 0;
 
 			$descRemise		= $descBase.' '.$langs->trans($typeInfo['label_prorata']);
@@ -864,10 +1055,22 @@
 			return -1;
 		}
 
+		// Une cible TTC remplace la précédente. Les anciennes lignes de remise TTC sont supprimées AVANT le calcul : leur suppression
+		// fait recalculer les remises en % placées en dessous, donc change le total à ramener à la cible.
+		// Un point de reprise permet de remettre le document dans son état d'origine si la nouvelle cible est refusée
+		$object->db->begin();
+		$object->db->query('SAVEPOINT infrasdiscount_ttc');
+		if (infrasdiscount_deleteTotalTTCLines($object) < 0) {
+			$errmsg	= $object->error;
+			infrasdiscount_rollbackTotalTTC($object);
+			setEventMessages($errmsg, null, 'errors');
+			return -1;
+		}
 		// Analyser les lignes existantes
 		$analysis	= infrasdiscount_analyzeLinesForTotalTTC($object);
 
 		if (empty($analysis['groups'])) {
+			infrasdiscount_rollbackTotalTTC($object);
 			setEventMessage($langs->trans('InfraSDiscountErrorNoLines'), 'errors');
 			return -1;
 		}
@@ -876,7 +1079,8 @@
 		$discountTTCNeeded	= $currentTotalTTC - $targetTTC;
 
 		if ($discountTTCNeeded <= 0) {
-			setEventMessage($langs->trans('InfraSDiscountErrorAmountToHigh', $object->element), 'errors');
+			infrasdiscount_rollbackTotalTTC($object);
+			setEventMessage($langs->trans('InfraSDiscountErrorAmountToHigh'), 'errors');
 			return -1;
 		}
 
@@ -887,21 +1091,40 @@
 
 		if ($discountHTApprox > $marginInfos['total_margin'] &&
 			(!getDolGlobalBool('MAIN_USE_ADVANCED_PERMS') || !$user->hasRight('produit', 'ignore_price_min_advance'))) {
-			setEventMessage($langs->trans('marginError', $object->element), 'errors');
+			infrasdiscount_rollbackTotalTTC($object);
+			setEventMessage($langs->trans('InfraSDiscountErrorMargin'), 'errors');
 			return -1;
 		}
 
+		// La remise se répartit sur les groupes (type de ligne et taux de TVA) dont le total est positif :
+		// un groupe où il ne reste que des remises ne peut pas en porter une de plus
+		$usefulGroups	= array();
+		$usefulTotalTTC	= 0;
+		foreach ($analysis['groups'] as $group) {
+			if ($group['total_ttc'] > 0) {
+				$usefulGroups[]	= $group;
+				$usefulTotalTTC	+= $group['total_ttc'];
+			}
+		}
+		if (empty($usefulGroups)) {
+			infrasdiscount_rollbackTotalTTC($object);
+			setEventMessage($langs->trans('InfraSDiscountErrorNoLines'), 'errors');
+			return -1;
+		}
 		// Calculer les lignes de remise avec correction des arrondis
-		$discountLines	= infrasdiscount_calculateTTCDiscountLines($analysis['groups'], $discountTTCNeeded, $currentTotalTTC);
+		$discountLines	= infrasdiscount_calculateTTCDiscountLines($usefulGroups, $discountTTCNeeded, $usefulTotalTTC);
 
 		// Créer les lignes
 		$array_options['options_specialtype']	= 4; // discount total ttc
 
 		foreach ($discountLines as $discountLine) {
+			if ($discountLine['ht'] == 0) {
+				continue; // Groupe sans montant (titre, sous-total) : aucune ligne à créer
+			}
 			$typeLabel	= ($discountLine['product_type'] == 0) ? 'InfraSDiscountProductLabel' : 'InfraSDiscountServiceLabel';
 			$descRemise	= $langs->trans(!empty($libelle) ? $libelle : $labelRemise).' '.
 						  $langs->trans($typeLabel).'/'.$langs->trans('Arrondi').' '.
-						  price($targetTTC, 0, $langs, 1, -1, -1, 'auto').$langs->trans(' TTC');
+						  price($targetTTC, 0, $langs, 1, -1, -1, 'auto').' '.$langs->trans('TTC');
 
 			$linkConfig		= ($discountLine['product_type'] == 0) ? 'INFRASDISCOUNT_PRODUCT_LINK_TO_DISCOUNT' : 'INFRASDISCOUNT_SERVICE_LINK_TO_DISCOUNT';
 			$remiseLinkTo	= getDolGlobalInt($linkConfig, 0);
@@ -925,12 +1148,144 @@
 			);
 
 			if ($result < 0) {
-				setEventMessages($object->error, $object->errors, 'errors');
+				$errmsg	= $object->error;
+				infrasdiscount_rollbackTotalTTC($object);
+				setEventMessages($errmsg, null, 'errors');
 				return -1;
 			}
 		}
 
+		// Le total du document est arrondi globalement : la cible peut être manquée d'un centime, on ajuste
+		infrasdiscount_adjustTotalTTC($object, $targetTTC);
+		$object->db->commit();
 		return 1;
+	}
+	/**
+	 * Annule les changements faits depuis le point de reprise posé par infrasdiscount_createTotalTTCDiscount() et recharge l'objet
+	 *
+	 * @param	CommonObject	$object		L'objet
+	 * @return	void
+	 */
+	function infrasdiscount_rollbackTotalTTC(&$object)
+	{
+		$object->db->query('ROLLBACK TO SAVEPOINT infrasdiscount_ttc');
+		$object->db->commit();
+		$object->fetch($object->id);
+	}
+	/**
+	 * Supprime les lignes de remise « total TTC cible » (specialtype = 4) du document
+	 * La remise automatique des commandes (special_code = 9) n'est pas concernée
+	 *
+	 * @param	CommonObject	$object		L'objet
+	 * @return	int							< 0 en cas d'erreur, >= 0 nombre de lignes supprimées
+	 */
+	function infrasdiscount_deleteTotalTTCLines(&$object)
+	{
+		global $user;
+		$deleted	= 0;
+		foreach ($object->lines as $line) {
+			if (!isset($line->array_options['options_specialtype']) || $line->array_options['options_specialtype'] != 4 || $line->special_code == 9) {
+				continue;
+			}
+			$result	= ($object->element == 'commande') ? $object->deleteline($user, $line->id) : $object->deleteline($line->id);
+			if ($result < 0) {
+				return -1;
+			}
+			$deleted++;
+		}
+		if ($deleted > 0) {
+			$object->fetch($object->id);
+		}
+		return $deleted;
+	}
+	/**
+	 * Ajuste les remises « total TTC cible » pour que le total TTC arrondi du document atteigne exactement la cible
+	 * Ne corrige que les écarts d'arrondi (5 centimes au plus)
+	 *
+	 * @param	CommonObject	$object		L'objet
+	 * @param	float			$targetTTC	Montant TTC cible
+	 * @return	int							1 si la cible est atteinte, 0 sinon
+	 */
+	function infrasdiscount_adjustTotalTTC(&$object, $targetTTC)
+	{
+		for ($iteration = 0; $iteration < 8; $iteration++) {
+			$object->fetch($object->id);
+			$diff	= round(infrasdiscount_getAccountingTotalTTC($object) - $targetTTC, 2);
+			if (abs($diff) < 0.01) {
+				return 1;
+			}
+			if (abs($diff) > 0.05) {
+				return 0; // Écart trop grand pour être un arrondi
+			}
+			// Lignes de remise TTC, de la plus forte à la plus faible
+			$candidates	= array();
+			foreach ($object->lines as $line) {
+				if (isset($line->array_options['options_specialtype']) && $line->array_options['options_specialtype'] == 4 && $line->special_code != 9) {
+					$candidates[]	= $line;
+				}
+			}
+			usort($candidates, function ($a, $b) {
+				return abs((float) $b->total_ht) <=> abs((float) $a->total_ht);
+			});
+			// Essais possibles : décaler une ligne d'un centime, ou déplacer un centime d'une ligne vers une autre
+			// (le HT total ne change pas, mais l'arrondi de la TVA de chaque ligne peut basculer)
+			$moves	= array();
+			foreach ($candidates as $line) {
+				$moves[]	= array(array($line, ($diff > 0 ? 0.01 : -0.01)));
+			}
+			foreach ($candidates as $lineA) {
+				foreach ($candidates as $lineB) {
+					if ($lineA->id != $lineB->id) {
+						$moves[]	= array(array($lineA, 0.01), array($lineB, -0.01));
+					}
+				}
+			}
+			// Le premier essai qui rapproche le total de la cible est conservé, les autres sont annulés
+			$improved	= false;
+			foreach ($moves as $move) {
+				$valid	= true;
+				foreach ($move as $step) {
+					if (round(abs((float) $step[0]->total_ht) + $step[1], 2, PHP_ROUND_HALF_UP) <= 0) {
+						$valid	= false;
+					}
+				}
+				if (!$valid) {
+					continue;
+				}
+				foreach ($move as $step) {
+					$newAmount	= round(abs((float) $step[0]->total_ht) + $step[1], 2, PHP_ROUND_HALF_UP);
+					infrasdiscount_updateRemLine($object, $step[0], $newAmount, (infrasdiscount_multicurrency_enabled($object) ? infrasdiscount_to_foreign($newAmount, $object) : 0), $step[0]->desc);
+				}
+				$object->fetch($object->id);
+				$newDiff	= round(infrasdiscount_getAccountingTotalTTC($object) - $targetTTC, 2);
+				if (abs($newDiff) < abs($diff) - 0.001) {
+					$improved	= true;
+					break;
+				}
+				foreach ($move as $step) {
+					$oldAmount	= round(abs((float) $step[0]->total_ht), 2, PHP_ROUND_HALF_UP);
+					infrasdiscount_updateRemLine($object, $step[0], $oldAmount, (infrasdiscount_multicurrency_enabled($object) ? infrasdiscount_to_foreign($oldAmount, $object) : 0), $step[0]->desc);
+				}
+			}
+			if (!$improved) {
+				break; // Aucune ligne ne permet de se rapprocher : la cible n'est pas atteignable au centime
+			}
+		}
+		$object->fetch($object->id);
+		return (abs(round(infrasdiscount_getAccountingTotalTTC($object) - $targetTTC, 2)) < 0.01) ? 1 : 0;
+	}
+	/**
+	 * Retourne le total TTC comptable du document : somme des composantes arrondies sur une distribution LTS (getRoundedTotalTTC), arrondi du total TTC sinon
+	 *
+	 * @param	CommonObject	$object		L'objet
+	 * @return	float						Total TTC arrondi
+	 */
+	function infrasdiscount_getAccountingTotalTTC($object)
+	{
+		if (method_exists($object, 'getRoundedTotalTTC')) {
+			return (float) $object->getRoundedTotalTTC(0);
+		}
+		return (float) price2num($object->total_ttc, 'MT');
 	}
 
 	/**
@@ -1057,20 +1412,22 @@
 			return 0;
 		}
 
+		// Un document validé n'est plus modifiable : rien à recalculer
+		if (!infrasdiscount_isDraft($object)) {
+			return 0;
+		}
 		$refs			= infrasdiscount_getDiscountProductRefs();
 		$remProductRef	= $refs['product'];
 		$remServiceRef	= $refs['service'];
 		$recalculated	= 0;
+		$sign			= infrasdiscount_getDiscountSign($object);
 
 		// Parcourt toutes les lignes pour trouver les remises en pourcentage
 		foreach ($object->lines as $idx => $line) {
 			// Vérifie si c'est une remise en pourcentage (specialtype = 1)
 			if (isset($line->array_options['options_specialtype']) && $line->array_options['options_specialtype'] == 1) {
-				// Extrait le pourcentage de la description
-				$percentValue	= 0;
-				if (preg_match('/([\d\.,]+)\s*%/', $line->desc, $matches)) {
-					$percentValue	= price2num($matches[1], 'CU', 2);
-				}
+				// Pourcentage de la remise (champ dédié, sinon description pour les anciennes remises)
+				$percentValue	= infrasdiscount_getLinePercent($line);
 
 				if ($percentValue == 0) {
 					continue; // Passe si aucun pourcentage valide trouvé
@@ -1082,21 +1439,28 @@
 				// Calcule la nouvelle base en utilisant la logique en cascade
 				$base	= infrasdiscount_calculateCascadeBase($object, $idx, $isProductDiscount, $remProductRef, $remServiceRef);
 
-				// Calcule le nouveau montant de la remise
-				$newAmount	= round($base * $percentValue / 100, 2, PHP_ROUND_HALF_UP);
+				// Calcule le nouveau montant de la remise sur la base utile (positive, y compris sur un avoir)
+				$newAmount	= round(infrasdiscount_usefulBase($object, $base) * $percentValue / 100, 2, PHP_ROUND_HALF_UP);
 
-				// Vérifie si le montant a changé (évite les mises à jour inutiles)
-				if (abs(abs($line->total_ht) - $newAmount) > 0.01) {
+				// Vérifie si le montant ou son signe a changé (évite les mises à jour inutiles)
+				if (abs((float) $line->total_ht - ($sign * $newAmount)) > 0.01) {
 					// Met à jour la ligne
 					$pu_ht_devise		= 0;
 					if (infrasdiscount_multicurrency_enabled($object)) {
 						$pu_ht_devise	= infrasdiscount_to_foreign($newAmount, $object);
+					}
+					// Les anciennes remises n'ont pas encore leur pourcentage dans le champ dédié : il est renseigné à cette occasion
+					if (infrasdiscount_hasSpecialValue($object) && empty($line->array_options['options_specialvalue'])) {
+						$line->array_options['options_specialvalue']	= $percentValue;
 					}
 					$result	= infrasdiscount_updateRemLine($object, $line, $newAmount, $pu_ht_devise);
 					if ($result < 0) {
 						setEventMessages($langs->trans('InfraSDiscountErrorRecalculating').' '.$line->desc, null, 'errors');
 						return -1;
 					}
+					// Le montant en mémoire est mis à jour : les remises situées plus bas se calculent sur la nouvelle valeur
+					$line->subprice	= $sign * $newAmount;
+					$line->total_ht	= $sign * $newAmount;
 					$recalculated++;
 				}
 			}
@@ -1126,39 +1490,26 @@
 		if (!getDolGlobalInt('INFRASDISCOUNT_AUTO_RECALCULATE', 1)) {
 			return 0;
 		}
+		// Un document validé n'est plus modifiable : rien à recalculer
+		if (!infrasdiscount_isDraft($object)) {
+			return 0;
+		}
 		$refs			= infrasdiscount_getDiscountProductRefs();
 		$remProductRef	= $refs['product'];
 		$remServiceRef	= $refs['service'];
 		$recalculated	= 0;
+		$sign			= infrasdiscount_getDiscountSign($object);
 
 		// 1. Trouve et regroupe les paires prorata avec leurs positions
-		$prorataGroups	= array();
-		$currentPair	= array();
-		$pairTotal		= 0;
-		$startPosition	= -1;
 
-		foreach ($object->lines as $idx => $line) {
-			if (isset($line->array_options['options_specialtype']) && $line->array_options['options_specialtype'] == 3) {
-				// Marque la position de départ de la paire prorata (position de la première ligne)
-				if (count($currentPair) == 0) {
-					$startPosition = $idx;
-				}
-				$currentPair[]	= array('line' => $line, 'index' => $idx);
-				$pairTotal		+= abs($line->total_ht);
-				if (count($currentPair) == 2) {
-					$prorataGroups[]	= array(
-						'lines'			=> $currentPair,
-						'total'			=> $pairTotal,
-						'position'		=> $startPosition  // Position de la première ligne prorata
-					);
-					$currentPair		= array();
-					$pairTotal			= 0;
-					$startPosition		= -1;
-				}
-			}
-		}
+		$object->lines	= array_values($object->lines);
+		$prorataGroups	= infrasdiscount_getProrataGroups($object);
 		// 2. Recalcule chaque paire prorata en fonction des lignes AU-DESSUS d'elle (mode cascade)
 		foreach ($prorataGroups as $group) {
+			// Une ligne prorata seule (sa jumelle a été supprimée ou déplacée) porte tout le montant : rien à répartir
+			if (count($group['lines']) < 2) {
+				continue;
+			}
 			$totalProductPrice	= 0;
 			$totalServicePrice	= 0;
 			$prorataPosition	= $group['position'];
@@ -1190,21 +1541,23 @@
 				}
 			}
 			// 3. Obtient le total de la remise actuelle pour cette paire
-			$currentDiscountTotal	= $group['total'];
-			// 4. Calcule la nouvelle distribution
+			$currentDiscountTotal	= round($group['total'], 2, PHP_ROUND_HALF_UP);
+			// 4. Calcule la nouvelle distribution sur les bases utiles (0 s'il ne reste que des remises pour ce type)
+			$totalProductPrice		= infrasdiscount_usefulBase($object, $totalProductPrice);
+			$totalServicePrice		= infrasdiscount_usefulBase($object, $totalServicePrice);
 			$remiseProrataBase		= $totalProductPrice + $totalServicePrice;
 			if ($remiseProrataBase == 0) {
 				continue; // Évite la division par zéro
 			}
-			$remiseRate		= $currentDiscountTotal / $remiseProrataBase;
-			$remiseProduct	= round($totalProductPrice * $remiseRate, 2, PHP_ROUND_HALF_UP);
-			$remiseService	= round($totalServicePrice * $remiseRate, 2, PHP_ROUND_HALF_UP);
+			// La ligne services reçoit le reste : la somme de la paire reste exactement le montant de la remise
+			$remiseProduct	= round($currentDiscountTotal * $totalProductPrice / $remiseProrataBase, 2, PHP_ROUND_HALF_UP);
+			$remiseService	= round($currentDiscountTotal - $remiseProduct, 2, PHP_ROUND_HALF_UP);
 			// 5. Met à jour chaque ligne de la paire
 			foreach ($group['lines'] as $lineData) {
 				$line			= $lineData['line'];
 				$newAmount		= ($line->product_type == 0) ? $remiseProduct : $remiseService;
-				// Vérifie si le montant a changé
-				if (abs(abs($line->total_ht) - $newAmount) > 0.01) {
+				// Vérifie si le montant ou son signe a changé
+				if (abs((float) $line->total_ht - ($sign * $newAmount)) > 0.01) {
 					$pu_ht_devise	= 0;
 					if (infrasdiscount_multicurrency_enabled($object)) {
 						$pu_ht_devise	= infrasdiscount_to_foreign($newAmount, $object);
@@ -1238,6 +1591,9 @@
 						setEventMessages($langs->trans('InfraSDiscountErrorRecalculating').' '.$line->desc, null, 'errors');
 						return -1;
 					}
+					// Le montant en mémoire est mis à jour : les remises situées plus bas se calculent sur la nouvelle valeur
+					$line->subprice	= $sign * $newAmount;
+					$line->total_ht	= $sign * $newAmount;
 
 					$recalculated++;
 				}
@@ -1248,4 +1604,34 @@
 			$object->fetch($object->id);
 		}
 		return $recalculated;
+	}
+	/**
+	* Recalcule toutes les remises dynamiques (pourcentage puis prorata) jusqu'à ce que plus aucun montant ne change
+	* Une remise dépend des lignes placées au-dessus d'elle, y compris des autres remises : plusieurs passes peuvent être nécessaires
+	*
+	* @param	CommonObject	$object			L'objet à traiter
+	* @param	int				$excludeLineId	Identifiant d'une ligne à ignorer (ligne en cours de suppression), 0 sinon
+	* @return	int								< 0 en cas d'erreur, >= 0 nombre de lignes recalculées
+	**/
+	function infrasdiscount_recalculateAllDiscounts(&$object, $excludeLineId = 0)
+	{
+		$total	= 0;
+		for ($pass = 0; $pass < 10; $pass++) {
+			infrasdiscount_excludeLine($object, $excludeLineId);
+			$resPercent	= infrasdiscount_recalculatePercentDiscounts($object);
+			if ($resPercent < 0) {
+				return -1;
+			}
+			infrasdiscount_excludeLine($object, $excludeLineId);
+			$resProrata	= infrasdiscount_recalculateProrataDiscounts($object);
+			if ($resProrata < 0) {
+				return -1;
+			}
+			infrasdiscount_excludeLine($object, $excludeLineId);
+			if ($resPercent + $resProrata == 0) {
+				break;
+			}
+			$total	+= $resPercent + $resProrata;
+		}
+		return $total;
 	}

@@ -164,7 +164,30 @@
 	<Version Number="15.3.9" MonthVersion="2026-09">
 		<change type='chg'>Position du module dans la famille « Dolibarr LTS by InfraS » : 100004 → 100008 (renumérotation de la famille)</change>
 	</Version>
-	<InfraS Downloaded="20260929"/>
+	<Version Number="15.3.10" MonthVersion="2026-10">
+		<change type='fix'>Avoirs : les lignes de remise étaient réécrites avec un signe négatif forcé, ce qui ajoutait la remise au montant de l'avoir au lieu de la déduire (cas d'un avoir créé depuis une facture portant une remise en pourcentage). Le signe dépend désormais du type de document : négatif dans le cas général, positif sur un avoir (ajout, modification et recalcul des lignes de remise)</change>
+		<change type='fix'>Recalcul automatique : erreur de recalcul affichée à chaque ouverture d'un document validé dont une remise semblait à corriger. Les remises en pourcentage et au prorata ne sont plus recalculées que sur les documents au statut brouillon, seuls modifiables</change>
+	</Version>
+	<Version Number="15.3.11" MonthVersion="2026-10">
+		<change type='fix'>Remises au prorata : une ligne prorata isolée (sa jumelle supprimée) était appariée à la remise prorata suivante et les montants doublaient à chaque affichage. Une paire est désormais une ligne produits immédiatement suivie d'une ligne services ; une ligne isolée garde son montant et se modifie comme un montant fixe</change>
+		<change type='fix'>Modification d'une remise au prorata sans effet : le recalcul final repartait des anciens montants en mémoire. Les lignes sont relues en base avant le recalcul</change>
+		<change type='fix'>Total TTC cible : une nouvelle cible s'ajoutait aux remises TTC déjà présentes au lieu de les remplacer. Les anciennes lignes sont supprimées avant le calcul (leur suppression fait recalculer les remises en pourcentage placées en dessous), avec retour à l'état d'origine si la nouvelle cible est refusée. La remise ne se répartit plus que sur les groupes de lignes dont le total est positif. Ajout d'un ajustement au centime sur le total comptable du document quand la cible est manquée par l'arrondi</change>
+		<change type='fix'>Remises calculées sur une base de sens contraire (il ne reste que des remises pour un type de ligne, par exemple après suppression du dernier service) : une remise au prorata grossissait à chaque recalcul. Une telle base vaut désormais zéro (infrasdiscount_usefulBase). La ligne services d'une paire prorata reçoit le reste, la somme de la paire reste exactement le montant de la remise</change>
+		<change type='fix'>Champ valeur laissé vide : la valeur par défaut, qui est un pourcentage, n'est plus utilisée comme montant fixe ni comme total TTC cible (message demandant une valeur)</change>
+		<change type='fix'>Avoirs : une remise ajoutée à la main sur un avoir était créée en négatif (Facture::addline force le signe). La ligne est remise dans le bon sens juste après sa création ; modification d'une remise prorata sur avoir calculée avec le bon signe</change>
+		<change type='fix'>Recalcul en cascade : les remises situées sous une remise recalculée gardaient un montant périmé jusqu'au prochain affichage. Le recalcul enchaîne les passes jusqu'à stabilité (infrasdiscount_recalculateAllDiscounts)</change>
+		<change type='fix'>Suppression d'une ligne : Dolibarr appelle le trigger avant d'effacer la ligne, les remises n'étaient donc pas recalculées. La ligne en cours de suppression est maintenant ignorée dans les calculs</change>
+		<change type='fix'>Remise automatique des commandes : avec une liste de références vide, la remise s'appliquait aux lignes libres. Correction des avertissements PHP (clés de taxes locales, variables non initialisées)</change>
+		<change type='fix'>Modification des remises : le type produit ou service et la validité d'une remise en montant étaient déduits du libellé traduit, donc faux pour un utilisateur d'une autre langue. Le type de la ligne est utilisé à la place</change>
+		<change type='fix'>Contrôles de saisie : pourcentage hors de l'intervalle 0 à 100, montant nul ou supérieur au total des lignes concernées sont refusés avec un message, à la création comme à la modification</change>
+		<change type='fix'>Sécurité : la saisie et la modification des remises vérifient le droit de modifier le document, le jeton anti-CSRF, l'activation du type de document et le statut brouillon. Le recalcul à l'affichage est réservé aux utilisateurs autorisés à modifier le document</change>
+		<change type='fix'>Menu : suppression d'une entrée pointant vers une page inexistante et correction du lien vers la page de paramétrage (désactiver puis réactiver le module)</change>
+		<change type='fix'>Traductions : ajout des clés manquantes (messages d'erreur du module, titre de la page À propos, libellés des informations techniques de la page Changelog / Support), suppression du BOM du fichier fr_FR</change>
+		<change type='fix'>Montants des remises arrondis au centime dès la création, comme le fait le recalcul. Saisie d'une valeur avec une virgule décimale acceptée dans le formulaire</change>
+		<change type='chg'>Le pourcentage d'une remise est stocké dans un nouvel extrafield caché de ligne (specialvalue), créé à l'activation du module : modifier la description d'une remise ne casse plus son recalcul. Les remises existantes restent lues dans la description et sont complétées à leur premier recalcul (désactiver puis réactiver le module)</change>
+		<change type='chg'>Une remise dont le montant est nul uniquement à cause de sa position (placée au-dessus des lignes) n'est plus supprimée automatiquement ; elle reste supprimée quand le document ne contient plus aucune ligne de son type</change>
+	</Version>
+	<InfraS Downloaded="20261001"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="23.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

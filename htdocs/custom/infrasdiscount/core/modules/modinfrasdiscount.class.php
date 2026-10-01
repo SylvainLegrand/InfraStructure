@@ -174,24 +174,10 @@
 			// Sous-titre InfraSDiscount - Paramètres spécifique InfraS
 			$this->menu[$r]			= array('fk_menu'	=> 'fk_mainmenu=tools,fk_leftmenu=infras',																			// '' = top menu. left menu = 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 											'type'		=> 'left',																											// This is a Left menu entry (top for top menu entry)
-											'titre'		=> $caret.$langs->trans('InfraSDiscountParamsSetup'),
-											'mainmenu'	=> '',
-											'leftmenu'	=> '',
-											'url'		=> '/'.$this->name.'/admin/infrasdiscount.php?leftmenu='.$this->name,
-											'langs'		=> $this->name.'@'.$this->name,																						// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-											'position'	=> 72,
-											'enabled'	=> !empty(isModEnabled($this->name)),																		// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
-											'perms'		=> '$user->hasRight("'.$this->name.'", "paramMenu")',																// Use 'perms'=>'$user->hasRight('mymodule', 'level1', 'level2')' if you want your menu with a permission rules
-											'target'	=> '',																												// '' to replace page or 'blank' to open on a new page
-											'user'		=> 0);																												// 0=Menu for internal users, 1=external users, 2=both
-			$r++;
-			// Sous-titre InfraSDiscount - Paramètres spécifique InfraS
-			$this->menu[$r]			= array('fk_menu'	=> 'fk_mainmenu=tools,fk_leftmenu=infras',																			// '' = top menu. left menu = 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-											'type'		=> 'left',																											// This is a Left menu entry (top for top menu entry)
 											'titre'		=> $caret.$langs->trans('InfraSDiscountSetup'),
 											'mainmenu'	=> '',
 											'leftmenu'	=> '',
-											'url'		=> '/'.$this->name.'/admin/infrasdiscount.php?leftmenu='.$this->name,
+											'url'		=> '/'.$this->name.'/admin/infrasdiscountsetup.php?leftmenu='.$this->name,
 											'langs'		=> $this->name.'@'.$this->name,																						// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 											'position'	=> 81,
 											'enabled'	=> !empty(isModEnabled($this->name)),																		// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
@@ -223,6 +209,8 @@
 				$extra->addExtraField('specialtype', 'Infrasdiscount type de remise', 'int', 4, 2, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
 				$extra->addExtraField('specialtype', 'Infrasdiscount type de remise', 'int', 4, 2, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
 				$extra->addExtraField('specialtype', 'Infrasdiscount type de remise', 'int', 4, 2, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+				// Valeur de la remise (pourcentage d'une remise en %) : champ caché, lu par le recalcul à la place du texte de la description
+				$extra->addExtraField('specialvalue', 'InfraSDiscountExtraSpecialValue', 'double', 5, '24,8', $elementtype, 0, 0, '', '', 0, '', '0', '', '', '', 'infrasdiscount@infrasdiscount', '1');
 			}
 			return $this->_init($sql, $options);
 		}

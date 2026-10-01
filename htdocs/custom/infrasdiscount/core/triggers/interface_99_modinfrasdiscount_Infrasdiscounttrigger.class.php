@@ -204,33 +204,47 @@
 				$element->fetch($element->id);
 				$element->fetch_lines();
 
+				// Un document validé n'est plus modifiable : aucune remise à recalculer ni à supprimer
+				if (!infrasdiscount_isDraft($element)) {
+					return 0;
+				}
+				// Dolibarr appelle le trigger de suppression AVANT d'effacer la ligne en base : elle est ignorée dans tous les calculs
+				$excludeLineId	= 0;
+				if (in_array($action, array('LINEPROPAL_DELETE', 'LINEORDER_DELETE', 'LINEBILL_DELETE'))) {
+					$excludeLineId	= (int) (!empty($object->id) ? $object->id : $object->rowid);
+				}
 				// Initialiser le résultat
 				$result			= 1;
 
-				// Recalculer TOUTES les remises en pourcentage (cascade)
-				$resultPercent	= infrasdiscount_recalculatePercentDiscounts($element);
-				if ($resultPercent < 0) {
+				// Recalculer TOUTES les remises (pourcentage et prorata, en cascade)
+				$resultRecalc	= infrasdiscount_recalculateAllDiscounts($element, $excludeLineId);
+				if ($resultRecalc < 0) {
 					setEventMessages($element->error, $element->errors, 'errors');
 					return -1;
 				}
 
-				// Recalculer TOUTES les remises au prorata
-				$resultProrata	= infrasdiscount_recalculateProrataDiscounts($element);
-				if ($resultProrata < 0) {
-					setEventMessages($element->error, $element->errors, 'errors');
-					return -1;
-				}
 
 				// Recharger l'objet pour avoir les nouvelles valeurs après recalcul
 				$element->fetch($element->id);
 				$element->fetch_lines();
+				infrasdiscount_excludeLine($element, $excludeLineId);
 
-				// Récupérer les références des produits de remise via le helper
-				$refs			= infrasdiscount_getDiscountProductRefs();
-				$remProductRef	= $refs['product'];
-				$remServiceRef	= $refs['service'];
+				// Types de lignes (0 = produit, 1 = service) encore présents dans le document, hors lignes de remise
+				$hasBaseLine	= array(0 => false, 1 => false);
+				foreach ($element->lines as $line) {
+					if (infrasdiscount_isSubtotalLine($line) || infrasdiscount_isInfrastructureLine($line)) {
+						continue;
+					}
+					if (isset($line->array_options['options_specialtype']) && in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
+						continue;
+					}
+					if ($line->product_type == 0 || $line->product_type == 1) {
+						$hasBaseLine[$line->product_type]	= true;
+					}
+				}
 
-				// Identifier et supprimer les lignes de remise à 0
+				// Identifier et supprimer les lignes de remise à 0 qui n'ont plus aucune ligne sur laquelle porter
+				// (une remise à 0 seulement à cause de sa position est conservée : elle se recalcule dès qu'on la redescend)
 				$linesToDelete	= array();
 				foreach ($element->lines as $line) {
 					// Ignorer les lignes du module subtotal ATM (titres, sous-totaux, textes libres)
@@ -238,7 +252,7 @@
 						continue;
 					}
 					if (isset($line->array_options['options_specialtype']) && in_array($line->array_options['options_specialtype'], [1, 2, 3, 4])) {
-						if (round(abs($line->total_ht), 2) == 0) { // Proche de 0
+						if (round(abs($line->total_ht), 2) == 0 && empty($hasBaseLine[$line->product_type])) { // Proche de 0
 							$linesToDelete[]	= $line->id;
 						}
 					}
@@ -309,7 +323,11 @@
 			global $langs;
 			$langs->load('infrasdiscount@infrasdiscount');
 			// Récupération des paramètres globaux
-			$productmultiselect		= explode(',', getDolGlobalString('INFRASDISCOUNT_PRODUCT_AFFILIATE', ''));
+			// Liste des références concernées, sans valeur vide (une liste vide ne doit correspondre à aucune ligne, pas aux lignes libres)
+			$productmultiselect		= array_filter(array_map('trim', explode(',', getDolGlobalString('INFRASDISCOUNT_PRODUCT_AFFILIATE', ''))), 'strlen');
+			if (empty($productmultiselect)) {
+				return 1;
+			}
 			$freeDiscountNumber		= getDolGlobalInt('INFRASDISCOUNT_FREE_LINE', 0);
 			$numberDiscountAllow	= getDolGlobalInt('INFRASDISCOUNT_NUMBER_DISCOUNT_ALLOW', 0);
 			$ponderationArticle		= getDolGlobalInt('INFRASDISCOUNT_PONDERATION', 0);
@@ -317,6 +335,7 @@
 			$extrafieldsline		= new ExtraFields($this->db);
 			$extralabelsline		= $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
 			$array_options			= $extrafieldsline->getOptionalsFromPost($extralabelsline);
+			$tva_tx					= 0;
 			foreach ($object->lines as $line) {
 				// Récupérer le taux de TVA de la ligne
 				$tva_tx	= $line->tva_tx;
@@ -352,6 +371,7 @@
 			if (!empty($productmultiselect) && !empty($productinObj) && (!empty($freeDiscountNumber) || $freeDiscountNumber != 0) && ($numberDiscountAllow >= $nbValidatedOrders)) {
 				$totalDiscountAmount	= 0;
 				$descriptionDetails		= array();
+				$newfreeDiscountNumber	= $freeDiscountNumber;	// Valeur utilisée si l'article pondérateur n'est pas dans la commande
 				//si $ponderationArticle est vide ou égale à zéro, appliquer la remise sur tous les produits dans $productinObj
 				if (empty($ponderationArticle) || $ponderationArticle == 0) {
 					foreach($object->lines as $line) {
@@ -445,8 +465,8 @@
 															  $discountLine['qty'],				// $qty
 															  0,								// $remise_percent
 															  $discountLine['tva_tx'],			// $txtva
-															  $discountLine['txlocaltax1'],		// $txlocaltax1
-															  $discountLine['txlocaltax2'],		// $txlocaltax2
+															  $discountLine['localtax1_tx'],	// $txlocaltax1
+															  $discountLine['localtax2_tx'],	// $txlocaltax2
 															  'HT',								// $price_base_type
 															  $discountLine['info_bits'],		// $info_bits
 															  0,								// $date_start

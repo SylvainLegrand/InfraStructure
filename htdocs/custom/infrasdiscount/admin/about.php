@@ -61,7 +61,7 @@
 	// Configuration header *************************
 	$head		= infrasdiscount_admin_Prepare_Head();
 	$picto		= 'infrasdiscount@infrasdiscount';
-	print dol_get_fiche_head($head, 'about', $langs->trans('modcomnamePackPlus'), 0, $picto);
+	print dol_get_fiche_head($head, 'about', $langs->trans('modcomnameInfrasdiscount'), 0, $picto);
 
 	// About page goes here *************************
 	if ($conf->use_javascript_ajax) {
