@@ -56,6 +56,7 @@ div.login_block #topmenu-breadcrumb-dropdown-body {
 }
 div.login_block #topmenu-search form {
 	display: inline-block;
+	width: 100%;	/* sans largeur, le formulaire en ligne se reduisait a la taille du champ (size=15) et les 90 % du champ etaient calcules sur cette largeur reduite */
 	vertical-align: middle;
 	line-height: normal;
 	margin: 0;
@@ -114,7 +115,10 @@ div.login_block #topmenu-breadcrumb-dropdown-body .dropdown-breadcrumb-list::bef
 	color: var(--oblyon-muted-text);
 }
 div.login_block .infrassearchdropdown-breadcrumb-item {
-	display: block !important;
+	display: flex !important;	/* une ligne par element : le lien de l'objet puis, a sa suite, ce qu'ajoutent les hooks getNomUrl (onepagebasket : " -" + lien du tableau de bord client) ; en bloc, chaque lien en flex passait sur sa propre ligne */
+	align-items: center;
+	white-space: nowrap;
+	overflow: hidden;
 	margin: 0;
 	padding: 0;
 	box-shadow: none;
@@ -126,6 +130,7 @@ div.login_block .infrassearchdropdown-breadcrumb-item:hover {
 }
 div.login_block .infrassearchdropdown-breadcrumb-item a {
 	display: flex;
+	flex: 0 0 auto;
 	align-items: center;
 	gap: 6px;
 	min-width: 0;
@@ -136,6 +141,9 @@ div.login_block .infrassearchdropdown-breadcrumb-item a {
 	text-decoration: none;
 	white-space: nowrap;
 	overflow: hidden;
+}
+div.login_block .infrassearchdropdown-breadcrumb-item a:first-of-type {
+	flex: 1 1 auto;	/* le lien de l'objet occupe la ligne (zone cliquable, libelle long coupe) ; les ajouts des hooks restent visibles en fin de ligne */
 }
 div.login_block .infrassearchdropdown-breadcrumb-item:hover a {
 	color: var(--colorfline) !important;	/* pas la couleur principale : sombre dans certains presets (infras-dark), le texte disparaissait */
@@ -151,6 +159,8 @@ div.login_block .infrassearchdropdown-breadcrumb-item a > img {
 	opacity: .85;
 }
 div.login_block .infrassearchdropdown-breadcrumb-item.text-warning {
+	display: block !important;	/* message d'erreur : texte sur plusieurs lignes */
+	white-space: normal;
 	padding: 8px 14px;
 	border-top: 0;
 }
