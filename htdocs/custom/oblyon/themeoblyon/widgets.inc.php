@@ -1619,11 +1619,10 @@ input.select2-input {
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
 	border: none;
 }
-/* InfraS change begin : au focus, le bas de la liste garde la couleur et le rayon des trois autres cotes (il passait en gris tres clair, coins carres) */
+/* au focus, le bas de la liste garde la couleur et le rayon des trois autres cotes (il passait en gris tres clair, coins carres) */
 .select2-container--focus span.select2-selection.select2-selection--single {
 	border-bottom: 1px solid var(--oblyon-focus) !important;
 }
-/* InfraS change end */
 
 .blockvmenusearch .select2-container--default .select2-selection--single,
 .blockvmenubookmarks .select2-container--default .select2-selection--single
