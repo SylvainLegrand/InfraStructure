@@ -2237,6 +2237,13 @@ class ExpenseReport extends CommonObject
 	{
 		global $user, $mysoc;
 
+		// InfraS add begin
+		// The line must belong to this object (backport of Dolibarr fix #40995)
+		if (!$this->isLineOfObject($rowid)) {
+			$this->error = 'ErrorLineIDDoesNotMatchWithObjectID';
+			return -1;
+		}
+		// InfraS add end
 		if ($this->status == self::STATUS_DRAFT || $this->status == self::STATUS_REFUSED) {
 			$this->db->begin();
 
