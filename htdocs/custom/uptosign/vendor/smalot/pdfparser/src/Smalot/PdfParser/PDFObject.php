@@ -788,26 +788,24 @@ class PDFObject
                             break;
                         }
 
-                        // If the PDFObject is an Image, do nothing as images
-                        // aren't text.
-                        if ($xobject instanceof Image) {
+                        // InfraS change begin
+                        // 2026-10-02: back to the smalot/pdfparser 2.12.3 behaviour. Since 2.12.5 the text of the Form
+                        // XObjects is added to the text flow, which shifts by one rank the positions returned by
+                        // Page::getDataTm(): the UPTOSIGN_* magic keywords got the position of the next text (seal of the
+                        // InfraSPlus invoices stamped over the totals).
+                        // If the PDFObject is an Image or a Form, do nothing as
+                        // neither of these XObject types are text.
+                        if ($xobject instanceof Image || $xobject instanceof Form) {
                             break;
                         }
 
                         // Check this is not a circular reference.
-                        if (\in_array($xobject->getUniqueId(), self::$recursionStack, true)) {
-                            break;
+                        if (!\in_array($xobject->getUniqueId(), self::$recursionStack, true)) {
+
+                            $text[] = $xobject->getText($page);
+
                         }
-
-                        $objectText = $xobject->getText($page);
-
-                        // If the PDFObject is a Form and doesn't have any text,
-                        // skip it.
-                        if ($xobject instanceof Form && $objectText === ' ') {
-                            break;
-                        }
-
-                        $text[] = $objectText;
+                        // InfraS change end
                         break;
 
                         // Marked content point with (DP) & without (MP) property list
