@@ -294,8 +294,9 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 			if (!empty($paramspecialfiles)) {
 				$paramspecialfiles	= array_map('trim', explode(',', $paramspecialfiles));
 
-				// Répertoire des PDF "modèles"
-				$dirpdfs			= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles';
+				// Répertoire des PDF "modèles" (chemin relatif a DOL_DATA_ROOT : prefixe d'entite en multicompany, comme les enregistrements ECM)
+				$reldirpdfs			= (!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles';
+				$dirpdfs			= DOL_DATA_ROOT.'/'.$reldirpdfs;
 				$listpdfs			= dol_dir_list($dirpdfs, 'files', 0, '\.pdf$', null, 'name', SORT_ASC, 0, 1, '', 0);
 
 				// Liste des scripts (ABE.php, Contrat_GAZ.php, etc.)
@@ -325,8 +326,7 @@ class pdf_InfraSPlus_CTS extends ModelePDFContract
 					$filesArray[]	= $pdfFile;
 				}
 				if (!empty($filesArray)) {
-					$relativedirpdfs	= (!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles';
-					completeFileArrayWithDatabaseInfo($filesArray, $relativedirpdfs);
+					completeFileArrayWithDatabaseInfo($filesArray, $reldirpdfs);
 
 					$arrayFilesID	= [];
 					foreach ($filesArray as $row) {

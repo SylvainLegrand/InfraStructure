@@ -1067,13 +1067,20 @@ PDFInfraSPlusSupplierInvoiceName        = InfraSPlus_FF
 PDFInfraSPlusSupplierInvoiceDescription = Factura proveedor PDF modelo infras. Modelo de factura proveedor PDF completo (logotipo, …)
 
 ### pdf_InfraS_project ###
-PDFInfraSPlusProjectName               = InfraSPlus_PJ
-PDFInfraSPlusProjectDescription        = Resumen del proyecto PDF modelo InfraS. Plantilla de resumen del proyecto completa (logotipo, …)
-PDFInfraSPlusProjectDossierName        = InfraSPlus_PJ_Dossier
-PDFInfraSPlusProjectDossierDescription = Uso de archivos especiales InfraS para la creación del archivo técnico del proyecto.
-PDFInfraSPlusProjectDocsName           = InfraSPlus_PJ_Docs
-PDFInfraSPlusProjectDocsDescription    = Resumen de documentos InfraS para proyectos.
-PDFInfraSPlusProjectDocsTitle          = Archivo técnico
+PDFInfraSPlusProjectName                    = InfraSPlus_PJ
+PDFInfraSPlusProjectDescription             = Resumen del proyecto PDF modelo InfraS. Plantilla de resumen del proyecto completa (logotipo, …)
+PDFInfraSPlusProjectDossierName             = InfraSPlus_PJ_Dossier
+PDFInfraSPlusProjectDossierDescription      = Uso de archivos especiales InfraS para la creación del archivo técnico del proyecto.
+PDFInfraSPlusProjectDossierTitle            = Expediente del cliente
+PDFInfraSPlusProjectDossierDocList          = Lista de documentos:
+PDFInfraSPlusProjectDossierPageCount        = Este expediente contiene %s páginas.
+PDFInfraSPlusProjectDocsName                = InfraSPlus_PJ_Docs
+PDFInfraSPlusProjectDocsDescription         = Resumen de documentos InfraS para proyectos.
+PDFInfraSPlusProjectDocsTitle               = Archivo técnico
+PDFInfraSPlusProjectChantierName            = InfraSPlus_PJ_Chantier
+PDFInfraSPlusProjectChantierDescription     = Referencia de obra para el organismo de cualificación RGE: certificados de buena ejecución firmados, presupuestos firmados y facturas del proyecto, reunidos en un solo PDF.
+PDFInfraSPlusProjectChantierTitle           = Referencia de obra
+PDFInfraSPlusProjectChantierNoProjectLeader = Atención: ningún contacto del cliente está designado como jefe de proyecto, por lo que el archivo creado tiene un nombre genérico.
 
 ### pdf_InfraS_product ###
 PDFInfraSPlusProductName          = InfraSPlus_P

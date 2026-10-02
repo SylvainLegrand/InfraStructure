@@ -1067,13 +1067,20 @@ PDFInfraSPlusSupplierInvoiceName        = InfraSPlus_FF
 PDFInfraSPlusSupplierInvoiceDescription = PDF supplier invoice from InfraS. Complete PDF supplier invoice model (logo, …)
 
 ### pdf_InfraS_project ###
-PDFInfraSPlusProjectName               = InfraSPlus_PJ
-PDFInfraSPlusProjectDescription        = Summary PDF project InfraS model. complete PDF Project summary model (logo, …)
-PDFInfraSPlusProjectDossierName        = InfraSPlus_PJ_Dossier
-PDFInfraSPlusProjectDossierDescription = Use of special InfraS files for the creation of the technical project file.
-PDFInfraSPlusProjectDocsName           = InfraSPlus_PJ_Docs
-PDFInfraSPlusProjectDocsDescription    = Summary of InfraS documents for projects.
-PDFInfraSPlusProjectDocsTitle          = Technical file
+PDFInfraSPlusProjectName                    = InfraSPlus_PJ
+PDFInfraSPlusProjectDescription             = Summary PDF project InfraS model. complete PDF Project summary model (logo, …)
+PDFInfraSPlusProjectDossierName             = InfraSPlus_PJ_Dossier
+PDFInfraSPlusProjectDossierDescription      = Use of special InfraS files for the creation of the technical project file.
+PDFInfraSPlusProjectDossierTitle            = Customer file
+PDFInfraSPlusProjectDossierDocList          = List of documents:
+PDFInfraSPlusProjectDossierPageCount        = This file contains %s pages.
+PDFInfraSPlusProjectDocsName                = InfraSPlus_PJ_Docs
+PDFInfraSPlusProjectDocsDescription         = Summary of InfraS documents for projects.
+PDFInfraSPlusProjectDocsTitle               = Technical file
+PDFInfraSPlusProjectChantierName            = InfraSPlus_PJ_Chantier
+PDFInfraSPlusProjectChantierDescription     = Site reference file for the RGE qualification body: signed certificates of completion, signed proposals and invoices of the project, merged into one PDF.
+PDFInfraSPlusProjectChantierTitle           = Site reference
+PDFInfraSPlusProjectChantierNoProjectLeader = Warning: no customer contact is set as project leader, the created file therefore has a generic name.
 
 ### pdf_InfraS_product ###
 PDFInfraSPlusProductName          = InfraSPlus_P

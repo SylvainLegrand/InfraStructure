@@ -1067,13 +1067,20 @@ PDFInfraSPlusSupplierInvoiceName        = InfraSPlus_FF
 PDFInfraSPlusSupplierInvoiceDescription = Facture fournisseur PDF modèle InfraS. Modèle de facture fournisseur PDF complet (logo, …)
 
 ### pdf_InfraS_project ###
-PDFInfraSPlusProjectName               = InfraSPlus_PJ
-PDFInfraSPlusProjectDescription        = Synthèse projet PDF modèle InfraS. Modèle de synthèse projet complet (logo, …)
-PDFInfraSPlusProjectDossierName        = InfraSPlus_PJ_Dossier
-PDFInfraSPlusProjectDossierDescription = Utilisation des fichiers spéciaux InfraS pour la création du dossier technique projet.
-PDFInfraSPlusProjectDocsName           = InfraSPlus_PJ_Docs
-PDFInfraSPlusProjectDocsDescription    = Relevé de documents InfraS pour les projets.
-PDFInfraSPlusProjectDocsTitle          = Dossier
+PDFInfraSPlusProjectName                    = InfraSPlus_PJ
+PDFInfraSPlusProjectDescription             = Synthèse projet PDF modèle InfraS. Modèle de synthèse projet complet (logo, …)
+PDFInfraSPlusProjectDossierName             = InfraSPlus_PJ_Dossier
+PDFInfraSPlusProjectDossierDescription      = Utilisation des fichiers spéciaux InfraS pour la création du dossier technique projet.
+PDFInfraSPlusProjectDossierTitle            = Dossier client
+PDFInfraSPlusProjectDossierDocList          = Liste des documents :
+PDFInfraSPlusProjectDossierPageCount        = Ce dossier comprend %s pages.
+PDFInfraSPlusProjectDocsName                = InfraSPlus_PJ_Docs
+PDFInfraSPlusProjectDocsDescription         = Relevé de documents InfraS pour les projets.
+PDFInfraSPlusProjectDocsTitle               = Dossier
+PDFInfraSPlusProjectChantierName            = InfraSPlus_PJ_Chantier
+PDFInfraSPlusProjectChantierDescription     = Référence de chantier pour l'organisme de qualification RGE : attestations de bonne exécution signées, devis signés et factures du projet, assemblés en un seul PDF.
+PDFInfraSPlusProjectChantierTitle           = Référence de chantier
+PDFInfraSPlusProjectChantierNoProjectLeader = Attention : aucun contact client n'est désigné comme chef de projet, le nom du fichier créé est donc générique.
 
 ### pdf_InfraS_product ###
 PDFInfraSPlusProductName          = InfraSPlus_P

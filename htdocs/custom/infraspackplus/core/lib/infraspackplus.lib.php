@@ -41,6 +41,38 @@
 
 
 	/**
+	*	Brand of the instance : content of the htdocs/BRAND file, trimmed (same reading as dolinfras_activate_brand_modules()).
+	*	Used by the models reserved to a brand (ex : pdf_InfraSPlus_PJ_Chantier). Empty string if the file is missing
+	*
+	*	@return	string		brand name, '' if none
+	**/
+	function infraspackplus_getBrand()
+	{
+		static $brand = null;
+
+		if ($brand === null) {
+			$brandfile	= DOL_DOCUMENT_ROOT.'/BRAND';
+			$brand		= is_readable($brandfile) ? trim((string) file_get_contents($brandfile)) : '';
+		}
+		return $brand;
+	}
+
+	/**
+	*	Tell if an extra field is defined for an element type (ex : a model that needs a customer-specific extra field)
+	*
+	*	@param	DoliDB	$db				Database handler
+	*	@param	string	$elementtype	Element type of the extra fields (ex : 'projet', 'societe', 'propal')
+	*	@param	string	$name			Code of the extra field
+	*	@return	bool					true if the extra field exists
+	**/
+	function infraspackplus_isExtrafieldDefined($db, $elementtype, $name)
+	{
+		$extrafields	= new ExtraFields($db);
+		$extrafields->fetch_name_optionals_label($elementtype);
+		return !empty($extrafields->attributes[$elementtype]['label'][$name]);
+	}
+
+	/**
 	*	Get all files for special head
 	*
 	*	@param	array				$modelslist		List of model where we may find a special head

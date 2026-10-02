@@ -666,7 +666,8 @@
 					// if merge files is active
 					if (!empty($this->paramspecialfiles)) {
 						$this->paramspecialfiles	= explode(',', $this->paramspecialfiles);
-						$dirpdfs					= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles';
+						$reldirpdfs					= (!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').'infraspackplus/specialfiles';
+						$dirpdfs					= DOL_DATA_ROOT.'/'.$reldirpdfs;
 						$listpdfs					= dol_dir_list($dirpdfs, 'files', 0, '\.pdf$', null, 'name', SORT_ASC, 0, 1, '', 0);
 						$listspecialfiles			= dol_dir_list(dol_buildpath('/infraspackplus/core/modules/specialfiles', 0), 'files', 0, '\.php$', null, 'name', SORT_ASC, 0, 0, '', 0);
 						$listspecialfiles			= array_column($listspecialfiles, 'name');
@@ -684,7 +685,7 @@
 								}
 							}
 						}
-						completeFileArrayWithDatabaseInfo($filesArray, 'infraspackplus/specialfiles');
+						completeFileArrayWithDatabaseInfo($filesArray, $reldirpdfs);
 						if (is_array($filesArray) && count($filesArray)) {
 							if (! is_array($this->files)) {
 								$this->files	= explode(',', $this->files);
