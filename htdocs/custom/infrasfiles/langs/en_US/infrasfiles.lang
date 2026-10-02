@@ -18,7 +18,7 @@ InfraSFilesSupportInformation = Technical information
 InfraSFilesPermMenu    = View the settings menu
 InfraSFilesPermSpecif  = Modify the module settings
 InfraSFilesPermBkpRest = Backup / Restore the module settings
-InfraSFilesPermRead    = Download ALL the files of the module (direct debit orders, inventories...) without the native permission of each object (reserve it to administrators; without it, each file requires the native read permission of its object)
+InfraSFilesPermRead    = Download ALL the files of the module without the native permission of each object (reserve it to administrators)
 
 ### infras lib page ###
 InfraSFilesParams          = InfraS settings
