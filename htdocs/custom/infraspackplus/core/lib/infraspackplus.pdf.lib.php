@@ -3324,7 +3324,8 @@
 		$desc			= !empty($object->lines[$i]->desc) ? $object->lines[$i]->desc : (!empty($object->lines[$i]->description) ? $object->lines[$i]->description : '');
 		// For discount lines (info_bits & 2), when line's own label is empty, use line description as label instead of product label
 		// Exclude core special placeholders ((DEPOSIT), (CREDIT_NOTE), ...) so they keep going through their dedicated translation below
-		if (!empty($object->lines[$i]->info_bits) && ($object->lines[$i]->info_bits & 2) && empty($object->lines[$i]->label) && !in_array($desc, array('(DEPOSIT)', '(CREDIT_NOTE)', '(EXCESS RECEIVED)', '(EXCESS PAID)'))) {
+		// Not when labels are hidden (INFRASPLUS_PDF_HIDE_LABEL) : the description moved into the label would not be printed at all, so it stays a description
+		if (!empty($object->lines[$i]->info_bits) && ($object->lines[$i]->info_bits & 2) && empty($object->lines[$i]->label) && !getDolGlobalInt('INFRASPLUS_PDF_HIDE_LABEL', 0) && !in_array($desc, array('(DEPOSIT)', '(CREDIT_NOTE)', '(EXCESS RECEIVED)', '(EXCESS PAID)'))) {
 			$label		= $desc;
 			$desc		= '';
 		}

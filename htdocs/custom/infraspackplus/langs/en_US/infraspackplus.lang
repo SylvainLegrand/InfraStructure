@@ -929,8 +929,11 @@ PDFInfraSPlusOMDescription = PDF proforma PO from InfraS. Complete PDF assembly 
 PDFInfraSPlusOMTitle       = Assembly Order
 
 ### pdf_InfraS_contract ###
-PDFInfraSPlusCrontractName        = InfraSPlus_CT
-PDFInfraSPlusCrontractDescription = PDF contract sheet from InfraS. Complete PDF contract model (logo, …)
+PDFInfraSPlusCrontractName         = InfraSPlus_CT
+PDFInfraSPlusCrontractDescription  = PDF contract sheet from InfraS. Complete PDF contract model (logo, …)
+PDFInfraSPlusCTSDossierName        = InfraSPlus_CTS
+PDFInfraSPlusCTSDossierDescription = Use of special InfraS files for the creation of the contract file.
+PDFInfraSPlusCTSContratNumber      = Contract no.
 
 ### pdf_InfraS_expedition ###
 PDFInfraSPlusExpeditionName              = InfraSPlus_BL
@@ -1126,3 +1129,10 @@ PDFInfraSPlusGenerateAccountStatutModelsPDF = PDF model InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = Third party account statement. Complete PDF third party account statement template (logo, etc.)
 WarningNoSpecialFilePDFGenerated            = No PDF document was generated for contract %s: no specialfile matches the contract conditions.
+
+### InfraS special files ###
+PDFInfraSPlusPdfNoteDimMissingtotalSurface = surface area
+PDFInfraSPlusPdfNoteDimMissinghtMoyenne    = average height
+PDFInfraSPlusPdfNoteDimMissingtb           = base t°
+PDFInfraSPlusPdfNoteDimMissingtc           = set-point t°
+PDFInfraSPlusPdfNoteDimMissingValues       = Missing values:

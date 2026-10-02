@@ -929,8 +929,11 @@ PDFInfraSPlusOMDescription = Ordine di montaggio modello PDF InfraS. Modello com
 PDFInfraSPlusOMTitle       = Ordine di montaggio
 
 ### pdf_InfraS_contract ###
-PDFInfraSPlusCrontractName        = InfraSPlus_CT
-PDFInfraSPlusCrontractDescription = Contratto PDF modello InfraS. Modello di contatto completo (logo, …)
+PDFInfraSPlusCrontractName         = InfraSPlus_CT
+PDFInfraSPlusCrontractDescription  = Contratto PDF modello InfraS. Modello di contatto completo (logo, …)
+PDFInfraSPlusCTSDossierName        = InfraSPlus_CTS
+PDFInfraSPlusCTSDossierDescription = Utilizzo di appositi file InfraS per la creazione del fascicolo del contratto.
+PDFInfraSPlusCTSContratNumber      = N. contratto
 
 ### pdf_InfraS_expedition ###
 PDFInfraSPlusExpeditionName              = InfraSPlus_BL
@@ -1126,3 +1129,10 @@ PDFInfraSPlusGenerateAccountStatutModelsPDF = Modello PDF InfraS
 PDFInfraSPlusAccountStatusName              = InfraSPlus_AS
 PDFInfraSPlusAccountStatusDescription       = Estratto conto di terzi. Modello PDF completo di estratto conto di terzi (logo, ecc.)
 WarningNoSpecialFilePDFGenerated            = Nessun documento PDF è stato generato per il contratto %s: nessun specialfile corrisponde alle condizioni del contratto.
+
+### InfraS special files ###
+PDFInfraSPlusPdfNoteDimMissingtotalSurface = superficie
+PDFInfraSPlusPdfNoteDimMissinghtMoyenne    = altezza media
+PDFInfraSPlusPdfNoteDimMissingtb           = t° di base
+PDFInfraSPlusPdfNoteDimMissingtc           = t° impostata
+PDFInfraSPlusPdfNoteDimMissingValues       = Valori mancanti:
