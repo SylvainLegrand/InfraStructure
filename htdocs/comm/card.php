@@ -936,15 +936,36 @@ if ($object->id > 0) {
 				$propal_static->total_ttc = $objp->total_ttc;
 				$propal_static->last_main_doc = $objp->last_main_doc;	// Osden add
 				print $propal_static->getNomUrl(1);
-
 				// Preview
 				// Osden change begin
-				if (!empty($propal_static->last_main_doc)) {
-					$filedir = $conf->propal->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref) . '/';
-					$filename = basename($propal_static->last_main_doc);
-					if (file_exists($filedir . $filename) && dol_is_file($filedir . $filename)) {
-						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
-						print $formfile->showPreview(array(), $propal_static->element, $relativepath, 0, 'entity=' . $objp->entity);
+				$filedir = $conf->propal->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref);
+				$filename = !empty($propal_static->last_main_doc) ? basename($propal_static->last_main_doc) : '';
+				$filefullpath = $filedir . '/' . $filename;
+				if (!empty($filename) && file_exists($filefullpath) && dol_is_file($filefullpath)) {
+					$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
+					print $formfile->showPreview(array('name' => $filename, 'fullname' => $filefullpath), $propal_static->element, $relativepath, 0, 'entity=' . $objp->entity);
+				} else {
+					// Fallback when last_main_doc is empty or its file is missing: show the last generated PDF (file named from ref)
+					$file_list = dol_dir_list($filedir, 'files', 0, dol_sanitizeFileName($objp->ref) . '.pdf', '(\.meta|_preview.*.*\.png)$', 'date', SORT_DESC);
+					if (is_array($file_list) && !empty($file_list)) {
+						// Keep the real name of the most recent matching PDF (dol_dir_list is sorted by date DESC).
+						// The file name may differ from the ref (e.g. prefixed), so we must not rebuild it from the ref.
+						$previewfile = $file_list[0];
+						$previewfilename = $previewfile['name'];
+						// Defined relative dir to DOL_DATA_ROOT
+						$relativedir = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $filedir);
+						$relativedir = preg_replace('/^[\\/]/', '', $relativedir);
+						// Get list of files stored into database for same relative directory
+						if ($relativedir) {
+							completeFileArrayWithDatabaseInfo($file_list, $relativedir);
+							'@phan-var-force array<array{name:string,path:string,level1name:string,relativename:string,fullname:string,date:string,size:int,perm:int,type:string,position_name:string,cover:string,keywords:string,acl:string,rowid:int,label:string,share:string}> $file_list';
+
+							if (!empty($sortfield) && !empty($sortorder)) {	// If $sortfield is for example 'position_name', we will sort on the property 'position_name' (that is concat of position+name)
+								$file_list = dol_sort_array($file_list, $sortfield, $sortorder);
+							}
+						}
+						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $previewfilename;
+						print $formfile->showPreview($previewfile, $propal_static->element, $relativepath, 0, 'entity=' . $objp->entity);
 					}
 				// Osden change end
 				}
@@ -1045,12 +1066,34 @@ if ($object->id > 0) {
 				print $commande_static->getNomUrl(1);
 				// Preview
 				// Osden change begin
-				if (!empty($commande_static->last_main_doc)) {
-					$filedir = $conf->order->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref) . '/';
-					$filename = basename($commande_static->last_main_doc);
-					if (file_exists($filedir . $filename) && dol_is_file($filedir . $filename)) {
-						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
-						print $formfile->showPreview(array(), $commande_static->element, $relativepath, 0, 'entity=' . $objp->entity);
+				$filedir = $conf->order->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref);
+				$filename = !empty($commande_static->last_main_doc) ? basename($commande_static->last_main_doc) : '';
+				$filefullpath = $filedir . '/' . $filename;
+				if (!empty($filename) && file_exists($filefullpath) && dol_is_file($filefullpath)) {
+					$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
+					print $formfile->showPreview(array('name' => $filename, 'fullname' => $filefullpath), $commande_static->element, $relativepath, 0, 'entity=' . $objp->entity);
+				} else {
+					// Fallback when last_main_doc is empty or its file is missing: show the last generated PDF (file named from ref)
+					$file_list = dol_dir_list($filedir, 'files', 0, dol_sanitizeFileName($objp->ref) . '.pdf', '(\.meta|_preview.*.*\.png)$', 'date', SORT_DESC);
+					if (is_array($file_list) && !empty($file_list)) {
+						// Keep the real name of the most recent matching PDF (dol_dir_list is sorted by date DESC).
+						// The file name may differ from the ref (e.g. prefixed), so we must not rebuild it from the ref.
+						$previewfile = $file_list[0];
+						$previewfilename = $previewfile['name'];
+						// Defined relative dir to DOL_DATA_ROOT
+						$relativedir = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $filedir);
+						$relativedir = preg_replace('/^[\\/]/', '', $relativedir);
+						// Get list of files stored into database for same relative directory
+						if ($relativedir) {
+							completeFileArrayWithDatabaseInfo($file_list, $relativedir);
+							'@phan-var-force array<array{name:string,path:string,level1name:string,relativename:string,fullname:string,date:string,size:int,perm:int,type:string,position_name:string,cover:string,keywords:string,acl:string,rowid:int,label:string,share:string}> $file_list';
+
+							if (!empty($sortfield) && !empty($sortorder)) {	// If $sortfield is for example 'position_name', we will sort on the property 'position_name' (that is concat of position+name)
+								$file_list = dol_sort_array($file_list, $sortfield, $sortorder);
+							}
+						}
+						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $previewfilename;
+						print $formfile->showPreview($previewfile, $commande_static->element, $relativepath, 0, 'entity=' . $objp->entity);
 					}
 				// Osden change end
 				}
@@ -1137,12 +1180,34 @@ if ($object->id > 0) {
 				print $sendingstatic->getNomUrl(1);
 				// Preview
 				// Osden change begin
-				if (!empty($sendingstatic->last_main_doc)) {
-					$filedir = $conf->expedition->multidir_output[$objp->entity] . '/sending/' . dol_sanitizeFileName($objp->ref) . '/';
-					$filename = basename($sendingstatic->last_main_doc);
-					if (file_exists($filedir . $filename) && dol_is_file($filedir . $filename)) {
-						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
-						print $formfile->showPreview(array(), $sendingstatic->element, $relativepath, 0, 'entity=' . $objp->entity);
+				$filedir = $conf->expedition->multidir_output[$objp->entity] . '/sending/' . dol_sanitizeFileName($objp->ref);
+				$filename = !empty($sendingstatic->last_main_doc) ? basename($sendingstatic->last_main_doc) : '';
+				$filefullpath = $filedir . '/' . $filename;
+				if (!empty($filename) && file_exists($filefullpath) && dol_is_file($filefullpath)) {
+					$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
+					print $formfile->showPreview(array('name' => $filename, 'fullname' => $filefullpath), $sendingstatic->element, $relativepath, 0, 'entity=' . $objp->entity);
+				} else {
+					// Fallback when last_main_doc is empty or its file is missing: show the last generated PDF (file named from ref)
+					$file_list = dol_dir_list($filedir, 'files', 0, dol_sanitizeFileName($objp->ref) . '.pdf', '(\.meta|_preview.*.*\.png)$', 'date', SORT_DESC);
+					if (is_array($file_list) && !empty($file_list)) {
+						// Keep the real name of the most recent matching PDF (dol_dir_list is sorted by date DESC).
+						// The file name may differ from the ref (e.g. prefixed), so we must not rebuild it from the ref.
+						$previewfile = $file_list[0];
+						$previewfilename = $previewfile['name'];
+						// Defined relative dir to DOL_DATA_ROOT
+						$relativedir = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $filedir);
+						$relativedir = preg_replace('/^[\\/]/', '', $relativedir);
+						// Get list of files stored into database for same relative directory
+						if ($relativedir) {
+							completeFileArrayWithDatabaseInfo($file_list, $relativedir);
+							'@phan-var-force array<array{name:string,path:string,level1name:string,relativename:string,fullname:string,date:string,size:int,perm:int,type:string,position_name:string,cover:string,keywords:string,acl:string,rowid:int,label:string,share:string}> $file_list';
+
+							if (!empty($sortfield) && !empty($sortorder)) {	// If $sortfield is for example 'position_name', we will sort on the property 'position_name' (that is concat of position+name)
+								$file_list = dol_sort_array($file_list, $sortfield, $sortorder);
+							}
+						}
+						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $previewfilename;
+						print $formfile->showPreview($previewfile, $sendingstatic->element, $relativepath, 0, $param);
 					}
 				// Osden change end
 				}
@@ -1235,12 +1300,34 @@ if ($object->id > 0) {
 				print $contrat->getNomUrl(1, 12);
 				// Osden change begin
 				// Preview
-				if (!empty($contrat->last_main_doc)) {
-					$filedir = $conf->contract->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref) . '/';
-					$filename = basename($contrat->last_main_doc);
-					if (file_exists($filedir . $filename) && dol_is_file($filedir . $filename)) {
-						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
-						print $formfile->showPreview(array(), $contrat->element, $relativepath, 0, 'entity=' . $objp->entity);
+				$filedir = $conf->contract->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref);
+				$filename = !empty($contrat->last_main_doc) ? basename($contrat->last_main_doc) : '';
+				$filefullpath = $filedir . '/' . $filename;
+				if (!empty($filename) && file_exists($filefullpath) && dol_is_file($filefullpath)) {
+					$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
+					print $formfile->showPreview(array('name' => $filename, 'fullname' => $filefullpath), $contrat->element, $relativepath, 0, 'entity=' . $objp->entity);
+				} else {
+					// Fallback when last_main_doc is empty or its file is missing: show the last generated PDF (file named from ref)
+					$file_list = dol_dir_list($filedir, 'files', 0, dol_sanitizeFileName($objp->ref) . '.pdf', '(\.meta|_preview.*.*\.png)$', 'date', SORT_DESC);
+					if (is_array($file_list) && !empty($file_list)) {
+						// Keep the real name of the most recent matching PDF (dol_dir_list is sorted by date DESC).
+						// The file name may differ from the ref (e.g. prefixed), so we must not rebuild it from the ref.
+						$previewfile = $file_list[0];
+						$previewfilename = $previewfile['name'];
+						// Defined relative dir to DOL_DATA_ROOT
+						$relativedir = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $filedir);
+						$relativedir = preg_replace('/^[\\/]/', '', $relativedir);
+						// Get list of files stored into database for same relative directory
+						if ($relativedir) {
+							completeFileArrayWithDatabaseInfo($file_list, $relativedir);
+							'@phan-var-force array<array{name:string,path:string,level1name:string,relativename:string,fullname:string,date:string,size:int,perm:int,type:string,position_name:string,cover:string,keywords:string,acl:string,rowid:int,label:string,share:string}> $file_list';
+
+							if (!empty($sortfield) && !empty($sortorder)) {	// If $sortfield is for example 'position_name', we will sort on the property 'position_name' (that is concat of position+name)
+								$file_list = dol_sort_array($file_list, $sortfield, $sortorder);
+							}
+						}
+						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $previewfilename;
+						print $formfile->showPreview($previewfile, $contrat->element, $relativepath, 0, 'entity=' . $objp->entity);
 				// Osden change end
 					}
 				}
@@ -1322,12 +1409,34 @@ if ($object->id > 0) {
 				print $fichinter_static->getNomUrl(1);
 				// Preview
 				// Osden change begin
-				if (!empty($fichinter_static->last_main_doc)) {
-					$filedir = $conf->ficheinter->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref) . '/';
-					$filename = basename($fichinter_static->last_main_doc);
-					if (file_exists($filedir . $filename) && dol_is_file($filedir . $filename)) {
-						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
-						print $formfile->showPreview(array(), $fichinter_static->element, $relativepath, 0, 'entity=' . $objp->entity);
+				$filedir = $conf->ficheinter->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref);
+				$filename = !empty($fichinter_static->last_main_doc) ? basename($fichinter_static->last_main_doc) : '';
+				$filefullpath = $filedir . '/' . $filename;
+				if (!empty($filename) && file_exists($filefullpath) && dol_is_file($filefullpath)) {
+					$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
+					print $formfile->showPreview(array('name' => $filename, 'fullname' => $filefullpath), $fichinter_static->element, $relativepath, 0, 'entity=' . $objp->entity);
+				} else {
+					// Fallback when last_main_doc is empty or its file is missing: show the last generated PDF (file named from ref)
+					$file_list = dol_dir_list($filedir, 'files', 0, dol_sanitizeFileName($objp->ref) . '.pdf', '(\.meta|_preview.*.*\.png)$', 'date', SORT_DESC);
+					if (is_array($file_list) && !empty($file_list)) {
+						// Keep the real name of the most recent matching PDF (dol_dir_list is sorted by date DESC).
+						// The file name may differ from the ref (e.g. prefixed), so we must not rebuild it from the ref.
+						$previewfile = $file_list[0];
+						$previewfilename = $previewfile['name'];
+						// Defined relative dir to DOL_DATA_ROOT
+						$relativedir = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $filedir);
+						$relativedir = preg_replace('/^[\\/]/', '', $relativedir);
+						// Get list of files stored into database for same relative directory
+						if ($relativedir) {
+							completeFileArrayWithDatabaseInfo($file_list, $relativedir);
+							'@phan-var-force array<array{name:string,path:string,level1name:string,relativename:string,fullname:string,date:string,size:int,perm:int,type:string,position_name:string,cover:string,keywords:string,acl:string,rowid:int,label:string,share:string}> $file_list';
+
+							if (!empty($sortfield) && !empty($sortorder)) {	// If $sortfield is for example 'position_name', we will sort on the property 'position_name' (that is concat of position+name)
+								$file_list = dol_sort_array($file_list, $sortfield, $sortorder);
+							}
+						}
+						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $previewfilename;
+						print $formfile->showPreview($previewfile, $fichinter_static->element, $relativepath, 0, 'entity=' . $objp->entity);
 					}
 				// Osden change end
 				}
@@ -1538,12 +1647,34 @@ if ($object->id > 0) {
 				print $facturestatic->getNomUrl(1);
 				// Osden change begin
 				// Preview
-				if (!empty($facturestatic->last_main_doc)) {
-					$filedir = $conf->invoice->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref) . '/';
-					$filename = basename($facturestatic->last_main_doc);
-					if (file_exists($filedir . $filename) && dol_is_file($filedir . $filename)) {
-						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
-						print $formfile->showPreview(array(), $facturestatic->element, $relativepath, 0, 'entity=' . $objp->entity);
+				$filedir = $conf->invoice->multidir_output[$objp->entity] . '/' . dol_sanitizeFileName($objp->ref);
+				$filename = !empty($facturestatic->last_main_doc) ? basename($facturestatic->last_main_doc) : '';
+				$filefullpath = $filedir . '/' . $filename;
+				if (!empty($filename) && file_exists($filefullpath) && dol_is_file($filefullpath)) {
+					$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $filename;
+					print $formfile->showPreview(array('name' => $filename, 'fullname' => $filefullpath), $facturestatic->element, $relativepath, 0, 'entity=' . $objp->entity);
+				} else {
+					// Fallback when last_main_doc is empty or its file is missing: show the last generated PDF (file named from ref)
+					$file_list = dol_dir_list($filedir, 'files', 0, dol_sanitizeFileName($objp->ref) . '.pdf', '(\.meta|_preview.*.*\.png)$', 'date', SORT_DESC);
+					if (is_array($file_list) && !empty($file_list)) {
+						// Keep the real name of the most recent matching PDF (dol_dir_list is sorted by date DESC).
+						// The file name may differ from the ref (e.g. prefixed), so we must not rebuild it from the ref.
+						$previewfile = $file_list[0];
+						$previewfilename = $previewfile['name'];
+						// Defined relative dir to DOL_DATA_ROOT
+						$relativedir = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $filedir);
+						$relativedir = preg_replace('/^[\\/]/', '', $relativedir);
+						// Get list of files stored into database for same relative directory
+						if ($relativedir) {
+							completeFileArrayWithDatabaseInfo($file_list, $relativedir);
+							'@phan-var-force array<array{name:string,path:string,level1name:string,relativename:string,fullname:string,date:string,size:int,perm:int,type:string,position_name:string,cover:string,keywords:string,acl:string,rowid:int,label:string,share:string}> $file_list';
+
+							if (!empty($sortfield) && !empty($sortorder)) {	// If $sortfield is for example 'position_name', we will sort on the property 'position_name' (that is concat of position+name)
+								$file_list = dol_sort_array($file_list, $sortfield, $sortorder);
+							}
+						}
+						$relativepath = dol_sanitizeFileName($objp->ref) . '/' . $previewfilename;
+						print $formfile->showPreview($previewfile, $facturestatic->element, $relativepath, 0, 'entity=' . $objp->entity);
 					}
 				// Osden change end
 				}

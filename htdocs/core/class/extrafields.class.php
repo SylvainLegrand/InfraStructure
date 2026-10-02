@@ -136,7 +136,17 @@ class ExtraFields
 	{
 		$this->db = $db;
 	}
-
+	// Osden change begin
+	/**
+	 * Method to output saved errors
+	 *
+	 * @return	string		String with errors
+	 */
+	public function errorsToString()
+	{
+		return $this->error.(is_array($this->errors) ? (($this->error != '' ? ', ' : '').implode(', ', $this->errors)) : '');
+	}
+	// Osden change end
 	/**
 	 *  Add a new extra field parameter
 	 *

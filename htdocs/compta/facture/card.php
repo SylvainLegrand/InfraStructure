@@ -1864,7 +1864,7 @@ if (empty($reshook)) {
 									}
 								}
 
-								$amount_ttc_diff = $amountdeposit[0] ?? 0; // InfraS change
+								$amount_ttc_diff = $amountdeposit[0] ?? 0; // Osden change
 							}
 
 							foreach ($amountdeposit as $tva => $amount) {
@@ -1897,13 +1897,13 @@ if (empty($reshook)) {
 									0, // date_start
 									0, // date_end
 									0,
-									(isset($i) && isset($lines[$i])) ? $lines[$i]->info_bits : 0, // info_bits // InfraS change
+									(isset($i) && isset($lines[$i])) ? $lines[$i]->info_bits : 0, // info_bits // Osden change
 									0,
 									'HT',
 									0,
 									0, // product_type
 									1,
-									(isset($i) && isset($lines[$i])) ? $lines[$i]->special_code : 0, // InfraS change
+									(isset($i) && isset($lines[$i])) ? $lines[$i]->special_code : 0, // Osden change
 									$object->origin,
 									0,
 									0,

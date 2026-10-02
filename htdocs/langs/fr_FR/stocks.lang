@@ -354,3 +354,4 @@ InventoryEntrepot=Id entrepôt
 SelectedWarehouse=Sélectionnez un entrepôt
 OrderedBefore=Commandé avant le
 ToBeReceivedBy=A recevoir avant le
+ReplenishQuantityZeroExplanation=Rien à commander car les commandes existantes suffisent à atteindre le stock souhaité.
