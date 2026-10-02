@@ -36,8 +36,8 @@ if (!defined('ISLOADEDBYSTEELSHEET')) {
 	padding: .19em .55em;			/* more than 0.19 generate a change into heigth of lines */	/* InfraS change : marge laterale de la pilule */
 }
 .tabBar .arearef .statusref .badge-status, .tabBar .arearefnobottom .statusref .badge-status {
-	font-size: 0.95em;	/* InfraS change : taille des badges des listes (1.1em avant) */
-	padding: .3em .6em;	/* InfraS change : .4em .4em avant */
+	font-size: 0.95em;
+	padding: .3em .6em;
 }
 /* Force values for small screen 767 */
 @media only screen and (max-width: 767px)

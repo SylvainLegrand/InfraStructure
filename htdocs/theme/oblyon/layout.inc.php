@@ -362,7 +362,7 @@ div.arearef {
 	background: inherit;
 	padding-bottom: 20px;
 	border-bottom: 1px solid var(--oblyon-border);	/* InfraS change */
-	display: flow-root;	/* InfraS add : le bandeau collant englobe ses blocs flottants (statuts), qui ne debordent plus sur le contenu de la fiche */
+	display: flow-root;	/* le bandeau collant englobe ses blocs flottants (statuts), qui ne debordent plus sur le contenu de la fiche */
 <?php } else { ?>
 	padding-bottom: 10px;
 <?php } ?>
@@ -390,7 +390,7 @@ div.statusref {
 } */
 div.statusref {
 	float: right;
-	text-align: right;	/* InfraS add : un statut plus court qu'une ligne ajoutee dessous par un module reste cale a droite */
+	text-align: right;	/* un statut plus court qu'une ligne ajoutee dessous par un module reste cale a droite */
 	padding-left: 12px;
 	margin-top: 8px;
 	margin-bottom: 10px;
@@ -406,12 +406,11 @@ div.statusrefbis {
    	vertical-align: text-bottom;
 }
 <?php if (getDolGlobalString('FIX_AREAREF_CARD')) { ?>
-/* InfraS add begin : bandeau collant, statut secondaire (ex. transfert en comptabilite) colle au statut principal pour ne pas agrandir le bandeau */
+/* bandeau collant, statut secondaire (ex. transfert en comptabilite) colle au statut principal pour ne pas agrandir le bandeau */
 div.arearef div.statusrefbis {
 	margin-top: 0;
 	margin-bottom: 0;
 }
-/* InfraS add end */
 <?php } ?>
 img.photoref, div.photoref {
 	border: 1px solid var(--oblyon-border);	/* InfraS change */

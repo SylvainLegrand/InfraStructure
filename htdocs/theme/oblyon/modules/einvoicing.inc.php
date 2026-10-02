@@ -6,7 +6,6 @@
    Regle     : une regle, un endroit (pas de copie d'un selecteur present dans un autre fichier ; verifier avec dev/csscompare.php)
    ================================================================================================ */
 
-/* InfraS add : fichier ajoute par InfraS (2026-10) */
 /* <style type="text/css" > */
 
 <?php if (isModEnabled('einvoicing')) { ?>
