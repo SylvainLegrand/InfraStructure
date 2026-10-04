@@ -1300,7 +1300,8 @@ class Reception extends CommonObject
 				$resql_commfourndet = $this->db->query($sql_commfourndet);
 				if (!empty($resql_commfourndet)) {
 					$obj = $this->db->fetch_object($resql_commfourndet);
-					if ($obj !== null) {	// InfraS add
+					// InfraS change begin
+					if ($obj !== null) {
 						$line->qty_asked = $obj->qty;
 						$line->description = $obj->description;
 						$line->desc = $obj->description;
@@ -1319,17 +1320,18 @@ class Reception extends CommonObject
 						$line->date_start = $this->db->jdate($obj->date_start);
 						$line->date_end = $this->db->jdate($obj->date_end);
 						$line->product_type = $obj->product_type;
-					} else {	// InfraS add begin
+					} else {
 						$line->qty_asked = 0;
 						$line->description = '';
 						$line->desc = '';
 						$line->label = '';
-					}	// InfraS add end
+					}
 				} else {
 					$line->qty_asked = 0;
 					$line->description = '';
 					$line->desc = '';
-					$line->label = '';	// InfraS change
+					$line->label = '';
+					// InfraS change end
 				}
 
 				$pu_ht = ($line->subprice * $line->qty) * (100 - $line->remise_percent) / 100;

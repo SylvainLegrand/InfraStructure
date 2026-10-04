@@ -351,4 +351,6 @@ QtyStock=Quantity on stock
 QtyRegulated=Quantity on stock correction
 InventoryEntrepot=Warehouse identity
 SelectedWarehouse=Select a warehouse
+OrderedBefore=Ordered before
+ToBeReceivedBy=To be received by
 ReplenishQuantityZeroExplanation=Quantity to order is zero because enought quantity has already been ordered.

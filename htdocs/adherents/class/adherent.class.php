@@ -1083,29 +1083,13 @@ class Adherent extends CommonObject
 		dol_syslog(get_class($this)."::update_end_date", LOG_DEBUG);
 		$resql = $this->db->query($sql);
 		if ($resql) {
-			// The last subscription is the one with the latest start date (first record), but the end date of the member is
-			// the latest end date of all its subscriptions: a short subscription that starts after a longer one must not
-			// shorten the membership. There is no record at all when the last subscription of the member was deleted.
-			$dateop = '';
-			$datedeb = '';
-			$datefin = '';
-			$dateendmember = '';
-			$i = 0;
-			while ($obj = $this->db->fetch_object($resql)) {
-				$dateendsubscription = $this->db->jdate($obj->datefin);
-				if ($i == 0) {
-					$dateop = $this->db->jdate($obj->dateop);
-					$datedeb = $this->db->jdate($obj->datedeb);
-					$datefin = $dateendsubscription;
-				}
-				if ($dateendsubscription != '' && ($dateendmember == '' || $dateendsubscription > $dateendmember)) {
-					$dateendmember = $dateendsubscription;
-				}
-				$i++;
-			}
+			$obj = $this->db->fetch_object($resql);
+			$dateop = $this->db->jdate($obj->dateop);
+			$datedeb = $this->db->jdate($obj->datedeb);
+			$datefin = $this->db->jdate($obj->datefin);
 
 			$sql = "UPDATE ".MAIN_DB_PREFIX."adherent SET";
-			$sql .= " datefin=".($dateendmember != '' ? "'".$this->db->idate($dateendmember)."'" : "null");
+			$sql .= " datefin=".($datefin != '' ? "'".$this->db->idate($datefin)."'" : "null");
 			$sql .= " WHERE rowid = ".((int) $this->id);
 
 			dol_syslog(get_class($this)."::update_end_date", LOG_DEBUG);
@@ -1114,7 +1098,7 @@ class Adherent extends CommonObject
 				$this->last_subscription_date = $dateop;
 				$this->last_subscription_date_start = $datedeb;
 				$this->last_subscription_date_end = $datefin;
-				$this->datefin = $dateendmember;
+				$this->datefin = $datefin;
 				$this->db->commit();
 				return 1;
 			} else {
@@ -3180,10 +3164,6 @@ class Adherent extends CommonObject
 							// Language code to use ($languagecodeformember) is default language of thirdparty, if no thirdparty, the language found from country of member then country of thirdparty, and if still not found we use the language of company.
 							$languagefromcountrycode = getLanguageCodeFromCountryCode($adherent->country_code ? $adherent->country_code : (is_object($adherent->thirdparty) ? $adherent->thirdparty->country_code : ''));
 							$languagecodeformember = (empty($adherent->thirdparty->default_lang) ? ($languagefromcountrycode ? $languagefromcountrycode : $mysoc->default_lang) : $adherent->thirdparty->default_lang);
-						}
-						if (!empty($adherent->default_lang)) {
-							// The language set on the member itself has priority
-							$languagecodeformember = $adherent->default_lang;
 						}
 
 						// Send reminder email

@@ -350,8 +350,7 @@ if (empty($reshook) && $user->hasRight('adherent', 'cotisation', 'creer') && $ac
 				$parameters = array(
 					'datesubscription' => $datesubscription,
 					'amount' => $amount,
-					'accountid' => $accountid,
-					'ccountid' => $accountid,	// Deprecated key (typo), kept for the hooks that already read it
+					'ccountid' => $accountid,
 					'operation' => $operation,
 					'label' => $label,
 					'num_chq' => $num_chq,
