@@ -1,6 +1,7 @@
 # CHANGELOG MODULE EINVOICING FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
 
+IMPORTANT: After each version upgrade, you must disable and enable the module so the migration of data will be done.
 
 <!-- InfraS add begin -->
 ## 1.2.0.1
