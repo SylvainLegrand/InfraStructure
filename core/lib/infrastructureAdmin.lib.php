@@ -94,6 +94,11 @@
 
 		$langs->load('infrastructure@infrastructure');
 
+		// Write only on change: runs on every request, concurrent writes rolled back other transactions
+		$expected	= extension_loaded('xml') ? '1' : '-1';
+		if (getDolGlobalString('INFRAS_PHP_EXT_XML') === $expected) {
+			return;
+		}
 		if (extension_loaded('xml')) {
 			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	1, 'chaine', 0, 'Infrastructure module', $conf->entity);
 		} else {
@@ -155,13 +160,33 @@
 	**/
 	function infrastructure_getChangelogFile($appliname, $from = '')
 	{
+		static $cache	= [];
 		$file	= empty($from) ? dol_buildpath(strtolower($appliname), 0).'/docs/changelog.xml' : DOL_DATA_ROOT.'/'.$appliname.'/changelogdwn.xml';
+		// Parse the local changelog once per request
+		if (empty($from) && array_key_exists($file, $cache)) {
+			return $cache[$file];
+		}
+		if (empty($from)) {
+			$cache[$file]	= infrastructure_loadChangelogFile($file);
+			return $cache[$file];
+		}
+		return infrastructure_loadChangelogFile($file);
+	}
+
+	/**
+	* Load and parse a changelog file
+	*
+	* @param	string				$file	Path of the changelog file
+	* @return	SimpleXMLElement|false		Parsed changelog or false
+	**/
+	function infrastructure_loadChangelogFile($file)
+	{
 		if (is_file($file)) {
 			libxml_use_internal_errors(true);
 			$context	= stream_context_create(['http' => ['method' => 'GET', 'header' => 'Accept: application/xml']]);
 			$changelog	= @file_get_contents($file, false, $context);
 			$sxe		= @simplexml_load_string(rtrim($changelog));
-			dol_syslog('infrastructureAdmin.Lib::infrastructure_getChangelogFile appliname = '.$appliname.' from = '.$from.' context = '.$context.' changelog = '.($changelog ? 'Ok' : 'KO').' sxe = '.($sxe ? 'Ok' : 'KO'));
+			dol_syslog('infrastructureAdmin.Lib::infrastructure_loadChangelogFile file = '.$file.' changelog = '.($changelog ? 'Ok' : 'KO').' sxe = '.($sxe ? 'Ok' : 'KO'));
 			return $sxe;
 		} else {
 			return false;

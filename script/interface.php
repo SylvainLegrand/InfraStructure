@@ -73,6 +73,11 @@
 								'FactureFournisseur'	=> 'fournisseur',
 							];
 	$elementPost		= GETPOST('element', 'aZ09');
+	if (empty($elementPost)) {
+		// Block folding posts data[element]
+		$dataPost		= GETPOST('data', 'array');
+		$elementPost	= (is_array($dataPost) && isset($dataPost['element'])) ? preg_replace('/[^a-zA-Z0-9_]/', '', (string) $dataPost['element']) : '';
+	}
 	if (empty($TElementToRight[$elementPost])) {
 		accessforbidden();
 	}

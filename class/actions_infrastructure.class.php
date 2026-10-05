@@ -2612,8 +2612,14 @@
 					$this->error = $langs->trans('InfrastructureErrorClassXNotExists', $element);
 					return -1;
 				}
-				$object			= new $element($db);
-				$object->fetch($id);
+				// Document déjà chargé par la fiche (lignes et extrafields compris) : pas de relecture
+				$charge			= $GLOBALS['object'] ?? null;
+				if (is_object($charge) && $charge instanceof $element && (int) $charge->id == (int) $id && !empty($charge->lines)) {
+					$object	= $charge;
+				} else {
+					$object	= new $element($db);
+					$object->fetch($id);
+				}
 				$TLines			= TInfrastructure::getAllTitleFromDocument($object);	//On récupère tous les titres sous-total
 				$TBlocksToHide	= [];	//On définit quels sont les blocs à cacher en fonction des données existantes (hideblock)
 				$hideMode		= getDolGlobalString('INFRASTRUCTURE_BLOC_FOLD_MODE', 'default');
