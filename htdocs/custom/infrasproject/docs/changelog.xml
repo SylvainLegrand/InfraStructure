@@ -295,6 +295,7 @@
 	</Version>
 	<Version Number="21.1.13" MonthVersion="2026-10">
 		<change type='fix'>Accès simultanés : infrasproject_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente.</change>
+		<change type='chg'>Compatibility Dolibarr natif</change>
 	</Version>
 	<InfraS Downloaded="20261005"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
