@@ -416,7 +416,7 @@ class Projects extends DolibarrApi
 		}
 		$result = $this->project->add_contact($fk_socpeople, $type_contact, $source, $notrigger);
 		if ($result < 0) {
-			throw new RestException(500, 'Error : ' . $this->project->error);
+			throw new RestException(500, 'Error : ' . $this->project->errorsToString());	// Osden change
 		}
 		return $this->_cleanObjectDatas($this->project);
 	}
@@ -728,7 +728,7 @@ class Projects extends DolibarrApi
 		if ($this->project->update(DolibarrApiAccess::$user) >= 0) {
 			return $this->get($id);
 		} else {
-			throw new RestException(500, $this->project->error);
+			throw new RestException(500, $this->project->errorsToString());	// Osden change
 		}
 	}
 
@@ -756,7 +756,7 @@ class Projects extends DolibarrApi
 		}
 
 		if (!$this->project->delete(DolibarrApiAccess::$user)) {
-			throw new RestException(500, 'Error when delete project : '.$this->project->error);
+			throw new RestException(500, 'Error when delete project : '.$this->project->errorsToString());	// Osden change
 		}
 
 		return array(
@@ -808,7 +808,7 @@ class Projects extends DolibarrApi
 			throw new RestException(304, 'Error nothing done. May be object is already validated');
 		}
 		if ($result < 0) {
-			throw new RestException(500, 'Error when validating Project: '.$this->project->error);
+			throw new RestException(500, 'Error when validating Project: '.$this->project->errorsToString());	// Osden change
 		}
 
 		return array(

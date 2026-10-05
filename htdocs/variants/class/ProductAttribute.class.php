@@ -684,6 +684,13 @@ class ProductAttribute extends CommonObject
 	{
 		global $user;
 
+		// InfraS add begin
+		// The line must belong to this object (backport of Dolibarr fix #40995)
+		if (!$this->isLineOfObject($lineid)) {
+			$this->error = 'ErrorLineIDDoesNotMatchWithObjectID';
+			return -1;
+		}
+		// InfraS add end
 		dol_syslog(__METHOD__ . " lineid=$lineid, ref=$ref, value=$value, notrigger=$notrigger");
 
 		// Clean parameters

@@ -2051,14 +2051,14 @@ if ($action == 'create') {
 					print $entrepot->getNomUrl(1);
 					print '</td>';
 				} else {
-					// InfraS add begin
+					// InfraS change begin
 					if ($lines[$i]->fk_product <= 0) {
 						// Produit libre : entrepôt non applicable
 						print '<td><span class="opacitymedium">'.$langs->trans("NonApplicable").'</span></td>';
-					// InfraS add end
 					} else {
 						print '<td></td>';
 					}
+					// InfraS change end
 				}
 			}
 

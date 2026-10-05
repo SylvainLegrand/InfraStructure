@@ -707,6 +707,13 @@ class BOM extends CommonObject
 	{
 		global $user;
 
+		// InfraS add begin
+		// The line must belong to this object (backport of Dolibarr fix #40995)
+		if (!$this->isLineOfObject($rowid)) {
+			$this->error = 'ErrorLineIDDoesNotMatchWithObjectID';
+			return -1;
+		}
+		// InfraS add end
 		$logtext = "::updateLine bomid=$this->id, qty=$qty, qty_frozen=$qty_frozen, disable_stock_change=$disable_stock_change, efficiency=$efficiency";
 		$logtext .= ", import_key=$import_key";
 		dol_syslog(get_class($this).$logtext, LOG_DEBUG);

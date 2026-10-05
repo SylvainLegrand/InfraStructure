@@ -18,7 +18,7 @@ InfraSFilesSupportInformation = Informazioni tecniche
 InfraSFilesPermMenu    = Vedere il menu dei parametri
 InfraSFilesPermSpecif  = Modificare i parametri del modulo
 InfraSFilesPermBkpRest = Salvare / Ripristinare i parametri del modulo
-InfraSFilesPermRead    = Scaricare TUTTI i file del modulo (ordini di addebito diretto, inventari...) senza il permesso nativo di ogni oggetto (da riservare agli amministratori; senza questo permesso, ogni file richiede il permesso di lettura nativo del suo oggetto)
+InfraSFilesPermRead    = Scaricare TUTTI i file del modulo senza il permesso nativo di ogni oggetto (da riservare agli amministratori)
 
 ### infras lib page ###
 InfraSFilesParams          = Parametri InfraS

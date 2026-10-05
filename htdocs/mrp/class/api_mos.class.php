@@ -261,7 +261,7 @@ class Mos extends DolibarrApi
 		if ($this->mo->update(DolibarrApiAccess::$user) > 0) {
 			return $this->get($id);
 		} else {
-			throw new RestException(500, $this->mo->error);
+			throw new RestException(500, $this->mo->errorsToString());	// Osden change
 		}
 	}
 
@@ -288,7 +288,7 @@ class Mos extends DolibarrApi
 		}
 
 		if (!$this->mo->delete(DolibarrApiAccess::$user)) {
-			throw new RestException(500, 'Error when deleting MO : '.$this->mo->error);
+			throw new RestException(500, 'Error when deleting MO : '.$this->mo->errorsToString());	// Osden change
 		}
 
 		return array(
@@ -444,7 +444,7 @@ class Mos extends DolibarrApi
 								$resultmoline = $moline->create(DolibarrApiAccess::$user);
 								if ($resultmoline <= 0) {
 									$error++;
-									throw new RestException(500, $moline->error);
+									throw new RestException(500, $moline->errorsToString());	// Osden change
 								}
 								$idstockmove = $stockmove->livraison(DolibarrApiAccess::$user, $value["objectid"], $value["fk_warehouse"], $qtytoprocess, 0, $labelmovement, dol_now(), '', '', (string) $tmpproduct->status_batch, $id_product_batch, $codemovement);
 							} else {
@@ -463,13 +463,13 @@ class Mos extends DolibarrApi
 								$resultmoline = $moline->create(DolibarrApiAccess::$user);
 								if ($resultmoline <= 0) {
 									$error++;
-									throw new RestException(500, $moline->error);
+									throw new RestException(500, $moline->errorsToString());	// Osden change
 								}
 								$idstockmove = $stockmove->reception(DolibarrApiAccess::$user, $value["objectid"], $value["fk_warehouse"], $qtytoprocess, 0, $labelmovement, '', '', (string) $tmpproduct->status_batch, dol_now(), $id_product_batch, $codemovement);
 							}
 							if ($idstockmove < 0) {
 								$error++;
-								throw new RestException(500, $stockmove->error);
+								throw new RestException(500, $stockmove->errorsToString());	// Osden change
 							}
 						}
 						if (!$error) {
@@ -493,7 +493,7 @@ class Mos extends DolibarrApi
 							$resultmoline = $moline->create(DolibarrApiAccess::$user);
 							if ($resultmoline <= 0) {
 								$error++;
-								throw new RestException(500, $moline->error);
+								throw new RestException(500, $moline->errorsToString());	// Osden change
 							}
 
 							$pos++;
@@ -540,7 +540,7 @@ class Mos extends DolibarrApi
 							}
 							if ($idstockmove < 0) {
 								$error++;
-								throw new RestException(500, $stockmove->error);
+								throw new RestException(500, $stockmove->errorsToString());	// Osden change
 							}
 						}
 						if (!$error) {
@@ -560,7 +560,7 @@ class Mos extends DolibarrApi
 							$resultmoline = $moline->create(DolibarrApiAccess::$user);
 							if ($resultmoline <= 0) {
 								$error++;
-								throw new RestException(500, $moline->error);
+								throw new RestException(500, $moline->errorsToString());	// Osden change
 							}
 
 							$pos++;
@@ -600,7 +600,7 @@ class Mos extends DolibarrApi
 							}
 							if ($idstockmove < 0) {
 								$error++;
-								throw new RestException(500, $stockmove->error);
+								throw new RestException(500, $stockmove->errorsToString());	// Osden change
 							}
 						}
 						if (!$error) {
@@ -620,7 +620,7 @@ class Mos extends DolibarrApi
 							$resultmoline = $moline->create(DolibarrApiAccess::$user);
 							if ($resultmoline <= 0) {
 								$error++;
-								throw new RestException(500, $moline->error);
+								throw new RestException(500, $moline->errorsToString());	// Osden change
 							}
 
 							$pos++;
@@ -670,7 +670,7 @@ class Mos extends DolibarrApi
 			$result = $this->mo->setStatut(Mo::STATUS_INPROGRESS, 0, '', 'MRP_MO_PRODUCED');
 		}
 		if ($result <= 0) {
-			throw new RestException(500, $this->mo->error);
+			throw new RestException(500, $this->mo->errorsToString());	// Osden change
 		}
 
 		return $this->mo->id;
@@ -832,7 +832,7 @@ class Mos extends DolibarrApi
 						}
 					}
 					if ($idstockmove <= 0) {
-						throw new RestException(500, $stockmove->error);
+						throw new RestException(500, $stockmove->errorsToString());	// Osden change
 					}
 				}
 
@@ -856,7 +856,7 @@ class Mos extends DolibarrApi
 
 				$resultmoline = $moline->create(DolibarrApiAccess::$user);
 				if ($resultmoline <= 0) {
-					throw new RestException(500, $moline->error);
+					throw new RestException(500, $moline->errorsToString());	// Osden change
 				}
 
 				$pos++;
@@ -908,7 +908,7 @@ class Mos extends DolibarrApi
 			$result = $this->mo->setStatut(Mo::STATUS_INPROGRESS, 0, '', 'MRP_MO_PRODUCED');
 		}
 		if ($result <= 0) {
-			throw new RestException(500, $this->mo->error);
+			throw new RestException(500, $this->mo->errorsToString());	// Osden change
 		}
 
 		$this->db->commit();

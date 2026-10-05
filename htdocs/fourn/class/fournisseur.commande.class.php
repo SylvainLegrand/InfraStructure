@@ -3118,6 +3118,14 @@ class CommandeFournisseur extends CommonOrder
 	public function updateline($rowid, $desc, $pu, $qty, $remise_percent, $txtva, $txlocaltax1 = 0, $txlocaltax2 = 0, $price_base_type = 'HT', $info_bits = 0, $type = 0, $notrigger = 0, $date_start = 0, $date_end = 0, $array_options = [], $fk_unit = null, $pu_ht_devise = 0, $ref_supplier = '')
 	{
 		global $mysoc, $conf, $langs;
+
+		// InfraS add begin
+		// The line must belong to this object (backport of Dolibarr fix #40995)
+		if (!$this->isLineOfObject($rowid)) {
+			$this->error = 'ErrorLineIDDoesNotMatchWithObjectID';
+			return -1;
+		}
+		// InfraS add end
 		dol_syslog(get_class($this)."::updateline $rowid, $desc, $pu, $qty, $remise_percent, $txtva, $price_base_type, $info_bits, $type, $fk_unit");
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
 

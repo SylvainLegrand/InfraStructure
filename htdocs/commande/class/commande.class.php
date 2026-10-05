@@ -3143,6 +3143,13 @@ class Commande extends CommonOrder
 	{
 		global $mysoc, $langs, $user;
 
+		// InfraS add begin
+		// The line must belong to this object (backport of Dolibarr fix #40995)
+		if (!$this->isLineOfObject($rowid)) {
+			$this->error = 'ErrorLineIDDoesNotMatchWithObjectID';
+			return -1;
+		}
+		// InfraS add end
 		dol_syslog(get_class($this)."::updateline id=$rowid, desc=$desc, pu=$pu, qty=$qty, remise_percent=$remise_percent, txtva=$txtva, txlocaltax1=$txlocaltax1, txlocaltax2=$txlocaltax2, price_base_type=$price_base_type, info_bits=$info_bits, date_start=$date_start, date_end=$date_end, type=$type, fk_parent_line=$fk_parent_line, pa_ht=$pa_ht, special_code=$special_code, ref_ext=$ref_ext");
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
 

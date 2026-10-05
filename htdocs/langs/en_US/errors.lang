@@ -364,6 +364,7 @@ ErrorThisGroupIsAlreadyDefinedAsThisType=The contacts with this group are alread
 ErrorIsNotInError=%s is not in error
 ErrorFilenameExtensionNotAllowed=File %s has a forbidden file extension
 ErrorNoValueForSelectListType=Error, a value for this type of field is mandatory
+ErrorThirdPartyNotFound=Error ThirdParty Not Found
 
 # Warnings
 WarningParamUploadMaxFileSizeHigherThanPostMaxSize=Your PHP parameter upload_max_filesize (%s) is higher than PHP parameter post_max_size (%s). This is not a consistent setup.

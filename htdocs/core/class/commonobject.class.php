@@ -270,19 +270,19 @@ abstract class CommonObject
 	public $thirdparty;
 
 	/**
-	 * @var User 			A related user
+	 * @var User|null 		A related user
 	 * @see fetch_user()
 	 */
 	public $user;
 
 	/**
-	 * @var string 		The type of originating object. Combined with `$origin_type`, it allows to reload `$origin_object`
+	 * @var string 			The type of originating object. Combined with `$origin_id`, it allows to reload `$origin_object`
 	 * @see fetch_origin()
 	 */
 	public $origin_type;
 
 	/**
-	 * @var int 		The id of originating object. Combined with `$origin_type`, it allows to reload `$origin_object`
+	 * @var int 			The id of originating object. Combined with `$origin_type`, it allows to reload `$origin_object`
 	 * @see fetch_origin()
 	 */
 	public $origin_id;
@@ -5689,11 +5689,16 @@ abstract class CommonObject
 			}
 			// Osden change begin
 			// Recalculate unit price with tax if not defined
-			if (empty($line->subprice_ttc) && $line->qty) {	// subprice_ttc may be not stored on old version or not defined for lines with no unit price (like a discount)
-				// So we calculate an estimated value just to show something on screen
-				$line->subprice_ttc = (float) price2num($line->total_ttc / $line->qty, 'MU');
-				//other method is less accurate
-				// $line->subprice_ttc = (float) price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + ((!empty($line->tva_tx) ? $line->tva_tx : 0) / 100)), 'MU');
+			if (empty((float) $line->subprice_ttc) && $line->qty) {	// subprice_ttc may be not stored on old version or not defined for lines with no unit price (like a discount)
+				// So we calculate an estimated value just to show something on screen.
+				// Not: the unit price is always for 100% of line, it is not a prorata of situation invoice (when total is)
+				if ($line->remise_percent != 100) {
+					// Suppose situation_percent is defined @phan-suppress-next-line PhanUndeclaredProperty
+					$line->subprice_ttc = (float) price2num($line->total_ttc * ($line->situation_percent ? 100 / $line->situation_percent : 1) / $line->qty / (1 - $line->remise_percent / 100), 'MU');
+				} else {
+					// Other method is less accurate
+					$line->subprice_ttc = (float) price2num((!empty($line->subprice) ? $line->subprice : 0) * (1 + ((!empty($line->tva_tx) ? $line->tva_tx : 0) / 100)), 'MU');
+				}
 			}
 			$line->pu_ttc = $line->subprice_ttc;	// deprecated
 			// Osden change end
@@ -11357,6 +11362,29 @@ abstract class CommonObject
 
 		return $deleted;
 	}
+
+	// InfraS add begin
+	/**
+	 * Check that a line belongs to this object, using $this->table_element_line and $this->fk_element.
+	 * Returns true when the object is not loaded or does not define them.
+	 * Backport of Dolibarr fix #40995 (SEC: updateline() modified a line of any other object)
+	 *
+	 * @param	int		$lineid		Id of the line
+	 * @return	bool				True if the line is a line of this object
+	 */
+	public function isLineOfObject($lineid)
+	{
+		if (!($this->id > 0) || empty($this->table_element_line) || empty($this->fk_element)) {
+			return true;
+		}
+
+		$sql = "SELECT rowid FROM ".$this->db->prefix().$this->db->sanitize($this->table_element_line);
+		$sql .= " WHERE rowid = ".((int) $lineid)." AND ".$this->db->sanitize($this->fk_element)." = ".((int) $this->id);
+		$resql = $this->db->query($sql);
+
+		return ($resql && $this->db->num_rows($resql) > 0);
+	}
+	// InfraS add end
 
 	/**
 	 *  Delete a line of object in database

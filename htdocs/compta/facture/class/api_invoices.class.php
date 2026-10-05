@@ -413,7 +413,7 @@ class Invoices extends DolibarrApi
 
 		$result = $this->invoice->createFromOrder($order, DolibarrApiAccess::$user);
 		if ($result < 0) {
-			throw new RestException(405, $this->invoice->error);
+			throw new RestException(405, $this->invoice->errorsToString());	// Osden change
 		}
 		$this->invoice->fetchObjectLinked();
 		return $this->_cleanObjectDatas($this->invoice);
@@ -454,7 +454,7 @@ class Invoices extends DolibarrApi
 
 		$result = $this->invoice->createFromContract($contract, DolibarrApiAccess::$user);
 		if ($result < 0) {
-			throw new RestException(405, $this->invoice->error);
+			throw new RestException(405, $this->invoice->errorsToString());	// Osden change
 		}
 		$this->invoice->fetchObjectLinked();
 		return $this->_cleanObjectDatas($this->invoice);
@@ -572,7 +572,7 @@ class Invoices extends DolibarrApi
 			unset($result->line);
 			return $this->_cleanObjectDatas($result);
 		} else {
-			throw new RestException(304, $this->invoice->error);
+			throw new RestException(304, $this->invoice->errorsToString());	// Osden change
 		}
 	}
 
@@ -706,7 +706,7 @@ class Invoices extends DolibarrApi
 		if ($updateRes > 0) {
 			return $this->get($id);
 		} else {
-			throw new RestException(405, $this->invoice->error);
+			throw new RestException(405, $this->invoice->errorsToString());	// Osden change
 		}
 	}
 
@@ -761,14 +761,14 @@ class Invoices extends DolibarrApi
 		// update bank account
 		if (!empty($this->invoice->fk_account)) {
 			if ($this->invoice->setBankAccount($this->invoice->fk_account) == 0) {
-				throw new RestException(400, $this->invoice->error);
+				throw new RestException(400, $this->invoice->errorsToString());	// Osden change
 			}
 		}
 
 		if ($this->invoice->update(DolibarrApiAccess::$user) > 0) {
 			return $this->get($id);
 		} else {
-			throw new RestException(500, $this->invoice->error);
+			throw new RestException(500, $this->invoice->errorsToString());	// Osden change
 		}
 	}
 
@@ -897,7 +897,7 @@ class Invoices extends DolibarrApi
 		);
 
 		if ($updateRes < 0) {
-			throw new RestException(400, 'Unable to insert the new line. Check your inputs. '.$this->invoice->error);
+			throw new RestException(400, 'Unable to insert the new line. Check your inputs. '.$this->invoice->errorsToString());	// Osden change
 		}
 
 		return $updateRes;
@@ -937,7 +937,7 @@ class Invoices extends DolibarrApi
 
 		$result = $this->invoice->add_contact($fk_socpeople, $type_contact, $source, $notrigger);
 		if ($result < 0) {
-			throw new RestException(500, 'Error : '.$this->invoice->error);
+			throw new RestException(500, 'Error : '.$this->invoice->errorsToString());	// Osden change
 		}
 
 		$result = $this->invoice->fetch($id);
@@ -987,7 +987,7 @@ class Invoices extends DolibarrApi
 			throw new RestException(304, 'Nothing done.');
 		}
 		if ($result < 0) {
-			throw new RestException(500, 'Error : '.$this->invoice->error);
+			throw new RestException(500, 'Error : '.$this->invoice->errorsToString());	// Osden change
 		}
 
 		$result = $this->invoice->fetch($id);
@@ -1035,7 +1035,7 @@ class Invoices extends DolibarrApi
 			throw new RestException(304, 'Error nothing done. May be object is already validated');
 		}
 		if ($result < 0) {
-			throw new RestException(500, 'Error when validating Invoice: '.$this->invoice->error);
+			throw new RestException(500, 'Error when validating Invoice: '.$this->invoice->errorsToString());	// Osden change
 		}
 
 		$result = $this->invoice->fetch($id);
@@ -1088,7 +1088,7 @@ class Invoices extends DolibarrApi
 			throw new RestException(304, 'Error nothing done. May be object is already validated');
 		}
 		if ($result < 0) {
-			throw new RestException(500, 'Error : '.$this->invoice->error);
+			throw new RestException(500, 'Error : '.$this->invoice->errorsToString());	// Osden change
 		}
 
 
@@ -1137,7 +1137,7 @@ class Invoices extends DolibarrApi
 			throw new RestException(304, 'Nothing done');
 		}
 		if ($result < 0) {
-			throw new RestException(500, 'Error : '.$this->invoice->error);
+			throw new RestException(500, 'Error : '.$this->invoice->errorsToString());	// Osden change
 		}
 
 
@@ -1185,7 +1185,7 @@ class Invoices extends DolibarrApi
 			throw new RestException(404, 'Discount not found');
 		}
 		if ($result < 0) {
-			throw new RestException(500, $discountcheck->error);
+			throw new RestException(500, $discountcheck->errorsToString());	// Osden change
 		}
 
 		return parent::_cleanObjectDatas($discountcheck);
@@ -1415,7 +1415,7 @@ class Invoices extends DolibarrApi
 
 		$result = $this->invoice->insert_discount($discountid);
 		if ($result < 0) {
-			throw new RestException(405, $this->invoice->error);
+			throw new RestException(405, $this->invoice->errorsToString());	// Osden change
 		}
 
 		return $result;
@@ -1462,7 +1462,7 @@ class Invoices extends DolibarrApi
 
 		$result = $discount->link_to_invoice(0, $id);
 		if ($result < 0) {
-			throw new RestException(405, $discount->error);
+			throw new RestException(405, $discount->errorsToString());	// Osden change
 		}
 
 		return $result;
@@ -1502,8 +1502,8 @@ class Invoices extends DolibarrApi
 		}
 
 		$result = $this->invoice->getListOfPayments();
-		if (!is_array($result) && $result < 0) {
-			throw new RestException(405, $this->invoice->error);
+		if ($this->invoice->errorsToString() !== '') {	// Osden change
+			throw new RestException(405, $this->invoice->errorsToString());	// Osden change
 		}
 
 		return $result;
@@ -1607,7 +1607,7 @@ class Invoices extends DolibarrApi
 		$payment_id = $paymentobj->create(DolibarrApiAccess::$user, ($closepaidinvoices == 'yes' ? 1 : 0)); // This include closing invoices
 		if ($payment_id < 0) {
 			$this->db->rollback();
-			throw new RestException(400, 'Payment error : '.$paymentobj->error);
+			throw new RestException(400, 'Payment error : '.$paymentobj->errorsToString());	// Osden change
 		}
 
 		if (isModEnabled("bank")) {
@@ -1622,7 +1622,7 @@ class Invoices extends DolibarrApi
 			$result = $paymentobj->addPaymentToBank(DolibarrApiAccess::$user, 'payment', $label, $accountid, $chqemetteur, $chqbank);
 			if ($result < 0) {
 				$this->db->rollback();
-				throw new RestException(400, 'Add payment to bank error : '.$paymentobj->error);
+				throw new RestException(400, 'Add payment to bank error : '.$paymentobj->errorsToString());	// Osden change
 			}
 		}
 
@@ -1763,7 +1763,7 @@ class Invoices extends DolibarrApi
 		$payment_id = $paymentobj->create(DolibarrApiAccess::$user, ($closepaidinvoices == 'yes' ? 1 : 0)); // This include closing invoices
 		if ($payment_id < 0) {
 			$this->db->rollback();
-			throw new RestException(400, 'Payment error : '.$paymentobj->error);
+			throw new RestException(400, 'Payment error : '.$paymentobj->errorsToString());	// Osden change
 		}
 		if (isModEnabled("bank")) {
 			$label = '(CustomerInvoicePayment)';
@@ -1776,7 +1776,7 @@ class Invoices extends DolibarrApi
 			$result = $paymentobj->addPaymentToBank(DolibarrApiAccess::$user, 'payment', $label, $accountid, $chqemetteur, $chqbank);
 			if ($result < 0) {
 				$this->db->rollback();
-				throw new RestException(400, 'Add payment to bank error : '.$paymentobj->error);
+				throw new RestException(400, 'Add payment to bank error : '.$paymentobj->errorsToString());	// Osden change
 			}
 		}
 

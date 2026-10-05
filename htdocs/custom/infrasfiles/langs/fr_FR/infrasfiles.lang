@@ -18,7 +18,7 @@ InfraSFilesSupportInformation = Informations techniques
 InfraSFilesPermMenu    = Voir le menu des paramètres
 InfraSFilesPermSpecif  = Modifier les paramètres du module
 InfraSFilesPermBkpRest = Sauvegarder / Restaurer les paramètres du module
-InfraSFilesPermRead    = Télécharger TOUS les fichiers du module (bons de prélèvement, inventaires...) sans le droit natif de chaque objet (à réserver aux administrateurs ; sans ce droit, chaque fichier exige le droit de lecture natif de son objet)
+InfraSFilesPermRead    = Télécharger TOUS les fichiers du module sans le droit natif de chaque objet (à réserver aux administrateurs)
 
 ### infras lib page ###
 InfraSFilesParams          = Paramètres InfraS

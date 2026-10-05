@@ -79,6 +79,7 @@ Inherited=Hérité
 UserWillBe=L'utilisateur créé sera
 UserWillBeInternalUser=L'utilisateur créé sera un utilisateur interne (car non lié à un tiers en particulier)
 UserWillBeExternalUser=L'utilisateur créé sera un utilisateur externe (car lié à un tiers en particulier)
+WarningUserDifferentContactSocid=Le tiers du contact est différent du tiers de l'utilisateur lié.
 IdPhoneCaller=Identifiant appelant (téléphone)
 NewUserCreated=Création utilisateur %s
 NewUserPassword=Changement mot de passe de %s

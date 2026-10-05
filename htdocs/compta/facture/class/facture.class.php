@@ -4533,6 +4533,13 @@ class Facture extends CommonInvoice
 	{
 		global $user;
 
+		// InfraS add begin
+		// The line must belong to this object (backport of Dolibarr fix #40995)
+		if (!$this->isLineOfObject($rowid)) {
+			$this->error = 'ErrorLineIDDoesNotMatchWithObjectID';
+			return -1;
+		}
+		// InfraS add end
 		// Deprecation warning
 		if ($label) {
 			dol_syslog(__METHOD__.": using line label is deprecated", LOG_WARNING);

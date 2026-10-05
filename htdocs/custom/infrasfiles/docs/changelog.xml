@@ -35,7 +35,10 @@
 	<Version Number="18.1.1" MonthVersion="2026-09">
 		<change type='chg'>Position du module dans la famille « Dolibarr LTS by InfraS » : 100010 → 100014 (renumérotation de la famille)</change>
 	</Version>
-	<InfraS Downloaded="20260929"/>
+	<Version Number="18.1.2" MonthVersion="2026-10">
+		<change type='fix'>Activation impossible en français (« Data too long for column 'libelle' ») : le libellé de la permission « Télécharger tous les fichiers du module » dépassait 255 caractères une fois encodé en HTML par Dolibarr (llx_rights_def.libelle) ; libellé raccourci dans les 4 langues.</change>
+	</Version>
+	<InfraS Downloaded="20261002"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

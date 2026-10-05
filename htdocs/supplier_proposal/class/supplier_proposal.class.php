@@ -745,6 +745,13 @@ class SupplierProposal extends CommonObject
 	{
 		global $conf, $user, $langs, $mysoc;
 
+		// InfraS add begin
+		// The line must belong to this object (backport of Dolibarr fix #40995)
+		if (!$this->isLineOfObject($rowid)) {
+			$this->error = 'ErrorLineIDDoesNotMatchWithObjectID';
+			return -1;
+		}
+		// InfraS add end
 		dol_syslog(get_class($this)."::updateLine $rowid, $pu, $qty, $remise_percent, $txtva, $desc, $price_base_type, $info_bits");
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/price.lib.php';
 
