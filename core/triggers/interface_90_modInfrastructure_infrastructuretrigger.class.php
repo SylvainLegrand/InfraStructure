@@ -470,6 +470,32 @@
 		}
 
 		/**
+		* Check if the parent document has an optional title
+		*
+		* @param	object	$object	Line object
+		* @return	bool			true if found or not checkable
+		*/
+		private function documentHasOptionalTitle($object)
+		{
+			$map	= ['propaldet' => 'fk_propal', 'commandedet' => 'fk_commande', 'facturedet' => 'fk_facture', 'facture_fourn_det' => 'fk_facture_fourn'];
+			$table	= $object->table_element ?? $object->element;
+			if (!isset($map[$table]) || empty($object->{$map[$table]})) {
+				return true;
+			}
+			$sql	= 'SELECT 1 FROM '.$this->db->prefix().$table.' AS d';
+			$sql	.= ' INNER JOIN '.$this->db->prefix().$table.'_extrafields AS e ON e.fk_object = d.rowid';
+			$sql	.= ' WHERE d.'.$map[$table].' = '.((int) $object->{$map[$table]});
+			$sql	.= " AND d.product_type = 9 AND e.infrastructure_ol = '1' LIMIT 1";	// varchar extrafield: compare as a string (PostgreSQL rejects varchar = integer)
+			$resql	= $this->db->query($sql);
+			if (!$resql) {
+				return true;
+			}
+			$found	= ($this->db->num_rows($resql) > 0);
+			$this->db->free($resql);
+			return $found;
+		}
+
+		/**
 		* Handle Optional line management
 		*
 		* @param	object		$object		Line object
@@ -484,6 +510,12 @@
 				dol_include_once('/infrastructure/core/lib/infrastructure.lib.php');
 			}
 			dol_syslog('[INFRASTRUCTURE_MANAGE_OL] Trigger "'.$this->name.'" for action "'.$action.'" launched by '.__FILE__.'. object='.$object->element.' id='.$object->id);
+			if (empty($object->array_options)) {
+				$object->fetch_optionals();
+			}
+			if (empty($object->array_options['options_infrastructure_ol']) && !$this->documentHasOptionalTitle($object)) {
+				return;
+			}
 			$TTitle	= TInfrastructure::getAllTitleFromLine($object);
 			foreach ($TTitle as &$line) {
 				if (!empty($line->array_options['options_infrastructure_ol'])) {
