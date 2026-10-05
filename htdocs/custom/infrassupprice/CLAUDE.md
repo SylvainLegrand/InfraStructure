@@ -199,6 +199,7 @@ Si modification SQL / descripteur / permissions / hooks / constantes :
 - Un avertissement s'affiche à la connexion si Dolibarr dépasse la version max supportée
 - Les scripts AJAX (`interface.php`, `message.php`) nécessitent `NOTOKENRENEWAL` et un contrôle d'accès
 - Le hook n'affiche le tableau que sur documents validés (statut ≥ 1) et si l'utilisateur a le droit `update`
+- `infrassupprice_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 15.3.7) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
 
 ## Dernières mises à jour (Recent updates)
 

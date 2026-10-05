@@ -88,10 +88,12 @@
 
 		$langs->load('infrassupprice@infrassupprice');
 
-		if (extension_loaded('xml')) {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	1, 'chaine', 0, 'InfraSSupPrice module', $conf->entity);
-		} else {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	-1, 'chaine', 0, 'InfraSSupPrice module', $conf->entity);
+		$expected	= extension_loaded('xml') ? '1' : '-1';
+		// Write only on change: a DELETE + INSERT on llx_const at each call collided with concurrent transactions (deadlocks)
+		if (getDolGlobalString('INFRAS_PHP_EXT_XML') !== $expected) {
+			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	$expected, 'chaine', 0, 'InfraSSupPrice module', $conf->entity);
+		}
+		if ($expected == '-1') {
 			setEventMessages('<span class = "infrassuppricecaution">'.$langs->trans('InfraSSupPriceCautionMess').'</span>'.$langs->trans('InfraSSupPriceXMLextError'), array(), 'warnings');
 		}
 	}

@@ -235,6 +235,7 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - Les durées en mois/années ne sont pas convertibles en secondes et affichent un avertissement
 - Le menu InfraS parent est créé automatiquement si aucun autre module InfraS ne l'a déjà fait (`infrastechinfos_no_topmenu()`)
 - Les lignes sans `fk_product` sont ignorées (lignes libres sans référence produit)
+- `infrastechinfos_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 15.2.5) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
 
 ## Dernières mises à jour (Recent updates)
 

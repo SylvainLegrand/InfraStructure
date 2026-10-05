@@ -354,6 +354,7 @@ Classe `InterfaceInfrastructuretrigger` dans `core/triggers/interface_90_modInfr
 | `RecurringInvoiceCreate` | Préserve les structures pour les factures récurrentes |
 | `SituationPercentReset` / `SituationFinal` | Gestion des factures de situation (avancement de travaux) |
 | `ComprisNonCompris` | Gestion de l'option NC (Non Compris) sur les lignes |
+| `OptionalLineManagement` | Lignes optionnelles (`INFRASTRUCTURE_MANAGE_OL`, événements `LINE*_INSERT` / `LINE*_MODIFY`) : `special_code = 3` sur une ligne cochée « Opt » ou placée sous un titre « Opt ». Depuis 21.8.7, sortie immédiate si la ligne n'est pas optionnelle et si `documentHasOptionalTitle()` ne trouve aucune ligne spéciale optionnelle dans le document (une requête SQL au lieu du rechargement complet du document par `getAllTitleFromLine()`) ; comparaison `infrastructure_ol = '1'` en chaîne car l'extrafield est un `varchar` (PostgreSQL refuse `varchar = integer` et annulerait la transaction) |
 | `getShippingList` | Récupération des expéditions d'une commande pour inclusion dans les titres |
 | `addToBegin` / `addToEnd` | Helpers publics statiques d'insertion |
 
@@ -460,7 +461,7 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 
 ## Points d'attention (Watchpoints)
 
-- `special_code = 550090` et `product_type = 9` identifient les lignes spéciales — le numéro `550090` est lu via `TInfrastructure::getModuleNumber()` (cache statique) et exposé dans `ActionsInfrastructure->module_number` (aucune valeur en dur dans les classes métier)
+- `special_code = 550090` et `product_type = 9` identifient les lignes spéciales — le numéro `550090` est défini une seule fois dans la constante `modInfrastructure::MODULE_NUMBER` (reprise par `$this->numero` du descripteur), lu via `TInfrastructure::getModuleNumber()` (cache statique, **sans instancier le descripteur** depuis 21.8.7) et exposé dans `ActionsInfrastructure->module_number` (aucune valeur en dur dans les classes métier)
 - Distinction titre / sous-total / texte libre via `qty` (titre : 1-9, sous-total : 91-99, texte libre : 50)
 - Module **incompatible** avec `modMilestone` (iNodbox) — bloqué à l'activation
 - La version locale est lue via `infrastructure_getLocalVersionMinDoli('infrastructure')` depuis `docs/changelog.xml`
@@ -471,6 +472,9 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 - Factures de situation : méthodes de calcul dédiées pour éviter l'accumulation de TVA (DA027405, 3.29.2) ; injection de lignes TVA invisibles pour le calcul Dolibarr (DA027547, 3.29.3)
 - Le descripteur référence `class/techatm.class.php` qui n'est plus présent — `dol_include_once` est tolérant et l'absence est silencieuse
 - Famille : `DOLINFRAS_FAMILY` si dolinfras est activé, sinon `'Modules '.$langs->trans('basenameInfrastructure')` (l'ancienne bascule `easya` sur `EASYA_VERSION` n'existe plus dans le descripteur)
+- **Ne jamais instancier `modInfrastructure` hors des pages d'administration** : son constructeur appelle `infrastructure_test_php_ext()` et lit le changelog. Incident d'octobre 2026 (PR GitHub #114, constaté chez Kytom) : `getModuleNumber()` instanciait le descripteur au milieu de la transaction d'ajout de ligne ; la réécriture de `INFRAS_PHP_EXT_XML` (DELETE + INSERT dans `llx_const`) provoquait des deadlocks entre requêtes simultanées. MariaDB annulait toute la transaction (ligne comprise) alors que Dolibarr, en transaction imbriquée, ignorait l'erreur, enregistrait la suite hors transaction et renvoyait l'identifiant : lignes perdues en silence. Depuis 21.8.7, `getModuleNumber()` lit `modInfrastructure::MODULE_NUMBER` et `infrastructure_test_php_ext()` n'écrit la constante que si sa valeur change (l'avertissement « extension XML manquante » reste affiché à chaque appel). Même règle appliquée aux `*_test_php_ext()` des autres modules InfraS
+- `infrastructure_getChangelogFile()` met en cache, par requête, le changelog local (`docs/changelog.xml`, ~150 Ko, auparavant relu à chaque instanciation du trigger) ; le changelog téléchargé (`changelogdwn.xml`) n'est jamais mis en cache car `infrastructure_dwnChangelog()` peut le réécrire pendant la requête
+- `script/interface.php` : contrôle d'accès en deux temps. (1) `restrictedArea()` (droit de lecture) sur l'élément posté : paramètre `element`, ou `data[element]` envoyé par le repli des blocs (`callInterface()` du JS n'envoie que `data`) ; (2) pour toute action `set`, droit d'écriture du document (`creer`, ou `fournisseur`/`commande|facture`/`creer` ou `supplier_order|supplier_invoice`/`creer` pour les fournisseurs, comme les fiches du cœur), sinon `accessforbidden()`. Un utilisateur en lecture seule voit donc un message d'erreur AJAX au repli d'un bloc : l'affichage est replié mais l'état n'est pas enregistré
 
 ## Dernières mises à jour (Recent updates)
 

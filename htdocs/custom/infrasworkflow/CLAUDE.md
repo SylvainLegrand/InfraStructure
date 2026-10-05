@@ -456,6 +456,7 @@ l'étape `core/actions_builddoc.inc.php` est bien atteinte (messages Dolibarr re
 - Le module auto-désactive si la version Dolibarr est inférieure au minimum requis
 - Les constantes `INFRASWORKFLOW_*` sont nombreuses (~48 en data.sql + ~8 runtime) ; éviter les changements massifs sans test fonctionnel
 - L'intégration `infraspackplus` est optionnelle mais active des fonctionnalités supplémentaires (modèle PDF, notes publiques)
+- `infrasworkflow_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 21.8.3) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
 
 ## Dernières mises à jour (Recent updates)
 
