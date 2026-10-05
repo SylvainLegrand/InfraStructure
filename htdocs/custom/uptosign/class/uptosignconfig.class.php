@@ -39,8 +39,16 @@ class UptoSignConfig extends CommonObject
 {
 	public const TRIGGER_PREFIX = 'UPTOSIGNCONFIG';
 
+	/**
+	 * @var array<int, string> Short label of each status, indexed by status code
+	 */
 	public $labelStatusShort;
+
+	/**
+	 * @var array<int, string> Long label of each status, indexed by status code
+	 */
 	public $labelStatus;
+
 	public $output;
 	public $user_validation;
 
@@ -135,16 +143,40 @@ class UptoSignConfig extends CommonObject
 		'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>-2,),
 		'status' => array('type'=>'integer', 'label'=>'Status', 'enabled'=>'1', 'position'=>1100, 'notnull'=>1, 'visible'=>1, 'default'=>'1', 'index'=>1, 'arrayofkeyval'=>array('0'=>'D&eacute;sactiver', '1'=>'Activer'),),
 	);
+	/**
+	 * @var int|null
+	 */
 	public $rowid;
 	public $entity;
+	/**
+	 * @var string|null
+	 */
 	public $label;
-	public $sign_or_seal; //'seal' or 'sign' pour savoir à quoi s'applique cette configuration
-	public $sign_coordinate; //coordonnées x;y de la signature
-	public $page_sign; //page où placer la signature
-	public $seal_coordinate; //coordonnées x;y où placer le scean
-	public $page_seal; //numero de la page sur laquelle poser le sceau
+	/**
+	 * @var string|null 'seal' or 'sign' pour savoir à quoi s'applique cette configuration
+	 */
+	public $sign_or_seal;
+	/**
+	 * @var string|null coordonnées x;y de la signature
+	 */
+	public $sign_coordinate;
+	/**
+	 * @var int|string|null page où placer la signature
+	 */
+	public $page_sign;
+	/**
+	 * @var string|null coordonnées x;y où placer le sceau
+	 */
+	public $seal_coordinate;
+	/**
+	 * @var int|string|null numero de la page sur laquelle poser le sceau
+	 */
+	public $page_seal;
 	public $model_pdf; //Nom combiné du type de modele + nom du modele de document pdf auxquel cette configuration s'applique ex. propal:azur
 	public $date_creation;
+	/**
+	 * @var int|string|null
+	 */
 	public $tms;
 	public $fk_user_creat;
 	public $fk_user_modif;
@@ -287,22 +319,12 @@ class UptoSignConfig extends CommonObject
 		unset($object->fk_user_creat);
 		$object->import_key = null;
 
-		// Clear fields
-		if (property_exists($object, 'ref')) {
-			$object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
-		}
-		if (property_exists($object, 'label')) {
-			$object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
-		}
-		if (property_exists($object, 'status')) {
-			$object->status = self::STATUS_DRAFT;
-		}
-		if (property_exists($object, 'date_creation')) {
-			$object->date_creation = dol_now();
-		}
-		if (property_exists($object, 'date_modification')) {
-			$object->date_modification = null;
-		}
+		// Clear fields (the class declares them all, no need to probe)
+		$object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
+		$object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
+		$object->status = self::STATUS_DRAFT;
+		$object->date_creation = dol_now();
+		$object->date_modification = null;
 		// ...
 		// Clear extrafields that are unique
 		if (is_array($object->array_options) && count($object->array_options) > 0) {
@@ -392,6 +414,7 @@ class UptoSignConfig extends CommonObject
 	 * @param  int         $offset       Offset
 	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
 	 * @param  string      $filtermode   Filter mode (AND or OR)
+	 * @param  int         $withdisabled Also return the configurations whose status is disabled
 	 * @return array|int                 int <0 if KO, array of pages if OK
 	 */
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND', $withdisabled = 0)
@@ -405,7 +428,6 @@ class UptoSignConfig extends CommonObject
 		if (((int) DOL_VERSION) < 14) {
 			$sql .= utsbackports_getFieldList($this);
 		} else {
-			/** @phpstan-ignore-next-line */
 			$sql .= $this->getFieldList('t');
 		}
 
@@ -503,13 +525,13 @@ class UptoSignConfig extends CommonObject
 			$sql .= " WHERE 1 = 1";
 		}
 		$sql .= " AND status = 1";
-		if (isset($modelpdf)) {
-			if ($type != '') {
-				$type = uptosign_unify_object_type($type);
-				$sql .= " AND model_pdf = '" . $this->db->escape($type . ':' . $modelpdf) . "'";
-			} else {
-				$sql .= " AND model_pdf = '" . $this->db->escape($modelpdf) . "'";
-			}
+		// $modelpdf is a parameter with a default, the isset() that wrapped this block
+		// was always true and only made the variable look optional
+		if ($type != '') {
+			$type = uptosign_unify_object_type($type);
+			$sql .= " AND model_pdf = '" . $this->db->escape($type . ':' . $modelpdf) . "'";
+		} else {
+			$sql .= " AND model_pdf = '" . $this->db->escape($modelpdf) . "'";
 		}
 		if ($signOrSeal != '') {
 			$sql .= " AND sign_or_seal = '" . $this->db->escape($signOrSeal) . "'";
@@ -566,10 +588,8 @@ class UptoSignConfig extends CommonObject
 		if (preg_match('/^[0-9]*,[0-9]*/', $this->seal_coordinate)) {
 			if (((int) DOL_VERSION) < 11) {
 				dol_syslog("uptosign, setStatusCommon is available on dolibarr > 10.0, let use old setStatut...", LOG_WARNING);
-				/** @phpstan-ignore-next-line */
 				$result = $this->setStatut(self::STATUS_VALIDATED, $this->id, $this->element);
 			} else {
-				/** @phpstan-ignore-next-line */
 				$result = $this->setStatusCommon($user, self::STATUS_VALIDATED);
 			}
 		} else {
@@ -653,10 +673,8 @@ class UptoSignConfig extends CommonObject
 
 		if (((int) DOL_VERSION) < 11) {
 			dol_syslog("uptosign, setStatusCommon is available on dolibarr > 10.0, let use old setStatut...", LOG_WARNING);
-			/** @phpstan-ignore-next-line */
 			return $this->setStatut(self::STATUS_DRAFT, $this->id, $this->element);
 		} else {
-			/** @phpstan-ignore-next-line */
 			return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'UPTOSIGNCONFIG_UNVALIDATE');
 		}
 	}
@@ -683,10 +701,8 @@ class UptoSignConfig extends CommonObject
 		 }*/
 		if (((int) DOL_VERSION) < 11) {
 			dol_syslog("uptosign, setStatusCommon is available on dolibarr > 10.0, let use old setStatut...", LOG_WARNING);
-			/** @phpstan-ignore-next-line */
 			return $this->setStatut(self::STATUS_CANCELED, $this->id, $this->element);
 		} else {
-			/** @phpstan-ignore-next-line */
 			return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'UPTOSIGNCONFIG_CANCEL');
 		}
 	}
@@ -713,10 +729,8 @@ class UptoSignConfig extends CommonObject
 		 }*/
 		if (((int) DOL_VERSION) < 11) {
 			dol_syslog("uptosign, setStatusCommon is available on dolibarr > 10.0, let use old setStatut...", LOG_WARNING);
-			/** @phpstan-ignore-next-line */
 			return $this->setStatut(self::STATUS_VALIDATED, $this->id, $this->element);
 		} else {
-			/** @phpstan-ignore-next-line */
 			return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'UPTOSIGNCONFIG_REOPEN');
 		}
 	}
@@ -915,7 +929,7 @@ class UptoSignConfig extends CommonObject
 				if (!empty($obj->fk_user_creat)) {
 					$this->fk_user_creat = $obj->fk_user_creat;
 				} else {
-					$this->fk_user_creat = utsbackports_getDolGlobalString('UPTOSIGN_DEFAULT_USER');
+					$this->fk_user_creat = (int) utsbackports_getDolGlobalString('UPTOSIGN_DEFAULT_USER');
 				}
 				$this->fk_user_modif = $obj->fk_user_modif;
 
@@ -1043,7 +1057,7 @@ class UptoSignConfig extends CommonObject
 	 *      @param	string	$element    element
 	 *      @param	string	$source     'internal', 'external' or 'all'
 	 *      @param	string	$order		Sort order by : 'position', 'code', 'rowid'...
-	 *      @return array       		Array list of type of contacts (id->label if option=0, code->label if option=1)
+	 *      @return array|null       	Array list of type of contacts (id->label), null on SQL error
 	 */
 	public function getTypeContactLabel($element, $source = 'external', $order = 'position')
 	{
@@ -1119,14 +1133,14 @@ class UptoSignConfig extends CommonObject
 	/**
 	 * Return Url link of origin object
 	 *
-	 * @param int $fk_origin  Id origin
-	 * @param int $origintype Type origin
+	 * @param int    $fk_origin  Id origin
+	 * @param string $origintype Type origin
 	 *
 	 * @return string
 	 */
 	public function getOriginUrl($fk_origin, $origintype)
 	{
-		$origin = '';
+		$origin = null;
 		switch ($origintype) {
 			case 'commande':
 				require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
@@ -1205,7 +1219,7 @@ class UptoSignConfig extends CommonObject
 				break;
 		}
 
-		if (empty($origin) || !is_object($origin)) {
+		if ($origin === null) {
 			return '';
 		}
 
@@ -1234,7 +1248,7 @@ class UptoSignConfig extends CommonObject
 	{
 		global $langs;
 		$value = "";
-		if ($key == 'rowid' && method_exists($this, 'getNomUrl')) {
+		if ($key == 'rowid') {
 			$value = $this->getNomUrl(0, '', 1, '', 1);
 		} elseif ($key == 'label') {
 			$value = $langs->trans("UptoSign".$object);
@@ -1252,7 +1266,7 @@ class UptoSignConfig extends CommonObject
 			//due to bug #10789
 			$a = $this->getDocumentModelDetails($object);
 			$value = uptosign_translate_object_type($a['type']) . " : " . $a['nom'];
-		} elseif ($key == 'status' && method_exists($this, 'getLibStatut')) {
+		} elseif ($key == 'status') {
 			$value = $this->getLibStatut(3);
 		}
 		if ($value != "") {
@@ -1266,7 +1280,7 @@ class UptoSignConfig extends CommonObject
 	 * Return HTML string to put an input field into a page
 	 * Code very similar with showInputField of extra fields
 	 *
-	 * @param  array   		$val	       Array of properties for field to show (used only if ->fields not defined)
+	 * @param  array|null	$val	       Array of properties for field to show (used only if ->fields not defined)
 	 * @param  string  		$key           Key of attribute
 	 * @param  string|array	$value         Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value, for array type must be array)
 	 * @param  string  		$moreparam     To add more parameters on html input tag
@@ -1338,7 +1352,6 @@ class UptoSignConfig extends CommonObject
 		if (((int) DOL_VERSION) < 11) {
 			return parent::showInputField($val, $key, $value, $moreparam, $keysuffix, $keyprefix, $morecss);
 		} else {
-			/** @phpstan-ignore-next-line */
 			return parent::showInputField($val, $key, $value, $moreparam, $keysuffix, $keyprefix, $morecss, $nonewbutton);
 		}
 	}

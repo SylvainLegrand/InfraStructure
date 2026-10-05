@@ -43,6 +43,34 @@ class UptoSignAPIClient
 	const MAX_AUTH_FAILURES = 3;
 
 	/**
+	 * Constant holding, per entity, the timestamp before which no request must be
+	 * sent. Stored in database on purpose: the in-memory breaker below only lives
+	 * for one PHP process, and a webhook storm or a page refresh gives every new
+	 * process its own fresh quota of rejected calls. That is precisely how an
+	 * instance keeps hammering a server that already answered 429.
+	 */
+	const BACKOFF_CONST_NAME = 'UPTOSIGN_API_BACKOFF_UNTIL';
+
+	/**
+	 * Constant holding how many times in a row the backoff had to be armed. Indexes
+	 * BACKOFF_DELAYS, so an API that keeps refusing is questioned less and less.
+	 */
+	const BACKOFF_LEVEL_CONST_NAME = 'UPTOSIGN_API_BACKOFF_LEVEL';
+
+	/**
+	 * Backoff durations in seconds, one per consecutive failure. The last one is
+	 * kept for every failure beyond the length of the list.
+	 */
+	const BACKOFF_DELAYS = array(300, 900, 1800, 3600);
+
+	/**
+	 * Hard ceiling for the pause between two calls of a loop, in milliseconds.
+	 * A mistyped UPTOSIGN_API_SLEEP_MS must not turn a nightly cron into a job
+	 * that never ends.
+	 */
+	const MAX_SLEEP_MS = 5000;
+
+	/**
 	 * @var DoliDB Database handler
 	 */
 	private $db;
@@ -53,9 +81,14 @@ class UptoSignAPIClient
 	private static $authFailures = 0;
 
 	/**
-	 * @var bool True once MAX_AUTH_FAILURES has been reached
+	 * @var bool True once the breaker has tripped in this process
 	 */
 	private static $circuitOpen = false;
+
+	/**
+	 * @var int Timestamp before which no request is sent, 0 when no backoff is armed
+	 */
+	private static $backoffUntil = 0;
 
 	/**
 	 * Constructor
@@ -73,12 +106,111 @@ class UptoSignAPIClient
 	 * Called when a new API key is stored: the previous failures are no longer
 	 * meaningful.
 	 *
+	 * @param  DoliDB|null $db Database handler used to clear the stored backoff
 	 * @return void
 	 */
-	public static function resetCircuit()
+	public static function resetCircuit($db = null)
 	{
 		self::$authFailures = 0;
 		self::$circuitOpen = false;
+		self::$backoffUntil = 0;
+		self::clearBackoff($db);
+	}
+
+	/**
+	 * Forget the backoff stored in database
+	 *
+	 * @param DoliDB|null $db Database handler, nothing is written without one
+	 * @return void
+	 */
+	public static function clearBackoff($db = null)
+	{
+		global $conf;
+
+		self::$backoffUntil = 0;
+
+		if (!is_object($db) || !function_exists('dolibarr_set_const')) {
+			return;
+		}
+		// Reading before writing: the constants are absent on the vast majority of
+		// calls, and a successful answer must not cost two writes every time.
+		if ((int) utsbackports_getDolGlobalString(self::BACKOFF_CONST_NAME, '0') == 0
+			&& (int) utsbackports_getDolGlobalString(self::BACKOFF_LEVEL_CONST_NAME, '0') == 0) {
+			return;
+		}
+
+		$entity = isset($conf->entity) ? (int) $conf->entity : 1;
+		dolibarr_set_const($db, self::BACKOFF_CONST_NAME, '0', 'chaine', 0, '', $entity);
+		dolibarr_set_const($db, self::BACKOFF_LEVEL_CONST_NAME, '0', 'chaine', 0, '', $entity);
+		$conf->global->{self::BACKOFF_CONST_NAME} = '0';
+		$conf->global->{self::BACKOFF_LEVEL_CONST_NAME} = '0';
+		dol_syslog("UptoSignAPIClient: the API answers again, backoff cleared");
+	}
+
+	/**
+	 * Timestamp before which no request must be sent
+	 *
+	 * Takes the latest of what this process knows and what another process stored,
+	 * so a backoff armed by a webhook also holds back the cron.
+	 *
+	 * @return int Timestamp, 0 when no backoff is armed
+	 */
+	public static function backoffUntil()
+	{
+		$stored = (int) utsbackports_getDolGlobalString(self::BACKOFF_CONST_NAME, '0');
+		return max(self::$backoffUntil, $stored);
+	}
+
+	/**
+	 * Arm the backoff after the server refused to answer
+	 *
+	 * @param DoliDB|null $db       Database handler, the delay is not persisted without one
+	 * @param string      $reason   What tripped the breaker, for the log
+	 * @return int                  Number of seconds the client will stay quiet
+	 */
+	public static function armBackoff($db = null, $reason = '')
+	{
+		global $conf;
+
+		$level = (int) utsbackports_getDolGlobalString(self::BACKOFF_LEVEL_CONST_NAME, '0');
+		$level++;
+		$delays = self::BACKOFF_DELAYS;
+		$delay = $delays[min($level, count($delays)) - 1];
+		$until = dol_now() + $delay;
+
+		self::$backoffUntil = $until;
+		self::$circuitOpen = true;
+
+		if (is_object($db) && function_exists('dolibarr_set_const')) {
+			$entity = isset($conf->entity) ? (int) $conf->entity : 1;
+			dolibarr_set_const($db, self::BACKOFF_CONST_NAME, (string) $until, 'chaine', 0, '', $entity);
+			dolibarr_set_const($db, self::BACKOFF_LEVEL_CONST_NAME, (string) $level, 'chaine', 0, '', $entity);
+			$conf->global->{self::BACKOFF_CONST_NAME} = (string) $until;
+			$conf->global->{self::BACKOFF_LEVEL_CONST_NAME} = (string) $level;
+		} else {
+			dol_syslog("UptoSignAPIClient: no database handler, the backoff only holds for this process", LOG_WARNING);
+		}
+
+		dol_syslog("UptoSignAPIClient: " . $reason . ", no request will be sent for " . $delay . "s (until " . dol_print_date($until, '%Y-%m-%d %H:%M:%S') . ", failure #" . $level . ")", LOG_ERR);
+
+		return $delay;
+	}
+
+	/**
+	 * Pause between two calls of a loop
+	 *
+	 * Downloading a batch of documents as fast as the network allows is what turns
+	 * a legitimate cron into something an anti abuse filter reads as an attack.
+	 *
+	 * @return void
+	 */
+	public static function pauseBetweenCalls()
+	{
+		$ms = (int) utsbackports_getDolGlobalString('UPTOSIGN_API_SLEEP_MS', '250');
+		if ($ms <= 0) {
+			return;
+		}
+		usleep(min($ms, self::MAX_SLEEP_MS) * 1000);
 	}
 
 	/**
@@ -114,12 +246,21 @@ class UptoSignAPIClient
 	 * only ever trips on truly consecutive auth failures. A curl-level failure
 	 * (http_code == 0) is left untouched: it says nothing about authentication.
 	 *
+	 * A 429 (rate limit) or a 503 trips the breaker on its own, without waiting for
+	 * MAX_AUTH_FAILURES: the server is explicitly asking to stop, and a second
+	 * question is already one too many.
+	 *
 	 * @param int $httpCode HTTP status code
 	 * @return void
 	 */
 	public static function registerHttpResult($httpCode)
 	{
 		$httpCode = (int) $httpCode;
+
+		if ($httpCode == 429 || $httpCode == 503) {
+			self::$circuitOpen = true;
+			return;
+		}
 
 		if ($httpCode == 401 || $httpCode == 403) {
 			self::$authFailures++;
@@ -212,6 +353,15 @@ class UptoSignAPIClient
 				$response['curl_error'] = 'Too many consecutive authentication failures';
 				return $response;
 			}
+
+			// A backoff armed by another process (webhook, previous cron run) also
+			// applies here, otherwise the quiet period is only ever one process deep.
+			$until = self::backoffUntil();
+			if ($until > dol_now()) {
+				dol_syslog("UptoSignAPIClient: backoff active until " . dol_print_date($until, '%Y-%m-%d %H:%M:%S') . ", request $method $path not sent", LOG_WARNING);
+				$response['curl_error'] = 'API backoff active until ' . dol_print_date($until, '%Y-%m-%d %H:%M:%S');
+				return $response;
+			}
 		}
 
 		// Temporarily reduce log verbosity during HTTP calls
@@ -233,7 +383,16 @@ class UptoSignAPIClient
 		$response['content'] = $result['content'] ?? '';
 
 		if ($withBearer) {
+			$wasOpen = self::$circuitOpen;
 			self::registerHttpResult($response['http_code']);
+
+			if (!$wasOpen && self::$circuitOpen) {
+				// Persist the quiet period the moment the breaker trips, so the next
+				// process does not start a fresh burst of refused calls.
+				self::armBackoff($this->db, 'HTTP ' . $response['http_code'] . ' on ' . $method . ' ' . $path);
+			} elseif ($response['http_code'] >= 200 && $response['http_code'] < 300) {
+				self::clearBackoff($this->db);
+			}
 		}
 
 		if (!empty($result['curl_error_msg'])) {

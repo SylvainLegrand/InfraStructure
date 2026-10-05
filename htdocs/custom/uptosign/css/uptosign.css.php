@@ -166,8 +166,29 @@ div.mainmenu.uptosign {
 	bottom: 0;
 	z-index: 100000;
 	background: rgba(20, 28, 36, 0.72);
-	padding: 24px;
+	/* Top band wide enough for the close button to sit outside of the frame */
+	padding: 38px 24px 24px 24px;
 	box-sizing: border-box;
+}
+
+.uptosign-modal-close {
+	position: absolute;
+	top: 4px;
+	right: 24px;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.15);
+	color: #ffffff;
+	font-size: 20px;
+	line-height: 26px;
+	cursor: pointer;
+}
+
+.uptosign-modal-close:hover {
+	background: rgba(255, 255, 255, 0.3);
 }
 
 .uptosign-modal-frame {
@@ -185,7 +206,10 @@ body.uptosign-modal-open {
 
 @media only screen and (max-width: 800px) {
 	.uptosign-modal-overlay {
-		padding: 0;
+		padding: 34px 0 0 0;
+	}
+	.uptosign-modal-close {
+		right: 4px;
 	}
 	.uptosign-modal-frame {
 		border-radius: 0;

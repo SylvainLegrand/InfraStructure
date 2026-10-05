@@ -214,7 +214,9 @@ class ActionsUptoSign
 					}
 					setEventMessages($errormessage, [], 'warnings');
 					return -1;
-				} elseif (count($listContacts) == 0 && empty($listContacts['noSign'])) {
+				} elseif (count($listContacts) == 0) {
+					// A document type with signature disabled still fills a 'noSign'
+					// counter, so an empty array really means "nobody to sign".
 					setEventMessages($langs->trans('UptoSignContactMissing'), [], 'warnings');
 					return -1;
 				}
@@ -326,10 +328,11 @@ class ActionsUptoSign
 				// no break
 			case "uptosealsync":
 				if ($signOrSeal == "") {
-					// Deduce signOrSeal from the current action: uptosealsync -> seal, uptosignsync -> sign.
-					$signOrSeal = ($action == 'uptosealsync') ? 'seal' : 'sign';
+					// Only reached by "uptosealsync" itself: the two cases above set
+					// $signOrSeal before falling through.
+					$signOrSeal = 'seal';
 				}
-				if (!isset($mode) || $mode == "") {
+				if (!isset($mode)) {
 					$mode = 'sync';
 				}
 
@@ -657,9 +660,7 @@ class ActionsUptoSign
 				$minStatus = 1;
 				$maxStatus = 1;
 			} else {
-				/** @phpstan-ignore-next-line */
 				$minStatus = Contrat::STATUS_VALIDATED;
-				/** @phpstan-ignore-next-line */
 				$maxStatus = Contrat::STATUS_VALIDATED;
 			}
 		} elseif ($currentcontext == 'expeditioncard') {
@@ -1350,25 +1351,6 @@ class ActionsUptoSign
 		);
 
 		return 0;
-	}
-
-	private function _getMoreInfoFor($object)
-	{
-		$out = "";
-		$uptoSign = new UptoSign($this->db);
-		// $result = $uptoSign->fetchAll(null, null, $object->id, $object->element);
-		$object_type = uptosign_unify_object_type($object->element);
-		$result = $uptoSign->fetchByObject((int) $object->id, $object_type);
-		foreach ($result as $uts) {
-			// print '<p>'.json_encode($uts).'</p>';
-			if ($uts->api_name == 'uptoseal') {
-				$out .= " <a href='" . dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . $uts->id . "' title='Document scellé par UpToSign'><i class=\"fas fa-stamp\"></i></a>";
-			} elseif ($uts->api_name == 'uptosign') {
-				$out .= " <a href='" . dol_buildpath('/uptosign/uptosign_card.php', 1) . '?id=' . $uts->id . "' title='Signature électronique UpToSign'><i class=\"fas fa-signature\"></i></a>";
-			}
-		}
-		// print "<p> on a $out</p>";
-		return $out;
 	}
 
 	/**

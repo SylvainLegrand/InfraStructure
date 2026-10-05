@@ -35,10 +35,23 @@ class UptoSignList extends CommonObject
 {
 	public const TRIGGER_PREFIX = 'UPTOSIGNLIST';
 
+	/**
+	 * @var int|null Thirdparty the list belongs to
+	 */
 	public $socid;
+
 	public $oldref;
+
+	/**
+	 * @var array<int, string> Short label of each status, indexed by status code
+	 */
 	public $labelStatusShort;
+
+	/**
+	 * @var array<int, string> Long label of each status, indexed by status code
+	 */
 	public $labelStatus;
+
 	public $output;
 
 	/**
@@ -162,29 +175,60 @@ class UptoSignList extends CommonObject
 		'model_pdf' => array('type'=>'varchar(255)', 'label'=>'Model pdf', 'enabled'=>'1', 'position'=>1010, 'notnull'=>-1, 'visible'=>0,),
 		'status' => array('type'=>'integer', 'label'=>'Status', 'enabled'=>'1', 'position'=>2000, 'notnull'=>1, 'visible'=>4, 'index'=>1, 'arrayofkeyval'=>array('0'=>'Brouillon', '1'=>'Valid&eacute;', '9'=>'Annul&eacute;'), 'validate'=>'1',),
 	);
+	/**
+	 * @var int|null
+	 */
 	public $rowid;
 	public $ref;
 	public $entity;
+	/**
+	 * @var string|null
+	 */
 	public $label;
+	/**
+	 * @var string|null
+	 */
 	public $description;
 	public $note_public;
 	public $note_private;
 	public $date_creation;
+	/**
+	 * @var int|string|null
+	 */
 	public $tms;
 	public $fk_user_creat;
 	public $fk_user_modif;
 	public $last_main_doc;
 	public $import_key;
 	// Mailing-related properties (set when uptosignlist_cibles.php updates the email metadata).
+	/**
+	 * @var string|null
+	 */
 	public $title;
+	/**
+	 * @var string|null
+	 */
 	public $email_from;
+	/**
+	 * @var string|null
+	 */
 	public $email_replyto;
+	/**
+	 * @var string|null
+	 */
 	public $email_errorsto;
 	public $model_pdf;
 	public $status;
 	// END MODULEBUILDER PROPERTIES
 
+	/**
+	 * @var int Cached number of recipients of the list
+	 */
 	private $_nb_contacts = 0;
+
+	/**
+	 * @var array<int, object> Cached recipient rows of the list
+	 */
 	private $_contacts = [];
 
 
@@ -315,22 +359,12 @@ class UptoSignList extends CommonObject
 		unset($object->fk_user_creat);
 		$object->import_key = null;
 
-		// Clear fields
-		if (property_exists($object, 'ref')) {
-			$object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
-		}
-		if (property_exists($object, 'label')) {
-			$object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
-		}
-		if (property_exists($object, 'status')) {
-			$object->status = self::STATUS_DRAFT;
-		}
-		if (property_exists($object, 'date_creation')) {
-			$object->date_creation = dol_now();
-		}
-		if (property_exists($object, 'date_modification')) {
-			$object->date_modification = null;
-		}
+		// Clear fields (the class declares them all, no need to probe)
+		$object->ref = empty($this->fields['ref']['default']) ? "Copy_Of_".$object->ref : $this->fields['ref']['default'];
+		$object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
+		$object->status = self::STATUS_DRAFT;
+		$object->date_creation = dol_now();
+		$object->date_modification = null;
 		// ...
 		// Clear extrafields that are unique
 		if (is_array($object->array_options) && count($object->array_options) > 0) {
@@ -936,23 +970,19 @@ class UptoSignList extends CommonObject
 		$return .= img_picto('', $this->picto);
 		$return .= '</span>';
 		$return .= '<div class="info-box-content">';
-		$return .= '<span class="info-box-ref inline-block tdoverflowmax150 valignmiddle">'.(method_exists($this, 'getNomUrl') ? $this->getNomUrl() : $this->ref).'</span>';
+		$return .= '<span class="info-box-ref inline-block tdoverflowmax150 valignmiddle">'.$this->getNomUrl().'</span>';
 		if ($selected >= 0) {
 			$return .= '<input id="cb'.$this->id.'" class="flat checkforselect fright" type="checkbox" name="toselect[]" value="'.$this->id.'"'.($selected ? ' checked="checked"' : '').'>';
 		}
-		if (property_exists($this, 'label')) {
-			$return .= ' <div class="inline-block opacitymedium valignmiddle tdoverflowmax100">'.$this->label.'</div>';
-		}
-		if (property_exists($this, 'thirdparty') && is_object($this->thirdparty)) {
+		$return .= ' <div class="inline-block opacitymedium valignmiddle tdoverflowmax100">'.$this->label.'</div>';
+		if (is_object($this->thirdparty)) {
 			$return .= '<br><div class="info-box-ref tdoverflowmax150">'.$this->thirdparty->getNomUrl(1).'</div>';
 		}
 		if (property_exists($this, 'amount')) {
 			$return .= '<br>';
 			$return .= '<span class="info-box-label amount">'.price($this->amount, 0, $langs, 1, -1, -1, $conf->currency).'</span>';
 		}
-		if (method_exists($this, 'getLibStatut')) {
-			$return .= '<br><div class="info-box-status margintoponly">'.$this->getLibStatut(3).'</div>';
-		}
+		$return .= '<br><div class="info-box-status margintoponly">'.$this->getLibStatut(3).'</div>';
 		$return .= '</div>';
 		$return .= '</div>';
 		$return .= '</div>';
@@ -1127,11 +1157,13 @@ class UptoSignList extends CommonObject
 			foreach ($dirmodels as $reldir) {
 				$dir = dol_buildpath($reldir."core/modules/uptosign/");
 
-				// Load file with numbering class (if found)
-				$mybool |= @include_once $dir.$file;
+				// Load file with numbering class (if found). "|=" turned the flag into
+				// an int, so the "=== false" test below never fired and a missing
+				// numbering file went through unreported.
+				$mybool = ((bool) @include_once $dir.$file) || $mybool;
 			}
 
-			if ($mybool === false) {
+			if (!$mybool) {
 				dol_print_error($this->db, "Failed to include file ".$file);
 				return '';
 			}

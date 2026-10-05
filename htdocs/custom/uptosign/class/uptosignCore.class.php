@@ -34,8 +34,33 @@ dol_include_once('/uptosign/core/modules/modUptoSign.class.php');
  * note to developpers: please don't use uptosign object, stay on uptosignCore : that is a stable
  * public interface to all uptosign internal stuff :-)
  */
+/**
+ * The attributes below are reached through __get()/__set(), they are the public
+ * surface an external module talks to.
+ *
+ * @property DoliDB|null                             $db               database
+ * @property string|null                             $src_file_name    full file name (and path) to sign or seal
+ * @property CommonObject|null                       $object           dolibarr object
+ * @property array<int, array<string, mixed>>|null   $list_of_signers  people who must sign that file
+ * @property string|null                             $procedure        "sign" or "seal"
+ * @property string                                  $plugin_name      calling plugin name
+ * @property int                                     $seal_x           x position (in mm) of seal stamp
+ * @property int                                     $seal_y           y position (in mm) of seal stamp
+ * @property int                                     $seal_page        page number where to put seal
+ * @property string                                  $title            document title
+ * @property bool                                    $redirect_sign    transparent redirect to uptosign
+ * @property string                                  $redirect_end     redirect page at the end of process
+ * @property string                                  $hook_uri         uri the uptosign server calls back
+ * @property string                                  $hook_key         key used for that hook
+ * @property string                                  $mail_alerts      email where alerts will be sent
+ *
+ * @implements ArrayAccess<string, mixed>
+ */
 class uptosignCore implements ArrayAccess
 {
+	/**
+	 * @var array<int, string> Attribute names a caller is allowed to set
+	 */
 	protected $fillable = [
 		'db',
 		'src_file_name',
@@ -56,6 +81,9 @@ class uptosignCore implements ArrayAccess
 		'mail_alerts'
 	];
 
+	/**
+	 * @var array<string, mixed> Current value of every attribute of the request
+	 */
 	protected $attributes = [
 		'db' => null,              // database
 		'src_file_name' => null,   // full file name(and path) to sign or seal
@@ -110,9 +138,20 @@ class uptosignCore implements ArrayAccess
 	 *
 	*/
 
+	/**
+	 * @var array<string, mixed> Result of the last run(), handed back by getResult()
+	 */
 	private $resultArray;
+
+	/**
+	 * @var string Last error message, empty when the last call went through
+	 */
 	private $error;
-	private $uptosign; //"real" uptosign object
+
+	/**
+	 * @var UptoSign|null "real" uptosign object
+	 */
+	private $uptosign;
 
 	/**
 	 * Create a new instance.
@@ -149,7 +188,7 @@ class uptosignCore implements ArrayAccess
 	 *
 	 * @param string $key The key data to retrieve
 	 * @access public
-	 * @return void
+	 * @return mixed The stored value, null when the key is unknown
 	 */
 	public function &__get($key)
 	{
@@ -165,11 +204,11 @@ class uptosignCore implements ArrayAccess
 	 * @param string $key The data key to assign the value to
 	 * @param mixed  $value The value to set
 	 * @access public
-	 * @return bool false on error, true elsewere
+	 * @return void PHP discards whatever __set() returns
 	 */
 	public function __set($key, $value)
 	{
-		return $this->setAttribute($key, $value);
+		$this->setAttribute($key, $value);
 	}
 
 	/**
@@ -202,7 +241,7 @@ class uptosignCore implements ArrayAccess
 	/**
 	 * Assigns a value to the specified offset
 	 *
-	 * @param string $offset The offset to assign the value to
+	 * @param string|null $offset The offset to assign the value to
 	 * @param mixed  $value The value to set
 	 * @access public
 	 * @abstracting ArrayAccess
