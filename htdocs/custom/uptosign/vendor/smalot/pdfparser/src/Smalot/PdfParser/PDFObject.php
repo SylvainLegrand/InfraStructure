@@ -801,7 +801,9 @@ class PDFObject
 
                         // Check this is not a circular reference.
                         if (!\in_array($xobject->getUniqueId(), self::$recursionStack, true)) {
+
                             $text[] = $xobject->getText($page);
+
                         }
                         // InfraS change end
                         break;
