@@ -28,7 +28,10 @@
 	<Version Number="18.4.0" MonthVersion="2026-09">
 		<change type='add'>Activation automatique, pendant l'installation de Dolibarr, des modules de la marque de l'instance (fichier htdocs/BRAND) ou, si la marque est vide ou sans liste propre, d'une liste par défaut reprenant les modules jusqu'ici forcés par le fichier install.forced.php : modules natifs ou externes, activés avec leurs dépendances uniquement s'ils sont installés. Le fichier install.forced.php ne force plus que le module dolinfras</change>
 	</Version>
-	<InfraS Downloaded="20260928"/>
+	<Version Number="18.4.1" MonthVersion="2026-10">
+		<change type='fix'>Accès simultanés : dolinfras_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente. Même correction dans dolinfras_getVersionDolinfras(), appelée à chaque connexion (hook afterLogin), qui réécrivait DOLINFRAS_VERSION et DOLINFRAS_FAMILY : elles ne sont plus écrites que si leur valeur change (mise à jour de Dolibarr par exemple).</change>
+	</Version>
+	<InfraS Downloaded="20261005"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

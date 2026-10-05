@@ -233,6 +233,7 @@ Tout est natif, la page `document.php` du module sert de support :
 - Destinataires du mail (L4) : la liste propose les contacts des tiers des lignes du bon (hook `getFormMail`), rien n'est pré-rempli dans le champ libre ; un bon peut concerner plusieurs tiers.
 - Fichiers du module : un fichier est toujours traité avec la permission de **son** élément, déduit du premier segment de son chemin par `infrasfiles_element_from_file()` — suppression depuis une fiche native (`remove_file` refuse un fichier d'un autre élément que celui de la fiche) et téléchargement (`checkSecureAccess`). Audit du 2026-09-10.
 - `document.php` : les templates natifs construisent leurs URL en `PHP_SELF?id=` ; `$moreparam` (formulaire d'ajout de fichier / lien) et `$backtopage` (redirection après suppression) portent le paramètre `element`, sinon la page répond « accès refusé » (bug corrigé le 2026-09-10).
+- `infrasfiles_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 18.1.3) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
 
 ## Conventions de développement
 

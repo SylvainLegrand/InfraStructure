@@ -187,7 +187,10 @@
 		<change type='chg'>Le pourcentage d'une remise est stocké dans un nouvel extrafield caché de ligne (specialvalue), créé à l'activation du module : modifier la description d'une remise ne casse plus son recalcul. Les remises existantes restent lues dans la description et sont complétées à leur premier recalcul (désactiver puis réactiver le module)</change>
 		<change type='chg'>Une remise dont le montant est nul uniquement à cause de sa position (placée au-dessus des lignes) n'est plus supprimée automatiquement ; elle reste supprimée quand le document ne contient plus aucune ligne de son type</change>
 	</Version>
-	<InfraS Downloaded="20261001"/>
+	<Version Number="15.3.12" MonthVersion="2026-10">
+		<change type='fix'>Accès simultanés : infrasdiscount_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente.</change>
+	</Version>
+	<InfraS Downloaded="20261005"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="23.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

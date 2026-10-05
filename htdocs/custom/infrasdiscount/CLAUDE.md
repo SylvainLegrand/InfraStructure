@@ -219,6 +219,7 @@ Si modification SQL / descripteur / permissions / hooks / triggers :
 - La position des lignes de remise dans le document compte pour le calcul en cascade
 - Les lignes du module Subtotal (titres, sous-totaux, textes libres) sont exclues via `infrasdiscount_isSubtotalLine()`
 - La constante `INVOICE_KEEP_DISCOUNT_LINES_AS_IN_ORIGIN` est activée automatiquement pour préserver les remises lors de la transformation devis → commande → facture
+- `infrasdiscount_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 15.3.12) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
 
 ## Dernières mises à jour (Recent updates)
 

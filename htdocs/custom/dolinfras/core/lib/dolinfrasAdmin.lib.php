@@ -494,12 +494,16 @@
 
 		$langs->load('dolinfras@dolinfras');
 
-		if (extension_loaded('xml')) {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	1, 'chaine', 0, 'DolInfraS module', $conf->entity);
-		} else {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	-1, 'chaine', 0, 'DolInfraS module', $conf->entity);
+		// InfraS change begin
+		$expected	= extension_loaded('xml') ? '1' : '-1';
+		// Write only on change: a DELETE + INSERT on llx_const at each call collided with concurrent transactions (deadlocks)
+		if (getDolGlobalString('INFRAS_PHP_EXT_XML') !== $expected) {
+			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	$expected, 'chaine', 0, 'DolInfraS module', $conf->entity);
+		}
+		if ($expected == '-1') {
 			setEventMessages('<span class = "dolinfrasCaution">'.$langs->trans('DolInfraSCautionMess').'</span>'.$langs->trans('InfraSXMLextError'), array(), 'warnings');
 		}
+		// InfraS change end
 	}
 
 	/**
@@ -560,9 +564,16 @@
 			$version = trim(file_get_contents($file));
 		}
 		if (!empty($version)) {
-			dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'DolInfraS module', $conf->entity);
+			// InfraS change begin
+			// Write only on change: called at each login, a DELETE + INSERT on llx_const collided with concurrent transactions
+			if (getDolGlobalString('DOLINFRAS_VERSION') !== $version) {
+				dolibarr_set_const($db, 'DOLINFRAS_VERSION', $version, 'chaine', 0, 'DolInfraS module', $conf->entity);
+			}
 			$family	= '<span class = "dolinfraspuentedolibarr">Dolibarr</span> LTS by <span class = "dolinfrasneuropolinfras"> InfraS</span>';
-			dolibarr_set_const($db, 'DOLINFRAS_FAMILY', $family, 'chaine', 0, 'DolInfraS module', $conf->entity);
+			if (getDolGlobalString('DOLINFRAS_FAMILY') !== $family) {
+				dolibarr_set_const($db, 'DOLINFRAS_FAMILY', $family, 'chaine', 0, 'DolInfraS module', $conf->entity);
+			}
+			// InfraS change end
 		}
 	}
 

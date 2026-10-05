@@ -100,10 +100,12 @@
 		global $db, $conf, $langs;
 
 		$langs->load('infrasworkflow@infrasworkflow');
-		if (extension_loaded('xml')) {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML', 1, 'chaine', 0, 'InfraSWorkflow module', $conf->entity);
-		} else {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML', -1, 'chaine', 0, 'InfraSWorkflow module', $conf->entity);
+		$expected	= extension_loaded('xml') ? '1' : '-1';
+		// Write only on change: a DELETE + INSERT on llx_const at each call collided with concurrent transactions (deadlocks)
+		if (getDolGlobalString('INFRAS_PHP_EXT_XML') !== $expected) {
+			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML', $expected, 'chaine', 0, 'InfraSWorkflow module', $conf->entity);
+		}
+		if ($expected == '-1') {
 			setEventMessages('<span class = "infrasworkflowcaution">'.$langs->trans('InfraSWorkflowCautionMess').'</span>'.$langs->trans('InfraSXMLextError'), array(), 'warnings');
 		}
 	}

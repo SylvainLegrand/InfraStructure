@@ -191,6 +191,7 @@ Si modification du descripteur / permissions / hooks / constantes :
 - Les pages de substitution sont des copies adaptées du core Dolibarr ; toute montée de version Dolibarr peut nécessiter une mise à jour de ces pages
 - Le module se désactive automatiquement si la version Dolibarr est inférieure au minimum requis
 - La constante `PRODUIT_CUSTOMER_PRICES` est essentielle et activée automatiquement par le module
+- `infrascusp_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 18.1.8) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
 
 ## Dernières mises à jour (Recent updates)
 

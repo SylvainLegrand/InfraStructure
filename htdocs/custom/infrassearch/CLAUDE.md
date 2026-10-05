@@ -350,6 +350,7 @@ Si modification SQL / descripteur / permissions / constantes / hooks :
 - Le cookie `infrassearch_tblPSexp` est isolé pour éviter les collisions avec d'autres modules InfraS
 - La recherche peut générer des requêtes SQL complexes — surveiller les performances sur de gros volumes
 - Le hook `printCommonFooter` s'exécute sur toutes les pages — attention aux impacts de performance
+- `infrassearch_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 15.5.2) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
 
 ## Dernières mises à jour (Recent updates)
 
