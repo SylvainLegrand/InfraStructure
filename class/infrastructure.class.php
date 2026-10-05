@@ -28,11 +28,13 @@
 
 	class TInfrastructure
 	{
-		/** @var int|null Cache du numéro du module (lu depuis modInfrastructure->numero) */
+		/** @var int|null Cache du numéro du module (lu depuis modInfrastructure::MODULE_NUMBER) */
 		public static $module_number = null;
 
 		/**
-		*	Retourne le numéro du module lu depuis le descripteur modInfrastructure.
+		*	Retourne le numéro du module lu depuis la constante modInfrastructure::MODULE_NUMBER.
+		*	Le descripteur n'est pas instancié : son constructeur écrit en base (infrastructure_test_php_ext())
+		*	et lit le changelog, ce qui n'a pas sa place dans un accesseur appelé en pleine transaction.
 		*	Mis en cache en propriété statique à la première lecture.
 		*
 		*	@return	int
@@ -40,10 +42,8 @@
 		public static function getModuleNumber()
 		{
 			if (self::$module_number === null) {
-				global $db;
 				dol_include_once('/infrastructure/core/modules/modInfrastructure.class.php');
-				$mod					= new modInfrastructure($db);
-				self::$module_number	= (int) $mod->numero;
+				self::$module_number	= (int) modInfrastructure::MODULE_NUMBER;
 			}
 			return self::$module_number;
 		}

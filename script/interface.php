@@ -86,6 +86,22 @@
 	$get	= GETPOST('get', 'aZ09');
 	$set	= GETPOST('set', 'aZ09');
 
+	// Write access control for state-changing actions: restrictedArea() above only checks the read permission
+	if (!empty($set)) {
+		if ($TElementToRight[$elementPost] == 'fournisseur') {
+			if (in_array($elementPost, ['order_supplier', 'CommandeFournisseur'])) {
+				$canWrite	= $user->hasRight('fournisseur', 'commande', 'creer') || $user->hasRight('supplier_order', 'creer');
+			} else {
+				$canWrite	= $user->hasRight('fournisseur', 'facture', 'creer') || $user->hasRight('supplier_invoice', 'creer');
+			}
+		} else {
+			$canWrite	= $user->hasRight($TElementToRight[$elementPost], 'creer');
+		}
+		if (!$canWrite) {
+			accessforbidden();
+		}
+	}
+
 	// CSRF protection for state-changing actions
 	if (!empty($set)) {
 		$sentToken	= GETPOST('token', 'alphanohtml');

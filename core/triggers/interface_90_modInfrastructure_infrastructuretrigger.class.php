@@ -485,7 +485,7 @@
 			$sql	= 'SELECT 1 FROM '.$this->db->prefix().$table.' AS d';
 			$sql	.= ' INNER JOIN '.$this->db->prefix().$table.'_extrafields AS e ON e.fk_object = d.rowid';
 			$sql	.= ' WHERE d.'.$map[$table].' = '.((int) $object->{$map[$table]});
-			$sql	.= ' AND d.product_type = 9 AND e.infrastructure_ol = 1 LIMIT 1';
+			$sql	.= " AND d.product_type = 9 AND e.infrastructure_ol = '1' LIMIT 1";	// varchar extrafield: compare as a string (PostgreSQL rejects varchar = integer)
 			$resql	= $this->db->query($sql);
 			if (!$resql) {
 				return true;

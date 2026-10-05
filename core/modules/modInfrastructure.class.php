@@ -37,6 +37,7 @@
 	{
 		public $editor_email;	// @var string Editor email
 		public $special;		// @var int Module type (0=common, 1=interface, 2=others, 3=very specific)
+		public const MODULE_NUMBER	= 550090;	// @var int Unique Id for module, read by TInfrastructure::getModuleNumber() without instantiating the descriptor
 
 		/**
 		* 	Constructor. Define names, constants, directories, boxes, permissions
@@ -50,7 +51,7 @@
 			$langs->load('infrastructure@infrastructure');
 			infrastructure_test_php_ext();
 			$this->db 				= $db;
-			$this->numero			= 550090;																									// Unique Id for module
+			$this->numero			= self::MODULE_NUMBER;																						// Unique Id for module
 			$this->name				= preg_replace('/^mod/i', '', strtolower(get_class($this)));												// Module label (no space allowed)
 			$this->editor_name		= '<b>InfraS - Sylvain Legrand</b>';
 			$this->editor_email		= 'support@infras.fr';

@@ -85,8 +85,9 @@
 	}
 
 	/**
-	*	Test if the PHP extension 'XML' is loaded
+	*	Test if the PHP extension 'XML' is loaded and store the result in INFRAS_PHP_EXT_XML (written only when it changes)
 	*
+	*	@return	void
 	**/
 	function infrastructure_test_php_ext()
 	{
@@ -94,15 +95,12 @@
 
 		$langs->load('infrastructure@infrastructure');
 
-		// Write only on change: runs on every request, concurrent writes rolled back other transactions
 		$expected	= extension_loaded('xml') ? '1' : '-1';
-		if (getDolGlobalString('INFRAS_PHP_EXT_XML') === $expected) {
-			return;
+		// Write only on change: this runs on every request, and a DELETE + INSERT on llx_const inside a document transaction caused deadlocks that rolled back concurrent transactions
+		if (getDolGlobalString('INFRAS_PHP_EXT_XML') !== $expected) {
+			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	$expected, 'chaine', 0, 'Infrastructure module', $conf->entity);
 		}
-		if (extension_loaded('xml')) {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	1, 'chaine', 0, 'Infrastructure module', $conf->entity);
-		} else {
-			dolibarr_set_const($db, 'INFRAS_PHP_EXT_XML',	-1, 'chaine', 0, 'Infrastructure module', $conf->entity);
+		if ($expected == '-1') {
 			setEventMessages('<span class = "infrastructurecaution">'.$langs->trans('InfrastructureCautionMess').'</span>'.$langs->trans('InfrastructureXMLextError'), [], 'warnings');
 		}
 	}
