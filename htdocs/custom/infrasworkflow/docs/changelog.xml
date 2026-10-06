@@ -236,7 +236,10 @@
 		<change type='fix'>Accès simultanés : infrasworkflow_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente.</change>
 		<change type='chg'>Compatibility Dolibarr natif</change>
 	</Version>
-	<InfraS Downloaded="20261005"/>
+	<Version Number="21.8.4" MonthVersion="2026-10">
+		<change type='fix'>Option « Lier les acomptes du devis à la facture finale » (INFRASWORKFLOW_LINK_DEPOSITS_TO_FINAL_INVOICE) : la création d'une facture depuis un contrat ou une commande échouait avec « Erreur lors de la récupération du devis (ID: n) » quand aucun devis ne portait cet identifiant. En repli, infrasworkflow_linkDepositsToFinalInvoice() lisait le paramètre originid de l'URL sans vérifier le type d'origine, et prenait donc l'identifiant du contrat ou de la commande pour celui d'un devis (risque inverse : rattacher les acomptes d'un devis sans rapport portant le même identifiant). Le repli n'est plus utilisé que si origin vaut « propal ». Incident constaté sur rgenergies (contrat 235).</change>
+	</Version>
+	<InfraS Downloaded="20261006"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
