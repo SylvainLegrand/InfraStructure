@@ -86,7 +86,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 * Fonctions générales
 	* Création d’un menu utilisateur non administrateur pour gérer les paramètres du module
 	* Gérer les droits de modification d’un utilisateur non administrateur onglet par onglet
-	* Sauvegarder automatiquement les paramètres spécifiques du module lors de la désactivation et réinjecter lesdits paramètres à la réactivation du module
+	* Sauvegarder automatiquement les paramètres spécifiques du module lors de la désactivation (modèles, constantes, adresses secondaires, dictionnaires et réglages PDF mémorisés par document, par client et par utilisateur) et réinjecter lesdits paramètres à la réactivation du module
 * Onglet Paramètres Dolibarr
 	* ***1*** Gérer les marges et le format papier à appliquer aux documents
 	* ***2*** Choisir le format des documents PDF générés (PDF 1.7 standard, PDF/A-1b ou PDF/A-3b)
@@ -98,6 +98,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 	* ***8*** Utiliser la position standard française (La Poste) pour la position de l'adresse client
 	* ***9*** Masquer les détails de l'émetteur sur les PDF générés (e-mail, fax, URL et téléphone)
 	* ***10*** Ajouter les détails du destinataire sur les PDF générés (e-mail, fax, URL et téléphone)
+	* ***11*** Cacher l'identifiant de TVA intracommunautaire dans l'adresse du destinataire
 	* ***11***	Cacher l'identifiant de TVA Intracommunautaire dans l'adresse du destinataire
 	* ***12-16*** Afficher les identifiants professionnels dans l'adresse du destinataire (Id. prof. 1 “SIREN”, Id. prof. 2 “SIRET”, Id. prof. 3 “NAF – APE”, Id. prof. 4 “RCS/RM”, Id. prof. 5 “EORI”)
 	* ***17*** Afficher une ligne de séparation entre chaque élément présent dans le document PDF
@@ -136,7 +137,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		 * afficher le taux et la description (libellé)
 		 * afficher le code et la description (libellé)
 		 * VIDE => affiche les trois (le taux, le code et la description)
-	* ***43*** Ouvrir la page de configuration générale des éditions PDF (Options natives)
+	* Lien « PDF » : ouvrir la page de configuration générale des éditions PDF de Dolibarr (options natives)
 * Onglets Paramètres ***InfraS***, Images, Adresses, Attributs supplémentaires, Mentions complémentaires, Notes publiques et Options avant génération
 	* Télécharger le fichier de sauvegarde des paramètres
 	* Sauvegarder / Restaurer l'ensemble des paramètres du module (une copie de sécurité de la sauvegarde est systématiquement créée dans le répertoire d'administration des documents)
@@ -151,17 +152,18 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* ***6*** Activer / Désactiver la génération automatique ("à la volée") des PDF
 		* ***7*** Autoriser l'enregistrement de plusieurs fichiers PDF pour un même document quand plusieurs modèles sont disponibles (un fichier par modèle et par document)
 		* ***8*** Ajouter un préfixe au nom des modèles de documents.
-		* ***9-40*** Préfixe à ajouter au nom des modèles (Devis, commandes, facture, etc)
-		* ***41*** Horodater le nom du fichier des fiches projet pour garder un historique de l'évolution
-		* ***42*** Proposer aussi les pièces jointes du projet (affaire) associé au document comme fichiers fusionnables
-		* ***43*** Dans les ordres de fabrication proposer aussi les pièces jointes de la nomenclature associée au document comme fichiers fusionnables
-		* ***44*** Devis => Création d'un document supplémentaire en prix brut (Les prix ne tiennent pas compte des remises et / ou des tarifs client ; ils sont issus du prix de vente par défaut de la bibliothèque articles)
-		* ***44*** Gérer la fusion de la documentation produit / service avec les devis depuis les paramètres finaux (case à cocher)
-		* ***45*** Vérifier la présence de fichier en double (fichiers ayant un nom identique associés à des références produit / service différents) => le fichier ne sera fusionné qu'une seule fois
-		* ***46*** Utiliser aussi les liens externes de type PDF (URL, onglet Fichiers joints de la fiche produit) comme source de documentation technique à fusionner
-		* ***47*** Proposer le regroupement de la documentation technique des produits / services dans un PDF séparé du document principal depuis les paramètres finaux (case à cocher)
-		* ***48*** Dans les devis proposer aussi l'attestation de TVA associée au document comme fichier fusionnable (requiert le module externe Attestation de TVA - Iouston)
-		* ***49-52*** Forcer le nombre de décimales  affichées pour les prix unitaires et/ou les prix totaux (lignes et document)
+		* ***9-41*** Préfixe à ajouter au nom des modèles (Devis, commandes, facture, etc)
+		* ***42*** Horodater le nom du fichier des fiches projet pour garder un historique de l'évolution
+		* ***43*** Proposer aussi les pièces jointes du projet (affaire) associé au document comme fichiers fusionnables
+		* ***44*** Dans les ordres de fabrication proposer aussi les pièces jointes de la nomenclature associée au document comme fichiers fusionnables
+		* ***45*** Fusionner les pièces jointes associées aux notes de frais avec le document généré (modifiable avant génération du document)
+		* ***46*** Devis => Création d'un document supplémentaire en prix brut (Les prix ne tiennent pas compte des remises et / ou des tarifs client ; ils sont issus du prix de vente par défaut de la bibliothèque articles)
+		* ***47*** Gérer la fusion de la documentation produit / service avec les devis depuis les paramètres finaux (case à cocher)
+		* ***48*** Vérifier la présence de fichier en double (fichiers ayant un nom identique associés à des références produit / service différents) => le fichier ne sera fusionné qu'une seule fois
+		* ***49*** Utiliser aussi les liens externes de type PDF (URL, onglet Fichiers joints de la fiche produit) comme source de documentation technique à fusionner
+		* ***50*** Proposer le regroupement de la documentation technique des produits / services dans un PDF séparé du document principal depuis les paramètres finaux (case à cocher)
+		* ***51*** Dans les devis proposer aussi l'attestation de TVA associée au document comme fichier fusionnable (requiert le module externe Attestation de TVA - Iouston)
+		* ***52-53*** Forcer le nombre de décimales  affichées pour les prix unitaires et/ou les prix totaux (lignes et document)
 	* OPTIONS DE L'APPARENCE GÉNÉRALE DES DOCUMENTS
 		* ***1*** Importer des fichiers True Type Font (ttf) comme nouvelle police de caractère à utiliser
 		* ***2*** Tester la police sélectionnée (création d'un document test avec 84 caractères différents => affichage standard, gras, italique et gras italique => alphabet latin en minuscules et majuscules, chiffres, ponctuation, accentuation, symboles monétaires, etc soit 98% d'un clavier AZERTY)
@@ -382,6 +384,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 			 * Plusieurs fichiers de CGI différents possible (différentes langues, différentes activités, etc...)
 			 * Choix d'une gestion en fonction de la langue (si l'option multi-langues est activée dans Dolibarr) => le fichier proposé par défaut pour chaque Tiers est en fonction de la langue renseignée pour ce Tiers
 		* ***6*** Insérer des CGA dans les devis ou commandes fournisseurs
+		* ***7*** Dans les devis, insérer les CGV après les documents techniques fusionnés
 			 * Plusieurs fichiers de CGA différents possible (différentes langues, différentes activités, etc...)
 			 * Choix du réglage par défaut (fichier spécifique ou pas de CGA) pour chaque type de document indépendamment (Devis ou commande fournisseur)
 			 * Choix d'une gestion en fonction de la langue (si l'option multi-langues est activée dans Dolibarr) => le fichier proposé par défaut pour chaque Tiers fournisseur est en fonction de la langue renseignée pour ce Tiers
@@ -486,10 +489,11 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 		* Gérer les notes publiques standards des différents types de documents (devis, commandes, contrats, expéditions, réceptions, fiches d’intervention, factures, Ordres de fabrication, Nomenclatures, demandes de prix, commandes fournisseur, produits, projets, notes de frais) d'une même page de paramètres
 	* OPTIONS CONCERNANT L'UTILISATION DES NOTES PUBLIQUES STANDARDS DANS LES ÉDITIONS DU PACK
 		* ***1*** Utiliser un type de note publique pour créer une page de garde dans les documents clients
-		* ***2-13*** Intégrer systématiquement les notes publiques standards de base (le choix se fait pour chaque type de document indépendamment les uns des autres)
+		* ***2-15*** Intégrer systématiquement les notes publiques standards de base (le choix se fait pour chaque type de document indépendamment les uns des autres)
 * Onglet Options avant génération
 	* ***1-33*** Pour chaque option disponible avant la génération du document choisir le type d'enregistrement du réglage (par utilisateur, par document (référence), par type (devis, commande, ...), par client ou non enregistré) 
 	* ***Toujours visible*** Pour chaque option, cocher cette case (colonne à droite de « Aucun enregistrement ») pour épingler la ligne : sur le document (devis, facture, ...), elle reste affichée même lorsque le bloc « Options pour le module d'impression InfraSPack » est replié. Décochée, la ligne se replie / se déplie avec les autres. Les lignes d'adresses (livraison, sous-traitant, livraison fournisseur) sont cochées par défaut.
+	* ***Réglages PDF enregistrés*** Compteur des réglages mémorisés par document, par client et par utilisateur pour l'entité, et bouton « Purger les orphelins » qui supprime ceux dont le document, le client ou l'utilisateur n'existe plus (la même purge est exécutée à chaque réactivation du module ; réservé à l'administrateur ou au droit Sauvegarder / Restaurer)
 
 
 
@@ -500,6 +504,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 * Choisir l'affichage de l'adresse du destinataire (Adresse du tiers, Adresse du contact lié, Adresse du tiers et affichage du contact ou Adresse du contact et affichage du tiers)
 * Choisir la / les mention(s) complémentaire(s) disponible(s) pour ce type de document à intégrer au fichier PDF généré
 * Choisir la / les note(s) publique(s) standard(s) disponible(s) pour ce type de document à intégrer au fichier PDF généré
+* Choisir une adresse de livraison dans les documents clients si elle diffère de l'adresse du destinataire
 * Choisir une adresse de livraison (dans les documents fournisseurs. Cette adresse peut inclure les adresses société comme celles des clients)
 	 * Saisie rapide disponible
 * Choisir un sous-traitant dans la liste des contacts externes déclarés via le module customLink et choisir son adresse (si plusieurs adresses sont déclarées pour ce tiers sous-traitant)
@@ -507,6 +512,7 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 * ***Gérer les droits d'accès aux choix de CGV, CGA ou CGI avant génération du document*** (Sans droits, le choix est masqué et les paramètres généraux sont imposés à l'utilisateur)
 * Choisir les CGV, CGA ou CGI à inclure ou ne pas en inclure du tout
 * Choisir un ou plusieurs fichier(s) joint(s) pour le(s) fusionner avec le document généré.
+* Fusionner les pièces jointes associées aux notes de frais avec le document généré
 * Inclure les alias dans le nom des tiers
 * Fusionner la documentation produit / service avec les devis (si cette option est présente elle n'est jamais mémorisée)
 * Regrouper la documentation technique des produits / services dans un PDF séparé du document principal (fichier &lt;nom&gt;_documentation.pdf, visible dans l'onglet Documents) => cette case et celle de fusion avec les devis s'excluent mutuellement (cocher l'une décoche l'autre)
@@ -521,16 +527,19 @@ Pour le bon fonctionnement des modèles ***InfraS*** (chaîne des achats, gestio
 * Imprimer sur les lignes de détails seulement la description des produits / services (pour les fiches d'intervention associée au module Management des Patas-Monkey l'affichage de la colonne Quantité n'est pas géré par cette option)
 * Afficher une colonne 'Total HT' dans les bons de livraison (InfraSPlus_BL / InfraSPlus_BR)
 * Afficher le total des remises accordées en pied de document
+* Afficher la mention complémentaire d'autoliquidation de TVA en sous-traitance BTP
 * Afficher / masquer le mode de règlement par virement
 * Afficher / masquer l'utilisation des modes de règlements spéciaux (devis / proposition commerciales)
 * Afficher ou masquer les totaux (HTs, TVAs, TTC) en pied de document (dans les fiches d'intervention associée au module Management des Patas-Monkey)
 * Désactiver l'adresse de facturation client automatique
 * Recueillir la signature client (signature PAD) et l'appliquer sur le document dans la zone prévue à cet effet
 	 * Saisie rapide disponible
+* Afficher ou masquer la zone de signature de la société émettrice sur les devis
 * Enregistrer automatiquement les réglages utilisateur (par utilisateur pour chaque type de document)
 * Enregistrer automatiquement les réglages documents (par type de document : devis, commande,...)
 * Enregistrer automatiquement les réglages client (par client)
 * Enregistrer automatiquement les réglages documents (par référence)
+	 * Depuis la version 21.11.0, les réglages par utilisateur, par référence de document et par client sont stockés dans une table dédiée du module et non plus en constantes globales chargées à chaque page ; ils sont supprimés avec le document, le client ou l'utilisateur, et les anciennes constantes sont reprises automatiquement à la réactivation du module
 
 
 
