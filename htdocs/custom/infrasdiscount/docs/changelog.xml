@@ -190,7 +190,12 @@
 	<Version Number="15.3.12" MonthVersion="2026-10">
 		<change type='fix'>Accès simultanés : infrasdiscount_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente.</change>
 	</Version>
-	<InfraS Downloaded="20261005"/>
+	<Version Number="15.3.13" MonthVersion="2026-10">
+		<change type='fix'>Trigger : le résultat du chargement du document parent n'était pas contrôlé ; en cas d'échec, le recalcul se poursuivait sur un objet vide. Le trigger journalise un avertissement et rend 0.</change>
+		<change type='fix'>Trigger : les erreurs du recalcul ou de la suppression des lignes de remise étaient déposées en message de session (setEventMessages), invisible depuis l'API REST et les tâches planifiées, et absentes du message d'erreur du document. Elles sont désormais remontées dans les erreurs du trigger, donc dans celles de la ligne et du document (interface et API).</change>
+		<change type='chg'>Performance : à chaque ajout, modification ou suppression de ligne, le trigger rechargeait le document et toutes ses lignes (attributs supplémentaires compris) trois fois et recalculait toutes les remises, même sans aucune ligne de remise dans le document. Une seule requête vérifie d'abord la présence d'une ligne de remise (special_code 6 à 9 ou attribut specialtype 1 à 4) ; sans remise, le trigger rend la main. Le premier rechargement, redondant avec celui de runTrigger(), est supprimé. Mesure sur un devis brouillon de 36 lignes sans remise : 219 requêtes SQL par modification de ligne avant, 14 après ; chez un client, 1 500 requêtes par ligne sur un devis de 318 lignes alimenté par l'API.</change>
+	</Version>
+	<InfraS Downloaded="20261006"/>
 	<Dolibarr minVersion="15.0.0" maxVersion="23.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -131,30 +131,48 @@
 				return 0;
 			}
 			$element	= null;
+			$parentid	= 0;
 			switch ($object->element) {
 				case 'propaldet' :
 					$element	= new Propal($this->db);
-					$element->fetch($object->fk_propal);
+					$parentid	= (int) $object->fk_propal;
 				break;
 				case 'commandedet' :
 					$element	= new Commande($this->db);
-					$element->fetch($object->fk_commande);
+					$parentid	= (int) $object->fk_commande;
 				break;
 				case 'facturedet' :
 					$element	= new Facture($this->db);
-					$element->fetch($object->fk_facture);
+					$parentid	= (int) $object->fk_facture;
 				break;
 				case 'facture' :
 					$element	= new Facture($this->db);
-					$element->fetch($object->id);
+					$parentid	= (int) $object->id;
 				break;
 				case 'commande' :
 					$element	= new Commande($this->db);
-					$element->fetch($object->id);
+					$parentid	= (int) $object->id;
 				break;
+			}
+			// Identifiant du document parent absent (ligne orpheline) : rien à faire (depuis 15.3.13)
+			if (!is_object($element) || $parentid <= 0) {
+				dol_syslog('Trigger "'.$this->name.'" for action '.$action.' : parent document id missing (element = '.$object->element.'), nothing to do', LOG_WARNING);
+				return 0;
 			}
 			// Update
 			if (in_array($action, $update_actions) || in_array($action, $insert_actions) || in_array($action, $delete_actions)) {
+				// Sortie anticipée (depuis 15.3.13) : sans ligne de remise dans le document, rien à recalculer. Une seule requête, avant le
+				// chargement du document et de ses lignes : une modification de ligne sur un devis de 36 lignes sans remise passe de 219 à 14 requêtes.
+				if (!$this->hasDiscountLines($element, $parentid)) {
+					dol_syslog('Trigger "'.$this->name.'" for action '.$action.' : no discount line in '.$element->element.' '.$parentid.', nothing to do', LOG_DEBUG);
+					return 0;
+				}
+				// Document parent non chargé : rien à faire, et surtout pas de recalcul sur un objet vide (depuis 15.3.13)
+				$fetched	= $element->fetch($parentid);
+				if ($fetched <= 0) {
+					dol_syslog('Trigger "'.$this->name.'" for action '.$action.' : parent document '.$element->element.' '.$parentid.' not loaded (result = '.$fetched.'), nothing to do', LOG_WARNING);
+					return 0;
+				}
 				dol_syslog('Trigger "'.$this->name.'" for action '.$action.' launched by '.__FILE__.' id = '.$object->rowid);
 				return $this->updateRemise($element, $object, $action);
 			}
@@ -178,6 +196,33 @@
 		}
 
 		/**
+		*	Le document contient-il au moins une ligne de remise InfraSDiscount ? Une seule requête, avant tout chargement du document.
+		*	Marqueurs : special_code 6, 7, 8 (montant, % produit, % tout) ou 9 (remise automatique), ou attribut supplémentaire specialtype 1 à 4.
+		*	En cas d'erreur SQL (attribut absent...), répond true pour conserver le comportement complet.
+		*
+		*	@param	Propal|Commande|Facture	$element	Document parent (instance de la classe, chargement non requis)
+		*	@param	int						$parentid	Identifiant du document parent
+		*	@return	bool
+		**/
+		private function hasDiscountLines($element, $parentid)
+		{
+			if (empty($element->table_element_line) || empty($element->fk_element) || $parentid <= 0) {
+				return true;
+			}
+			$sql	= 'SELECT COUNT(*) AS nb FROM '.$this->db->prefix().$this->db->sanitize($element->table_element_line).' AS l';
+			$sql	.= ' LEFT JOIN '.$this->db->prefix().$this->db->sanitize($element->table_element_line).'_extrafields AS e ON e.fk_object = l.rowid';
+			$sql	.= ' WHERE l.'.$this->db->sanitize($element->fk_element).' = '.((int) $parentid);
+			$sql	.= ' AND (l.special_code IN (6, 7, 8, 9) OR e.specialtype IN (1, 2, 3, 4))';
+			$resql	= $this->db->query($sql);
+			if (!$resql) {
+				dol_syslog('Trigger "'.$this->name.'"::hasDiscountLines Error '.$this->db->lasterror(), LOG_WARNING);
+				return true;
+			}
+			$obj	= $this->db->fetch_object($resql);
+			$this->db->free($resql);
+			return !empty($obj->nb);
+		}
+		/**
 		*	Lors d'une action sur un élément (../element/card.php)
 		*
 		*	@param	Propal|Commande|Facture	$element	L'objet à traiter (une facture, une propal, etc...)
@@ -200,9 +245,10 @@
 			try {
 				$isUpdating		= true; // Activer le flag
 
-				// Recharger l'objet complet avec ses lignes à jour
-				$element->fetch($element->id);
-				$element->fetch_lines();
+				// Le document vient d'être chargé, lignes comprises, par runTrigger() : pas de rechargement redondant (depuis 15.3.13)
+				if (empty($element->lines)) {
+					$element->fetch_lines();
+				}
 
 				// Un document validé n'est plus modifiable : aucune remise à recalculer ni à supprimer
 				if (!infrasdiscount_isDraft($element)) {
@@ -219,7 +265,9 @@
 				// Recalculer TOUTES les remises (pourcentage et prorata, en cascade)
 				$resultRecalc	= infrasdiscount_recalculateAllDiscounts($element, $excludeLineId);
 				if ($resultRecalc < 0) {
-					setEventMessages($element->error, $element->errors, 'errors');
+					// Erreur remontée au document appelant via $this->errors (visible dans l'interface comme dans l'API) et non en message de session, invisible en API et en cron (depuis 15.3.13)
+					$this->errors	= array_merge((array) $this->errors, array_filter(array_merge(array($element->error), (array) $element->errors)));
+					dol_syslog('Trigger "'.$this->name.'" : discount recalculation failed for '.$element->element.' '.$element->id.' : '.$element->errorsToString(), LOG_ERR);
 					return -1;
 				}
 
@@ -272,7 +320,8 @@
 					}
 
 					if ($deleteResult < 0) {
-						setEventMessages($element->error, $element->errors, 'errors');
+						$this->errors	= array_merge((array) $this->errors, array_filter(array_merge(array($element->error), (array) $element->errors)));
+						dol_syslog('Trigger "'.$this->name.'" : deletion of empty discount line '.$lineId.' failed on '.$element->element.' '.$element->id.' : '.$element->errorsToString(), LOG_ERR);
 						return -1;
 					} else {
 						dol_syslog('Ligne supprimée avec succès : ID ligne = '.$lineId, LOG_DEBUG);

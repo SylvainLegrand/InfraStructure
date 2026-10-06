@@ -154,7 +154,10 @@ Le trigger `interface_99_modinfrasdiscount_Infrasdiscounttrigger` écoute les ac
 - `LINEPROPAL_*`, `LINEORDER_*`, `LINEBILL_*` : recalcul automatique des remises après ajout, modification ou suppression de lignes,
 - nettoyage automatique des lignes de remise à montant nul après recalcul,
 - régénération PDF après recalcul des remises (respecte `MAIN_DISABLE_PDF_AUTOUPDATE`),
-- prévention de récursion infinie via flag statique `$isUpdating` dans un bloc `try/finally`.
+- prévention de récursion infinie via flag statique `$isUpdating` dans un bloc `try/finally`,
+- sortie anticipée (depuis v15.3.13) : une seule requête vérifie la présence d'une ligne de remise (`special_code` 6 à 9 ou attribut `specialtype` 1 à 4) avant tout rechargement ; sans remise, le trigger rend 0,
+- contrôle du chargement du document parent (depuis v15.3.13) : échec → avertissement journalisé et retour 0,
+- erreurs du recalcul ou de la suppression des lignes à zéro remontées dans `$this->errors` (depuis v15.3.13), donc dans l'erreur de la ligne et du document, visibles dans l'interface comme dans l'API ; plus aucun `setEventMessages()` dans le trigger.
 
 ## Données / SQL (Data model)
 
@@ -220,6 +223,8 @@ Si modification SQL / descripteur / permissions / hooks / triggers :
 - Les lignes du module Subtotal (titres, sous-totaux, textes libres) sont exclues via `infrasdiscount_isSubtotalLine()`
 - La constante `INVOICE_KEEP_DISCOUNT_LINES_AS_IN_ORIGIN` est activée automatiquement pour préserver les remises lors de la transformation devis → commande → facture
 - `infrasdiscount_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 15.3.12) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
+- **Coût du trigger** : pour un document contenant des remises, chaque modification de ligne recharge le document et ses lignes (attributs compris) après le recalcul puis après la suppression des lignes à zéro, et recalcule toutes les remises : coût proportionnel au nombre de lignes. Sans ligne de remise, la sortie anticipée de v15.3.13 (`hasDiscountLines()`, une requête `COUNT`) ramène une modification de ligne de 219 à 14 requêtes SQL (devis brouillon de 36 lignes, fitantanana). Chez Kytom : 1 500 requêtes par ligne sur un devis de 318 lignes alimenté par l'API, sans aucune remise.
+- **Erreurs de trigger** : les remonter via `$this->errors` (propagées par `Interfaces::run_triggers()` à la ligne puis au document), jamais par `setEventMessages()` : en API REST et en tâche planifiée, le message de session n'est jamais affiché et l'appelant ne voit qu'un refus sans cause.
 
 ## Dernières mises à jour (Recent updates)
 
@@ -356,8 +361,8 @@ Ce pattern est nécessaire car les appels à `addline()`, `updateline()` et `del
 
 **Point de vigilance (depuis v15.3.8)** : `runTrigger()` est appelé par Dolibarr pour **tous** les événements métier, pas seulement les éléments listés ci-dessus — le test `in_array($object->element, ['propaldet', 'commande', 'commandedet', 'facture', 'facturedet'])` lisait la propriété sans vérifier son existence, provoquant un avertissement PHP « Undefined property » sur des objets qui n'exposent pas `element` (ex. `TPropaleHist`, historique de devis). Un test `empty($object->element) ||` protège désormais ce filtre.
 
-**Flux du recalcul (`updateRemise`)** :
-1. Recharge l'objet complet avec ses lignes
+**Flux du recalcul (`updateRemise`)**, atteint seulement si `hasDiscountLines()` a trouvé une ligne de remise :
+1. Utilise le document chargé par `runTrigger()`, lignes comprises (`fetch_lines()` seulement si elles manquent ; le rechargement complet initial a été supprimé en v15.3.13)
 2. Recalcule les remises en pourcentage (cascade)
 3. Recalcule les remises prorata (cascade)
 4. Supprime les lignes de remise à montant nul (arrondi à 0)
