@@ -2056,7 +2056,14 @@
 	<Version Number="21.10.2" MonthVersion="2026-10">
 		<change type='fix'>Accès simultanés : infraspackplus_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente.</change>
 	</Version>
-	<InfraS Downloaded="20261005"/>
+	<Version Number="21.11.0" MonthVersion="2026-10">
+		<change type='fix'>Sauvegarde des paramètres (fichier update.N relu à la réactivation du module) : le marqueur d'entité était posé sur la deuxième colonne de chaque table quelle que soit sa position. Pour llx_infraspackplus_societe_address, où entity est en première colonne, la date de création recevait le marqueur et l'entité gardait sa valeur : les adresses secondaires n'étaient pas restaurées (date invalide). Le marqueur est désormais posé sur la colonne entity.</change>
+		<change type='fix'>Restauration des paramètres : fichier absent ou copie impossible traités sans avertissement PHP, résultat initialisé ; les constantes de réglages PDF par document, client ou utilisateur présentes dans un fichier antérieur à 21.11.0 sont reversées dans la nouvelle table après restauration.</change>
+		<change type='fix'>Affichage des lignes de document (hook printObjectLine) : le tiers était rechargé à chaque ligne (deux requêtes par ligne) alors que la fiche l'a déjà chargé ; il n'est rechargé que s'il est absent ou différent (retour Kytom).</change>
+		<change type='chg'>Réglages PDF enregistrés par document, par client et par utilisateur : stockés dans la table llx_infraspackplus_pdf_params au lieu de constantes globales INFRASPLUS_PDF_PARAMS_element_DOC/CUST/USER_id, chargées à chaque requête et jamais purgées (chez un client : 14 168 constantes, 89 % de llx_const, 8 251 orphelines sur une base copiée, réglages hérités d'un document d'une autre instance). Migration automatique à la réactivation du module puis suppression des constantes ; une seule requête de lecture par génération, trois écritures sans suppression préalable ; suppression des réglages avec le document, le tiers ou l'utilisateur (trigger) ; purge des orphelins à la réactivation ; la constante de réglages par type de document est conservée et n'est réécrite que si sa valeur change. La table n'est pas détruite à la désactivation et figure dans le fichier de sauvegarde.</change>
+		<change type='add'>Page Génération : nombre de réglages PDF enregistrés par portée et bouton « Purger les orphelins » (administrateur ou droit Sauvegarder / Restaurer).</change>
+	</Version>
+	<InfraS Downloaded="20261006"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

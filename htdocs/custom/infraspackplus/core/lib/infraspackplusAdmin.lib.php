@@ -309,6 +309,136 @@
 	}
 
 	/**
+	*	Migre les réglages PDF enregistrés en constantes INFRASPLUS_PDF_PARAMS_<element>_DOC|CUST|USER_<id> vers la table llx_infraspackplus_pdf_params (depuis 21.11.0)
+	*	Idempotente : les lignes déjà présentes dans la table sont conservées (un fichier de sauvegarde rejoué peut être plus ancien que la table),
+	*	les constantes sont supprimées une fois copiées, celles dont l'identifiant est vide ou nul sont supprimées sans migration.
+	*
+	*	@return		int		>= 0 nombre de réglages migrés, -1 = erreur
+	**/
+	function infraspackplus_migration_pdf_params()
+	{
+		global $db, $conf;
+
+		$entity		= (int) $conf->entity;
+		$table		= $db->prefix().'infraspackplus_pdf_params';
+		if (empty($db->DDLListTables($db->database_name, $table))) {
+			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_migration_pdf_params table '.$table.' missing', LOG_ERR);
+			return -1;
+		}
+		$sql		= 'SELECT rowid, name, value FROM '.$db->prefix().'const';
+		$sql		.= ' WHERE entity = '.$entity.' AND (name LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_DOC\_%" OR name LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_CUST\_%" OR name LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_USER\_%")';
+		$resql		= $db->query($sql);
+		if (!$resql) {
+			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_migration_pdf_params Error '.$db->lasterror(), LOG_ERR);
+			return -1;
+		}
+		$values		= [];
+		$rowids		= [];
+		while ($obj = $db->fetch_object($resql)) {
+			if (!preg_match('/^INFRASPLUS_PDF_PARAMS_(.+)_(DOC|CUST|USER)_(\d*)$/', $obj->name, $reg)) {
+				continue;	// constante inattendue : conservée
+			}
+			$rowids[]	= (int) $obj->rowid;
+			if ((int) $reg[3] <= 0) {
+				continue;	// identifiant vide ou nul (document non encore créé, tiers absent) : supprimée sans migration
+			}
+			$values[]	= '('.$entity.', \''.$db->escape($reg[1]).'\', \''.strtolower($reg[2]).'\', '.((int) $reg[3]).', \''.$db->escape(str_replace('None', 'none', (string) $obj->value)).'\')';
+		}
+		$db->free($resql);
+		if (empty($rowids)) {
+			return 0;
+		}
+		$db->begin();
+		foreach (array_chunk($values, 200) as $chunk) {
+			$sqlInsert	= 'INSERT '.($db->type == 'pgsql' ? '' : 'IGNORE ').'INTO '.$table.' (entity, element, scope, fk_object, params) VALUES '.implode(', ', $chunk);
+			$sqlInsert	.= $db->type == 'pgsql' ? ' ON CONFLICT (entity, element, scope, fk_object) DO NOTHING' : '';
+			if (!$db->query($sqlInsert)) {
+				dol_syslog('infraspackplusAdmin.Lib::infraspackplus_migration_pdf_params Error '.$db->lasterror(), LOG_ERR);
+				$db->rollback();
+				return -1;
+			}
+		}
+		foreach (array_chunk($rowids, 500) as $chunk) {
+			if (!$db->query('DELETE FROM '.$db->prefix().'const WHERE rowid IN ('.implode(', ', $chunk).')')) {
+				dol_syslog('infraspackplusAdmin.Lib::infraspackplus_migration_pdf_params Error '.$db->lasterror(), LOG_ERR);
+				$db->rollback();
+				return -1;
+			}
+		}
+		$db->commit();
+		dol_syslog('infraspackplusAdmin.Lib::infraspackplus_migration_pdf_params '.count($values).' settings migrated, '.count($rowids).' constants deleted');
+		return count($values);
+	}
+
+	/**
+	*	Supprime les réglages PDF dont le document, le tiers ou l'utilisateur n'existe plus (suppressions antérieures à 21.11.0, bases copiées puis vidées)
+	*	Les éléments dont la table n'est pas connue du cœur sont conservés.
+	*
+	*	@return		int		>= 0 nombre de lignes supprimées, -1 = erreur
+	**/
+	function infraspackplus_purge_pdf_params()
+	{
+		global $db;
+
+		$table		= $db->prefix().'infraspackplus_pdf_params';
+		if (empty($db->DDLListTables($db->database_name, $table))) {
+			return -1;
+		}
+		$targets	= array('doc' => [], 'cust' => array('' => 'societe'), 'user' => array('' => 'user'));
+		$resql		= $db->query('SELECT DISTINCT element FROM '.$table.' WHERE scope = \'doc\'');
+		if (!$resql) {
+			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_purge_pdf_params Error '.$db->lasterror(), LOG_ERR);
+			return -1;
+		}
+		while ($obj = $db->fetch_object($resql)) {
+			$props							= getElementProperties($obj->element);
+			$targets['doc'][$obj->element]	= !empty($props['table_element']) ? $props['table_element'] : '';
+		}
+		$db->free($resql);
+		$deleted	= 0;
+		foreach ($targets as $scope => $elements) {
+			foreach ($elements as $element => $objtable) {
+				if (empty($objtable) || empty($db->DDLListTables($db->database_name, $db->prefix().$objtable))) {
+					continue;	// élément inconnu ou table absente : lignes conservées
+				}
+				$sqlDelete		= 'DELETE FROM '.$table.' WHERE scope = \''.$db->escape($scope).'\'';
+				$sqlDelete		.= $element !== '' ? ' AND element = \''.$db->escape($element).'\'' : '';
+				$sqlDelete		.= ' AND fk_object NOT IN (SELECT rowid FROM '.$db->prefix().$objtable.')';
+				$resqlDelete	= $db->query($sqlDelete);
+				if (!$resqlDelete) {
+					dol_syslog('infraspackplusAdmin.Lib::infraspackplus_purge_pdf_params Error '.$db->lasterror(), LOG_ERR);
+					return -1;
+				}
+				$deleted		+= $db->affected_rows($resqlDelete);
+			}
+		}
+		dol_syslog('infraspackplusAdmin.Lib::infraspackplus_purge_pdf_params '.$deleted.' orphan settings deleted');
+		return $deleted;
+	}
+
+	/**
+	*	Compte les réglages PDF enregistrés par portée pour l'entité courante
+	*
+	*	@return		array		array('doc' => int, 'cust' => int, 'user' => int)
+	**/
+	function infraspackplus_count_pdf_params()
+	{
+		global $db, $conf;
+
+		$counts		= array('doc' => 0, 'cust' => 0, 'user' => 0);
+		$resql		= $db->query('SELECT scope, COUNT(*) AS nb FROM '.$db->prefix().'infraspackplus_pdf_params WHERE entity = '.((int) $conf->entity).' GROUP BY scope');
+		if ($resql) {
+			while ($obj = $db->fetch_object($resql)) {
+				if (isset($counts[$obj->scope])) {
+					$counts[$obj->scope]	= (int) $obj->nb;
+				}
+			}
+			$db->free($resql);
+		}
+		return $counts;
+	}
+
+	/**
 	*	Sauvegarde les paramètres du module
 	*
 	*	@param		string		$appliname	module name
@@ -360,6 +490,7 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const			= 'SELECT '.implode(', ', $cols_const);
 			$sql_const			.= ' FROM '.$db->prefix().'const';
 			$sql_const			.= ' WHERE ((name LIKE "INFRASPLUS\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_VALID\_CORE\_CHGT") OR name LIKE "INFRASPACKPLUS\_PS\_%" OR (name LIKE "%\_ADDON\_PDF" AND value LIKE "InfraSPlus\_%") OR name LIKE "%\_FREE\_TEXT%" OR name LIKE "%\_PUBLIC\_NOTE%")';
+			$sql_const			.= ' AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_DOC\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_CUST\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_USER\_%"';	// réglages par document / client / utilisateur : table llx_infraspackplus_pdf_params depuis 21.11.0
 			$sql_const			.= ' AND entity = '.((int) $conf->entity);
 			$sql_const			.= ' ORDER BY name';
 			$autoupdate			= getDolGlobalInt('MAIN_DISABLE_PDF_AUTOUPDATE', 0);
@@ -372,6 +503,13 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_addr			.= ' FROM '.$db->prefix().'infraspackplus_societe_address';
 			$sql_addr			.= ' WHERE entity = '.((int) $conf->entity);
 			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_societe_address', $sql_addr, $cols_addr, [], 0, ''));
+			$cols_pdfp			= array ('entity', 'element', 'scope', 'fk_object', 'params');
+			$duplicate_pdfp		= array ('4', 'params', 'entity, element, scope, fk_object');
+			$sql_pdfp			= 'SELECT '.implode(', ', $cols_pdfp);
+			$sql_pdfp			.= ' FROM '.$db->prefix().'infraspackplus_pdf_params';
+			$sql_pdfp			.= ' WHERE entity = '.((int) $conf->entity);
+			$sql_pdfp			.= ' ORDER BY element, scope, fk_object';
+			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_pdf_params', $sql_pdfp, $cols_pdfp, $duplicate_pdfp, 0, ''));
 			$cols_dict			= array ('code', 'entity', 'pos', 'libelle', 'active');
 			$duplicate_dict		= array ('3', 'libelle', 'code');
 			$sql_dict_1			= 'SELECT '.implode(', ', $cols_dict);
@@ -383,7 +521,6 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			// Enabling back the keys/index checking
 			$sqlfooter		= '
 SET FOREIGN_KEY_CHECKS = 1;
-UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHERE co.name LIKE \'%INFRASPLUS_PDF_PARAMS%\';
 -- Dump completed on '.date('Y-m-d G-i-s').'
 ';
 			fwrite($handle, $sqlfooter);
@@ -415,6 +552,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 		global $db;
 
 		$sqlnewtable	= '';
+		$entityIndex	= array_search('entity', $listeCols);	// position de la colonne entity (la 2e colonne était supposée : datec écrasée pour les adresses)
 		$result_sql		= $sql ? $db->query($sql) : '';
 		dol_syslog('infraspackplusAdmin.Lib::infraspackplus_bkup_table sql = '.$sql);
 		if (!empty($result_sql)) {
@@ -443,7 +581,7 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 						$row[$j]	= preg_replace('#\n#', '\\n', $row[$j]);
 						$row[$j]	= '\''.$row[$j].'\'';
 					}
-					if ($j == 1) {
+					if ($entityIndex !== false && $j == $entityIndex) {
 						$row[$j]	= '\'__ENTITY__\'';
 					}
 					if (!empty($duplicate) && !empty($duplicate[0]) && !empty($duplicate[1]) && !empty($duplicate[2])) {
@@ -468,22 +606,23 @@ UPDATE llx_const AS co SET co.value = REPLACE(co.value, \'None\', \'none\')	WHER
 	{
 		global $conf;
 
+		$result		= 0;
 		$pathsql	= DOL_DATA_ROOT.'/'.(!isModEnabled('multicompany') || $conf->entity == 1 ? '' : $conf->entity.'/').$appliname.'/sql';
-		dol_syslog('infraspackplusAdmin.Lib::infraspackplus_restore_module $pathsql = '.$pathsql);
-		$handle		= @opendir($pathsql);
-		if (is_resource($handle)) {
-			$filesql	= $pathsql.'/'.'update.'.$conf->entity;
-			$moved		= dol_copy($filesql, $filesql.'.sql');
-			if (is_file($filesql.'.sql')) {
+		$filesql	= $pathsql.'/update.'.$conf->entity;
+		dol_syslog('infraspackplusAdmin.Lib::infraspackplus_restore_module filesql = '.$filesql);
+		if (is_file($filesql)) {
+			$moved	= dol_copy($filesql, $filesql.'.sql');
+			if ($moved > 0 && is_file($filesql.'.sql')) {
 				$result	= run_sql($filesql.'.sql', !getDolGlobalString('MAIN_DISPLAY_SQL_INSTALL_LOG', '') ? 1 : 0, $conf->entity, 1);
+				dol_delete_file($filesql.'.sql');
 			}
-			$delete	= dol_delete_file($filesql.'.sql');
-			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_restore_module appliname = '.$appliname.' filesql = '.$filesql.' moved = '.$moved.' result = '.$result.' delete = '.$delete);
-			if ($result > 0) {
-				return 1;
-			}
+			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_restore_module appliname = '.$appliname.' moved = '.$moved.' result = '.$result);
+		} else {
+			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_restore_module no backup file to restore', LOG_WARNING);
 		}
-		return -1;
+		// Un fichier antérieur à 21.11.0 recrée les constantes INFRASPLUS_PDF_PARAMS_*_DOC|CUST|USER_* : elles sont reversées dans la table llx_infraspackplus_pdf_params
+		infraspackplus_migration_pdf_params();
+		return $result > 0 ? 1 : -1;
 	}
 
 	/**

@@ -25,6 +25,7 @@
 	// Libraries ************************************
 	dol_include_once('/infraspackplus/class/address.class.php');
 	dol_include_once('/infraspackplus/core/lib/infraspackplusAdmin.lib.php');
+	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
 
 	// Description and activation class *************
 	class InterfaceInfraspackplustrigger extends DolibarrTriggers
@@ -118,7 +119,21 @@
 		*/
 		public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 		{
-			if (!isModEnabled('infraspackplus') || empty($object->element) || !in_array($object->element, ['societe']) || !in_array($action, ['COMPANY_CREATE', 'COMPANY_DELETE'])) {
+			if (!isModEnabled('infraspackplus') || empty($object->element)) {
+				return 0;
+			}
+			// Réglages PDF enregistrés par document, client ou utilisateur (table llx_infraspackplus_pdf_params, depuis 21.11.0) : supprimés avec l'objet.
+			// Les lignes de documents (*det, *ligne, *line) n'en ont pas ; pour les autres objets un DELETE sur la clé unique est négligeable.
+			if (!empty($object->id) && preg_match('/_DELETE$/', $action) && !preg_match('/(det|ligne|line)$/i', $object->element)) {
+				infraspackplus_deletePdfParams($object->element, 'doc', (int) $object->id);
+			}
+			if ($action == 'COMPANY_DELETE' && !empty($object->id)) {
+				infraspackplus_deletePdfParams('', 'cust', (int) $object->id);
+			}
+			if ($action == 'USER_DELETE' && !empty($object->id)) {
+				infraspackplus_deletePdfParams('', 'user', (int) $object->id);
+			}
+			if (!in_array($object->element, ['societe']) || !in_array($action, ['COMPANY_CREATE', 'COMPANY_DELETE'])) {
 				return 0;
 			}
 			$ParamLogoEmet	= getDolGlobalInt('INFRASPLUS_PDF_SET_LOGO_EMET_TIERS', 0);

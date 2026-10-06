@@ -730,6 +730,11 @@ InfraSPlusParamBkpPerType      = Registro<br>por tipo<br>(presupuesto, pedido, .
 InfraSPlusParamBkpPerCustomer  = Registro<br>por cliente
 InfraSPlusParamBkpNone         = Sin grabación
 InfraSPlusParamPinVisible      = Siempre<br>visible
+InfraSPlusPdfParamsStored      = Ajustes PDF guardados para esta entidad: %s por documento, %s por cliente, %s por usuario
+InfraSPlusPdfParamsPurgeDesc   = Los ajustes cuyo documento, cliente o usuario ya no existe se purgan en cada reactivación del módulo; este botón ejecuta la purga ahora.
+InfraSPlusPdfParamsPurge       = Purgar huérfanos
+InfraSPlusPdfParamsPurged      = %s ajuste(s) PDF huérfano(s) eliminado(s)
+InfraSPlusPdfParamsMigrError   = Error al migrar los ajustes PDF guardados (constantes a tabla)
 
 ### About page ###
 

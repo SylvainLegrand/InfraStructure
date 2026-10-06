@@ -730,6 +730,11 @@ InfraSPlusParamBkpPerType      = Registrazione<br>per tipologia<br>(preventivo, 
 InfraSPlusParamBkpPerCustomer  = Registrazione<br>per cliente
 InfraSPlusParamBkpNone         = Nessuna registrazione
 InfraSPlusParamPinVisible      = Sempre<br>visibile
+InfraSPlusPdfParamsStored      = Impostazioni PDF salvate per questa entità: %s per documento, %s per cliente, %s per utente
+InfraSPlusPdfParamsPurgeDesc   = Le impostazioni il cui documento, cliente o utente non esiste più vengono eliminate a ogni riattivazione del modulo; questo pulsante esegue la pulizia subito.
+InfraSPlusPdfParamsPurge       = Elimina orfani
+InfraSPlusPdfParamsPurged      = %s impostazione/i PDF orfana/e eliminata/e
+InfraSPlusPdfParamsMigrError   = Errore durante la migrazione delle impostazioni PDF salvate (da costanti a tabella)
 
 ### About page ###
 

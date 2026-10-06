@@ -411,6 +411,11 @@
 			if ($res < 0) {
 				setEventMessage($langs->transnoentities('InfraSPlusParamMigrationError'), 'errors');
 			}
+			$res		= infraspackplus_migration_pdf_params();	// constantes INFRASPLUS_PDF_PARAMS_*_DOC|CUST|USER_* vers la table llx_infraspackplus_pdf_params (depuis 21.11.0)
+			if ($res < 0) {
+				setEventMessage($langs->transnoentities('InfraSPlusPdfParamsMigrError'), 'errors');
+			}
+			infraspackplus_purge_pdf_params();	// réglages dont le document, le tiers ou l'utilisateur n'existe plus
 			if (!getDolGlobalString('SOCIETE_ADDRESSES_MANAGEMENT', ''))	{
 				dolibarr_set_const($db, 'SOCIETE_ADDRESSES_MANAGEMENT', getDolGlobalInt('INFRASPLUS_PDF_SHOW_ADRESSE_RECEPTION', 0), 'chaine', 0, 'InfraSPackPlus module', $conf->entity);
 			}
@@ -431,6 +436,7 @@
 		{
 			global $conf;
 
+			infraspackplus_migration_pdf_params();	// d'éventuelles constantes INFRASPLUS_PDF_PARAMS_*_DOC|CUST|USER_* rejoignent la table avant la sauvegarde (depuis 21.11.0)
 			infraspackplus_bkup_module ($this->name);
 			$entity		= (int) $conf->entity;
 			$sql		= array('DELETE FROM '.$this->db->prefix().'const WHERE name like "INFRASPLUS\_%" AND entity = '.$entity,
@@ -443,6 +449,7 @@
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'infraspackplus_societe_address',
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'c_infraspackplus_mention',
 								'DROP TABLE IF EXISTS '.$this->db->prefix().'c_infraspackplus_note');
+			// La table infraspackplus_pdf_params (réglages PDF par document, client et utilisateur) n'est pas détruite : données de documents, conservées comme les tables du cœur ; elle figure dans le fichier de sauvegarde pour la fonction Sauvegarder / Restaurer.
 			infraspackplus_search_extf (-1);
 			return $this->_remove($sql);
 		}

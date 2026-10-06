@@ -113,15 +113,15 @@ Dans `core/modules/modinfraspackplus.class.php` :
 
 `init()` effectue notamment :
 
-1. Chargement SQL module
+1. Chargement SQL module (`_load_tables`, dont `llx_infraspackplus_pdf_params`)
 2. Synchronisation de ressources (polices, templates selon version)
-3. Migration/contrôle de configuration
-4. Restauration de constantes sauvegardées
+3. Restauration des paramètres sauvegardés (`infraspackplus_restore_module`)
+4. Migrations : table `societe_address`, puis constantes `INFRASPLUS_PDF_PARAMS_*_DOC|CUST|USER_*` vers `llx_infraspackplus_pdf_params` et purge des réglages orphelins (v21.11.0)
 5. Activation des modèles et mécanismes liés
 
 ### Désactivation (Lifecycle : `remove()`)
 
-`remove()` effectue sauvegarde module, nettoyage des constantes et retrait des éléments injectés par le module.
+`remove()` effectue la migration des constantes de réglages PDF restantes vers la table, la sauvegarde du module, le nettoyage des constantes et le retrait des éléments injectés par le module. La table `llx_infraspackplus_pdf_params` n'est pas détruite (données de documents).
 
 ## Fonctionnement principal (Core behavior)
 
@@ -150,10 +150,12 @@ Tables principales :
 - `llx_infraspackplus_societe_address`
 - `llx_c_infraspackplus_mention`
 - `llx_c_infraspackplus_note`
+- `llx_infraspackplus_pdf_params` — réglages PDF enregistrés par document, client ou utilisateur (depuis v21.11.0, voir la note technique *Réglages PDF par document, client et utilisateur*)
 
 Éléments SQL importants :
 
 - `llx_societe-logo_emet.sql` (colonne `logo_emet`),
+- `llx_infraspackplus_pdf_params.sql` / `.key.sql` (table des réglages PDF : clé unique `entity, element, scope, fk_object`, index `element, fk_object`),
 - `data.sql` (constantes module et données dictionnaires),
 - `updates.sql` (évolutions),
 - `clean_from_infraspack.sql` (migration/historique).
@@ -166,6 +168,7 @@ Constantes actives usuelles :
 - constantes liées aux options de documents (CGV/CGA/CGI, signatures, images, colonnes),
 - constantes liées aux dictionnaires de mentions/notes,
 - constantes de versions/migrations utilisées au chargement du module.
+- `INFRASPLUS_PDF_PARAMS_<element>_TYPE` : seuls réglages PDF encore en constante (un par type de document). Les portées document / client / utilisateur sont en table depuis v21.11.0 : ne jamais recréer de constante `INFRASPLUS_PDF_PARAMS_*_DOC|CUST|USER_*`, passer par `infraspackplus_getPdfParams()` / `infraspackplus_setPdfParams()`.
 
 Point de vigilance : conserver la cohérence globale des constantes `INFRASPLUS_*` avant toute modification massive.
 
@@ -187,7 +190,7 @@ Respecter les règles Dolibarr du dépôt parent :
 Si modification SQL / descripteur / permissions / hooks / templates PDF :
 
 1. Désactiver puis réactiver le module
-2. Vérifier tables et dictionnaires (`mention`, `note`, `societe_address`)
+2. Vérifier tables et dictionnaires (`mention`, `note`, `societe_address`, `pdf_params`)
 3. Vérifier chargement des modèles PDF InfraSPlus
 4. Vérifier hooks de génération (`formBuilddocOptions`, `beforePDFCreation`, `afterPDFCreation`)
 5. Vérifier un cas de génération réel (devis/facture) avec options actives
@@ -202,6 +205,7 @@ Si modification SQL / descripteur / permissions / hooks / templates PDF :
 - **Identifiants `rowid` lus en base** : renvoyés en **chaîne** par le pilote (`$obj->rowid`, `fetch_array()['rowid']`, donc aussi `Address->id`). Ne jamais les comparer en `===` à un `GETPOSTINT()` ou à un littéral entier — caster `(int)` des deux côtés. Attention aussi aux défauts en chaîne (`GETPOSTINT('x') ?: '-2'`) qui rendent toujours fausse une comparaison stricte à `-2` (cf. sélecteurs d'adresses jamais présélectionnés, fix v21.9.3).
 - **Propriété `$sign` (avoir affiché en positif) : uniquement sur les modèles de facture** (`F`, `FL`, `FT` : `public $sign = 1`, -1 pour un avoir). Les modèles commande, devis et fournisseurs n'ont pas cette propriété : y passer `1` explicitement à `pdf_InfraSPlus_normalizeTotals()`, jamais `$this->sign` (fix v21.8.11).
 - `infraspackplus_test_php_ext()` (appelée par le constructeur du descripteur) n'écrit la constante partagée `INFRAS_PHP_EXT_XML` que si sa valeur change (depuis 21.10.2) : la réécriture systématique (DELETE + INSERT dans `llx_const`) pouvait entrer en conflit avec une transaction concurrente (incident d'octobre 2026 avec Infrastructure : lignes de document perdues en silence). Ne jamais réintroduire d'écriture inconditionnelle de constante dans du code exécuté à chaque requête, à chaque connexion ou pendant une transaction métier
+- **Réglages PDF par document / client / utilisateur** : table `llx_infraspackplus_pdf_params` depuis v21.11.0, jamais en constantes (chez Kytom : 14 168 constantes, 89 % de `llx_const`, chargées à chaque requête, jamais purgées). `init()` rejoue systématiquement le dernier `update.<entité>` : un `activateModule()` en CLI sans `remove()` préalable restaure des valeurs potentiellement anciennes (fichier `www-data`, non réécrivable en CLI) — vérifier la date du dump avant toute réinitialisation hors interface.
 
 ## Dernières mises à jour (Recent updates)
 
@@ -445,14 +449,16 @@ Support multi-entité via filtre `getEntity('address')` et champ `entity` par d�
 
 ### Trigger (`Infraspackplustrigger`)
 
-Le trigger écoute uniquement les événements sur l'élément `societe` :
+Le trigger reçoit tous les événements et agit sur :
 
 | Événement | Condition | Action |
 |-----------|-----------|--------|
+| `*_DELETE` (tout objet, hors lignes `*det` / `*ligne` / `*line`) | `$object->id` renseigné | Supprime les réglages PDF de portée `doc` de l'objet (`infraspackplus_deletePdfParams($object->element, 'doc', $id)`) — v21.11.0 |
+| `COMPANY_DELETE` | Toujours | Supprime les réglages PDF de portée `cust` du tiers, puis toutes les adresses secondaires liées via `Address::fetch_lines()` + `Address::delete()` (cascade en PHP) |
+| `USER_DELETE` | Toujours | Supprime les réglages PDF de portée `user` de l'utilisateur — v21.11.0 |
 | `COMPANY_CREATE` | `INFRASPLUS_PDF_SET_LOGO_EMET_TIERS` activé | Associe un logo émetteur au tiers via `infraspackplus_setLogoEmet()` |
-| `COMPANY_DELETE` | Toujours | Supprime toutes les adresses secondaires liées via `Address::fetch_lines()` + `Address::delete()` (cascade en PHP) |
 
-**Point de vigilance (depuis v21.5.5)** : `runTrigger()` est appelé par Dolibarr pour **tous** les événements métier, pas seulement ceux sur `societe` — certains objets passés (ex. `TPropaleHist`, historique de devis) n'exposent pas de propriété `element`. La garde `empty($object->element) ||` placée avant le test `in_array($object->element, ['societe'])` est nécessaire pour sortir immédiatement (`return 0`) sans avertissement PHP « Undefined property » sur ces objets.
+**Point de vigilance (depuis v21.5.5)** : `runTrigger()` est appelé par Dolibarr pour **tous** les événements métier — certains objets passés (ex. `TPropaleHist`, historique de devis) n'exposent pas de propriété `element`. La garde `empty($object->element)` en tête de méthode est nécessaire pour sortir immédiatement (`return 0`) sans avertissement PHP « Undefined property » sur ces objets ; elle précède désormais les suppressions de réglages PDF puis le test `in_array($object->element, ['societe'])` du bloc historique.
 
 ### Structure du changelog (Changelog structure)
 
@@ -558,19 +564,21 @@ La fonction `infraspackplus_getLocalVersionMinDoli()` parse ce XML et retourne u
 **`init()`** effectue dans l'ordre :
 1. Copie des polices TCPDF du core vers `DOL_DATA_ROOT/{entity}/infraspackplus/fonts`
 2. Copie des polices personnalisées du module
-3. Chargement des tables SQL (`_load_tables`)
-4. Restauration des paramètres sauvegardés (`infraspackplus_restore_module`)
+3. Chargement des tables SQL (`_load_tables`, dont `llx_infraspackplus_pdf_params` depuis v21.11.0)
+4. Restauration des paramètres sauvegardés (`infraspackplus_restore_module`, qui termine par `infraspackplus_migration_pdf_params()` : un dump antérieur à 21.11.0 recrée des constantes `_DOC_/_CUST_/_USER_`, aussitôt reversées dans la table)
 5. Migration de la table `societe_address` si nécessaire
-6. Initialisation de `SOCIETE_ADDRESSES_MANAGEMENT` si non défini
-7. Enregistrement de `INFRASPLUS_DOL_VERSION` et `INFRASPLUS_MAIN_VERSION`
-8. Purge de `MAIN_MODULE_INFRASPACKPLUS_TPL` (constante résiduelle du mécanisme module_parts['tpl'] supprimé en v21.0.0)
-9. Appel de `$this->_init()` standard
+6. Migration des constantes `INFRASPLUS_PDF_PARAMS_*_DOC|CUST|USER_*` vers `llx_infraspackplus_pdf_params` (`infraspackplus_migration_pdf_params()`), puis purge des réglages orphelins (`infraspackplus_purge_pdf_params()`) — v21.11.0
+7. Initialisation de `SOCIETE_ADDRESSES_MANAGEMENT` si non défini
+8. Enregistrement de `INFRASPLUS_DOL_VERSION` et `INFRASPLUS_MAIN_VERSION`
+9. Purge de `MAIN_MODULE_INFRASPACKPLUS_TPL` (constante résiduelle du mécanisme module_parts['tpl'] supprimé en v21.0.0)
+10. Appel de `$this->_init()` standard
 
 **`remove()`** effectue :
-1. Sauvegarde des paramètres (`infraspackplus_bkup_module`)
-2. Nettoyage SQL : suppression des constantes `INFRASPLUS_%` et `INFRASPACKPLUS_PS_%`, des modèles PDF `InfraSPlus_%`, des constantes `%_ADDON_PDF` liées
-3. **DROP TABLE** : `infraspackplus_societe_address`, `c_infraspackplus_mention`, `c_infraspackplus_note`
-4. Suppression des extrafields via `infraspackplus_search_extf(-1)`
+1. Migration des constantes de réglages PDF restantes vers la table (`infraspackplus_migration_pdf_params()`), pour que la sauvegarde contienne la table et non les constantes — v21.11.0
+2. Sauvegarde des paramètres (`infraspackplus_bkup_module` : modèles, constantes, adresses, dictionnaires et table `pdf_params`)
+3. Nettoyage SQL : suppression des constantes `INFRASPLUS_%` et `INFRASPACKPLUS_PS_%`, des modèles PDF `InfraSPlus_%`, des constantes `%_ADDON_PDF` liées
+4. **DROP TABLE** : `infraspackplus_societe_address`, `c_infraspackplus_mention`, `c_infraspackplus_note` — **pas** `infraspackplus_pdf_params` (données de documents, conservées comme les tables du cœur)
+5. Suppression des extrafields via `infraspackplus_search_extf(-1)`
 
 ### Classes TCPDF/TCPDI InfraS (PDF rendering override)
 
@@ -832,3 +840,29 @@ Pour supporter une nouvelle version majeure de Dolibarr (ex. 24.x) :
 - **Correctif** : cast `(int)` des deux côtés sur les 8 comparaisons concernées — adresse émettrice (l.332), adresse de livraison (l.539), adresse sous-traitant (`-2` / `-1` / `$lineadr->id`, l.589/590/593), plus les 3 non relevées par le client sur le sélecteur `Sst` (`=== -2`, `=== $ar_listSsT['rowid']` issu de `fetch_array()`, et la condition d'affichage `!== -2`). Durcissement préventif dans `admin/adresses.php` (présélection de l'adresse de livraison par défaut, `getDolGlobalString()` vs rowid — chaîne contre chaîne donc fonctionnelle, mais même motif fragile).
 - **Revue exhaustive associée** : toutes les autres occurrences `===` / `!==` des PHP du module vérifiées saines — retours **entiers** d'`Address::fetch()` (`$res === 1`, `$adrfound == 1`, `$addresslivrfound !== 1` des modèles PDF), sélecteurs logo / pied / CGV-CGI-CGA (chaîne contre chaîne), mode livraison mixte fournisseur (`$prefixLabel.$adrlivrfourPost === $value` : concaténations, donc chaînes des deux côtés par construction), idiomes `strpos()/array_search()/substr() !== false`, clé de contrôle mod 97 (`intval() % 97`).
 - **Règle à retenir** : tout identifiant lu en base (`$obj->rowid`, `fetch_array()['rowid']`, donc `Address->id`) est une **chaîne** — ne jamais le comparer en `===` à un `GETPOSTINT()` ou à un littéral entier sans cast `(int)` des deux côtés ; et ne jamais donner un défaut en **chaîne** (`?: '-2'`) à une variable comparée strictement à un littéral entier. Pendant, pour les identifiants, du point « Valeurs `DOUBLE` lues en base » (fix v21.8.8). Lors d'une « modernisation » `==` → `===`, harmoniser les types au moment du durcissement, pas après coup.
+
+
+### Réglages PDF par document, client et utilisateur (table dédiée, chg v21.11.0)
+
+Avant 21.11.0, les options choisies dans le formulaire de génération étaient enregistrées par `beforePDFCreation` dans quatre constantes globales à chaque génération : `INFRASPLUS_PDF_PARAMS_<element>_USER_<id>`, `_DOC_<id>`, `_TYPE` et `_CUST_<socid>`, relues par `infraspackplus_defaultParam()`. Chaque option a une portée `INFRASPLUS_PDF_OPTION_<option>` (`user`, `doc`, `type`, `cust` ou `none`, page Génération) qui décide dans quel jeu elle est écrite puis lue. Mesures (retour Kytom du 05/10/2026) : 14 168 constantes sur paris, 89 % de `llx_const`, 1,5 Mo chargés à chaque requête, 773 orphelines ; 8 251 orphelines sur 8 296 à barcelona (base copiée puis vidée) ; un nouveau document portant l'identifiant d'un ancien héritait de ses réglages. Sur fitantanana : 4 268 constantes (56 %), 576 réglages document et 295 réglages client orphelins.
+
+Depuis 21.11.0 :
+
+- `_TYPE` reste une constante (un réglage d'administration par type de document), réécrite seulement si sa valeur change ;
+- `user`, `doc` et `cust` sont dans `llx_infraspackplus_pdf_params` (`entity, element, scope, fk_object, params`), clé unique sur les quatre premières colonnes ; `params` garde le format chaîne de requête (`clé=valeur&…`) que `infraspackplus_defaultParam()` décodait déjà ;
+- lecture : `infraspackplus_getPdfParams($element, $fk_doc, $fk_soc, $fk_user)` — une requête, trois lignes au plus ; écriture : `infraspackplus_setPdfParams($element, $scope, $fk_object, $params)` (`INSERT … ON DUPLICATE KEY UPDATE`, chaîne vide = suppression de la ligne, aucune ligne vide n'est créée) ; suppression : `infraspackplus_deletePdfParams($element, $scope, $fk_object)` (toutes entités) ;
+- trigger : toute action `*_DELETE` d'un objet (hors lignes `*det` / `*ligne` / `*line`) supprime ses réglages `doc` ; `COMPANY_DELETE` → `cust` ; `USER_DELETE` → `user` ;
+- `infraspackplus_migration_pdf_params()` (admin lib) : constantes → table par lots de 200 en `INSERT IGNORE` (les lignes existantes priment sur un dump plus ancien), `None` → `none`, identifiants nuls supprimés sans migration, puis suppression des constantes ; appelée par `init()`, par `remove()` avant la sauvegarde et à la fin de `infraspackplus_restore_module()` ;
+- `infraspackplus_purge_pdf_params()` : supprime les lignes dont l'objet n'existe plus (table résolue par `getElementProperties()`, éléments inconnus ou tables absentes conservés) ; appelée par `init()` et par le bouton « Purger les orphelins » de `admin/generation.php` (`infraspackplus_count_pdf_params()` affiche les compteurs par portée) ;
+- `infraspackplus_copy_entity()` copie les portées `cust` et `user`, pas `doc` (documents propres à chaque entité) ;
+- `remove()` ne détruit pas la table ; elle figure dans `update.<entité>` pour Sauvegarder / Restaurer.
+
+Alternative écartée : `extraparams` du document. `CommonObject::setExtraParameters()` tronque le JSON à 250 caractères (colonne `varchar(255)`, déjà utilisée par le chantier Arrondis pour `calculationrule`) ; les réglages `doc` atteignent 175 caractères en forme chaîne (153 documents au-dessus de 150 sur fitantanana), `expedition`, `expensereport`, `delivery` et `reception` ne décodent pas la colonne dans `fetch()` et `product` n'en a pas.
+
+Sauvegarde / restauration corrigées au passage (`infraspackplusAdmin.lib.php`) :
+
+- `infraspackplus_bkup_table()` posait le marqueur `__ENTITY__` sur la deuxième colonne de chaque table (`$j == 1`). Pour `infraspackplus_societe_address`, `entity` est la première colonne : `datec` recevait le marqueur (remplacé par le numéro d'entité à la restauration) et les adresses n'étaient pas restaurées (date invalide). La position est désormais `array_search('entity', $listeCols)`.
+- la table `pdf_params` est ajoutée au dump (`ON DUPLICATE KEY UPDATE params`), les constantes `_DOC_` / `_CUST_` / `_USER_` en sont exclues, et l'`UPDATE llx_const … None → none` du pied de fichier (préfixe `llx_` en dur) est retiré ;
+- `infraspackplus_restore_module()` : fichier absent géré sans avertissement, `$result` initialisé, constantes rejouées par un ancien dump reversées dans la table.
+
+Test d'équivalence réalisé sur fitantanana (CLI, transaction annulée) : `infraspackplus_defaultParam()` identique avant et après migration sur les 2 513 devis, commandes, factures et interventions ayant des réglages, pour les deux utilisateurs concernés.

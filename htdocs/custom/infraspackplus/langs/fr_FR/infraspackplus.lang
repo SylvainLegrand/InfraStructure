@@ -730,6 +730,11 @@ InfraSPlusParamBkpPerType      = Enregistrement<br>par type<br>(devis, commande,
 InfraSPlusParamBkpPerCustomer  = Enregistrement<br>par client
 InfraSPlusParamBkpNone         = Aucun<br>enregistrement
 InfraSPlusParamPinVisible      = Toujours<br>visible
+InfraSPlusPdfParamsStored      = Réglages PDF enregistrés pour cette entité : %s par document, %s par client, %s par utilisateur
+InfraSPlusPdfParamsPurgeDesc   = Les réglages dont le document, le client ou l'utilisateur n'existe plus sont purgés à chaque réactivation du module ; ce bouton lance la purge immédiatement.
+InfraSPlusPdfParamsPurge       = Purger les orphelins
+InfraSPlusPdfParamsPurged      = %s réglage(s) PDF orphelin(s) supprimé(s)
+InfraSPlusPdfParamsMigrError   = Erreur lors de la migration des réglages PDF enregistrés (constantes vers table)
 
 ### About page ###
 

@@ -1436,22 +1436,25 @@ EOJS;
 							break;
 					}
 				}
+				// Enregistrement : type de document en constante (réécrite seulement si elle change), utilisateur / document / client dans la table llx_infraspackplus_pdf_params (depuis 21.11.0)
 				$txtResultsParamsUser	= http_build_query ($paramsResultsUser, '');	// écriture de la chaine
 				dol_syslog('actions_infraspackplus.class::beforePDFCreation txtResultsParamsUser = '.$txtResultsParamsUser);
-				dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_USER_'.$user->id,	$txtResultsParamsUser, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
+				infraspackplus_setPdfParams($object->element, 'user', (int) $user->id, $txtResultsParamsUser);
 				$txtResultsParamsDoc	= http_build_query ($paramsResultsDoc, '');	// écriture de la chaine
 				dol_syslog('actions_infraspackplus.class::beforePDFCreation txtResultsParamsDoc = '.$txtResultsParamsDoc);
-				dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_DOC_'.$object->id,	$txtResultsParamsDoc, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
+				infraspackplus_setPdfParams($object->element, 'doc', (int) $object->id, $txtResultsParamsDoc);
 				$txtResultsParamsType	= http_build_query ($paramsResultsType, '');	// écriture de la chaine
 				dol_syslog('actions_infraspackplus.class::beforePDFCreation txtResultsParamsType = '.$txtResultsParamsType);
-				dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_TYPE',	$txtResultsParamsType, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
+				if (getDolGlobalString('INFRASPLUS_PDF_PARAMS_'.$object->element.'_TYPE', '') !== $txtResultsParamsType) {
+					dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_TYPE',	$txtResultsParamsType, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
+				}
 				$txtResultsParamsCust	= http_build_query ($paramsResultsCust, '');	// écriture de la chaine
 				dol_syslog('actions_infraspackplus.class::beforePDFCreation txtResultsParamsCust = '.$txtResultsParamsCust);
 				if (! is_object($object->thirdparty) || empty($object->thirdparty->id)) {
 					$object->fetch_thirdparty();
 				}
 				if (is_object($object->thirdparty) && !empty($object->thirdparty->id)) {
-					dolibarr_set_const($db, 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_CUST_'.$object->thirdparty->id,	$txtResultsParamsCust, 'chaine', 0, 'InfraSPackPlus module', $conf->entity);	// enregistrement de la chaine
+					infraspackplus_setPdfParams($object->element, 'cust', (int) $object->thirdparty->id, $txtResultsParamsCust);
 				}
 			}
 			return 0;
@@ -1960,7 +1963,9 @@ EOJS;
 			global $form;
 			global $object_rights, $disableedit, $disablemove, $disableremove; // TODO We should not use global var for this !
 
-			$object->fetch_thirdparty();	// If the action has not been carried out before
+			if (! is_object($object->thirdparty) || (int) $object->thirdparty->id !== (int) $object->socid) {	// Only when the card has not loaded it yet : two queries per displayed line otherwise (Kytom, 2026-10)
+				$object->fetch_thirdparty();
+			}
 			$line					= !empty($parameters['line']) ? $parameters['line'] : '';
 			$var					= !empty($parameters['var']) ? $parameters['var'] : '';
 			$num					= !empty($parameters['num']) ? $parameters['num'] : '';

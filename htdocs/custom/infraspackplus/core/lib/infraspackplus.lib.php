@@ -1805,6 +1805,109 @@
 	}
 
 	/**
+	*	Réglages PDF enregistrés pour un document, son tiers et l'utilisateur courant (table llx_infraspackplus_pdf_params, depuis 21.11.0)
+	*	Une seule requête ; remplace les constantes INFRASPLUS_PDF_PARAMS_<element>_DOC|CUST|USER_<id>.
+	*
+	*	@param		string	$element	Type d'élément du document ($object->element)
+	*	@param		int		$fk_doc		Identifiant du document (portée 'doc'), 0 = aucun
+	*	@param		int		$fk_soc		Identifiant du tiers (portée 'cust'), 0 = aucun
+	*	@param		int		$fk_user	Identifiant de l'utilisateur (portée 'user'), 0 = aucun
+	*	@return		array				array('doc' => string, 'cust' => string, 'user' => string), chaîne vide si rien n'est enregistré
+	**/
+	function infraspackplus_getPdfParams($element, $fk_doc, $fk_soc, $fk_user)
+	{
+		global $db, $conf;
+
+		$params		= array('doc' => '', 'cust' => '', 'user' => '');
+		$where		= [];
+		if ((int) $fk_doc > 0) {
+			$where[]	= '(scope = \'doc\' AND fk_object = '.((int) $fk_doc).')';
+		}
+		if ((int) $fk_soc > 0) {
+			$where[]	= '(scope = \'cust\' AND fk_object = '.((int) $fk_soc).')';
+		}
+		if ((int) $fk_user > 0) {
+			$where[]	= '(scope = \'user\' AND fk_object = '.((int) $fk_user).')';
+		}
+		if (empty($element) || empty($where)) {
+			return $params;
+		}
+		$sql		= 'SELECT scope, params FROM '.$db->prefix().'infraspackplus_pdf_params';
+		$sql		.= ' WHERE entity = '.((int) $conf->entity).' AND element = \''.$db->escape($element).'\' AND ('.implode(' OR ', $where).')';
+		$resql		= $db->query($sql);
+		if (!$resql) {
+			dol_syslog('infraspackplus.lib::infraspackplus_getPdfParams Error '.$db->lasterror(), LOG_ERR);
+			return $params;
+		}
+		while ($obj = $db->fetch_object($resql)) {
+			if (isset($params[$obj->scope])) {
+				$params[$obj->scope]	= (string) $obj->params;
+			}
+		}
+		$db->free($resql);
+		return $params;
+	}
+
+	/**
+	*	Enregistre les réglages PDF d'une portée pour un objet (table llx_infraspackplus_pdf_params, depuis 21.11.0)
+	*	Une chaîne vide supprime la ligne : aucune option n'est enregistrée pour cette portée.
+	*
+	*	@param		string	$element	Type d'élément du document ($object->element)
+	*	@param		string	$scope		'doc', 'cust' ou 'user'
+	*	@param		int		$fk_object	Identifiant du document, du tiers ou de l'utilisateur selon la portée
+	*	@param		string	$params		Options sous forme de chaîne de requête (clé=valeur&clé=valeur)
+	*	@return		int					1 = OK, 0 = rien à faire, -1 = erreur
+	**/
+	function infraspackplus_setPdfParams($element, $scope, $fk_object, $params)
+	{
+		global $db, $conf;
+
+		if (empty($element) || !in_array($scope, array('doc', 'cust', 'user')) || (int) $fk_object <= 0) {
+			return 0;
+		}
+		if ((string) $params === '') {
+			return infraspackplus_deletePdfParams($element, $scope, $fk_object);
+		}
+		$value		= $db->escape($params);
+		$sql		= 'INSERT INTO '.$db->prefix().'infraspackplus_pdf_params (entity, element, scope, fk_object, params)';
+		$sql		.= ' VALUES ('.((int) $conf->entity).', \''.$db->escape($element).'\', \''.$db->escape($scope).'\', '.((int) $fk_object).', \''.$value.'\')';
+		$sql		.= $db->type == 'pgsql' ? ' ON CONFLICT (entity, element, scope, fk_object) DO UPDATE SET params = \''.$value.'\'' : ' ON DUPLICATE KEY UPDATE params = \''.$value.'\'';
+		$resql		= $db->query($sql);
+		if (!$resql) {
+			dol_syslog('infraspackplus.lib::infraspackplus_setPdfParams Error '.$db->lasterror(), LOG_ERR);
+			return -1;
+		}
+		return 1;
+	}
+
+	/**
+	*	Supprime les réglages PDF enregistrés pour un objet (table llx_infraspackplus_pdf_params, depuis 21.11.0)
+	*	Toutes entités confondues : un identifiant d'objet est unique dans sa table quelle que soit l'entité.
+	*
+	*	@param		string	$element	Type d'élément ($object->element), chaîne vide = tous (portées 'cust' et 'user')
+	*	@param		string	$scope		'doc', 'cust' ou 'user'
+	*	@param		int		$fk_object	Identifiant du document, du tiers ou de l'utilisateur selon la portée
+	*	@return		int					1 = OK, 0 = rien à faire, -1 = erreur
+	**/
+	function infraspackplus_deletePdfParams($element, $scope, $fk_object)
+	{
+		global $db;
+
+		if (!in_array($scope, array('doc', 'cust', 'user')) || (int) $fk_object <= 0) {
+			return 0;
+		}
+		$sql		= 'DELETE FROM '.$db->prefix().'infraspackplus_pdf_params';
+		$sql		.= ' WHERE scope = \''.$db->escape($scope).'\' AND fk_object = '.((int) $fk_object);
+		$sql		.= !empty($element) ? ' AND element = \''.$db->escape($element).'\'' : '';
+		$resql		= $db->query($sql);
+		if (!$resql) {
+			dol_syslog('infraspackplus.lib::infraspackplus_deletePdfParams Error '.$db->lasterror(), LOG_ERR);
+			return -1;
+		}
+		return 1;
+	}
+
+	/**
 	*
 	*	@param	CommonObject	$object					The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	*	@return	array									list of options option name => array(type value, type backup (user / doc), value, constante used for default value)
@@ -1888,16 +1991,13 @@
 			$constname	= 'INFRASPLUS_PDF_OPTION_'.$key;
 			$listOptions[$key]['bkptype']	= getDolGlobalString($constname, '');	// 'user', 'doc', 'type', 'cust' or empty
 		}
-		// Constantes contenant les paramètres sauvegardés
-		$paramsKeyUser	= 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_USER_'.$user->id;
-		$paramsKeyDoc	= 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_DOC_'.$object->id;
+		// Paramètres enregistrés : type de document en constante ; utilisateur, document et client dans la table llx_infraspackplus_pdf_params (depuis 21.11.0)
 		$paramsKeyType	= 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_TYPE';
-		$paramsKeyCust	= 'INFRASPLUS_PDF_PARAMS_'.$object->element.'_CUST_'.(!empty($object->thirdparty->id) ? $object->thirdparty->id : '');
-		// Paramètres enregistrés (utilisateur, document, type de document ou client)
-		$txtParamsUser	= getDolGlobalString($paramsKeyUser, '');
-		$txtParamsDoc	= getDolGlobalString($paramsKeyDoc, '');
 		$txtParamsType	= getDolGlobalString($paramsKeyType, '');
-		$txtParamsCust	= getDolGlobalString($paramsKeyCust, '');
+		$savedParams	= infraspackplus_getPdfParams($object->element, (int) $object->id, (!empty($object->thirdparty->id) ? (int) $object->thirdparty->id : 0), (int) $user->id);
+		$txtParamsUser	= $savedParams['user'];
+		$txtParamsDoc	= $savedParams['doc'];
+		$txtParamsCust	= $savedParams['cust'];
 		// liste de contrôle des paramètres enregistrés (utilisateur, document, type de document ou client)
 		$listParamUser	= [];
 		$listParamDoc	= [];
@@ -2613,6 +2713,21 @@
 		$db->free($resql2);
 
 		// DICTIONARIES
+		// Réglages PDF par client et par utilisateur (table llx_infraspackplus_pdf_params, depuis 21.11.0) ; ceux par document ne sont pas copiés, les documents étant propres à chaque entité
+		$sql4	= 'SELECT element, scope, fk_object, params FROM '.$db->prefix().'infraspackplus_pdf_params WHERE entity = '.((int) $fromEntity).' AND scope IN (\'cust\', \'user\')';
+		$resql4	= $db->query($sql4);
+		if ($resql4 == false) {
+			$db->rollback();
+			return -1;
+		}
+		while ($obj = $db->fetch_object($resql4)) {
+			$sqlInsert4	= 'INSERT INTO '.$db->prefix().'infraspackplus_pdf_params (entity, element, scope, fk_object, params) VALUES ('.((int) $toEntity).', "'.$db->escape($obj->element).'", "'.$db->escape($obj->scope).'", '.((int) $obj->fk_object).', "'.$db->escape($obj->params).'")';
+			$sqlInsert4	.= ' ON DUPLICATE KEY UPDATE params = "'.$db->escape($obj->params).'"';
+			if ($db->query($sqlInsert4) == false) {
+				$db->rollback();
+				return -1;
+			}
+		}
 		$dictTables = array('c_infraspackplus_mention','c_infraspackplus_note');
 		foreach ($dictTables as $table) {
 			$sql3	= 'SELECT code, pos, libelle, active FROM '.$db->prefix().$table.' WHERE entity = '.((int) $fromEntity).' ORDER BY pos ASC';

@@ -73,6 +73,15 @@
 	if ($action == 'restoreParams') {
 		$result	= infraspackplus_restore_module ('infraspackplus');
 	}
+	// Purge des réglages PDF orphelins (table llx_infraspackplus_pdf_params)
+	if ($action == 'purgePdfParams' && $accessright == 2) {
+		$nbpurged	= infraspackplus_purge_pdf_params();
+		if ($nbpurged < 0) {
+			setEventMessages($langs->trans('Error'), [], 'errors');
+		} else {
+			setEventMessages($langs->trans('InfraSPlusPdfParamsPurged', $nbpurged), [], 'mesgs');
+		}
+	}
 	// On / Off management
 	if (preg_match('/set_(.*)/', $action, $reg)) {
 		$confkey	= $reg[1];
@@ -198,6 +207,18 @@
 	//Sauvegarde / Restauration
 	if ($accessright == 2) {
 		infraspackplus_print_backup_restore();
+		// Réglages PDF enregistrés par document / client / utilisateur (table llx_infraspackplus_pdf_params) et purge des orphelins
+		$nbparams	= infraspackplus_count_pdf_params();
+		print '	<table class = "centpercent noborderspacing">';
+		$metas		= array('*', '156px', '120px');
+		infraspackplus_print_colgroup($metas);
+		print '		<tr>
+						<td colspan = "2" class = "center infrasplustitleparam">'.$langs->trans('InfraSPlusPdfParamsStored', $nbparams['doc'], $nbparams['cust'], $nbparams['user']).'<br><span class = "opacitymedium">'.$langs->trans('InfraSPlusPdfParamsPurgeDesc').'</span></td>
+						<td class = "center"><button class = "butActionDelete" type = "submit" value = "purgePdfParams" name = "action">'.$langs->trans('InfraSPlusPdfParamsPurge').'</button></td>
+					</tr>';
+		infraspackplus_print_hr(count($metas));
+		infraspackplus_print_final(count($metas));
+		print '	</table>';
 	}
 	print '			<div class = "NOfoldable">';
 	print infraspackplus_load_title('<span class = "infrasplustitleparam">'.$langs->trans('InfraSPlusParamGenerationSetup').'</span>', $titleoption, dol_buildpath('/infraspackplus/img/option_tool.png', 1), 1, '', 'toggle_bloc_title');

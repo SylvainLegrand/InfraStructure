@@ -730,6 +730,11 @@ InfraSPlusParamBkpPerType      = Registration<br>by type<br>(proposal, order, ..
 InfraSPlusParamBkpPerCustomer  = Registration<br>by customer
 InfraSPlusParamBkpNone         = No recording
 InfraSPlusParamPinVisible      = Always<br>visible
+InfraSPlusPdfParamsStored      = PDF settings saved for this entity: %s per document, %s per customer, %s per user
+InfraSPlusPdfParamsPurgeDesc   = Settings whose document, customer or user no longer exists are purged each time the module is re-enabled; this button runs the purge now.
+InfraSPlusPdfParamsPurge       = Purge orphans
+InfraSPlusPdfParamsPurged      = %s orphan PDF setting(s) deleted
+InfraSPlusPdfParamsMigrError   = Error while migrating the saved PDF settings (constants to table)
 
 ### About page ###
 
