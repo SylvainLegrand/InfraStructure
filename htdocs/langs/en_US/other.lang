@@ -402,3 +402,36 @@ ToggleMicrophone=Toggle Microphone
 TypeYourQuestion=Type your question...
 SendPrompt=Send
 AttachFile=Attach File
+
+# InfraS add begin
+# Clés du module IA resynchronisé depuis develop (2026-10)
+Clear=Clear
+CloudVoiceRequiresSecureContext=The Cloud Voice engine requires %s or %s. If you are on an IP address, please switch to "%s" mode in the top right menu.
+AIAttachmentBlockedByPrivacy=The privacy redaction policy is enforced on this installation: document contents cannot be masked, so attachments cannot be sent to a cloud AI provider.
+AIAttachmentTooLarge=The attached document exceeds the maximum size of %s MB allowed for the AI assistant.
+AIAttachmentTooMany=At most %s documents can be attached to one message.
+AIAttachmentTypeNotAllowed=This file type (%s) cannot be sent to the AI assistant. Allowed: PDF and images (PNG, JPEG, GIF, WEBP).
+AICannotUnderstandRequest=I'm having trouble understanding your request. Please try rephrasing it differently. If the problem persists, please contact your administrator to check the AI connection status.
+AIContextAuto=Auto (%s)
+AIContextAutoTitle=Back to the default: the last %s exchanges follow the AI automatically (manual pins and exclusions are dropped)
+AIContextCounter=Context: %s exchange(s), %s message(s) (~%s tokens)
+AIModelClosestAvailable=Closest available model: %s
+AIModelRuntimeFailureBanner=The AI provider rejected the model '%s' at request time on %s (%s). It may have been renamed or retired: check the values below.
+AIPreviewAddContact=Add contact "%s" to third party %s.
+AIPreviewAddLine=Add a line to %s %s.
+AIPreviewCreateCategory=Create the %s category "%s".
+AIPreviewCreateDocument=Create a draft %s%s with %s.
+AIPreviewCreateInvoice=Create a draft customer invoice%s with %s.
+AIPreviewCreateOrder=Create a draft sales order%s with %s.
+AIPreviewCreateProduct=Create the product "%s" in the catalog.
+AIPreviewCreateThirdparty=Create the third party "%s".
+AIPreviewDelete=DELETE the %s with id %s. This cannot be undone.
+AIPreviewForThirdparty=for %s
+AIPreviewFromCatalogue=priced from the catalogue
+AIPreviewPayInvoice=Record a payment of %s on invoice %s.
+AIPreviewPlusCatalogue=%s plus lines priced from the catalogue
+AIPreviewUpdateThirdparty=Update third party %s: %s.
+AIPreviewValidateInvoice=Validate invoice %s. It gets a definitive number and can no longer be edited.
+AIProviderBusy=The AI service could not answer right now (%s). This is usually temporary: please try again in a moment.
+AIProviderError=The AI service returned an error: %s. If it persists, please contact your administrator to check the AI configuration.
+# InfraS add end

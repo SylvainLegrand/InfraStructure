@@ -384,3 +384,9 @@ FillExtrafieldWithAi=Remplissez le champ supplémentaire avec du contenu IA
 ExtrafieldFiller=Remplissage de champ supplémentaire
 OurProductSelection=Notre sélection de nouveaux produits
 NoSupportedModulesHaveBeenActivated=The reporting tool can generate dynamic reports for some modules only. There is no supported module enabled yet.
+
+# InfraS add begin
+# Clés du module IA resynchronisé depuis develop (2026-10)
+Clear=Clair
+CloudVoiceRequiresSecureContext=Le moteur Cloud Voice requiert %s ou %s. Si vous utilisez une adresse IP, veuillez passer en mode « %s » dans le menu en haut à droite.
+# InfraS add end

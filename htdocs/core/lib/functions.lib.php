@@ -9382,6 +9382,22 @@ function dol_concatdesc($text1, $text2, $forxml = false, $invert = false)
 	return $ret;
 }
 
+// InfraS add begin
+// Backport de develop pour le module IA resynchronisé (ai/class/ai.class.php) (2026-10).
+/**
+ *  Concat 2 strings. Can be used for dol_eval strings for example.
+ *
+ *  @param  string  $text1          Text 1
+ *  @param  string  $text2          Text 2
+ *  @return string                  Text 1 + new line + Text2
+ *  @see    dol_textishtml()
+ */
+function dol_concat($text1, $text2)
+{
+	return $text1.$text2;
+}
+// InfraS add end
+
 
 
 /**

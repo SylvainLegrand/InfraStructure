@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2026	Laurent Destailleur		<eldy@users.sourceforge.net>
  * Copyright (C) 2026	Nick Fragoulis
- * Copyright (C) 2026		MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2026	MDW						<mdeweerd@users.noreply.github.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,6 +71,17 @@ class ToolNavigation extends McpTool
 				]
 			]
 		];
+	}
+
+	/**
+	 * This class already checks the rights of every page it can navigate to.
+	 *
+	 * @param string $toolName Tool being executed.
+	 * @return string RIGHTS_ENFORCED_DOWNSTREAM
+	 */
+	public function getRequiredRights(string $toolName)
+	{
+		return self::RIGHTS_ENFORCED_DOWNSTREAM;
 	}
 
 	/**
@@ -512,12 +523,7 @@ class ToolNavigation extends McpTool
 			require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 			$soc = new Societe($db);
 			if ($soc->fetch($id) > 0) {
-				// BACKPORT NOTE (osden 22.x): Societe::isCustomer()/isSupplier() were added in
-				// Dolibarr 24. On this 22.x base we use the equivalent property checks:
-				// client == 1|3 means customer, fournisseur == 1 means supplier.
-				$isCustomer = ((int) $soc->client === 1 || (int) $soc->client === 3);
-				$isSupplier = ((int) $soc->fournisseur === 1);
-				return $soc->isInEEC() || $isCustomer || $isSupplier;
+				return $soc->isInEEC() || $soc->isCustomer() || $soc->isSupplier();
 			}
 			return false;
 		}

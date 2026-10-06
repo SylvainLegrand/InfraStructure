@@ -368,6 +368,61 @@ create table if not exists llx_ai_request_log
 )ENGINE=innodb;
 
 -- InfraS add begin
+-- Module IA resynchronisé depuis develop (2026-10) : instructions reprises de la migration upstream
+-- 24.0.0-25.0.0.sql (tables en "if not exists" comme ci-dessus). Les tables figurent aussi dans
+-- install/mysql/tables/ (création à l'activation du module) ; ce bloc couvre les instances où le
+-- module est déjà actif ou la table de journal déjà créée.
+-- AI request log: token usage reported by the provider and the exact model id, for cost reporting in the log viewer
+ALTER TABLE llx_ai_request_log ADD COLUMN tokens_input integer;
+ALTER TABLE llx_ai_request_log ADD COLUMN tokens_output integer;
+ALTER TABLE llx_ai_request_log ADD COLUMN model varchar(255);
+
+-- AI chat: conversation history (reopen past conversations; storage is separate from the pinned context sent to the model)
+create table if not exists llx_ai_chat_conversation
+(
+  rowid						integer AUTO_INCREMENT PRIMARY KEY,
+  entity					integer DEFAULT 1 NOT NULL,
+  fk_user					integer NOT NULL,
+  title						varchar(255),
+  date_creation				datetime NOT NULL,
+  tms						timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)ENGINE=innodb;
+create table if not exists llx_ai_chat_message
+(
+  rowid						integer AUTO_INCREMENT PRIMARY KEY,
+  fk_conversation			integer NOT NULL,
+  role						varchar(16) NOT NULL,
+  content_raw				text,
+  content_html				MEDIUMTEXT,
+  tool_name					varchar(255),
+  pinned					smallint DEFAULT 0,
+  is_error					smallint DEFAULT 0,
+  position					integer DEFAULT 0,
+  datec						datetime NOT NULL
+)ENGINE=innodb;
+ALTER TABLE llx_ai_chat_conversation ADD INDEX idx_ai_chat_conversation_user (fk_user, tms);
+ALTER TABLE llx_ai_chat_message ADD INDEX idx_ai_chat_message_conv (fk_conversation, position);
+ALTER TABLE llx_ai_chat_message ADD CONSTRAINT fk_ai_chat_message_conv FOREIGN KEY (fk_conversation) REFERENCES llx_ai_chat_conversation (rowid);
+
+-- Add table for the AI assistant pending write confirmations (MCP multi-round-trip)
+create table if not exists llx_ai_write_confirmation
+(
+  rowid						integer AUTO_INCREMENT PRIMARY KEY,
+  entity					integer DEFAULT 1 NOT NULL,
+  state_hash				varchar(80) NOT NULL,					-- Hash of the requestState handed to the caller
+  fk_user					integer NOT NULL,						-- User the state was issued to
+  tool_name					varchar(255) NOT NULL,					-- Tool the confirmation is for
+  args_hash					varchar(80) NOT NULL,					-- Hash of the arguments, so confirmed arguments cannot change
+  preview					text,									-- Description of the pending write
+  date_creation				datetime NOT NULL,
+  date_expiration			datetime NOT NULL,						-- After this date the state is refused
+  date_consumed				datetime,								-- Set when the write was confirmed and executed
+  ip						varchar(250)							-- Origin of the request that asked for the write
+)ENGINE=innodb;
+ALTER TABLE llx_ai_write_confirmation ADD UNIQUE INDEX uk_ai_write_confirmation_state (state_hash, entity);
+ALTER TABLE llx_ai_write_confirmation ADD INDEX idx_ai_write_confirmation_expiration (date_expiration);
+ALTER TABLE llx_ai_write_confirmation ADD INDEX idx_ai_write_confirmation_fk_user (fk_user);
+
 -- Add category purpose and community specific instrument to bank account (used to build SEPA files)
 ALTER TABLE llx_bank_account ADD COLUMN ctgypurp varchar(14) DEFAULT 'CORE' AFTER pti_in_ctti;
 ALTER TABLE llx_bank_account ADD COLUMN lclinstrm varchar(14) DEFAULT 'CORE' AFTER ctgypurp;

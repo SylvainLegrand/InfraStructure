@@ -3,6 +3,8 @@
  * Copyright (C) 2018-2019  Nicolas ZABOURI         <info@inovea-conseil.com>
  * Copyright (C) 2019-2024  Frédéric France         <frederic.france@free.fr>
  * Copyright (C) 2024		MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2026		Jose Martinez			<jose.martinez@pichinov.com>
+ * Copyright (C) 2026		Nick Fragoulis
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,13 +111,7 @@ class modAi extends DolibarrModules
 				//   '/ai/js/ai.js.php',
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
-			'hooks' => array(
-				//   'data' => array(
-				//       'hookcontext1',
-				//       'hookcontext2',
-				//   ),
-				//   'entity' => '0',
-			),
+			'hooks' => array('all'),	// InfraS change backport security from Develop
 			// Set this to 1 if features of module are opened to external users
 			'moduleforexternal' => 0,
 		);
@@ -142,18 +138,24 @@ class modAi extends DolibarrModules
 		$this->phpmin = array(7, 0); // Minimum version of PHP required by module
 
 		// Messages at activation
-		$this->warnings_activation = array(); // Warning to show when we activate module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
-		$this->warnings_activation_ext = array(); // Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','MX'='textmx'...)
+		$this->warnings_activation = array();
+		$this->warnings_activation_ext = array();
 		//$this->automatic_activation = array('FR'=>'AiWasAutomaticallyActivatedBecauseOfYourCountryChoice');
-		//$this->always_enabled = true;								// If true, can't be disabled
 
 		// Constants
 		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
 		// Example: $this->const=array(1 => array('BOOKCAL_MYNEWCONST1', 'chaine', 'myvalue', 'This is a constant to add', 1),
 		//                             2 => array('BOOKCAL_MYNEWCONST2', 'chaine', 'myvalue', 'This is another constant to add', 0, 'current', 1)
 		// );
-		$this->const = array();
-
+		// InfraS change backport security from Develop
+		$this->const = array(
+			1 => array('AI_EMAILCLEANER_ENABLED', 'yesno', '0', 'Enable AI cleaner hook for EmailCollector (no business decision)', 0, 'current'),
+			2 => array('AI_EMAILCLEANER_MAX_INPUT', 'integer', '16000', 'Max input size for EmailCleaner prompt', 0, 'current'),
+			3 => array('AI_EMAILCLEANER_MIN_CONFIDENCE', 'chaine', '0.60', 'Minimum confidence to trust AI cleaned text', 0, 'current'),
+			4 => array('AI_EMAILCLEANER_EXPOSE_OPERATION', 'yesno', '0', 'Expose AI Email Cleaner operation in EmailCollector card', 0, 'current'),
+			5 => array('AI_EMAILCLEANER_ISOLATED_MODE', 'yesno', '1', 'Force isolated cleaner runtime (no business decision / no cross-module side effects)', 0, 'current'),
+		);
+		// InfraS change end
 		// Some keys to add into the overwriting translation tables
 		/*$this->overwrite_translation = array(
 			'en_US:ParentCompany'=>'Parent company or reseller',
@@ -246,7 +248,7 @@ class modAi extends DolibarrModules
 			//      'frequency' => 2,
 			//      'unitfrequency' => 3600,
 			//      'status' => 0,
-			//      'test' => '$conf->ai->enabled',
+			//      'test' => 'isModEnabled('ai')',	// InfraS change backport security from Develop
 			//      'priority' => 50,
 			//  ),
 		);
@@ -290,6 +292,28 @@ class modAi extends DolibarrModules
 		/* END MODULEBUILDER TOPMENU */
 
 		/* BEGIN MODULEBUILDER LEFTMENU AI */
+		// InfraS change backport security from Develop
+		// The full-page assistant (ai/assistant/index.php) was reachable only by
+		// typing its URL: the topbar popover opens the quick chat, but nothing in
+		// the menus leads to the page with the welcome screen and its ready-made
+		// prompts. One entry under Tools, hideable with AI_MENU_HIDE_TOOLSMENU
+		// and gated by the same ai->assistant->use right as the page itself.
+		$this->menu[$r++] = array(
+			'fk_menu' => 'fk_mainmenu=tools',
+			'type' => 'left',
+			'titre' => 'AIAssistant',
+			'prefix' => img_picto('', 'fa-robot', 'class="paddingright pictofixedwidth"'),
+			'mainmenu' => 'tools',
+			'leftmenu' => 'ai',
+			'url' => '/ai/assistant/index.php?mainmenu=tools&leftmenu=ai',
+			'langs' => 'other',
+			'position' => 200,
+			'enabled' => 'isModEnabled("ai") && getDolGlobalString("AI_ASSISTANT_ENABLED") && getDolGlobalString("AI_MENU_SHOW_TOOLSMENU")',
+			'perms' => '$user->hasRight("ai", "assistant", "use")',
+			'target' => '',
+			'user' => 2,
+		);
+		// InfraS change end
 		/* END MODULEBUILDER LEFTMENU AI */
 
 		/* BEGIN MODULEBUILDER LEFTMENU AVAILABILITIES
@@ -378,15 +402,6 @@ class modAi extends DolibarrModules
 		if ($result < 0) {
 			return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
 		}
-
-		// Create extrafields during init
-		//include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-		//$extrafields = new ExtraFields($this->db);
-		//$result1=$extrafields->addExtraField('ai_myattr1', "New Attr 1 label", 'boolean', 1,  3, 'thirdparty',   0, 0, '', '', 1, '', 0, 0, '', '', 'ai@ai', '$conf->ai->enabled');
-		//$result2=$extrafields->addExtraField('ai_myattr2', "New Attr 2 label", 'varchar', 1, 10, 'project',      0, 0, '', '', 1, '', 0, 0, '', '', 'ai@ai', '$conf->ai->enabled');
-		//$result3=$extrafields->addExtraField('ai_myattr3', "New Attr 3 label", 'varchar', 1, 10, 'bank_account', 0, 0, '', '', 1, '', 0, 0, '', '', 'ai@ai', '$conf->ai->enabled');
-		//$result4=$extrafields->addExtraField('ai_myattr4', "New Attr 4 label", 'select',  1,  3, 'thirdparty',   0, 1, '', array('options'=>array('code1'=>'Val1','code2'=>'Val2','code3'=>'Val3')), 1,'', 0, 0, '', '', 'ai@ai', '$conf->ai->enabled');
-		//$result5=$extrafields->addExtraField('ai_myattr5', "New Attr 5 label", 'text',    1, 10, 'user',         0, 0, '', '', 1, '', 0, 0, '', '', 'ai@ai', '$conf->ai->enabled');
 
 		// Permissions
 		$this->remove($options);

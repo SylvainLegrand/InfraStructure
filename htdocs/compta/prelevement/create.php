@@ -685,7 +685,7 @@ if ($sourcetype != 'salary') {
 	$sql .= " AND pd.ext_payment_id IS NULL";
 	$sql .= " AND s.paye = ".Salary::STATUS_UNPAID;
 	if ($search_ref) {
-		$sql .= " AND CAST(s.rowid AS CHAR) LIKE '%".$db->escapeforlike($search_ref)."%'";
+		$sql .= " AND CAST(s.rowid AS CHAR) LIKE '%".$db->escape($db->escapeforlike($search_ref))."%'";	// InfraS change security
 	}
 	if ($search_company) {
 		$sql .= natural_search(['u.lastname', 'u.firstname'], $search_company);

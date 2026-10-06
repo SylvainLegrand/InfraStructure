@@ -68,12 +68,21 @@ if (is_numeric($objectid)) {
 }
 // Load object according to $element
 $object = fetchObjectByElement($objectid, $objecttype, $element_ref);
-if (empty($object->element)) {
-	// infras change begin: fallback for non-standard element types (e.g. customtabs cust_* tables)
-	if (!$user->id) {
-		httponly_accessforbidden('Not authenticated');
+if (!is_object($object) || empty($object->element)) {	// InfraS change
+	// InfraS change begin
+	// Repli réservé aux tables cust_* de customtabs (types d'élément sans classe) : module actif,
+	// utilisateur interne autorisé à lire customtabs, et type réellement déclaré dans llx_extrafields
+	// pour l'entité. Tout autre type inconnu est refusé, comme dans Dolibarr d'origine (2026-10).
+	if (!isModEnabled('customtabs') || strpos($objecttype, 'cust_') !== 0 || !empty($user->socid)) {
+		httponly_accessforbidden('Failed to get object with fetchObjectByElement(id=' . $objectid . ', objecttype=' . $objecttype . ')');
+	}
+	restrictedArea($user, 'customtabs');
+	$extrafieldscheck = new ExtraFields($db);
+	if (empty($extrafieldscheck->fetch_name_optionals_label($objecttype))) {
+		httponly_accessforbidden('Unknown element type ' . $objecttype);
 	}
 	$element = $objecttype;
+	// InfraS change end
 } else {
 	$module = $object->module;
 	$element = $object->element;
