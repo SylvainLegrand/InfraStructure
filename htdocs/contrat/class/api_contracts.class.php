@@ -402,7 +402,10 @@ class Contracts extends DolibarrApi
 		if ($updateRes > 0) {
 			return $updateRes;
 		}
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->contract, 'Error when adding line');
+		// InfraS change end
 	}
 
 	/**
@@ -438,6 +441,20 @@ class Contracts extends DolibarrApi
 		$request_data->desc = sanitizeVal($request_data->desc, 'restricthtml');
 		$request_data->price_base_type = sanitizeVal($request_data->price_base_type);
 
+		// InfraS add begin
+		// Contrat::updateline(), active_line() and close_line() index the line by id without checking it: an unknown line or a line of another contract
+		// is a PHP fatal error (HTTP 500 without message). Same answer as the other line APIs (the line index of Contrat is protected, hence the loop).
+		$lineexists = false;
+		foreach ((array) $this->contract->lines as $contractline) {
+			if ((int) $contractline->id == (int) $lineid) {
+				$lineexists = true;
+				break;
+			}
+		}
+		if (!$lineexists) {
+			throw new RestException(404, 'Contract line not found');
+		}
+		// InfraS add end
 		$updateRes = $this->contract->updateline(
 			$lineid,
 			$request_data->desc,
@@ -550,7 +567,10 @@ class Contracts extends DolibarrApi
 			return $this->_cleanObjectDatas($result);
 		}
 
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->contract, 'Error when updating line');
+		// InfraS change end
 	}
 
 	/**
@@ -581,6 +601,20 @@ class Contracts extends DolibarrApi
 			throw new RestException(403, 'Access to this contract is not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
+		// InfraS add begin
+		// Contrat::updateline(), active_line() and close_line() index the line by id without checking it: an unknown line or a line of another contract
+		// is a PHP fatal error (HTTP 500 without message). Same answer as the other line APIs (the line index of Contrat is protected, hence the loop).
+		$lineexists = false;
+		foreach ((array) $this->contract->lines as $contractline) {
+			if ((int) $contractline->id == (int) $lineid) {
+				$lineexists = true;
+				break;
+			}
+		}
+		if (!$lineexists) {
+			throw new RestException(404, 'Contract line not found');
+		}
+		// InfraS add end
 		$updateRes = $this->contract->active_line(DolibarrApiAccess::$user, $lineid, (int) $datestart, $dateend, $comment);
 
 		if ($updateRes > 0) {
@@ -589,7 +623,10 @@ class Contracts extends DolibarrApi
 			return $this->_cleanObjectDatas($result);
 		}
 
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->contract, 'Error when activating line');
+		// InfraS change end
 	}
 
 	/**
@@ -619,6 +656,20 @@ class Contracts extends DolibarrApi
 			throw new RestException(403, 'Access to this contract is not allowed for login '.DolibarrApiAccess::$user->login);
 		}
 
+		// InfraS add begin
+		// Contrat::updateline(), active_line() and close_line() index the line by id without checking it: an unknown line or a line of another contract
+		// is a PHP fatal error (HTTP 500 without message). Same answer as the other line APIs (the line index of Contrat is protected, hence the loop).
+		$lineexists = false;
+		foreach ((array) $this->contract->lines as $contractline) {
+			if ((int) $contractline->id == (int) $lineid) {
+				$lineexists = true;
+				break;
+			}
+		}
+		if (!$lineexists) {
+			throw new RestException(404, 'Contract line not found');
+		}
+		// InfraS add end
 		$updateRes = $this->contract->close_line(DolibarrApiAccess::$user, $lineid, (int) $datestart, $comment);
 
 		if ($updateRes > 0) {
@@ -627,7 +678,10 @@ class Contracts extends DolibarrApi
 			return $this->_cleanObjectDatas($result);
 		}
 
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->contract, 'Error when closing line');
+		// InfraS change end
 	}
 
 	/**

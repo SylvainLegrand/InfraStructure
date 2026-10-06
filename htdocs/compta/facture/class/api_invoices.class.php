@@ -572,7 +572,7 @@ class Invoices extends DolibarrApi
 			unset($result->line);
 			return $this->_cleanObjectDatas($result);
 		} else {
-			throw new RestException(304, $this->invoice->errorsToString());	// Osden change
+			$this->_throwWriteError($this->invoice, 'Error when updating line', Facture::STATUS_DRAFT);	// InfraS change : 400 out of draft, 500 otherwise (304 is for 'nothing done', not for a refusal)
 		}
 	}
 

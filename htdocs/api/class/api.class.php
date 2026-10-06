@@ -378,6 +378,39 @@ class DolibarrApi
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
+	// InfraS add begin
+	/**
+	 * Throw the RestException of a refused write (update, addline, updateline, active_line...) with the Dolibarr error messages,
+	 * so that the API never answers HTTP 200 to a refused write (several methods used to return false or the unchanged object).
+	 *
+	 * @param	CommonObject	$object			Object the write was made on ($object->error and $object->errors are used)
+	 * @param	string			$message		Message prefix, for example 'Error when updating line'
+	 * @param	int|null		$requiredstatus	Status required by the operation (for example Propal::STATUS_DRAFT), null when any status is allowed
+	 * @param	int				$httpcode		HTTP code when the status is right: 500 for an error, 400 for a known business refusal
+	 * @return	never
+	 *
+	 * @throws	RestException	400 when the object status forbids the operation, $httpcode otherwise
+	 */
+	protected function _throwWriteError($object, $message, $requiredstatus = null, $httpcode = 500)
+	{
+		global $langs;
+
+		$langs->load('errors');
+		$details = array();
+		foreach (array_merge(array($object->error), (array) $object->errors) as $error) {
+			if ((string) $error !== '') {
+				// A raw language key is translated, an already translated text is returned unchanged ; HTML entities are decoded for the JSON output
+				$details[] = dol_html_entity_decode($langs->transnoentities($error), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			}
+		}
+		$details = array_values(array_unique($details));
+		if ($requiredstatus !== null && (int) $object->status !== (int) $requiredstatus) {
+			throw new \Luracast\Restler\RestException(400, $message.': '.$object->element.' status forbids this operation'.(count($details) ? ' ('.implode(', ', $details).')' : ''), $details);
+		}
+		throw new \Luracast\Restler\RestException($httpcode, $message.(count($details) ? ': '.implode(', ', $details) : ''), $details);
+	}
+	// InfraS add end
+
 	/**
 	 * Check access by user to a given resource
 	 *

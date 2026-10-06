@@ -549,7 +549,13 @@ class Orders extends DolibarrApi
 			unset($result->line);
 			return $this->_cleanObjectDatas($result);
 		}
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		if ($updateRes == Commande::STOCK_NOT_ENOUGH_FOR_ORDER) {	// business refusal with its message, not an error
+			$this->_throwWriteError($this->commande, 'Error when updating line', null, 400);
+		}
+		$this->_throwWriteError($this->commande, 'Error when updating line', Commande::STATUS_DRAFT);
+		// InfraS change end
 	}
 
 	/**

@@ -1383,7 +1383,7 @@ class SupplierProposal extends CommonObject
 				$sql .= " FROM ".MAIN_DB_PREFIX."supplier_proposaldet as d";
 				$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON d.fk_product = p.rowid";
 				$sql .= " WHERE d.fk_supplier_proposal = ".((int) $this->id);
-				$sql .= " ORDER by d.rang";
+				$sql .= " ORDER BY d.rang, d.rowid";	// InfraS change : deterministic order of lines sharing the same rank (backport of Dolibarr develop, Kytom feedback 2026-10-06)
 
 				$result = $this->db->query($sql);
 				if ($result) {

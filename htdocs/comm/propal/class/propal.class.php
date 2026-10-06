@@ -2021,7 +2021,7 @@ class Propal extends CommonObject
 		if ($sqlforgedfilters) {
 			$sql .= $sqlforgedfilters;
 		}
-		$sql .= ' ORDER by d.rang';
+		$sql .= ' ORDER BY d.rang, d.rowid';	// InfraS change : deterministic order of lines sharing the same rank (backport of Dolibarr develop, Kytom feedback 2026-10-06)
 
 		dol_syslog(get_class($this)."::fetch_lines", LOG_DEBUG);
 		$result = $this->db->query($sql);

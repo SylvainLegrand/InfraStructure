@@ -327,11 +327,14 @@ class SupplierOrders extends DolibarrApi
 			$this->order->$field = $this->_checkValForAPI($field, $value, $this->order);
 		}
 
-		if ($this->order->update(DolibarrApiAccess::$user)) {
+		if ($this->order->update(DolibarrApiAccess::$user) > 0) {	// InfraS change : update() returns -1 * number of errors, true in PHP
 			return $this->get($id);
 		}
 
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->order, 'Error when updating supplier order');
+		// InfraS change end
 	}
 
 	/**

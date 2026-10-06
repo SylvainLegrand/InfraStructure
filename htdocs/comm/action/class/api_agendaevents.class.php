@@ -326,7 +326,10 @@ class AgendaEvents extends DolibarrApi
 			return $this->get($id);
 		}
 
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->actioncomm, 'Error when updating event');
+		// InfraS change end
 	}
 
 	/**

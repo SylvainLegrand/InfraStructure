@@ -409,7 +409,10 @@ class ExpenseReports extends DolibarrApi
 			unset($result->line);
 			return $this->_cleanObjectDatas($result);
 		}
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->expensereport, 'Error when updating line', ExpenseReport::STATUS_DRAFT);
+		// InfraS change end
 	}
 	*/
 

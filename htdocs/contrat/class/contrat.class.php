@@ -885,7 +885,7 @@ class Contrat extends CommonObject
 		if ($only_services == 1) {
 			$sql .= " AND d.product_type = 1";
 		}
-		$sql .= " ORDER by d.rang ASC";
+		$sql .= " ORDER BY d.rang ASC, d.rowid ASC";	// InfraS change : deterministic order of lines sharing the same rank (backport of Dolibarr develop, Kytom feedback 2026-10-06)
 
 		dol_syslog(get_class($this)."::fetch_lines", LOG_DEBUG);
 		$result = $this->db->query($sql);

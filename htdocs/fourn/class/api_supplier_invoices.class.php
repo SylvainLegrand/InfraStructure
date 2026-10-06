@@ -353,11 +353,14 @@ class SupplierInvoices extends DolibarrApi
 			$this->invoice->$field = $this->_checkValForAPI($field, $value, $this->invoice);
 		}
 
-		if ($this->invoice->update(DolibarrApiAccess::$user)) {
+		if ($this->invoice->update(DolibarrApiAccess::$user) > 0) {	// InfraS change : update() returns -1 * number of errors, true in PHP
 			return $this->get($id);
 		}
 
-		return false;
+		// InfraS change begin
+		// Refused write: HTTP 400 when the status forbids it, 500 otherwise, always with the Dolibarr message (no more HTTP 200 'false', Kytom feedback 2026-10-06)
+		$this->_throwWriteError($this->invoice, 'Error when updating supplier invoice');
+		// InfraS change end
 	}
 
 	/**
@@ -822,7 +825,7 @@ class SupplierInvoices extends DolibarrApi
 			unset($result->line);
 			return $this->_cleanObjectDatas($result);
 		} else {
-			throw new RestException(304, $this->invoice->errorsToString());	// Osden change
+			$this->_throwWriteError($this->invoice, 'Error when updating line', FactureFournisseur::STATUS_DRAFT);	// InfraS change : 400 out of draft, 500 otherwise (304 is for 'nothing done', not for a refusal)
 		}
 	}
 
