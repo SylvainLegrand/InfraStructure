@@ -457,7 +457,6 @@ class ActionsEInvoicing extends CommonHookActions  // @phan-suppress-current-lin
 						);
 					}
 				}
-			}
 
 				// InfraS add begin
 				// Abandon the e-invoicing follow-up of an invoice in anomaly or not yet received (handled out of the
