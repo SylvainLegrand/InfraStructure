@@ -7,24 +7,10 @@
 ModuleEInvoicingName = EInvoicing
 ModuleEInvoicingDesc = Gestion des factures électroniques. Ce module permet de générer (automatiquement ou manuellement) des factures au format électronique et de les envoyer à une Plateforme Agréée (PA, anciennement PDP) pour la facturation électronique. Il permet également de récupérer les factures d'achat auprès de cette PA. Seuls certains pays (France) et certaines PA sont prises en charge.
 
-# Keys of the core that the supported cores do not all carry: absent from 18 (RefSupplierBill), 18-19
-# (AccessToken, Message), 18-21 (Automatic, Input, Output), 18-22 (InvoiceType) or 18-23 (the rest).
-AccessToken=Jeton d'accès
-Message=Message
-RefSupplierBill=Référence de la facture fournisseur
-Automatic=Automatique
-ErrorThirdPartyNotFound=Erreur : tiers introuvable
-Input=Saisie
-InvoiceType=Type de facture
-Output=Sortie
-Success=Succès
-VATExemptionCode=Code d'exonération de la TVA
-
 #
 # Admin page
 #
 EInvoicingSetup = Configuration du module Facture électronique
-Settings = Paramètres
 EInvoicingSetupPage = Configuration de l'accès à la Plateforme Agréée. Vous devez sélectionner ici la Plateforme Agréée choisie par votre entreprise.
 NewSection=Nouvelle section
 
@@ -32,7 +18,6 @@ NewSection=Nouvelle section
 #
 # About page
 #
-About = À propos
 EInvoicingAbout = À propos de EInvoicing
 EInvoicingAboutPage = Page À propos de EInvoicing
 
@@ -53,12 +38,6 @@ EINVOICING_SKIP_B2C=Ne pas générer de factures électroniques pour les particu
 EINVOICING_SKIP_B2C_HELP=Par défaut, seules les factures émises pour des pays non éligibles ou provenant des modules de point de vente ne sont pas facturées électroniquement (elles relèvent du e-reporting). Lorsque cette option est activée, la facturation électronique est également ignorée pour certaines factures générées par le back-office si les tiers sont identifiés comme des particuliers (B2C). Les transactions B2C sont exclues du champ d'application de la facturation électronique (e-invoicing) car elles relèvent du e-reporting électronique. Dolibarr détermine automatiquement si un tiers est une entreprise ou un particulier (grâce à ses propres options de détection) ; aucune configuration supplémentaire n'est donc nécessaire.
 EINVOICING_NAME_OF_MODULESOURCE_THAT_ARE_POS=Ne générez pas de factures électroniques pour les factures émises par les modules de points de vente suivants (ces factures seront signalées prises en compte pour l'eReporting (B2C)).
 EINVOICING_NAME_OF_MODULESOURCE_THAT_ARE_POS_HELP=Saisissez ici la liste des modules (séparés par une virgule) qui génèrent des factures et qui doivent être traités comme des points de vente (POS) afin que les factures ne soient pas envoyées individuellement au point d'accès mais regroupées dans un fichier de reporting électronique.
-EINVOICING_VAT_POINT_DATE_CODE=Code de date du point de TVA (BT-8)
-EINVOICING_VAT_POINT_DATE_CODE_HELP=Ce code indique au logiciel du destinataire comment la date d'exigibilité de la TVA (l'événement qui déclenche l'exigibilité de la TVA) est déterminée sur les documents émis, conformément à l'élément de données BT-8 de la norme EN 16931. Par défaut, cette date est déduite du régime d'exigibilité de la TVA déjà configuré dans le module Taxe/TVA (options « TVA sur les débits »). Ne saisissez une valeur explicite ici que si le régime de TVA du vendeur ne peut pas être correctement exprimé par ce paramètre.
-EINVOICING_VAT_POINT_DATE_CODE_AUTO=Automatique (dérivé du mode TVA défini dans le module Taxe/TVA)
-EINVOICING_VAT_POINT_DATE_CODE_5=Date de facturation (TVA sur les débits)
-EINVOICING_VAT_POINT_DATE_CODE_29=Date de livraison des marchandises (TVA sur la fourniture des marchandises)
-EINVOICING_VAT_POINT_DATE_CODE_72=Date de paiement (TVA à l'encaissement / comptabilité de caisse)
 EINVOICING_PARTY_IDENTIFIER_SCHEME=Schéma de l'identifiant du tiers (BT-29, BT-46)
 EINVOICING_PARTY_IDENTIFIER_SCHEME_HELP=Système d'identification : les identifiants du vendeur et de l'acheteur (BT-29 et BT-46 de la norme EN 16931) sont déclarés dans ce cadre. Il ne s'agit pas de l'adresse électronique à laquelle la facture est transmise (BT-34, BT-49), qui reste toujours dans le schéma national 0225. L'identifiant d'enregistrement légal (BT-30, BT-47) n'est pas non plus concerné : il reste 0002, le SIREN, comme l'exige la spécification française. En dehors de la France, laissez le champ vide pour conserver le code attribué par le module à votre pays, ou saisissez le code ICD ISO 6523 du registre dont provient votre identifiant professionnel (0007 pour la Suède, 0106 pour les Pays-Bas, 0184 pour le Danemark, 0208 pour la Belgique, 0211 pour l'Italie...).
 EINVOICING_PARTY_IDENTIFIER_SCHEME_0225=0225 - Adresse figurant dans le répertoire national, associée au numéro SIREN (situation actuelle)
@@ -158,7 +137,6 @@ RoutingIdInfo=Libellé (facultatif)
 FailedToSaveRoutingID=Impossible d'enregistrer l'adresse de routage
 FailedToDeleteRoutingID=Échec de la suppression de l'adresse de routage
 FailedToSetDefaultRoutingID=Impossible de définir l'adresse de routage par défaut
-SetAsDefault=Définir comme valeur par défaut
 FxCheckErrorRoutingID=Votre entreprise ne dispose pas d'une adresse de facturation électronique valide.
 FxCheckErrorRoutingIDFR=Vous avez définie une adresse de facture électronique spécifique. En France, une telle adresse doit être votre SIREN ou commencer par le SIREN, ce qui ne semble pas le cas.
 sendToPDP=Transmettre
@@ -200,7 +178,6 @@ EINVOICING_DEBUG=Déboguer
 EINVOICING_DEBUG_MODE=Conserver le détail complet des appels API dans l'historique
 EINVOICING_DEBUG_MODE_HELP=Activez le mode débogage pour consigner tous les détails des appels de synchronisation à des fins de dépannage (mode détaillé). Notez que les appels de synchronisation peuvent prendre plus de temps lorsque ce mode est activé.
 DateSyncro=Date de synchronisation
-Status=Statut
 call_id=Identification de l'appelant
 flow_id=ID de flux
 FlowId=ID du flux
@@ -758,7 +735,6 @@ EntityNumber=Numéro d'entité
 ConfirmChangeEntity=Êtes-vous sûr de vouloir déplacer la facture fournisseur <b>%s</b> vers une autre entité ?
 EntityChangedSuccess=Facture fournisseur transférée à l'entité %s
 ErrorEntityRequired=Un numéro d'entité valide est requis.
-DisabledBecauseNotEditable=Cette facture n'est pas modifiable.
 ErrorSupplierNotVisibleInEntity=Le fournisseur « %s » n'est pas visible dans l'entité « %s ». Vous devez d'abord le partager ou le créer dans l'entité cible.
 WarningEntityChangedFileMoveFailed=L'entité a été modifiée, mais les fichiers de factures n'ont pas pu être déplacés vers le répertoire de la nouvelle entité. Vous devrez peut-être les déplacer manuellement.
 EInvoicingInfoManagedByMasterSetup=La configuration de la facturation électronique est gérée par l'entité principale (ID %s)
@@ -1022,17 +998,14 @@ SelectAThirdParty=Sélectionner un tiers
 OverwriteExistingIds=Écraser les identifiants existants
 OverwriteExistingIdsHelp=Si le tiers possède déjà un SIREN / SIRET / numéro de TVA différent, l'écraser (uniquement s'il s'agit réellement de la même entité).
 Associate=Associer
-SelectAThirdPartyFirst=Sélectionnez d'abord un tiers.
 ThirdpartyIdConflictWarning=Le tiers "%s" possède déjà des identifiants différents. Vérifiez qu'il s'agit bien de la même entité, puis activez « Écraser » pour confirmer :
 ThirdpartyLinkedAndFlowSynchronized=Tiers "%s" mis à jour et flux %s synchronisé.
 ThirdpartyLinkedButFlowStillPending=Tiers "%s" mis à jour, mais le flux nécessite toujours une action.
 ThirdpartyUpdatedButNoProvider=Tiers "%s" mis à jour, mais aucune plateforme agréée active pour relancer la synchronisation.
 CompareFields=Comparer les champs
 CompareFieldsIntro=Cochez les champs à inscrire sur le tiers à partir de la facture. Les identifiants vides sont précochés ; les conflits (une valeur différente) restent décochés - ne les cochez que s'il s'agit réellement de la même entité.
-Field=Champ
 ValueFromInvoice=Valeur (facture)
 CurrentThirdpartyValue=Valeur actuelle (tiers)
-Apply=Appliquer
 Identical=Identique
 Empty=Vide
 Overwrite=Remplacer
