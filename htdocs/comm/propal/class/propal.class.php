@@ -3123,7 +3123,11 @@ class Propal extends CommonObject
 		$ga = array();
 		$linkedInvoices = array();
 
-		$this->fetchObjectLinked($id, $this->element);
+		// InfraS change begin
+		// Identifiants seuls : les objets liés (commandes, factures, avec leurs lignes)
+		// n'étaient chargés que pour être aussitôt ignorés (Kytom, 05/10/2026).
+		$this->fetchObjectLinked($id, $this->element, null, '', 'OR', 1, 'sourcetype', 0);
+		// InfraS change end
 		foreach ($this->linkedObjectsIds as $objecttype => $objectid) {
 			// Nouveau système du common object renvoi des rowid et non un id linéaire de 1 à n
 			// On parcourt donc une liste d'objets en tant qu'objet unique
@@ -3133,7 +3137,7 @@ class Propal extends CommonObject
 					$linkedInvoices[] = $object;
 				} else {
 					// Cas des factures liees par un autre object (ex: commande)
-					$this->fetchObjectLinked($object, $objecttype);
+					$this->fetchObjectLinked($object, $objecttype, null, '', 'OR', 1, 'sourcetype', 0); // InfraS change
 					foreach ($this->linkedObjectsIds as $subobjecttype => $subobjectid) {
 						foreach ($subobjectid as $subkey => $subobject) {
 							if ($subobjecttype == 'facture') {
@@ -3147,6 +3151,10 @@ class Propal extends CommonObject
 
 		if (count($linkedInvoices) > 0) {
 			$sql = "SELECT rowid as facid, ref, total_ht as total, datef as df, fk_user_author, fk_statut, paye";
+			// InfraS add begin
+			// Totaux et type : la liste des devis n'a plus à recharger chaque facture (Kytom, 05/10/2026).
+			$sql .= ", type, total_ttc, multicurrency_total_ht, multicurrency_total_ttc";
+			// InfraS add end
 			$sql .= " FROM ".MAIN_DB_PREFIX."facture";
 			$sql .= " WHERE rowid IN (".$this->db->sanitize(implode(',', $linkedInvoices)).")";
 

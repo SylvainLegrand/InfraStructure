@@ -1418,10 +1418,32 @@ class Paiement extends CommonObject
 			if (is_array($arraybill) && count($arraybill) > 0) {
 				include_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 				$facturestatic = new Facture($this->db);
+				// InfraS change begin
+				// Référence, type, statut et motif de clôture seulement, en une requête : chaque facture
+				// était rechargée avec toutes ses lignes pour une infobulle (Kytom, 05/10/2026).
+				$sqlbills = "SELECT rowid, ref, type, fk_statut, paye, close_code, close_note FROM ".MAIN_DB_PREFIX."facture";
+				$sqlbills .= " WHERE rowid IN (".$this->db->sanitize(implode(',', array_map('intval', $arraybill))).")";
+				$resqlbills = $this->db->query($sqlbills);
+				$bills = array();
+				while ($resqlbills && ($objbill = $this->db->fetch_object($resqlbills))) {
+					$bills[(int) $objbill->rowid] = $objbill;
+				}
 				foreach ($arraybill as $billid) {
-					$facturestatic->fetch($billid);
+					if (empty($bills[(int) $billid])) {
+						continue;
+					}
+					$objbill = $bills[(int) $billid];
+					$facturestatic->id = (int) $objbill->rowid;
+					$facturestatic->ref = $objbill->ref;
+					$facturestatic->type = (int) $objbill->type;
+					$facturestatic->status = (int) $objbill->fk_statut;
+					$facturestatic->statut = (int) $objbill->fk_statut;
+					$facturestatic->paye = (int) $objbill->paye;
+					$facturestatic->close_code = $objbill->close_code;
+					$facturestatic->close_note = $objbill->close_note;
 					$label .= '<br> '.$facturestatic->getNomUrl(1, '', 0, 0, '', 1).' '.$facturestatic->getLibStatut(2, -1);
 				}
+				// InfraS change end
 			}
 		}
 

@@ -1814,23 +1814,29 @@ while ($i < $imaxinloop) {
 	$multicurrency_totalInvoicedHT = 0;
 	$multicurrency_totalInvoicedTTC = 0;
 
-	$TInvoiceData = $object->InvoiceArrayList($object->id);
+	// InfraS change begin
+	// Totaux facturés lus avec la liste des factures liées, sans recharger chaque facture
+	// et ses lignes ; seulement si une colonne de montant facturé est affichée (Kytom,
+	// 05/10/2026).
+	$TInvoiceData = array();
+	if (!empty($arrayfields['p.total_ht_invoiced']['checked']) || !empty($arrayfields['p.total_invoiced']['checked'])
+		|| !empty($arrayfields['p.multicurrency_total_ht_invoiced']['checked']) || !empty($arrayfields['p.multicurrency_total_invoiced']['checked'])) {
+		$TInvoiceData = $object->InvoiceArrayList($object->id);
+	}
 
-	if (!empty($TInvoiceData)) {
+	if (!empty($TInvoiceData) && is_array($TInvoiceData)) {
 		foreach ($TInvoiceData as $invoiceData) {
-			$invoice = new Facture($db);
-			$invoice->fetch($invoiceData->facid);
-
-			if (getDolGlobalString('FACTURE_DEPOSITS_ARE_JUST_PAYMENTS') && $invoice->type == Facture::TYPE_DEPOSIT) {
+			if (getDolGlobalString('FACTURE_DEPOSITS_ARE_JUST_PAYMENTS') && $invoiceData->type == Facture::TYPE_DEPOSIT) {
 				continue;
 			}
 
-			$totalInvoicedHT += $invoice->total_ht;
-			$totalInvoicedTTC += $invoice->total_ttc;
-			$multicurrency_totalInvoicedHT += $invoice->multicurrency_total_ht;
-			$multicurrency_totalInvoicedTTC += $invoice->multicurrency_total_ttc;
+			$totalInvoicedHT += $invoiceData->total;
+			$totalInvoicedTTC += $invoiceData->total_ttc;
+			$multicurrency_totalInvoicedHT += $invoiceData->multicurrency_total_ht;
+			$multicurrency_totalInvoicedTTC += $invoiceData->multicurrency_total_ttc;
 		}
 	}
+	// InfraS change end
 
 	$marginInfo = array();
 	if ($with_margin_info) {
