@@ -1716,8 +1716,8 @@
 			$id	= 0;
 			if (!empty($object->origin) && $object->origin == 'propal' && !empty($object->origin_id)) {
 				$id	= $object->origin_id;
-			} elseif (!empty(GETPOSTINT('originid'))) {
-				// Fallback to GETPOST for manual creation
+			} elseif (GETPOST('origin', 'alpha') == 'propal' && GETPOSTINT('originid') > 0) {
+				// Fallback to GETPOST for manual creation, only when the origin is a proposal (originid may be a contract or order ID)
 				$id	= GETPOSTINT('originid');
 			}
 			// Validate ID
