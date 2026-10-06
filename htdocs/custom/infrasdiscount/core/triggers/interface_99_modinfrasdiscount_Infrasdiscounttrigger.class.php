@@ -222,6 +222,7 @@
 			$this->db->free($resql);
 			return !empty($obj->nb);
 		}
+
 		/**
 		*	Lors d'une action sur un élément (../element/card.php)
 		*

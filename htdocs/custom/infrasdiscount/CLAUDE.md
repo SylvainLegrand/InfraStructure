@@ -18,7 +18,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `15.0.0` à `23.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `15.3.11` (2026-10)
+- Dernière version locale : `15.3.13` (2026-10)
 - Dépendance obligatoire : aucune (extension PHP `xml` requise)
 - Emplacement : `htdocs/custom/infrasdiscount/`
 
@@ -411,7 +411,7 @@ Le module détecte et exclut les lignes des modules externes des calculs de remi
 
 ```xml
 <changelog>
-  <Version Number="15.3.7" MonthVersion="2026-06">
+  <Version Number="15.3.13" MonthVersion="2026-06">
       <change type='add'>Added feature description.</change>
       <change type='chg'>Changed feature description.</change>
       <change type='fix'>Fixed bug description.</change>
