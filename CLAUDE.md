@@ -20,7 +20,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.6` (2026-09)
+- Dernière version locale : `21.8.8` (2026-09)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -470,9 +470,8 @@ Si modification SQL / descripteur / ExtraFields / hooks / trigger :
 - `originproductline.tpl.php` override le rendu lors de la **copie depuis document d'origine** ; `infrastructureline_*.tpl.php` gèrent les rendus du document courant
 - Sommaire rapide automatiquement désactivé si `oblyon` + `MAIN_MENU_INVERT`
 - Factures de situation : méthodes de calcul dédiées pour éviter l'accumulation de TVA (DA027405, 3.29.2) ; injection de lignes TVA invisibles pour le calcul Dolibarr (DA027547, 3.29.3)
-- Le descripteur référence `class/techatm.class.php` qui n'est plus présent — `dol_include_once` est tolérant et l'absence est silencieuse
+- L'inclusion de `class/techatm.class.php` (fichier disparu) a été retirée du descripteur en v21.8.8 : `dol_include_once()` tolère l'absence mais journalise « Tried to load unexisting file » à chaque instanciation (511 occurrences dans une heure de journal chez Kytom, encore en 21.8.6 où le descripteur était instancié à chaque écriture)
 - Famille : `DOLINFRAS_FAMILY` si dolinfras est activé, sinon `'Modules '.$langs->trans('basenameInfrastructure')` (l'ancienne bascule `easya` sur `EASYA_VERSION` n'existe plus dans le descripteur)
-
 - **Ne jamais instancier `modInfrastructure` hors des pages d'administration** : son constructeur appelle `infrastructure_test_php_ext()` et lit le changelog. Incident d'octobre 2026 (PR GitHub #114, constaté chez Kytom) : `getModuleNumber()` instanciait le descripteur au milieu de la transaction d'ajout de ligne ; la réécriture de `INFRAS_PHP_EXT_XML` (DELETE + INSERT dans `llx_const`) provoquait des deadlocks entre requêtes simultanées. MariaDB annulait toute la transaction (ligne comprise) alors que Dolibarr, en transaction imbriquée, ignorait l'erreur, enregistrait la suite hors transaction et renvoyait l'identifiant : lignes perdues en silence. Depuis 21.8.7, `getModuleNumber()` lit `modInfrastructure::MODULE_NUMBER` et `infrastructure_test_php_ext()` n'écrit la constante que si sa valeur change (l'avertissement « extension XML manquante » reste affiché à chaque appel). Même règle appliquée aux `*_test_php_ext()` des autres modules InfraS
 - `infrastructure_getChangelogFile()` met en cache, par requête, le changelog local (`docs/changelog.xml`, ~150 Ko, auparavant relu à chaque instanciation du trigger) ; le changelog téléchargé (`changelogdwn.xml`) n'est jamais mis en cache car `infrastructure_dwnChangelog()` peut le réécrire pendant la requête
 - `script/interface.php` : contrôle d'accès en deux temps. (1) `restrictedArea()` (droit de lecture) sur l'élément posté : paramètre `element`, ou `data[element]` envoyé par le repli des blocs (`callInterface()` du JS n'envoie que `data`) ; (2) pour toute action `set`, droit d'écriture du document (`creer`, ou `fournisseur`/`commande|facture`/`creer` ou `supplier_order|supplier_invoice`/`creer` pour les fournisseurs, comme les fiches du cœur), sinon `accessforbidden()`. Un utilisateur en lecture seule voit donc un message d'erreur AJAX au repli d'un bloc : l'affichage est replié mais l'état n'est pas enregistré
@@ -743,7 +742,7 @@ Pour garantir l'affichage de la colonne « Opt » dès lors qu'`INFRASTRUCTURE_M
 
 ```xml
 <changelog>
-    <Version Number="21.8.1" MonthVersion="2026-09">
+    <Version Number="21.8.8" MonthVersion="2026-09">
         <change type='add'>Added feature description.</change>
         <change type='chg'>Changed feature description.</change>
         <change type='fix'>Fixed bug description.</change>
