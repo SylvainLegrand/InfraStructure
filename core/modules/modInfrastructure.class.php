@@ -28,7 +28,6 @@
 	// Libraries ****************************
 	include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
 	dol_include_once('/infrastructure/core/lib/infrastructureAdmin.lib.php');
-	dol_include_once('/infrastructure/class/techatm.class.php');
 
 	/**
 	* Description and activation class for module infrastructure

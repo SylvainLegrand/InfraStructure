@@ -591,7 +591,10 @@
 		<change type='chg'>TInfrastructure::getModuleNumber() lit la nouvelle constante de classe modInfrastructure::MODULE_NUMBER (550090, également utilisée par le descripteur) au lieu d'instancier le descripteur : plus aucune écriture en base, lecture de changelog ni chargement de traductions dans cet accesseur, appelé par les hooks, le trigger, les PDF et des modules tiers (extendedcontract).</change>
 		<change type='chg'>Performance : le changelog local (docs/changelog.xml, environ 150 Ko) n'est plus analysé qu'une fois par requête (cache dans infrastructure_getChangelogFile(), nouvelle fonction infrastructure_loadChangelogFile()), alors que le constructeur du trigger le relisait à chaque événement ; le changelog téléchargé n'est pas mis en cache. Le trigger des lignes optionnelles (INFRASTRUCTURE_MANAGE_OL) ne recharge plus tout le document quand la ligne n'est pas optionnelle et que le document ne contient aucune ligne spéciale optionnelle (nouvelle méthode documentHasOptionalTitle(), comparaison infrastructure_ol = '1' en chaîne, l'extrafield étant un varchar). Banc de 400 lignes : 66,7 ms puis 47,0 ms par ligne (PR GitHub #114).</change>
 	</Version>
-	<InfraS Downloaded="20261005"/>
+	<Version Number="21.8.8" MonthVersion="2026-10">
+		<change type='fix'>Le descripteur du module incluait un fichier inexistant (class/techatm.class.php) : avertissement « Tried to load unexisting file » à chaque instanciation (511 occurrences dans une heure de journal chez un client encore en 21.8.6). Inclusion retirée.</change>
+	</Version>
+	<InfraS Downloaded="20261006"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
