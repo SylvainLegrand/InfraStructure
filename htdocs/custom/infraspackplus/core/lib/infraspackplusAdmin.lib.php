@@ -322,8 +322,18 @@
 		$entity		= (int) $conf->entity;
 		$table		= $db->prefix().'infraspackplus_pdf_params';
 		if (empty($db->DDLListTables($db->database_name, $table))) {
-			dol_syslog('infraspackplusAdmin.Lib::infraspackplus_migration_pdf_params table '.$table.' missing', LOG_ERR);
-			return -1;
+			// Table absente : désactivation lors de la première mise à jour vers 21.11.0 (remove() précède _load_tables()) : création depuis les fichiers SQL du module
+			include_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+			foreach (array('llx_infraspackplus_pdf_params.sql', 'llx_infraspackplus_pdf_params.key.sql') as $sqlfile) {
+				$sqlpath	= dol_buildpath('/infraspackplus/sql/'.$sqlfile, 0);
+				if (is_file($sqlpath)) {
+					run_sql($sqlpath, 1, 0, 1);
+				}
+			}
+			if (empty($db->DDLListTables($db->database_name, $table))) {
+				dol_syslog('infraspackplusAdmin.Lib::infraspackplus_migration_pdf_params table '.$table.' missing and not created', LOG_ERR);
+				return -1;
+			}
 		}
 		$sql		= 'SELECT rowid, name, value FROM '.$db->prefix().'const';
 		$sql		.= ' WHERE entity = '.$entity.' AND (name LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_DOC\_%" OR name LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_CUST\_%" OR name LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_USER\_%")';
@@ -490,7 +500,10 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const			= 'SELECT '.implode(', ', $cols_const);
 			$sql_const			.= ' FROM '.$db->prefix().'const';
 			$sql_const			.= ' WHERE ((name LIKE "INFRASPLUS\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_VALID\_CORE\_CHGT") OR name LIKE "INFRASPACKPLUS\_PS\_%" OR (name LIKE "%\_ADDON\_PDF" AND value LIKE "InfraSPlus\_%") OR name LIKE "%\_FREE\_TEXT%" OR name LIKE "%\_PUBLIC\_NOTE%")';
-			$sql_const			.= ' AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_DOC\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_CUST\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_USER\_%"';	// réglages par document / client / utilisateur : table llx_infraspackplus_pdf_params depuis 21.11.0
+			$pdfparamsTable		= !empty($db->DDLListTables($db->database_name, $db->prefix().'infraspackplus_pdf_params'));
+			if ($pdfparamsTable) {	// réglages par document / client / utilisateur : table llx_infraspackplus_pdf_params depuis 21.11.0 ; si elle manque ils sont encore en constantes et restent dans la sauvegarde
+				$sql_const			.= ' AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_DOC\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_CUST\_%" AND name NOT LIKE "INFRASPLUS\_PDF\_PARAMS\_%\_USER\_%"';
+			}
 			$sql_const			.= ' AND entity = '.((int) $conf->entity);
 			$sql_const			.= ' ORDER BY name';
 			$autoupdate			= getDolGlobalInt('MAIN_DISABLE_PDF_AUTOUPDATE', 0);
@@ -509,7 +522,9 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_pdfp			.= ' FROM '.$db->prefix().'infraspackplus_pdf_params';
 			$sql_pdfp			.= ' WHERE entity = '.((int) $conf->entity);
 			$sql_pdfp			.= ' ORDER BY element, scope, fk_object';
-			fwrite($handle, infraspackplus_bkup_table ('infraspackplus_pdf_params', $sql_pdfp, $cols_pdfp, $duplicate_pdfp, 0, ''));
+			if ($pdfparamsTable) {
+				fwrite($handle, infraspackplus_bkup_table ('infraspackplus_pdf_params', $sql_pdfp, $cols_pdfp, $duplicate_pdfp, 0, ''));
+			}
 			$cols_dict			= array ('code', 'entity', 'pos', 'libelle', 'active');
 			$duplicate_dict		= array ('3', 'libelle', 'code');
 			$sql_dict_1			= 'SELECT '.implode(', ', $cols_dict);

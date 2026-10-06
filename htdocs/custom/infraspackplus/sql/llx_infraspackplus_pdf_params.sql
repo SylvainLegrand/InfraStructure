@@ -31,5 +31,7 @@ CREATE TABLE IF NOT EXISTS llx_infraspackplus_pdf_params
 	scope			varchar(8)		NOT NULL,																-- doc, cust or user
 	fk_object		integer			NOT NULL	DEFAULT 0,													-- document, thirdparty or user id according to scope
 	params			text,																						-- options as query string (key=value&key=value)
-	tms				timestamp					DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP	-- last modification date
+	-- last modification date. Pas de commentaire en fin de la dernière colonne : run_sql() ne retire un commentaire de fin de
+	-- ligne qu'après une virgule, une parenthèse ou certaines lettres, sinon il avale la fin de l'instruction (erreur de syntaxe).
+	tms				timestamp					DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=innodb;
