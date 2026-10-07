@@ -602,10 +602,6 @@
 		*	Recalcule le total du document en excluant les lignes optionnelles (special_code = 3).
 		*	Remplace update_price() quand des lignes OL existent, pour que leurs montants
 		*	réels restent visibles en ligne sans entrer dans le total général.
-		*	En « somme des arrondis » (MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND à 0), le remplace aussi pour stocker la somme des
-		*	lignes arrondies au centime : update_price() du cœur garde la somme exacte (bloc « Arrondis »), que la fiche et
-		*	les listes affichent, alors que les documents et la facture électronique donnent la somme des arrondis
-		*	(getRoundedTotals). Hors situations n° 2 et suivantes, dont le cœur calcule le total à part.
 		*
 		*	@param	array			$parameters		Parameters (exclspec, roundingadjust, nodatabaseupdate, seller)
 		*	@param	CommonObject	$object			Document parent (Propal, Commande, Facture, ...)
@@ -615,67 +611,50 @@
 		**/
 		public function updateTotalPrice($parameters, &$object, &$action, HookManager $hookmanager)
 		{
+			if (!getDolGlobalString('INFRASTRUCTURE_MANAGE_OL')) return 0;
 			$TAllowed	= ['propal', 'commande', 'facture', 'supplier_proposal', 'order_supplier', 'facture_fourn', 'invoice_supplier'];
 			if (!in_array($object->element, $TAllowed) || empty($object->table_element_line) || empty($object->fk_element)) return 0;
 			if (!empty($parameters['nodatabaseupdate'])) return 0;
 
-			$gererOl		= getDolGlobalString('INFRASTRUCTURE_MANAGE_OL') ? true : false;
-			$suiteSituation	= !empty($object->situation_cycle_ref) && !empty($object->situation_counter) && $object->situation_counter > 1;
-			$sommeArrondis	= !$suiteSituation && method_exists($object, 'getCalculationRule') && $object->getCalculationRule() === 'totalofround';
-			$aDesOl			= false;
-			if ($gererOl) {
-				// Vérifier si des lignes OL (special_code = 3) existent sur ce document
-				$sql		= "SELECT rowid FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
-				$sql		.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
-				$sql		.= " AND special_code = 3";
-				$rescheck	= $object->db->query($sql);
-				if (!$rescheck) {
-					dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
-					return -1;
-				}
-				$aDesOl		= $object->db->num_rows($rescheck) > 0;
+			// Vérifier si des lignes OL (special_code = 3) existent sur ce document
+			$sql		= "SELECT rowid FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
+			$sql		.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
+			$sql		.= " AND special_code = 3";
+			$rescheck	= $object->db->query($sql);
+			if (!$rescheck) {
+				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
+				return -1;	// Erreur SQL remontée à update_price() (retour -1) au lieu d'un recalcul silencieux options comprises
+			}
+			if ($object->db->num_rows($rescheck) == 0) {
 				$object->db->free($rescheck);
+				return 0; // Pas de lignes OL : laisser update_price() gérer normalement
 			}
-			if (!$aDesOl && !$sommeArrondis) {
-				return 0; // Ni lignes OL ni somme des arrondis : laisser update_price() gérer normalement
-			}
+			$object->db->free($rescheck);
 
 			// Nom du champ TVA dans la table de lignes (facture_fourn utilise 'tva', les autres 'total_tva')
 			$fieldtva_line = in_array($object->element, ['facture_fourn', 'invoice_supplier']) ? 'tva' : 'total_tva';
 
-			// Sommer les totaux en excluant les lignes OL (special_code = 3) ; en somme des arrondis, chaque montant de ligne
-			// arrondi au centime d'abord, TTC = somme des composantes arrondies. Arrondi en DECIMAL : sur une colonne DOUBLE,
-			// ROUND() de MariaDB n'arrondit pas le demi-centime comme price2num() (getRoundedTotals) et kytompdf
-			$somme	= function ($champ) use ($object, $sommeArrondis) {
-				$champ	= $object->db->sanitize($champ);
-				return " COALESCE(SUM(".($sommeArrondis ? "ROUND(CAST(".$champ." AS DECIMAL(28,8)), 2)" : $champ)."), 0)";
-			};
+			// Sommer les totaux en excluant les lignes OL (special_code = 3)
 			$sql	= "SELECT";
-			$sql	.= $somme('total_ht')." as total_ht,";
-			$sql	.= $somme($fieldtva_line)." as total_tva,";
-			$sql	.= $somme('total_ttc')." as total_ttc,";
-			$sql	.= $somme('total_localtax1')." as total_localtax1,";
-			$sql	.= $somme('total_localtax2')." as total_localtax2,";
-			$sql	.= $somme('multicurrency_total_ht')." as multicurrency_total_ht,";
-			$sql	.= $somme('multicurrency_total_tva')." as multicurrency_total_tva,";
-			$sql	.= $somme('multicurrency_total_ttc')." as multicurrency_total_ttc";
+			$sql	.= " COALESCE(SUM(total_ht), 0) as total_ht,";
+			$sql	.= " COALESCE(SUM(".$object->db->sanitize($fieldtva_line)."), 0) as total_tva,";
+			$sql	.= " COALESCE(SUM(total_ttc), 0) as total_ttc,";
+			$sql	.= " COALESCE(SUM(total_localtax1), 0) as total_localtax1,";
+			$sql	.= " COALESCE(SUM(total_localtax2), 0) as total_localtax2,";
+			$sql	.= " COALESCE(SUM(multicurrency_total_ht), 0) as multicurrency_total_ht,";
+			$sql	.= " COALESCE(SUM(multicurrency_total_tva), 0) as multicurrency_total_tva,";
+			$sql	.= " COALESCE(SUM(multicurrency_total_ttc), 0) as multicurrency_total_ttc";
 			$sql	.= " FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
 			$sql	.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
-			if ($gererOl) {
-				$sql	.= " AND special_code != 3";
-			}
+			$sql	.= " AND special_code != 3";
 			$resql	= $object->db->query($sql);
 			if (!$resql) {
 				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
-				return -1;
+				return -1;	// Erreur SQL remontée à update_price()
 			}
 			$obj = $object->db->fetch_object($resql);
 			$object->db->free($resql);
 			if (!$obj) return 0;
-			if ($sommeArrondis) {
-				$obj->total_ttc					= (float) $obj->total_ht + (float) $obj->total_tva + (float) $obj->total_localtax1 + (float) $obj->total_localtax2;
-				$obj->multicurrency_total_ttc	= (float) $obj->multicurrency_total_ht + (float) $obj->multicurrency_total_tva;
-			}
 
 			$object->total_ht					= (float) price2num($obj->total_ht);
 			$object->total_tva					= (float) price2num($obj->total_tva);
@@ -707,7 +686,10 @@
 			$sql	.= ", multicurrency_total_ttc = ".((float) price2num($object->multicurrency_total_ttc, 8, 1));
 			$sql	.= " WHERE rowid = ".((int) $object->id);
 			$resql	= $object->db->query($sql);
-			if (!$resql) return 0;
+			if (!$resql) {
+				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
+				return -1;	// Erreur SQL remontée à update_price()
+			}
 
 			return 1; // update_price() standard ignorée
 		}
