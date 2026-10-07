@@ -1944,6 +1944,11 @@ if (empty($reshook)) {
 								if (GETPOST('type') == Facture::TYPE_STANDARD && $valuestandardinvoice > 0 && $valuestandardinvoice < 100) {
 									if (is_array($lines)) {
 										foreach ($lines as $line) {
+											// InfraS add begin Arrondis - structure lines (title, subtotal, free text of the Infrastructure or Subtotal modules, product_type 9) carry a code in qty, not a quantity: never scaled
+											if ($line->product_type == 9) {
+												continue;
+											}
+											// InfraS add end Arrondis
 											// We keep ->subprice and ->pa_ht, but we change the qty
 											$line->qty = (float) price2num((float) $line->qty * (float) $valuestandardinvoice / 100, 'MS');
 										}
@@ -1953,6 +1958,11 @@ if (empty($reshook)) {
 								if (GETPOST('type') == Facture::TYPE_DEPOSIT && $typeamount == 'variablealllines') {
 									if (is_array($lines)) {
 										foreach ($lines as $line) {
+											// InfraS add begin Arrondis - structure lines (title, subtotal, free text of the Infrastructure or Subtotal modules, product_type 9) carry a code in qty, not a quantity: never scaled
+											if ($line->product_type == 9) {
+												continue;
+											}
+											// InfraS add end Arrondis
 											// We keep ->subprice and ->pa_ht, but we change the qty
 											$line->qty = (float) price2num((float) $line->qty * (float) $valuedeposit / 100, 'MS');
 										}
