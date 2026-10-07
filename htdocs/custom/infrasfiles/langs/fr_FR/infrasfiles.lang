@@ -68,14 +68,19 @@ InfraSFilesPdfBeneficiary     = Bénéficiaire
 InfraSFilesPdfColDocument     = Document
 InfraSFilesPdfNbLines         = %s ligne(s)
 InfraSFilesSpecimen           = Spécimen
-InfraSFilesModelComptageDesc  = Feuille de comptage d'inventaire : références regroupées par zone de stockage, case vide pour la quantité relevée
+InfraSFilesModelComptageDesc   = Feuille de comptage d'inventaire : zone de stockage en première colonne (lignes triées par zone), cases vides « Quantité relevée » et « Recomptage », lignes « Compté par » et « Recompté par » avec date et signature
 InfraSFilesPdfTitleCounting   = Feuille de comptage
 InfraSFilesPdfColCounted      = Quantité relevée
+InfraSFilesPdfColRecount       = Recomptage
 InfraSFilesPdfZone            = Zone
-InfraSFilesPdfNoZone          = Sans zone
 InfraSFilesPdfNbRefs          = %s référence(s)
 InfraSFilesPdfCountedBy       = Compté par
+InfraSFilesPdfRecountedBy      = Recompté par
 InfraSFilesPdfRejected        = dont %s ligne(s) rejetée(s) : %s
+InfraSFilesMassDeleteSelection = Supprimer la sélection
+InfraSFilesMassDeleteDone      = %s fichier(s) supprimé(s)
+InfraSFilesMassDeleteNone      = Aucun fichier sélectionné
+InfraSFilesMassDeleteErrorFile = Fichier %s : suppression refusée ou impossible
 
 ### Mail layer ###
 InfraSFilesMailTopicWidthdraw      = Bordereau de prélèvement / virement __REF__
@@ -98,6 +103,8 @@ InfraSFilesMailSentSummary          = %s email(s) envoyé(s) sur %s tiers sélec
 InfraSFilesMailErrorFor             = %s : %s
 InfraSFilesMailErrorNoRecipient     = aucun destinataire
 InfraSFilesMailErrorSend            = échec de l'envoi
+InfraSFilesMailErrorBadEmail        = adresse email invalide : %s
+InfraSFilesMailErrorThirdparty      = tiers introuvable (supprimé depuis la génération ?)
 
 ### About page ###
 

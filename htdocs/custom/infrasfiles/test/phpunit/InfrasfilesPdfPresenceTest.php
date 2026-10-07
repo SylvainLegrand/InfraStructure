@@ -88,13 +88,17 @@ final class InfrasfilesPdfPresenceTest extends TestCase
 	 *
 	 * @param	string	$element	Clé du registre
 	 * @param	string	$model		Nom du modèle (pdf_<model>.modules.php)
+	 * @param	callable|null	$prepare	Modification du spécimen avant génération (ex. inventaire d'un seul entrepôt, sans lot)
 	 * @return	string				Chemin du PDF
 	 */
-	private function generateSpecimen(string $element, string $model, int $unitIndex = 0): string
+	private function generateSpecimen(string $element, string $model, int $unitIndex = 0, ?callable $prepare = null): string
 	{
 		global $db, $langs;
 		$specimen = infrasfiles_load_specimen($element);
 		$this->assertNotNull($specimen, 'Spécimen '.$element);
+		if ($prepare !== null) {
+			$prepare($specimen);
+		}
 		$models = infrasfiles_get_models($element);
 		$this->assertArrayHasKey($model, $models, 'Modèle '.$model.' trouvé pour '.$element);
 		require_once $models[$model]['file'];
@@ -183,17 +187,55 @@ final class InfrasfilesPdfPresenceTest extends TestCase
 		$this->assertStringContainsString('ZZWATERMARK', (string) $raw, 'Filigrane brouillon d\'InfraSFiles conservé sur le modèle InfraSPlus');
 	}
 
-	public function testFeuilleDeComptageRegroupeParZoneEtMasqueLaQuantiteParDefaut(): void
+	public function testFeuilleDeComptageZoneEnColonneEtMasqueLaQuantiteParDefaut(): void
 	{
 		global $langs;
 		$this->setConst('INFRASFILES_INVENTORY_SHOW_QTY', 0);
-		$pdf = $this->generateSpecimen('inventory', 'comptage');
+		$pdf = $this->generateSpecimen('inventory', 'comptage', 0, $this->typicalInventory());
 
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfTitleCounting'));
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfZone').' : '.$langs->transnoentities('InfraSFilesPdfZone').' A');
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfColCounted'));
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfCountedBy'));
+		$this->assertCountingSheetLayout($pdf);
 		$this->assertPdfContains($pdf, $langs->transnoentities('PhysicalStock'), false);
+	}
+
+	/**
+	 * Spécimen d'inventaire « courant » : un seul entrepôt, aucun produit à lot. Le spécimen brut affiche toutes les colonnes
+	 * optionnelles (entrepôt, lot) : sur une page portrait, ses colonnes sont alors resserrées et certains textes passent à la ligne.
+	 *
+	 * @return	callable
+	 */
+	private function typicalInventory(): callable
+	{
+		return function ($specimen) {
+			$specimen->fk_warehouse = 1;
+			foreach ($specimen->infrasfiles_lines as $i => $line) {
+				$specimen->infrasfiles_lines[$i]['batch']	= '';
+				$specimen->infrasfiles_lines[$i]['tobatch']	= 0;
+			}
+		};
+	}
+
+	/**
+	 * Mise en page commune des deux feuilles de comptage (spécimen : zones A et B) : zone en colonne (plus de bandeau « Zone : … »),
+	 * colonnes « Quantité relevée » puis « Recomptage », lignes « Compté par » et « Recompté par », zones dans l'ordre A puis B.
+	 *
+	 * @param	string	$pdf	Chemin du PDF
+	 * @return	void
+	 */
+	private function assertCountingSheetLayout(string $pdf): void
+	{
+		global $langs;
+		$zone = $langs->transnoentities('InfraSFilesPdfZone');
+		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfTitleCounting'));
+		$this->assertPdfContains($pdf, $zone.' : '.$zone.' A', false);	// plus de bandeau de zone
+		$this->assertPdfContains($pdf, $zone.' A');
+		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfColCounted'));
+		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfColRecount'));
+		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfCountedBy'));
+		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfRecountedBy'));
+		$text = (string) shell_exec('pdftotext -layout '.escapeshellarg($pdf).' - 2>/dev/null');
+		$this->assertMatchesRegularExpression('/'.preg_quote($langs->transnoentities('InfraSFilesPdfColCounted'), '/').'\s+'.preg_quote($langs->transnoentities('InfraSFilesPdfColRecount'), '/').'/u', $text, 'Colonne « Recomptage » juste après « Quantité relevée »');
+		$this->assertLessThan(strrpos($text, $zone.' B'), strpos($text, $zone.' A'), 'Lignes triées par zone : A avant B');
+		$this->assertLessThan(strpos($text, $langs->transnoentities('InfraSFilesPdfRecountedBy')), strpos($text, $langs->transnoentities('InfraSFilesPdfCountedBy')), '« Recompté par » après « Compté par »');
 	}
 
 	public function testModeleInfraSPlusINVDInfraspackplus(): void
@@ -205,12 +247,9 @@ final class InfrasfilesPdfPresenceTest extends TestCase
 			$this->markTestSkipped('Modèle InfraSPlus_INV absent (module infraspackplus inactif ou ancien) : test ignoré.');
 		}
 		$this->setConst('INFRASFILES_INVENTORY_SHOW_QTY', 0);
-		$pdf = $this->generateSpecimen('inventory', 'InfraSPlus_INV');
+		$pdf = $this->generateSpecimen('inventory', 'InfraSPlus_INV', 0, $this->typicalInventory());
 
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfTitleCounting'));
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfZone').' : '.$langs->transnoentities('InfraSFilesPdfZone').' A');
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfColCounted'));
-		$this->assertPdfContains($pdf, $langs->transnoentities('InfraSFilesPdfCountedBy'));
+		$this->assertCountingSheetLayout($pdf);
 		$this->assertPdfContains($pdf, 'PROD-SPECIMEN-5');
 		$this->assertPdfContains($pdf, $langs->transnoentities('PhysicalStock'), false);
 	}
@@ -219,7 +258,27 @@ final class InfrasfilesPdfPresenceTest extends TestCase
 	{
 		global $langs;
 		$this->setConst('INFRASFILES_INVENTORY_SHOW_QTY', 1);
-		$pdf = $this->generateSpecimen('inventory', 'comptage');
+		$pdf = $this->generateSpecimen('inventory', 'comptage', 0, $this->typicalInventory());
 		$this->assertPdfContains($pdf, $langs->transnoentities('PhysicalStock'));
+	}
+
+	/**
+	 * Feuilles de comptage toujours en portrait, même avec toutes les colonnes optionnelles du spécimen brut (zone, entrepôt, lot, stock physique) :
+	 * les textes longs passent à la ligne dans leur cellule (décision du 2026-10-07, pas de bascule en paysage).
+	 */
+	public function testFeuillesDeComptageToujoursEnPortrait(): void
+	{
+		$this->setConst('INFRASFILES_INVENTORY_SHOW_QTY', 1);
+		$models = infrasfiles_get_models('inventory');
+		foreach (['comptage', 'InfraSPlus_INV'] as $model) {
+			if (! isset($models[$model])) {
+				continue;
+			}
+			$pdf  = $this->generateSpecimen('inventory', $model);
+			$info = (string) shell_exec('pdfinfo '.escapeshellarg($pdf).' 2>/dev/null');
+			$this->assertMatchesRegularExpression('/Page size:\s+([\d.]+) x ([\d.]+)/', $info, 'pdfinfo indisponible ou sortie inattendue');
+			preg_match('/Page size:\s+([\d.]+) x ([\d.]+)/', $info, $m);
+			$this->assertLessThan((float) $m[2], (float) $m[1], 'Modèle '.$model.' : page en portrait (largeur < hauteur)');
+		}
 	}
 }

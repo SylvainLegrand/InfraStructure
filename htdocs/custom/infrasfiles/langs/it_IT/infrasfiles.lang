@@ -56,26 +56,31 @@ InfraSFilesNoModel          = Nessun modello di documento disponibile per questo
 InfraSFilesNoObjectEnabled  = Nessun documento con la generazione PDF attivata
 
 ### Documents layer ###
-InfraSFilesNoModelSelected    = Nessun modello di documento selezionato: scegliere un modello predefinito nei parametri del modulo
-InfraSFilesModelBordereauDesc = Distinta di addebito diretto / bonifico: un documento per terzo o per casa madre secondo l'opzione del modulo, con le fatture, le loro scadenze, le note di credito applicate e lo stato di ogni riga
-InfraSFilesPdfColDueDate      = Scadenza
-InfraSFilesPdfTitleDebit      = Distinta di addebito diretto
-InfraSFilesPdfTitleTransfer   = Distinta di bonifico
-InfraSFilesPdfCreditor        = Creditore
-InfraSFilesPdfOrderingParty   = Ordinante
-InfraSFilesPdfDebtor          = Debitore
-InfraSFilesPdfBeneficiary     = Beneficiario
-InfraSFilesPdfColDocument     = Documento
-InfraSFilesPdfNbLines         = %s riga/righe
-InfraSFilesSpecimen           = Esemplare
-InfraSFilesModelComptageDesc  = Scheda di conteggio dell'inventario: riferimenti raggruppati per zona di stoccaggio, casella vuota per la quantità rilevata
-InfraSFilesPdfTitleCounting   = Scheda di conteggio
-InfraSFilesPdfColCounted      = Quantità rilevata
-InfraSFilesPdfZone            = Zona
-InfraSFilesPdfNoZone          = Senza zona
-InfraSFilesPdfNbRefs          = %s riferimento/i
-InfraSFilesPdfCountedBy       = Contato da
-InfraSFilesPdfRejected        = di cui %s riga/righe respinte: %s
+InfraSFilesNoModelSelected     = Nessun modello di documento selezionato: scegliere un modello predefinito nei parametri del modulo
+InfraSFilesModelBordereauDesc  = Distinta di addebito diretto / bonifico: un documento per terzo o per casa madre secondo l'opzione del modulo, con le fatture, le loro scadenze, le note di credito applicate e lo stato di ogni riga
+InfraSFilesPdfColDueDate       = Scadenza
+InfraSFilesPdfTitleDebit       = Distinta di addebito diretto
+InfraSFilesPdfTitleTransfer    = Distinta di bonifico
+InfraSFilesPdfCreditor         = Creditore
+InfraSFilesPdfOrderingParty    = Ordinante
+InfraSFilesPdfDebtor           = Debitore
+InfraSFilesPdfBeneficiary      = Beneficiario
+InfraSFilesPdfColDocument      = Documento
+InfraSFilesPdfNbLines          = %s riga/righe
+InfraSFilesSpecimen            = Esemplare
+InfraSFilesModelComptageDesc   = Scheda di conteggio dell'inventario: zona di stoccaggio nella prima colonna (righe ordinate per zona), caselle vuote «Quantità rilevata» e «Riconteggio», righe «Contato da» e «Ricontato da» con data e firma
+InfraSFilesPdfTitleCounting    = Scheda di conteggio
+InfraSFilesPdfColCounted       = Quantità rilevata
+InfraSFilesPdfColRecount       = Riconteggio
+InfraSFilesPdfZone             = Zona
+InfraSFilesPdfNbRefs           = %s riferimento/i
+InfraSFilesPdfCountedBy        = Contato da
+InfraSFilesPdfRecountedBy      = Ricontato da
+InfraSFilesPdfRejected         = di cui %s riga/righe respinte: %s
+InfraSFilesMassDeleteSelection = Elimina la selezione
+InfraSFilesMassDeleteDone      = %s file eliminati
+InfraSFilesMassDeleteNone      = Nessun file selezionato
+InfraSFilesMassDeleteErrorFile = File %s: eliminazione rifiutata o impossibile
 
 ### Mail layer ###
 InfraSFilesMailTopicWidthdraw       = Distinta di addebito diretto / bonifico __REF__
@@ -98,6 +103,8 @@ InfraSFilesMailSentSummary          = %s e-mail inviate su %s terzi selezionati
 InfraSFilesMailErrorFor             = %s: %s
 InfraSFilesMailErrorNoRecipient     = nessun destinatario
 InfraSFilesMailErrorSend            = invio non riuscito
+InfraSFilesMailErrorBadEmail        = indirizzo e-mail non valido: %s
+InfraSFilesMailErrorThirdparty      = terzo non trovato (eliminato dopo la generazione?)
 
 ### About page ###
 

@@ -74,6 +74,28 @@
 	}
 
 	/**
+	*	Invalid addresses of a free recipients field ('a@b.fr, Name <c@d.fr>'), split and read as CMailFile does (comma separator,
+	*	e-mail between <> when a name is given), each one checked by the native isValidEmail()
+	*
+	*	@param		string		$addresses	Free field value
+	*	@return		array					List of the invalid entries (empty = all valid)
+	**/
+	function infrasfiles_mail_invalid_addresses($addresses)
+	{
+		require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
+		$invalid	= array();
+		foreach (explode(',', (string) $addresses) as $entry) {
+			$entry	= trim($entry);
+			if ($entry === '') {
+				continue;
+			}
+			if (!isValidEmail(CMailFile::getValidAddress($entry, 2))) {
+				$invalid[]	= $entry;
+			}
+		}
+		return $invalid;
+	}
+	/**
 	*	Row "Recipients per third party" of the send form : one line per batch (checkbox, third party, recipients to choose,
 	*	free e-mail, PDF attached), files not matching any third party listed as not sent. Posted values are kept on a new
 	*	display (template change, send error).
@@ -269,20 +291,27 @@
 			}
 			$free	= trim(GETPOST('infrasfiles_sendto_'.$socid, 'alphawithlgt'));
 			if ($free !== '') {
+				// Free field : every address must be valid (CMailFile would silently drop an invalid one and the e-mail would be counted as sent)
+				$invalid	= infrasfiles_mail_invalid_addresses($free);
+				if (!empty($invalid)) {
+					$result['errors'][]	= $langs->trans('InfraSFilesMailErrorFor', $name, $langs->transnoentities('InfraSFilesMailErrorBadEmail', implode(', ', $invalid)));	// inner text not encoded : the outer trans() encodes the whole message once (a nested trans() was encoded twice)
+					continue;
+				}
 				$sendto[]	= $free;
 			}
 			$sendto	= implode(',', $sendto);
 			if (!dol_strlen($sendto)) {
-				$result['errors'][]	= $langs->trans('InfraSFilesMailErrorFor', $name, $langs->trans('InfraSFilesMailErrorNoRecipient'));
+				$result['errors'][]	= $langs->trans('InfraSFilesMailErrorFor', $name, $langs->transnoentities('InfraSFilesMailErrorNoRecipient'));
 				continue;
 			}
-			// Substitutions for this third party : __THIRDPARTY_*__ come from $object->thirdparty
+			// Substitutions for this third party : __THIRDPARTY_*__ come from $object->thirdparty. A third party that cannot be loaded
+			// (deleted since the generation) is skipped : its e-mail would leave with the __THIRDPARTY_*__ variables not replaced
 			$soc	= new Societe($db);
-			if ($soc->fetch($socid) > 0) {
-				$object->thirdparty	= $soc;
-			} else {
-				$object->thirdparty	= null;
+			if ($soc->fetch($socid) <= 0) {
+				$result['errors'][]	= $langs->trans('InfraSFilesMailErrorFor', $name, $langs->transnoentities('InfraSFilesMailErrorThirdparty'));
+				continue;
 			}
+			$object->thirdparty	= $soc;
 			$substitutionarray	= getCommonSubstitutionArray($langs, 0, null, $object);
 			$substitutionarray['__SENDEREMAIL_SIGNATURE__']	= (empty($sender['signature']) ? $user->signature : $sender['signature']);
 			$substitutionarray['__EMAIL__']					= $sendto;
@@ -306,7 +335,7 @@
 				continue;
 			}
 			if (!$mailfile->sendfile()) {
-				$error	= !empty($mailfile->error) ? $mailfile->error : (getDolGlobalString('MAIN_DISABLE_ALL_MAILS') ? 'MAIN_DISABLE_ALL_MAILS' : $langs->trans('InfraSFilesMailErrorSend'));
+				$error	= !empty($mailfile->error) ? $mailfile->error : (getDolGlobalString('MAIN_DISABLE_ALL_MAILS') ? 'MAIN_DISABLE_ALL_MAILS' : $langs->transnoentities('InfraSFilesMailErrorSend'));
 				$result['errors'][]	= $langs->trans('InfraSFilesMailErrorFor', $name, $error);
 				continue;
 			}

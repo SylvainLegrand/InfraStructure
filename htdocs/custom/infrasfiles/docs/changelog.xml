@@ -50,6 +50,22 @@
 	<Version Number="18.3.0" MonthVersion="2026-10">
 		<change type='add'>GED, onglet « Répertoires d'objets » : un répertoire automatique par document du registre (« Bons de prélèvement et de virement », « Inventaires »), avec la liste des PDF, le lien vers l'objet, l'aperçu et le téléchargement sous le droit natif de l'objet (hook addSectionECMAuto ; contexte ecmautocard ajouté au descripteur — désactiver / réactiver le module sur les instances déjà équipées). Les bons de prélèvement et de virement partagent un même répertoire, le core n'offrant pas de filtre par type.</change>
 	</Version>
+	<Version Number="18.4.0" MonthVersion="2026-10">
+		<change type='add'>Suppression en masse des fichiers : une case à cocher par fichier (et « tout cocher ») dans la section « Fichiers joints » de la fiche et dans l'onglet « Fichiers joints », avec un bouton « Supprimer la sélection » (immédiat, comme la corbeille de la fiche). Suppression par le mécanisme natif de la corbeille (index GED et partages nettoyés), limitée aux fichiers du répertoire de l'objet, sous le droit d'écriture natif. Tous les objets du registre en bénéficient.</change>
+	</Version>
+	<Version Number="18.4.1" MonthVersion="2026-10">
+		<change type='fix'>Sécurité : la suppression en masse des fichiers et l'envoi d'un email par tiers n'étaient pas réservés au POST. Le core ne vérifie le jeton CSRF d'une action passée en GET que si son nom commence par del, remove, set…, ce qui n'est pas le cas de ces actions : sur une instance en MAIN_SECURITY_CSRF_WITH_TOKEN 1 ou 2, un lien forgé ouvert par un utilisateur connecté pouvait supprimer des fichiers ou envoyer des emails sans jeton. Les deux actions ne sont plus acceptées qu'en POST (fiche et onglet « Fichiers joints »), où le jeton est toujours contrôlé.</change>
+		<change type='fix'>Envoi par tiers : un tiers supprimé depuis la génération des PDF recevait un email dont les variables __THIRDPARTY_*__ n'étaient pas remplacées ; il est désormais ignoré avec une erreur explicite.</change>
+		<change type='fix'>Envoi par tiers : une adresse invalide saisie dans le champ libre était ignorée sans message par la couche mail et l'email compté comme envoyé ; chaque adresse est désormais vérifiée (isValidEmail) et le tiers signalé en erreur sans envoi.</change>
+		<change type='fix'>Envoi par tiers : les messages d'erreur par tiers (« échec de l'envoi », etc.) affichaient les accents en entités HTML (&amp;eacute;) : une traduction encodée était passée en paramètre d'une autre traduction, qui l'encodait une seconde fois.</change>
+		<change type='fix'>Onglet « Fichiers joints » en mode renommage : le formulaire de suppression en masse aurait été imbriqué dans le formulaire natif de renommage ; il n'est plus ajouté dans ce mode.</change>
+		<change type='chg'>README : envoi par tiers, colonne « Tiers », répertoires de la GED et suppression en masse décrits.</change>
+	</Version>
+	<Version Number="18.5.0" MonthVersion="2026-10">
+		<change type='chg'>Feuille de comptage (modèle « comptage ») : la zone de stockage n'est plus imprimée en bandeau « Zone : … - N référence(s) » au-dessus de chaque groupe de lignes mais dans une colonne « Zone », en première position, renseignée sur chaque ligne (lignes toujours triées par zone, lignes sans zone en dernier avec la cellule vide). La colonne n'apparaît que si au moins une ligne a une zone.</change>
+		<change type='chg'>Feuille de comptage : toujours en portrait. Un texte trop long pour sa colonne (libellé, zone, référence, lot) passe à la ligne dans sa cellule et la ligne s'agrandit ; le libellé garde au moins 40 mm, les autres colonnes sont resserrées en proportion quand toutes les colonnes optionnelles sont affichées ; un titre de colonne trop long passe aussi à la ligne et l'en-tête du tableau s'agrandit (en-tête commun aux modèles du module).</change>
+		<change type='add'>Feuille de comptage : colonne « Recomptage » (case vide) juste après « Quantité relevée », et ligne « Recompté par » avec date et signature sous la ligne « Compté par » en fin de feuille. Même mise en page dans le modèle InfraSPlus_INV fourni par InfraSPackPlus (21.12.0).</change>
+	</Version>
 	<InfraS Downloaded="20261007"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>

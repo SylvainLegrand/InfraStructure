@@ -56,26 +56,31 @@ InfraSFilesNoModel          = Ningún modelo de documento disponible para este d
 InfraSFilesNoObjectEnabled  = Ningún documento con la generación PDF activada
 
 ### Documents layer ###
-InfraSFilesNoModelSelected    = Ningún modelo de documento seleccionado: elija un modelo por defecto en los parámetros del módulo
-InfraSFilesModelBordereauDesc = Orden de domiciliación / transferencia: un documento por tercero o por casa matriz según la opción del módulo, con las facturas, sus vencimientos, los abonos aplicados y el estado de cada línea
-InfraSFilesPdfColDueDate      = Vencimiento
-InfraSFilesPdfTitleDebit      = Orden de domiciliación
-InfraSFilesPdfTitleTransfer   = Orden de transferencia
-InfraSFilesPdfCreditor        = Acreedor
-InfraSFilesPdfOrderingParty   = Ordenante
-InfraSFilesPdfDebtor          = Deudor
-InfraSFilesPdfBeneficiary     = Beneficiario
-InfraSFilesPdfColDocument     = Documento
-InfraSFilesPdfNbLines         = %s línea(s)
-InfraSFilesSpecimen           = Espécimen
-InfraSFilesModelComptageDesc  = Hoja de recuento de inventario: referencias agrupadas por zona de almacenamiento, casilla vacía para la cantidad contada
-InfraSFilesPdfTitleCounting   = Hoja de recuento
-InfraSFilesPdfColCounted      = Cantidad contada
-InfraSFilesPdfZone            = Zona
-InfraSFilesPdfNoZone          = Sin zona
-InfraSFilesPdfNbRefs          = %s referencia(s)
-InfraSFilesPdfCountedBy       = Contado por
-InfraSFilesPdfRejected        = de las cuales %s línea(s) rechazada(s): %s
+InfraSFilesNoModelSelected     = Ningún modelo de documento seleccionado: elija un modelo por defecto en los parámetros del módulo
+InfraSFilesModelBordereauDesc  = Orden de domiciliación / transferencia: un documento por tercero o por casa matriz según la opción del módulo, con las facturas, sus vencimientos, los abonos aplicados y el estado de cada línea
+InfraSFilesPdfColDueDate       = Vencimiento
+InfraSFilesPdfTitleDebit       = Orden de domiciliación
+InfraSFilesPdfTitleTransfer    = Orden de transferencia
+InfraSFilesPdfCreditor         = Acreedor
+InfraSFilesPdfOrderingParty    = Ordenante
+InfraSFilesPdfDebtor           = Deudor
+InfraSFilesPdfBeneficiary      = Beneficiario
+InfraSFilesPdfColDocument      = Documento
+InfraSFilesPdfNbLines          = %s línea(s)
+InfraSFilesSpecimen            = Espécimen
+InfraSFilesModelComptageDesc   = Hoja de recuento de inventario: zona de almacenamiento en la primera columna (líneas ordenadas por zona), casillas vacías «Cantidad contada» y «Recuento», líneas «Contado por» y «Recontado por» con fecha y firma
+InfraSFilesPdfTitleCounting    = Hoja de recuento
+InfraSFilesPdfColCounted       = Cantidad contada
+InfraSFilesPdfColRecount       = Recuento
+InfraSFilesPdfZone             = Zona
+InfraSFilesPdfNbRefs           = %s referencia(s)
+InfraSFilesPdfCountedBy        = Contado por
+InfraSFilesPdfRecountedBy      = Recontado por
+InfraSFilesPdfRejected         = de las cuales %s línea(s) rechazada(s): %s
+InfraSFilesMassDeleteSelection = Eliminar la selección
+InfraSFilesMassDeleteDone      = %s archivo(s) eliminado(s)
+InfraSFilesMassDeleteNone      = Ningún archivo seleccionado
+InfraSFilesMassDeleteErrorFile = Archivo %s: eliminación rechazada o imposible
 
 ### Mail layer ###
 InfraSFilesMailTopicWidthdraw       = Orden de domiciliación / transferencia __REF__
@@ -98,6 +103,8 @@ InfraSFilesMailSentSummary          = %s correo(s) enviado(s) de %s tercero(s) s
 InfraSFilesMailErrorFor             = %s: %s
 InfraSFilesMailErrorNoRecipient     = ningún destinatario
 InfraSFilesMailErrorSend            = error de envío
+InfraSFilesMailErrorBadEmail        = dirección de correo electrónico no válida: %s
+InfraSFilesMailErrorThirdparty      = tercero no encontrado (¿eliminado desde la generación?)
 
 ### About page ###
 

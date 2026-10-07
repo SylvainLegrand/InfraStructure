@@ -85,6 +85,16 @@
 	// form and the redirection after a deletion land on this page without element => access forbidden (audit of 2026-09-10)
 	$moreparam	= '&element='.urlencode($element);	// appended by document_actions_post_headers.tpl.php to the upload / link form action
 	$backtopage	= $_SERVER['PHP_SELF'].'?element='.urlencode($element).'&id='.((int) $id);	// redirection of actions_linkedfiles.inc.php after confirm_deletefile
+	// Mass deletion posted by the checkboxes of the file list (same deletion as the trash icon, several files at once) ;
+	// POST only : the core checks the token of a GET action only when its name starts with del / remove / set..., not ours
+	if ($action == 'infrasfiles_remove_files' && !infrasfiles_is_post_request()) {
+		$action	= '';
+	}
+	if ($action == 'infrasfiles_remove_files' && $permissiontoadd) {
+		infrasfiles_remove_files($element, $object, GETPOST('infrasfiles_files', 'array'));
+		header('Location: '.$backtopage);	// messages are in session ; a page reload must never delete again
+		exit;
+	}
 	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
 	// Send by e-mail : native mechanism (attachments, templates, substitutions, agenda event through the trigger <OBJECT>_SENTBYMAIL),
 	// or one e-mail per third party (module form and send loop) for the objects whose registry entry has 'mailbythirdparty'
@@ -104,6 +114,9 @@
 	}
 	if (GETPOST('cancel', 'alpha')) {
 		$action	= '';
+	}
+	if ($action == 'infrasfiles_sendbythirdparty' && !infrasfiles_is_post_request()) {
+		$action	= '';	// POST only : a forged link must never send e-mails
 	}
 	$batchdata	= array();
 	if ($bythirdparty) {
@@ -183,8 +196,11 @@
 	$relativepathwithnofile	= infrasfiles_get_subdir($element, $object).'/';
 	$param					= '&element='.urlencode($element).'&id='.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_post_headers.tpl.php';
-	// "Third party" column of the file list (objects whose files are addressed to third parties)
+	// "Third party" column of the file list (objects whose files are addressed to third parties), and mass deletion checkboxes
 	print infrasfiles_get_thirdparty_column_script('#tablelines', infrasfiles_get_file_thirdparty_links($object, $filearray));
+	if ($permissiontoadd && $action != 'editfile') {	// rename mode : the native list is already inside its own form, never nest ours
+		print infrasfiles_get_mass_delete_script('#tablelines', 'tab', $backtopage, '<input type="hidden" name="element" value="'.dol_escape_htmltag($element).'"><input type="hidden" name="id" value="'.((int) $object->id).'">');
+	}
 
 	llxFooter();
 	$db->close();

@@ -115,7 +115,7 @@
 			global $conf, $langs, $user, $db;
 
 			$mailactions	= array('presend', 'send', 'infrasfiles_sendbythirdparty');
-			if (!in_array($action, array('builddoc', 'remove_file')) && !in_array($action, $mailactions)) {
+			if (!in_array($action, array('builddoc', 'remove_file', 'infrasfiles_remove_files')) && !in_array($action, $mailactions)) {
 				return 0;
 			}
 			$element	= $this->infrasfilesElementFromContext($parameters);
@@ -129,6 +129,18 @@
 			}
 			if (in_array($action, $mailactions)) {
 				return $this->infrasfilesDoMailActions($element, $docobject, $action);
+			}
+			// Mass deletion posted by the checkboxes of the "Attached files" section (same deletion as the trash icon, several files at once)
+			if ($action == 'infrasfiles_remove_files') {
+				// POST only : the core checks the token of a GET action only when its name starts with del / remove / set..., not ours
+				// (a forged link would delete without token on an instance with MAIN_SECURITY_CSRF_WITH_TOKEN = 1 or 2) ; a POST is always checked
+				if (!infrasfiles_is_post_request() || !infrasfiles_user_can($element, 'write')) {
+					$action	= '';
+					return 0;
+				}
+				infrasfiles_remove_files($element, $docobject, GETPOST('infrasfiles_files', 'array'));
+				header('Location: '.$_SERVER['PHP_SELF'].'?id='.((int) $id));	// messages are in session ; a page reload must never delete again
+				exit;
 			}
 			if (!infrasfiles_is_enabled($element, 'DOCUMENT') || !infrasfiles_user_can($element, 'write')) {
 				return 0;
@@ -192,7 +204,8 @@
 			$id			= (int) $docobject->id;
 			$bythirdparty	= !empty($definition['mailbythirdparty']) && method_exists($docobject, 'infrasfilesGetMailBatches');
 			if ($action == 'infrasfiles_sendbythirdparty') {
-				if (!$bythirdparty) {
+				if (!$bythirdparty || !infrasfiles_is_post_request()) {
+					$action	= '';	// POST only (see the mass deletion in doActions) : a forged link must never send e-mails
 					return 0;
 				}
 				dol_include_once('/infrasfiles/core/lib/infrasfilesmail.lib.php');
@@ -428,8 +441,11 @@
 									<div class = "ficheaddleft">'.infrasfiles_get_document_box($element, $docobject, $urlsource).'</div>
 								</div></div>
 							</div>';
-				// "Third party" column of the file list (objects whose files are addressed to third parties)
+				// "Third party" column of the file list (objects whose files are addressed to third parties), and mass deletion checkboxes
 				$out		.= infrasfiles_get_thirdparty_column_script('#infrasfiles_docsection table.formdoc', infrasfiles_get_file_thirdparty_links($docobject));
+				if (infrasfiles_user_can($element, 'write')) {
+					$out	.= infrasfiles_get_mass_delete_script('#infrasfiles_docsection table.formdoc', 'box', '', '');
+				}
 			}
 			$out	.= '<script type = "text/javascript">
 							jQuery(document).ready(function() {
