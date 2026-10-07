@@ -1968,7 +1968,8 @@
 									array ('bom',				'BOM_FREE_TEXT',				'INFRASPLUS_PDF_SHOW_SYS_MC_BASE_BOM'),
 									array ('project',			'PROJECT_FREE_NOTE',			''),
 									array ('expensereport',		'EXPENSEREPORT_FREE_TEXT',		'INFRASPLUS_PDF_SHOW_SYS_MC_BASE_EXPR'),
-									array ('widthdraw',			'INFRASFILES_WIDTHDRAW_FREE_TEXT',	'')	// bons de prélèvement / virement (InfraSFiles) : texte libre de pied de page du module InfraSFiles
+									array ('widthdraw',			'INFRASFILES_WIDTHDRAW_FREE_TEXT',	''),	// bons de prélèvement / virement (InfraSFiles) : texte libre de pied de page du module InfraSFiles
+									array ('inventory',			'INFRASFILES_INVENTORY_FREE_TEXT',	'')		// inventaires (InfraSFiles)
 									);
 		$listModulesNoteP	= array(array ('propal',			'PROPOSAL_PUBLIC_NOTE',				'INFRASPLUS_PDF_SHOW_SYS_NT_BASE_DEV'),
 									array ('commande',			'ORDER_PUBLIC_NOTE',				'INFRASPLUS_PDF_SHOW_SYS_NT_BASE_COM'),
@@ -1985,7 +1986,8 @@
 									array ('bom',				'BOM_PUBLIC_NOTE',					'INFRASPLUS_PDF_SHOW_SYS_NT_BASE_BOM'),
 									array ('project',			'PROJECT_PUBLIC_NOTE',				'INFRASPLUS_PDF_SHOW_SYS_NT_BASE_PROJ'),
 									array ('expensereport',		'EXPENSEREPORT_PUBLIC_NOTE',		'INFRASPLUS_PDF_SHOW_SYS_NT_BASE_EXPR'),
-									array ('widthdraw',			'',									'')	// bons de prélèvement / virement (InfraSFiles) : pas de note publique native, notes du dictionnaire seulement
+									array ('widthdraw',			'',									''),	// bons de prélèvement / virement (InfraSFiles) : pas de note publique native, notes du dictionnaire seulement
+									array ('inventory',			'',									'')		// inventaires (InfraSFiles) : idem
 									);
 		// On parcour la liste des options pour les trier entre options utilisateur et option document
 		foreach ($listOptions as $key => $option) {

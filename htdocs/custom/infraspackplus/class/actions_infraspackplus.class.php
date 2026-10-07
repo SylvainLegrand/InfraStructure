@@ -160,8 +160,8 @@
 				$urlpath	= dol_buildpath('infraspackplus', 1);
 				// Colspan
 					$colspan = 6;
-				// Présentation générale des options, Récupération des paramètres sauvegardés ('widthdraw' = bons de prélèvement / virement via le module InfraSFiles, modèle pdf_InfraSPlus_Bon)
-				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'widthdraw'])) {
+				// Présentation générale des options, Récupération des paramètres sauvegardés ('widthdraw' / 'inventory' = bons de prélèvement / virement et inventaires via le module InfraSFiles, modèles pdf_InfraSPlus_Bon / _INV)
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'widthdraw', 'inventory'])) {
 					$langs->load('infraspackplus@infraspackplus');
 					infraspackplus_test_new_fields('infraspackplus');	// Check the database configuration
 					$idvar				= ($object->element == 'facture') ? 'facid' : 'id';
@@ -265,7 +265,7 @@ EOJS;
 											<tr class = "infrasfold cursorpointer infrasplusbgtrans" style = "'.$titleStyle.'"><td class = "center" colspan = "'.$colspan.'" style = "font-size: 120%;">'.$titleOptions.'</td></tr>';
 				}
 				// Logo et Adresse expéditeur, Mentions complémentaires + Image en pied de document
-				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'widthdraw'])) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'widthdraw', 'inventory'])) {
 					$factor		= getDolGlobalString('INFRASPLUS_PDF_FACTOR_PRE', '');
 					// logo
 					$logos		= [];
@@ -337,8 +337,8 @@ EOJS;
 						$this->resprints	.= '	</td>
 												</tr>';
 					}
-					// adresse destinataire
-					if (!in_array($object->element, ['product', 'mo', 'bom'])) {
+					// adresse destinataire (un inventaire n'a pas de tiers)
+					if (!in_array($object->element, ['product', 'mo', 'bom', 'inventory'])) {
 						$customerAddrPost	 = empty(GETPOST('customerAddrSelect', 'alpha')) || GETPOST('customerAddrSelect', 'alpha') == 'none' ? 'T' : GETPOST('customerAddrSelect', 'alpha');
 						$this->resprints	.=	'<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 													<td colspan = "'.$colspan.'" align = "right">
@@ -908,7 +908,7 @@ EOJS;
 					$this->resprints	.= '<input type = "hidden" name = "expensereportfiles" value = '.GETPOST('expensereportfiles', 'alpha').'>';
 				}
 				// Alias
-				if (!in_array($object->element, ['product', 'mo', 'bom', 'chequereceipt'])) {
+				if (!in_array($object->element, ['product', 'mo', 'bom', 'chequereceipt', 'inventory'])) {	// alias du tiers : sans objet pour un inventaire
 					$includealiasPost	= empty(GETPOST('includealias', 'alpha')) || GETPOST('includealias', 'alpha') == 'none' ? 0 : 1;
 					$this->resprints	.= '<tr class = "oddeven infrasfoldable InfraSPermLastOpt">
 												<td colspan = "'.$colspan.'" align = "right">
@@ -1217,7 +1217,7 @@ EOJS;
 					}
 				}
 				// ligne de séparation fin des options InfraSPackPlus
-				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'widthdraw'])) {
+				if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'widthdraw', 'inventory'])) {
 					$this->resprints	.= '<tr class = "infrasplusbgtrans"><td class = "center infrasplusnopadding" colspan = "'.$colspan.'"><hr class = "quatrevingtpercent"></td></tr>';
 				}
 			}
@@ -1241,7 +1241,7 @@ EOJS;
 			$_SESSION['InfraSPackPlus_model']	= true;	// Write a session variable to indicate that we are using an InfraSPackPlus template
 			$manualPrint						= GETPOST('action', 'alpha') == 'builddoc' ? 1 : 0;	// from html.formfile.class.php => showdocuments
 			pdf_InfraSPlus_getInstance([], 'mm', 'P', true);
-			if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'user', 'widthdraw'])) {	// 'widthdraw' = bons de prélèvement / virement (InfraSFiles, pdf_InfraSPlus_Bon)
+			if (in_array($object->element, ['propal', 'commande', 'facture', 'contrat', 'fichinter', 'shipping', 'reception', 'delivery', 'supplier_proposal', 'order_supplier', 'product', 'mo', 'bom', 'project', 'expensereport', 'user', 'widthdraw', 'inventory'])) {	// 'widthdraw' / 'inventory' = bons de prélèvement et inventaires (InfraSFiles, pdf_InfraSPlus_Bon / _INV)
 				$freeadrlivr		= getDolGlobalString('INFRASPLUS_PDF_FREE_LIVR_EXF', '');
 				// Récupération des paramètres sauvegardés (Liés à l'utilisateur, au document ou par défaut => configuration module)
 				$defaultParams		= infraspackplus_defaultParam($object);

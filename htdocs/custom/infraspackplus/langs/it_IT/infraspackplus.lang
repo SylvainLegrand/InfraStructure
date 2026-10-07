@@ -195,6 +195,7 @@ InfraSPlusPDFAddPrefixToNDF                    = Prefisso da aggiungere al nome 
 InfraSPlusPDFAddPrefixToBC                     = Prefisso da aggiungere al nome del modello di distinte di assegno pdf_InfraSPlus_BC (Distinte di assegno)
 InfraSPlusPDFAddPrefixToBOM                    = Prefisso da aggiungere al nome del modello di distinte base pdf_InfraSPlus_BOM (Distinte base)
 InfraSPlusPDFAddPrefixToBon                    = Prefisso da aggiungere al nome del modello di ordini di addebito diretto / bonifico pdf_InfraSPlus_Bon (Distinte di addebito diretto / bonifico, modulo InfraSFiles)
+InfraSPlusPDFAddPrefixToINV                    = Prefisso da aggiungere al nome del modello di inventari pdf_InfraSPlus_INV (Schede di conteggio, modulo InfraSFiles)
 InfraSPlusParamFilesFromProject                = Proporre anche gli allegati del progetto (caso) associati al documento come file unibili
 InfraSPlusParamFilesFromBom                    = Negli ordini di produzione Proporre anche gli allegati della nomenclatura associata al documento come file unificabili
 InfraSPlusParamFilesFromExpensereport          = Unisci gli allegati associati alle note spese
@@ -1122,6 +1123,10 @@ PDFInfraSPlusChequeReceiptDescription = Distinta di versamento assegni PDF model
 ### pdf_InfraS_bon ###
 PDFInfraSPlusBonName        = InfraSPlus_Bon
 PDFInfraSPlusBonDescription = Distinta di addebito diretto / bonifico PDF modello InfraS (modulo InfraSFiles): un documento per terzo o per casa madre, fatture, scadenze, note di credito, stati e totale, con l'impaginazione e le opzioni InfraSPackPlus (logo, riquadri indirizzi, menzioni, note, firma, filigrana, piè di pagina, file uniti)
+
+### pdf_InfraS_inv ###
+PDFInfraSPlusINVName        = InfraSPlus_INV
+PDFInfraSPlusINVDescription = Scheda di conteggio dell'inventario PDF modello InfraS (modulo InfraSFiles): zona di stoccaggio nella prima colonna (righe ordinate per zona), magazzino e lotto se necessario, quantità teorica opzionale, caselle vuote «Quantità rilevata» e «Riconteggio», aree «Contato da» e «Ricontato da» con data e firma, con l'impaginazione e le opzioni InfraSPackPlus (logo, riquadri, menzioni, note, filigrana, piè di pagina, file uniti)
 
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT

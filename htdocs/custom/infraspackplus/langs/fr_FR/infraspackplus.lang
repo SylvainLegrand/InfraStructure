@@ -195,6 +195,7 @@ InfraSPlusPDFAddPrefixToNDF                    = Préfixe à ajouter au nom du m
 InfraSPlusPDFAddPrefixToBC                     = Préfixe à ajouter au nom du modèle de bordereaux de chèque pdf_InfraSPlus_BC (Bordereaux de chèque)
 InfraSPlusPDFAddPrefixToBOM                    = Préfixe à ajouter au nom du modèle de nomenclatures pdf_InfraSPlus_BOM (Nomenclatures)
 InfraSPlusPDFAddPrefixToBon                    = Préfixe à ajouter au nom du modèle de bons de prélèvement / virement pdf_InfraSPlus_Bon (Bordereaux de prélèvement / virement, module InfraSFiles)
+InfraSPlusPDFAddPrefixToINV                    = Préfixe à ajouter au nom du modèle d'inventaires pdf_InfraSPlus_INV (Feuilles de comptage, module InfraSFiles)
 InfraSPlusParamFilesFromProject                = Proposer aussi les pièces jointes du projet (affaire) associé au document comme fichiers fusionnables
 InfraSPlusParamFilesFromBom                    = Dans les ordres de fabrication proposer aussi les pièces jointes de la nomenclature associée au document comme fichiers fusionnables
 InfraSPlusParamFilesFromExpensereport          = Fusionner les pièces jointes associées aux notes de frais 
@@ -1122,6 +1123,10 @@ PDFInfraSPlusChequeReceiptDescription = Bordereau de remise de chèques PDF mod�
 ### pdf_InfraS_bon ###
 PDFInfraSPlusBonName        = InfraSPlus_Bon
 PDFInfraSPlusBonDescription = Bordereau de prélèvement / virement PDF modèle InfraS (module InfraSFiles) : un document par tiers ou par maison mère, factures, échéances, avoirs, statuts et total, avec la mise en page et les options InfraSPackPlus (logo, cadres d'adresses, mentions, notes, signature, filigrane, pied de page, fichiers fusionnés)
+
+### pdf_InfraS_inv ###
+PDFInfraSPlusINVName        = InfraSPlus_INV
+PDFInfraSPlusINVDescription = Feuille de comptage d'inventaire PDF modèle InfraS (module InfraSFiles) : zone de stockage en première colonne (lignes triées par zone), entrepôt et lot si besoin, quantité théorique optionnelle, cases vides « Quantité relevée » et « Recomptage », zones « Compté par » et « Recompté par » avec date et signature, avec la mise en page et les options InfraSPackPlus (logo, cadres, mentions, notes, filigrane, pied de page, fichiers fusionnés)
 
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT
