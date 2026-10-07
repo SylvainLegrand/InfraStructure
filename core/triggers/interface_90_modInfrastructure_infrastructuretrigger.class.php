@@ -225,7 +225,8 @@
 		}
 
 		/**
-		* Handle line invoice insert/create: deposit handling + shipping origin special_code
+		* Handle line invoice insert/create: structure lines of an invoice created for a percentage of its origin (down
+		* payment on all lines, standard invoice of a percentage) + shipping origin special_code
 		* Refer to issue #379
 		*
 		* @param	object	$object		Line object
@@ -255,13 +256,26 @@
 					$object->error		= $staticInvoice->error;
 					$object->errors[]	= $staticInvoice->errors;
 				}
-				$isEligible						= $staticInvoice->type == Facture::TYPE_DEPOSIT && GETPOST('typedeposit', 'aZ09') == 'variablealllines';
-				$TInvoices[$object->fk_facture]	= $isEligible;
+				// The core scales the qty of every origin line by the percentage (compta/facture/card.php), title,
+				// subtotal and free text lines included, whose qty is their structure code: a down payment "on all
+				// lines" (valuedeposit) and, since Dolibarr 18, a standard invoice of a percentage of the origin
+				// (valuestandardinvoice, 1 to 99 %). The percentage is kept per invoice, null when not scaled.
+				$percent	= null;
+				if ($staticInvoice->type == Facture::TYPE_DEPOSIT && GETPOST('typedeposit', 'aZ09') == 'variablealllines') {
+					$percent	= (float) price2num(str_replace('%', '', GETPOST('valuedeposit', 'alpha')), 'MU');
+				} elseif ($staticInvoice->type == Facture::TYPE_STANDARD) {
+					$valuestandardinvoice	= (float) price2num(str_replace('%', '', GETPOST('valuestandardinvoice', 'alpha')), 'MU');
+					if ($valuestandardinvoice > 0 && $valuestandardinvoice < 100) {
+						$percent	= $valuestandardinvoice;
+					}
+				}
+				$TInvoices[$object->fk_facture]	= $percent > 0 ? $percent : null;
 			}
-			if ($TInvoices[$object->fk_facture]) {
+			if ($TInvoices[$object->fk_facture] !== null) {
 				if (!empty($object->origin) && !empty($object->origin_id) && $object->special_code == TInfrastructure::getModuleNumber()) {
-					$valuedeposit	= price2num(str_replace('%', '', GETPOST('valuedeposit', 'alpha')), 'MU');
-					$object->qty	= 100 * $object->qty / $valuedeposit;
+					// Structure codes are integers (1 to 9 titles, 50 free text, 91 to 99 subtotals): round the
+					// back-scaled qty, 0.6 * 99 = 59.4 gives back 99, not 98.99999
+					$object->qty	= (int) round(100 * $object->qty / $TInvoices[$object->fk_facture]);
 					if ($object->update(null, 1) < 0) {
 						$object->errors[]	= $object->errors;
 					}
