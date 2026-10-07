@@ -621,8 +621,12 @@
 			$sql		.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
 			$sql		.= " AND special_code = 3";
 			$rescheck	= $object->db->query($sql);
-			if (!$rescheck || $object->db->num_rows($rescheck) == 0) {
-				if ($rescheck) $object->db->free($rescheck);
+			if (!$rescheck) {
+				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
+				return -1;	// Erreur SQL remontée à update_price() (retour -1) au lieu d'un recalcul silencieux options comprises
+			}
+			if ($object->db->num_rows($rescheck) == 0) {
+				$object->db->free($rescheck);
 				return 0; // Pas de lignes OL : laisser update_price() gérer normalement
 			}
 			$object->db->free($rescheck);
@@ -644,7 +648,10 @@
 			$sql	.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
 			$sql	.= " AND special_code != 3";
 			$resql	= $object->db->query($sql);
-			if (!$resql) return 0;
+			if (!$resql) {
+				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
+				return -1;	// Erreur SQL remontée à update_price()
+			}
 			$obj = $object->db->fetch_object($resql);
 			$object->db->free($resql);
 			if (!$obj) return 0;
@@ -679,7 +686,10 @@
 			$sql	.= ", multicurrency_total_ttc = ".((float) price2num($object->multicurrency_total_ttc, 8, 1));
 			$sql	.= " WHERE rowid = ".((int) $object->id);
 			$resql	= $object->db->query($sql);
-			if (!$resql) return 0;
+			if (!$resql) {
+				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
+				return -1;	// Erreur SQL remontée à update_price()
+			}
 
 			return 1; // update_price() standard ignorée
 		}
@@ -1082,7 +1092,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_writelinedesc_ref($parameters = [], &$object, &$action = '')
+		public function pdf_writelinedesc_ref($parameters, &$object, &$action = '')
 		{
 			return $this->pdf_writelinedesc($parameters, $object, $action);
 		}
@@ -1145,7 +1155,7 @@
 		* @param	string			$action 	Action
 		* @return	void
 		*/
-		public function beforePercentCalculation($parameters = [], &$object, &$action = '')
+		public function beforePercentCalculation($parameters, &$object, &$action = '')
 		{
 			if ($object->name == 'sponge' && isset($parameters['object']) && !empty($parameters['object']->lines)) {
 				foreach ($parameters['object']->lines as $k => $line) {
@@ -1164,7 +1174,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlineqty($parameters = [], &$object, &$action = '')
+		public function pdf_getlineqty($parameters, &$object, &$action = '')
 		{
 			global $hideqtys, $hideprices, $hookmanager, $pdf;
 
@@ -1253,7 +1263,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlinetotalexcltax($parameters = [], &$object, &$action = '')
+		public function pdf_getlinetotalexcltax($parameters, &$object, &$action = '')
 		{
 			global $conf, $hideprices, $hideqtys, $hookmanager, $hidedetails, $langs, $pdf;
 
@@ -1373,7 +1383,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlinetotalwithtax($parameters = [], &$object, &$action = '')
+		public function pdf_getlinetotalwithtax($parameters, &$object, &$action = '')
 		{
 			global $conf, $langs, $pdf;
 
@@ -1440,7 +1450,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlineunit($parameters = [], &$object, &$action = '')
+		public function pdf_getlineunit($parameters, &$object, &$action = '')
 		{
 			global $conf, $pdf;
 
@@ -1468,7 +1478,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlineupexcltax($parameters = [], &$object, &$action = '')
+		public function pdf_getlineupexcltax($parameters, &$object, &$action = '')
 		{
 			global $conf, $pdf, $hideprices, $hidedetails, $hookmanager, $langs;
 
@@ -1521,7 +1531,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlineremisepercent($parameters = [], &$object, &$action = '')
+		public function pdf_getlineremisepercent($parameters, &$object, &$action = '')
 		{
 			global $conf, $hideqtys, $hideprices, $hidedetails, $hookmanager, $langs, $pdf;
 
@@ -1569,7 +1579,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlineupwithtax($parameters = [], &$object, &$action = '')
+		public function pdf_getlineupwithtax($parameters, &$object, &$action = '')
 		{
 			global $conf, $hideqtys, $hideprices, $pdf;
 
@@ -1608,7 +1618,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlinevatrate($parameters = [], &$object, &$action = '')
+		public function pdf_getlinevatrate($parameters, &$object, &$action = '')
 		{
 			global $hideqtys, $hideprices, $hidedetails, $hookmanager, $pdf;
 
@@ -1693,7 +1703,7 @@
 		* @param	string			$action 	Action
 		* @return	int
 		*/
-		public function pdf_getlineprogress($parameters = [], &$object, &$action)
+		public function pdf_getlineprogress($parameters, &$object, &$action)
 		{
 			$i		= intval($parameters['i']);
 			$line	= isset($object->lines[$i]) ? $object->lines[$i] : null;
@@ -1718,7 +1728,7 @@
 		* @param	string			$action		Action
 		* @return	int							> 0 if OK, 0 if no hook executed, < 0 if KO
 		*/
-		public function beforePDFCreation($parameters = [], &$object, &$action = '')
+		public function beforePDFCreation($parameters, &$object, &$action = '')
 		{
 			/**
 			 * @var $pdf    TCPDF
@@ -1858,7 +1868,7 @@
 		* @param	string			$action		Action
 		* @return	int
 		*/
-		public function pdf_writelinedesc($parameters = [], &$object, &$action = '')
+		public function pdf_writelinedesc($parameters, &$object, &$action = '')
 		{
 			/**
 			 * @var $pdf    TCPDF

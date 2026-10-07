@@ -225,7 +225,8 @@
 		}
 
 		/**
-		* Handle line invoice insert/create: deposit handling + shipping origin special_code
+		* Handle line invoice insert/create: structure lines of an invoice created for a percentage of its origin (down
+		* payment on all lines, standard invoice of a percentage) + shipping origin special_code
 		* Refer to issue #379
 		*
 		* @param	object	$object		Line object
@@ -255,18 +256,74 @@
 					$object->error		= $staticInvoice->error;
 					$object->errors[]	= $staticInvoice->errors;
 				}
-				$isEligible						= $staticInvoice->type == Facture::TYPE_DEPOSIT && GETPOST('typedeposit', 'aZ09') == 'variablealllines';
-				$TInvoices[$object->fk_facture]	= $isEligible;
+				// The core scales the qty of every origin line by the percentage (compta/facture/card.php), title,
+				// subtotal and free text lines included, whose qty is their structure code: a down payment "on all
+				// lines" (valuedeposit) and, since Dolibarr 18, a standard invoice of a percentage of the origin
+				// (valuestandardinvoice, 1 to 99 %). The percentage is kept per invoice, null when not scaled.
+				$percent	= null;
+				if ($staticInvoice->type == Facture::TYPE_DEPOSIT && GETPOST('typedeposit', 'aZ09') == 'variablealllines') {
+					$percent	= (float) price2num(str_replace('%', '', GETPOST('valuedeposit', 'alpha')), 'MU');
+				} elseif ($staticInvoice->type == Facture::TYPE_STANDARD) {
+					$valuestandardinvoice	= (float) price2num(str_replace('%', '', GETPOST('valuestandardinvoice', 'alpha')), 'MU');
+					if ($valuestandardinvoice > 0 && $valuestandardinvoice < 100) {
+						$percent	= $valuestandardinvoice;
+					}
+				}
+				$TInvoices[$object->fk_facture]	= $percent > 0 ? $percent : null;
 			}
-			if ($TInvoices[$object->fk_facture]) {
-				if (!empty($object->origin) && !empty($object->origin_id) && $object->special_code == TInfrastructure::getModuleNumber()) {
-					$valuedeposit	= price2num(str_replace('%', '', GETPOST('valuedeposit', 'alpha')), 'MU');
-					$object->qty	= 100 * $object->qty / $valuedeposit;
+			if (!empty($object->origin) && !empty($object->origin_id) && $object->special_code == TInfrastructure::getModuleNumber()) {
+				// The qty of a structure line is its code (1 to 9 titles, 50 free text, 91 to 99 subtotals): take it back from the
+				// origin line, whether the core scaled it by the percentage (original Dolibarr) or not (Dolibarr LTS by InfraS, where
+				// product_type 9 lines are never scaled): dividing by the percentage would break intact codes (1 -> 2, 99 -> 165 at 60 %).
+				// Fallback when the origin line cannot be read: back-scale by the percentage, rounded (0.6 * 99 = 59.4 gives back 99)
+				$originQty	= $this->getOriginStructureQty($object->origin, (int) $object->origin_id);
+				if ($originQty !== null) {
+					$newQty	= $originQty;
+				} elseif ($TInvoices[$object->fk_facture] !== null) {
+					$newQty	= (int) round(100 * $object->qty / $TInvoices[$object->fk_facture]);
+				} else {
+					$newQty	= null;
+				}
+				if ($newQty !== null && abs((float) $newQty - (float) $object->qty) > 0.0001) {
+					$object->qty	= $newQty;
 					if ($object->update(null, 1) < 0) {
 						$object->errors[]	= $object->errors;
 					}
 				}
 			}
+		}
+
+		/**
+		* Structure code (qty) of the origin line of an invoice line, when it is an Infrastructure structure line
+		*
+		* @param	string		$origin		Origin element (propal, commande, facture, supplier_proposal, order_supplier, facture_fourn...)
+		* @param	int			$originId	Origin line id
+		* @return	int|null				Structure code (1 to 9, 50, 91 to 99), null when not found or not a structure code
+		*/
+		private function getOriginStructureQty($origin, $originId)
+		{
+			$tables	= ['propal' => 'propaldet', 'commande' => 'commandedet', 'order' => 'commandedet', 'facture' => 'facturedet', 'invoice' => 'facturedet',
+						'supplier_proposal' => 'supplier_proposaldet', 'order_supplier' => 'commande_fournisseurdet', 'supplier_order' => 'commande_fournisseurdet',
+						'facture_fourn' => 'facture_fourn_det', 'invoice_supplier' => 'facture_fourn_det'];
+			if (empty($tables[$origin]) || $originId <= 0) {
+				return null;
+			}
+			$sql	= 'SELECT qty FROM '.$this->db->prefix().$tables[$origin].' WHERE rowid = '.((int) $originId).' AND product_type = 9 AND special_code = '.((int) TInfrastructure::getModuleNumber());
+			$resql	= $this->db->query($sql);
+			if (!$resql) {
+				dol_syslog(__METHOD__.' '.$this->db->lasterror(), LOG_ERR);
+				return null;
+			}
+			$obj	= $this->db->fetch_object($resql);
+			$this->db->free($resql);
+			if (!$obj) {
+				return null;
+			}
+			$qty	= (int) round((float) $obj->qty);
+			if (abs((float) $obj->qty - $qty) > 0.0001 || !(($qty >= 1 && $qty <= 9) || $qty == 50 || ($qty >= 91 && $qty <= 99))) {
+				return null;
+			}
+			return $qty;
 		}
 
 		/**
