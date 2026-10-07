@@ -20,7 +20,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.8` (2026-09)
+- Dernière version locale : `21.8.9` (2026-10)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -108,7 +108,7 @@ Dans `core/modules/modInfrastructure.class.php` :
 	- `triggers` : 1 trigger (priorité 90)
 	- `tpl` : override `originproductline.tpl.php` + 6 templates dédiés (`infrastructureline_*.tpl.php`)
 	- `css` : `/infrastructure/css/infrastructure.css.php` (le CSS `summary-menu.css.php` est chargé à la volée par `actions_infrastructure`)
-	- `hooks` : 25 contextes (`invoicecard`, `invoicesuppliercard`, `propalcard`, `supplier_proposalcard`, `ordercard`, `ordersuppliercard`, `odtgeneration`, `orderstoinvoice`, `orderstoinvoicesupplier`, `admin`, `invoicereccard`, `consumptionthirdparty`, `ordershipmentcard`, `expeditioncard`, `deliverycard`, `paiementcard`, `referencelettersinstacecard`, `shippableorderlist`, `propallist`, `orderlist`, `invoicelist`, `supplierorderlist`, `supplierinvoicelist`, `cron`, `pdfgeneration`, `checkmarginlist`)
+	- `hooks` : 26 contextes (`invoicecard`, `invoicesuppliercard`, `propalcard`, `supplier_proposalcard`, `ordercard`, `ordersuppliercard`, `odtgeneration`, `orderstoinvoice`, `orderstoinvoicesupplier`, `admin`, `invoicereccard`, `consumptionthirdparty`, `ordershipmentcard`, `expeditioncard`, `deliverycard`, `paiementcard`, `referencelettersinstacecard`, `shippableorderlist`, `propallist`, `orderlist`, `invoicelist`, `supplierorderlist`, `supplierinvoicelist`, `cron`, `pdfgeneration`, `checkmarginlist`, `api` depuis 21.8.9). Les contextes sont lus par Dolibarr dans la constante `MAIN_MODULE_INFRASTRUCTURE_HOOKS` (posée à l'activation), pas dans le fichier : un contexte ajouté au descripteur n'agit sur une instance déjà active qu'après mise à jour de la constante ou réactivation du module
 - **Dépendances** : aucune
 - **Conflit** : `modMilestone` (iNodbox) — `conflictwith = array('modMilestone')`
 - **Dictionnaires** : 1 (`c_infrastructure_free_text` — colonnes `rowid`, `label`, `content`, `active`, `entity`)
@@ -292,7 +292,7 @@ La classe `ActionsInfrastructure` (`class/actions_infrastructure.class.php`) exp
 | `getlinetotalremise` | `pdfgeneration` | Remplacement du calcul de total de remise par ligne |
 | `afterCreationOfRecurringInvoice` | `invoicereccard` | Préserve les structures à la création depuis modèle récurrent |
 | `printCommonFooter` | tous contextes | Injection de scripts communs en pied de page |
-| `updateTotalPrice` | cartes de documents | Si `INFRASTRUCTURE_MANAGE_OL` et au moins une ligne OL (`special_code = 3`) : remplace `update_price()` pour exclure ces lignes des totaux du document |
+| `updateTotalPrice` | cartes de documents, `api` (21.8.9+) | Si `INFRASTRUCTURE_MANAGE_OL` et au moins une ligne OL (`special_code = 3`) : remplace `update_price()` pour exclure ces lignes des totaux du document. `update_price()` du cœur n'exclut que le type 9 : sans ce hook, les options sont comptées. `api/index.php` n'initialise que le contexte `api` : avant 21.8.9 toute ligne écrite par l'API REST recalculait le document options comprises (incident Kytom, devis à 57 228,33 HT au lieu de 52 573,33 ; reproduit sur fitantanana : 3 186,58 au lieu de 186,58). `HookManager` n'exécute pas deux fois un module déclaré sur plusieurs contextes ; sous `api`, seuls `updateTotalPrice`, `changeRoundingMode` (retourne 0) et `createFrom` (réservé à `ordersuppliercard`) sont appelés |
 | `displayMarginInfos` | cartes de documents | Si `INFRASTRUCTURE_MANAGE_OL` et au moins une ligne OL : recalcule `$parameters['marginInfo']` (passé par référence par `FormMargin::displayMarginInfos()`) via le calcul natif `getMarginInfosArray()` sur une copie du document privée des lignes OL, pour aligner le tableau des marges sur le Montant HT (21.8.2+) |
 
 ### Flux des hooks (Hook workflow)
@@ -636,6 +636,8 @@ GET /infrastructure/{elementtype}/{idline}
 ```
 
 Helpers internes (`_getTotal`, `_getFkFieldName`) pour abstraire le type de document. Authentification : token API standard Dolibarr (`DOLAPIKEY`).
+
+**Écritures de lignes par l'API REST du cœur** (`PUT /proposals/{id}/lines/{lineid}`, `POST`, `DELETE`, et de même pour les commandes et factures) : elles passent par `update_price()` du document, donc par le hook `updateTotalPrice`, qui n'est appelé que si le module déclare le contexte `api` (21.8.9+). Un correctif posé dans le descripteur n'agit qu'après mise à jour de `MAIN_MODULE_INFRASTRUCTURE_HOOKS` ou réactivation (voir « Module parts »). Un document dont le total a déjà été recalculé options comprises n'est pas réparé par le correctif : il faut ré-enregistrer une de ses lignes ou relancer `update_price(1)` depuis une fiche.
 
 ### Sommaire rapide flottant (Floating quick summary)
 
