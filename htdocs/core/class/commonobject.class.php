@@ -4366,11 +4366,16 @@ abstract class CommonObject
 			if (!$multicurrency && ($this->element == 'facture_fourn' || $this->element == 'invoice_supplier')) {
 				$fieldtva = 'tva';
 			}
+			// InfraS add : Optional lines (special_code = 3: native option of a proposal or order, "Opt" line of the Infrastructure module) are excluded
+			// from the document totals (update_price() of the cards through the updateTotalPrice hook): exclude them here too, otherwise
+			// HT, VAT and TTC derived from the lines include them (2026-10-07). Only on the line tables that carry a special_code column.
+			$sqlExcludeOptional = (in_array($this->element, array('propal', 'commande', 'facture', 'supplier_proposal', 'order_supplier', 'facture_fourn', 'invoice_supplier')) ? " AND special_code <> 3" : "");
 			if ($rule == 'roundoftotal') {
 				// Mode 2: VAT = sum, for each VAT rate, of the rounding of (sum of line HT for this rate x rate)
 				$sql = "SELECT tva_tx, SUM(".$this->db->sanitize($fieldht).") as sumht";
 				$sql .= " FROM ".$this->db->prefix().$this->table_element_line;
 				$sql .= " WHERE ".$this->db->sanitize($this->fk_element)." = ".((int) $this->id);
+				$sql .= $sqlExcludeOptional;	// InfraS add
 				$sql .= " GROUP BY tva_tx";
 				$resql = $this->db->query($sql);
 				if ($resql) {
@@ -4387,6 +4392,7 @@ abstract class CommonObject
 				$sql = "SELECT ".$this->db->sanitize($fieldht)." as ht, ".$this->db->sanitize($fieldtva)." as tva, total_localtax1, total_localtax2";
 				$sql .= " FROM ".$this->db->prefix().$this->table_element_line;
 				$sql .= " WHERE ".$this->db->sanitize($this->fk_element)." = ".((int) $this->id);
+				$sql .= $sqlExcludeOptional;	// InfraS add
 				$resql = $this->db->query($sql);
 				if ($resql) {
 					$ht = 0.0;
