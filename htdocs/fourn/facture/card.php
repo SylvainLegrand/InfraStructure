@@ -116,6 +116,9 @@ if ($id > 0 || !empty($ref)) {
 	if ($ret < 0) {
 		dol_print_error($db, $object->error);
 	}
+	if ($object->id > 0) {
+		$id = $object->id;	// The page may be called with the ref only: the security check must be done on the object found
+	}
 	$ret = $object->fetch_thirdparty();
 	if ($ret < 0) {
 		dol_print_error($db, $object->error);
@@ -1105,7 +1108,10 @@ if (empty($reshook)) {
 						$remain_to_pay = abs($facture_source->getRoundedTotalTTC(0) - $totalpaid - $totalcreditnotes - $totaldeposits);
 						// InfraS change end Arrondis
 						$desc = $langs->trans('invoiceAvoirLineWithPaymentRestAmount');
-						$retAddLine = $object->addline($desc, $remain_to_pay, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'TTC');
+
+						// Pass the amount already signed: addline() forces -abs() on credit notes with the default setup, so this
+						// changes nothing there, but it keeps the line negative when that forcing is relaxed (see addline()).
+						$retAddLine = $object->addline($desc, -$remain_to_pay, 0, 0, 0, 1, 0, 0, '', '', 0, '', 'TTC');
 
 						if ($retAddLine < 0) {
 							$error++;
@@ -4475,7 +4481,7 @@ if ($action == 'create') {
 						print '<a class="butAction'.($conf->use_javascript_ajax ? ' reposition' : '').'" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=paid&token='.newToken().'">'.$langs->trans('ClassifyPaidPartially').'</a>';
 					} else {
 						if (!getDolGlobalString('INVOICE_CAN_NEVER_BE_CANCELED')) {
-							print '<a class="butAction'.($conf->use_javascript_ajax ? ' reposition' : '').'" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=canceled">'.$langs->trans('ClassifyCanceled').'</a>';
+							print '<a class="butAction'.($conf->use_javascript_ajax ? ' reposition' : '').'" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&action=canceled&token='.newToken().'">'.$langs->trans('ClassifyCanceled').'</a>';
 						}
 					}
 				}
