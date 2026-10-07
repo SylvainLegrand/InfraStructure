@@ -600,6 +600,9 @@
 	<Version Number="21.8.10" MonthVersion="2026-10">
 		<change type='fix'>Facture standard créée pour un pourcentage du devis ou de la commande (champ « valuestandardinvoice » de la création de facture, de 1 à 99 %) : le cœur multiplie la quantité de toutes les lignes d'origine par ce pourcentage, lignes de titre, de sous-total et de texte libre comprises, dont la quantité est le code de structure. Les titres arrivaient en niveau 0,6, les sous-totaux en 59,4 : rendu des documents et modèles PDF faussés (deux factures chez un client). Le trigger rétablissait déjà ces lignes pour un acompte « sur toutes les lignes » (issue #379) ; même traitement pour la facture standard, code arrondi à l'entier. Signalé et corrigé par Kytom.</change>
 	</Version>
+	<Version Number="21.8.11" MonthVersion="2026-10">
+		<change type='fix'>Somme des arrondis (MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND à 0) : update_price() du cœur garde la somme exacte des lignes (bloc « Arrondis »), que la fiche et les listes affichent, alors que les documents, la facture électronique et le reste à payer donnent la somme des arrondis (getRoundedTotals). Écart constaté de 1 à 6 centimes (devis de 1 042 372,17 HT à la fiche, 1 042 372,19 au PDF). Le hook updateTotalPrice stocke désormais, dans ce mode, la somme des montants de ligne arrondis au centime (arrondi en DECIMAL, comme price2num), options exclues si INFRASTRUCTURE_MANAGE_OL, hors situations n° 2 et suivantes. Erreurs SQL du hook remontées (retour -1) au lieu d'un repli silencieux. Signatures des hooks PDF sans paramètre optionnel avant un paramètre obligatoire (dépréciation PHP 8). Signalé et corrigé par Kytom.</change>
+	</Version>
 	<InfraS Downloaded="20261007"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
