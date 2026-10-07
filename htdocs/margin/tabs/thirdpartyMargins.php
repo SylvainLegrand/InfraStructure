@@ -238,8 +238,11 @@ if ($socid > 0) {
 	$sql .= " f.rowid as facid, f.ref, f.total_ht,";
 	$sql .= " f.datef, f.paye, f.fk_statut as statut, f.type,";
 	$sql .= " sum(d.total_ht) as selling_price,"; // may be negative or positive
-	$sql .= " sum(d.qty * d.buy_price_ht * (d.situation_percent / 100)) as buying_price,"; // always positive
-	$sql .= " sum(abs(d.total_ht) - (d.buy_price_ht * d.qty * (d.situation_percent / 100))) as marge"; // always positive
+	// InfraS change begin
+	// Same signed expressions per line as the margin reports: the sign of the cost price is given by the total of the line (credit note, deduction), qty may be negative
+	$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * abs(d.qty) * d.buy_price_ht * (d.situation_percent / 100)', 'abs(d.qty) * d.buy_price_ht * (d.situation_percent / 100)').") as buying_price,";
+	$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * (abs(d.total_ht) - (d.buy_price_ht * abs(d.qty) * (d.situation_percent / 100)))', 'd.total_ht - (d.buy_price_ht * abs(d.qty) * (d.situation_percent / 100))').") as marge";
+	// InfraS change end
 	$sql .= " FROM ".MAIN_DB_PREFIX."societe as s";
 	$sql .= ", ".MAIN_DB_PREFIX."facture as f";
 	$sql .= ", ".MAIN_DB_PREFIX."facturedet as d";
@@ -405,11 +408,13 @@ if ($socid > 0) {
 				$marginRate = ($objp->buying_price != 0) ? (100 * $objp->marge / $objp->buying_price) : '';
 				$markRate = ($objp->selling_price != 0) ? (100 * $objp->marge / $objp->selling_price) : '';
 
-				$sign = '';
-				if ($objp->type == Facture::TYPE_CREDIT_NOTE) {
-					$sign = '-';
-				}
-
+				// The sign of credit notes is already given by the SQL expressions, no re-signing at display // InfraS change
+				// InfraS change begin
+				//$sign = '';
+				//if ($objp->type == Facture::TYPE_CREDIT_NOTE) {
+				//	$sign = '-';
+				//}
+				// InfraS change end
 				print '<tr class="oddeven">';
 				// Action column
 				if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
@@ -425,10 +430,10 @@ if ($socid > 0) {
 				print "<td class=\"center\">";
 				print dol_print_date($db->jdate($objp->datef), 'day')."</td>";
 				print "<td class=\"right amount\">".price(price2num($objp->selling_price, 'MT'))."</td>\n";
-				print "<td class=\"right amount\">".price(price2num(($objp->type == 2 ? -1 : 1) * $objp->buying_price, 'MT'))."</td>\n";
-				print "<td class=\"right amount\">".$sign.price(price2num($objp->marge, 'MT'))."</td>\n";
+				print "<td class=\"right amount\">".price(price2num($objp->buying_price, 'MT'))."</td>\n"; // InfraS change
+				print "<td class=\"right amount\">".price(price2num($objp->marge, 'MT'))."</td>\n"; // InfraS change
 				if (getDolGlobalString('DISPLAY_MARGIN_RATES')) {
-					print "<td class=\"right\">".(($marginRate === '') ? 'n/a' : $sign.price(price2num($marginRate, 'MT'))."%")."</td>\n";
+					print "<td class=\"right\">".(($marginRate === '') ? 'n/a' : price(price2num($marginRate, 'MT'))."%")."</td>\n"; // InfraS change
 				}
 				if (getDolGlobalString('DISPLAY_MARK_RATES')) {
 					print "<td class=\"right\">".(($markRate === '') ? 'n/a' : price(price2num($markRate, 'MT'))."%")."</td>\n";
@@ -443,7 +448,7 @@ if ($socid > 0) {
 				print "</tr>\n";
 				$i++;
 				$cumul_vente += $objp->selling_price;
-				$cumul_achat += ($objp->type == 2 ? -1 : 1) * $objp->buying_price;
+				$cumul_achat += $objp->buying_price; // InfraS change
 			}
 		}
 

@@ -229,10 +229,10 @@ if ($client) {
 	$sql .= " f.rowid as facid, f.ref, f.total_ht, f.datef, f.paye, f.type, f.fk_statut as statut,";
 }
 $sql .= " sum(d.total_ht) as selling_price,";
-// Note: qty and buy_price_ht is always positive (if not, your database may be corrupted, you can update this)
+// Note: buy_price_ht is always positive. qty may be negative (deduction, return): the sign of the cost price is given by the total (ifsql below), so abs(qty) must be used, otherwise the sign is inverted twice // InfraS change
 
-$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * d.qty * d.buy_price_ht * (d.situation_percent / 100)', 'd.qty * d.buy_price_ht * (d.situation_percent / 100)').") as buying_price,";
-$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * (abs(d.total_ht) - (d.buy_price_ht * d.qty * (d.situation_percent / 100)))', 'd.total_ht - (d.buy_price_ht * d.qty * (d.situation_percent / 100))').") as marge";
+$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * abs(d.qty) * d.buy_price_ht * (d.situation_percent / 100)', 'abs(d.qty) * d.buy_price_ht * (d.situation_percent / 100)').") as buying_price,"; // InfraS change
+$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * (abs(d.total_ht) - (d.buy_price_ht * abs(d.qty) * (d.situation_percent / 100)))', 'd.total_ht - (d.buy_price_ht * abs(d.qty) * (d.situation_percent / 100))').") as marge"; // InfraS change
 
 $sql .= " FROM ".MAIN_DB_PREFIX."societe as s";
 $sql .= ", ".MAIN_DB_PREFIX."facture as f";

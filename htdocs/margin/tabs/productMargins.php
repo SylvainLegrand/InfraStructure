@@ -215,8 +215,11 @@ if ($id > 0 || !empty($ref)) {
 			}
 			$sql .= " sum(d.total_ht) as selling_price,"; // may be negative or positive
 			$sql .= " ".$db->ifsql('f.type = 2', '-1', '1')." * sum(d.qty) as qty,"; // not always positive in case of Credit note
-			$sql .= " ".$db->ifsql('f.type = 2', '-1', '1')." * sum(d.qty * d.buy_price_ht * (d.situation_percent / 100)) as buying_price,"; // not always positive in case of Credit note
-			$sql .= " ".$db->ifsql('f.type = 2', '-1', '1')." * sum(abs(d.total_ht) - (d.buy_price_ht * d.qty * (d.situation_percent / 100))) as marge"; // not always positive in case of Credit note
+			// InfraS change begin
+			// Same signed expressions per line as the margin reports: the sign of the cost price is given by the total of the line (credit note, deduction), qty may be negative
+			$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * abs(d.qty) * d.buy_price_ht * (d.situation_percent / 100)', 'abs(d.qty) * d.buy_price_ht * (d.situation_percent / 100)').") as buying_price,";
+			$sql .= " sum(".$db->ifsql('(d.total_ht < 0 OR (d.total_ht = 0 AND f.type = 2))', '-1 * (abs(d.total_ht) - (d.buy_price_ht * abs(d.qty) * (d.situation_percent / 100)))', 'd.total_ht - (d.buy_price_ht * abs(d.qty) * (d.situation_percent / 100))').") as marge";
+			// InfraS change end
 			$sql .= " FROM ".MAIN_DB_PREFIX."societe as s";
 			$sql .= ", ".MAIN_DB_PREFIX."facture as f";
 			$sql .= ", ".MAIN_DB_PREFIX."facturedet as d";

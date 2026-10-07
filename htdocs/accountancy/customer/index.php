@@ -663,16 +663,16 @@ if (getDolGlobalString('SHOW_TOTAL_OF_PREVIOUS_LISTS_IN_LIN_PAGE')) { // This pa
 					"MONTH(f.datef) = ".((int) $j),
 					" (".$db->ifsql(
 						"fd.total_ht < 0",
-						" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * fd.qty * (fd.situation_percent / 100))))",	// TODO This is bugged, we must use the percent for the invoice and fd.situation_percent is cumulated percent !
-						"  (fd.total_ht - (fd.buy_price_ht * fd.qty * (fd.situation_percent / 100)))"
+						" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * abs(fd.qty) * (fd.situation_percent / 100))))",	// TODO This is bugged, we must use the percent for the invoice and fd.situation_percent is cumulated percent ! // InfraS change
+						"  (fd.total_ht - (fd.buy_price_ht * abs(fd.qty) * (fd.situation_percent / 100)))" // InfraS change
 					).")",
 					'0'
 				).") AS month".str_pad((string) $j, 2, '0', STR_PAD_LEFT).",";
 			}
 			$sql .= "  SUM(".$db->ifsql(
 				"fd.total_ht < 0",
-				" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * fd.qty * (fd.situation_percent / 100))))",	// TODO This is bugged, we must use the percent for the invoice and fd.situation_percent is cumulated percent !
-				"  (fd.total_ht - (fd.buy_price_ht * fd.qty * (fd.situation_percent / 100)))"
+				" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * abs(fd.qty) * (fd.situation_percent / 100))))",	// TODO This is bugged, we must use the percent for the invoice and fd.situation_percent is cumulated percent ! // InfraS change
+				"  (fd.total_ht - (fd.buy_price_ht * abs(fd.qty) * (fd.situation_percent / 100)))" // InfraS change
 			).") as total";
 		} else {
 			$sql = "SELECT '".$db->escape($langs->trans("Vide"))."' AS marge,";
@@ -685,16 +685,16 @@ if (getDolGlobalString('SHOW_TOTAL_OF_PREVIOUS_LISTS_IN_LIN_PAGE')) { // This pa
 					"MONTH(f.datef) = ".((int) $j),
 					" (".$db->ifsql(
 						"fd.total_ht < 0",
-						" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * fd.qty)))",
-						"  (fd.total_ht - (fd.buy_price_ht * fd.qty))"
+						" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * abs(fd.qty))))", // InfraS change
+						"  (fd.total_ht - (fd.buy_price_ht * abs(fd.qty)))" // InfraS change
 					).")",
 					'0'
 				).") AS month".str_pad((string) $j, 2, '0', STR_PAD_LEFT).",";
 			}
 			$sql .= "  SUM(".$db->ifsql(
 				"fd.total_ht < 0",
-				" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * fd.qty)))",
-				"  (fd.total_ht - (fd.buy_price_ht * fd.qty))"
+				" (-1 * (abs(fd.total_ht) - (fd.buy_price_ht * abs(fd.qty))))", // InfraS change
+				"  (fd.total_ht - (fd.buy_price_ht * abs(fd.qty)))" // InfraS change
 			).") as total";
 		}
 		$sql .= " FROM ".MAIN_DB_PREFIX."facturedet as fd";

@@ -816,7 +816,7 @@ class tcpdi_parser {
                 break;
             }
             default: {
-				$frag = $data[$offset] . @$data[$offset+1] . @$data[$offset+2] . @$data[$offset+3];
+				$frag = (string) substr($data, $offset, 4); // InfraS change
                 switch ($frag) {
                     case 'endo':
                         // indirect object

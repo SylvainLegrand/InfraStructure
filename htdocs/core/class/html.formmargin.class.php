@@ -102,6 +102,7 @@ class FormMargin
 			$pv = (float) $line->total_ht;
 
 			// $line->pa_ht is always positive in database, so we guess the correct sign
+			// qty may be negative (deduction, return): the sign of the cost price is given by $pa_ht, so abs(qty) is used below, otherwise the sign is inverted twice // InfraS add
 
 			'@phan-var-force Facture|FactureFournisseur $object';
 			$pa_ht = (($pv < 0 || ($pv == 0 && in_array($object->element, array('facture', 'facture_fourn')) && $object->type == $object::TYPE_CREDIT_NOTE)) ? -$line->pa_ht : $line->pa_ht);
@@ -113,12 +114,12 @@ class FormMargin
 				if (($object->element == 'facture' && $object->type == $object::TYPE_SITUATION)
 					|| ($object->element == 'facture' && $object->type == $object::TYPE_CREDIT_NOTE && getDolGlobalInt('INVOICE_USE_SITUATION_CREDIT_NOTE') && $object->situation_counter > 0)) {
 					// We need a compensation relative to $line->situation_percent
-					$pa = $line->qty * $pa_ht * ($line->situation_percent / 100);
+					$pa = abs($line->qty) * $pa_ht * ($line->situation_percent / 100);	// InfraS change
 				} else {
-					$pa = $line->qty * $pa_ht;
+					$pa = abs($line->qty) * $pa_ht;	// InfraS change
 				}
 			} else {
-				$pa = $line->qty * $pa_ht;
+				$pa = abs($line->qty) * $pa_ht;	// InfraS change
 			}
 
 			// calcul des marges
