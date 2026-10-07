@@ -1722,7 +1722,7 @@
 		if (!empty($resql)) {
 			$nblines = $db->num_rows($resql);
 			for ($i = 0; $i < $nblines; $i++) {
-				$objp	= $db->fetch_object($resql);
+				$objp				= $db->fetch_object($resql);
 				$objp->special_code	= 0;
 				// Multilangs
 				if (getDolGlobalString('MAIN_MULTILANGS', '')) { // si l'option est active

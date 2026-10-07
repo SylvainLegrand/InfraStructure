@@ -607,7 +607,7 @@
 					$tab_top				= $hauteurhead + 5 > $this->height_header_sep ? $hauteurhead + 5 : $this->height_header_sep;
 					$tab_top_newpage		= (empty($this->small_head2) ? $hauteurhead - $hauteurcadre : 17);
 					$this->ht_top_table		= ($this->Rounded_rect * 2 > $this->height_top_table ? $this->Rounded_rect * 2 : $this->height_top_table) + $this->tab_hl * 0.5;
-					$heightforheader	= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
+					$heightforheader		= $tab_top_newpage + ($this->hide_top_table ? $this->decal_round : $this->ht_top_table + $this->decal_round);
 					$ht_colinfo				= $this->_tableau_info($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					$ht_coltotal			= $this->_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					$ht2_coltotal			= empty($this->free_text_end) ? pdf_InfraSPlus_free_text($pdf, $object, $this->formatpage, $this->posxtabtotal, $this->marge_haute, $outputlangs, $this->emetteur, $this->listfreet, 1, 1, $this->horLineStyle) : 0;
@@ -762,7 +762,7 @@
 						$larg_ref						= isset($this->tableau['ref']['larg']) ? $this->tableau['ref']['larg'] : 0;
 						$colPicture						= $larg_ref > 0 && $this->picture_in_ref ? 'ref' : 'desc';
 						$imglinesize					= !empty($this->with_picture) && !empty($realpatharray[$i]) ? pdf_InfraSPlus_getlineimgsize($this->tableau[$colPicture]['larg'], $realpatharray[$i]) : [];	// Define size of image if we need it
-						$ht_url						= 0;
+						$ht_url							= 0;
 						if (!empty($imglinesize['width']) && !empty($imglinesize['height']) && $this->linkpictureurl) {
 							$txturl						= pdf_InfraSPlus_formatNotes($object, $outputlangs, $this->linkpictureurl);
 							$ht_url						= $pdf->getStringHeight($this->tableau[$colPicture]['larg'], $txturl);

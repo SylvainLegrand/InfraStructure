@@ -497,7 +497,7 @@
 						// Description
 						$pdf->SetFont('', '', $default_font_size - 1);
 						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
-						$hasimg	= 0;
+						$hasimg			= 0;
 						if (!empty($hasimg2)) {
 							if ($realpath) {
 								$imglinesize	= pdf_InfraSPlus_getSizeForImage($realpath, $this->larg_util_txt / 3, $this->page_hauteur / 6, 1);
