@@ -459,6 +459,72 @@
 		}
 
 		/**
+		* ECM "object directories" (ecm/index_auto.php) : one automatic directory per object of the registry, named 'infrasfiles-<dirout>'.
+		* The core calls this hook with different parameters depending on what it needs :
+		*  - none : the directories to add to the tree (module, label, desc, test, position) ;
+		*  - 'modulepart' : the list of our module names (the right panel checks it), and, for one of ours, the directory to list
+		*    and the class to instantiate to show the link of the object (FormFile::list_of_autoecmfiles()) ;
+		*  - 'modulepart' + 'fileinfo' : the ref of the object owning the file, first segment of its path ('<REF>/<file>.pdf').
+		* Download links use modulepart 'infrasfiles-<dirout>' : dol_check_secure_access_document() splits it into 'infrasfiles' +
+		* '<dirout>/…', which lands on checkSecureAccess() below (native permission of the object).
+		* Context 'ecmautocard' only : the right panel (core/ajax/ajaxdirpreview.php) is included by ecm/index_auto.php in the same
+		* request (mode 'noajax') ; called standalone, that page refuses any modulepart other than ecm / medias / website anyway.
+		*
+		* @param	array()			$parameters		Hook metadatas (modulepart, fileinfo)
+		* @param	CommonObject	&$object		Not used
+		* @param	string			&$action		Not used
+		* @param	HookManager		$hookmanager	Hook manager
+		* @return	int								0 = nothing for the core, 1 = $this->results filled
+		**/
+		public function addSectionECMAuto($parameters, &$object, &$action, $hookmanager)
+		{
+			global $langs;
+			$langs->load('infrasfiles@infrasfiles');
+			$registry	= infrasfiles_get_registry();
+			$modules	= array();	// our ECM module names, indexed by registry element
+			foreach ($registry as $element => $definition) {
+				if (empty($definition['dirout']) || !infrasfiles_is_enabled($element)) {
+					continue;
+				}
+				$modules[$element]	= 'infrasfiles-'.trim($definition['dirout'], '/');
+			}
+			if (empty($modules)) {
+				return 0;
+			}
+			// Tree of the ECM page : the directories to add
+			if (!isset($parameters['modulepart'])) {
+				$this->results	= array();
+				$position		= 300;
+				foreach ($modules as $element => $module) {
+					$label				= $langs->trans($registry[$element]['label']);
+					$this->results[]	= array('position'	=> $position,
+												'level'		=> 1,
+												'module'	=> $module,
+												'test'		=> infrasfiles_user_can($element, 'read') ? 1 : 0,
+												'label'		=> $label,
+												'desc'		=> $langs->trans('ECMDocsBy', $langs->transnoentitiesnoconv($registry[$element]['label'])));
+					$position			+= 10;
+				}
+				return 1;
+			}
+			// Right panel and file list : our module names, plus the directory and the class when the module asked is one of ours
+			$this->results	= array('module' => array_values($modules));
+			$element		= array_search($parameters['modulepart'], $modules, true);
+			if ($element === false) {
+				return 1;
+			}
+			$this->results['directory']	= infrasfiles_get_output_dir($element, null);
+			$this->results['classpath']	= $registry[$element]['classpath'];	// the child class file requires the native parent class itself
+			$this->results['classname']	= $registry[$element]['class'];
+			if (!empty($parameters['fileinfo']) && is_array($parameters['fileinfo'])) {
+				$relative	= isset($parameters['fileinfo']['relativename']) ? (string) $parameters['fileinfo']['relativename'] : '';
+				if (strpos($relative, '/') !== false) {
+					$this->results['ref']	= substr($relative, 0, strpos($relative, '/'));	// '<REF>/<file>.pdf' ; a file at the root (SPECIMEN.pdf) has no ref and is skipped by the core
+				}
+			}
+			return 1;
+		}
+		/**
 		* Access control of the files served with modulepart = infrasfiles : a file of an object is granted on the NATIVE permission
 		* of that object (read or write, for the user given by the core). The core only honours a positive answer of this hook
 		* (dol_check_secure_access_document() : "if (!empty($resArray['accessallowed']))") : when the native permission is missing, the

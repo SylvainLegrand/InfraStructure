@@ -62,7 +62,7 @@
 			$this->const_name		= 'MAIN_MODULE_'.strtoupper($this->name);												// llx_const table to save module status enabled/disabled
 			$this->special			= 0;																					// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
 			$this->picto			= $this->name.'@'.$this->name;															// Name of image file used for this module. If in theme => 'pictovalue' ; if in module => 'pictovalue@module' under name object_pictovalue.png
-			$this->module_parts		= array('hooks'		=> array('login', 'document', 'formmail', 'emailtemplates', 'directdebitprevcard', 'inventorycard'),	// Hook contexts : login (version check), document (file access control), formmail (recipients), emailtemplates (template types), cards of supported objects
+			$this->module_parts		= array('hooks'		=> array('login', 'document', 'formmail', 'emailtemplates', 'directdebitprevcard', 'inventorycard', 'ecmautocard'),	// Hook contexts : login (version check), document (file access control), formmail (recipients), emailtemplates (template types), cards of supported objects, ecmautocard (ECM "object directories" : tree and right panel, both rendered by ecm/index_auto.php)
 											'models'	=> 1,																// The module provides document models (core/modules/<element>/doc/)
 											'css'		=> array('css' => '/'.$this->name.'/css/'.$this->name.'.css.php')
 											);

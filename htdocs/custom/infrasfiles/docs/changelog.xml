@@ -47,7 +47,10 @@
 		<change type='chg'>Le bouton « Envoyer par email » ouvre désormais le formulaire sur la fiche native elle-même, sous les boutons d'action et à la place de la section « Fichiers joints » le temps de la saisie, comme sur une facture (hooks printCommonFooter et doActions) ; il ne renvoie plus vers l'onglet « Fichiers joints », qui garde son propre écran d'envoi. Sur les fiches natives qui ont déjà leur propre formulaire d'envoi (inventaires, clé de registre nativemailtype), le module n'ajoute plus de second bouton ni de second formulaire : il joint ses PDF au formulaire natif.</change>
 		<change type='add'>Bons de prélèvement / virement : envoi d'un email par tiers. L'écran d'envoi conserve le formulaire natif (expéditeur, modèle de mail, sujet, message, copies) et remplace les destinataires et les pièces jointes par un tableau des tiers : case à cocher, destinataires proposés (email du tiers, sinon ses contacts), email libre, PDF du tiers. Un email est envoyé par tiers coché avec uniquement ses PDF, les variables __THIRDPARTY_*__ du modèle de mail sont remplacées pour chaque tiers, et un événement agenda est créé par tiers (déclencheur WIDTHDRAW_SENTBYMAIL). Les fichiers non rattachés à un tiers sont signalés et ne sont pas envoyés.</change>
 	</Version>
-	<InfraS Downloaded="20261006"/>
+	<Version Number="18.3.0" MonthVersion="2026-10">
+		<change type='add'>GED, onglet « Répertoires d'objets » : un répertoire automatique par document du registre (« Bons de prélèvement et de virement », « Inventaires »), avec la liste des PDF, le lien vers l'objet, l'aperçu et le téléchargement sous le droit natif de l'objet (hook addSectionECMAuto ; contexte ecmautocard ajouté au descripteur — désactiver / réactiver le module sur les instances déjà équipées). Les bons de prélèvement et de virement partagent un même répertoire, le core n'offrant pas de filtre par type.</change>
+	</Version>
+	<InfraS Downloaded="20261007"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
