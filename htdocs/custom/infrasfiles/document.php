@@ -86,8 +86,10 @@
 	$moreparam	= '&element='.urlencode($element);	// appended by document_actions_post_headers.tpl.php to the upload / link form action
 	$backtopage	= $_SERVER['PHP_SELF'].'?element='.urlencode($element).'&id='.((int) $id);	// redirection of actions_linkedfiles.inc.php after confirm_deletefile
 	include DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
-	// Send by e-mail : native mechanism (attachments, templates, substitutions, agenda event through the trigger <OBJECT>_SENTBYMAIL)
+	// Send by e-mail : native mechanism (attachments, templates, substitutions, agenda event through the trigger <OBJECT>_SENTBYMAIL),
+	// or one e-mail per third party (module form and send loop) for the objects whose registry entry has 'mailbythirdparty'
 	$emailenabled		= infrasfiles_is_enabled($element, 'EMAIL') && $permissiontoadd;
+	$bythirdparty		= $emailenabled && !empty($definition['mailbythirdparty']) && method_exists($object, 'infrasfilesGetMailBatches');
 	$modelmail			= $definition['mailtype'];
 	$defaulttopic		= $definition['mailtopic'];
 	$defaulttopiclang	= 'infrasfiles@infrasfiles';
@@ -97,7 +99,27 @@
 	$actiontypecode		= 'AC_OTH_AUTO';
 	$autocopy			= 'MAIN_MAIL_AUTOCOPY_INFRASFILES_TO';
 	$paramname			= 'element='.urlencode($element).'&id';	// used by the native redirection : PHP_SELF?<paramname>=<id>
-	if ($emailenabled) {
+	if (GETPOST('modelselected', 'alpha')) {
+		$action	= 'presend';	// "Apply" button of the e-mail template : show the form again with the chosen template (same as the native cards)
+	}
+	if (GETPOST('cancel', 'alpha')) {
+		$action	= '';
+	}
+	$batchdata	= array();
+	if ($bythirdparty) {
+		dol_include_once('/infrasfiles/core/lib/infrasfilesmail.lib.php');
+		if (in_array($action, array('presend', 'infrasfiles_sendbythirdparty'))) {
+			$batchdata	= $object->infrasfilesGetMailBatches();
+		}
+		if ($action == 'infrasfiles_sendbythirdparty') {
+			$result	= infrasfiles_send_by_thirdparty($object, $definition, $batchdata);
+			if ($result['sent'] > 0 || empty($result['errors'])) {
+				header('Location: '.$backtopage);	// messages are in session ; a page reload must never send again
+				exit;
+			}
+			$action	= 'presend';	// nothing sent : show the form again with the posted values
+		}
+	} elseif ($emailenabled) {
 		include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
 	}
 
@@ -143,12 +165,17 @@
 			$langs->loadLangs((array) $definition['langs']);
 		}
 		$arrayoffamiliestoexclude	= null;
+		if ($bythirdparty) {
+			$presendreturnurl	= $backtopage;	// this page with its 'element' parameter
+			include dol_buildpath('/infrasfiles/core/tpl/infrasfiles_presend.tpl.php', 0);
+		} else {
 		// The native template builds the form action and return URL as PHP_SELF?id=<id> (without our 'element' parameter) : rewrite them on the output
 		$selfurl	= dol_escape_htmltag($_SERVER['PHP_SELF']);
 		ob_start();
 		include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 		$presend	= ob_get_clean();
 		print str_replace($selfurl.'?id='.$object->id, $selfurl.'?element='.urlencode($element).'&id='.$object->id, $presend);
+		}
 	}
 
 	// Attached files and links (native template)
@@ -156,6 +183,8 @@
 	$relativepathwithnofile	= infrasfiles_get_subdir($element, $object).'/';
 	$param					= '&element='.urlencode($element).'&id='.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_post_headers.tpl.php';
+	// "Third party" column of the file list (objects whose files are addressed to third parties)
+	print infrasfiles_get_thirdparty_column_script('#tablelines', infrasfiles_get_file_thirdparty_links($object, $filearray));
 
 	llxFooter();
 	$db->close();

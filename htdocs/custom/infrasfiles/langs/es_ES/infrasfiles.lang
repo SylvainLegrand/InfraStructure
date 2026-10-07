@@ -78,16 +78,26 @@ InfraSFilesPdfCountedBy       = Contado por
 InfraSFilesPdfRejected        = de las cuales %s línea(s) rechazada(s): %s
 
 ### Mail layer ###
-InfraSFilesMailTopicWidthdraw      = Orden de domiciliación / transferencia __REF__
-InfraSFilesMailTopicInventory      = Hoja de recuento de inventario __REF__
-InfraSFilesMailTplWidthdrawLabel   = Envío de una orden de domiciliación / transferencia
-InfraSFilesMailTplWidthdrawTopic   = Orden de domiciliación / transferencia __REF__
-InfraSFilesMailTplWidthdrawContent = Buenos días,<br><br>Adjunto encontrará la orden de domiciliación / transferencia __REF__.<br><br>Atentamente,<br>__MYCOMPANY_NAME__
-InfraSFilesMailTplInventoryLabel   = Envío de una hoja de recuento de inventario
-InfraSFilesMailTplInventoryTopic   = Hoja de recuento de inventario __REF__
-InfraSFilesMailTplInventoryContent = Buenos días,<br><br>Adjunto encontrará la hoja de recuento del inventario __REF__.<br><br>Atentamente,<br>__MYCOMPANY_NAME__
-Notify_WIDTHDRAW_SENTBYMAIL        = Orden de domiciliación / transferencia enviada por correo electrónico
-Notify_INVENTORY_SENTBYMAIL        = Inventario enviado por correo electrónico
+InfraSFilesMailTopicWidthdraw       = Orden de domiciliación / transferencia __REF__
+InfraSFilesMailTopicInventory       = Hoja de recuento de inventario __REF__
+InfraSFilesMailTplWidthdrawLabel    = Envío de una orden de domiciliación / transferencia
+InfraSFilesMailTplWidthdrawTopic    = Orden de domiciliación / transferencia __REF__
+InfraSFilesMailTplWidthdrawContent  = Buenos días,<br><br>Adjunto encontrará la orden de domiciliación / transferencia __REF__.<br><br>Atentamente,<br>__MYCOMPANY_NAME__
+InfraSFilesMailTplInventoryLabel    = Envío de una hoja de recuento de inventario
+InfraSFilesMailTplInventoryTopic    = Hoja de recuento de inventario __REF__
+InfraSFilesMailTplInventoryContent  = Buenos días,<br><br>Adjunto encontrará la hoja de recuento del inventario __REF__.<br><br>Atentamente,<br>__MYCOMPANY_NAME__
+Notify_WIDTHDRAW_SENTBYMAIL         = Orden de domiciliación / transferencia enviada por correo electrónico
+Notify_INVENTORY_SENTBYMAIL         = Inventario enviado por correo electrónico
+InfraSFilesMailByThirdparty         = Destinatarios por tercero
+InfraSFilesMailByThirdpartyHelp     = Se envía un correo electrónico a cada tercero marcado, con solo sus PDF adjuntos. El asunto y el mensaje son comunes: las variables __THIRDPARTY_NAME__, __THIRDPARTY_EMAIL__... se sustituyen para cada tercero.
+InfraSFilesMailNoRecipient          = Ningún correo electrónico conocido para este tercero: introduzca uno, de lo contrario no se enviará
+InfraSFilesMailNoFile               = No se ha generado ningún PDF para este documento: genérelos antes del envío
+InfraSFilesMailOrphanFiles          = Archivos no asociados a ningún tercero, no enviados: %s
+InfraSFilesMailNoThirdpartySelected = Ningún tercero seleccionado
+InfraSFilesMailSentSummary          = %s correo(s) enviado(s) de %s tercero(s) seleccionado(s)
+InfraSFilesMailErrorFor             = %s: %s
+InfraSFilesMailErrorNoRecipient     = ningún destinatario
+InfraSFilesMailErrorSend            = error de envío
 
 ### About page ###
 

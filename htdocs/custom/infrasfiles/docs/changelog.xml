@@ -41,7 +41,13 @@
 	<Version Number="18.1.3" MonthVersion="2026-10">
 		<change type='fix'>Accès simultanés : infrasfiles_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente.</change>
 	</Version>
-	<InfraS Downloaded="20261005"/>
+	<Version Number="18.2.0" MonthVersion="2026-10">
+		<change type='fix'>Écran d'envoi par email : le bouton « Appliquer » (changement de modèle de mail) renvoyait sur la page sans réafficher le formulaire ; il le réaffiche désormais avec le modèle choisi, comme sur les fiches natives.</change>
+		<change type='add'><![CDATA[Colonne « Tiers » dans la section « Fichiers joints » de la fiche et dans l'onglet « Fichiers joints » : chaque PDF affiche le tiers (ou la maison mère) à qui il est adressé, avec un lien vers sa fiche. Le rapprochement se fait sur le nom du fichier (<REF>-<code du tiers>, préfixe et suffixe InfraSPackPlus tolérés), quel que soit le mode de découpage en vigueur lors de la génération.]]></change>
+		<change type='chg'>Le bouton « Envoyer par email » ouvre désormais le formulaire sur la fiche native elle-même, sous les boutons d'action et à la place de la section « Fichiers joints » le temps de la saisie, comme sur une facture (hooks printCommonFooter et doActions) ; il ne renvoie plus vers l'onglet « Fichiers joints », qui garde son propre écran d'envoi. Sur les fiches natives qui ont déjà leur propre formulaire d'envoi (inventaires, clé de registre nativemailtype), le module n'ajoute plus de second bouton ni de second formulaire : il joint ses PDF au formulaire natif.</change>
+		<change type='add'>Bons de prélèvement / virement : envoi d'un email par tiers. L'écran d'envoi conserve le formulaire natif (expéditeur, modèle de mail, sujet, message, copies) et remplace les destinataires et les pièces jointes par un tableau des tiers : case à cocher, destinataires proposés (email du tiers, sinon ses contacts), email libre, PDF du tiers. Un email est envoyé par tiers coché avec uniquement ses PDF, les variables __THIRDPARTY_*__ du modèle de mail sont remplacées pour chaque tiers, et un événement agenda est créé par tiers (déclencheur WIDTHDRAW_SENTBYMAIL). Les fichiers non rattachés à un tiers sont signalés et ne sont pas envoyés.</change>
+	</Version>
+	<InfraS Downloaded="20261006"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -59,7 +59,7 @@
 		}
 
 		/**
-		*	Recipients proposed in the list of the send by e-mail form : the contacts (with an e-mail) of the third parties of the lines,
+		*	Recipients proposed in the list of the native send by e-mail form : the contacts (with an e-mail) of the third parties of the lines,
 		*	in one query. Nothing is prefilled in the free field : the user chooses.
 		*
 		*	@return		array		array(contact id => 'Name (Third party) <email>')
@@ -76,20 +76,115 @@
 					$names[(int) $line['fk_soc']]	= $line['name'];
 				}
 			}
-			if (empty($names)) {
+			foreach ($this->infrasfilesFetchContacts(array_keys($names)) as $socid => $contacts) {
+				foreach ($contacts as $contactid => $contact) {
+					$recipients[$contactid]	= $contact['name'].' ('.dol_string_nospecial($names[$socid], ' ', array(',')).') <'.$contact['email'].'>';
+				}
+			}
 				return $recipients;
+		}
+		/**
+		*	Active contacts having an e-mail, grouped by third party, in one query (a monthly order can have dozens of third parties)
+		*
+		*	@param		array		$socids		Third party ids
+		*	@return		array					array(socid => array(contact id => array('name' => , 'email' => ))), name cleaned for an e-mail address
+		**/
+		public function infrasfilesFetchContacts($socids)
+		{
+			$contacts	= array();
+			$socids		= array_filter(array_map('intval', (array) $socids));
+			if (empty($socids)) {
+				return $contacts;
 			}
 			$sql	= 'SELECT rowid, fk_soc, lastname, firstname, email FROM '.$this->db->prefix().'socpeople';
-			$sql	.= ' WHERE fk_soc IN ('.implode(',', array_keys($names)).') AND statut = 1 AND email IS NOT NULL AND email <> ""';
+			$sql	.= ' WHERE fk_soc IN ('.implode(',', $socids).') AND statut = 1 AND email IS NOT NULL AND email <> ""';
 			$sql	.= ' ORDER BY lastname ASC, firstname ASC';
 			$resql	= $this->db->query($sql);
 			if (!$resql) {
-				return $recipients;
+				return $contacts;
 			}
 			while ($obj = $this->db->fetch_object($resql)) {
-				$recipients[(int) $obj->rowid]	= dol_string_nospecial(dolGetFirstLastname($obj->firstname, $obj->lastname), ' ', array(',')).' ('.dol_string_nospecial($names[(int) $obj->fk_soc], ' ', array(',')).') <'.$obj->email.'>';
+				$contacts[(int) $obj->fk_soc][(int) $obj->rowid]	= array('name'	=> dol_string_nospecial(dolGetFirstLastname($obj->firstname, $obj->lastname), ' ', array(',')),
+																		'email'	=> (string) $obj->email);
 			}
-			return $recipients;
+			return $contacts;
+		}
+		/**
+		*	Every third party a PDF of this order can be addressed to : the third party of each line AND its parent company, whatever
+		*	the current split mode (so that files generated under the other mode are still recognised), with the file suffix of each one
+		*	(same rule as infrasfilesGetUnits() : customer / supplier code, 'ID<id>' when empty)
+		*
+		*	@return		array		List of array('id' => , 'name' => , 'code' => , 'email' => , 'suffix' => )
+		**/
+		public function infrasfilesGetAddressees()
+		{
+			$addressees	= array();
+			foreach ($this->infrasfiles_lines as $line) {
+				$candidates	= array(array('id'		=> (int) $line['fk_soc'],
+										'name'		=> (string) $line['name'],
+										'code'		=> isset($line['code']) ? (string) $line['code'] : '',
+										'email'		=> isset($line['email']) ? (string) $line['email'] : ''));
+				if (!empty($line['parent']) && !empty($line['parent']['id'])) {
+					$candidates[]	= array('id'	=> (int) $line['parent']['id'],
+											'name'	=> (string) $line['parent']['name'],
+											'code'	=> isset($line['parent']['code']) ? (string) $line['parent']['code'] : '',
+											'email'	=> isset($line['parent']['email']) ? (string) $line['parent']['email'] : '');
+				}
+				foreach ($candidates as $candidate) {
+					if ($candidate['id'] <= 0 || isset($addressees['soc'.$candidate['id']])) {
+						continue;
+					}
+					$code					= !empty($candidate['code']) ? $candidate['code'] : 'ID'.$candidate['id'];
+					$candidate['suffix']	= dol_sanitizeFileName($code);
+					$addressees['soc'.$candidate['id']]	= $candidate;
+				}
+			}
+			return array_values($addressees);
+		}
+		/**
+		*	Batches of the "one e-mail per third party" send form : one batch per addressee having at least one PDF in the directory
+		*	of the order, with its files, the recipients to propose (e-mail of the third party + its active contacts having an e-mail,
+		*	one grouped query) and the recipients preselected (the third party e-mail when it exists, else all its contacts)
+		*
+		*	@return		array		array('batches' => array(socid => array('addressee' => , 'files' => full paths, 'recipients' => array(key => 'Name <email>'), 'default' => keys)),
+		*									'orphans' => file names not matching any addressee (not sent))
+		**/
+		public function infrasfilesGetMailBatches()
+		{
+			if (empty($this->infrasfiles_lines)) {
+				$this->infrasfilesFetchLines();
+			}
+			$files	= dol_dir_list($this->infrasfilesGetOutputDir(), 'files', 0, '\.pdf$', '(\.meta|_preview.*\.png)$', 'name', SORT_ASC, 0);
+			$map	= $this->infrasfilesGetFileAddressees($files);
+			$batches	= array();
+			$orphans	= array();
+			foreach ($files as $file) {
+				if (!isset($map[$file['name']])) {
+					$orphans[]	= $file['name'];
+					continue;
+				}
+				$addressee	= $map[$file['name']];
+				$socid		= (int) $addressee['id'];
+				if (!isset($batches[$socid])) {
+					$batches[$socid]	= array('addressee' => $addressee, 'files' => array(), 'recipients' => array(), 'default' => array());
+				}
+				$batches[$socid]['files'][]	= $file['fullname'];
+			}
+			$contacts	= $this->infrasfilesFetchContacts(array_keys($batches));
+			foreach ($batches as $socid => $batch) {
+				$recipients	= array();
+				if (!empty($batch['addressee']['email'])) {
+					$recipients['thirdparty']	= dol_string_nospecial($batch['addressee']['name'], ' ', array(',')).' <'.$batch['addressee']['email'].'>';
+				}
+				if (!empty($contacts[$socid])) {
+					foreach ($contacts[$socid] as $contactid => $contact) {
+						$recipients[$contactid]	= $contact['name'].' <'.$contact['email'].'>';
+					}
+				}
+				$batches[$socid]['recipients']	= $recipients;
+				$batches[$socid]['default']		= isset($recipients['thirdparty']) ? array('thirdparty') : array_keys($recipients);
+			}
+			return array('batches' => $batches, 'orphans' => $orphans);
 		}
 
 		/**
@@ -127,7 +222,8 @@
 								'code'		=> 'CU-SPECIMEN-PARENT',
 								'address'	=> '3 '.$langs->transnoentities('Address'),
 								'zip'		=> '00000',
-								'town'		=> $langs->transnoentities('Town'));
+								'town'		=> $langs->transnoentities('Town'),
+								'email'		=> '');
 			for ($i = 1; $i <= 3; $i++) {
 				$amount	= 100 * $i + 0.5 * $i;
 				$issub		= ($i > 1);	// lines 2 and 3 : subsidiary of the specimen parent company
@@ -178,7 +274,7 @@
 			$sql	.= ' s.nom, s.code_client, s.code_fournisseur, s.address, s.zip, s.town, s.fk_pays, s.email, s.parent,';
 			$sql	.= ($hasparentcol ? ' se.'.infrasfiles_to_parent_field().' AS to_parent,' : ' 0 AS to_parent,');
 			$sql	.= ' sp.nom AS parent_nom, sp.code_client AS parent_code_client, sp.code_fournisseur AS parent_code_fournisseur,';
-			$sql	.= ' sp.address AS parent_address, sp.zip AS parent_zip, sp.town AS parent_town';
+			$sql	.= ' sp.address AS parent_address, sp.zip AS parent_zip, sp.town AS parent_town, sp.email AS parent_email';
 			$sql	.= ' FROM '.$this->db->prefix().'prelevement_lignes AS pl';
 			$sql	.= ' LEFT JOIN '.$this->db->prefix().'societe AS s ON s.rowid = pl.fk_soc';
 			$sql	.= ($hasparentcol ? ' LEFT JOIN '.$this->db->prefix().'societe_extrafields AS se ON se.fk_object = s.rowid' : '');
@@ -208,7 +304,8 @@
 									'code'		=> (string) ($istransfer ? $obj->parent_code_fournisseur : $obj->parent_code_client),
 									'address'	=> (string) $obj->parent_address,
 									'zip'		=> (string) $obj->parent_zip,
-									'town'		=> (string) $obj->parent_town);
+									'town'		=> (string) $obj->parent_town,
+									'email'		=> (string) $obj->parent_email);
 				}
 				$this->infrasfiles_lines[]	= array('rowid'			=> (int) $obj->rowid,
 													'fk_soc'		=> $socid,

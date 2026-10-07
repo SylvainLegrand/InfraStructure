@@ -88,6 +88,16 @@ InfraSFilesMailTplInventoryTopic   = Feuille de comptage d'inventaire __REF__
 InfraSFilesMailTplInventoryContent = Bonjour,<br><br>Veuillez trouver ci-joint la feuille de comptage de l'inventaire __REF__.<br><br>Cordialement,<br>__MYCOMPANY_NAME__
 Notify_WIDTHDRAW_SENTBYMAIL        = Bon de prélèvement / virement envoyé par email
 Notify_INVENTORY_SENTBYMAIL        = Inventaire envoyé par email
+InfraSFilesMailByThirdparty         = Destinataires par tiers
+InfraSFilesMailByThirdpartyHelp     = Un email est envoyé à chaque tiers coché, avec uniquement ses PDF en pièce jointe. Le sujet et le message sont communs : les variables __THIRDPARTY_NAME__, __THIRDPARTY_EMAIL__... sont remplacées pour chaque tiers.
+InfraSFilesMailNoRecipient          = Aucun email connu pour ce tiers : saisissez-en un, sinon il ne sera pas envoyé
+InfraSFilesMailNoFile               = Aucun PDF n'a été généré pour ce document : générez-les avant l'envoi
+InfraSFilesMailOrphanFiles          = Fichiers non rattachés à un tiers, non envoyés : %s
+InfraSFilesMailNoThirdpartySelected = Aucun tiers sélectionné
+InfraSFilesMailSentSummary          = %s email(s) envoyé(s) sur %s tiers sélectionné(s)
+InfraSFilesMailErrorFor             = %s : %s
+InfraSFilesMailErrorNoRecipient     = aucun destinataire
+InfraSFilesMailErrorSend            = échec de l'envoi
 
 ### About page ###
 

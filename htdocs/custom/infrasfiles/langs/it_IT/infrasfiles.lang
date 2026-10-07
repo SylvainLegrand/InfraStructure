@@ -78,16 +78,26 @@ InfraSFilesPdfCountedBy       = Contato da
 InfraSFilesPdfRejected        = di cui %s riga/righe respinte: %s
 
 ### Mail layer ###
-InfraSFilesMailTopicWidthdraw      = Distinta di addebito diretto / bonifico __REF__
-InfraSFilesMailTopicInventory      = Scheda di conteggio dell'inventario __REF__
-InfraSFilesMailTplWidthdrawLabel   = Invio di una distinta di addebito diretto / bonifico
-InfraSFilesMailTplWidthdrawTopic   = Distinta di addebito diretto / bonifico __REF__
-InfraSFilesMailTplWidthdrawContent = Buongiorno,<br><br>In allegato la distinta di addebito diretto / bonifico __REF__.<br><br>Cordiali saluti,<br>__MYCOMPANY_NAME__
-InfraSFilesMailTplInventoryLabel   = Invio di una scheda di conteggio dell'inventario
-InfraSFilesMailTplInventoryTopic   = Scheda di conteggio dell'inventario __REF__
-InfraSFilesMailTplInventoryContent = Buongiorno,<br><br>In allegato la scheda di conteggio dell'inventario __REF__.<br><br>Cordiali saluti,<br>__MYCOMPANY_NAME__
-Notify_WIDTHDRAW_SENTBYMAIL        = Ordine di addebito diretto / bonifico inviato per e-mail
-Notify_INVENTORY_SENTBYMAIL        = Inventario inviato per e-mail
+InfraSFilesMailTopicWidthdraw       = Distinta di addebito diretto / bonifico __REF__
+InfraSFilesMailTopicInventory       = Scheda di conteggio dell'inventario __REF__
+InfraSFilesMailTplWidthdrawLabel    = Invio di una distinta di addebito diretto / bonifico
+InfraSFilesMailTplWidthdrawTopic    = Distinta di addebito diretto / bonifico __REF__
+InfraSFilesMailTplWidthdrawContent  = Buongiorno,<br><br>In allegato la distinta di addebito diretto / bonifico __REF__.<br><br>Cordiali saluti,<br>__MYCOMPANY_NAME__
+InfraSFilesMailTplInventoryLabel    = Invio di una scheda di conteggio dell'inventario
+InfraSFilesMailTplInventoryTopic    = Scheda di conteggio dell'inventario __REF__
+InfraSFilesMailTplInventoryContent  = Buongiorno,<br><br>In allegato la scheda di conteggio dell'inventario __REF__.<br><br>Cordiali saluti,<br>__MYCOMPANY_NAME__
+Notify_WIDTHDRAW_SENTBYMAIL         = Ordine di addebito diretto / bonifico inviato per e-mail
+Notify_INVENTORY_SENTBYMAIL         = Inventario inviato per e-mail
+InfraSFilesMailByThirdparty         = Destinatari per terzo
+InfraSFilesMailByThirdpartyHelp     = Viene inviata un'e-mail a ogni terzo selezionato, con in allegato solo i suoi PDF. Oggetto e messaggio sono comuni: le variabili __THIRDPARTY_NAME__, __THIRDPARTY_EMAIL__... vengono sostituite per ogni terzo.
+InfraSFilesMailNoRecipient          = Nessuna e-mail nota per questo terzo: inserirne una, altrimenti non verrà inviato
+InfraSFilesMailNoFile               = Nessun PDF è stato generato per questo documento: generarli prima dell'invio
+InfraSFilesMailOrphanFiles          = File non associati a nessun terzo, non inviati: %s
+InfraSFilesMailNoThirdpartySelected = Nessun terzo selezionato
+InfraSFilesMailSentSummary          = %s e-mail inviate su %s terzi selezionati
+InfraSFilesMailErrorFor             = %s: %s
+InfraSFilesMailErrorNoRecipient     = nessun destinatario
+InfraSFilesMailErrorSend            = invio non riuscito
 
 ### About page ###
 

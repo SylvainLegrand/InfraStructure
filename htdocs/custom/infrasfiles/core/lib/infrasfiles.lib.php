@@ -58,6 +58,11 @@
 	*		mailtemplate	Prefix of the translation keys (<prefix>Label / Topic / Content) of the default e-mail template inserted at activation
 	*		trigger		Trigger code fired after sending (<OBJECT>_SENTBYMAIL) : agenda event through the native agenda trigger
 	*		trackid		Prefix of the e-mail tracking id (3 letters + object id)
+	*		mailbythirdparty	true = the send form sends one e-mail per third party, each with its own PDF (the child class must provide
+	*					infrasfilesGetAddressees() and infrasfilesGetMailBatches()) ; absent = native single e-mail form
+	*		nativemailtype	Template type of the send form the NATIVE card already has (ex : 'inventory') : the module then adds no button,
+	*					no form and no action on that card, it only attaches its PDF to the native form (hook getFormMail) ; absent = the
+	*					native card has no send form, the module displays its own on the card (hooks addMoreActionsButtons / printCommonFooter / doActions)
 	*		options		Object specific options shown on the setup page : array(SUFFIX => array('type', 'label', 'values', 'default', 'help')) - 'help' = translation key of the tooltip (optional)
 	*
 	*	@return		array		Registry
@@ -98,6 +103,7 @@
 									'mailtemplate'	=> 'InfraSFilesMailTplWidthdraw',	// prefix of the translation keys (…Label, …Topic, …Content) of the default e-mail template
 									'trigger'		=> 'WIDTHDRAW_SENTBYMAIL',
 									'trackid'		=> 'wdr',
+									'mailbythirdparty'	=> true,	// one e-mail per third party (or parent company), with its own PDF
 									'options'		=> array('SPLIT_MODE'	=> array('type'		=> 'select',
 																						'label'		=> 'InfraSFilesOptSplitMode',
 																						'help'		=> 'InfraSFilesOptSplitModeHelp',
@@ -137,6 +143,7 @@
 									'mailtemplate'	=> 'InfraSFilesMailTplInventory',
 									'trigger'		=> 'INVENTORY_SENTBYMAIL',
 									'trackid'		=> 'inv',
+									'nativemailtype'	=> 'inventory',	// product/inventory/card.php has its own "Send by e-mail" button and form (same trigger)
 									// The storage zone of the counting sheet is not an option here : it follows the "Zone" column setup of the module InfraSWorkflow
 									// (section "Inventory management" : product extrafield or location categories), see infrasfiles_inventory_zone_config()
 									'options'		=> array('SHOW_QTY'		=> array('type'		=> 'on_off',
@@ -269,15 +276,19 @@
 		return !empty($obj->nb);
 	}
 	/**
-	*	Find the registry element whose e-mail template type is the given one
+	*	Find the registry element whose e-mail template type is the given one : the type of the module ('mailtype') or the type
+	*	used by the send form of the native card ('nativemailtype', ex : 'inventory')
 	*
-	*	@param		string		$mailtype	Template type (ex : 'infrasfiles_widthdraw')
+	*	@param		string		$mailtype	Template type (ex : 'infrasfiles_widthdraw', 'inventory')
 	*	@return		string					Element key or ''
 	**/
 	function infrasfiles_element_from_mailtype($mailtype)
 	{
 		foreach (infrasfiles_get_registry() as $element => $definition) {
 			if (!empty($definition['mailtype']) && $definition['mailtype'] == $mailtype) {
+				return $element;
+			}
+			if (!empty($definition['nativemailtype']) && $definition['nativemailtype'] == $mailtype) {
 				return $element;
 			}
 		}
@@ -566,6 +577,108 @@
 		return $formfile->showdocuments('infrasfiles:'.$definition['docpart'], infrasfiles_get_subdir($element, $object), infrasfiles_get_output_dir($element, $object), $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang, '', $object);
 	}
 
+	/**
+	*	Links to the third party each file of an object is addressed to (column "Third party" of the file lists)
+	*
+	*	@param		object		$object		Object (child class of the module, using InfrasFilesDocumentTrait)
+	*	@param		array|null	$files		Files as returned by dol_dir_list() (null = files of the output directory of the object)
+	*	@return		array					array(file name => HTML link of the third party), empty when the object has no addressees (inventories)
+	**/
+	function infrasfiles_get_file_thirdparty_links($object, $files = null)
+	{
+		global $db, $hookmanager;
+		$links	= array();
+		if (!is_object($object) || !method_exists($object, 'infrasfilesGetFileAddressees')) {
+			return $links;
+		}
+		$map	= $object->infrasfilesGetFileAddressees($files);
+		if (empty($map)) {
+			return $links;
+		}
+		require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+		if (!is_object($hookmanager)) {
+			$hookmanager	= new HookManager($db);	// getNomUrl() runs the hook getNomUrl : no hook manager outside main.inc.php (CLI, tests)
+		}
+		$istransfer	= (!empty($object->type) && $object->type == 'bank-transfer');
+		$cache		= array();
+		foreach ($map as $name => $addressee) {
+			$socid	= (int) $addressee['id'];
+			if (!isset($cache[$socid])) {
+				// No fetch (an order can have dozens of third parties) : the link only needs the id and the name, no tooltip
+				$soc		= new Societe($db);
+				$soc->id	= $socid;
+				$soc->name	= $addressee['name'];
+				if ($istransfer) {
+					$soc->code_fournisseur	= $addressee['code'];
+				} else {
+					$soc->code_client		= $addressee['code'];
+				}
+				$cache[$socid]	= $soc->getNomUrl(1, '', 0, 1);
+			}
+			$links[$name]	= $cache[$socid];
+		}
+		return $links;
+	}
+	/**
+	*	Script inserting a "Third party" column into a native file list (FormFile::showdocuments() box or FormFile::list_of_documents() tab) :
+	*	a cell after the file name of every file row (the file is recognised by the 'file=' parameter of its link), the header cell after
+	*	the first header cell, and the colspan of the other rows (generation form, hooks, links) increased by one.
+	*	Native lists have no per line hook that would not alter every document box of Dolibarr, hence this client side insertion.
+	*
+	*	@param		string		$selector	jQuery selector of the table
+	*	@param		array		$links		array(file name => HTML of the third party), see infrasfiles_get_file_thirdparty_links()
+	*	@return		string					HTML script ('' when there is nothing to show)
+	**/
+	function infrasfiles_get_thirdparty_column_script($selector, $links)
+	{
+		global $langs;
+		if (empty($links)) {
+			return '';
+		}
+		$langs->load('companies');
+		return '<script type = "text/javascript">
+					jQuery(document).ready(function() {
+						var links	= '.json_encode($links).';
+						var table	= jQuery('.json_encode($selector).').first();
+						if (!table.length) {
+							return;
+						}
+						var inserted	= false;
+						table.find("tr").each(function() {
+							var cells	= jQuery(this).children("td");
+							if (cells.length < 2) {
+								return;
+							}
+							var link	= cells.first().find("a[href*=\"file=\"]").first();
+							if (!link.length) {
+								return;
+							}
+							var match	= link.attr("href").match(/[?&]file=([^&#]*)/);
+							if (!match) {
+								return;
+							}
+							var name	= decodeURIComponent(match[1].replace(/\+/g, " ")).split("/").pop();
+							cells.first().after("<td class=\"infrasfiles-thirdparty tdoverflowmax200\">" + (links.hasOwnProperty(name) ? links[name] : "") + "</td>");
+							inserted	= true;
+						});
+						if (!inserted) {
+							return;
+						}
+						table.find("tr").each(function() {
+							var row		= jQuery(this);
+							if (row.children("td.infrasfiles-thirdparty").length) {
+								return;
+							}
+							var spanned	= row.children("[colspan]").first();
+							if (spanned.length) {
+								spanned.attr("colspan", parseInt(spanned.attr("colspan"), 10) + 1);
+							} else if (row.hasClass("liste_titre") && row.children("th").length >= 2) {
+								row.children("th").first().after("<th class=\"liste_titre\">'.dol_escape_js($langs->trans('ThirdParty')).'</th>");
+							}
+						});
+					});
+				</script>';
+	}
 	/**
 	*	Return the list of PDF models available for an object (files pdf_*.modules.php found in every module declaring 'models')
 	*
