@@ -611,6 +611,7 @@
 					$tab_top	+= $height_incoterms;
 					// Livraison
 					$height_livr	= 0;
+					$height_SsT	= 0;
 					$larg_livrshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? ($this->larg_util_txt / 2) - 2 : $this->larg_util_txt;
 					$larg_SsTshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? ($this->larg_util_txt / 2) - 2 : $this->larg_util_txt;
 					$posx_SsTshow	= !empty($head['livrshow']) && !empty($head['SsTshow']) ? $this->posx_G_txt + $larg_livrshow + 4 : $this->posx_G_txt;
@@ -722,6 +723,7 @@
 						$pageposbefore				= $pdf->getPage();
 						$showpricebeforepagebreak	= 1;
 						$imglinesize				= !empty($this->with_picture) ? pdf_InfraSPlus_getlineimgsize($this->tableau['desc']['larg'], $realpatharray[$i]) : [];	// Define size of image if we need it
+						$ht_url						= 0;
 						// Photo of product line first
 						if (!empty($this->with_picture) && empty($this->picture_under) && empty($this->picture_after)) {
 							if (($curY + (!empty($imglinesize['width']) && !empty($imglinesize['height']) ? $imglinesize['height'] : $this->tab_hl)) > ($this->page_hauteur - ($heightforfooter))) {	// If photo too high, we moved completely on new page
@@ -1271,10 +1273,10 @@
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			// Tableau total
 			$larg_tabtotal		= $this->larg_tabtotal;
-			$larg_col2total		= $this->tableau['comm']['larg'];
+			$larg_col2total		= isset($this->tableau['comm']['larg']) ? $this->tableau['comm']['larg'] : 0;
 			$larg_col1total		= $larg_tabtotal - $larg_col2total;
 			$posxtabtotal		= $this->posxtabtotal;
-			$posxcol2total		= $this->tableau['comm']['posx'];
+			$posxcol2total		= isset($this->tableau['comm']['posx']) ? $this->tableau['comm']['posx'] : 0;
 			$index				= 0;
 			// Totaux
 			$pdf->MultiCell($larg_col1total, $tabtot_hl, ' ', '', 'L', 0, 1, $posxtabtotal, $posytabtot + ($tabtot_hl * $index), true, 0, 0, false, 0, 'M', false);

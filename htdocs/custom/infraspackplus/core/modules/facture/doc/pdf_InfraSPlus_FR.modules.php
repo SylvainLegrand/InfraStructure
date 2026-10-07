@@ -318,12 +318,12 @@
 			$this->titlekey	= 'PDFInfraSPlusInvoiceReleveTitle';
 			if (!empty($baseDir)) {
 				$object->fetch_thirdparty();
+				$objectref	= dol_sanitizeFileName($object->ref);
 				// Definition of $dir and $file
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
 				} else {
-					$objectref	= dol_sanitizeFileName($object->ref);
 					$dir		= $baseDir.'/'.$objectref;
 					$file		= $dir.'/'.$fileprefix.$objectref.$filesufixe.'.pdf';
 				}

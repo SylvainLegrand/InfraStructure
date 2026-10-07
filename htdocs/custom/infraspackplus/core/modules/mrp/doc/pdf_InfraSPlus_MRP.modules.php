@@ -391,6 +391,13 @@
 							}
 						}
 						$nblignes	= count($linesToUse);	// Set nblignes with the lines content to use
+						if (!empty($object->specimen) && empty($nblignes)) {	// The specimen of a MO has no line : build some from the products of the database to preview the table
+							$linesToUse	= pdf_InfraSPlus_getSpecimenLines('MoLine', $object->qty, 3);
+							foreach ($linesToUse as $lineSpecimen) {
+								$lineSpecimen->role	= 'toconsume';
+							}
+							$nblignes	= count($linesToUse);
+						}
 					}
 					// Create pdf instance
 					$pdf				= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');
@@ -409,7 +416,7 @@
 					$pdf->SetSubject($outputlangs->transnoentities('ManufacturingOrder'));
 					$pdf->SetCreator('Dolibarr '.DOL_VERSION);
 					$pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
-					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref).' '.$outputlangs->transnoentities('ManufacturingOrder').' '.$outputlangs->convToOutputCharset($object->thirdparty->name));
+					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref).' '.$outputlangs->transnoentities('ManufacturingOrder').' '.(is_object($object->thirdparty) ? $outputlangs->convToOutputCharset($object->thirdparty->name) : ''));
 					$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 					$pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);	// Left, Top, Right
 					// New page
@@ -515,6 +522,9 @@
 					$height_note			= pdf_InfraSPlus_Notes($pdf, $object, $this->listnotep, $outputlangs, $this->exftxtcolor, $default_font_size, $tab_top, $this->larg_util_txt, $this->tab_hl, $this->posx_G_txt, $this->horLineStyle, $this->ht_top_table + $this->decal_round + $heightforfooter, $this->page_hauteur, $this->Rounded_rect, $this->showtblline, $this->marge_gauche, $this->larg_util_cadre, $this->tblLineStyle, 0, 0);
 					$tab_top				+= 	$height_note > 0 ? $height_note : $this->tab_hl * 0.5;
 					$nexY					= $tab_top + $this->ht_top_table + ($this->decal_round > 0 ? $this->decal_round : $this->tab_hl * 0.5);
+					// Object whose lines are the printed ones (same index as $i) : pdf_getlineunit(), its hooks and pdf_InfraSPlus_separateLine() read lines[$i] of the object, while $object->lines also holds the toproduce/produced lines and the lines of the other role
+					$printedObject			= clone $object;
+					$printedObject->lines	= !empty($frombom) ? $bom->lines : $linesToUse;
 					// Loop on each lines
 					for ($i = 0; $i < $nblignes; $i++) {
 						$prod								= new Product($this->db);
@@ -625,7 +635,7 @@
 						$pdf->MultiCell($this->tableau['qtytot']['larg'], $this->heightline, $qtytot, '', 'R', 0, 1, $this->tableau['qtytot']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
 						// Unit
 						if (!empty($this->product_use_unit)) {
-							$unit	= pdf_getlineunit($object, $i, $outputlangs, $hidedetails);
+							$unit	= pdf_getlineunit($printedObject, $i, $outputlangs, $hidedetails);
 							$pdf->writeHTMLCell($this->tableau['unit']['larg'], $this->heightline, $this->tableau['unit']['posx'], $curY, $unit, 0, 1, false, true, $this->force_align_left_unit, true);
 						}
 						// Dimensions
@@ -633,7 +643,7 @@
 						$dim	= implode('x', $dims);
 						$pdf->MultiCell($this->tableau['dim']['larg'], $this->heightline, $dim, '', 'R', 0, 1, $this->tableau['dim']['posx'], $curY, true, 0, 0, false, 0, 'M', false);
 						// Add dash or space between line
-						$separate	= pdf_InfraSPlus_separateLine ($object, $i);
+						$separate	= pdf_InfraSPlus_separateLine ($printedObject, $i);
 						if ($separate == -1) {
 							if (!empty($this->dash_between_line) && $i < ($nblignes - 1)) {
 								$pdf->setPage($pageposafter);
@@ -676,7 +686,7 @@
 							$pdf->SetFillColor(255);
 							$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 						}
-						if (isset($object->lines[$i + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
+						if (isset($printedObject->lines[$i + 1]->pagebreak) && $printedObject->lines[$i + 1]->pagebreak) {
 							$heightforfooter		= $this->_pagefoot($pdf, $object, $outputlangs, 0);
 							if ($pagenb == 1) {
 								$this->_tableau($pdf, $object, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, $outputlangs, $this->hide_top_table, 1, $pagenb);

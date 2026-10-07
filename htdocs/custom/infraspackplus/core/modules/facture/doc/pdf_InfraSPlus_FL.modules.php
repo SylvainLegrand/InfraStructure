@@ -1687,7 +1687,7 @@
 				$posytabinfo	= $pdf->GetY() + 2;
 			}
 			// Show Shipping
-			if ($this->shippings['fk_shipping_method'] > 0) {
+			if (!empty($this->shippings['fk_shipping_method']) && $this->shippings['fk_shipping_method'] > 0) {
 				$pdf->SetFont('', 'B', $default_font_size - 2);
 				$titre			= $outputlangs->transnoentities('SendingMethod').' : ';
 				$pdf->MultiCell($larg_col1info, $tabinfo_hl, $titre, '', 'L', 0, 1, $posxtabinfo, $posytabinfo, true, 0, 0, false, 0, 'M', false);
@@ -2016,9 +2016,9 @@
 				$pdf->MultiCell($larg_col2total, $tabtot_hl, pdf_InfraSPlus_price($object, $total_ttc, $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T'), '', 'R', 0, 1, $posxcol2total, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), true, 0, 0, false, 0, 'M', false);
 			}
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+			$totalEfPaySpec			= 0;
+			$totalEfPaySpec_loc_cur	= 0;
 			if ($this->efPaySpec) {	// we show special payments before they are paid
-				$totalEfPaySpec			= 0;
-				$totalEfPaySpec_loc_cur	= 0;
 				$listEfPaySpec			= pdf_InfraSPlus_SpecPayExtraField($object);
 				foreach ($listEfPaySpec as $key => $efPaySpec) {
 					if ($efPaySpec['value'] != 0) {

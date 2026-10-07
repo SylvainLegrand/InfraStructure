@@ -1039,7 +1039,7 @@
 			$parent->fetch($object->thirdparty->parent);
 			return $parent;
 		} else {
-			return $object->thirdparty;
+			return is_object($object->thirdparty) ? $object->thirdparty : new Societe($db);	// An object without thirdparty (specimen) gives an empty thirdparty
 		}
 	}
 
@@ -1723,6 +1723,7 @@
 			$nblines = $db->num_rows($resql);
 			for ($i = 0; $i < $nblines; $i++) {
 				$objp	= $db->fetch_object($resql);
+				$objp->special_code	= 0;
 				// Multilangs
 				if (getDolGlobalString('MAIN_MULTILANGS', '')) { // si l'option est active
 					$sqllang	= 'SELECT label FROM '.$db->prefix().'product_lang WHERE fk_product = '.((int) $objp->rowid).' AND lang = "'.$db->escape($langs->getDefaultLang()).'" LIMIT 1';

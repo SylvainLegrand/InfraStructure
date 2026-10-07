@@ -1435,6 +1435,74 @@
 		}
 		return '';
 	}
+
+	/**
+	*	Returns the lines of a specimen whose Dolibarr class creates none (Mo, BOM), built from the products of the database.
+	*	The first line has the quantity $qty, the next ones a multiple of it.
+	*
+	*	@param	string		$lineClass	Class of the lines to create (MoLine, BOMLine)
+	*	@param	float		$qty		Quantity of the first line
+	*	@param	int			$nbLines	Number of lines wanted
+	*	@return	array					Lines (empty if the class does not exist or if the database has no product)
+	**/
+	function pdf_InfraSPlus_getSpecimenLines($lineClass, $qty, $nbLines)
+	{
+		global $db;
+
+		$lines	= [];
+		if (! class_exists($lineClass)) {
+			return $lines;
+		}
+		$sqlProducts	= 'SELECT rowid FROM '.$db->prefix().'product WHERE entity IN ('.getEntity('product').') AND fk_product_type = 0 ORDER BY rowid ASC'.$db->plimit((int) $nbLines, 0);
+		$resql			= $db->query($sqlProducts);
+		if ($resql) {
+			$rank	= 1;
+			while ($obj = $db->fetch_object($resql)) {
+				$product			= new Product($db);
+				$product->fetch((int) $obj->rowid);
+				$line				= new $lineClass($db);
+				$line->fk_product	= (int) $obj->rowid;
+				$line->qty			= $qty * $rank;
+				$line->fk_unit		= $product->fk_unit;
+				$lines[]			= $line;
+				$rank++;
+			}
+			$db->free($resql);
+		}
+		return $lines;
+	}
+
+	/**
+	*	Returns the lines of the specimen of a warehouse, built from the products of the database with fictitious stock quantities.
+	*	Same properties as the lines of infraspackplus_get_list_product_warehouse().
+	*
+	*	@param	int		$nbLines	Number of lines wanted
+	*	@return	array				Lines (empty if the database has no product)
+	**/
+	function pdf_InfraSPlus_getSpecimenStockLines($nbLines)
+	{
+		global $db;
+
+		$lines			= [];
+		$sqlProducts	= 'SELECT p.rowid AS rowid, p.ref AS product_ref, p.label AS produit, p.tobatch, p.fk_product_type AS type, p.pmp AS ppmp, p.price, p.price_ttc, p.entity';
+		$sqlProducts	.= ' FROM '.$db->prefix().'product AS p';
+		$sqlProducts	.= ' WHERE p.entity IN ('.getEntity('product').')';
+		$sqlProducts	.= ' AND p.fk_product_type = 0';
+		$sqlProducts	.= ' ORDER BY p.ref ASC';
+		$sqlProducts	.= $db->plimit((int) $nbLines, 0);
+		$resql			= $db->query($sqlProducts);
+		if ($resql) {
+			$rank	= 1;
+			while ($obj = $db->fetch_object($resql)) {
+				$obj->qty	= 10 * $rank;
+				$obj->special_code	= 0;
+				$lines[]	= $obj;
+				$rank++;
+			}
+			$db->free($resql);
+		}
+		return $lines;
+	}
 	/**
 	*	Returns the name of the thirdparty
 	*
@@ -1449,7 +1517,8 @@
 	{
 		$contactname	= '';
 		$statusWithName	= getDolGlobalInt('INFRASPLUS_PDF_SHOW_STATUS_WITH_CLIENT_NAME', 0);
-		$statusWithName	= !empty($statusWithName) && $thirdparty->forme_juridique_code ? ' '.$outputlangs->convToOutputCharset(getFormeJuridiqueLabel($thirdparty->forme_juridique_code)) : '';
+		$socname		= '';
+		$statusWithName	= !empty($statusWithName) && is_object($thirdparty) && $thirdparty->forme_juridique_code ? ' '.$outputlangs->convToOutputCharset(getFormeJuridiqueLabel($thirdparty->forme_juridique_code)) : '';
 		if ($thirdparty instanceof Societe) {
 			$socname		= $thirdparty->name.$statusWithName.($includealias && !empty($thirdparty->name_alias) ? ' - '.$thirdparty->name_alias : '');
 		}

@@ -348,7 +348,7 @@
 					$pdf->SetSubject($outputlangs->transnoentities("Product"));
 					$pdf->SetCreator("Dolibarr ".DOL_VERSION);
 					$pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
-					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("Product")." ".$outputlangs->convToOutputCharset($object->thirdparty->name));
+					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("Product")." ".(is_object($object->thirdparty) ? $outputlangs->convToOutputCharset($object->thirdparty->name) : ''));
 					$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 					$pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);	// Left, Top, Right
 					// New page
@@ -390,7 +390,7 @@
 					$sortfield							= 'position_name';
 					$sortorder							= 'asc';
 					$posxpicture						= $this->posx_G_txt;
-					$posypicture						= $curY + 0.5;
+					$posypicture						= 0.5;
 					if (!empty($this->old_path_photo)) {
 						$pdir = get_exdir($this->id,2,0,0,$object,'product') . $this->id ."/photos/";
 					} else {
@@ -497,6 +497,7 @@
 						// Description
 						$pdf->SetFont('', '', $default_font_size - 1);
 						$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
+						$hasimg	= 0;
 						if (!empty($hasimg2)) {
 							if ($realpath) {
 								$imglinesize	= pdf_InfraSPlus_getSizeForImage($realpath, $this->larg_util_txt / 3, $this->page_hauteur / 6, 1);

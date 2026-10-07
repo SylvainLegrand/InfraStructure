@@ -646,6 +646,7 @@
 					// first Loop on each tables to prepare calculs and variables
 					$nbLines			= 0;
 					$previdofelement	= 0;
+					$listKeyOk			= [];
 					foreach ($listofreferent as $key => $referent) {
 						if (! $referent['test'] || ! $referent['list1']) {
 							continue;

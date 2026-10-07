@@ -236,8 +236,7 @@
 																'mdroite'=>$this->marge_droite, 'mhaute'=>$this->marge_haute, 'mbasse'=>$this->marge_basse);
 			$this->multi_files							= getDolGlobalInt('INFRASPLUS_PDF_MULTI_FILES', 0);
 			$this->font									= getDolGlobalString('INFRASPLUS_PDF_FONT', 'Helvetica');
-			$this->bodytxtcolor							= getDolGlobalInt('INFRASPLUS_PDF_BODY_TEXT_COLOR', 0);
-			$this->bodytxtcolor							= explode(',', $this->bodytxtcolor);
+			$this->bodytxtcolor							= colorStringToArray(getDolGlobalString('INFRASPLUS_PDF_BODY_TEXT_COLOR', '0,0,0'), array(0, 0, 0));
 			$this->option_logo							= 0;	// Display logo
 			$this->option_tva							= 0;	// Manage the vat option FACTURE_TVAOPTION
 			$this->option_modereg						= 0;	// Display payment mode
@@ -320,7 +319,7 @@
 					$pdf->SetSubject($outputlangs->transnoentities("Product"));
 					$pdf->SetCreator("Dolibarr ".DOL_VERSION);
 					$pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
-					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("Product")." ".$outputlangs->convToOutputCharset($object->thirdparty->name));
+					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("Product")." ".(is_object($object->thirdparty) ? $outputlangs->convToOutputCharset($object->thirdparty->name) : ''));
 					$pdf->setPageOrientation('', 1, 0);	// Edit the bottom margin of current page to set it.
 					$pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);	// Left, Top, Right
 					// New page

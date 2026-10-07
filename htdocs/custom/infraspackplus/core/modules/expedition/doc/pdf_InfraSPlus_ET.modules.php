@@ -356,14 +356,18 @@
 					$refcom		= '';
 					$datec		= '';
 					$nbrProdTot	= 0;
+					$txtref		= '';
+					$txtdt		= '';
+					$txtnbprod	= '';
 					if (!empty($object->origin) && $object->origin_id > 0) {
 						$typeobject	= $object->origin;
 						$origin		= $object->origin;
 						$origin_id	= $object->origin_id;
-						$object->fetch_origin();		// Load property $object->commande, $object->propal, ...
-						if ($typeobject == 'commande' && $object->$typeobject->id && isModEnabled('commande')) {
+						$object->fetch_origin();		// Load property $object->origin_object (and, on old Dolibarr versions, $object->commande, $object->propal, ...)
+						$objectorigin	= !empty($object->origin_object) ? $object->origin_object : (!empty($object->$typeobject) ? $object->$typeobject : null);
+						if ($typeobject == 'commande' && is_object($objectorigin) && !empty($objectorigin->id) && isModEnabled('commande')) {
 							$objectsrc								= new Commande($this->db);
-							$objectsrc->fetch($object->$typeobject->id);
+							$objectsrc->fetch($objectorigin->id);
 							$nblignes								= count($objectsrc->lines);
 							for ($i = 0 ; $i < $nblignes ; $i++)	$nbrProdTot	+= $objectsrc->lines[$i]->product_type == 0 ? $objectsrc->lines[$i]->qty : 0;
 							$txtref									= $outputlangs->transnoentities("RefOrder").' : '.$objectsrc->ref.' / '.$objectsrc->ref_client;
@@ -373,17 +377,16 @@
 					}
 					$carac_emetteur	= dol_string_nohtmltag(dol_format_address($this->emetteur, 0, ' ', $outputlangs));
 					$carac_client	= '';
-					if ($this->showadrlivr && $this->adrlivr) {
-						if ($this->adrlivr == 'Default') {
-							$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $object->thirdparty, '', 0, 'targetwithnodetails', $object, 0);
-						} else {
-							$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $this->adrlivr, '', 0, 'targetwithnodetails', $object, 0);
-						}
-						if ($carac_client) {
-							$carac_client_name	= dol_htmlentitiesbr($this->adrlivr->name);
+					if ($this->showadrlivr && $this->adrlivr > 0) {	// Secondary address of the thirdparty chosen as delivery address (the hook gives -1 for the base address and -2 for none : the thirdparty itself is then shown)
+						$addresslivrstatic	= new Address($this->db);
+						if ($addresslivrstatic->fetch($this->adrlivr, is_object($object->thirdparty) ? $object->thirdparty->id : 0) === 1) {
+							$carac_client	= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $addresslivrstatic, '', 0, 'targetwithnodetails', $object, 0);
+							if ($carac_client) {
+								$carac_client_name	= dol_htmlentitiesbr($addresslivrstatic->name);
+							}
 						}
 					}
-					if (!$this->showadrlivr || !$this->adrlivr) {
+					if (empty($carac_client)) {
 						// Recipient properties
 						$carac_client_name	= pdf_InfraSPlus_Build_Third_party_Name($object->thirdparty, $outputlangs, $this->includealias);
 						$carac_client		= pdf_InfraSPlus_build_address($outputlangs, $this->emetteur, $this->emetteur, $object->thirdparty, '', false, 'targetwithnodetails', $object, 1, false);
@@ -403,7 +406,7 @@
 										'border'		=> false,
 										'hpadding'		=> '0',
 										'vpadding'		=> '0',
-										'fgcolor'		=> array($bodytxtcolor[0], $bodytxtcolor[1], $bodytxtcolor[2]),
+										'fgcolor'		=> array((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]),
 										'bgcolor'		=> false,
 										'module_width'	=> 1,
 										'module_height'	=> 1

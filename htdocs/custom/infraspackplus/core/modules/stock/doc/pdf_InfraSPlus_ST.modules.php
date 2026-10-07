@@ -309,7 +309,7 @@
 			if (!empty($baseDir)) {
 				$objectref	= dol_sanitizeFileName($object->ref);
 				// Definition of $dir and $file
-				if (preg_match('/specimen/i', $objectref)) {
+				if (!empty($object->specimen) || preg_match('/specimen/i', $objectref)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
 				} else {
@@ -336,6 +336,9 @@
 					$this->pied			= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
 					$this->files		= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
 					$object->lines		= infraspackplus_get_list_product_warehouse($object->id);
+					if (!empty($object->specimen) && empty($object->lines)) {	// The specimen of a warehouse has no stock : build some lines from the products of the database to preview the table
+						$object->lines	= pdf_InfraSPlus_getSpecimenStockLines(3);
+					}
 					$nblignes			= is_array($object->lines) ? count($object->lines) : 0;
 					// Create pdf instance
 					$pdf				= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');
@@ -465,6 +468,7 @@
 					$tab_top_newpage	= (empty($this->small_head2) ? $hauteurhead : 17);
 					$this->ht_top_table	= ($this->Rounded_rect * 2 > $this->height_top_table ? $this->Rounded_rect * 2 : $this->height_top_table) + $this->tab_hl * 0.5;
 					$heightforfooter	= $this->_pagefoot($pdf, $object, $outputlangs, 1) + $this->heightline;
+					$heightforinfotot	= 0;
 					$pdf->SetFont('', '', $default_font_size - 1);
 					// Indication de location
 					if (isModEnabled('infrasloc') && function_exists('infrasloc_getOriginLead')) {
@@ -476,10 +480,10 @@
 						}
 					}
 					// Details des quantités à gauche
-					$calcproductsunique	= $object->nb_different_products();
+					$calcproductsunique	= !empty($object->specimen) ? array('nb' => count($object->lines)) : $object->nb_different_products();
 					$txtproductsunique	= '<b>'.$outputlangs->transnoentities('NumberOfDifferentProducts').' : </b>'.(empty($calcproductsunique['nb']) ? '0' : price2num($calcproductsunique['nb'], 'MS'));
 					$pdf->writeHTMLCell($this->larg_util_txt / 2, $this->tab_hl, $this->posx_G_txt, $tab_top, $txtproductsunique, 0, 1, false, true, 'L', true);
-					$calcproducts		= $object->nb_products();
+					$calcproducts		= !empty($object->specimen) ? array('nb' => array_sum(array_column($object->lines, 'qty'))) : $object->nb_products();
 					$txtproducts		= '<b>'.$outputlangs->transnoentities('NumberOfProducts').' : </b>'.(empty($calcproducts['nb']) ? '0' : price2num($calcproducts['nb'], 'MS'));
 					$pdf->writeHTMLCell($this->larg_util_txt / 2, $this->tab_hl, $this->posx_G_txt, $tab_top + $this->tab_hl, $txtproducts, 0, 1, false, true, 'L', true);
 					// Valorisation à droite

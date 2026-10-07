@@ -1170,7 +1170,7 @@
 			$pdf->MultiCell($larg_col2total, $tabtot_hl, pdf_InfraSPlus_price($object, $object->total_ttc, $outputlangs, !empty($this->show_tot_Cur_Symb), 0, 'T'), '', 'R', 0, 1, $posxcol2total, $posytabtot + (($tabtot_hl + $this->bgLineW) * $index), true, 0, 0, false, 0, 'M', false);
 			$pdf->SetTextColor((int) $this->bodytxtcolor[0], (int) $this->bodytxtcolor[1], (int) $this->bodytxtcolor[2]);
 			$pdf->SetFont('', '', $default_font_size - 1);
-			if (!empty($this->InfraSExpense)) {
+			if (!empty($this->InfraSExpense) && method_exists($object, 'getSumProCard')) {
 				$totalpro			= $object->getSumProCard();
 				$amountexpected 	= price2num($object->total_ttc - $totalpro);
 				if ($amountexpected != 0) {

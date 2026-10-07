@@ -338,7 +338,7 @@
 			$outputlangsold	= $outputlangs;
 			$outputlangs	= new Translate('', $conf);
 			if (getDolGlobalString('MAIN_MULTILANGS', '')) {
-				$newlang	= !empty(GETPOST('lang_id', 'aZ09')) ? GETPOST('lang_id', 'aZ09') : $object->thirdparty->default_lang;
+				$newlang	= !empty(GETPOST('lang_id', 'aZ09')) ? GETPOST('lang_id', 'aZ09') : (is_object($object->thirdparty) ? $object->thirdparty->default_lang : '');
 			}
 			if (!empty($newlang)) {
 				$outputlangs->setDefaultLang($newlang);
@@ -353,6 +353,11 @@
 				if (!empty($object->specimen)) {
 					$dir	= $baseDir;
 					$file	= $dir.'/SPECIMEN.pdf';
+					// Parameters of the specimen : statement of a customer for the last month
+					$this->exportparameters	= array('export_type' => 'Customer', 'date_start' => dol_time_plus_duree(dol_now(), -1, 'm'), 'date_end' => dol_now());
+					$object->context['account_statut']	= $this->exportparameters;
+					$this->export_type		= $this->exportparameters['export_type'];
+					$this->titlekey			= 'ExtraitCompteClientPDFAccountStatut'.$this->export_type;
 				} else {
 					$objectid				= dol_sanitizeFileName($object->id);
 					$dir					= $baseDir.'/'.$objectid;

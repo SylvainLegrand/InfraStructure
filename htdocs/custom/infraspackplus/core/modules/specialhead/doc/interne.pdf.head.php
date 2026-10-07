@@ -616,7 +616,7 @@
 			$pdf->MultiCell($w, $tab_hl, $txtcc, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			$posy	+= $tab_hl * (($pdf->GetY() - $posy - 0.5) > $tab_hl ? 2 : 1);
 		}
-		if (!empty($show_num_cli) && !empty($num_cli_frm) && $object->thirdparty->code_client) {
+		if (!empty($show_num_cli) && !empty($num_cli_frm) && is_object($object->thirdparty) && $object->thirdparty->code_client) {
 			$txtNumCli	= $outputlangs->transnoentities('CustomerCode').' : '.$outputlangs->convToOutputCharset($object->thirdparty->code_client);
 			$pdf->MultiCell($w, $tab_hl, $txtNumCli, '', $align, 0, 1, $posx, $posy, true, 0, 0, false, 0, 'M', false);
 			$posy		+= $tab_hl - 0.5;

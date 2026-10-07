@@ -346,6 +346,9 @@
 					$this->listnotep			= !empty($hookmanager->resArray['listnotep']) ? $hookmanager->resArray['listnotep'] : '';
 					$this->pied					= !empty($hookmanager->resArray['pied']) ? $hookmanager->resArray['pied'] : '';
 					$this->files				= !empty($hookmanager->resArray['filesArray']) ? $hookmanager->resArray['filesArray'] : '';
+					if (!empty($object->specimen) && empty($object->lines)) {	// The specimen of a BOM has no line : build some from the products of the database to preview the table
+						$object->lines	= pdf_InfraSPlus_getSpecimenLines('BOMLine', 1, 3);
+					}
 					$nblignes					= count($object->lines);	// Set nblignes with the new facture lines content after hook
 					// Create pdf instance
 					$pdf						= pdf_InfraSPlus_getInstance($this->format, 'mm', 'P');

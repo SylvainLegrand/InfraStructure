@@ -711,6 +711,7 @@
 					$ht_colinfo				= $this->_tableau_info($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					pdf_InfraSPlus_normalizeTotals($object, $this->tva_array, $this->tva, $this->localtax1, $this->localtax2, $this->use_multicurrency, $this->sign);	// Arrondis : totaux comptables coherents (HT + TVA = TTC), voir infraspackplus.pdf.lib.php
 					$ht_coltotal			= $this->_tableau_tot($pdf, $object, $this->marge_haute, $outputlangs, 1);
+					$ht_colpay	= 0;
 					if ($this->paid || $this->credit_notes || $this->deposits) {
 						$ht_colpay	+= $this->_tableau_versements($pdf, $object, $this->marge_haute, $outputlangs, 1);
 					}
@@ -951,7 +952,7 @@
 										'fontsize'		=> 8,
 										'stretchtext'	=> 4
 										);
-			$pdf->write1DBarcode($object->id, 'C128', $this->marge_gauche + ($w / 2), $posy, 0, 0, 0.4, $styleBC, 'B');
+			$pdf->write1DBarcode((string) $object->id, 'C128', $this->marge_gauche + ($w / 2), $posy, 0, 0, 0.4, $styleBC, 'B');
 			$posyBC				= $pdf->GetY();
 				$txtref			= $this->_refInvoice($pdf, $object, $outputlangs, $w);
 				$refArr			= explode('<br>', $txtref);
