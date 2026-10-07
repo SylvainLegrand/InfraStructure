@@ -72,7 +72,8 @@
 																'odtgeneration','orderstoinvoice','orderstoinvoicesupplier','admin','invoicereccard',
 																'consumptionthirdparty','ordershipmentcard','expeditioncard','deliverycard','paiementcard',
 																'referencelettersinstacecard','shippableorderlist','propallist','orderlist','invoicelist',
-																'supplierorderlist','supplierinvoicelist','cron','pdfgeneration','checkmarginlist'
+																'supplierorderlist','supplierinvoicelist','cron','pdfgeneration','checkmarginlist',
+																'api'	// REST API (api/index.php initialises this context only): update_price() must exclude the optional lines (updateTotalPrice hook) as the cards do
 																],
 											'tpl'		=> 1,
 											'css'		=> ['css' => '/'.$this->name.'/css/'.$this->name.'.css.php']
