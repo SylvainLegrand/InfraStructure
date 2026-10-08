@@ -61,7 +61,8 @@
 				'names'		=> array('THEME_FONT_FAMILY', 'THEME_ELDY_FONT_SIZE1', 'THEME_ELDY_BORDER_RADIUS', 'THEME_SHOW_BORDER_ON_INPUT', 'THEME_ADD_BACKGROUND_ON_INPUT',
 									'THEME_ELDY_USEBORDERONTABLE', 'THEME_ELDY_SHADOW_ON_SMALL_BOXES', 'THEME_ELDY_TOTAL_BACKGROUND_LIKE_HEAD',
 									'THEME_ELDY_USEBOLDTITLE', 'OBLYON_IMAGE_HEIGHT_TABLE', 'OBLYON_DENSITY', 'OBLYON_TABS_STYLE', 'OBLYON_TAB_PILL_BORDER', 'OBLYON_TAB_PILL_SHADOW',
-									'OBLYON_BUTTON_STYLE', 'OBLYON_BUTTON_FORM_OWN_COLORS', 'OBLYON_BADGE_STYLE', 'OBLYON_STATUS_PULSE', 'OBLYON_AGENDA_STYLE'),	// options d'interface 3.8.0 (densite, style des onglets, bordure / ombre des pilules, style des boutons, agenda)
+									'OBLYON_BUTTON_STYLE', 'OBLYON_BUTTON_FORM_OWN_COLORS', 'OBLYON_BADGE_STYLE', 'OBLYON_STATUS_PULSE', 'OBLYON_AGENDA_STYLE',	// options d'interface 3.8.0 (densite, style des onglets, bordure / ombre des pilules, style des boutons, agenda) // InfraS change
+									'OBLYON_TAKEPOS_THEME', 'OBLYON_TAKEPOS_CATEGORY_COLORS', 'OBLYON_TAKEPOS_QUICK_DISCOUNTS', 'OBLYON_TAKEPOS_AUTO_NEW_SALE'),	// caisse TakePOS 3.9.0 (theme, couleurs des categories, remises rapides, nouvelle vente automatique) // InfraS add
 				'patterns'	=> array(),
 				'scalar'	=> false),
 			'menus'			=> array(

@@ -68,7 +68,7 @@
 													'js'	=> array('/'.$this->name.'/js/pushy.js', '/'.$this->name.'/js/oblyon.js?v='.urlencode(trim($this->version))),	// InfraS change : version dans l'adresse (le serveur met les .js en cache 30 jours : sans cela les navigateurs gardent l'ancien script apres une mise a jour)
 													'css'	=> array('css'	=> ('/'.$this->name.'/css/'.$this->name.'.css.php'), ('/theme/'.$this->name.'/custom.css.php'), ('/'.$this->name.'/css/font.css.php')),	// InfraS change : oblyon.css et font.css servis via .css.php (Dolibarr ajoute alors lang/theme/revision a l'adresse : plus de feuille figee un mois par le cache public Apache puis Cloudflare), cf. css/oblyon.css.php
 													'tpl'	=> 0,
-													'hooks' => array('data' => array('main'), 'entity' => '0')
+													'hooks' => array('data' => array('main', 'takeposinvoice'), 'entity' => '0')	// InfraS change : takeposinvoice = ticket de la caisse TakePOS charge en ajax (colonne -/+ des themes de caisse, 3.9.0)
 													);
 			$this->dirs						= array('/'.$this->name.'/sql', '/'.$this->name.'/presets');	// InfraS change : dossier des presets JSON de l'instance (3.6.0)														// Data directories to create when module is enabled. Example: this->dirs = array("/mymodule/temp");
 			$this->config_page_url			= array('options.php@'.$this->name);														// List of php page, stored into mymodule/admin directory, to use to setup module.

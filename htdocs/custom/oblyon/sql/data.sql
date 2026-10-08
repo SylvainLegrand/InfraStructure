@@ -321,6 +321,10 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_STATUS_PULSE',								'__ENTITY__', '0',					'chaine',	'0',	'Oblyon module - Pulse of the status of the open card (3.8.0)');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_TAB_PILL_BORDER',							'__ENTITY__', '0',					'chaine',	'0',	'Oblyon module - Pill tabs (3.8.0) : 1px border');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_TAB_PILL_SHADOW',							'__ENTITY__', '0',					'chaine',	'0',	'Oblyon module - Pill tabs (3.8.0) : drop shadow');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_TAKEPOS_AUTO_NEW_SALE',						'__ENTITY__', '5',					'chaine',	'0',	'Oblyon module - TakePOS seconds before the automatic new sale after a payment, 0 = never (3.9.0)');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_TAKEPOS_CATEGORY_COLORS',					'__ENTITY__', '0',					'chaine',	'0',	'Oblyon module - TakePOS category colours on the tiles (3.9.0)');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_TAKEPOS_QUICK_DISCOUNTS',					'__ENTITY__', '5,10,20',			'chaine',	'0',	'Oblyon module - TakePOS quick discounts of the payment bar (3.9.0)');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_TAKEPOS_THEME',							'__ENTITY__', 'native',				'chaine',	'0',	'Oblyon module - TakePOS theme (3.9.0) : native / classic / counter / tablet / scanner');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('OBLYON_USER_BLOCK',								'__ENTITY__', 'default',			'chaine',	'0',	'Oblyon module - User block of the top bar (3.8.0) : default / initials / photo');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('THEME_ADD_BACKGROUND_ON_INPUT',					'__ENTITY__', '0',					'chaine',	'0',	'Oblyon module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('THEME_CUSTOM_CSS',								'__ENTITY__', '',					'chaine',	'0',	'Oblyon module');

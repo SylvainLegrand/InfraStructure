@@ -69,6 +69,14 @@
 		$head[$h][2] = 'customcss';
 		$h++;
 
+		// InfraS add begin : caisse TakePOS (3.9.0), onglet affiche seulement si le module TakePOS est actif
+		if (isModEnabled('takepos')) {
+			$head[$h][0] = dol_buildpath("/oblyon/admin/takepos.php", 1);
+			$head[$h][1] = $langs->trans("OblyonTakepos");
+			$head[$h][2] = 'takepos';
+			$h++;
+		}
+		// InfraS add end
 		// Show more tabs from modules
 		// Entries must be declared in modules descriptor with line
 		//$this->tabs = array(
