@@ -101,7 +101,8 @@
 		}
 
 		/**
-		* Actions of the native cards : document generation and deletion posted by the "Attached files" section
+		* Actions of the native cards : document generation and deletion posted by the "Attached files" section,
+		* and the send by e-mail form (opened on the card itself, like the native cards : see printCommonFooter)
 		*
 		* @param	array()			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process
@@ -113,16 +114,35 @@
 		{
 			global $conf, $langs, $user, $db;
 
-			if (!in_array($action, array('builddoc', 'remove_file'))) {
+			$mailactions	= array('presend', 'send', 'infrasfiles_sendbythirdparty');
+			if (!in_array($action, array('builddoc', 'remove_file', 'infrasfiles_remove_files')) && !in_array($action, $mailactions)) {
 				return 0;
 			}
 			$element	= $this->infrasfilesElementFromContext($parameters);
-			if (empty($element) || !infrasfiles_is_enabled($element, 'DOCUMENT') || !infrasfiles_user_can($element, 'write')) {
+			if (empty($element)) {
 				return 0;
 			}
 			$id			= (is_object($object) && !empty($object->id)) ? $object->id : GETPOSTINT('id');
 			$docobject	= infrasfiles_load_object($element, $id);
 			if (!is_object($docobject) || $docobject->id <= 0) {
+				return 0;
+			}
+			if (in_array($action, $mailactions)) {
+				return $this->infrasfilesDoMailActions($element, $docobject, $action);
+			}
+			// Mass deletion posted by the checkboxes of the "Attached files" section (same deletion as the trash icon, several files at once)
+			if ($action == 'infrasfiles_remove_files') {
+				// POST only : the core checks the token of a GET action only when its name starts with del / remove / set..., not ours
+				// (a forged link would delete without token on an instance with MAIN_SECURITY_CSRF_WITH_TOKEN = 1 or 2) ; a POST is always checked
+				if (!infrasfiles_is_post_request() || !infrasfiles_user_can($element, 'write')) {
+					$action	= '';
+					return 0;
+				}
+				infrasfiles_remove_files($element, $docobject, GETPOST('infrasfiles_files', 'array'));
+				header('Location: '.$_SERVER['PHP_SELF'].'?id='.((int) $id));	// messages are in session ; a page reload must never delete again
+				exit;
+			}
+			if (!infrasfiles_is_enabled($element, 'DOCUMENT') || !infrasfiles_user_can($element, 'write')) {
 				return 0;
 			}
 			// remove_file : the file must belong to the element of this card (upload_dir is the base directory of the module, so a file of another
@@ -150,7 +170,105 @@
 		}
 
 		/**
-		* Action buttons of the native cards : "Send by e-mail" (opens the native send form on the module document page)
+		* Send by e-mail actions posted by the form displayed on the native card (printCommonFooter) : the "Apply" button of the
+		* e-mail template and "Cancel", the send loop "one e-mail per third party" (registry 'mailbythirdparty'), or the native
+		* single e-mail mechanism (core/actions_sendmails.inc.php : attachments, send, trigger, redirection to the card)
+		*
+		* @param	string			$element		Registry element
+		* @param	CommonObject	$docobject		Object (child class of the module)
+		* @param	string			&$action		Current action, set to 'presend' when the form must be displayed again
+		* @return	int								0 = not handled (native code runs), 1 = handled
+		**/
+		protected function infrasfilesDoMailActions($element, $docobject, &$action)
+		{
+			global $conf, $langs, $user, $db, $hookmanager, $mysoc, $dolibarr_main_url_root;
+			$registry	= infrasfiles_get_registry();
+			$definition	= $registry[$element];
+			if (!empty($definition['nativemailtype'])) {
+				return 0;	// the native card has its own send form and actions (ex : inventories)
+			}
+			if (!infrasfiles_is_enabled($element, 'EMAIL') || !infrasfiles_user_can($element, 'write')) {
+				return 0;
+			}
+			if (GETPOST('cancel', 'alpha')) {
+				$action	= '';
+				return 1;
+			}
+			if (GETPOST('modelselected', 'alpha')) {
+				$action	= 'presend';	// "Apply" button of the e-mail template : the form is displayed again with the chosen template (same as the native cards)
+				return 1;
+			}
+			if ($action == 'presend') {
+				return 1;	// the form is printed by printCommonFooter
+			}
+			$id			= (int) $docobject->id;
+			$bythirdparty	= !empty($definition['mailbythirdparty']) && method_exists($docobject, 'infrasfilesGetMailBatches');
+			if ($action == 'infrasfiles_sendbythirdparty') {
+				if (!$bythirdparty || !infrasfiles_is_post_request()) {
+					$action	= '';	// POST only (see the mass deletion in doActions) : a forged link must never send e-mails
+					return 0;
+				}
+				dol_include_once('/infrasfiles/core/lib/infrasfilesmail.lib.php');
+				$result	= infrasfiles_send_by_thirdparty($docobject, $definition, $docobject->infrasfilesGetMailBatches());
+				if ($result['sent'] > 0 || empty($result['errors'])) {
+					header('Location: '.$_SERVER['PHP_SELF'].'?id='.$id);	// messages are in session ; a page reload must never send again
+					exit;
+				}
+				$action	= 'presend';	// nothing sent : the form is displayed again with the posted values
+				return 1;
+			}
+			// 'send' : native single e-mail mechanism (objects without 'mailbythirdparty', ex : inventories), same variables as document.php
+			if ($bythirdparty) {
+				$action	= '';
+				return 1;
+			}
+			$object				= $docobject;
+			$trackid			= $definition['trackid'].$id;
+			$triggersendname	= $definition['trigger'];
+			$actiontypecode		= 'AC_OTH_AUTO';
+			$autocopy			= 'MAIN_MAIL_AUTOCOPY_INFRASFILES_TO';
+			$paramname			= 'id';	// native redirection after sending : PHP_SELF?id=<id> = the card
+			include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';	// sets $action = 'presend' after an attachment change or a send error
+			return 1;
+		}
+		/**
+		* HTML of the send by e-mail form for a card : the module template (one e-mail per third party) or the native one
+		*
+		* @param	string			$element		Registry element
+		* @param	CommonObject	$docobject		Object (child class of the module)
+		* @return	string							HTML
+		**/
+		protected function infrasfilesGetPresendForm($element, $docobject)
+		{
+			global $conf, $langs, $user, $db, $hookmanager, $form;
+			$registry	= infrasfiles_get_registry();
+			$definition	= $registry[$element];
+			$langs->loadLangs(array('mails', 'other', 'infrasfiles@infrasfiles'));
+			if (!empty($definition['langs'])) {
+				$langs->loadLangs((array) $definition['langs']);
+			}
+			// Variables expected by the templates (same as document.php)
+			$object						= $docobject;
+			$action						= 'presend';
+			$modelmail					= $definition['mailtype'];
+			$defaulttopic				= $definition['mailtopic'];
+			$defaulttopiclang			= 'infrasfiles@infrasfiles';
+			$diroutput					= infrasfiles_get_output_dir($element, null);
+			$trackid					= $definition['trackid'].$object->id;
+			$arrayoffamiliestoexclude	= null;
+			$presendreturnurl			= $_SERVER['PHP_SELF'].'?id='.((int) $object->id);
+			ob_start();
+			if (!empty($definition['mailbythirdparty']) && method_exists($object, 'infrasfilesGetMailBatches')) {
+				dol_include_once('/infrasfiles/core/lib/infrasfilesmail.lib.php');
+				$batchdata	= $object->infrasfilesGetMailBatches();
+				include dol_buildpath('/infrasfiles/core/tpl/infrasfiles_presend.tpl.php', 0);
+			} else {
+				include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
+			}
+			return ob_get_clean();
+		}
+		/**
+		* Action buttons of the native cards : "Send by e-mail" (opens the send form on the card itself, like the native cards)
 		*
 		* @param	array()			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$object		The object to process
@@ -166,12 +284,16 @@
 			if (empty($element) || !infrasfiles_is_enabled($element, 'EMAIL') || !infrasfiles_user_can($element, 'write')) {
 				return 0;
 			}
+			$registry	= infrasfiles_get_registry();
+			if (!empty($registry[$element]['nativemailtype'])) {
+				return 0;	// the native card already has its own "Send by e-mail" button (ex : inventories)
+			}
 			$id	= (is_object($object) && !empty($object->id)) ? $object->id : GETPOSTINT('id');
 			if ($id <= 0) {
 				return 0;
 			}
 			$langs->load('mails');
-			$url	= dol_buildpath('/infrasfiles/document.php', 1).'?element='.urlencode($element).'&id='.((int) $id).'&action=presend&mode=init#formmailbeforetitle';
+			$url	= $_SERVER['PHP_SELF'].'?id='.((int) $id).'&action=presend&mode=init#formmailbeforetitle';
 			print dolGetButtonAction('', $langs->trans('SendMail'), 'default', $url, '', 1);	// addreplace hook : the card does not print resprints, the hook prints itself
 			return 0;
 		}
@@ -191,8 +313,8 @@
 			if (!is_object($formmail) || empty($formmail->param['models'])) {
 				return 0;
 			}
-			$element	= infrasfiles_element_from_mailtype($formmail->param['models']);
-			if (empty($element)) {
+			$element	= infrasfiles_element_from_mailtype($formmail->param['models']);	// type of the module, or of the native card form ('nativemailtype')
+			if (empty($element) || !infrasfiles_is_enabled($element)) {
 				return 0;
 			}
 			$id			= !empty($formmail->param['id']) ? (int) $formmail->param['id'] : 0;
@@ -200,7 +322,12 @@
 			if (!is_object($docobject)) {
 				return 0;
 			}
-			$formmail->param['returnurl']	= dol_buildpath('/infrasfiles/document.php', 1).'?element='.urlencode($element).'&id='.$id;
+			if (preg_match('/\/infrasfiles\/document\.php$/', (string) $_SERVER['PHP_SELF'])) {
+				$formmail->param['returnurl']	= dol_buildpath('/infrasfiles/document.php', 1).'?element='.urlencode($element).'&id='.$id;	// the native template builds PHP_SELF?id= without our 'element' parameter
+			}
+			if (!empty($formmail->param['infrasfiles_bythirdparty'])) {
+				return 0;	// "one e-mail per third party" form : recipients and attachments are chosen per third party in the module table
+			}
 			// Recipients proposed in the list : the contacts of the third parties of the object (nothing is prefilled in the free field)
 			if (method_exists($docobject, 'infrasfilesGetRecipients')) {
 				$recipients	= $docobject->infrasfilesGetRecipients();
@@ -251,23 +378,24 @@
 
 		/**
 		* Footer of the native cards : "Attached files" section (generation box + file list) inserted after the action buttons,
-		* and counter badge on the "Documents" tab
+		* or the send by e-mail form instead when action = presend (same place and same behaviour as the native cards : no
+		* documents section while the form is displayed), and counter badge on the "Documents" tab
 		*
 		* @param	array()			$parameters		Hook metadatas (context, etc...)
 		* @param	CommonObject	&$hookobject	Not used : this hook receives no object, the object of the page is read as a global
-		* @param	string			&$action		Current action (if set). Generally create or edit or null
+		* @param	string			&$hookaction	Not used : this hook receives no action, the action of the page is read as a global
 		* @param	HookManager		$hookmanager	Hook manager propagated to allow calling another hook
 		* @return	int								< 0 on error, 0 on success, 1 to replace standard code
 		**/
-		public function printCommonFooter($parameters, &$hookobject, &$action, $hookmanager)
+		public function printCommonFooter($parameters, &$hookobject, &$hookaction, $hookmanager)
 		{
 			global $conf, $langs, $user, $db;
-			global $object;	// object of the native card (not passed by this hook)
+			global $object, $action;	// object and action of the native card (not passed by this hook) ; after "Apply" or a send error, doActions set $action to 'presend' while the posted action differs
 
 			if (empty($conf->use_javascript_ajax)) {
 				return 0;
 			}
-			if (in_array(GETPOST('action', 'aZ09'), array('create', 'edit', 'editline', 'presend'))) {
+			if (in_array($action, array('create', 'edit', 'editline'))) {
 				return 0;	// same behaviour as the native cards : no documents section while a form is being edited
 			}
 			$element	= $this->infrasfilesElementFromContext($parameters);
@@ -282,15 +410,42 @@
 			if (!is_object($docobject) || $docobject->id <= 0) {
 				return 0;
 			}
+			$registry	= infrasfiles_get_registry();
+			if ($action == 'presend' && !empty($registry[$element]['nativemailtype'])) {
+				return 0;	// the native card displays its own send form (and hides its documents) : nothing to add
+			}
 			$nbdocs	= infrasfiles_count_documents($element, $docobject);
 			$out	= '';
-			if (infrasfiles_is_enabled($element, 'DOCUMENT')) {
+			if ($action == 'presend' && infrasfiles_is_enabled($element, 'EMAIL') && infrasfiles_user_can($element, 'write')) {
+				// Send form, moved under the action buttons SYNCHRONOUSLY (not in a ready() handler) : the editor (CKEditor) and the
+				// select2 lists of the form initialise themselves on ready(), and moving an initialised editor in the DOM breaks it
+				$out	.= '<div id = "infrasfiles_presend" class = "hideobject">'.$this->infrasfilesGetPresendForm($element, $docobject).'</div>';
+				$out	.= '<script type = "text/javascript">
+								(function() {
+									var form	= jQuery("#infrasfiles_presend");
+									var anchor	= jQuery("div.tabsAction").last();
+									if (anchor.length) {
+										var parentform	= anchor.closest("form");
+										if (parentform.length) {
+											anchor	= parentform;
+										}
+										anchor.after(form);
+									}
+									form.removeClass("hideobject").show();
+								})();
+							</script>';
+			} elseif (infrasfiles_is_enabled($element, 'DOCUMENT')) {
 				$urlsource	= $_SERVER['PHP_SELF'].'?id='.$docobject->id;
 				$out		.= '<div id = "infrasfiles_docsection" class = "hideobject">
 								<div class = "fichecenter"><div class = "fichehalfleft"><a name = "builddoc"></a>
 									<div class = "ficheaddleft">'.infrasfiles_get_document_box($element, $docobject, $urlsource).'</div>
 								</div></div>
 							</div>';
+				// "Third party" column of the file list (objects whose files are addressed to third parties), and mass deletion checkboxes
+				$out		.= infrasfiles_get_thirdparty_column_script('#infrasfiles_docsection table.formdoc', infrasfiles_get_file_thirdparty_links($docobject));
+				if (infrasfiles_user_can($element, 'write')) {
+					$out	.= infrasfiles_get_mass_delete_script('#infrasfiles_docsection table.formdoc', 'box', '', '');
+				}
 			}
 			$out	.= '<script type = "text/javascript">
 							jQuery(document).ready(function() {
@@ -319,6 +474,72 @@
 			return 0;
 		}
 
+		/**
+		* ECM "object directories" (ecm/index_auto.php) : one automatic directory per object of the registry, named 'infrasfiles-<dirout>'.
+		* The core calls this hook with different parameters depending on what it needs :
+		*  - none : the directories to add to the tree (module, label, desc, test, position) ;
+		*  - 'modulepart' : the list of our module names (the right panel checks it), and, for one of ours, the directory to list
+		*    and the class to instantiate to show the link of the object (FormFile::list_of_autoecmfiles()) ;
+		*  - 'modulepart' + 'fileinfo' : the ref of the object owning the file, first segment of its path ('<REF>/<file>.pdf').
+		* Download links use modulepart 'infrasfiles-<dirout>' : dol_check_secure_access_document() splits it into 'infrasfiles' +
+		* '<dirout>/…', which lands on checkSecureAccess() below (native permission of the object).
+		* Context 'ecmautocard' only : the right panel (core/ajax/ajaxdirpreview.php) is included by ecm/index_auto.php in the same
+		* request (mode 'noajax') ; called standalone, that page refuses any modulepart other than ecm / medias / website anyway.
+		*
+		* @param	array()			$parameters		Hook metadatas (modulepart, fileinfo)
+		* @param	CommonObject	&$object		Not used
+		* @param	string			&$action		Not used
+		* @param	HookManager		$hookmanager	Hook manager
+		* @return	int								0 = nothing for the core, 1 = $this->results filled
+		**/
+		public function addSectionECMAuto($parameters, &$object, &$action, $hookmanager)
+		{
+			global $langs;
+			$langs->load('infrasfiles@infrasfiles');
+			$registry	= infrasfiles_get_registry();
+			$modules	= array();	// our ECM module names, indexed by registry element
+			foreach ($registry as $element => $definition) {
+				if (empty($definition['dirout']) || !infrasfiles_is_enabled($element)) {
+					continue;
+				}
+				$modules[$element]	= 'infrasfiles-'.trim($definition['dirout'], '/');
+			}
+			if (empty($modules)) {
+				return 0;
+			}
+			// Tree of the ECM page : the directories to add
+			if (!isset($parameters['modulepart'])) {
+				$this->results	= array();
+				$position		= 300;
+				foreach ($modules as $element => $module) {
+					$label				= $langs->trans($registry[$element]['label']);
+					$this->results[]	= array('position'	=> $position,
+												'level'		=> 1,
+												'module'	=> $module,
+												'test'		=> infrasfiles_user_can($element, 'read') ? 1 : 0,
+												'label'		=> $label,
+												'desc'		=> $langs->trans('ECMDocsBy', $langs->transnoentitiesnoconv($registry[$element]['label'])));
+					$position			+= 10;
+				}
+				return 1;
+			}
+			// Right panel and file list : our module names, plus the directory and the class when the module asked is one of ours
+			$this->results	= array('module' => array_values($modules));
+			$element		= array_search($parameters['modulepart'], $modules, true);
+			if ($element === false) {
+				return 1;
+			}
+			$this->results['directory']	= infrasfiles_get_output_dir($element, null);
+			$this->results['classpath']	= $registry[$element]['classpath'];	// the child class file requires the native parent class itself
+			$this->results['classname']	= $registry[$element]['class'];
+			if (!empty($parameters['fileinfo']) && is_array($parameters['fileinfo'])) {
+				$relative	= isset($parameters['fileinfo']['relativename']) ? (string) $parameters['fileinfo']['relativename'] : '';
+				if (strpos($relative, '/') !== false) {
+					$this->results['ref']	= substr($relative, 0, strpos($relative, '/'));	// '<REF>/<file>.pdf' ; a file at the root (SPECIMEN.pdf) has no ref and is skipped by the core
+				}
+			}
+			return 1;
+		}
 		/**
 		* Access control of the files served with modulepart = infrasfiles : a file of an object is granted on the NATIVE permission
 		* of that object (read or write, for the user given by the core). The core only honours a positive answer of this hook

@@ -149,6 +149,46 @@
 		}
 
 		/**
+		*	Match the files of the object with the third parties they are addressed to. File names are deterministic
+		*	(<REF>-<suffix>.pdf, possibly prefixed / suffixed by a third party model such as InfraSPlus_Bon) : a file belongs to the
+		*	addressee whose '<REF>-<suffix>' is in its name, the longest suffix first and never as the beginning of a longer code
+		*	(CU2609-0006 does not match CU2609-00065). Objects without infrasfilesGetAddressees() (inventories) have no addressee.
+		*
+		*	@param		array|null	$files		Files as returned by dol_dir_list() (null = files of the output directory of the object)
+		*	@return		array					array(file name => addressee array('id', 'name', 'code', 'email', 'suffix'))
+		**/
+		public function infrasfilesGetFileAddressees($files = null)
+		{
+			$map	= array();
+			if (!method_exists($this, 'infrasfilesGetAddressees') || empty($this->ref)) {
+				return $map;
+			}
+			if (empty($this->infrasfiles_lines) && empty($this->specimen) && method_exists($this, 'infrasfilesFetchLines')) {
+				$this->infrasfilesFetchLines();
+			}
+			$addressees	= $this->infrasfilesGetAddressees();
+			if (empty($addressees)) {
+				return $map;
+			}
+			if ($files === null) {
+				$files	= dol_dir_list($this->infrasfilesGetOutputDir(), 'files', 0, '', '(\.meta|_preview.*\.png)$', 'name', SORT_ASC, 0);
+			}
+			usort($addressees, function ($a, $b) {
+				return strlen($b['suffix']) - strlen($a['suffix']);	// longest suffix first
+			});
+			$ref	= dol_sanitizeFileName($this->ref);
+			foreach ($files as $file) {
+				$name	= is_array($file) ? $file['name'] : basename((string) $file);
+				foreach ($addressees as $addressee) {
+					if (preg_match('/'.preg_quote($ref.'-'.$addressee['suffix'], '/').'(?![A-Za-z0-9-])/', $name)) {
+						$map[$name]	= $addressee;
+						break;
+					}
+				}
+			}
+			return $map;
+		}
+		/**
 		*	Generation loop : one call of the native commonGenerateDocument() per unit (a unit = one PDF)
 		*
 		*	@param		string		$modele			Model name ('' = last used or default)

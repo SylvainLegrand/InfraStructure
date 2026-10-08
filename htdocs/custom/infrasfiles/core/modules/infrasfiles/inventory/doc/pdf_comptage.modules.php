@@ -19,7 +19,8 @@
 	/************************************************
 	* 	\file		./infrasfiles/core/modules/infrasfiles/inventory/doc/pdf_comptage.modules.php
 	* 	\ingroup	InfraS
-	* 	\brief		PDF model "comptage" : inventory counting sheet, lines grouped by storage zone with an empty box to write the counted quantity
+	* 	\brief		PDF model "comptage" : inventory counting sheet, storage zone in the first column (lines sorted by zone), empty boxes for the
+	*				counted quantity and the recount, "counted by" and "recounted by" lines ; always portrait, a long text wraps in its cell
 	************************************************/
 
 	// Libraries ************************************
@@ -78,12 +79,44 @@
 			$title		= $outputlangs->transnoentities('InfraSFilesPdfTitleCounting');
 			$showqty	= (bool) getDolGlobalInt(infrasfiles_const_name('inventory', 'SHOW_QTY'), 0);
 			$hasbatch	= false;
+			$haszone	= false;
 			$multiwh	= empty($object->fk_warehouse);
 			foreach ($lines as $line) {
 				if (!empty($line['tobatch']) || $line['batch'] !== '') {
 					$hasbatch	= true;
 				}
+				if ((string) $line['zone'] !== '') {
+					$haszone	= true;	// the "Zone" column is shown only when at least one line has a zone (no zone source = no column)
+				}
 			}
+			// Column widths (headers measured in the 4 languages at the header font size) : [Zone], Ref, Label (remaining width), [Warehouse], [Batch], [Physical stock], Counted quantity, Recount.
+			// Always portrait : a long label (or zone, ref...) wraps in its cell and the row grows. The label keeps at least 40 mm : when the
+			// optional columns would leave less, the other columns are narrowed in proportion (their titles then wrap, the header row grows)
+			$widths	= array();
+			if ($haszone) {
+				$widths['zone']	= 26;
+			}
+			$widths['ref']		= 32;
+			$widths['label']	= 0;
+			if ($multiwh) {
+				$widths['warehouse_ref']	= 26;
+			}
+			if ($hasbatch) {
+				$widths['batch']	= 28;
+			}
+			if ($showqty) {
+				$widths['qty_stock']	= 26;
+			}
+			$widths['counted']	= 30;
+			$widths['recount']	= 26;
+			$usable	= $this->page_largeur - $this->marge_gauche - $this->marge_droite - 4;
+			if ($usable - array_sum($widths) < 40) {
+				$ratio	= ($usable - 40) / array_sum($widths);
+				foreach ($widths as $key => $w) {
+					$widths[$key]	= round($w * $ratio, 1);
+				}
+			}
+			$widths['label']	= $usable - array_sum($widths);
 
 			// Output file
 			$paths	= $this->infrasfilesGetFile($object, $unit, $outputlangs);
@@ -119,67 +152,41 @@
 								array($outputlangs->transnoentities('Status'), dol_string_nohtmltag($object->getLibStatut(0))));
 			$posy	= $this->infrasfilesWriteHead($pdf, $object, $outputlangs, $title, $rightlines);
 
-			// Columns : the empty "counted" box is always the last one on the right
+			// Columns (widths computed above) : the two empty boxes "counted quantity" and "recount" are the last ones on the right
 			$colx		= $this->marge_gauche + 2;
-			$right		= $this->marge_gauche + $width - 2;
-			$wcounted	= 36;
-			$wqty		= $showqty ? 26 : 0;
-			$wbatch		= $hasbatch ? 32 : 0;
-			$wwh		= $multiwh ? 30 : 0;
-			$wref		= 38;
-			$wlabel		= $right - $colx - $wref - $wwh - $wbatch - $wqty - $wcounted;
-			$columns	= array(array('label' => $outputlangs->transnoentities('Ref'),	'x' => $colx,			'w' => $wref,	'align' => 'L'),
-								array('label' => $outputlangs->transnoentities('Label'),	'x' => $colx + $wref,	'w' => $wlabel,	'align' => 'L'));
-			$x	= $colx + $wref + $wlabel;
-			if ($multiwh) {
-				$columns[]	= array('label' => $outputlangs->transnoentities('Warehouse'), 'x' => $x, 'w' => $wwh, 'align' => 'L', 'key' => 'warehouse_ref');
-				$x	+= $wwh;
+			$labels		= array('zone'			=> $outputlangs->transnoentities('InfraSFilesPdfZone'),
+								'ref'			=> $outputlangs->transnoentities('Ref'),
+								'label'			=> $outputlangs->transnoentities('Label'),
+								'warehouse_ref'	=> $outputlangs->transnoentities('Warehouse'),
+								'batch'			=> $outputlangs->transnoentities('Batch'),
+								'qty_stock'		=> $outputlangs->transnoentities('PhysicalStock'),
+								'counted'		=> $outputlangs->transnoentities('InfraSFilesPdfColCounted'),
+								'recount'		=> $outputlangs->transnoentities('InfraSFilesPdfColRecount'));
+			$boxes		= array('counted', 'recount');
+			$columns	= array();
+			$x			= $colx;
+			foreach ($widths as $key => $w) {
+				$columns[]	= array('key' => $key, 'label' => $labels[$key], 'x' => $x, 'w' => $w, 'align' => ($key == 'qty_stock' ? 'R' : (in_array($key, $boxes) ? 'C' : 'L')));
+				$x	+= $w;
 			}
-			if ($hasbatch) {
-				$columns[]	= array('label' => $outputlangs->transnoentities('Batch'), 'x' => $x, 'w' => $wbatch, 'align' => 'L', 'key' => 'batch');
-				$x	+= $wbatch;
-			}
-			if ($showqty) {
-				$columns[]	= array('label' => $outputlangs->transnoentities('PhysicalStock'), 'x' => $x, 'w' => $wqty, 'align' => 'R', 'key' => 'qty_stock');
-				$x	+= $wqty;
-			}
-			$columns[]	= array('label' => $outputlangs->transnoentities('InfraSFilesPdfColCounted'), 'x' => $x, 'w' => $wcounted, 'align' => 'C', 'key' => 'counted');
 			$posy	= $this->infrasfilesWriteTableHeader($pdf, $outputlangs, $posy, $columns);
 
-			// Lines grouped by zone (lines are already sorted by zone rank, ref, batch)
-			$currentzone	= null;
-			$nbzone			= 0;
+			// Lines, sorted by zone rank, ref, batch (InfrasFilesInventory::infrasfilesFetchLines()) : the zone is a column, no more zone bands
 			$total			= 0;
-			foreach ($lines as $index => $line) {
-				$zonekey	= (string) $line['zone'];
-				if ($currentzone === null || $zonekey !== $currentzone) {
-					// Zone band : label + number of references of the zone
-					$nbzone	= 0;
-					foreach ($lines as $other) {
-						if ((string) $other['zone'] === $zonekey) {
-							$nbzone++;
-						}
-					}
-					$posy	= $this->infrasfilesCheckPageBreak($pdf, $object, $outputlangs, $posy, 14, $title, $columns);
-					$zonelabel	= ($zonekey === '') ? $outputlangs->transnoentities('InfraSFilesPdfNoZone') : (!empty($line['zone_label']) ? $line['zone_label'] : $zonekey);
-					$pdf->SetFillColor(245, 245, 245);
-					$pdf->Rect($this->marge_gauche, $posy, $width, 6, 'F');
-					$pdf->SetFont('', 'B', $default_font_size);
-					$pdf->SetXY($colx, $posy + 1);
-					$pdf->MultiCell($width - 4, 4, $outputlangs->convToOutputCharset($outputlangs->transnoentities('InfraSFilesPdfZone').' : '.$zonelabel.' - '.$outputlangs->transnoentities('InfraSFilesPdfNbRefs', $nbzone)), 0, 'L');
-					$pdf->SetFont('', '', $default_font_size - 1);
-					$posy	+= 6;
-					$currentzone	= $zonekey;
-				}
+			foreach ($lines as $line) {
 				$posy	= $this->infrasfilesCheckPageBreak($pdf, $object, $outputlangs, $posy, 9, $title, $columns);
 				$ynext	= $posy;
 				foreach ($columns as $column) {
-					$key	= isset($column['key']) ? $column['key'] : '';
-					if ($key == 'counted') {
+					$key	= $column['key'];
+					if (in_array($key, $boxes)) {
 						continue;	// drawn after the row height is known
 					}
-					if ($key == '') {
-						$text	= ($column['x'] == $colx) ? $line['product_ref'] : $line['product_label'];
+					if ($key == 'zone') {
+						$text	= ((string) $line['zone'] === '') ? '' : (!empty($line['zone_label']) ? $line['zone_label'] : (string) $line['zone']);	// no zone : empty cell (these lines are sorted last)
+					} elseif ($key == 'ref') {
+						$text	= $line['product_ref'];
+					} elseif ($key == 'label') {
+						$text	= $line['product_label'];
 					} elseif ($key == 'qty_stock') {
 						$text	= ($line['qty_stock'] === null) ? '' : (string) price2num($line['qty_stock'], 'MS');
 					} else {
@@ -190,10 +197,13 @@
 					$ynext	= max($ynext, $pdf->GetY());
 				}
 				$rowh	= max($ynext - $posy, 7) + 1;
-				// Empty box for the counted quantity
-				$last	= $columns[count($columns) - 1];
+				// Empty boxes for the counted quantity and the recount
 				$pdf->SetDrawColor(120, 120, 120);
-				$pdf->Rect($last['x'] + 2, $posy + 1, $last['w'] - 4, $rowh - 2);
+				foreach ($columns as $column) {
+					if (in_array($column['key'], $boxes)) {
+						$pdf->Rect($column['x'] + 2, $posy + 1, $column['w'] - 4, $rowh - 2);
+					}
+				}
 				$pdf->SetDrawColor(210, 210, 210);
 				$pdf->line($this->marge_gauche, $posy + $rowh, $this->marge_gauche + $width, $posy + $rowh);
 				$posy	+= $rowh;
@@ -204,16 +214,45 @@
 				$pdf->MultiCell($width - 4, 5, $outputlangs->convToOutputCharset($outputlangs->transnoentities('NoRecordFound')), 0, 'C');
 				$posy	+= 8;
 			}
-			// Footer of the sheet : total and signature area
-			$posy	= $this->infrasfilesCheckPageBreak($pdf, $object, $outputlangs, $posy, 26, $title, array());
+			// Footer of the sheet : total, then the "counted by" and "recounted by" lines with date and signature
+			$posy	= $this->infrasfilesCheckPageBreak($pdf, $object, $outputlangs, $posy, 34, $title, array());
 			$pdf->SetFont('', 'B', $default_font_size);
 			$pdf->SetXY($colx, $posy + 3);
 			$pdf->MultiCell(100, 5, $outputlangs->convToOutputCharset($outputlangs->transnoentities('InfraSFilesPdfNbRefs', $total)), 0, 'L');
 			$pdf->SetFont('', '', $default_font_size);
-			$pdf->SetXY($colx, $posy + 12);
-			$pdf->MultiCell($width - 4, 5, $outputlangs->convToOutputCharset($outputlangs->transnoentities('InfraSFilesPdfCountedBy').' : ________________________________        '.$outputlangs->transnoentities('Date').' : ____ / ____ / ________        '.$outputlangs->transnoentities('Signature').' :'), 0, 'L');
+			$this->infrasfilesSignLine($pdf, $outputlangs, $colx, $posy + 12, $width - 4, $outputlangs->transnoentities('InfraSFilesPdfCountedBy'));
+			$this->infrasfilesSignLine($pdf, $outputlangs, $colx, $posy + 21, $width - 4, $outputlangs->transnoentities('InfraSFilesPdfRecountedBy'));
 
 			$this->_pagefoot($pdf, $object, $outputlangs);
 			return $this->infrasfilesFinish($pdf, $paths, $object, $outputlangs);
+		}
+		/**
+		*	Signature line of the sheet : "<label> : ________   Date : ____ / ____ / ________   Signature : ________", the three parts at
+		*	fixed positions so that the "counted by" and "recounted by" lines are aligned whatever the length of their label
+		*
+		*	@param		TCPDF		$pdf			PDF instance
+		*	@param		Translate	$outputlangs	Output language
+		*	@param		float		$x				Left position
+		*	@param		float		$y				Top position
+		*	@param		float		$w				Width of the line
+		*	@param		string		$label			Label (ex : "Counted by")
+		*	@return		void
+		**/
+		protected function infrasfilesSignLine(&$pdf, $outputlangs, $x, $y, $w, $label)
+		{
+			$xdate	= $x + round($w * 0.48);
+			$xsign	= $x + round($w * 0.76);
+			$base	= $y + 4;	// underline position
+			$label	= $outputlangs->convToOutputCharset($label.' : ');
+			$sign	= $outputlangs->convToOutputCharset($outputlangs->transnoentities('Signature').' : ');
+			$pdf->SetDrawColor(80, 80, 80);
+			$pdf->SetXY($x, $y);
+			$pdf->MultiCell($xdate - $x - 2, 5, $label, 0, 'L');
+			$pdf->line($x + $pdf->GetStringWidth($label), $base, $xdate - 4, $base);
+			$pdf->SetXY($xdate, $y);
+			$pdf->MultiCell($xsign - $xdate - 2, 5, $outputlangs->convToOutputCharset($outputlangs->transnoentities('Date').' : ____ / ____ / ________'), 0, 'L');
+			$pdf->SetXY($xsign, $y);
+			$pdf->MultiCell($x + $w - $xsign, 5, $sign, 0, 'L');
+			$pdf->line($xsign + $pdf->GetStringWidth($sign), $base, $x + $w, $base);
 		}
 	}

@@ -284,10 +284,13 @@
 		{
 			$default_font_size	= pdf_getPDFFontSize($outputlangs);
 			$width	= $this->page_largeur - $this->marge_gauche - $this->marge_droite;
+			$pdf->SetFont('', 'B', $default_font_size - 1);
+			foreach ($columns as $column) {
+				$h	= max($h, $pdf->getStringHeight($column['w'], $outputlangs->convToOutputCharset($column['label'])) + 2);	// a title too long for its column wraps : the header row grows
+			}
 			$pdf->SetFillColor(230, 230, 230);
 			$pdf->SetDrawColor(128, 128, 128);
 			$pdf->Rect($this->marge_gauche, $y, $width, $h, 'DF');
-			$pdf->SetFont('', 'B', $default_font_size - 1);
 			$pdf->SetTextColor(0, 0, 0);
 			foreach ($columns as $column) {
 				$pdf->SetXY($column['x'], $y + 1);

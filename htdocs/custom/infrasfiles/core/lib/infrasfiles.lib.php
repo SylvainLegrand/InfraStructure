@@ -58,6 +58,11 @@
 	*		mailtemplate	Prefix of the translation keys (<prefix>Label / Topic / Content) of the default e-mail template inserted at activation
 	*		trigger		Trigger code fired after sending (<OBJECT>_SENTBYMAIL) : agenda event through the native agenda trigger
 	*		trackid		Prefix of the e-mail tracking id (3 letters + object id)
+	*		mailbythirdparty	true = the send form sends one e-mail per third party, each with its own PDF (the child class must provide
+	*					infrasfilesGetAddressees() and infrasfilesGetMailBatches()) ; absent = native single e-mail form
+	*		nativemailtype	Template type of the send form the NATIVE card already has (ex : 'inventory') : the module then adds no button,
+	*					no form and no action on that card, it only attaches its PDF to the native form (hook getFormMail) ; absent = the
+	*					native card has no send form, the module displays its own on the card (hooks addMoreActionsButtons / printCommonFooter / doActions)
 	*		options		Object specific options shown on the setup page : array(SUFFIX => array('type', 'label', 'values', 'default', 'help')) - 'help' = translation key of the tooltip (optional)
 	*
 	*	@return		array		Registry
@@ -98,6 +103,7 @@
 									'mailtemplate'	=> 'InfraSFilesMailTplWidthdraw',	// prefix of the translation keys (…Label, …Topic, …Content) of the default e-mail template
 									'trigger'		=> 'WIDTHDRAW_SENTBYMAIL',
 									'trackid'		=> 'wdr',
+									'mailbythirdparty'	=> true,	// one e-mail per third party (or parent company), with its own PDF
 									'options'		=> array('SPLIT_MODE'	=> array('type'		=> 'select',
 																						'label'		=> 'InfraSFilesOptSplitMode',
 																						'help'		=> 'InfraSFilesOptSplitModeHelp',
@@ -137,6 +143,7 @@
 									'mailtemplate'	=> 'InfraSFilesMailTplInventory',
 									'trigger'		=> 'INVENTORY_SENTBYMAIL',
 									'trackid'		=> 'inv',
+									'nativemailtype'	=> 'inventory',	// product/inventory/card.php has its own "Send by e-mail" button and form (same trigger)
 									// The storage zone of the counting sheet is not an option here : it follows the "Zone" column setup of the module InfraSWorkflow
 									// (section "Inventory management" : product extrafield or location categories), see infrasfiles_inventory_zone_config()
 									'options'		=> array('SHOW_QTY'		=> array('type'		=> 'on_off',
@@ -269,15 +276,19 @@
 		return !empty($obj->nb);
 	}
 	/**
-	*	Find the registry element whose e-mail template type is the given one
+	*	Find the registry element whose e-mail template type is the given one : the type of the module ('mailtype') or the type
+	*	used by the send form of the native card ('nativemailtype', ex : 'inventory')
 	*
-	*	@param		string		$mailtype	Template type (ex : 'infrasfiles_widthdraw')
+	*	@param		string		$mailtype	Template type (ex : 'infrasfiles_widthdraw', 'inventory')
 	*	@return		string					Element key or ''
 	**/
 	function infrasfiles_element_from_mailtype($mailtype)
 	{
 		foreach (infrasfiles_get_registry() as $element => $definition) {
 			if (!empty($definition['mailtype']) && $definition['mailtype'] == $mailtype) {
+				return $element;
+			}
+			if (!empty($definition['nativemailtype']) && $definition['nativemailtype'] == $mailtype) {
 				return $element;
 			}
 		}
@@ -566,6 +577,274 @@
 		return $formfile->showdocuments('infrasfiles:'.$definition['docpart'], infrasfiles_get_subdir($element, $object), infrasfiles_get_output_dir($element, $object), $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang, '', $object);
 	}
 
+	/**
+	*	Links to the third party each file of an object is addressed to (column "Third party" of the file lists)
+	*
+	*	@param		object		$object		Object (child class of the module, using InfrasFilesDocumentTrait)
+	*	@param		array|null	$files		Files as returned by dol_dir_list() (null = files of the output directory of the object)
+	*	@return		array					array(file name => HTML link of the third party), empty when the object has no addressees (inventories)
+	**/
+	function infrasfiles_get_file_thirdparty_links($object, $files = null)
+	{
+		global $db, $hookmanager;
+		$links	= array();
+		if (!is_object($object) || !method_exists($object, 'infrasfilesGetFileAddressees')) {
+			return $links;
+		}
+		$map	= $object->infrasfilesGetFileAddressees($files);
+		if (empty($map)) {
+			return $links;
+		}
+		require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+		if (!is_object($hookmanager)) {
+			$hookmanager	= new HookManager($db);	// getNomUrl() runs the hook getNomUrl : no hook manager outside main.inc.php (CLI, tests)
+		}
+		$istransfer	= (!empty($object->type) && $object->type == 'bank-transfer');
+		$cache		= array();
+		foreach ($map as $name => $addressee) {
+			$socid	= (int) $addressee['id'];
+			if (!isset($cache[$socid])) {
+				// No fetch (an order can have dozens of third parties) : the link only needs the id and the name, no tooltip
+				$soc		= new Societe($db);
+				$soc->id	= $socid;
+				$soc->name	= $addressee['name'];
+				if ($istransfer) {
+					$soc->code_fournisseur	= $addressee['code'];
+				} else {
+					$soc->code_client		= $addressee['code'];
+				}
+				$cache[$socid]	= $soc->getNomUrl(1, '', 0, 1);
+			}
+			$links[$name]	= $cache[$socid];
+		}
+		return $links;
+	}
+	/**
+	*	Script inserting a "Third party" column into a native file list (FormFile::showdocuments() box or FormFile::list_of_documents() tab) :
+	*	a cell after the file name of every file row (the file is recognised by the 'file=' parameter of its link), the header cell after
+	*	the first header cell, and the colspan of the other rows (generation form, hooks, links) increased by one.
+	*	Native lists have no per line hook that would not alter every document box of Dolibarr, hence this client side insertion.
+	*
+	*	@param		string		$selector	jQuery selector of the table
+	*	@param		array		$links		array(file name => HTML of the third party), see infrasfiles_get_file_thirdparty_links()
+	*	@return		string					HTML script ('' when there is nothing to show)
+	**/
+	function infrasfiles_get_thirdparty_column_script($selector, $links)
+	{
+		global $langs;
+		if (empty($links)) {
+			return '';
+		}
+		$langs->load('companies');
+		return '<script type = "text/javascript">
+					jQuery(document).ready(function() {
+						var links	= '.json_encode($links).';
+						var table	= jQuery('.json_encode($selector).').first();
+						if (!table.length) {
+							return;
+						}
+						var inserted	= false;
+						table.find("tr").each(function() {
+							var cells	= jQuery(this).children("td");
+							if (cells.length < 2) {
+								return;
+							}
+							var link	= cells.first().find("a[href*=\"file=\"]").first();
+							if (!link.length) {
+								return;
+							}
+							var match	= link.attr("href").match(/[?&]file=([^&#]*)/);
+							if (!match) {
+								return;
+							}
+							var name	= decodeURIComponent(match[1].replace(/\+/g, " ")).split("/").pop();
+							cells.first().after("<td class=\"infrasfiles-thirdparty tdoverflowmax200\">" + (links.hasOwnProperty(name) ? links[name] : "") + "</td>");
+							inserted	= true;
+						});
+						if (!inserted) {
+							return;
+						}
+						table.find("tr").each(function() {
+							var row		= jQuery(this);
+							if (row.children("td.infrasfiles-thirdparty").length) {
+								return;
+							}
+							var spanned	= row.children("[colspan]").first();
+							if (spanned.length) {
+								spanned.attr("colspan", parseInt(spanned.attr("colspan"), 10) + 1);
+							} else if (row.hasClass("liste_titre") && row.children("th").length >= 2) {
+								row.children("th").first().after("<th class=\"liste_titre\">'.dol_escape_js($langs->trans('ThirdParty')).'</th>");
+							}
+						});
+					});
+				</script>';
+	}
+	/**
+	*	Test if the current request is a POST. The actions of the module that change data (mass deletion, send per third party) are
+	*	accepted in POST only : the core checks the CSRF token of a GET action only when its name starts with del / remove / set...
+	*	(MAIN_SECURITY_CSRF_WITH_TOKEN = 2), which is not the case of the 'infrasfiles_*' actions, while a POST is checked from level 1.
+	*
+	*	@return		bool
+	**/
+	function infrasfiles_is_post_request()
+	{
+		return (!empty($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST');
+	}
+	/**
+	*	Rule "this file belongs to this object" : a path relative to the module data directory, directly under '<dirout>/<REF>/'
+	*	(no sub directory, no '.' or '..'). Used before any mass deletion : a posted path must never reach another object.
+	*
+	*	@param		string		$element	Object key of the registry
+	*	@param		object		$object		Object (its ref gives the directory)
+	*	@param		string		$file		Relative path ('<dirout>/<REF>/<name>')
+	*	@return		bool
+	**/
+	function infrasfiles_file_belongs_to($element, $object, $file)
+	{
+		$file	= str_replace('\\', '/', (string) $file);
+		if (!is_object($object) || empty($object->ref) || infrasfiles_element_from_file($file) !== $element) {
+			return false;
+		}
+		$subdir	= infrasfiles_get_subdir($element, $object);
+		if (!preg_match('#^'.preg_quote($subdir, '#').'/([^/]+)$#', $file, $reg)) {
+			return false;
+		}
+		return !in_array($reg[1], array('.', '..'));
+	}
+	/**
+	*	Delete several files of an object at once, with the native deletion of the trash icon (dol_delete_file() with the object :
+	*	ECM index and shares cleaned). Files not belonging to the object are refused and reported. Messages are set here.
+	*
+	*	@param		string		$element	Object key of the registry
+	*	@param		object		$object		Object (child class of the module)
+	*	@param		array		$files		Relative paths posted by the list ('<dirout>/<REF>/<name>')
+	*	@return		array					array('deleted' => number of files deleted, 'errors' => list of messages)
+	**/
+	function infrasfiles_remove_files($element, $object, $files)
+	{
+		global $langs;
+		require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+		$langs->loadLangs(array('other', 'infrasfiles@infrasfiles'));
+		$result	= array('deleted' => 0, 'errors' => array());
+		$files	= array_unique(array_filter(array_map('strval', (array) $files)));
+		if (empty($files)) {
+			setEventMessages($langs->trans('InfraSFilesMassDeleteNone'), null, 'warnings');
+			return $result;
+		}
+		$basedir	= infrasfiles_get_base_dir();
+		foreach ($files as $file) {
+			if (!infrasfiles_file_belongs_to($element, $object, $file) || !dol_is_file($basedir.'/'.$file)) {
+				$result['errors'][]	= $langs->trans('InfraSFilesMassDeleteErrorFile', basename($file));
+				continue;
+			}
+			if (dol_delete_file($basedir.'/'.$file, 0, 0, 0, $object)) {
+				$result['deleted']++;
+			} else {
+				$result['errors'][]	= $langs->trans('InfraSFilesMassDeleteErrorFile', basename($file));
+			}
+		}
+		setEventMessages($langs->trans('InfraSFilesMassDeleteDone', $result['deleted']), null, ($result['deleted'] > 0 ? 'mesgs' : 'warnings'));
+		if (!empty($result['errors'])) {
+			setEventMessages('', $result['errors'], 'errors');
+		}
+		return $result;
+	}
+	/**
+	*	Script adding a mass deletion to a native file list : a checkbox before the name of every file row (value = the relative path
+	*	of the 'file=' parameter of its link, the same the trash icon posts), the colspan of the other rows increased by one, and a bar
+	*	under the table with a "select all" checkbox and a "Delete selection" button, enabled when a file is checked, no confirmation
+	*	(as the trash icon of the card). Two modes : 'box' = the list is already inside the generation form of FormFile::showdocuments()
+	*	(the button switches its hidden 'action' to the mass deletion before submitting) ; 'tab' = the list is in no form
+	*	(FormFile::list_of_documents()), the table block and the bar are wrapped into a form posting to $posturl with the token and the action.
+	*
+	*	@param		string		$selector	jQuery selector of the table
+	*	@param		string		$mode		'box' or 'tab'
+	*	@param		string		$posturl	URL the form posts to ('tab' mode)
+	*	@param		string		$moreinputs	HTML of more hidden inputs for the form ('tab' mode, ex : element and id)
+	*	@return		string					HTML script
+	**/
+	function infrasfiles_get_mass_delete_script($selector, $mode, $posturl = '', $moreinputs = '')
+	{
+		global $langs;
+		$langs->loadLangs(array('main', 'infrasfiles@infrasfiles'));
+		return '<script type = "text/javascript">
+					jQuery(document).ready(function() {
+						var table	= jQuery('.json_encode($selector).').first();
+						if (!table.length) {
+							return;
+						}
+						var escapeattr	= function(s) { return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); };
+						var nbfiles		= 0;
+						table.find("tr").each(function() {
+							var cells	= jQuery(this).children("td");
+							if (cells.length < 2) {
+								return;
+							}
+							var link	= cells.first().find("a[href*=\"file=\"]").first();
+							if (!link.length) {
+								return;
+							}
+							var match	= link.attr("href").match(/[?&]file=([^&#]*)/);
+							if (!match) {
+								return;
+							}
+							var file	= decodeURIComponent(match[1].replace(/\+/g, " "));
+							cells.first().before("<td class=\"center infrasfiles-massdel\"><input type=\"checkbox\" class=\"infrasfiles-massdel-file\" name=\"infrasfiles_files[]\" value=\"" + escapeattr(file) + "\"></td>");
+							nbfiles++;
+						});
+						if (!nbfiles) {
+							return;
+						}
+						table.find("tr").each(function() {
+							var row	= jQuery(this);
+							if (row.children("td.infrasfiles-massdel").length) {
+								return;
+							}
+							var spanned	= row.children("[colspan]").first();
+							if (spanned.length) {
+								spanned.attr("colspan", parseInt(spanned.attr("colspan"), 10) + 1);
+							} else if (row.hasClass("liste_titre") && row.children("th").length >= 2) {
+								row.children("th").first().before("<th class=\"liste_titre\"></th>");	// column header of the tab list (the box has no column header row)
+							}
+						});
+						var container	= table.closest("div.div-table-responsive-no-min");
+						var block		= container.length ? container : table;	// the table and its responsive wrapper
+						var form;
+						if ('.json_encode($mode).' == "box") {
+							form	= table.closest("form");
+						} else {
+							// The whole block goes into the form, so that the bar added after it (and its submit button) is inside the form too
+							block.wrap("<form method=\"POST\" action=\"" + escapeattr('.json_encode((string) $posturl).') + "\"></form>");
+							form	= block.closest("form");
+							form.prepend("<input type=\"hidden\" name=\"token\" value=\"'.dol_escape_js(newToken()).'\"><input type=\"hidden\" name=\"action\" value=\"infrasfiles_remove_files\">'.dol_escape_js($moreinputs).'");
+						}
+						// "Select all" and the button in a bar under the table, inside the form (the box has no column header row to host the checkbox)
+						var bar	= jQuery("<div class=\"infrasfiles-massdel-bar paddingtop\"><label class=\"paddingright\"><input type=\"checkbox\" id=\"infrasfiles-massdel-all\"> '.dol_escape_js($langs->trans('SelectAll')).'</label> <input type=\"submit\" class=\"button small\" id=\"infrasfiles-massdel-button\" value=\"'.dol_escape_js($langs->trans('InfraSFilesMassDeleteSelection')).'\" disabled=\"disabled\"></div>");
+						block.after(bar);
+						var refresh	= function() {
+							var n	= table.find("input.infrasfiles-massdel-file:checked").length;
+							jQuery("#infrasfiles-massdel-button").prop("disabled", n == 0);
+							jQuery("#infrasfiles-massdel-all").prop("checked", n > 0 && n == table.find("input.infrasfiles-massdel-file").length);
+						};
+						table.on("change", "input.infrasfiles-massdel-file", refresh);
+						bar.on("click", "#infrasfiles-massdel-all", function() {
+							table.find("input.infrasfiles-massdel-file").prop("checked", this.checked);
+							refresh();
+						});
+						// No confirmation, as the trash icon of the card : the button is enabled only when a file is checked
+						jQuery("#infrasfiles-massdel-button").on("click", function(e) {
+							if (table.find("input.infrasfiles-massdel-file:checked").length == 0) {
+								e.preventDefault();
+								return false;
+							}
+							if (form.length) {
+								form.find("input[name=action]").val("infrasfiles_remove_files");
+							}
+							return true;
+						});
+					});
+				</script>';
+	}
 	/**
 	*	Return the list of PDF models available for an object (files pdf_*.modules.php found in every module declaring 'models')
 	*
