@@ -302,7 +302,8 @@ class modTakePos extends DolibarrModules
 		$categories = new Categorie($this->db);
 		$cate_arbo = $categories->get_full_arbo('product', 0, 1);
 		if (is_array($cate_arbo)) {
-			if (!count($cate_arbo) || (!getDolGlobalString('TAKEPOS_ROOT_CATEGORY_ID') || getDolGlobalString('TAKEPOS_ROOT_CATEGORY_ID') == '-1')) {
+			// Keep '-1' (no root category chosen in TakePOS setup) when the module is reloaded by install/upgrade2.php // InfraS add
+			if (!count($cate_arbo) || !getDolGlobalString('TAKEPOS_ROOT_CATEGORY_ID')) { // InfraS change
 				$category = new Categorie($this->db);
 
 				$category->label = $langs->trans("DefaultPOSCatLabel");
