@@ -20,7 +20,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.12` (2026-10)
+- Dernière version locale : `21.8.13` (2026-10)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -407,6 +407,7 @@ Constantes actives usuelles (voir `sql/data.sql` et la page `admin/infrastructur
 - **Totaux sur titres** (18.4.0+) : `INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL` (reporte Total HT et taux TVA du bloc directement sur la ligne de titre, supprime l'impression des sous-totaux)
 - **Styles spéciaux** : `INFRASTRUCTURE_PDF_TITLE_STYLE_IF_HIDDEN_LINES` (défaut `I`)
 - **Couleurs** : `INFRASTRUCTURE_TITLE_BACKGROUND_COLOR` / `_TOTAL_BACKGROUND_COLOR` / `_TITLE_COLOR` / `_TOTAL_COLOR` / `_TITLE_COLOR_BLOC` / `_TEXT_LINE_COLOR` (21.6.0+, défaut `000000`) — couleur dédiée aux lignes de texte libre (libellé dans `infrastructureline_view.tpl.php`, icônes Éditer/Supprimer dans `infrastructureline_row_document.tpl.php`), auparavant confondue avec `_TOTAL_COLOR` pour les icônes et absente pour le libellé
+- **Couleurs PDF** : `INFRASTRUCTURE_PDF_TITLE_COLOR` / `_PDF_TOTAL_COLOR` (texte), `_PDF_TITLE_BACKGROUND_COLOR` / `_PDF_TOTAL_BACKGROUND_COLOR` (fond, éclairci par niveau), `_PDF_OL_COLOR` (lignes optionnelles). Ordre d'application du texte dans `pdfAddTitle()` / `pdfAddTotal()` : noir, puis blanc automatique sur fond sombre (`infrastructure_getPdfBackgroundStyle()`), puis couleur configurée (`infrastructure_setPdfTextColor()`, sans effet si la constante est vide). Toute remise au noir doit précéder ces deux appels : jusqu'en 21.8.12, un `SetTextColor(0, 0, 0)` placé après eux dans `pdfAddTitle()` rendait les titres noirs quel que soit le réglage, sur tous les modèles (natifs et InfraSPackPlus, qui passe par le hook `pdf_writelinedesc`). `pdfAddTitle()` remet le noir en fin de méthode (21.8.13) pour que la couleur du titre ne déborde pas sur les lignes suivantes quand il n'y a ni fond ni description
 - **Affichage quantités sous-totaux** : `INFRASTRUCTURE_DEFAULT_DISPLAY_QTY_FOR_TOTAL_ON_ELEMENTS` (CSV) + variante PDF `_PDF` (18.3.0+)
 - **Pliage** : `INFRASTRUCTURE_BLOC_FOLD_MODE` (`default` / `keepTitle` / `hideAll`), `INFRASTRUCTURE_HIDE_FOLDERS_BY_DEFAULT` (3.28.0+)
 - **TVA** : `INFRASTRUCTURE_LIMIT_TVA_ON_CONDENSED_BLOCS` (3.28.4+)

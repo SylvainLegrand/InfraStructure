@@ -608,7 +608,10 @@
 		<change type='fix'>Hook updateTotalPrice : un échec de la mise à jour des totaux (UPDATE) renvoyait encore 0 après la 21.8.11, donc update_price() du cœur poursuivait son propre calcul options comprises ; il est journalisé et renvoie -1 comme les deux autres requêtes du hook.</change>
 		<change type='chg'>Somme des arrondis : le stockage des totaux arrondis au centime par le hook updateTotalPrice, introduit en 21.8.11, est retiré. L'écart entre fiche et PDF qu'il corrigeait venait des fiches du cœur LTS, qui affichaient le total exact stocké ; elles affichent désormais les totaux comptables (CommonObject::getRoundedTotals, fiches devis, commande, devis et commande fournisseur alignées sur la fiche facture, 2026-10-07), pour tous les documents et sans écriture en base. Le hook rend ainsi des totaux de même nature que update_price() du cœur quel que soit le cœur (exacts sur le LTS, au centime sur un Dolibarr standard), et ne court-circuite plus le recalcul de TVA par taux du cœur sur les documents sans option. Les totaux déjà stockés arrondis par la 21.8.11 restent valides et reviennent au mode exact à la prochaine écriture de ligne.</change>
 	</Version>
-	<InfraS Downloaded="20261007"/>
+	<Version Number="21.8.13" MonthVersion="2026-10">
+		<change type='fix'>PDF : la couleur de texte des titres (INFRASTRUCTURE_PDF_TITLE_COLOR) était ignorée avec tous les modèles, natifs (azur, cyan...) comme InfraSPackPlus : pdfAddTitle() remettait le texte en noir juste après avoir appliqué la couleur configurée, ce qui annulait aussi le blanc automatique sur fond sombre. Le noir est désormais posé avant le calcul du fond, puis remplacé par le blanc automatique ou la couleur configurée, comme pour les sous-totaux, et rétabli en fin de titre pour ne pas colorer les lignes suivantes.</change>
+	</Version>
+	<InfraS Downloaded="20261008"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

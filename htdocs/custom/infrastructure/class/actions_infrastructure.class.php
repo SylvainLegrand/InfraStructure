@@ -993,6 +993,8 @@
 			$titleTextX			= !empty($posx) ? $posx : $titleBlockX;
 			$titleTextW			= $titleBlockX + $titleBlockW - $titleTextX;
 			// Manage background color
+			// Couleur du texte du titre : noir par défaut, puis blanc automatique sur fond sombre (infrastructure_getPdfBackgroundStyle), puis couleur INFRASTRUCTURE_PDF_TITLE_COLOR si renseignée. La remise au noir doit précéder ces deux étapes : placée après (jusqu'en 21.8.12), elle annulait la couleur configurée et le blanc automatique.
+			$pdf->SetTextColor(0, 0, 0);
 			$fillDescBloc				= false;
 			$bgStyle					= infrastructure_getPdfBackgroundStyle($pdf, 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_COLOR', 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_CELL_HEIGHT_OFFSET', 'INFRASTRUCTURE_PDF_TITLE_BACKGROUND_CELL_POS_Y_OFFSET', $line);
 			$fillBackground				= $bgStyle['fill'];
@@ -1001,7 +1003,6 @@
 			$backgroundCellPosYOffset	= $bgStyle['posYOffset'];
 			// User-configured text color override (takes precedence over auto white-on-dark from infrastructure_getPdfBackgroundStyle).
 			infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TITLE_COLOR');
-			$pdf->SetTextColor(0, 0, 0);
 			// Réservation d'espace : pour tout titre infrastructure (avec ou sans totaux stockés via INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL), si le couple « libellé du titre + description optionnelle + (ligne de totaux si applicable) » ne tient pas sur la page courante, on force un AddPage propre AVANT le rendu. Sans cette précaution, le writeHTMLCell du libellé déclenche un auto-page-break TCPDF en plein milieu du titre — le label se retrouve à cheval ou perdu entre les deux pages, une page parasite vide est créée, et le MultiCell du bandeau de fond (appelé après le writeHTMLCell, avec SetXY à $posy + offset) est dessiné sur la page d'arrivée à la position Y de l'ancienne page : on observe alors un bandeau vide sans texte en haut de la page suivante. Pour le mode INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL actif, on ajoute en plus la hauteur de la ligne de totaux redessinée par infrastructure_drawTitleColumnsAtPosY.
 			// Compat. modèles natifs Dolibarr (pdf_crabe, pdf_azur, etc.) : ces modèles entourent l'appel à pdf_writelinedesc d'un startTransaction / rollbackTransaction(true) et, en cas de saut de page détecté au 1er essai, ils réduisent temporairement la marge basse via setPageOrientation('', true, $heightforfooter) (~12 mm au lieu des 80-120 mm initiaux pour la zone footer + totaux + freetext + QR) avant un 2e appel. Conséquence : notre AddPage du 1er essai est annulé par le rollback, et au 2e essai notre check $posy + $reservedH > getPageHeight() - getBreakMargin() ne se déclencherait plus (marge basse trop courte) — le titre serait rendu en débordement en bas de page courante puis les lignes suivantes se dessineraient par-dessus le footer. On applique donc un plancher conservatif de 25 mm à la marge basse pour le calcul du pagebreakTrigger, ce qui garantit que notre AddPage explicite se redéclenche correctement au 2e essai hors transaction. De plus, on désactive l'auto-page-break TCPDF pendant le rendu du couple writeHTMLCell + MultiCell pour le rendre atomique (sinon l'auto-page-break interne pourrait toujours fragmenter le titre dans des cas non couverts par notre estimation de hauteur).
 			$reservedSizeTitle		= (float) (getDolGlobalString('INFRASTRUCTURE_PDF_TITLE_SIZE') ? getDolGlobalString('INFRASTRUCTURE_PDF_TITLE_SIZE') : 9);
@@ -1080,6 +1081,8 @@
 					infrastructure_drawTitleColumnsAtPosY($pdf, $pdfModel, $object, $line, $infrastructure_last_title_posy);
 				}
 			}
+			// Retour au noir : sans fond ni description, la couleur du titre resterait active pour les lignes suivantes.
+			$pdf->setColor('text', 0, 0, 0);
 			// Restauration de l'auto-page-break TCPDF avec sa marge basse d'origine (cf. désactivation en début de méthode pour rendu atomique).
 			$pdf->SetAutoPageBreak($savedAutoPageBreak, $savedBreakMargin);
 		}
