@@ -107,8 +107,8 @@ function importFromSQL(url, filename, sql, ajax_url)
     data.action = 'import_sql';
     data.url = url;
     data.filename = filename;
-    data.sql = escapeSQL(sql);
-    
+    data.sqlb64 = encodeBase64(sql); // InfraS change
+
     $.ajax({
             url: ajax_url,
             type: 'post',
@@ -145,6 +145,20 @@ function escapeSQL(sql)
     return result;
 }
 
+// InfraS add begin
+// function: encode a text in base64 (UTF-8, without padding)
+// the file content is sent in base64 so that the input filters of dolibarr don't alter the data (double quotes, html tags)
+function encodeBase64(text)
+{
+    var bytes = new TextEncoder().encode(text);
+    var binary = '';
+    for (var i = 0; i < bytes.length; i += 32768) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
+    }
+    return btoa(binary).replace(/=+$/, '');
+}
+// InfraS add end
+
 // function: reverse
 function reverse(s) {
   var o = '';
@@ -160,7 +174,7 @@ function importFromCSV(url, filename, csv, ajax_url)
     data.action = 'import_csv';
     data.url = url;
     data.filename = filename;
-    data.csv = escapeCSV(csv);
+    data.csvb64 = encodeBase64(csv); // InfraS change : quotes are kept, the csv is read by a standard parser on the server
     
     $.ajax({
             url: ajax_url,
@@ -172,13 +186,19 @@ function importFromCSV(url, filename, csv, ajax_url)
             
             if (result == 'wrongfile')
             {
-                alert("<?php echo $langs->trans('WrongFileExt', 'CSV'); ?>");
+                alert('<?php echo dol_escape_js($langs->transnoentities('WrongFileExt', 'CSV')); ?>'); // InfraS change
             }
+            // InfraS add begin
+            else if (result.length > 0 && result.indexOf('INSERT INTO') !== 0)
+            {
+                alert(result);	// Error message (empty file, permissions...), not an sql to confirm
+            }
+            // InfraS add end
             else if (result.length > 0)
             {
-                $('#dialogforpopup').html(result);
+                $('#dialogforpopup').text(result); // InfraS change : the generated sql holds the file data (html is no longer removed), it must not be interpreted
                 $('#dialogforpopup').dialog({
-                        title: "<?php echo $langs->trans('ConfirmImport'); ?>",
+                        title: '<?php echo dol_escape_js($langs->transnoentities('ConfirmImport')); ?>', // InfraS change
                         autoOpen: true,
                         open: function() {
                             $(this).parent().find("button.ui-button:eq(2)").focus();
@@ -193,7 +213,8 @@ function importFromCSV(url, filename, csv, ajax_url)
                                     // Envoi de la requête HTTP en mode synchrone
                                     data.action = 'import_sql';
                                     data.filename = 'generated_sql.sql';
-                                    data.sql = escapeSQL(result);
+                                    data.sqlb64 = encodeBase64(result); // InfraS change
+                                    delete data.csvb64; // InfraS add
                                     $.ajax({
                                             url: ajax_url,
                                             type: 'post',
@@ -228,7 +249,7 @@ function importFromCSV(url, filename, csv, ajax_url)
             }
             else
             {
-                alert("<?php echo $langs->trans('ImportFailed'); ?>");
+                alert('<?php echo dol_escape_js($langs->transnoentities('ImportFailed')); ?>'); // InfraS change
             }
     });
 }

@@ -86,19 +86,19 @@ class ActionsListExportImport
                         $list = new ListExportImport($db);
 
                         $more_buttons = array(
-                                            array('picto' => 'sql_delete.png', 'title' => 'FreeList', 'alt' => 'free', 'class' => 'import', 'active' => ($conf->global->LIST_EXPORT_IMPORT_ENABLE_FREE_LIST && $user->admin))
+                                            array('picto' => 'sql_delete.png', 'title' => 'FreeList', 'alt' => 'free', 'class' => 'import', 'active' => (getDolGlobalString('LIST_EXPORT_IMPORT_ENABLE_FREE_LIST') && $user->admin)) // InfraS change
                                         );
 
                         $download = '';
                         if (getDolGlobalString('LIST_EXPORT_IMPORT_USE_COMPACT_MODE')) {
                             $pathtocss[] = dol_buildpath('/listexportimport/css/listexportimport.css.php',1);
-                            if ($user->rights->listexportimport->export) {
+                            if ($user->hasRight('listexportimport', 'export')) { // InfraS change
                                 $list->getFormats('export');
                                 $download = '&nbsp;&nbsp;&nbsp;';
                                 $download.= getCompactedButtons($list->formats, $langs->trans('ListExport'), dol_buildpath('/listexportimport/img/export.png',1));
                             }
 
-                            if ($user->rights->listexportimport->import) {
+                            if ($user->hasRight('listexportimport', 'import')) { // InfraS change
                                 $list->getFormats('import');
                                 if (count($list->formats) > 0) {
                                     $download.= '&nbsp;&nbsp;&nbsp;';
@@ -112,7 +112,7 @@ class ActionsListExportImport
                             // List export/import formats buttons
                             foreach($list->formats as $format) {
                                 if ($format->active) {
-                                    if (($format->type == 'export' && $user->rights->listexportimport->export) || ($format->type == 'import' && $user->rights->listexportimport->import)) {
+                                    if (($format->type == 'export' && $user->hasRight('listexportimport', 'export')) || ($format->type == 'import' && $user->hasRight('listexportimport', 'import'))) { // InfraS change
                                         $download.= '&nbsp;'.getButton(dol_buildpath('/listexportimport/img/'.$format->picto, 1), $langs->trans($format->title), $format->format, $format->type);
                                     }
                                 }
@@ -121,7 +121,7 @@ class ActionsListExportImport
                             // More buttons
                             foreach($more_buttons as $button) {
                                 if ($button['active']) {
-                                    if (($button['class'] == 'export' && $user->rights->listexportimport->export) || ($button['class'] == 'import' && $user->rights->listexportimport->import)) {
+                                    if (($button['class'] == 'export' && $user->hasRight('listexportimport', 'export')) || ($button['class'] == 'import' && $user->hasRight('listexportimport', 'import'))) { // InfraS change
                                         $download.= '&nbsp;'.getButton(dol_buildpath('/listexportimport/img/'.$button['picto'], 1), $langs->trans($button['title']), $button['alt'], $button['class']);
                                     }
                                 }
@@ -129,7 +129,7 @@ class ActionsListExportImport
                         }
 
                         // add import file input
-                        if ($user->rights->listexportimport->import) {
+                        if ($user->hasRight('listexportimport', 'import')) { // InfraS change
                             $download.= '<input type="file" class="hidden" style="display: none;" id="import-file-input" accept=".sql"/>';
                         }
 
@@ -321,6 +321,11 @@ class ActionsListExportImport
                                                                     exportTableToFile.apply($self, args);
 
                                                                     $('#dialogforpopup').dialog('close');
+                                                            // InfraS add begin
+                                                            }).fail(function(xhr) {
+                                                                    $('#dialogforpopup').dialog('close');
+                                                                    alert(xhr.responseText);
+                                                            // InfraS add end
                                                             });
                                                     }
                                             });
@@ -373,7 +378,7 @@ class ActionsListExportImport
 
                                                                     // Suppression de la dernière colonne ou première colonne qui contient seulement les loupes des filtres
                                                                     if (has_search_button) {
-																		<?php if($conf->global->MAIN_CHECKBOX_LEFT_COLUMN) { ?>
+																		<?php if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) { // InfraS change ?>
                                                                             $table.find('th:first-child, td:first-child').each(function(index){
                                                                                 $(this).find('dl').remove();
                                                                                 if($(this).closest('table').hasClass('liste')) $(this).remove();

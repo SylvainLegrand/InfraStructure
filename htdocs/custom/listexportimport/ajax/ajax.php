@@ -37,7 +37,7 @@ $action	= GETPOST('action','alpha');
 $url = GETPOST('url','alpha');
 
 // Access control
-if (!$user->rights->listexportimport->export && !$user->rights->listexportimport->import) {
+if (!$user->hasRight('listexportimport', 'export') && !$user->hasRight('listexportimport', 'import')) { // InfraS change
 	// External user
 	accessforbidden();
 }
@@ -50,20 +50,63 @@ $langs->load('listexportimport@listexportimport');
 
 top_httphead();
 
+// InfraS add begin
+// Refuse inactive formats and tables holding permissions or credentials
+$requiredformats = array(
+	'export_sql'			=> array('export', array('sql')),
+	'export_csv_from_db'	=> array('export', array('csvfromdb')),
+	'import_sql'			=> array('import', array('sql', 'csv')),	// CSV import ends with an import_sql call
+	'import_csv'			=> array('import', array('csv')),
+);
+if (in_array($action, array('export_sql', 'export_csv_from_db', 'import_sql', 'import_csv', 'free_sql'))) {
+	$allowed = true;
+	if (isset($requiredformats[$action])) {
+		$allowed = listExportImportIsFormatActive($db, $requiredformats[$action][0], $requiredformats[$action][1]);
+	}
+	$checkedmoduleinfo = getModuleinfoFromUrl($url);
+	$checkedobject = null;
+	$checkedtablename = getTablename($db, $checkedmoduleinfo, $checkedobject);
+	if ($allowed && !empty($checkedtablename)) {
+		$allowed = listExportImportIsTableAllowed($db, $checkedtablename, 1);
+		if ($allowed && ($action == 'export_sql' || $action == 'free_sql' || $action == 'import_sql')) {
+			foreach (getMoreTablenames($checkedtablename, $checkedmoduleinfo, $checkedobject) as $checkedtable) {
+				if (!listExportImportIsTableAllowed($db, $checkedtable, 0)) {
+					$allowed = false;
+					break;
+				}
+			}
+		}
+		// Rights of the user on the objects of the list (read, and create for an import)
+		if ($allowed && $action != 'free_sql') {
+			$allowed = listExportImportCheckObjectRights($user, $checkedobject, $checkedtablename, (strpos($action, 'import_') === 0 ? 1 : 0));
+		}
+	}
+	if (!$allowed) {
+		dol_syslog('listexportimport: action '.$action.' refused for table '.$checkedtablename.' (user '.$user->login.')', LOG_WARNING);
+		if ($action == 'export_sql' || $action == 'export_csv_from_db') {
+			http_response_code(403);	// The export response is saved as a file: an error status lets the page show the message instead
+		}
+		print $langs->transnoentities('NotEnoughPermissions');
+		exit;
+	}
+}
+// InfraS add end
+
 //print '<!-- Ajax page called with url '.$_SERVER["PHP_SELF"].'?'.$_SERVER["QUERY_STRING"].' -->'."\n";
 
 // Actions
 if (isset($action) && ! empty($action))
 {
-	if ((($action == 'export_sql' || $action == 'export_csv_from_db') && $user->rights->listexportimport->export) || ($action == 'free_sql' && $conf->global->LIST_EXPORT_IMPORT_ENABLE_FREE_LIST))
+	if ((($action == 'export_sql' || $action == 'export_csv_from_db') && $user->hasRight('listexportimport', 'export')) || ($action == 'free_sql' && getDolGlobalString('LIST_EXPORT_IMPORT_ENABLE_FREE_LIST') && $user->admin && $user->hasRight('listexportimport', 'import'))) // InfraS change
 	{
         $moduleinfo = getModuleinfoFromUrl($url);
             
-            $tablename = getTablename($db, $moduleinfo);
+            $object = null; // InfraS add
+            $tablename = getTablename($db, $moduleinfo, $object); // InfraS change
             
             if (! empty($tablename))
             {
-                $moretablenames = getMoreTablenames($tablename, $moduleinfo);
+                $moretablenames = getMoreTablenames($tablename, $moduleinfo, $object); // InfraS change
 
                 // get table content
                 if ($action == 'export_sql' || $action == 'export_csv_from_db')
@@ -72,15 +115,24 @@ if (isset($action) && ! empty($action))
                     $ignore_fields = array();//array('id', 'rowid');
                     $to_csv = $action == 'export_csv_from_db';
 
-                    $export_script.= exportTable($db, $tablename, $ignore_fields, $to_csv);
+                    // InfraS change begin
+                    // Only rows of the entities of the user
+                    $entityfilter = listExportImportGetEntityFilter($db, $object, $tablename);
+                    $export_script.= exportTable($db, $tablename, $ignore_fields, $to_csv, $entityfilter['filter']);
 
                     if (! $to_csv)
                     {
                         foreach ($moretablenames as $table)
                         {
-                            $export_script.= exportTable($db, $table, $ignore_fields, $to_csv);
+                            $entityfilter = listExportImportGetEntityFilter($db, $object, $table, $tablename);
+                            if ($entityfilter === false) {
+                                dol_syslog('listexportimport: lines of '.$table.' not exported, no link to '.$tablename.' to filter entities', LOG_WARNING);
+                                continue;
+                            }
+                            $export_script.= exportTable($db, $table, $ignore_fields, $to_csv, $entityfilter['filter']);
                         }
                     }
+                    // InfraS change end
 
                     print $export_script;
                 } // fin if ($action == 'export_sql')
@@ -88,9 +140,22 @@ if (isset($action) && ! empty($action))
                 {
                     // remove related tables first (to avoid foreign key errors)
                     $error = 0;
+                    // InfraS add begin
+                    // Only rows of the entities of the user
+                    $entityfilters = array($tablename => listExportImportGetEntityFilter($db, $object, $tablename));
+                    foreach ($moretablenames as $table) {
+                        $entityfilters[$table] = listExportImportGetEntityFilter($db, $object, $table, $tablename);
+                        if ($entityfilters[$table] === false) {
+                            $error++;
+                            print $langs->transnoentities('NotEnoughPermissions');
+                            break;
+                        }
+                    }
+                    // InfraS add end
                     foreach ($moretablenames as $table)
                     {
-                        $sql = 'DELETE FROM `'.$table.'`';
+                        if ($error) break; // InfraS add
+                        $sql = 'DELETE FROM `'.$table.'`'.(!empty($entityfilters[$table]['filter']) ? ' WHERE '.$entityfilters[$table]['filter'] : ''); // InfraS change
 
                         $resql = $db->query($sql);
 
@@ -104,7 +169,7 @@ if (isset($action) && ! empty($action))
 
                     if (! $error)
                     {
-                        $sql = 'DELETE FROM `'.$tablename.'`';
+                        $sql = 'DELETE FROM `'.$tablename.'`'.(!empty($entityfilters[$tablename]['filter']) ? ' WHERE '.$entityfilters[$tablename]['filter'] : ''); // InfraS change
 
                         $resql = $db->query($sql);
 
@@ -121,12 +186,17 @@ if (isset($action) && ! empty($action))
                 //print 'modulename: '.$moduleinfo['name'].', tablename: '.$tablename;
             }
         } // fin if ($action == 'export_sql' || $action == 'free_sql')
-        else if ($action == 'import_sql' && $user->rights->listexportimport->import)
+        else if ($action == 'import_sql' && $user->hasRight('listexportimport', 'import')) // InfraS change
         {
-            $sql = GETPOST('sql');//,'alpha');
+            // InfraS change begin
+            // Content sent in base64 so that the input filters don't alter the data (double quotes, html tags)
+            // The old raw param is still read for pages loaded before the update (javascript cached for one hour)
+            $sqlb64 = GETPOST('sqlb64', 'alphanohtml');
+            $sql = ($sqlb64 !== '' ? listExportImportDecodeBase64($sqlb64) : GETPOST('sql'));
+            // InfraS change end
             $filename = GETPOST('filename','alpha');
             $is_sql = preg_match('/\.sql$/i', $filename);
-                
+
             if ($is_sql)
             {
                 if (! empty($sql))
@@ -135,72 +205,94 @@ if (isset($action) && ! empty($action))
                     //$sql_words_origin = array('INSERT', 'INTO', 'VALUES');
                     $reversed_sql_words = array('TRESNI', 'OTNI', 'SEULAV');
 
-                    foreach($reversed_sql_words as $word) {
-                        $sql = str_replace($word, strrev($word), $sql);
+                    // InfraS change begin
+                    if ($sqlb64 === '') {	// The base64 content is not reversed
+                        foreach($reversed_sql_words as $word) {
+                            $sql = str_replace($word, strrev($word), $sql);
+                        }
                     }
-                    
-                    // check if the sql code tablename is for the current list.
-                    $moduleinfo = getModuleinfoFromUrl($url);
-                    $tablename = getTablename($db, $moduleinfo);
+                    // InfraS change end
 
-                    if (strpos($sql, $tablename) === false)
+                    // InfraS change begin
+                    // check if the sql code is for the current list, then rebuild its queries from the values it contains (the sql of the file is never run as is)
+                    $moduleinfo = getModuleinfoFromUrl($url);
+                    $object = null;
+                    $tablename = getTablename($db, $moduleinfo, $object);
+
+                    if (empty($tablename))
                     {
                         print $langs->transnoentities('FileContentNotMatchWithTableName', 'SQL');
                     }
                     else
                     {
-                        // explode sql
-                        $queryarray = explode(";", $sql);
-                        array_pop($queryarray); // remove the last empty query (after last ';')
-                        $error = 0;
-
-                        // check sql statements
-                        foreach ($queryarray as $query)
-                        {
-                            if(preg_match('/^(TRUNCATE|DELETE|DROP|UPDATE|CREATE|ALTER|SELECT)/', strtoupper($query)))
-                            {
-                                $error++;
-                                print $langs->trans('OnlySqlInsertStatementIsAccepted');
-                                break;//exit();
+                        $linetablenames = array();
+                        foreach (getMoreTablenames($tablename, $moduleinfo, $object) as $table) {
+                            if (count(listExportImportGetColumns($db, $table)) > 0) {
+                                $linetablenames[] = $table;
                             }
                         }
+                        $import = listExportImportPrepareImport($db, $object, $tablename, $linetablenames, $sql);
+                        $error = 0;
 
-                        if (! $error)
+                        if (!empty($import['error']))
                         {
-                            // execute sql
-                            foreach ($queryarray as $query)
+                            $error++;
+                            print trim($langs->transnoentities($import['error'], ($import['error'] == 'FileContentNotMatchWithTableName' ? 'SQL' : '')));
+                        }
+                        else
+                        {
+                            // execute sql: all or nothing
+                            $db->begin();
+                            foreach ($import['queries'] as $query)
                             {
-                                $query.= ";"; // add removed ';'
-                                $resql = $db->query($query);
-
-                                if ($resql) {}
-                                else {
+                                if (! $db->query($query)) {
                                     $error++;
                                     print "Error: ".$db->lasterror();
                                     break;
                                 }
                             }
+                            // imported lines must belong to documents of the entities of the user
+                            if (! $error)
+                            {
+                                foreach ($import['parentchecks'] as $query)
+                                {
+                                    $resql = $db->query($query);
+                                    $obj = ($resql ? $db->fetch_object($resql) : null);
+                                    if (! $obj || (int) $obj->nb > 0) {
+                                        $error++;
+                                        print $langs->transnoentities('NotEnoughPermissions');
+                                        break;
+                                    }
+                                }
+                            }
+                            if ($error) {
+                                $db->rollback();
+                            } else {
+                                $db->commit();
+                            }
                         }
-                        
+
                         if (! $error)
                         {
                             print 'success';
                         }
-                    } // fin else if (strpos($sql, $tablename) === false)
+                    } // fin else if (empty($tablename))
+                    // InfraS change end
                 }
                 else
                 {
-                    print $langs->trans('FileIsEmpty');
+                    print $langs->transnoentities('FileIsEmpty'); // InfraS change : plain text, shown by alert()
                 }
             }
             else
             {
-                print $langs->trans('WrongFileExt', 'SQL');
+                print $langs->transnoentities('WrongFileExt', 'SQL'); // InfraS change : plain text, shown by alert()
             }
         } // fin if ($action == 'import_sql' && $user->rights->listexportimport->import)
-        else if ($action == 'import_csv' && $user->rights->listexportimport->import)
+        else if ($action == 'import_csv' && $user->hasRight('listexportimport', 'import')) // InfraS change
         {
-            $csv = GETPOST('csv');//,'alpha');
+            $csvb64 = GETPOST('csvb64', 'alphanohtml'); // InfraS add
+            $csv = ($csvb64 !== '' ? listExportImportDecodeBase64($csvb64) : GETPOST('csv'));//,'alpha'); // InfraS change
             $filename = GETPOST('filename','alpha');
             $is_csv = preg_match('/\.csv$/i', $filename);
             
@@ -219,7 +311,7 @@ if (isset($action) && ! empty($action))
                 }
                 else
                 {
-                    print $langs->trans('FileIsEmpty');
+                    print $langs->transnoentities('FileIsEmpty'); // InfraS change : plain text, shown by alert()
                 }
             }
             else
