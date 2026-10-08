@@ -71,7 +71,7 @@ function stripInvisible($elem) {
 
 // Function found here : https://stackoverflow.com/questions/16078544/export-to-csv-using-jquery-and-html
 function exportTableToCSV($table, filename) {
-					
+
 	var $rows = stripInvisible($table).find('tr:has(th),tr:has(td)'),
 
 	// Temporary delimiter characters unlikely to be typed by keyboard
@@ -257,29 +257,29 @@ function exportTableToPDF($table, filename='') {
         var defaults = {pdfFontSize:8, pdfLeftMargin:20, htmlContent:'false', escape:'false'};
         var startColPosition = defaults.pdfLeftMargin;
         var width = 80;
-        
+
         doc.setFontSize(defaults.pdfFontSize);
-        
+
         // Row Vs Column
         var startRowPosition = 20; var page =1;var rowPosition=0;
         $table.find('tbody').find('tr').each(function(index,data) {
                 rowCalc = index+1;
-                
+
                 if (rowCalc % 26 == 0){
                         doc.addPage();
                         page++;
                         startRowPosition=startRowPosition+10;
                 }
                 rowPosition=(startRowPosition + (rowCalc * 10)) - ((page -1) * 280);
-                
+
                 $(this).find('th,td').each(function(index,data) {
                         if ($(this).css('display') != 'none'){
-                                var colPosition = startColPosition+ (index * width);									
+                                var colPosition = startColPosition+ (index * width);
                                 doc.text(colPosition,rowPosition, parseString($(this), defaults));
                         }
                 });
         });
-        
+
         // Output
         if (filename == '')
         {
@@ -294,7 +294,7 @@ function exportTableToPDF($table, filename='') {
 
 //parse string function
 function parseString(data, defaults){
-				
+
         if(defaults.htmlContent == 'true'){
                 content_data = data.html().trim();
         }else{
@@ -304,7 +304,7 @@ function parseString(data, defaults){
         if(defaults.escape == 'true'){
                 content_data = escape(content_data);
         }
-        
+
         return content_data;
 }
 */
@@ -341,11 +341,11 @@ function exportTableToPNG(tablesel, filename='') {
                 var byteString = atob(image.substring(22)); // remove data stuff
                 var buffer     = new ArrayBuffer(byteString.length);
                 var intArray   = new Uint8Array(buffer);
-                
+
                 for ( var i = 0; i < byteString.length; i++ ) {
                     intArray[i] = byteString.charCodeAt(i);
                 }
-                
+
                 if (filename == '')
                 {
                     window.open(image);
@@ -356,9 +356,9 @@ function exportTableToPNG(tablesel, filename='') {
                 $table.find('tr.liste_titre_filter').show(); // >= 6.0
                 $table.find('tr:has(td.liste_titre)').show(); // < 6.0
                 */
-                
+
                 $('#dialogforpopup').dialog('close');
-                
+
                 // download file
                 downloadFile(self, filename, buffer, 'image/png', 'data:image/png,');
             }
@@ -371,15 +371,15 @@ function exportTableToPNGFromHTML(table, filename='') {
         var iframe = document.createElement('iframe');
         iframe.width = "100%"; // set iframe width
         $('body').append($(iframe));
-        
+
         setTimeout(function(){
             var iframedoc = iframe.contentDocument||iframe.contentWindow.document;
             $('body',$(iframedoc)).html(table);
             var $head = $(iframedoc).contents().find("head");
             $head.append($("<link/>", { rel: "stylesheet", href: "<?php echo DOL_URL_ROOT.$conf->css; ?>", type: "text/css" }));
-            
+
             var self = this;
-            
+
             //html2canvas(iframedoc.body, {
             //  onrendered: function (canvas) {
             html2canvas(iframedoc.body, {background: '#fff'}).then(
@@ -392,19 +392,19 @@ function exportTableToPNGFromHTML(table, filename='') {
                     for ( var i = 0; i < byteString.length; i++ ) {
                         intArray[i] = byteString.charCodeAt(i);
                     }
-                    
+
                     // remove iframe
                     $(iframe).remove();
-                    
+
                     // close export dialog
                     $('#dialogforpopup').dialog('close');
-                    
+
                     if (filename == '')
                     {
                         window.open(image);
                         return;
                     }
-                    
+
                     // download file
                     downloadFile(self, filename, buffer, 'image/png', 'data:image/png,');
               //}
