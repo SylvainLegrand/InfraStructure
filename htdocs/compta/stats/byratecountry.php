@@ -135,6 +135,11 @@ if (empty($modetax)) {
 	$modetax = 0;
 }
 
+// InfraS add begin
+// Hook: a list context lets list modules (listexportimport...) handle the report table
+$hookmanager->initHooks(array('byratecountryreportlist'));
+// InfraS add end
+
 // Security check
 $socid = GETPOSTINT('socid');
 if ($user->socid) {
@@ -303,7 +308,7 @@ if (isModEnabled('accounting') && $modecompta != 'BOOKKEEPING') {
 
 
 if ($modecompta == 'CREANCES-DETTES') {
-	print '<table class="noborder centpercent">';
+	print '<table class="noborder centpercent" id="listtable">'; // InfraS change
 	print '<tr class="liste_titre"><td width="6%" class="right">'.$langs->trans("TurnoverbyVatrate").'</td>';
 	print '<td class="left">'.$langs->trans("ProductOrService").'</td>';
 	print '<td class="left">'.$langs->trans("Country").'</td>';
@@ -419,11 +424,11 @@ if ($modecompta == 'CREANCES-DETTES') {
 	$sql2 .= "  LEFT JOIN ".MAIN_DB_PREFIX."c_country as cc ON cc.rowid = soc.fk_pays";
 	$sql2 .= " WHERE ff.datef >= '".$db->idate($date_start)."'";
 	$sql2 .= "  AND ff.datef <= '".$db->idate($date_end)."'";
-	$sql .= " AND ff.fk_statut in (1,2)";
+	$sql2 .= " AND ff.fk_statut in (1,2)"; // InfraS change
 	if (getDolGlobalString('FACTURE_SUPPLIER_DEPOSITS_ARE_JUST_PAYMENTS')) {
-		$sql .= " AND ff.type IN (0,1,2,5)";
+		$sql2 .= " AND ff.type IN (0,1,2,5)"; // InfraS change
 	} else {
-		$sql .= " AND ff.type IN (0,1,2,3,5)";
+		$sql2 .= " AND ff.type IN (0,1,2,3,5)"; // InfraS change
 	}
 	$sql2 .= " AND ff.entity IN (".getEntity("facture_fourn", 0).")";
 	$sql2 .= " GROUP BY ffd.tva_tx, ffd.product_type, cc.label, cc.code ";

@@ -121,6 +121,11 @@ if (GETPOST("modecompta", 'alpha')) {
 	$modecompta = GETPOST("modecompta", 'alpha');
 }
 
+// InfraS add begin
+// Hook: a list context lets list modules (listexportimport...) handle the report table
+$hookmanager->initHooks(array('supplierturnoverreportlist'));
+// InfraS add end
+
 // Security check
 if ($user->socid > 0) {
 	$socid = $user->socid;

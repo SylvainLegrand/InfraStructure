@@ -543,7 +543,10 @@ print_liste_field_titre(
 	"",
 	"",
 	"",
-	'align="center" width="20%"'
+	'align="center" width="20%"', // InfraS change
+	"", // InfraS add
+	"", // InfraS add
+	'do_not_export ' // InfraS add
 );
 print "</tr>\n";
 
@@ -668,7 +671,7 @@ if (count($amount)) {
 		print '<td class="right">'.($catotal > 0 ? round(100 * $amount[$key] / $catotal, 2).'%' : '&nbsp;').'</td>';
 
 		// Other stats
-		print '<td class="center">';
+		print '<td class="center do_not_export">'; // InfraS change
 		if (isModEnabled('supplier_proposal') && $key > 0) {
 			print '&nbsp;<a href="'.DOL_URL_ROOT.'/comm/propal/stats/index.php?socid='.$key.'">'.img_picto($langs->trans("ProposalStats"), "stats").'</a>&nbsp;';
 		}
@@ -696,7 +699,7 @@ if (count($amount)) {
 	}
 	print '<td class="right">'.price($catotal).'</td>';
 	print '<td></td>';
-	print '<td></td>';
+	print '<td class="do_not_export"></td>'; // InfraS change
 	print '</tr>';
 
 	$db->free($resql);
