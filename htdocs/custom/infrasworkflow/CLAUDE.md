@@ -21,7 +21,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.2` (2026-09)
+- Dernière version locale : `21.9.0` (2026-10)
 - Dépendance obligatoire : extension PHP `xml`
 - Intégration optionnelle : `infraspackplus` (modèles PDF, notes publiques)
 - Emplacement : `htdocs/custom/infrasworkflow/`
@@ -186,7 +186,7 @@ Le trigger `InterfaceInfrasworkflow` filtre les éléments `propal`, `facture`, 
 | `BILL_PAYED` | Régénération du PDF facture au classement "payé" |
 | `COMPANY_CREATE` / `COMPANY_MODIFY` | Contrôle compte client — type prospect/client selon complétude des champs |
 | `PRODUCT_CREATE` / `PRODUCT_MODIFY` | Contrôle validation produit — mise hors vente si champs obligatoires manquants |
-| `CONTRACT_VALIDATE` | Activation automatique de tous les services du contrat |
+| `CONTRACT_VALIDATE` | Activation automatique de tous les services du contrat ; notification « Contrat modifié » si le contrat est revalidé après réouverture |
 | `OBJECT_LINK_INSERT` (contrat + facture) | Copie des extrafields de la facture vers le contrat à la 1ère liaison |
 | `LINECONTRACT_INSERT` | Force `product_type = 0` sur une ligne de contrat pointant un produit du catalogue |
 | `INVENTORY_VALIDATED` | Amélioration de l'initialisation de l'inventaire : purge des produits obsolètes / hors vente et hors achat, ajout des produits sans stock à quantité attendue 0 — voir *Amélioration de l'inventaire natif* |
@@ -285,6 +285,7 @@ Données initiales : `sql/data.sql` avec ~48 constantes dans `llx_const`.
 | `INFRASWORKFLOW_CONTRACT_FROM_VALIDATED_PROPAL` | `0` | Autoriser la création d'un contrat depuis un devis dès le statut validé (sans attendre la signature) |
 | `INFRASWORKFLOW_CONTRACT_EMAIL_PROV` | `0` | Autoriser l'envoi d'email pour les contrats provisoires |
 | `INFRASWORKFLOW_CONTRACT_SERVICE_AUTO` | `0` | Activer automatiquement les services à la validation |
+| `INFRASWORKFLOW_CONTRACT_NOTIFY_MODIFY_ON_REVALIDATE` | `0` | Envoyer la notification « Contrat modifié » (`CONTRACT_MODIFY`, module Notifications) quand un contrat réouvert est validé à nouveau — option affichée seulement si le module Notifications est actif, voir *Notification « Contrat modifié » à la revalidation* |
 | `INFRASWORKFLOW_DEFAULT_COMMERCIAL_SIGNATURE` | vide | Signataire par défaut des contrats |
 | `INFRASWORKFLOW_EXF_INVOICE_TO_CONTRACT` | vide | Codes extrafields à copier de la facture vers le contrat |
 | `INFRASWORKFLOW_AUTO_NORMALIZE_CONTRACT_RANKS` | vide | Normaliser automatiquement les rangs des lignes produits |
@@ -299,7 +300,7 @@ Données initiales : `sql/data.sql` avec ~48 constantes dans `llx_const`.
 | `INFRASWORKFLOW_INVENTORY_OBSOLETE_CATEGORY` | vide | Id de la catégorie produit « Obsolète » (ses sous-catégories sont incluses) ; vide = seul le critère vente/achat s'applique |
 | `INFRASWORKFLOW_DISPLAY_ZONE_COLUMN` | `0` | Afficher la colonne « Zone » sur les lignes de saisie de l'inventaire (active la page de substitution `product/inventory/inventory.php`) |
 | `INFRASWORKFLOW_INVENTORY_ZONE_EXTRAFIELD` | vide | Code de l'extrafield produit contenant la zone. **Exclusif** avec `INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY` |
-| `INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY` | vide | Id de la catégorie parente dont les sous-catégories sont les zones de localisation. **Exclusif** avec `INFRASWORKFLOW_INVENTORY_ZONE_EXTRAFIELD`, et prioritaire sur lui si les deux sont renseignés |
+| `INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY` | vide | Id de la catégorie parente dont les sous-catégories (à tous les niveaux) sont les emplacements de localisation — la colonne affiche l'emplacement complet, ex. ZDS > B > 5 → `B5`. **Exclusif** avec `INFRASWORKFLOW_INVENTORY_ZONE_EXTRAFIELD`, et prioritaire sur lui si les deux sont renseignés |
 
 ### Gestion extrafields
 
@@ -864,6 +865,42 @@ infrasworkflow_forceContractProductLineType($lineid) :
 (l'id de la ligne créée est alors dans `$object->context['line_id']`), tandis que `ContratLigne::insert()`
 le déclenche en passant la **ligne** elle-même (`$object->id`). Le trigger gère les deux, et `contratdet`
 a dû être ajouté à la liste des `$object->element` acceptés en tête de `runTrigger()`.
+### Notification « Contrat modifié » à la revalidation (Contract modified notification on revalidation)
+
+Le module Notifications natif ne gère qu'un seul événement de contrat, `CONTRACT_MODIFY` (`Notify::$arrayofnotifsupported`).
+Dans Dolibarr 22, il n'est levé que par l'édition d'un champ de la fiche (référence, référence client, référence fournisseur,
+date du contrat : `setValueFrom(..., 'CONTRACT_MODIFY')`), d'un attribut supplémentaire (`updateExtraField()`), du statut de
+signature (`setSignedStatus()`) et par `Contrat::update()` (API). La réouverture (`CONTRACT_REOPEN`), les lignes
+(`LINECONTRACT_INSERT` / `_MODIFY` / `_DELETE`) et la validation (`CONTRACT_VALIDATE`) ne le lèvent pas, et les notes
+lèvent `CONTRAT_MODIFY` (`CommonObject::update_note()` construit le code depuis `$this->element`), que le module ignore.
+Modifier un contrat par réouverture, ajout de lignes puis revalidation ne prévenait donc personne (constaté le 2026-10-08
+sur dolinfras, contrat CT2601-0030 : configuration des notifications correcte, `llx_notify` vide).
+
+Avec `INFRASWORKFLOW_CONTRACT_NOTIFY_MODIFY_ON_REVALIDATE`, le trigger `CONTRACT_VALIDATE` appelle `Notify::send('CONTRACT_MODIFY', $object)` quand le
+contrat est revalidé : un seul email par modification, aux destinataires configurés pour « Contrat modifié » (contacts du
+tiers, utilisateurs, emails fixes `NOTIFICATION_FIXEDEMAIL_CONTRACT_MODIFY_THRESHOLD_HIGHER_*`, modèle
+`CONTRACT_MODIFY_TEMPLATE`). Choix volontaire de ne pas notifier chaque ligne (une réouverture suivie de trois ajouts
+donnerait trois emails), ni de déclarer de nouveaux événements par le hook `notifsupported` : les événements de ligne
+n'existent pas dans `llx_c_action_trigger` et `Notify::send()` ne sait pas traiter un objet `ContratLigne`.
+
+⚠️ **Détection de la revalidation** : `Contrat::validate()` ne lève le trigger qu'**avant** d'affecter la nouvelle
+référence (`$this->ref` est encore l'ancienne, `$this->newref` la nouvelle). Une référence non provisoire
+(`!preg_match('/^[\(]?PROV/i', $object->ref)`, le test même de `validate()` pour décider la renumérotation) signifie que le
+contrat avait déjà été validé. `date_valid` / `fk_user_valid` ne sont pas utilisables : `validate()` ne les écrit pas et
+`reopen()` ne les efface pas. Limite : un contrat créé en brouillon avec une référence définitive (import, API avec `ref`
+fournie) est traité comme une revalidation dès sa première validation.
+
+⚠️ **Branche `CONTRACT_VALIDATE` de `runTrigger()`** : elle était conditionnée dans la chaîne `elseif` par
+`INFRASWORKFLOW_CONTRACT_SERVICE_AUTO`. Une seconde branche `elseif ($action == 'CONTRACT_VALIDATE' && ...)` n'aurait jamais
+été atteinte avec l'activation automatique des services : toute fonctionnalité liée à la validation d'un contrat doit être
+ajoutée **dans** la branche, chaque option avec son propre `if`.
+
+⚠️ **Envoi non bloquant et sans pièce jointe** : un échec d'envoi (`Notify::send() < 0`) est journalisé et affiché en
+avertissement (`InfraSWorkflowContractNotifyOnRevalidateError`) sans faire échouer la validation, alors que le trigger
+natif de notification annule l'opération en cas d'échec. Aucun PDF n'est joint : la branche `CONTRACT_MODIFY` de
+`Notify::send()` construit le chemin depuis `$conf->contract->multidir_output` (un tableau, donc « Array/… », fichier jamais
+trouvé), et la fiche contrat ne régénère de toute façon le PDF qu'après `validate()`.
+
 ### Amélioration de l'inventaire natif (Native inventory improvements)
 
 Trois options de la section « Gestion des inventaires » (module `stock` actif), toutes désactivées par défaut.
@@ -918,13 +955,23 @@ Constante d'activation dérivée par `infrasworkflow_get_const_name_from_substit
 chaque affichage). Sans fichier pour la branche Dolibarr courante, la page native est servie.
 
 `infrasworkflow_inventoryZoneSqlParts()` renvoie les fragments SQL (`select`, `join`, `sortfield`) et la
-source retenue : catégorie (`LEFT JOIN` sur une sous-requête
-`MIN(c.label) ... WHERE c.fk_parent = <parent> GROUP BY cp.fk_product` — un produit rattaché à plusieurs
-zones n'affiche que la première par ordre alphabétique, sans dupliquer la ligne) ou, à défaut, extrafield
-produit (`LEFT JOIN llx_product_extrafields pe`, valeur affichée par `ExtraFields::showOutputField()`
+source retenue : catégorie ou, à défaut, extrafield produit (`LEFT JOIN llx_product_extrafields pe`, valeur affichée par `ExtraFields::showOutputField()`
 donc libellés des listes).
 Le code d'extrafield est validé contre les définitions chargées (`attributes['product']['label']`) avant
 d'être injecté dans le SQL.
+
+**Source catégorie — emplacement complet** : la zone affichée est la concaténation, sans séparateur, des
+libellés depuis le 1er niveau sous la catégorie parente jusqu'à la catégorie la plus profonde du produit
+(ZDS > B > 5 → `B5`, ZDS > R > B > 0 → `RB0`). Les produits sont rattachés à toute la branche (ZDS, B
+**et** 5) : lire seulement `c.fk_parent = <parent>` affichait `B` (défaut corrigé en 2026-10).
+`infrasworkflow_inventoryZoneTree()` charge toutes les catégories produit en **une** requête et calcule en
+PHP, pour chaque descendant de la parente, son emplacement (`label`), son niveau (`depth`) et ses catégories
+intermédiaires (`ancestors`) — MySQL 5.6 / MariaDB 10.0 n'ont pas de CTE récursive. Le SQL injecte ces
+emplacements dans un `CASE cp.fk_categorie WHEN <id> THEN '<prefixe><emplacement>'` sur
+`llx_categorie_product` filtré par `IN (<descendants>)`, avec `GROUP BY cp.fk_product` (aucune ligne
+dupliquée). Le préfixe de 2 caractères `99 - depth` fait retenir par le `MIN()` l'emplacement **le plus
+profond**, puis le premier par ordre alphabétique ; `SUBSTRING(..., 3)` le retire. Catégorie parente sans
+sous-catégorie : `NULL as infras_zone`, pas de jointure, colonne non triable (`sortfield` vide).
 
 **Les deux sources sont exclusives** : on renseigne l'attribut supplémentaire **ou** la catégorie parente,
 jamais les deux (les libellés de la page d'administration l'indiquent). Si les deux arrivent renseignées
@@ -956,11 +1003,13 @@ message confirme l'écriture (`InfraSWorkflowInventoryZoneProductUpdated`). Selo
 | Source | Champ affiché | Écriture sur le produit |
 |--------|---------------|-------------------------|
 | extrafield | `ExtraFields::showInputField()` du champ produit, préfixe de nom `infraszone_` (donc POST `infraszone_options_<code>`) | `Product::updateExtraField($code, null, $user)` |
-| catégorie | liste des sous-catégories directes de la catégorie parente (`infrasworkflow_inventoryZoneCategories()`), POST `infraszone_category` | `Categorie::add_type()` sur la zone choisie **et** `del_type()` sur les autres sous-catégories de la même parente |
+| catégorie | liste de tous les emplacements (descendants de la catégorie parente, libellé = emplacement complet, ordre naturel B2 < B10) (`infrasworkflow_inventoryZoneCategories()`), POST `infraszone_category` | `Categorie::add_type()` sur l'emplacement choisi **et** ses catégories intermédiaires manquantes (B > 5 : B et 5), `del_type()` sur tous les autres descendants de la parente auxquels le produit est rattaché |
 
-⚠️ **Une seule zone par produit** : la colonne n'affiche qu'une zone (`MIN(c.label)`), la saisie par
-catégorie **remplace** donc la zone existante au lieu de s'y ajouter. Une catégorie qui n'est pas une
-sous-catégorie de la parente configurée est ignorée (valeur POST non fiable).
+⚠️ **Une seule zone par produit** : la colonne n'affiche qu'une zone (le `MIN()` ci-dessus), la saisie par
+catégorie **remplace** donc la zone existante au lieu de s'y ajouter. Le détachement porte sur **tous les
+niveaux** : ne détacher que les sous-catégories directes laisserait l'ancien rattachement profond (ex. A > 3),
+qui resterait affiché puisque l'emplacement le plus profond l'emporte. Une catégorie qui n'est pas un
+descendant de la parente configurée est ignorée (valeur POST non fiable).
 
 ⚠️ **Écriture de l'extrafield sans trigger** : `updateExtraField()` est appelée avec `$trigger = null`
 (le trigger n'est appelé que si le paramètre est non vide, cf. `CommonObject::updateExtraField()`).
@@ -1072,6 +1121,7 @@ Le trigger `InterfaceInfrasworkflow` filtre sur les éléments `propal`, `factur
 | `COMPANY_CREATE/MODIFY` | `INFRASWORKFLOW_CONTROL_CUSTOMER_ACCOUNT` | Contrôle champs obligatoires → set type Prospect/ProspectClient |
 | `PRODUCT_CREATE/MODIFY` | `INFRASWORKFLOW_PRODUCT_VALIDATION_CONTROL` | Contrôle champs obligatoires → mise hors vente si KO |
 | `CONTRACT_VALIDATE` | `INFRASWORKFLOW_CONTRACT_SERVICE_AUTO` | Activation de tous les services (`$object->activateAll()`) |
+| `CONTRACT_VALIDATE` (revalidation) | `INFRASWORKFLOW_CONTRACT_NOTIFY_MODIFY_ON_REVALIDATE` + module Notifications | `Notify::send('CONTRACT_MODIFY', $object)` si la référence du contrat est déjà définitive (contrat réouvert) |
 | `OBJECT_LINK_INSERT` | Contrat + facture standard | Copie extrafields facture → contrat (1ère liaison uniquement) |
 | `LINECONTRACT_INSERT` | `INFRASWORKFLOW_CONTRACT_PRODUCTS_FROM_SOURCE` | Retype la ligne en produit si elle pointe un produit du catalogue (`infrasworkflow_forceContractProductLineType()`) |
 | `INVENTORY_VALIDATED` | `INFRASWORKFLOW_HIDE_ITEMS_TAGGED_OBSOLETE` ou `INFRASWORKFLOW_DISPLAY_SORTED_EMPTY_STOCK` | Purge des lignes des produits masqués puis ajout des produits sans stock (`infrasworkflow_inventoryPurgeHiddenLines()`, `infrasworkflow_inventoryAddEmptyStockLines()`), dans la transaction de `Inventory::validate()` |
@@ -1116,12 +1166,12 @@ Support PostgreSQL via `ON CONFLICT` dans `infrasworkflow_bkup_table()`.
 
 ```xml
 <changelog>
-    <Version Number="21.8.0" MonthVersion="2026-09">
+    <Version Number="21.9.0" MonthVersion="2026-10">
         <change type='fix'>Fixed bug description.</change>
         <change type='chg'>Changed feature description.</change>
         <change type='add'>Added feature description.</change>
     </Version>
-    <InfraS Downloaded="20260903"/>
+    <InfraS Downloaded="20261007"/>
     <Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
     <PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
@@ -1136,7 +1186,7 @@ Support PostgreSQL via `ON CONFLICT` dans `infrasworkflow_bkup_table()`.
 La fonction `infrasworkflow_getLocalVersionMinDoli()` parse ce XML et retourne un tableau :
 ```php
 [
-    0 => "21.8.0",          // Version courante
+    0 => "21.9.0",          // Version courante
     1 => "21.0.0",           // Version min Dolibarr
     2 => 0,                  // Flag erreur (-1 = KO, 0 = OK)
     3 => <SimpleXMLElement>, // Liste des versions (ou message d'erreur)

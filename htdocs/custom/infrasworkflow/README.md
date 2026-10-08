@@ -111,27 +111,29 @@ Pour le bon fonctionnement de  ***InfraSWorkflow*** :
 		* ***54*** Tag / catégorie des produits à exclure de l'inventaire
 		* ***55*** Afficher une colonne supplémentaire "Zone" sur les lignes de l'inventaire (liée à un attribut supplémentaire du produit ou à sa catégorie de localisation dans le stock)
 		* ***56-57*** Attribut supplémentaire du produit contenant la zone Ou catégorie parente des zones de localisation (chaque sous-catégorie est une zone)
+		* ***58*** Activer l'affichage du numéro de série sur les lignes de l'inventaire
 	* Gestion des contrats
-		* ***58*** Afficher les lignes produits de la source (devis, commande, facture) vers le contrat lors de la création du contrat depuis cette source
-		* ***59*** Autoriser la création d'un contrat depuis le devis dès qu'il est au statut validé (sans attendre la signature)
-		* ***60*** Autoriser l'envoi d'email pour les contrats provisoires
-		* ***61*** Activer automatiquement les services à la validation du contrat
-		* ***62*** Signataire par défaut des contrats (utilisateur sélectionné par défaut dans le champ de signature commerciale des contrats)
-		* ***63*** Liste des attributs supplémentaires à copier de la facture vers le contrat lors de la liaison d'une facture standard avec ce contrat
-		* ***64*** Normaliser automatiquement les rangs des lignes de produits (réorganise automatiquement les numéros de rang 1, 2, 3... lors du chargement pour garantir un ordre cohérent)
-		* ***65*** Liste des extrafields des lignes de contrat à afficher dans les produits de contrats
-		* ***66*** Catégorie parente pour la gestion des produits dans les contrats (alternative à la sélection d'extrafields de lignes — la sous-catégorie de chaque produit sera affichée dans l'onglet Produits du contrat)
-		* ***67*** Permettre de changer le tiers associé au contrat lors de sa création depuis un devis ou une commande
+		* ***59*** Afficher les lignes produits de la source (devis, commande, facture) vers le contrat lors de la création du contrat depuis cette source
+		* ***60*** Autoriser la création d'un contrat depuis le devis dès qu'il est au statut validé (sans attendre la signature)
+		* ***61*** Autoriser l'envoi d'email pour les contrats provisoires
+		* ***62*** Activer automatiquement les services à la validation du contrat
+		* ***63*** Signataire par défaut des contrats (utilisateur sélectionné par défaut dans le champ de signature commerciale des contrats)
+		* ***64*** Liste des attributs supplémentaires à copier de la facture vers le contrat lors de la liaison d'une facture standard avec ce contrat
+		* ***65*** Normaliser automatiquement les rangs des lignes de produits (réorganise automatiquement les numéros de rang 1, 2, 3... lors du chargement pour garantir un ordre cohérent)
+		* ***66*** Liste des extrafields des lignes de contrat à afficher dans les produits de contrats
+		* ***67*** Catégorie parente pour la gestion des produits dans les contrats (alternative à la sélection d'extrafields de lignes — la sous-catégorie de chaque produit sera affichée dans l'onglet Produits du contrat)
+		* ***68*** Permettre de changer le tiers associé au contrat lors de sa création depuis un devis ou une commande
+		* ***69*** Envoyer la notification « Contrat modifié » quand un contrat réouvert est validé à nouveau (le module Notifications natif ne l'envoie qu'à l'édition d'un champ de la fiche contrat, jamais à la réouverture, aux modifications de lignes ni à la validation)
 	* Gestion des attributs supplémentaires
-		* ***68*** Activer la duplication inter-module des attributs supplémentaires
-		* ***69*** Activer le mode poubelle pour les attributs supplémentaires (remplace la suppression par la désactivation de l'attribut)
+		* ***70*** Activer la duplication inter-module des attributs supplémentaires
+		* ***71*** Activer le mode poubelle pour les attributs supplémentaires (remplace la suppression par la désactivation de l'attribut)
 	* Propagation automatique des attributs supplémentaires
-		* ***70*** Propager automatiquement les attributs supplémentaires du tiers vers la facture (option cachée de Dolibarr)
-		* ***71*** Propager automatiquement les attributs supplémentaires du tiers vers la commande client (option cachée de Dolibarr)
-		* ***72*** Propager automatiquement les attributs supplémentaires du tiers vers la commande fournisseur (option cachée de Dolibarr)
-		* ***73*** Propager automatiquement les attributs supplémentaires des produits dans les lignes de documents (option cachée de Dolibarr)
+		* ***72*** Propager automatiquement les attributs supplémentaires du tiers vers la facture (option cachée de Dolibarr)
+		* ***73*** Propager automatiquement les attributs supplémentaires du tiers vers la commande client (option cachée de Dolibarr)
+		* ***74*** Propager automatiquement les attributs supplémentaires du tiers vers la commande fournisseur (option cachée de Dolibarr)
+		* ***75*** Propager automatiquement les attributs supplémentaires des produits dans les lignes de documents (option cachée de Dolibarr)
 	* Gestion des médias
-		* ***74*** Autoriser les utilisateurs non administrateurs disposant du droit "Accéder aux médias" à utiliser le navigateur de médias de l'éditeur WYSIWYG (bouton "Parcourir le serveur") — par défaut, Dolibarr réserve ce navigateur aux administrateurs et aux utilisateurs ayant le droit d'écriture sur le module Sites Web
+		* ***76*** Autoriser les utilisateurs non administrateurs disposant du droit "Accéder aux médias" à utiliser le navigateur de médias de l'éditeur WYSIWYG (bouton "Parcourir le serveur") — par défaut, Dolibarr réserve ce navigateur aux administrateurs et aux utilisateurs ayant le droit d'écriture sur le module Sites Web
 * Onglet Attributs Supplémentaires
 	* Paramètres
 		* ***1*** Choisir le type d'affichage des listes d'attributs supplémentaires (Exhaustif => tous les attributs sont affichés, Visible => seul les attributs visibles sont affichés, Caché => seul les attributs cachés sont affichés, Inactif => seul les attributs inactifs sont affichés)

@@ -27,6 +27,7 @@ SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_CLONE_EXTRAFIELDS',							'__ENTITY__', '1',		'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_COLOR_TO_IDENTIFY',					        '__ENTITY__', 'c3000f',	'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_CONTRACT_EMAIL_PROV',							'__ENTITY__', '0',		'chaine', '0', 'InfraSWorkflow module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_CONTRACT_NOTIFY_MODIFY_ON_REVALIDATE',	'__ENTITY__', '0',		'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_CONTRACT_PRODUCT_PARENT_CATEGORY',				'__ENTITY__', '',		'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_CONTRACT_PRODUCTS_FROM_SOURCE',				'__ENTITY__', '0',		'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_CONTROL_ACCOUNTANCY_CODE_BUY_EXPORT_FIELDS',	'__ENTITY__', '',		'chaine', '0', 'InfraSWorkflow module');
@@ -61,6 +62,7 @@ INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRAS
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_DISPLAY_SORTED_EMPTY_STOCK',					'__ENTITY__', '0',		'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_DOCUMENTS_DRAGDROP',							'__ENTITY__', '0',		'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_DOCUMENTS_DRAGDROP_PRODUCT_NO_MASK',			'__ENTITY__', '0',		'chaine', '0', 'InfraSWorkflow module');
+INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER', 				'__ENTITY__', '0',	    'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_EXF_DEPOSIT',									'__ENTITY__', 'acpt1',	'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_EXF_NO_TRANSFER_PROPAL_TO_DEPOSIT',			'__ENTITY__', '',		'chaine', '0', 'InfraSWorkflow module');
 INSERT INTO llx_const (name, entity, value, type, visible, note) VALUES ('INFRASWORKFLOW_EXF_LIST_TYPE',								'__ENTITY__', '1',		'chaine', '0', 'InfraSWorkflow module');

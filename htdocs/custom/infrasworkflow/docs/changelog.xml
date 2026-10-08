@@ -239,7 +239,12 @@
 	<Version Number="21.8.4" MonthVersion="2026-10">
 		<change type='fix'>Option « Lier les acomptes du devis à la facture finale » (INFRASWORKFLOW_LINK_DEPOSITS_TO_FINAL_INVOICE) : la création d'une facture depuis un contrat ou une commande échouait avec « Erreur lors de la récupération du devis (ID: n) » quand aucun devis ne portait cet identifiant. En repli, infrasworkflow_linkDepositsToFinalInvoice() lisait le paramètre originid de l'URL sans vérifier le type d'origine, et prenait donc l'identifiant du contrat ou de la commande pour celui d'un devis (risque inverse : rattacher les acomptes d'un devis sans rapport portant le même identifiant). Le repli n'est plus utilisé que si origin vaut « propal ». Incident constaté sur rgenergies (contrat 235).</change>
 	</Version>
-	<InfraS Downloaded="20261006"/>
+	<Version Number="21.9.0" MonthVersion="2026-10">
+		<change type='add'>Nouvelle option : Pour activer l'affichage de N° de série sur les lignes de produits dans les inventaires (option INFRASWORKFLOW_DISPLAY_SERIAL_NUMBER)</change>
+		<change type='chg'>Mettre en rouge les lignes de produits dont les qty réelle ne sont pas vides et différentes de la qty attendue et que la qty attendue est supérieure à la qty réelle</change>
+		<change type='add'>Section "Gestion des contrats" : envoi de la notification « Contrat modifié » (CONTRACT_MODIFY) quand un contrat réouvert est validé à nouveau (option INFRASWORKFLOW_CONTRACT_NOTIFY_MODIFY_ON_REVALIDATE).</change>
+	</Version>
+	<InfraS Downloaded="20261008"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

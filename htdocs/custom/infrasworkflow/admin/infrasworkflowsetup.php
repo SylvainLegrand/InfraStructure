@@ -625,10 +625,11 @@
 			} else {
 				$num	+= 2;
 			}
+			$num	= infrasworkflow_print_input('INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER', 'on_off', $langs->trans('InfraSWorkflowEnableDisplaySerialNumber'), '', array(), 2, 1, '', $num);
 		} else {
 			$num	+= 6;
 		}
-		// $num = 58
+		// $num = 59
 		if (isModEnabled('contrat')) {
 			infrasworkflow_print_subTitle(4, 'InfraSWorkflowManageContracts', ' bold');
 			$num	= infrasworkflow_print_input('INFRASWORKFLOW_CONTRACT_PRODUCTS_FROM_SOURCE','on_off',$langs->trans('InfraSWorkflowParamContractProductsFromSource'),'',array(),2,1,'',$num);
@@ -651,14 +652,19 @@
 			$metas	= $form->select_all_categories(Categorie::TYPE_PRODUCT, getDolGlobalInt('INFRASWORKFLOW_CONTRACT_PRODUCT_PARENT_CATEGORY', 0), 'INFRASWORKFLOW_CONTRACT_PRODUCT_PARENT_CATEGORY', 64, 0, 0, 0, 'minwidth300');
 			$num	= infrasworkflow_print_input('INFRASWORKFLOW_CONTRACT_PRODUCT_PARENT_CATEGORY', 'select', $langs->trans('InfraSWorkflowParamContractProductParentCategory'), $langs->trans('InfraSWorkflowParamContractProductParentCategoryHelp'), $metas, 1, 2, '', $num);
 			$num	= infrasworkflow_print_input('CHANGE_TIERS_CONTRACT_FROM_PROPAL_COMMANDE','on_off',$langs->trans('InfraSWorkflowParamChangeTiersContractFromPropalCommande'),'',array(),2,1,'',$num);
+			if (isModEnabled('notification')) {
+				$num	= infrasworkflow_print_input('INFRASWORKFLOW_CONTRACT_NOTIFY_MODIFY_ON_REVALIDATE', 'on_off', $langs->trans('InfraSWorkflowParamContractNotifyOnRevalidate'), $langs->trans('InfraSWorkflowParamContractNotifyOnRevalidateHelp'), array(), 2, 1, '', $num);
+			} else {
+				$num++;
+			}
 		} else {
-			$num += 10;
+			$num += 11;
 		}
-		// $num = 68
+		// $num = 70
 		infrasworkflow_print_subTitle(4, 'InfraSWorkflowManageExtraFields', ' bold');
 		$num		= infrasworkflow_print_input('INFRASWORKFLOW_CLONE_EXTRAFIELDS','on_off',$langs->trans('InfraSWorkflowEnableExfClone'),'',array(),2,1,'',$num);
 		$num		= infrasworkflow_print_input('INFRASWORKFLOW_EXTRAFIELDS_TRASHMODE','on_off',$langs->trans('InfraSWorkflowEnableExfTrashMode'),'',array(),2,1,'',$num);
-		// $num = 70
+		// $num = 72
 		infrasworkflow_print_subTitle(4, 'InfrasworkflowExtraFieldsPropagation', ' bold');
 		if (isModEnabled('societe')) {
 			if (isModEnabled('facture')) {
@@ -679,16 +685,16 @@
 		} else {
 			$num += 3;
 		}
-		// $num = 73
+		// $num = 75
 		if (isModEnabled('product')) {
 			$num	= infrasworkflow_print_input('PRODUCT_LOAD_EXTRAFIELD_INTO_OBJECTLINES','on_off',$langs->trans('DolibarrProductLoadExtrafieldsIntoObjectLines'),'',[],2,1,'',$num);
 		} else {
 			$num ++;
 		}
-		// $num = 74
+		// $num = 76
 		infrasworkflow_print_subTitle(4, 'InfraSWorkflowManageMedias', ' bold');
 		$num		= infrasworkflow_print_input('INFRASWORKFLOW_MEDIAS_BROWSER_ALL_USERS','on_off',$langs->trans('InfraSWorkflowParamMediasBrowserAllUsers'),$langs->trans('InfraSWorkflowParamMediasBrowserAllUsersHelp'),array(),2,1,'',$num);
-		// $num = 75
+		// $num = 77
 	}
 	print '			</table>
 				</div>';

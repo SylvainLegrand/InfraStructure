@@ -231,10 +231,23 @@
 						return 1;
 					}
 				}
-			} elseif ($action == 'CONTRACT_VALIDATE' && getDolGlobalInt('INFRASWORKFLOW_CONTRACT_SERVICE_AUTO', 0)) {
-				dol_syslog('Trigger "'.$this->name.'" for action '.$action.' launched by '. __FILE__ .' id = '.$object->id);
-				$date_start	= dol_now();
-				$object->activateAll($user, $date_start, 0, '', -1);
+			} elseif ($action == 'CONTRACT_VALIDATE') {
+				if (getDolGlobalInt('INFRASWORKFLOW_CONTRACT_SERVICE_AUTO', 0)) {
+					dol_syslog('Trigger "'.$this->name.'" for action '.$action.' launched by '. __FILE__ .' id = '.$object->id);
+					$date_start	= dol_now();
+					$object->activateAll($user, $date_start, 0, '', -1);
+				}
+				// Revalidation of a reopened contract : the Notifications module only sends "Contract modified" on CONTRACT_MODIFY, which is never raised by the reopening, the line changes or the validation.
+				if (isModEnabled('notification') && getDolGlobalInt('INFRASWORKFLOW_CONTRACT_NOTIFY_MODIFY_ON_REVALIDATE', 0) && !empty($object->ref) && !preg_match('/^[\(]?PROV/i', $object->ref)) {
+					dol_syslog('Trigger "'.$this->name.'" for action '.$action.' launched by '. __FILE__ .' id = '.$object->id.' : CONTRACT_MODIFY notification on revalidation');
+					include_once DOL_DOCUMENT_ROOT.'/core/class/notify.class.php';
+					$notify	= new Notify($this->db);
+					$res	= $notify->send('CONTRACT_MODIFY', $object);
+					if ($res < 0) {	// A mail failure must not cancel the validation of the contract
+						dol_syslog('Trigger "'.$this->name.'" : CONTRACT_MODIFY notification failed for contract id = '.$object->id.' '.$notify->error, LOG_WARNING);
+						setEventMessages($langs->trans('InfraSWorkflowContractNotifyOnRevalidateError', $object->ref), $notify->errors, 'warnings');
+					}
+				}
 			} elseif ($action == 'OBJECT_LINK_INSERT' && $object instanceof Contrat && !empty($object->context['link_origin']) && $object->context['link_origin'] == 'facture' && !empty($object->context['link_origin_id'])) {
 				dol_syslog('Trigger "'.$this->name.'" for action '.$action.' launched by '. __FILE__ .' id = '.$object->id);
 				// An invoice has just been linked to the contract

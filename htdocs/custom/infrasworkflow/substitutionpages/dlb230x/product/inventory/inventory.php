@@ -98,8 +98,9 @@ $infras_zone = infrasworkflow_inventoryZoneSqlParts();
 if ($infras_zone['source'] == 'extrafield') {
 	$extrafields->fetch_name_optionals_label('product');
 }
+// Option INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER : when disabled, the Lot/Serial is not taken into account.
+$infras_groupbatch = (isModEnabled('productbatch') && !getDolGlobalInt('INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER'));
 // InfraS add end
-
 $search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');
 
 // Initialize array of search criteria
@@ -117,6 +118,14 @@ if (empty($action) && empty($id) && empty($ref)) {
 
 // Load object
 include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be 'include', not 'include_once'.
+
+// InfraS add begin - option INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER disabled : keep only one line (the first one) per warehouse/product
+$infras_groupwhere = '';
+if ($infras_groupbatch && $object->id > 0) {
+	$infras_groupwhere = ' AND id.rowid IN (SELECT MIN(idg.rowid) FROM '.$db->prefix().'inventorydet as idg';
+	$infras_groupwhere .= ' WHERE idg.fk_inventory = '.((int) $object->id).' GROUP BY idg.fk_warehouse, idg.fk_product)';
+}
+// InfraS add end
 
 // Security check - Protection if external user
 //if ($user->socid > 0) accessforbidden();
@@ -318,10 +327,14 @@ if (empty($reshook)) {
 		$sql .= ' LEFT JOIN ' . $db->prefix() . 'entrepot as e ON id.fk_warehouse = e.rowid';
 		$sql .= $infras_zone['join'];	// InfraS add
 		$sql .= ' WHERE id.fk_inventory = '.((int) $object->id);
+		$sql .= $infras_groupwhere;	// InfraS add
 		$sql .= $db->order($sortfield, $sortorder);
 		$sql .= $db->plimit($limit, $offset);
 
 		$db->begin();
+
+		$infras_groups = $infras_groupbatch ? infrasworkflow_inventoryBatchGroups($db, $object->id) : array();	// InfraS add
+		$infras_products = array();	// InfraS add
 
 		$resql = $db->query($sql);
 		if ($resql) {
@@ -337,7 +350,54 @@ if (empty($reshook)) {
 				$result = 0;
 				$resultupdate = 0;
 
-				if (GETPOST("id_".$lineid, 'alpha') != '') {		// If a value was set ('0' or something else)
+				// InfraS add begin - option INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER disabled : the quantity typed on the grouped line
+				// is spread on the Lot/Serial lines of the same warehouse/product. Each line (by rowid) receives at most its current stock,
+				// the last one receives the remaining quantity (including any surplus).
+				$infras_group = $infras_groups[$line->fk_warehouse.'_'.$line->fk_product] ?? array();
+				if (count($infras_group) > 1) {
+					if (GETPOSTISSET('id_'.$lineid)) {
+						$infras_qtyposted = GETPOST('id_'.$lineid, 'alpha');
+						$infras_qtytoupdate = ($infras_qtyposted != '' ? (float) price2num($infras_qtyposted, 'MS') : null);
+						if (!is_null($infras_qtytoupdate) && $infras_qtytoupdate < 0) {
+							$result = -1;
+							setEventMessages($langs->trans("FieldCannotBeNegative", $langs->transnoentitiesnoconv("RealQty")), null, 'errors');
+						} else {
+							if (!isset($infras_products[$line->fk_product])) {
+								$infras_products[$line->fk_product] = new Product($db);
+								$infras_products[$line->fk_product]->fetch($line->fk_product, '', '', '', 1, 1, 1);
+								$infras_products[$line->fk_product]->load_stock(',novirtual');
+							}
+							$infras_product = $infras_products[$line->fk_product];
+							$infras_remain = $infras_qtytoupdate;
+							$infras_nb = count($infras_group);
+							foreach ($infras_group as $infras_idx => $infras_subline) {
+								$infras_stock = (float) ($infras_product->stock_warehouse[$line->fk_warehouse]->detail_batch[$infras_subline->batch]->qty ?? 0);
+								if (is_null($infras_qtytoupdate)) {
+									$infras_qty = null;
+								} elseif ($infras_idx == $infras_nb - 1) {
+									$infras_qty = $infras_remain;
+								} else {
+									$infras_qty = min(max($infras_stock, 0), $infras_remain);
+									$infras_remain -= $infras_qty;
+								}
+								$result = $inventoryline->fetch($infras_subline->rowid);
+								if ($result > 0) {
+									if (!is_null($infras_qty)) {
+										$inventoryline->qty_stock = $infras_stock;
+									}
+									$inventoryline->qty_view = (is_null($infras_qty) ? null : (float) price2num($infras_qty, 'MS'));
+									$inventoryline->pmp_real = price2num(GETPOST('realpmp_'.$lineid, 'alpha'), 'MS');
+									$inventoryline->pmp_expected = price2num(GETPOST('expectedpmp_'.$lineid, 'alpha'), 'MS');
+									$resultupdate = $inventoryline->update($user);
+								}
+								if ($result < 0 || $resultupdate < 0) {
+									break;
+								}
+							}
+						}
+					}
+				} elseif (GETPOST("id_".$lineid, 'alpha') != '') {		// If a value was set ('0' or something else)	// InfraS change
+				// InfraS add end
 					$qtytoupdate = (float) price2num(GETPOST("id_".$lineid, 'alpha'), 'MS');
 					$result = $inventoryline->fetch($lineid);
 					if ($qtytoupdate < 0) {
@@ -388,6 +448,24 @@ if (empty($reshook)) {
 			$db->rollback();
 		}
 	}
+
+	// InfraS add begin - option INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER disabled : deleting a grouped line deletes
+	// all the Lot/Serial lines of the same warehouse/product (the line $lineid itself is deleted by the standard action below)
+	if ($infras_groupbatch && $action == 'confirm_deleteline' && $confirm == 'yes' && $permissiontoadd && $lineid > 0
+		&& ($object->status == $object::STATUS_DRAFT || $object->status == $object::STATUS_VALIDATED)) {
+		$infras_delline = new InventoryLine($db);
+		if ($infras_delline->fetch($lineid) > 0 && $infras_delline->fk_inventory == $object->id) {
+			$sqldel = 'DELETE FROM '.$db->prefix().'inventorydet';
+			$sqldel .= ' WHERE fk_inventory = '.((int) $object->id);
+			$sqldel .= ' AND fk_warehouse = '.((int) $infras_delline->fk_warehouse);
+			$sqldel .= ' AND fk_product = '.((int) $infras_delline->fk_product);
+			$sqldel .= ' AND rowid <> '.((int) $lineid);
+			if (!$db->query($sqldel)) {
+				setEventMessages($db->lasterror(), null, 'errors');
+			}
+		}
+	}
+	// InfraS add end
 
 	$backurlforlist = DOL_URL_ROOT.'/product/inventory/list.php';
 	$backtopage		= $_SERVER['PHP_SELF'].'?id='.$object->id.'&page='.$page.$paramwithsearch;	// InfraS change
@@ -503,6 +581,10 @@ if ($limit > 0 && $limit != $conf->liste_limit) {
 
 
 $res = $object->fetch_optionals();
+
+// InfraS add begin - option INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER disabled : lines grouped by warehouse/product (reloaded after actions)
+$infras_groups = $infras_groupbatch ? infrasworkflow_inventoryBatchGroups($db, $object->id) : array();
+// InfraS add end
 
 $head = inventoryPrepareHead($object);
 print dol_get_fiche_head($head, 'inventory', $langs->trans("Inventory"), -1, 'stock');
@@ -853,7 +935,7 @@ if ($action == 'updatebyscaning') {
 									},
 								});
 							} else {
-								$("#"+product.Id+"_input").val(product.Qty);
+								$("#"+product.Id+"_input").val(product.Qty).trigger("change");	/* InfraS change : refresh the red highlight of the line */
 							}
 						}
 					});
@@ -985,6 +1067,7 @@ print 'jQuery(document).ready(function() {
 		id = id.split("_")[1];
 		tmpvalue = $("#id_"+id+"_input_tmp").val()
 		$("#id_"+id+"_input")[0].value = tmpvalue;
+		$("#id_"+id+"_input").trigger("change");	/* InfraS add : refresh the red highlight of the line */
 		/* disablebuttonmakemovementandclose(); */
 		return false;	/* disable submit */
 	});
@@ -1056,6 +1139,12 @@ if ($object->status == $object::STATUS_DRAFT || $object->status == $object::STAT
 		$filtertype = 0;
 	}
 	print $form->select_produits((GETPOSTISSET('fk_product') ? GETPOSTINT('fk_product') : $object->fk_product), 'fk_product', $filtertype, 0, 0, -1, 2, '', 0, array(), 0, '1', 0, 'maxwidth300');
+	// InfraS add begin - Lot/Serial column hidden (option INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER disabled) : the Lot/Serial
+	// is still required to add a line of a product managed by Lot/Serial, so it is typed under the product
+	if ($infras_groupbatch) {
+		print '<br><input type="text" name="batch" class="maxwidth100 margintoponlyshort" placeholder="'.dol_escape_htmltag($langs->trans("Batch")).'" value="'.(GETPOSTISSET('batch') ? dol_escape_htmltag(GETPOST('batch')) : '').'">';
+	}
+	// InfraS add end
 	print '</td>';
 	// InfraS add begin - "Zone" column : the zone is carried by the product, it is applied to it once the line is created
 	if (!empty($infras_zone['source'])) {
@@ -1064,7 +1153,7 @@ if ($object->status == $object::STATUS_DRAFT || $object->status == $object::STAT
 		print '</td>';
 	}
 	// InfraS add end
-	if (isModEnabled('productbatch')) {
+	if (isModEnabled('productbatch') && !$infras_groupbatch) {	// InfraS change
 		print '<td>';
 		print '<input type="text" name="batch" class="maxwidth100" value="'.(GETPOSTISSET('batch') ? GETPOST('batch') : '').'">';
 		print '</td>';
@@ -1106,6 +1195,7 @@ $sql .= ' LEFT JOIN ' . $db->prefix() . 'product as p ON id.fk_product = p.rowid
 $sql .= ' LEFT JOIN ' . $db->prefix() . 'entrepot as e ON id.fk_warehouse = e.rowid';
 $sql .= $infras_zone['join'];	// InfraS add
 $sql .= ' WHERE id.fk_inventory = ' . ((int) $object->id);
+$sql .= $infras_groupwhere;	// InfraS add
 $sql .= $db->order($sortfield, $sortorder);
 $sql .= $db->plimit($limit, $offset);
 
@@ -1151,6 +1241,30 @@ if ($resql) {
 			$cacheOfProducts[$product_static->id] = $product_static;
 		}
 
+		// InfraS add begin - option INFRASWORKFLOW_ENABLE_DISPLAY_SERIAL_NUMBER disabled : the line stands for all the Lot/Serial lines
+		// of the same warehouse/product, quantities are summed
+		$infras_group = $infras_groups[$obj->fk_warehouse.'_'.$obj->fk_product] ?? array();
+		$infras_isgroup = (count($infras_group) > 1);
+		$infras_movements = array();
+		if ($infras_isgroup) {
+			$infras_sumstock = 0;
+			$infras_sumview = 0;
+			$infras_hasview = false;
+			foreach ($infras_group as $infras_subline) {
+				$infras_sumstock += (float) $infras_subline->qty_stock;
+				if (!is_null($infras_subline->qty_view)) {
+					$infras_hasview = true;
+					$infras_sumview += (float) $infras_subline->qty_view;
+				}
+				if ($infras_subline->fk_movement > 0) {
+					$infras_movements[] = $infras_subline->fk_movement;
+				}
+			}
+			$obj->qty_stock = price2num($infras_sumstock, 'MS');
+			$obj->qty_view = ($infras_hasview ? price2num($infras_sumview, 'MS') : null);
+		}
+		// InfraS add end
+
 		print '<tr class="oddeven">';
 		print '<td id="id_'.$obj->rowid.'_warehouse" data-ref="'.dol_escape_htmltag($warehouse_static->ref).'">';
 		print $warehouse_static->getNomUrl(1);
@@ -1164,7 +1278,7 @@ if ($resql) {
 		}
 		// InfraS add end
 
-		if (isModEnabled('productbatch')) {
+		if (isModEnabled('productbatch') && !$infras_groupbatch) {	// InfraS change
 			print '<td id="id_'.$obj->rowid.'_batch" data-batch="'.dol_escape_htmltag($obj->batch).'">';
 			$batch_static = new Productlot($db);
 			// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
@@ -1183,7 +1297,14 @@ if ($resql) {
 		$valuetoshow = $obj->qty_stock;
 		// For inventory not yet close, we overwrite with the real value in stock now
 		if ($object->status == $object::STATUS_DRAFT || $object->status == $object::STATUS_VALIDATED) {
-			if (isModEnabled('productbatch') && $product_static->hasbatch()) {
+			// InfraS add begin - grouped line : sum of the current stock of each Lot/Serial of the group
+			if ($infras_isgroup) {
+				$valuetoshow = 0;
+				foreach ($infras_group as $infras_subline) {
+					$valuetoshow += (float) ($product_static->stock_warehouse[$obj->fk_warehouse]->detail_batch[$infras_subline->batch]->qty ?? 0);
+				}
+			} elseif (isModEnabled('productbatch') && $product_static->hasbatch()) {	// InfraS change
+			// InfraS add end
 				$valuetoshow = $product_static->stock_warehouse[$obj->fk_warehouse]->detail_batch[$obj->batch]->qty ?? 0;
 			} else {
 				$valuetoshow = !empty($product_static->stock_warehouse[$obj->fk_warehouse]->real) ? $product_static->stock_warehouse[$obj->fk_warehouse]->real : 0;
@@ -1301,7 +1422,15 @@ if ($resql) {
 				print '</td>';
 			}
 			print '<td>';
-			if ($obj->fk_movement > 0) {
+			// InfraS add begin - grouped line : links to the stock movements of each Lot/Serial of the group
+			if ($infras_isgroup) {
+				foreach ($infras_movements as $infras_movementid) {
+					$stockmovment = new MouvementStock($db);
+					$stockmovment->fetch($infras_movementid);
+					print $stockmovment->getNomUrl(1, 'movements').' ';
+				}
+			} elseif ($obj->fk_movement > 0) {	// InfraS change
+			// InfraS add end
 				$stockmovment = new MouvementStock($db);
 				$stockmovment->fetch($obj->fk_movement);
 				print $stockmovment->getNomUrl(1, 'movements');
@@ -1317,7 +1446,7 @@ if ($resql) {
 }
 if (getDolGlobalString('INVENTORY_MANAGE_REAL_PMP')) {
 	print '<tr class="liste_total">';
-	print '<td colspan="'.(!empty($infras_zone['source']) ? 5 : 4).'">'.$langs->trans("Total").'</td>';	// InfraS change
+	print '<td colspan="'.((!empty($infras_zone['source']) ? 5 : 4) - ($infras_groupbatch ? 1 : 0)).'">'.$langs->trans("Total").'</td>';	// InfraS change
 	print '<td class="right" colspan="2">'.price($totalExpectedValuation).'</td>';
 	print '<td class="right" id="totalRealValuation" colspan="3">'.price($totalRealValuation).'</td>';
 	print '<td></td>';
@@ -1347,6 +1476,34 @@ if ($object->status != $object::STATUS_VALIDATED || !$hasinput) {
 */
 
 print '</form>';
+
+// InfraS add begin - red line when the real quantity is 0 or lower than the expected quantity (only once a real quantity has been typed)
+if ($object->status == $object::STATUS_DRAFT || $object->status == $object::STATUS_VALIDATED) {
+	print '<style>
+		#tablelines tr.infras-inventory-qtyalert td { background-color: #f8d7da !important; color: #a00 !important; }
+		#tablelines tr.infras-inventory-qtyalert td a { color: #a00 !important; }
+	</style>';
+	print '<script type="text/javascript">
+		function infrasInventoryCheckQty(input) {
+			var lineid = input.id.replace(/_input$/, "");
+			var real = $.trim($(input).val()).replace(",", ".");
+			var expected = parseFloat($.trim($("#"+lineid).text()).replace(",", "."));
+			var isalert = false;
+			if (real !== "" && !isNaN(parseFloat(real))) {
+				real = parseFloat(real);
+				/* Alert when the real quantity is different from and lower than the expected quantity */
+				isalert = (!isNaN(expected) && real != expected && real < expected);
+			}
+			$(input).closest("tr").toggleClass("infras-inventory-qtyalert", isalert);
+		}
+		$(document).ready(function() {
+			var infrasRealQtyInputs = "#tablelines input.realqty[id$=\'_input\']";
+			$(infrasRealQtyInputs).each(function() { infrasInventoryCheckQty(this); });
+			$(document).on("input change", infrasRealQtyInputs, function() { infrasInventoryCheckQty(this); });
+		});
+	</script>';
+}
+// InfraS add end
 
 print '<script type="text/javascript">
 					$(document).ready(function() {

@@ -1030,13 +1030,18 @@
 			}
 			// Injection du style : applique la couleur configurée sur la cellule de quantité des lignes concernées
 			print '	<style>'."\n".''.implode(', ', $selectors).' { color: #'.$color.' !important; font-weight: bold; cursor: pointer; }'."\n".'	</style>'."\n";
-			// Injection du script : enveloppe le contenu de la cellule dans un span avec l'infobulle (classe native Dolibarr classfortooltip)
+			// Icône d'alerte ajoutée devant la quantité (sans title propre : c'est l'infobulle de stock qui s'affiche)
+			$warningIcon	= img_warning('', '', 'pictowarning');
+			// Injection du script : ajoute l'icône puis enveloppe le contenu de la cellule dans un span avec l'infobulle (classe native Dolibarr classfortooltip)
+			// Le hook printCommonFooter imprime hors du conteneur de la page : tout élément visuel doit donc être injecté dans la ligne via JS
 			print '	<script>
 					jQuery(document).ready(function() {
 						var infrasworkflowNoShip	= '.json_encode($tooltips).';
+						var infrasworkflowWarning	= '.json_encode($warningIcon).';
 						jQuery.each(infrasworkflowNoShip, function(lineid, title) {
 							jQuery("#row-" + lineid + " td.linecolqty").each(function() {
 								jQuery(this).wrapInner(jQuery("<span>", {"class": "classfortooltip", "title": title}));
+								jQuery(this).append(infrasworkflowWarning);
 							});
 						});
 					});
@@ -1104,7 +1109,7 @@
 			$formcompany		= new FormCompany($db);
 			$typents			= $formcompany->typent_array(0);
 			$label				= !empty($typents[$thirdparty->typent_id]) ? (string) $typents[$thirdparty->typent_id] : '';
-			$this->resprints	= '<tr><td>'.$langs->trans('ThirdPartyType').'</td><td colspan="2">';
+			$this->resprints	= '<tr><td><strong>'.$langs->trans('ThirdPartyType').'</strong></td><td colspan="2">';
 			$this->resprints	.= '	<input type="text" id="infrasworkflow_thirdparty_type" name="typent_id" disabled="disabled" value="'.($label ? dol_escape_htmltag($label) : $langs->trans('Undefined')).'"/>'
 								.'</td></tr>';
 			return 0;
@@ -1413,7 +1418,7 @@
 		*	@param	string			$action			Current action
 		*	@param	HookManager		$hookmanager	Hook manager
 		*	@return	int								0 to continue
-		**/ 
+		**/
 		public function doPreMassActions($parameters, &$object, &$action, $hookmanager)
 		{
 			global $langs;

@@ -2154,6 +2154,31 @@
 	}
 
 	/**
+	* Return the lines of an inventory grouped by warehouse and product
+	*
+	* @param	int		$inventoryid		Id of inventory
+	* @return	array<string,stdClass[]>	Lines indexed by 'fk_warehouse_fk_product', each group ordered by rowid
+	*/
+	function infrasworkflow_inventoryBatchGroups($db, $inventoryid)
+	{
+		global $db;
+
+		$groups = array();
+		$sql = 'SELECT rowid, fk_warehouse, fk_product, batch, qty_stock, qty_view, fk_movement';
+		$sql .= ' FROM '.$db->prefix().'inventorydet';
+		$sql .= ' WHERE fk_inventory = '.((int) $inventoryid);
+		$sql .= ' ORDER BY rowid';
+		$resql = $db->query($sql);
+		if ($resql) {
+			while ($obj = $db->fetch_object($resql)) {
+				$groups[$obj->fk_warehouse.'_'.$obj->fk_product][] = $obj;
+			}
+			$db->free($resql);
+		}
+		return $groups;
+	}
+
+	/**
 	*	Returns true if the product lines of a contract need rank normalisation
 	*	(NULL ranks, duplicates, or non-sequential sequence detected).
 	*
@@ -2550,9 +2575,20 @@
 		$catid	= getDolGlobalInt('INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY', 0);
 		if ($catid > 0) {
 			$parts['source']	= 'category';
+			$zones				= infrasworkflow_inventoryZoneTree();
+			if (empty($zones)) {	// Catégorie parente sans sous-catégorie : colonne vide et non triable
+				$parts['select']	= ', NULL as infras_zone';
+				return $parts;
+			}
+			// Emplacement complet calculé en PHP (profondeur quelconque), injecté par un CASE sur la catégorie rattachée au produit.
+			// Préfixe de tri sur 2 caractères : le MIN() retient l'emplacement le plus profond (ex. B5 plutôt que B), puis le premier par ordre alphabétique
+			$cases	= '';
+			foreach ($zones as $id => $zone) {
+				$cases	.= ' WHEN '.((int) $id)." THEN '".sprintf('%02d', 99 - $zone['depth']).$db->escape($zone['label'])."'";
+			}
 			$parts['select']	= ', zc.infras_zone';
-			$parts['join']		= ' LEFT JOIN (SELECT cp.fk_product, MIN(c.label) as infras_zone FROM '.$db->prefix().'categorie_product as cp';
-			$parts['join']		.= ' INNER JOIN '.$db->prefix().'categorie as c ON c.rowid = cp.fk_categorie WHERE c.fk_parent = '.((int) $catid).' GROUP BY cp.fk_product) as zc ON zc.fk_product = p.rowid';
+			$parts['join']		= ' LEFT JOIN (SELECT cp.fk_product, SUBSTRING(MIN(CASE cp.fk_categorie'.$cases.' END), 3) as infras_zone FROM '.$db->prefix().'categorie_product as cp';
+			$parts['join']		.= ' WHERE cp.fk_categorie IN ('.implode(',', array_keys($zones)).') GROUP BY cp.fk_product) as zc ON zc.fk_product = p.rowid';
 			$parts['sortfield']	= 'zc.infras_zone';
 			return $parts;
 		}
@@ -2591,33 +2627,70 @@
 	}
 
 	/**
-	*	Colonne "Zone" de l'inventaire : liste des zones de localisation, c'est à dire les sous-catégories directes de la catégorie
-	*	parente configurée (INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY), triées par libellé.
+	*	Colonne "Zone" de l'inventaire : arborescence des emplacements de localisation, c'est à dire toutes les sous-catégories, à tous les
+	*	niveaux, de la catégorie parente configurée (INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY). L'emplacement complet d'une catégorie
+	*	est la concaténation des libellés depuis le 1er niveau sous la catégorie parente : ZDS > B > 5 donne l'emplacement "B5".
 	*
-	*	@return	array	array(id de la sous-catégorie => libellé), vide si l'option n'est pas configurée
+	*	@return	array	array(id de la catégorie => array('label' => emplacement complet, 'depth' => niveau sous la catégorie parente (1 = sous-catégorie directe),
+	*						'ancestors' => ids des catégories intermédiaires entre la catégorie parente et celle-ci)), vide si l'option n'est pas configurée
 	**/
-	function infrasworkflow_inventoryZoneCategories()
+	function infrasworkflow_inventoryZoneTree()
 	{
 		global $db;
 
-		$list	= array();
+		static $cache	= array();
+
 		$catid	= getDolGlobalInt('INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY', 0);
 		if ($catid <= 0) {
-			return $list;
+			return array();
 		}
-		require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
-		$parent	= new Categorie($db);
-		if ($parent->fetch($catid) <= 0) {
-			return $list;
+		if (isset($cache[$catid])) {
+			return $cache[$catid];
 		}
-		// On ne prend que les sous-catégories directes de la catégorie parente, pas les sous-sous-catégories
-		$children	= $parent->get_filles();
-		if (is_array($children)) {
-			foreach ($children as $child) {
-				$list[$child->id]	= $child->label;
+		// Une seule requête pour toutes les catégories produit (type 0), l'arborescence est ensuite parcourue en mémoire
+		$children	= array();
+		$sql		= 'SELECT rowid, fk_parent, label FROM '.$db->prefix().'categorie WHERE type = 0 AND entity IN ('.getEntity('category').')';
+		$resql		= $db->query($sql);
+		if (!$resql) {
+			dol_syslog('infrasworkflow_inventoryZoneTree: '.$db->lasterror(), LOG_ERR);
+			return array();
+		}
+		while ($obj = $db->fetch_object($resql)) {
+			$children[(int) $obj->fk_parent][(int) $obj->rowid]	= $obj->label;
+		}
+		$db->free($resql);
+		$tree	= array();
+		$stack	= array(array('id' => $catid, 'label' => '', 'depth' => 0, 'ancestors' => array()));
+		while (!empty($stack)) {
+			$node	= array_pop($stack);
+			if (empty($children[$node['id']])) {
+				continue;
+			}
+			foreach ($children[$node['id']] as $id => $label) {
+				if ($id == $catid || isset($tree[$id])) {	// Protection contre une arborescence bouclée
+					continue;
+				}
+				$tree[$id]	= array('label' => $node['label'].$label, 'depth' => $node['depth'] + 1, 'ancestors' => $node['ancestors']);
+				$stack[]	= array('id' => $id, 'label' => $node['label'].$label, 'depth' => $node['depth'] + 1, 'ancestors' => array_merge($node['ancestors'], array($id)));
 			}
 		}
-		asort($list);
+		$cache[$catid]	= $tree;
+		return $tree;
+	}
+
+	/**
+	*	Colonne "Zone" de l'inventaire : liste des emplacements de localisation proposés à la saisie, c'est à dire toutes les sous-catégories
+	*	de la catégorie parente configurée avec leur emplacement complet (voir infrasworkflow_inventoryZoneTree()), triées en ordre naturel (B2 avant B10).
+	*
+	*	@return	array	array(id de la catégorie => emplacement complet), vide si l'option n'est pas configurée
+	**/
+	function infrasworkflow_inventoryZoneCategories()
+	{
+		$list	= array();
+		foreach (infrasworkflow_inventoryZoneTree() as $id => $zone) {
+			$list[$id]	= $zone['label'];
+		}
+		asort($list, SORT_NATURAL | SORT_FLAG_CASE);
 		return $list;
 	}
 
@@ -2650,8 +2723,8 @@
 	*	Colonne "Zone" de l'inventaire : applique au produit la zone saisie sur la ligne d'ajout d'une ligne d'inventaire.
 	*	Source attribut supplémentaire : la valeur est écrite dans l'attribut du produit (sans trigger, pour ne pas déclencher
 	*	le contrôle de validation produit du module depuis une saisie d'inventaire).
-	*	Source catégorie : le produit est rattaché à la sous-catégorie choisie et détaché des autres sous-catégories de la
-	*	catégorie parente (la colonne n'affiche qu'une zone par produit).
+	*	Source catégorie : le produit est rattaché à l'emplacement choisi et à ses catégories intermédiaires (B > 5 : B et 5),
+	*	et détaché de tous les autres emplacements de la catégorie parente, à tous les niveaux (la colonne n'affiche qu'une zone par produit).
 	*	Une saisie vide ne modifie rien.
 	*
 	*	@param	array	$parts			Résultat de infrasworkflow_inventoryZoneSqlParts()
@@ -2689,33 +2762,46 @@
 			return 1;
 		}
 		$catid	= GETPOSTINT('infraszone_category');
-		$zones	= infrasworkflow_inventoryZoneCategories();
+		$zones	= infrasworkflow_inventoryZoneTree();
 		if ($catid <= 0 || !isset($zones[$catid])) {	// Not a zone of the configured parent category
 			return 0;
 		}
+		// Emplacement choisi + ses catégories intermédiaires (B > 5 : rattachement à B et à 5), comme les rattachements existants des produits
+		$keep		= array_merge($zones[$catid]['ancestors'], array($catid));
+		$current	= array();
+		$sql		= 'SELECT fk_categorie FROM '.$db->prefix().'categorie_product';
+		$sql		.= ' WHERE fk_product = '.((int) $product->id).' AND fk_categorie IN ('.implode(',', array_keys($zones)).')';
+		$resql		= $db->query($sql);
+		if (!$resql) {
+			setEventMessages($db->lasterror(), null, 'errors');
+			return -1;
+		}
+		while ($obj = $db->fetch_object($resql)) {
+			$current[]	= (int) $obj->fk_categorie;
+		}
+		$db->free($resql);
 		require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 		$db->begin();
-		foreach (array_keys($zones) as $zoneid) {
+		foreach (array_diff($keep, $current) as $zoneid) {	// Rattachements manquants
 			$zone	= new Categorie($db);
 			if ($zone->fetch((int) $zoneid) <= 0) {
 				continue;
 			}
-			$contains	= $zone->containsObject('product', $product->id);
-			if ((int) $zoneid == $catid) {
-				if ($contains > 0) {
-					continue;	// The product is already in the selected zone
-				}
-				if ($zone->add_type($product, 'product') < 0) {
-					setEventMessages($zone->error, $zone->errors, 'errors');
-					$db->rollback();
-					return -1;
-				}
-			} elseif ($contains > 0) {
-				if ($zone->del_type($product, 'product') < 0) {
-					setEventMessages($zone->error, $zone->errors, 'errors');
-					$db->rollback();
-					return -1;
-				}
+			if ($zone->add_type($product, 'product') < 0) {
+				setEventMessages($zone->error, $zone->errors, 'errors');
+				$db->rollback();
+				return -1;
+			}
+		}
+		foreach (array_diff($current, $keep) as $zoneid) {	// Autres emplacements : la colonne n'affiche qu'une zone par produit
+			$zone	= new Categorie($db);
+			if ($zone->fetch((int) $zoneid) <= 0) {
+				continue;
+			}
+			if ($zone->del_type($product, 'product') < 0) {
+				setEventMessages($zone->error, $zone->errors, 'errors');
+				$db->rollback();
+				return -1;
 			}
 		}
 		$db->commit();
