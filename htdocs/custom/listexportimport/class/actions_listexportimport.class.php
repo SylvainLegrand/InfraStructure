@@ -71,7 +71,7 @@ class ActionsListExportImport
 
                         $pathtojs = array(
                                         dol_buildpath('/listexportimport/js/FileSaver.min.js',1),
-                                        dol_buildpath('/listexportimport/js/listexport.js.php',1),
+                                        dol_buildpath('/listexportimport/js/listexport.js.php', 1).'?v='.((int) filemtime(dol_buildpath('/listexportimport/js/listexport.js.php', 0))), // InfraS change
                                         dol_buildpath('/listexportimport/js/listimport.js.php',1),
                                         dol_buildpath('/listexportimport/js/jspdf.min.js',1),
                                         dol_buildpath('/listexportimport/js/jspdf.plugin.autotable.js',1),
@@ -133,7 +133,7 @@ class ActionsListExportImport
                             $download.= '<input type="file" class="hidden" style="display: none;" id="import-file-input" accept=".sql"/>';
                         }
 
-                        $socid = GETPOST('socid');
+                        $socid = GETPOSTINT('socid'); // InfraS change
                         if(empty($socid)) $socid = 0;
 
                         // Inclusion des fichiers CSS
@@ -352,6 +352,15 @@ class ActionsListExportImport
                                             // Pas de limite, on veut télécharger la liste totale
                                             data.limit = 10000000;
                                             data.socid = <?php echo $socid; ?>;
+                                            // InfraS add begin
+                                            // Tri choisi via les liens des titres de colonnes : paramètres d'URL absents du formulaire envoyé (rapports comptables)
+                                            var urlparams = new URLSearchParams(window.location.search);
+                                            $.each(['sortfield', 'sortorder'], function(i, key) {
+                                                if (!data.hasOwnProperty(key) && urlparams.has(key)) {
+                                                    data[key] = urlparams.get(key);
+                                                }
+                                            });
+                                            // InfraS add end
                                             $('#dialogforpopup').html($popup_message);
                                             $('#dialogforpopup').dialog({
                                                     title: '<?php echo $langs->trans('ListExport'); ?>',
@@ -366,12 +375,18 @@ class ActionsListExportImport
                                                             }).done(function(html) {
                                                                     // Récupération de la table html qui nous intéresse
                                                                     var $table = $(html).find('table.liste,table#listtable');
-                                                                    var has_search_button = $table.has('input[name="button_search"],th.maxwidthsearch').length;
+                                                                    // InfraS change begin
+                                                                    // Colonne de la loupe : seulement si la loupe a sa propre colonne (listes standard), pas si elle est dans une cellule fusionnée (lignes de filtres des rapports comptables)
+                                                                    var has_search_button = $table.find('th.maxwidthsearch').length || $table.find('input[name="button_search"]').closest('td,th').filter(function() { return this.colSpan <= 1; }).length;
+                                                                    // InfraS change end
 
                                                                     // Nettoyage de la table avant conversion en CSV
                                                                     // Suppression des filtres de la liste
                                                                     $table.find('tr.liste_titre_filter').remove(); // >= 6.0
-                                                                    $table.find('tr:has(td.liste_titre)').remove(); // < 6.0
+                                                                    // InfraS change begin
+                                                                    // < 6.0 et lignes de filtres des rapports comptables (tr.liste_titre sans th) : seulement les lignes qui contiennent un champ de saisie, les lignes de titre sont conservées
+                                                                    $table.find('tr:has(td.liste_titre), tr.liste_titre:not(:has(th))').filter(':has(input, select, textarea)').remove();
+                                                                    // InfraS change end
 
                                                                     // Suppression des éléments ignorés / à ne pas exporter
                                                                     $table.find('th.do_not_export, td.do_not_export').remove();
@@ -411,6 +426,16 @@ class ActionsListExportImport
                                                                             $cell.html($cell.text());
                                                                     });
 
+                                                                    // InfraS add begin
+                                                                    // Cellules fusionnées : une cellule sur N colonnes est suivie de N-1 cellules vides pour garder l'alignement des colonnes (CSV et PDF)
+                                                                    $table.find('th[colspan], td[colspan]').each(function() {
+                                                                        for (var k = this.colSpan; k > 1; k--) {
+                                                                            $(this).after(document.createElement(this.tagName));
+                                                                        }
+                                                                        this.colSpan = 1;
+                                                                    });
+                                                                    // InfraS add end
+
                                                                     // Generation
                                                                     switch ($format)
                                                                     {
@@ -420,30 +445,30 @@ class ActionsListExportImport
                                                                             exportTableToCSV.apply($self, args);
                                                                             break;
                                                                         case 'pdf':
-
-                                                                            //exportTableToPDF($table, $filename);
-                                                                            // Only pt supported (not mm or in)
-                                                                            var doc = new jsPDF('l', 'pt'); // 'p' for a vertical orientation & 'l' for an horizontal orientation
-                                                                            <?php if (getDolGlobalString('LIST_EXPORT_IMPORT_PRINT_DATE_ON_PDF_EXPORT')) { ?>
-                                                                                var today = new Date();
-                                                                                var date = 'd/m/Y'.replace('Y', today.getFullYear())
-                                                                                                  .replace('m', today.getMonth()+1)
-                                                                                                  .replace('d', today.getDate());
-                                                                                var width = doc.internal.pageSize.width;
-                                                                                doc.setFontSize(8);
-                                                                                doc.text(width - 80, 30, date);
-                                                                            <?php } ?>
-                                                                            var res = doc.autoTableHtmlToJson($table.get(0));
-                                                                            console.log(res)
-                                                                            doc.autoTable(res.columns, res.data, {
-                                        tableWidth: 'wrap',
-                                        styles: {cellPadding: 2},
-                                        headerStyles: {cellPadding: 15, fontSize: 8},
-                                        bodyStyles: {cellPadding: 12, fontSize: 8, valign: 'middle'}
-                                                         });
-                                                                            //doc.output('dataurlnewwindow');
-                                                                            doc.save($filename);
-                                                                            break;
+                                                                            // InfraS change begin
+                                                                            // PDF généré par le serveur (TCPDF, ajax/export_pdf.php) à partir du texte du tableau nettoyé
+                                                                            // Titre : nom du rapport (rapports comptables, report_header()), sinon titre de la page ; sous-titre : période du rapport
+                                                                            var $pdftitle = $listname;
+                                                                            var $pdfsubtitle = '';
+                                                                            var $reportname = $('#searchFormList table.tableforfield tr').filter(function() {
+                                                                                return $(this).children('td').first().text().trim() == '<?php echo dol_escape_js($langs->transnoentitiesnoconv('ReportName')); ?>';
+                                                                            }).first();
+                                                                            if ($reportname.length) {
+                                                                                $pdftitle = $reportname.children('td').eq(1).text().replace(/\s+/g, ' ').trim();
+                                                                                if ($('#date_start').val() && $('#date_end').val()) {
+                                                                                    $pdfsubtitle = $('#date_start').val() + ' - ' + $('#date_end').val();
+                                                                                }
+                                                                            } else if ($('div.fiche div.titre span.print-barre-liste').first().text().trim() != '') {
+                                                                                $pdftitle = $('div.fiche div.titre span.print-barre-liste').first().text().replace(/\s+/g, ' ').trim();
+                                                                            }
+                                                                            exportTableToServerPDF($table.first(), $filename, $pdftitle, $pdfsubtitle, '<?php echo dol_escape_js(dol_buildpath('/listexportimport/ajax/export_pdf.php', 1).'?token='.newToken()); ?>', function(error) {
+                                                                                $('#dialogforpopup').dialog('close');
+                                                                                if (error !== undefined) {
+                                                                                    alert(error != '' ? error : '<?php echo dol_escape_js($langs->transnoentitiesnoconv('Error')); ?>');
+                                                                                }
+                                                                            });
+                                                                            return; // La fenêtre de progression est fermée à la réception du PDF
+                                                                            // InfraS change end
                                                                         /*case 'png':
                                                                             var args = [$table, $filename];
                                                                             exportTableToPNGFromHTML.apply($self, args);

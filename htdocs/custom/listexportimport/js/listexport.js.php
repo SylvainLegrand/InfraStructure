@@ -89,31 +89,10 @@ function exportTableToCSV($table, filename) {
 		$cols = $row.find('th,td');
 
 		return $cols.map(function(j, col) {
-			var $col = $(col);
-			var text = "";
-			if ($col.find("span.linkobject:not(.hideobject)").length > 0) {
-				// Fix sur liste produit si conf MAIN_DIRECT_STATUS_UPDATE active
-				text = $col.find("span.linkobject:not(.hideobject)").children().first().attr('title').trim();
-			} else if ($col.find('a').length > 0 && $col.find('a')[0].href.indexOf('mailto:') == 0) {
-                // Fix mails tronqués dans les listes par dol_trunc dans la fonction dol_print_email
-                var link = $col.find('a')[0].href;
-                text = link.substr(7);
-            }else if($col.find('select').length > 0){
-                text = $("#"+$col.find('select')[0].id + " option:selected").text();
-            }
-            else {
-                text = $col.text().trim();
-            }
-
-            // Spécifique pour "nettoyer" les données
-			// Si texte vide, on cherche une image et on prend le title
-			if(text == '' && $col.find('img').length > 0) {
-                var imgtitle = $col.find('img').attr('title');
-                if (imgtitle != undefined) text = imgtitle.trim();
-            }
-
-			return text.replace(/"/g, '""'); // escape double quotes
-
+			// InfraS change begin
+			// Texte de la cellule : listExportCellText(), commun aux exports CSV et PDF
+			return listExportCellText($(col)).replace(/"/g, '""'); // escape double quotes
+			// InfraS change end
 		}).get().join(tmpColDelim);
 
 	}).get().join(tmpRowDelim)
@@ -123,6 +102,93 @@ function exportTableToCSV($table, filename) {
 	// download file
 	downloadFile(this, filename, csv, 'text/csv;charset=utf-8', 'data:application/csv;charset=utf-8,');
 }
+
+// InfraS add begin
+/**
+ * Texte d'une cellule exportée (règles communes aux exports CSV et PDF)
+ * @param $col  Cellule th ou td (objet jQuery)
+ * @returns string
+ */
+function listExportCellText($col) {
+	var text = "";
+	if ($col.find("span.linkobject:not(.hideobject)").length > 0) {
+		// Fix sur liste produit si conf MAIN_DIRECT_STATUS_UPDATE active
+		text = $col.find("span.linkobject:not(.hideobject)").children().first().attr('title').trim();
+	} else if ($col.find('a').length > 0 && $col.find('a')[0].href.indexOf('mailto:') == 0) {
+		// Fix mails tronqués dans les listes par dol_trunc dans la fonction dol_print_email
+		var link = $col.find('a')[0].href;
+		text = link.substr(7);
+	} else if ($col.find('select').length > 0) {
+		text = $("#"+$col.find('select')[0].id + " option:selected").text();
+	} else {
+		text = $col.text().trim();
+	}
+
+	// Spécifique pour "nettoyer" les données
+	// Si texte vide, on cherche une image et on prend le title
+	if (text == '' && $col.find('img').length > 0) {
+		var imgtitle = $col.find('img').attr('title');
+		if (imgtitle != undefined) text = imgtitle.trim();
+	}
+
+	return text;
+}
+
+/**
+ * Export PDF généré par le serveur (TCPDF) : envoie le texte du tableau nettoyé à ajax/export_pdf.php
+ * et enregistre le PDF reçu
+ * @param $table    Tableau à exporter (objet jQuery, déjà nettoyé)
+ * @param filename  Nom du fichier enregistré
+ * @param title     Titre imprimé en haut du PDF
+ * @param subtitle  Sous-titre imprimé sous le titre ('' si aucun)
+ * @param url       URL de ajax/export_pdf.php avec le jeton CSRF
+ * @param done      Appelée à la fin : sans argument si le PDF a été enregistré, sinon avec le message d'erreur ('' si aucun)
+ */
+function exportTableToServerPDF($table, filename, title, subtitle, url, done) {
+	var $clean = stripInvisible($table);
+	var table = $clean.get(0);
+	var rows = [];
+	$clean.find('tr').each(function() {
+		var $row = $(this);
+		// Lignes des tableaux imbriqués ignorées
+		if ($row.closest('table').get(0) !== table) return;
+		var $cols = $row.children('th,td');
+		if ($cols.length == 0) return;
+		// h = ligne de titre, t = ligne de total, b = ligne de données
+		var kind = $row.hasClass('liste_total') ? 't' : (($row.hasClass('liste_titre') || $row.children('th').length > 0) ? 'h' : 'b');
+		var aligns = '';
+		var row = [kind, ''];
+		$cols.each(function() {
+			var $col = $(this);
+			row.push(listExportCellText($col).replace(/\s+/g, ' ').trim());
+			aligns += ($col.hasClass('right') || $col.attr('align') == 'right') ? 'R' : (($col.hasClass('center') || $col.attr('align') == 'center') ? 'C' : 'L');
+		});
+		row[1] = aligns;
+		rows.push(row);
+	});
+
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', url, true);
+	xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+	xhr.responseType = 'blob';
+	xhr.onload = function() {
+		var type = xhr.response ? xhr.response.type : '';
+		if (xhr.status == 200 && type.indexOf('application/pdf') == 0) {
+			saveAs(xhr.response, filename);
+			done();
+		} else if (type.indexOf('text/plain') == 0) {
+			// Message d'erreur envoyé par le serveur
+			var reader = new FileReader();
+			reader.onload = function() { done(String(reader.result)); };
+			reader.readAsText(xhr.response);
+		} else {
+			done('');
+		}
+	};
+	xhr.onerror = function() { done(''); };
+	xhr.send(JSON.stringify({title: title, subtitle: subtitle, rows: rows}));
+}
+// InfraS add end
 
 //serialize data function
 function objectifyForm(formArray) {
