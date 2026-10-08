@@ -129,7 +129,7 @@
 		/**
 		*	Load the inventory lines with product, warehouse and storage zone into $this->infrasfiles_lines.
 		*	The zone follows the "Zone" column setup of InfraSWorkflow (infrasfiles_inventory_zone_config()) : product extrafield
-		*	or location category (oldest category of the product among the sub categories of the configured parent).
+		*	or location category (same SQL as the "Zone" column : full location of the deepest category of the product, as shown in the tab).
 		*	Lines are sorted by rank of the zone (order of the list / creation order of the categories), then product ref, then batch ;
 		*	unknown zones after the known ones, lines without zone last.
 		*
@@ -146,7 +146,7 @@
 			if ($config['source'] == 'extrafield') {
 				$sql	.= ', pe.'.$config['extrafield'].' AS zone';	// code validated by regex in infrasfiles_inventory_zone_config()
 			} elseif ($config['source'] == 'category') {
-				$sql	.= ', zc.zone';
+				$sql	.= (!empty($config['select']) ? $config['select'] : ', NULL AS infras_zone');	// zc.infras_zone : label of the "Zone" column of InfraSWorkflow
 			} else {
 				$sql	.= ", '' AS zone";
 			}
@@ -156,9 +156,9 @@
 			if ($config['source'] == 'extrafield') {
 				$sql	.= ' LEFT JOIN '.$this->db->prefix().'product_extrafields AS pe ON pe.fk_object = p.rowid';
 			} elseif ($config['source'] == 'category') {
-				// One zone per product : the oldest sub category of the parent among those of the product (id, resolved to label / rank below)
-				$sql	.= ' LEFT JOIN (SELECT cp.fk_product, MIN(c.rowid) AS zone FROM '.$this->db->prefix().'categorie_product AS cp';
-				$sql	.= ' INNER JOIN '.$this->db->prefix().'categorie AS c ON c.rowid = cp.fk_categorie WHERE c.fk_parent = '.((int) $config['category']).' GROUP BY cp.fk_product) AS zc ON zc.fk_product = p.rowid';
+				// Same join as the "Zone" column of the inventory (infrasworkflow_inventoryZoneSqlParts()) : never rebuild this query here, the label must
+				// stay the one of the tab (full location of the deepest category with the tree of InfraSWorkflow, direct sub category with an older version)
+				$sql	.= $config['join'];
 			}
 			$sql	.= ' WHERE d.fk_inventory = '.((int) $this->id);
 			$sql	.= ' ORDER BY e.ref ASC, p.ref ASC, d.batch ASC';
@@ -168,15 +168,15 @@
 				return -1;
 			}
 			while ($obj = $this->db->fetch_object($resql)) {
-				$zone	= (string) $obj->zone;
+				$zone	= (string) ($config['source'] == 'category' ? $obj->infras_zone : $obj->zone);
 				if ($zone !== '' && isset($zones[$zone])) {
 					$label	= $zones[$zone]['label'];
 					$rank	= $zones[$zone]['rank'];
-				} elseif ($zone !== '' && $config['source'] == 'extrafield') {
-					$label	= $zone;	// text extrafield or value removed from the list : raw value, after the known zones, alphabetical
+				} elseif ($zone !== '') {
+					$label	= $zone;	// text extrafield, value removed from the list or location missing from the list : raw value, after the known zones, alphabetical
 					$rank	= PHP_INT_MAX - 1;
 				} else {
-					$zone	= '';	// no zone (or category id not found) : last
+					$zone	= '';	// no zone : last
 					$label	= '';
 					$rank	= PHP_INT_MAX;
 				}

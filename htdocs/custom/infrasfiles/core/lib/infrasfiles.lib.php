@@ -321,11 +321,12 @@
 	*	decided by InfraSWorkflow itself (infrasworkflow_inventoryZoneSqlParts() : extrafield first, category otherwise) so that
 	*	the sheet and the "Zone" column always show the same thing. Optional dependency : without InfraSWorkflow, no zone.
 	*
-	*	@return		array		array('source' => 'extrafield' | 'category' | '', 'extrafield' => code, 'category' => id of the parent category)
+	*	@return		array		array('source' => 'extrafield' | 'category' | '', 'extrafield' => code, 'category' => id of the parent category,
+	*							'select' / 'join' => SQL of the "Zone" column for the category source : alias zc.infras_zone, product alias p)
 	**/
 	function infrasfiles_inventory_zone_config()
 	{
-		$config	= array('source' => '', 'extrafield' => '', 'category' => 0);
+		$config	= array('source' => '', 'extrafield' => '', 'category' => 0, 'select' => '', 'join' => '');
 
 		if (!isModEnabled('infrasworkflow')) {
 			return $config;
@@ -341,17 +342,21 @@
 		} elseif ($parts['source'] == 'category') {
 			$config['source']	= 'category';
 			$config['category']	= getDolGlobalInt('INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY', 0);
+			// SQL of the "Zone" column itself, reused by InfrasFilesInventory::infrasfilesFetchLines() : the sheet shows exactly the label of the tab
+			$config['select']	= isset($parts['select']) ? $parts['select'] : '';
+			$config['join']		= isset($parts['join']) ? $parts['join'] : '';
 		}
 		return $config;
 	}
 
 	/**
 	*	Ordered list of the zones of the counting sheet : the order of the list is the order of the sheet.
-	*	Extrafield of type list : the values in the order of the list ; category : the sub categories in creation order (chronological) ;
-	*	extrafield of type text : empty list (the values are not known in advance, the sheet sorts them alphabetically)
+	*	Extrafield of type list : the values in the order of the list ; category : the locations of the "Zone" column in creation order
+	*	(chronological, extended to the tree : each zone before its sub locations) ; extrafield of type text : empty list (the values are not
+	*	known in advance, the sheet sorts them alphabetically)
 	*
 	*	@param		array		$config		Result of infrasfiles_inventory_zone_config()
-	*	@return		array					array(key => array('label' => , 'rank' => )), key = extrafield value or category id
+	*	@return		array					array(key => array('label' => , 'rank' => )), key = extrafield value or location label (as displayed)
 	**/
 	function infrasfiles_inventory_zone_list($config)
 	{
@@ -373,12 +378,34 @@
 				}
 			}
 		} elseif ($config['source'] == 'category' && (int) $config['category'] > 0) {
-			$sql	= 'SELECT rowid, label FROM '.$db->prefix().'categorie WHERE fk_parent = '.((int) $config['category']);
-			$sql	.= ' AND entity IN ('.getEntity('category').') ORDER BY rowid ASC';	// creation order
-			$resql	= $db->query($sql);
-			$rank	= 0;
+			// Inventory "Zone" column: list of locations offered for entry, i.e. all subcategories of the configured parent category, with their full path.
+			$children	= array();
+			$sql		= 'SELECT rowid, fk_parent, label FROM '.$db->prefix().'categorie WHERE type = 0 AND entity IN ('.getEntity('category').') ORDER BY rowid ASC';
+			$resql		= $db->query($sql);
 			while ($resql && ($obj = $db->fetch_object($resql))) {
-				$zones[(string) $obj->rowid]	= array('label' => (string) $obj->label, 'rank' => $rank++);
+				$children[(int) $obj->fk_parent][(int) $obj->rowid]	= (string) $obj->label;
+			}
+			$parentid	= (int) $config['category'];
+			$seen		= array($parentid => true);	// protection against a looping tree
+			$stack		= array();
+			foreach (array_reverse(isset($children[$parentid]) ? $children[$parentid] : array(), true) as $id => $label) {
+				$stack[]	= array('id' => $id, 'label' => $label);	// reversed : the oldest sibling is popped first
+			}
+			$rank		= 0;
+			while (!empty($stack)) {
+				$node	= array_pop($stack);
+				if (isset($seen[$node['id']])) {
+					continue;
+				}
+				$seen[$node['id']]	= true;
+				if (!isset($zones[$node['label']])) {	// two categories may give the same location : the first one sets the rank
+					$zones[$node['label']]	= array('label' => $node['label'], 'rank' => $rank++);
+				}
+				if (!empty($children[$node['id']])) {
+					foreach (array_reverse($children[$node['id']], true) as $id => $label) {
+						$stack[]	= array('id' => $id, 'label' => $node['label'].$label);
+					}
+				}
 			}
 		}
 		return $zones;

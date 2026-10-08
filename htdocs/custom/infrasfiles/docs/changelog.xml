@@ -65,8 +65,9 @@
 		<change type='chg'>Feuille de comptage (modèle « comptage ») : la zone de stockage n'est plus imprimée en bandeau « Zone : … - N référence(s) » au-dessus de chaque groupe de lignes mais dans une colonne « Zone », en première position, renseignée sur chaque ligne (lignes toujours triées par zone, lignes sans zone en dernier avec la cellule vide). La colonne n'apparaît que si au moins une ligne a une zone.</change>
 		<change type='chg'>Feuille de comptage : toujours en portrait. Un texte trop long pour sa colonne (libellé, zone, référence, lot) passe à la ligne dans sa cellule et la ligne s'agrandit ; le libellé garde au moins 40 mm, les autres colonnes sont resserrées en proportion quand toutes les colonnes optionnelles sont affichées ; un titre de colonne trop long passe aussi à la ligne et l'en-tête du tableau s'agrandit (en-tête commun aux modèles du module).</change>
 		<change type='add'>Feuille de comptage : colonne « Recomptage » (case vide) juste après « Quantité relevée », et ligne « Recompté par » avec date et signature sous la ligne « Compté par » en fin de feuille. Même mise en page dans le modèle InfraSPlus_INV fourni par InfraSPackPlus (21.12.0).</change>
+		<change type='fix'>Feuille de comptage (modèle « comptage ») : avec une catégorie de localisation à plusieurs niveaux, la colonne « Zone » n'imprimait que la sous-catégorie directe de la catégorie parente (ZDS > B > 5 imprimé « B ») alors que la colonne « Zone » de l'inventaire (InfraSWorkflow) affiche l'emplacement complet (« B5 »).</change>
 	</Version>
-	<InfraS Downloaded="20261007"/>
+	<InfraS Downloaded="20261008"/>
 	<Dolibarr minVersion="18.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

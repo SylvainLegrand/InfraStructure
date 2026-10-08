@@ -51,7 +51,7 @@ Les modules tiers peuvent déclarer leurs propres objets via le hook `infrasFile
 * Choisir les modèles de documents proposés, le modèle par défaut, et les prévisualiser (spécimen)
 * Texte libre en pied de page et filigrane sur les documents brouillon
 * Bons de prélèvement : découpage des PDF => un PDF par tiers (regroupant ses factures) ou un PDF par maison mère (regroupant les tiers rattachés à elle qui ont coché l'attribut « Adresser les bordereaux à la maison mère » sur leur fiche ; les autres tiers gardent leur propre PDF)
-* Inventaires : affichage ou non de la quantité théorique. La zone de stockage suit la colonne « Zone » du module InfraSWorkflow (section « Gestion des inventaires » : attribut supplémentaire du produit, dans l'ordre des valeurs de la liste, ou sous-catégories d'une catégorie de localisation, dans leur ordre de création)
+* Inventaires : affichage ou non de la quantité théorique. La zone de stockage suit la colonne « Zone » du module InfraSWorkflow (section « Gestion des inventaires » : attribut supplémentaire du produit, dans l'ordre des valeurs de la liste, ou emplacements d'une catégorie de localisation, libellés comme dans la colonne « Zone » (emplacement complet, ex. B5) et dans leur ordre de création, chaque zone avant ses sous-emplacements)
 * Modèles de mails dédiés (types « Bons de prélèvement et de virement » et « Inventaires » dans Configuration → Emails → Modèles), un modèle par défaut créé à l'activation
 * Événements agenda automatiques « envoyé par email », désactivables dans la configuration de l'agenda
 * Téléchargement des fichiers soumis à la permission native de chaque objet

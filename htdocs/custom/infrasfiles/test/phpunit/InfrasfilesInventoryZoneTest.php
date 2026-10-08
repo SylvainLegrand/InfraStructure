@@ -4,7 +4,8 @@
  * infrasfiles_inventory_zone_list() : lecture réelle en base (inventaire de test ZZTEST-INV-02, attribut
  * produit "zone", catégorie parente des zones de localisation). La configuration de la zone vient du module
  * infrasworkflow (colonne "Zone" de l'inventaire) : ses constantes sont posées en mémoire puis restaurées.
- * Lecture seule, encadrée par une transaction annulée. Tests ignorés sans infrasworkflow ou sans jeu de test.
+ * Lecture seule, encadrée par une transaction annulée (seule l'arborescence de zones du test d'arborescence est créée,
+ * dans cette transaction). Tests ignorés sans infrasworkflow ou sans jeu de test.
  */
 
 global $db, $conf, $user, $langs;
@@ -75,6 +76,41 @@ final class InfrasfilesInventoryZoneTest extends TestCase
 		$conf->global->INFRASWORKFLOW_INVENTORY_ZONE_PARENT_CATEGORY	= $parentCategory;
 	}
 
+	/**
+	 * Zone de chaque produit de l'inventaire telle que l'affiche la colonne "Zone" de l'onglet inventaire
+	 * (même fragment SQL que la page substituée d'infrasworkflow), indexée par id produit
+	 */
+	private function zonesOfTheInventoryTab(int $inventoryId): array
+	{
+		global $db;
+		$parts = infrasworkflow_inventoryZoneSqlParts();
+		$sql = 'SELECT d.fk_product'.$parts['select'].' FROM '.$db->prefix().'inventorydet AS d';
+		$sql .= ' LEFT JOIN '.$db->prefix().'product AS p ON p.rowid = d.fk_product'.$parts['join'];
+		$sql .= ' WHERE d.fk_inventory = '.((int) $inventoryId);
+		$resql = $db->query($sql);
+		$this->assertNotFalse($resql, (string) $db->lasterror());
+		$result = [];
+		while ($obj = $db->fetch_object($resql)) {
+			$result[(int) $obj->fk_product] = (string) ($obj->infras_zone ?? '');
+		}
+		return $result;
+	}
+
+	private function createCategory(string $label, int $parentId): int
+	{
+		global $db, $user;
+		$cat = new Categorie($db);
+		$cat->label = $label;
+		$cat->description = '';
+		$cat->color = '';
+		$cat->ref_ext = '';
+		$cat->type = Categorie::TYPE_PRODUCT;
+		$cat->fk_parent = $parentId;
+		$id = $cat->create($user);
+		$this->assertGreaterThan(0, $id, 'Création de la catégorie '.$label.' : '.$cat->error);
+		return (int) $id;
+	}
+
 	private function requireTestData(): void
 	{
 		if (! isModEnabled('infrasworkflow')) {
@@ -141,20 +177,60 @@ final class InfrasfilesInventoryZoneTest extends TestCase
 		$this->assertSame('category', $config['source'], 'Sans attribut : repli sur les catégories, comme la colonne "Zone" d\'infrasworkflow');
 		$zones = infrasfiles_inventory_zone_list($config);
 		$this->assertNotEmpty($zones);
-		$ids = array_map('intval', array_keys($zones));
-		$sorted = $ids;
-		sort($sorted);
-		$this->assertSame($sorted, $ids, 'Ordre de création (rowid croissant) des sous-catégories');
-		$this->assertSame(range(0, count($zones) - 1), array_values(array_column($zones, 'rank')));
-		// Les lignes ne portent que des zones de la liste (ou aucune)
+		$this->assertSame(range(0, count($zones) - 1), array_values(array_column($zones, 'rank')), 'Rangs consécutifs dans l\'ordre de la liste');
+		$this->assertSame(array_column($zones, 'label'), array_map('strval', array_keys($zones)), 'Zones indexées par le libellé affiché');
+		// Les lignes ne portent que des zones de la liste (ou aucune), avec le libellé de la colonne "Zone" de l'onglet inventaire
 		$inventory = infrasfiles_load_object('inventory', self::$inventoryId);
 		$inventory->infrasfilesFetchLines();
+		$tab = $this->zonesOfTheInventoryTab(self::$inventoryId);
 		foreach ($inventory->infrasfiles_lines as $line) {
-			$this->assertTrue($line['zone'] === '' || isset($zones[$line['zone']]), 'Zone = id d\'une sous-catégorie de la liste, ou vide');
-			if ($line['zone'] !== '') {
-				$this->assertSame($zones[$line['zone']]['label'], $line['zone_label']);
+			$this->assertTrue($line['zone'] === '' || isset($zones[$line['zone']]), 'Zone de la liste, ou vide');
+			$this->assertSame($tab[$line['fk_product']] ?? '', $line['zone_label'], 'Libellé identique à la colonne "Zone" de l\'onglet inventaire');
+		}
+	}
+
+	public function testCategoriesArborescenceEmplacementCompletCommeLOnglet(): void
+	{
+		global $db;
+		$this->requireTestData();
+		require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+		// Arborescence neuve, annulée en fin de classe : ZZTEST > B > 5, ZZTEST > A, B > 3 (dans cet ordre de création).
+		// Catégorie parente jamais lue auparavant : hors du cache statique de infrasworkflow_inventoryZoneTree()
+		$parent = $this->createCategory('ZZTEST-ZONES-'.dol_print_date(dol_now(), '%Y%m%d%H%M%S'), 0);
+		$b = $this->createCategory('B', $parent);
+		$b5 = $this->createCategory('5', $b);
+		$this->createCategory('A', $parent);
+		$this->createCategory('3', $b);
+		// Un produit de l'inventaire rattaché à toute la branche (B et 5), comme le fait la saisie de la zone dans l'onglet
+		$inventory = infrasfiles_load_object('inventory', self::$inventoryId);
+		$inventory->infrasfilesFetchLines();
+		$this->assertNotEmpty($inventory->infrasfiles_lines);
+		$productId = $inventory->infrasfiles_lines[0]['fk_product'];
+		$product = new Product($db);
+		$this->assertGreaterThan(0, $product->fetch($productId));
+		foreach ([$b, $b5] as $catId) {
+			$cat = new Categorie($db);
+			$cat->fetch($catId);
+			$this->assertGreaterThan(0, $cat->add_type($product, Categorie::TYPE_PRODUCT), 'Rattachement du produit : '.$cat->error);
+		}
+		$this->configure(1, '', $parent);
+		$zones = infrasfiles_inventory_zone_list(infrasfiles_inventory_zone_config());
+		$this->assertSame(['B', 'B5', 'B3', 'A'], array_map('strval', array_keys($zones)), 'Ordre chronologique étendu à l\'arborescence, calculé par infrasfiles : chaque zone avant ses sous-emplacements');
+		// Libellé attendu : celui de l'onglet, emplacement complet avec l'arborescence d'infrasworkflow, sous-catégorie directe avec une version plus ancienne
+		$expected = function_exists('infrasworkflow_inventoryZoneTree') ? 'B5' : 'B';
+		$inventory->infrasfilesFetchLines();
+		$tab = $this->zonesOfTheInventoryTab(self::$inventoryId);
+		$found = false;
+		foreach ($inventory->infrasfiles_lines as $line) {
+			$this->assertSame($tab[$line['fk_product']] ?? '', $line['zone_label'], 'Libellé identique à la colonne "Zone" de l\'onglet inventaire');
+			if ($line['fk_product'] === $productId) {
+				$found = true;
+				$this->assertSame($expected, $line['zone_label'], 'Emplacement de l\'onglet (complet et le plus profond avec l\'arborescence)');
+				$this->assertSame($zones[$expected]['rank'], $line['zone_rank'], 'Rang de la zone dans la liste');
 			}
 		}
+		$this->assertTrue($found, 'Le produit rattaché figure dans les lignes');
 	}
 
 	public function testColonneZoneDesactiveeAucuneZone(): void
