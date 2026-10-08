@@ -195,6 +195,7 @@ InfraSPlusPDFAddPrefixToNDF                    = Prefijo que se debe añadir al 
 InfraSPlusPDFAddPrefixToBC                     = Prefijo que se debe añadir al nombre de la plantilla de resguardos de cheque pdf_InfraSPlus_BC (Resguardos de cheque)
 InfraSPlusPDFAddPrefixToBOM                    = Prefijo que se debe añadir al nombre de la plantilla de listas de materiales pdf_InfraSPlus_BOM (Listas de materiales)
 InfraSPlusPDFAddPrefixToBon                    = Prefijo que se debe añadir al nombre de la plantilla de órdenes de domiciliación / transferencia pdf_InfraSPlus_Bon (Órdenes de domiciliación / transferencia, módulo InfraSFiles)
+InfraSPlusPDFAddPrefixToINV                    = Prefijo que se debe añadir al nombre de la plantilla de inventarios pdf_InfraSPlus_INV (Hojas de recuento, módulo InfraSFiles)
 InfraSPlusParamFilesFromProject                = También proponga los archivos adjuntos del proyecto asociados con el documento como archivos fusionables
 InfraSPlusParamFilesFromBom                    = En los pedidos de producción también se ofrecen los archivos adjuntos de la nomenclatura asociada al documento como archivos fusionables.
 InfraSPlusParamFilesFromExpensereport          = Fusionar archivos adjuntos asociados con los informes de gastos
@@ -1122,6 +1123,10 @@ PDFInfraSPlusChequeReceiptDescription = Comprobante de remesa de cheques PDF mod
 ### pdf_InfraS_bon ###
 PDFInfraSPlusBonName        = InfraSPlus_Bon
 PDFInfraSPlusBonDescription = Orden de domiciliación / transferencia PDF modelo InfraS (módulo InfraSFiles): un documento por tercero o por casa matriz, facturas, vencimientos, abonos, estados y total, con la maquetación y las opciones InfraSPackPlus (logotipo, recuadros de direcciones, menciones, notas, firma, marca de agua, pie de página, archivos fusionados)
+
+### pdf_InfraS_inv ###
+PDFInfraSPlusINVName        = InfraSPlus_INV
+PDFInfraSPlusINVDescription = Hoja de recuento de inventario PDF modelo InfraS (módulo InfraSFiles): zona de almacenamiento en la primera columna (líneas ordenadas por zona), almacén y lote si es necesario, cantidad teórica opcional, casillas vacías «Cantidad contada» y «Recuento», zonas «Contado por» y «Recontado por» con fecha y firma, con la maquetación y las opciones InfraSPackPlus (logotipo, recuadros, menciones, notas, marca de agua, pie de página, archivos fusionados)
 
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT

@@ -196,6 +196,7 @@ InfraSPlusPDFAddPrefixToNDF                    = Prefix to add to the name of th
 InfraSPlusPDFAddPrefixToBC                     = Prefix to add to the name of the cheque slip template pdf_InfraSPlus_BC (Cheque slips)
 InfraSPlusPDFAddPrefixToBOM                    = Prefix to add to the name of the bill of materials template pdf_InfraSPlus_BOM (Bills of materials)
 InfraSPlusPDFAddPrefixToBon                    = Prefix to add to the name of the direct debit / credit transfer order template pdf_InfraSPlus_Bon (Direct debit / credit transfer slips, InfraSFiles module)
+InfraSPlusPDFAddPrefixToINV                    = Prefix to add to the name of the inventory template pdf_InfraSPlus_INV (Counting sheets, InfraSFiles module)
 InfraSPlusParamFilesFromProject                = Also propose the attachments of the project associated with the document as mergeable files
 InfraSPlusParamFilesFromBom                    = In production orders also propose the attachments of the nomenclature associated with the document as mergeable files
 InfraSPlusParamFilesFromExpensereport          = Merge attachments associated with expense reports
@@ -1122,6 +1123,10 @@ PDFInfraSPlusChequeReceiptDescription = InfraS PDF cheque deposit slip. Complete
 ### pdf_InfraS_bon ###
 PDFInfraSPlusBonName        = InfraSPlus_Bon
 PDFInfraSPlusBonDescription = InfraS PDF direct debit / credit transfer slip (InfraSFiles module): one document per third party or per parent company, invoices, due dates, credit notes, statuses and total, with the InfraSPackPlus layout and options (logo, address frames, mentions, notes, signature, watermark, footer, merged files)
+
+### pdf_InfraS_inv ###
+PDFInfraSPlusINVName        = InfraSPlus_INV
+PDFInfraSPlusINVDescription = InfraS PDF inventory counting sheet (InfraSFiles module): storage zone in the first column (lines sorted by zone), warehouse and batch when needed, optional theoretical quantity, empty "Counted quantity" and "Recount" boxes, "Counted by" and "Recounted by" areas with date and signature, with the InfraSPackPlus layout and options (logo, frames, mentions, notes, watermark, footer, merged files)
 
 ### pdf_InfraS_user ###
 InfraSPlus_User_Contrat             = InfraSPlus_UCT
