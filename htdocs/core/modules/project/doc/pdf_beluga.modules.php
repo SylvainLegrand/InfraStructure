@@ -660,6 +660,9 @@ class pdf_beluga extends ModelePDFProjects
 								} else {
 									$pdf->MultiCell($this->posxamountht - $this->posxsociety, 3, (is_object($element->thirdparty) ? $element->thirdparty->name : ''), 1, 'L');
 								}
+								// The third party name can wrap over several lines, while every column written
+								// after it stays on one. Remember where it ended so the row height accounts for it.
+								$posYAfterThirdparty = $pdf->GetY();
 
 								// InfraS add begin Arrondis - montants affichés = totaux comptables de l'élément (HT et TTC arrondis séparément, TTC = somme des composants arrondis)
 								$element_total_ht = (isset($element->total_ht) ? $element->total_ht : null);
@@ -700,7 +703,7 @@ class pdf_beluga extends ModelePDFProjects
 									$total_ht += (float) $element_total_ht; // InfraS change Arrondis
 									$total_ttc += (float) $element_total_ttc; // InfraS change Arrondis
 								}
-								$nexY = $pdf->GetY();
+								$nexY = max($pdf->GetY(), $posYAfterThirdparty);
 								$curY = $nexY;
 							}
 
