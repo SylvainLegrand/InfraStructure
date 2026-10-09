@@ -1,0 +1,135 @@
+# Dolibarr language file - fr_FR - InfraS
+CHARSET                        = UTF-8
+
+basenameSearch                 = InfraS
+modnameSearch                  = infrassearch
+modcomnameSearch               = InfraSSearch
+Module550080Name               = Recherche avancée
+Module550080Desc               = Outils de recherche avancé (tous les types de données peuvent être scannées simultanément : produits, tiers, contacts, documents techniques, de vente ou d'achat, projets, contrats, événements, etc...)
+DolibarrMinVersionRequiered    = Version minimum de Dolibarr nécessaire
+NewVersionAviable              = Dernière version disponible
+PiloteVersion                  = Version pilote
+GenModif                       = (Modifiable avant génération du document)
+InfraSSearchCautionMess        = <center><b>----- à lire attentivement ! -----</b></center>
+InfraSSearchCaution            = <b>ATTENTION !</b>
+InfraSXMLextError              = <center>L'extension PHP <b>%s</b> n'est pas chargé<br>Certaines fonctionnalités du module ne seront pas disponibles</center>
+InfraSSearchChangelogXMLError  = Erreur changelog.xml
+InfraSSearchnoMinDolVersion    = Pas de version minimum connue
+InfraSSearchnoMaxDolVersion    = Pas de version maximum connue
+InfraSSearchSupportInformation = Informations techniques
+
+### Permissions ###
+InfraSSearchPermMenu    = Voir le menu des paramètres
+InfraSSearchPermSpecif  = Modifier les paramètres de la recherche avancée
+InfraSSearchPermBkpRest = Sauvegarder / Restaurer les paramètres du module
+
+### infras lib page ###
+InfraSSearchParams          = Paramètres InfraS
+InfraSSearchParamsChangelog = Changelog / Support
+
+### modinfras class page ###
+modfamily = Modules InfraS
+
+### InfraSSearch setup page ###
+InfraSSearchSetupPages          = Outils de recherche avancée
+InfraSSearchParamAction1        = Sauvegarder / Restaurer l'ensemble des paramètres du module
+InfraSSearchParamAction2        = (après une restauration rafraichissez la page (F5) pour visualiser le résultat)
+InfraSSearchParamBkup           = Sauvegarder
+InfraSSearchParamRestore        = Restaurer
+InfraSSearchTitleComp           = <b>Options de gestion du comportement des fonctions de recherche</b>
+InfraSSearchParamCautionSave    = Cliquez sur le bouton '<b>Modifier</b>' après tout changement !
+InfraSSearchParamSort           = Trier les résultats (pour les documents) par ordre croissant ou décroissant suivant le paramètre ci-dessous
+InfraSSearchParamOrder          = Pour les documents le tri des résultats de la recherche se fera par
+InfraSSearchParamASC            = ordre croissant
+InfraSSearchParamDESC           = ordre décroissant
+InfraSSearchParamOnlyInEntity   = Rechercher uniquement les données de l'entité dans laquelle on se trouve
+InfraSSearchParamShowFindField  = Dans la page de recherche (menu Outils) afficher le détail du champ contenant l'expression recherchée avec celle-ci en <b>gras</b>
+InfraSSearchParamStdSearchTop   = Placer la recherche native de Dolibarr sur le menu haut (menu déroulant)
+InfraSSearchParamReplaceStd     = Dans le menu de gauche remplacer la recherche standard par la méthode avancée
+InfraSSearchParamOnTopMenu      = Placer la zone de recherche avancée sur le menu haut (zone de saisie)
+InfraSSearchParamNbCaracAvRech  = Nombre de caractères minimum pour déclencher la recherche dans le menu de gauche => <b>doit être compris entre 1 et 15</b>
+InfraSSearchParamNbSecAvRech    = Délai d'attente (en millisecondes) entre la frappe d'un caractère et le déclenchement de la recherche dans le menu de gauche => <b>doit être compris entre 200 (0.2s) et 5000 (5s)</b>
+InfraSSearchParamsearchDropDown = Déplace la recherche dans le menu supérieur (Menu déroulant)
+InfraSSearchParamNbRows         = Nombre de lignes de résultats de recherche avancée par catégorie => <b>doit être compris entre 3 et 20</b>
+InfraSSearchParamBreadCrumb     = Activer le fil d'Ariane
+InfraSSearchParamNbBreadCrumbs  = Nombre d'enregistrements du fil d'Ariane à présenter => <b>doit être compris entre 5 et 30</b>
+InfraSSearchParamActiveSearch   = Activer la recherche avancée pour les %s
+InfraSSearchParamModules        = Modules
+InfraSSearchParamOrderModules   = Ordre d'affichage du module
+InfraSSearchParamPosModule      = Position des résultats de la recherche pour les %s
+
+### About page ###
+
+### Changelog page ###
+InfraSSearchParamPresent1             = <b>Ce module est une création</b>
+InfraSSearchParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
+InfraSSearchParamSlogan               = Structurez votre croissance !
+InfraSSearchParamLienModules          = Nos Modules
+InfraSSearchParamSupport              = Demande de support
+InfraSSearchParamLicense              = sous Licence GPL v3 et supérieur
+InfraSSearchParamPreferedPartner1     = Membre du programme officiel
+InfraSSearchParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise
+InfraSSearchParamMoreModulesLink      = Nos modules sur le dolistore
+InfraSSearchParamObjet                = <h3>Objet :</h3>
+InfraSSearchParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSSearchParamSkipCheck            = Téléchargement désactivé
+InfraSSearchParamNumberVersion        = N° de version
+InfraSSearchParamDolinfrasVersion     = Numero de version LTS
+InfraSSearchParamMonthVersion         = Date
+InfraSSearchParamChangesVersion       = Modifications
+InfraSSearchParamCheckNewVersion      = Nouveau Changelog
+InfraSSearchParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
+
+### actions InfraSSearch class ###
+InfraSSearchWarningMaxVersion    = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSSearch %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
+InfraSSearchBreadcrumb           = Fil d'Ariane
+InfraSSearchBreadcrumbShortCut   = Ctrl + Maj + k
+InfraSSearchInputPlaceHolder     = Recherche avancée
+
+### search ###
+InfraSSearchWait     = Chargement...
+InfraSSearchNoResult = Aucun résultat
+
+### interface ###
+InfraSSearchLibCategorie                  = Catégories
+InfraSSearchLibProduct                    = Produits/Services
+InfraSSearchLibSociete                    = Clients/Prospects/Fournisseurs
+InfraSSearchLibContact                    = Contacts
+InfraSSearchLibProject                    = Projets
+InfraSSearchLibTask                       = Tâches
+InfraSSearchLibActionComm                 = Agenda
+InfraSSearchLibPropal                     = Devis
+InfraSSearchLibCommande                   = Commandes
+InfraSSearchLibFacture                    = Factures
+InfraSSearchLibContrat                    = Contrats
+InfraSSearchLibFichinter                  = Rapports d'intervention
+InfraSSearchLibExpedition                 = Expeditions
+InfraSSearchLibSupplierProposal           = Demandes de prix fournisseur
+InfraSSearchLibCommandeFournisseur        = Commandes fournisseur
+InfraSSearchLibFactureFournisseur         = Factures fournisseur
+InfraSSearchLibExpenseReport              = Notes de frais
+InfraSSearchLibEquipement                 = Équipements
+InfraSSearchLibNdfp                       = Notes de frais +
+InfraSSearchLibContacttracking            = Suivi des échanges et contacts
+InfraSSearchLibDomain                     = Domaines
+InfraSSearchLibHost                       = Hôtes
+InfraSSearchLibPropalHist                 = Variantes de Devis
+InfraSSearchLibrmindr                     = RmindR
+InfraSSearchLibFactory                    = Fabrications
+InfraSSearchLibknowledgemanagement        = Articles de la base de connaissance
+InfraSSearchLibKnowledgeRecord            = Articles de la base de connaissance
+InfraSSearchLibinfras2bridge_paymentlinks = Liens de paiement
+InfraSSearchLibInfraSTimeBasket           = Panier temps
+InfraSSearchLibMentions                   = Mentions complémentaires
+InfraSSearchLibNotes                      = Notes
+InfraSSearchLibFreeText                   = Textes libres prédéfinis
+InfraSSearchLibTicket                     = Tickets
+InfraSSearchLibAdherent                   = Adhérents
+InfraSSearchLibRemiseCheque               = Remises de chèques
+InfraSSearchLibHoliday                    = Congés
+InfraSSearchLibMo                         = Ordres de fabrication
+InfraSSearchLibBOM                        = Nomenclatures
+InfraSSearchLibAccount                    = Comptes bancaires
+InfraSSearchLibReception                  = Réceptions
+InfraSSearchLibRecruitmentCandidature     = Candidatures
+InfraSSearchLibEvaluation                 = Évaluations
