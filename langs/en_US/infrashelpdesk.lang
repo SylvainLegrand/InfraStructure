@@ -1,0 +1,73 @@
+# Dolibarr language file - en_US - InfraSHelpdesk
+CHARSET                         = UTF-8
+basenameInfraSHelpdesk          = InfraS
+modnameInfraSHelpdesk           = infrashelpdesk
+modcomnameInfraSHelpdesk        = InfraSHelpdesk
+Module500101Name                = HelpDesk InfraS
+Module500101Desc                = Adds an online help function - Allows displaying targeted InfraS wiki information on each page (standard Dolibarr usage and external modules usage)
+InfraSHelpdeskCaution           = <b>WARNING!</b>
+InfraSHelpdeskCautionMess       = <center><b>----- read carefully ! -----</b></center>
+InfraSHelpdeskXMLextError       = <center>The PHP extension <b>%s</b> is not loaded<br>Some features of the module will not be available</center>
+InfraSHelpdeskChangelogXMLError = changelog.xml error
+InfraSHelpdeskNoMinDolVersion   = No minimum version known
+InfraSHelpdeskNoMaxDolVersion   = No maximum version known
+InfraSHelpdeskWarningMaxVersion = <center><br>Your Dolibarr version (%s) is not yet supported by the InfraSHelpdesk module %s.<br>The maximum supported Dolibarr version is %s.<br>You are using this module without any guarantee of proper operation.</center>
+
+### Permissions ###
+InfraSHelpDeskPermMenu          = View the settings menu
+InfraSHelpDeskPermSpecif        = Modify the InfraSHelpdesk module settings
+InfraSHelpDeskPermBtn           = View the floating button
+InfraSHelpDeskPermBkpRest       = Backup / Restore the module settings
+
+### Lib functions ###
+InfraSHelpdeskVersionUnknown    = Unknown version
+InfraSHelpdeskIncompatible      = Incompatible Dolibarr version
+
+### Setup page ###
+InfraSHelpdeskSetupPages            = InfraSHelpdesk module setup
+InfraSHelpdeskParams                = Parameters
+InfraSHelpdeskParamsChangelog       = Support / Changelog
+InfraSHelpdeskParamCautionSave      = Click the '<b>Modify</b>' button after any change!
+InfraSHelpdeskTitleCtxButton        = Floating context button options
+InfraSHelpdeskBtnAllUsers           = Show the floating context button to all users
+InfraSHelpdeskBtnAllUsersHelp       = By default, the floating button is only visible to administrators. Enable this option to show it to all logged-in users.
+InfraSHelpdeskPrefixLinkWikiDoc     = Prefix of the links to the wiki documentation
+InfraSHelpdeskEnableDevMode         = Enable developer mode
+
+### Context button ###
+InfraSHelpdeskCtxTitle     = HelpDesk InfraS
+InfraSHelpdeskCtxPage      = Page
+InfraSHelpdeskCtxContexts  = Active contexts
+InfraSHelpdeskCtxFunctions = Hook functions
+InfraSHelpdeskCtxModules   = Documentation of external modules
+InfraSHelpdeskCtxNoModule  = No external module interacts with this context
+InfraSHelpdeskCtxAll       = all contexts
+InfraSHelpdeskCtxWiki      = Dolibarr documentation
+InfraSHelpdeskCtxUrlDict   = Dolibarr pages → wiki URLs mapping (InfraSHelpdesk)
+
+### Dictionary ###
+Context  = Context
+Hooks    = Hook functions
+Url_page = Wiki sub-chapter URL
+Url_wiki = Wiki chapter URL
+
+### Changelog / About ###
+InfraSHelpdeskParamPresent1             = <b>This module is a creation of</b>
+InfraSHelpdeskParamPresent2             = <b>, available in our module catalog</b>
+InfraSHelpdeskParamAction1              = Backup / Restore all the module settings
+InfraSHelpdeskParamAction2              = (after a restore, refresh the page (F5) to see the result)
+InfraSHelpdeskParamBkup                 = Backup
+InfraSHelpdeskParamRestore              = Restore
+InfraSHelpdeskParamSlogan               = Structure your growth!
+InfraSHelpdeskParamLienModules          = Our Modules
+InfraSHelpdeskParamSupport              = Support request
+InfraSHelpdeskParamMoreModulesLink      = Our modules on Dolistore
+InfraSHelpdeskParamPreferedPartner1     = Member of the official
+InfraSHelpdeskParamPreferedPartner2     = Preferred Partner program, quality and expertise guaranteed
+InfraSHelpdeskParamHistoryUpdates       = <b>Update history:</b>
+InfraSHelpdeskParamSkipCheck            = Download disabled
+InfraSHelpdeskParamNumberVersion        = Version number
+InfraSHelpdeskParamMonthVersion         = Date
+InfraSHelpdeskParamChangesVersion       = Changes
+InfraSHelpdeskParamCheckNewVersion      = New Changelog
+InfraSHelpdeskParamCheckNewVersionTitle = Click to download the changelog of the latest available version

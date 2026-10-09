@@ -1,0 +1,73 @@
+# Dolibarr language file - es_ES - InfraSHelpdesk
+CHARSET                         = UTF-8
+basenameInfraSHelpdesk          = InfraS
+modnameInfraSHelpdesk           = infrashelpdesk
+modcomnameInfraSHelpdesk        = InfraSHelpdesk
+Module500101Name                = HelpDesk InfraS
+Module500101Desc                = Añade una función de ayuda en línea - Permite mostrar la información específica del wiki InfraS en cada página (uso estándar de Dolibarr y uso de módulos externos)
+InfraSHelpdeskCaution           = <b>¡ATENCIÓN!</b>
+InfraSHelpdeskCautionMess       = <center><b>----- leer con cuidado ! -----</b></center>
+InfraSHelpdeskXMLextError       = <center>La extensión PHP <b>%s</b> no está cargada<br>Algunas funcionalidades del módulo no estarán disponibles</center>
+InfraSHelpdeskChangelogXMLError = Error changelog.xml
+InfraSHelpdeskNoMinDolVersion   = No hay versión mínima conocida
+InfraSHelpdeskNoMaxDolVersion   = No hay versión máxima conocida
+InfraSHelpdeskWarningMaxVersion = <center><br>Su versión de Dolibarr (%s) aún no es compatible con el módulo InfraSHelpdesk %s.<br>La versión máxima de Dolibarr compatible es la versión %s.<br>Está utilizando este módulo sin garantía de buen funcionamiento.</center>
+
+### Permissions ###
+InfraSHelpDeskPermMenu          = Ver el menú de configuración
+InfraSHelpDeskPermSpecif        = Modificar los parámetros del módulo InfraSHelpdesk
+InfraSHelpDeskPermBtn           = Ver el botón flotante
+InfraSHelpDeskPermBkpRest       = Guardar / Restaurar los parámetros del módulo
+
+### Lib functions ###
+InfraSHelpdeskVersionUnknown    = Versión desconocida
+InfraSHelpdeskIncompatible      = Versión de Dolibarr incompatible
+
+### Setup page ###
+InfraSHelpdeskSetupPages            = Configuración del módulo InfraSHelpdesk
+InfraSHelpdeskParams                = Parámetros
+InfraSHelpdeskParamsChangelog       = Soporte / Changelog
+InfraSHelpdeskParamCautionSave      = ¡Haga clic en el botón '<b>Modificar</b>' después de cualquier cambio!
+InfraSHelpdeskTitleCtxButton        = Opciones del botón flotante de contexto
+InfraSHelpdeskBtnAllUsers           = Mostrar el botón flotante de contexto a todos los usuarios
+InfraSHelpdeskBtnAllUsersHelp       = Por defecto, el botón flotante solo es visible para los administradores. Active esta opción para mostrarlo a todos los usuarios conectados.
+InfraSHelpdeskPrefixLinkWikiDoc     = Prefijo del enlace a la documentación wiki
+InfraSHelpdeskEnableDevMode         = Activar el modo desarrollador
+
+### Context button ###
+InfraSHelpdeskCtxTitle     = HelpDesk InfraS
+InfraSHelpdeskCtxPage      = Página
+InfraSHelpdeskCtxContexts  = Contextos activos
+InfraSHelpdeskCtxFunctions = Funciones de hook
+InfraSHelpdeskCtxModules   = Documentación de módulos externos
+InfraSHelpdeskCtxNoModule  = Ningún módulo externo interactúa con este contexto
+InfraSHelpdeskCtxAll       = todos los contextos
+InfraSHelpdeskCtxWiki      = Documentación Dolibarr
+InfraSHelpdeskCtxUrlDict   = Correspondencia páginas Dolibarr → URL wiki (InfraSHelpdesk)
+
+### Dictionary ###
+Context  = Contexto
+Hooks    = Funciones de hook
+Url_page = URL wiki del subcapítulo
+Url_wiki = URL wiki del capítulo
+
+### Changelog / About ###
+InfraSHelpdeskParamPresent1             = <b>Este módulo es una creación de</b>
+InfraSHelpdeskParamPresent2             = <b>, disponible en nuestro catálogo de módulos</b>
+InfraSHelpdeskParamAction1              = Guardar / Restaurar todos los parámetros del módulo
+InfraSHelpdeskParamAction2              = (después de una restauración, actualice la página (F5) para ver el resultado)
+InfraSHelpdeskParamBkup                 = Guardar
+InfraSHelpdeskParamRestore              = Restaurar
+InfraSHelpdeskParamSlogan               = ¡Estructura tu crecimiento!
+InfraSHelpdeskParamLienModules          = Nuestros Módulos
+InfraSHelpdeskParamSupport              = Solicitud de soporte
+InfraSHelpdeskParamMoreModulesLink      = Nuestros módulos en Dolistore
+InfraSHelpdeskParamPreferedPartner1     = Miembro del programa oficial
+InfraSHelpdeskParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia
+InfraSHelpdeskParamHistoryUpdates       = <b>Historial de actualizaciones:</b>
+InfraSHelpdeskParamSkipCheck            = Descarga desactivada
+InfraSHelpdeskParamNumberVersion        = N° de versión
+InfraSHelpdeskParamMonthVersion         = Fecha
+InfraSHelpdeskParamChangesVersion       = Modificaciones
+InfraSHelpdeskParamCheckNewVersion      = Nuevo Changelog
+InfraSHelpdeskParamCheckNewVersionTitle = Haga clic para descargar el changelog de la última versión disponible
