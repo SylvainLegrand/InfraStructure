@@ -1,0 +1,138 @@
+﻿# Dolibarr language file - fr_FR - remises
+CHARSET                         = UTF-8
+basenameInfraSDiscount          = InfraS
+modcomnameInfrasdiscount        = InfraSMultiDiscount
+Module500058Name                = Saisie de remises
+Module500058Desc                = Permet de saisir rapidement des remises globales, en cascade ou en valeur sur les devis, commandes et factures. Gère le multi-devises
+DolibarrMinVersionRequired      = Version minimum de Dolibarr nécessaire
+NewVersionAvailable             = Dernière version disponible
+PiloteVersion                   = Version pilote
+InfraSDiscountCautionMess       = <center><b>----- à lire attentivement ! -----</b></center>
+InfraSDiscountCaution           = <b>ATTENTION !</b>
+InfraSDiscountXMLextError       = <br><center>L'extension PHP 'XML' n'est pas chargé<br>Certaines fonctionnalités du module ne seront pas disponibles</center>
+InfraSDiscountChangelogXMLError = Erreur changelog.xml
+InfraSDiscountnoMinDolVersion   = Pas de version minimum connue
+InfraSDiscountnoMaxDolVersion   = Pas de version maximum connue
+InfraSSupportInformation        = Informations techniques
+
+### Permissions ###
+InfraSDiscountPermMenu    = Afficher le menu secondaire vers les paramètres du module (utilisateur non administrateur)
+InfraSDiscountPermSpecif  = Modifier les paramètres du module
+InfraSDiscountPermBkpRest = Sauvegarder / Restaurer les paramètres du module
+InfraSDiscountPermAdd     = Saisir des Remises
+
+### infras lib page ###
+
+### modinfras class page ###
+InfraSDiscountExtraSpecialValue = InfraSDiscount - valeur de la remise
+
+### settings page ###
+InfraSDiscountSetup                         = Paramétrage des remises globales
+InfraSDiscountParamAction1                  = Sauvegarder / Restaurer l'ensemble des paramètres du module
+InfraSDiscountParamAction2                  = <br>(après une restauration rafraichissez la page (F5) pour visualiser le résultat)
+InfraSDiscountParamBkup                     = Sauvegarder
+InfraSDiscountParamRestore                  = Restaurer
+InfraSDiscountFeatures                      = Paramètres d'activation
+InfraSDiscountAuto                          = Paramètres de Remise Automatique (uniquement pour les commandes)
+InfraSDiscountParamCautionSave              = Cliquez sur le bouton '<b>Modifier</b>' après tout changement !
+InfraSDiscountOnPropale                     = Activer les remises sur les propositions commerciales
+InfraSDiscountlabelPropalDefault            = Libellé ou clé de traduction des remises par défaut sur les devis (actuellement le libellé enregistré est : "%s")
+InfraSDiscountOnOrder                       = Activer les remises sur les commandes
+InfraSDiscountlabelOrderDefault             = Libellé ou clé de traduction des remises par défaut sur les commandes (actuellement le libellé enregistré est : "%s")
+InfraSDiscountOnInvoice                     = Activer les remises sur les factures
+InfraSDiscountlabelInvoiceDefault           = Libellé ou clé de traduction des remises par défaut sur les factures (actuellement le libellé enregistré est : "%s")
+InfraSDiscountProductType                   = Choix du type de ligne associé aux remises (hors remises spécifiques sur produits) => activé = remises de type service ; sinon remise de type produit
+InfraSDiscountServiceLinkToDiscount         = Choix du service associé aux remises
+InfraSDiscountServiceLinkToDiscountHelp     = Quand les remises (hors remises spécifiques sur produits) sont associées aux services cette option permet de les lier à un service et donc à un compte comptable
+InfraSDiscountProductLinkToDiscount         = Choix du produit associé aux remises sur produits
+InfraSDiscountProductLinkToDiscountHelp     = Quand les remises sont associées aux produits cette option permet de les lier à un service et donc à un compte comptable
+InfraSDiscountDefaultRemValue               = Valeur de remise par défaut
+InfraSDiscountProductAffiliate              = Liste des références sur lesquelles appliquer la remise automatique
+InfraSDiscountProductAffiliateHelp          = Ajouter ici toutes les références incluses dans le calcul de remise automatique
+InfraSDiscountNumberofFree                  = Quantité de produits gratuits par référence
+InfraSDiscountNumberofFreeHelp              = Quantité MAXIMUM : </br> Si la quantité de produits pour une référence est inférieure à cette valeur, la remise sera : </br> <b>"Quantité demandée pour cette référence" x par son Prix Unitaire.</b> </br> Si la quantité de produits pour une référence est supérieure à cette valeur, la remise sera : </br> <b>"Cette valeur" x "PU de la référence".</b>
+InfraSDiscountNumberofDiscountAllowed       = Nombre de commandes client sur lesquelles appliquer la remise automatique
+InfraSDiscountNumberofDiscountAllowedHelp   = Permet de limiter les remises automatiques aux "x" premières commandes validées du client.
+InfraSDiscountPonderation                   = Article dont la quantité sert de pondérateur pour les calculs de la remise automatique 
+InfraSDiscountPonderationHelp               = <b>1_</b> Le calcule de remise automatique commencera par ce produit. Pour celui-ci, la quantité de produit gratuit par référence s'applique intégralement. </br> </br> <b>Exemple 1 :</b> La quantité de ce produit est de 1500, la quantité de produit gratuit par référence est de 650, la remise calculée sera :</br> <b>"650" x PU de la référence.</b></br><b>Exemple 2 :</b> La quantité de ce produit est de 330, la quantité de produit gratuit par référence est de 650, la remise calculée sera :<b> </br>"330" x "PU de la référence".</b></br> </br> <b>2_</b> Pour les autres références selectionnées : la quantité de produit gratuit par référence sera pondérée par la quantité de ce produit. </br> </br> <b>Exemple :</b> La quantité de la référence est de 10 000, la quantité du produit gratuit par référence est de 650, la quantité de ce produit est de 250, la remise sera : </br><b>("quantité de produit gratuit" - "quantité du produit pondérateur") x "PU de la référence". </b> </br>soit <b>("650" - "250") x "PU de la référence".</b>
+remiseCalcul                                = Calcule de la Remise
+AutomaticDiscount                           = Remise automatique
+Discount                                    = Remise
+InfraSDiscountParamDescFreeText             = Ajouter des informations dans la description de la remise
+onProduct                                   = sur le produit 
+subprice                                    = Prix Unitaire HT
+InfraSDiscountTypeProductOnly               = Produit uniquement
+InfraSDiscountTypeServiceOnly               = Service uniquement
+InfraSDiscountTypeProductAndService         = Produit et Service
+InfraSDiscountLabelModify                   = Modifier les Remises
+ErrorAddingDiscountLine                     = Impossible d'ajouter la ligne de Remise.
+
+### About page ###
+
+### Changelog page ###
+InfraSDiscountParamsChangelog           = Changelog / Support
+InfraSDiscountParamPresent1             = <b>Ce module est une création</b>
+InfraSDiscountParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
+InfraSDiscountParamSlogan               = Structurez votre croissance !
+InfraSDiscountParamLienModules          = Nos Modules
+InfraSDiscountParamSupport              = Demande de support
+InfraSDiscountParamLienDocs             = Nos Documentations
+InfraSDiscountParamLicense              = sous Licence GPL v3 et supérieur 
+InfraSDiscountParamMoreModulesLink      = Nos modules sur le dolistore
+InfraSDiscountParamObjet                = <h3>Objet :</h3>
+InfraSDiscountParamPreferedPartner1     = Membre du programme officiel
+InfraSDiscountParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise
+InfraSDiscountParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSDiscountParamSkipCheck            = Téléchargement désactivé
+InfraSDiscountParamNumberVersion        = N° de version
+InfraSDiscountParamDolinfrasVersion     = N° de version LTS
+InfraSDiscountParamMonthVersion         = Date
+InfraSDiscountParamChangesVersion       = Modifications
+InfraSDiscountParamCheckNewVersion      = Nouveau Changelog
+InfraSDiscountParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
+DolibarrVersion                         = Version de Dolibarr
+ModuleVersion                           = Version du module
+WebServerVersion                        = Serveur web
+
+### actions InfraSDiscount class ###
+PDFInfraSDiscountWarningMaxVersion = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSDiscount %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
+
+### Popup ###
+InfraSDiscountLabelBox              = Saisir une remise globale
+InfraSDiscountDiscountValue         = Taux de remise ou Montant fixe
+InfraSDiscountTypeDiscount          = La valeur saisie ci-dessus est
+InfraSDiscountTypeDiscountPercent   = un pourcentage de remise
+InfraSDiscountTypeDiscountAmount    = un montant fixe de remise
+InfraSDiscountTypeDiscountTotalTTC  = un montant total TTC à atteindre
+InfraSDiscountlabelInput            = Libellé de la remise
+InfraSDiscountlabelDefault          = Remise commerciale exceptionnelle
+InfraSDiscountLabelSubmit           = Remise
+InfraSDiscountUpdateDiscount        = Mise à jour de la remise globale effectée
+InfraSDiscountproduct_only          = Remise sur les produits uniquement
+InfraSDiscountemptyRemise           = Aucune remise n'a été saisie !
+InfraSDiscountProductLabel          = (sur les produits)
+InfraSDiscountServiceLabel          = (sur les services)
+InfraSDiscountProductLabelProrata   = (sur les produits au prorata)
+InfraSDiscountServiceLabelProrata   = (sur les services au prorata)
+InfraSDiscountRemiseLinesList       = Ligne(s) de remise(s) présente(s)
+InfraSDiscountConfirmModifyRemise   = Êtes-vous sûr de vouloir modifier ces lignes de remises?
+InfraSDiscountProrataCombinedLabel  = Remise prorata combinée (Produit + Service)
+InfraSDiscountLabelLinePosition     = Ligne
+InfrasDiscountSelectTypeToApply     = Appliquer la Remise sur
+SellTaxRate                         = Taux TVA de la Remise
+InfraSDiscountDiscountValuecurrency = Montant en multidevise
+TTC                                 = TTC
+Arrondi                             = Arrondi à
+InfraSDiscountBothCurrencies        = Les deux entrée ne dois pas être renseigné en même temps.
+### Errors ###
+InfraSDiscountErrorRecalculating       = Erreur lors du recalcul de la remise :
+InfraSDiscountErrorInvalidTargetAmount = Le montant TTC cible doit être supérieur à zéro
+InfraSDiscountErrorNoLines             = Aucune ligne sur laquelle calculer la remise
+InfraSDiscountErrorAmountToHigh        = Le montant TTC cible doit être inférieur au total TTC actuel du document
+InfraSDiscountErrorMargin              = La remise demandée dépasse la marge du document
+InfraSDiscountErrorValueRequired       = Saisissez une valeur pour ce type de remise
+InfraSDiscountErrorPercentRange        = Le pourcentage de remise doit être supérieur à 0 et inférieur ou égal à 100
+InfraSDiscountErrorAmountInvalid       = Le montant de la remise doit être supérieur à zéro
+InfraSDiscountErrorAmountTooHigh       = Le montant de la remise (%s) dépasse le total des lignes concernées (%s)
+InfraSDiscountErrorNotAllowed          = Vous n'avez pas les droits nécessaires pour saisir ou modifier une remise sur ce document
+InfraSDiscountErrorNotDraft            = Les remises ne se saisissent et ne se modifient que sur un document à l'état brouillon
