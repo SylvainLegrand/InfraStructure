@@ -1,0 +1,6 @@
+# Dolibarr language file - en_US - Inovea
+CHARSET=UTF-8
+InoveaAboutDesc1=This module is developed by <a href="https://inovea-conseil.com/" target="_blank">Inovea Conseil</a>. Your Dolibarr partner (developpement, hosting and training). <br><br>You can find the documentation for your module in <a href="https://www.dolibiz.com/support/" target="_blank">our documentation area</a><br><br>For any question or feedback, contact us on <a href="mailto:support@open-dsi.fr">support@open-dsi.fr</a><br><br>For any question or feedback, file a support demand at our
+InoveaAboutDesc2=support area Inovea Conseil
+InoveaAboutDesc3=or contact us on <a href="mailto:support@inovea-conseil.com">support@inovea-conseil.com</a> or at +33 3 29 66 95 78<br><br>Discorver our modules and services on <a href="https://www.dolibiz.com" target="_blank">our website www.dolibiz.com</a> or on the <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=inovea&submit_search=Rechercher" target="_blank">Dolistore</a>
+InoveaLog=ChangeLog file
