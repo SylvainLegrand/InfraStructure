@@ -2332,15 +2332,15 @@
 					$titleStyleUnderline	=  strpos(getDolGlobalString('INFRASTRUCTURE_TITLE_STYLE'), 'U') === false ? '' : ' text-decoration: underline;';
 					if (empty($line->label)) {
 						if ($line->qty >= 91 && $line->qty <= 99 && getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
-							$object->tpl["sublabel"].=  $line->description.' '.infrastructure_getTitle($object, $line);
+							$object->tpl["sublabel"].=  dolPrintHTML($line->description).' '.dol_escape_htmltag(infrastructure_getTitle($object, $line));
 						} else {
-							$object->tpl["sublabel"]	= ($object->tpl["sublabel"] ?? '').$line->description;
+							$object->tpl["sublabel"]	= ($object->tpl["sublabel"] ?? '').dolPrintHTML($line->description);
 						}
 					} else {
 						if (getDolGlobalString('PRODUIT_DESC_IN_FORM') && !empty($line->description)) {
-							$object->tpl["sublabel"]	.= '<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" >'.$line->label.'</span><br><div class="infrastructure_desc">'.dol_htmlentitiesbr($line->description).'</div>';
+							$object->tpl["sublabel"]	.= '<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" >'.dol_escape_htmltag($line->label).'</span><br><div class="infrastructure_desc">'.dolPrintHTML($line->description).'</div>';
 						} else {
-							$object->tpl["sublabel"]	.= '<span class="infrastructure_label classfortooltip" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" title="'.$line->description.'">'.$line->label.'</span>';
+							$object->tpl["sublabel"]	.= '<span class="infrastructure_label classfortooltip" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" title="'.dol_escape_htmltag($line->description).'">'.dol_escape_htmltag($line->label).'</span>';
 						}
 					}
 					if ($line->qty>90) {
