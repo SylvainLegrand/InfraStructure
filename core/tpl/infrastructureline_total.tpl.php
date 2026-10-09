@@ -77,11 +77,11 @@
 		if (getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
 			print dol_escape_htmltag($line->description).' <span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dol_escape_htmltag(infrastructure_getTitle($object, $line)).'</span>';
 		} else {
-			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dol_htmlentitiesbr($line->description).'</span>';
+			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dolPrintHTML($line->description).'</span>';
 		}
 	} else {
 		if (getDolGlobalString('PRODUIT_DESC_IN_FORM') && !empty($line->description)) {
-			$lineLabel	= $line->description != $line->label ? dol_escape_htmltag($line->label).'</span><br><div class="infrastructure_desc">'.dol_htmlentitiesbr($line->description) : dol_escape_htmltag($line->label);
+			$lineLabel	= $line->description != $line->label ? dol_escape_htmltag($line->label).'</span><br><div class="infrastructure_desc">'.dolPrintHTML($line->description) : dol_escape_htmltag($line->label);
 			if (getDolGlobalInt('INFRASTRUCTURE_SCREEN_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
 				$lineLabel	.= ' '.dol_escape_htmltag(infrastructure_getTitle($object, $line));
 			}

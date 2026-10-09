@@ -113,11 +113,11 @@
 			// Sous-total à label vide en contexte shipment : concaténer le titre parent à la description
 			print dol_escape_htmltag($line->description).' '.dol_escape_htmltag(infrastructure_getTitle($object, $line));
 		} else {
-			print '		<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.$titleStyleColor.'">'.dol_htmlentitiesbr($line->description).'</span>';
+			print '		<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.$titleStyleColor.'">'.dolPrintHTML($line->description).'</span>';
 		}
 	} else {
 		if (getDolGlobalString('PRODUIT_DESC_IN_FORM') && !empty($line->description)) {
-			$lineLabel	= $line->description != $line->label ? dol_escape_htmltag($line->label).'</span><br><div class="infrastructure_desc">'.dol_htmlentitiesbr($line->description) : dol_escape_htmltag($line->label);
+			$lineLabel	= $line->description != $line->label ? dol_escape_htmltag($line->label).'</span><br><div class="infrastructure_desc">'.dolPrintHTML($line->description) : dol_escape_htmltag($line->label);
 			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.$titleStyleColor.'">'.$lineLabel.'</div>';
 		} else {
 			print '	<span class="infrastructure_label classfortooltip" style=" '.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.$titleStyleColor.'" title="'.dol_escape_htmltag($line->description).'">'.dol_escape_htmltag($line->label).'</span>';
