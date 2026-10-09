@@ -1,0 +1,201 @@
+<changelog>
+	<Version Number="1.8.5" MonthVersion="2021-09">
+		<change type='add'>Initiale release.</change>
+	</Version>
+	<Version Number="1.9.1" MonthVersion="2022-05">
+		<change type='add'>Ajout d'une fenêtre Popup pour la création des remises</change>
+		<change type='add'>Gestion des remises en cascade</change>
+	</Version>
+	<Version Number="1.9.3" MonthVersion="2022-09">
+		<change type='fix'>Compatibilité avec Dolibarr 14.0.x et ultérieur => utilisation de la description plutôt que du libellé pour les lignes de remise (sinon création de facture impossible)</change>
+	</Version>
+	<Version Number="2.0.1" MonthVersion="2022-09">
+		<change type='add'>Gestion des remises en montant</change>
+		<change type='add'>Ajout d'une option pour choisir le type d'élément associé aux remises (produit ou service)</change>
+		<change type='add'>Inclusion des remises dans les calculs de marge du document</change>
+	</Version>
+	<Version Number="2.0.2" MonthVersion="2022-09">
+		<change type='fix'>Correction d'un problème de traduction du libellé des remises</change>
+		<change type='fix'>Correction d'une erreur de calcul des marges et des taux de marge et/ou de marque</change>
+	</Version>
+	<Version Number="2.0.3" MonthVersion="2023-10">
+		<change type='chg'>Compatibilité avec Dolibarr supérieur à 16.0.x</change>
+		<change type='chg'>Abandon du support pour les versions de Dolibarr inférieures à 14.0.x</change>
+		<change type='chg'>Mise à jour des logos</change>
+		<change type='chg'>Paramètres : Amélioration de l'expérience utilisateur (Style CSS amélioré)</change>
+	</Version>
+	<Version Number="2.0.4" MonthVersion="2023-10">
+		<change type='chg'>Mise à jour des CSS</change>
+	</Version>
+	<Version Number="2.0.5" MonthVersion="2023-10">
+		<change type='chg'>Menu d'accès aux paramètres du module pour les utilisateurs non-administrateur => Création d'un menu général pour les modules InfraS</change>
+	</Version>
+	<Version Number="14.0.1" MonthVersion="2024-06">
+		<change type='fix'>Compatibilité PHP 8.1</change>
+		<change type='fix'>Amélioration de la gestion des versions déclarées du module</change>
+		<change type='chg'>Modification de la numérotation => (version minimum requise de Dolibarr) . (ajout de fonction) . (correctif)</change>
+		<change type='add'>Ajout d'un menu vers l'onglet "Changelog" => Facilite l'utilisation du lien vers le support</change>
+		<change type='add'>Gestion des versions minimum / maximum de PHP centralisée dans le fichier changelog</change>
+	</Version>
+	<Version Number="15.0.0" MonthVersion="2024-08">
+		<change type='fix'>Clean a lot of few small problems - improvements</change>
+		<change type='fix'>Configuration => Amélioration de la compatibilité avec PHP 8.1 et supérieur (typage des variables extraites du changelog.xml)</change>
+		<change type='fix'>Changelog / Support => Mise à jour des liens</change>
+		<change type='chg'>Compatibilité Dolibarr : Abandon de Dolibarr v14</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de l'utilisation des fonctions Dolibarr</change>
+		<change type='chg'>Compatibilité Dolibarr : Amélioration de la compatibilité Dolibarr v16, v18 et v19</change>
+		<change type='chg'>Amélioration du code => meilleur utilisation du CSS</change>
+		<change type='chg'>Paramètres : Amélioration du téléchargement du changelog</change>
+	</Version>
+	<Version Number="15.1.0" MonthVersion="2024-10">
+		<change type='add'>Activation du module : Ajout d'une constante cachée (INVOICE_KEEP_DISCOUNT_LINES_AS_IN_ORIGIN)</change>
+		<change type='add'>Comptabilité : Ajout de deux options pour lier les remises à un produit et / ou un service => permet de définir un compte comptable spécifique pour les remises</change>
+	</Version>
+	<Version Number="15.1.1" MonthVersion="2025-02">
+		<change type='fix'>Gestion des entrées du menu InfraS des outils</change>
+		<change type='chg'>Uniformisation des traductions des pages de paramètres</change>
+	</Version>
+	<Version Number="15.2.0" MonthVersion="2025-05">
+		<change type='add'>Ajout des fonctions de modification des remises existantes</change>
+		<change type='add'>Gestion des multidevises pour les remises</change>
+		<change type='chg'>Indifférenciation du type de séparateur décimal (. ou ,)</change>
+		<change type='chg'>Application des valeurs par défaut des libellés quand aucune modification de ces descriptifs n'est demandée</change>
+		<change type='add'>Gestion des remises différenciées entre les produits et les services (cohérence des calculs de marge)</change>
+		<change type='add'>Ajout des fonctions de remise automatique (X produits d'une liste offerts sur la / les Y premières commandes)</change>
+		<change type='add'>Ajout des fonctions de valeur cible (en TTC) : les remises sont calculées au prorata entre les produits et les service et par taux de TVA</change>
+	</Version>
+	<Version Number="15.2.1" MonthVersion="2025-06">
+		<change type='chg'>Améliorations du code => meilleure utilisation des fonctions de Dolibarr</change>
+	</Version>
+	<Version Number="15.2.2" MonthVersion="2025-06">
+		<change type='chg'>Changement du Logo</change>
+	</Version>
+	<Version Number="15.2.3" MonthVersion="2025-06">
+		<change type='chg'>Modification du fichier readme</change>
+	</Version>
+	<Version Number="15.2.4" MonthVersion="2025-07">
+		<change type='fix'>Erreur dans le changelog</change>
+		<change type='chg'>Amélioration de la compatibilité PHP8.1 et supérieur</change>
+		<change type='chg'>Amélioration de l'affichage des paramètres (en fonction des choix utilisateur et du thème appliqué dans Dolibarr)</change>
+	</Version>
+	<Version Number="15.2.5" MonthVersion="2025-07">
+		<change type='chg'>Amélioration de la compatibilité CSS avec les thèmes Dolibarr</change>
+	</Version>
+	<Version Number="15.2.6" MonthVersion="2025-08">
+		<change type='fix'>Correction de la compatibilité avec les modules externes Sous-total, MileSton - Jalon et Ouvrage</change>
+		<change type='chg'>Améliorations de la déctection des lignes de remises dans le code</change>
+		<change type='chg'>Les Remises fonctionnes maintenant sans qu'il soit liée ou associée à un produit/service</change>
+	</Version>
+	<Version Number="15.2.7" MonthVersion="2025-08">
+		<change type='fix'>Correction d'une erreur lors de la modification d'une ligne avec une remise en monétaire présente dans le document => la remise était supprimée</change>
+		<change type='chg'>Nettoyage de code</change>
+		<change type='chg'>Compatibilité Dolibarr v22</change>
+	</Version>
+	<Version Number="15.2.8" MonthVersion="2025-08">
+		<change type='fix'>Correction du lien vers le Dolistore</change>
+	</Version>
+	<Version Number="15.2.9" MonthVersion="2025-10">
+		<change type='fix'>Correction d'une erreur lors du contrôle des remises à 0 => dans certains cas, une ligne libre était considérée comme une ligne de remise à 0</change>
+		<change type='fix'>Correction d'un appel au fichier de la classe action d'InfraSDiscount (fichier trigger)</change>
+	</Version>
+	<Version Number="15.2.10" MonthVersion="2025-11">
+		<change type='fix'>Correction des fonctions de remise en cascade</change>
+		<change type='chg'>Factorisation du code de mise à jour des lignes de remise</change>
+	</Version>
+	<Version Number="15.2.11" MonthVersion="2025-11">
+		<change type='fix'>Refonte complète de la gestion des remises en cascade : les remises en pourcentage et prorata calculent maintenant uniquement sur les lignes situées AU-DESSUS d'elles (mode cascade)</change>
+		<change type='fix'>Correction du problème d'arrondis pour les remises total_ttc : algorithme intelligent garantissant désormais le montant TTC exact avec répartition proportionnelle par taux de TVA</change>
+		<change type='add'>Ajout de fonctions pour la gestion du multidevise : conversion sécurisée, protection contre division par zéro</change>
+		<change type='chg'>Factorisation et centralisation du code : création de fonctions réutilisables</change>
+	</Version>
+	<Version Number="15.2.12" MonthVersion="2026-02">
+		<change type='fix'>Correction de detection de type de ligne(produit ou service)</change>
+		<change type='add'>Ajout de la detection de lignes du module Sous-total ATM (titres, sous-totaux, textes libres)</change>
+	</Version>
+	<Version Number="15.2.13" MonthVersion="2026-02">
+		<change type='fix'>Refonte complet du logique de creation et modification de remise en utilisant des fonctions helpers</change>
+	</Version>
+	<Version Number="15.3.0" MonthVersion="2026-02">
+		<change type='fix'>Sécurité : Correction des appels GETPOST sans type ou avec type déprécié 'none' => utilisation de 'alphanohtml' et 'alpha'</change>
+		<change type='fix'>Sécurité : Restriction de la regex set_(.*) à set_(INFRASDISCOUNT_.*) pour empêcher la modification de constantes arbitraires</change>
+		<change type='fix'>Sécurité : Ajout du contrôle de permission dans doActions() et renforcement du contrôle pour les actions de sauvegarde/restauration</change>
+		<change type='fix'>Sécurité : Échappement de $_SERVER['PHP_SELF'] et $_SERVER['SERVER_SOFTWARE'] avec dol_escape_htmltag() contre les failles XSS</change>
+		<change type='fix'>Sécurité : Remplacement du secret OAuth2 en dur par getDolGlobalString() et suppression du token d'accès dans les logs</change>
+		<change type='fix'>Sécurité : Remplacement de addslashes() par $db->escape() dans la fonction de sauvegarde SQL</change>
+		<change type='fix'>Sécurité : Correction du cast de entity en integer dans la requête SQL de sauvegarde</change>
+		<change type='fix'>Correction de l'appel à infraspackplus_print_input() remplacé par infrasdiscount_print_input()</change>
+		<change type='fix'>Correction du lien de téléchargement du backup (modulepart=infraspackplus => modulepart=infrasdiscount)</change>
+		<change type='fix'>Correction du chemin dol_buildpath() sans slash initial dans la fonction Prepare_Head</change>
+		<change type='fix'>JavaScript : Correction du nom de cookie 'tblPSexp' non préfixé par le module => 'infrasdiscount_tblPSexp' (cohérence avec les autres modules InfraS)</change>
+		<change type='chg'>Nouveau lien vers le Wiki InfraSDiscount</change>
+		<change type='chg'>Amélioration du CSS</change>
+		<change type='chg'>Remplacement de la syntaxe dépréciée $user->rights->infrasdiscount->use par $user->hasRight()</change>
+		<change type='chg'>Alignement du bloc JavaScript sur les conventions des modules infraspackplus, infrassearch et infraswidgets</change>
+		<change type='add'>Ajout du fichier CLAUDE.md complet pour guider le développement avec l'IA (Documentation complète de l'architecture, des fonctions, des calculs de remises et du support multi-devises)</change>
+	</Version>
+	<Version Number="15.3.1" MonthVersion="2026-02">
+		<change type='fix'>Trigger : Correction de l'action BILL_PAYED quand l'authentification SortAndGroup n'est pas activée</change>
+	</Version>
+	<Version Number="15.3.2" MonthVersion="2026-03">
+		<change type='chg'>Trigger : ajout d'une option pour l'utilisation du lien SortAndGroup</change>
+		<change type='chg'>Amélioration du descripteur CLAUDE.md : ajout des Notes Techniques</change>
+		<change type='add'>Ajout d'un test de comparaison de la version majeur de Dolibarr supportée (avertissement si version non supportée)</change>
+	</Version>
+	<Version Number="15.3.3" MonthVersion="2026-03">
+		<change type='fix'>Compatibilité avec PHP 8.4</change>
+	</Version>
+	<Version Number="15.3.4" MonthVersion="2026-03">
+		<change type='add'>Informations techniques : ajout de l'affichage de la version Dolinfras dans infrasdiscount_getSupportInformation()</change>
+		<change type='add'>Traductions : ajout de la clé InfraSDiscountParamDolinfrasVersion dans tous les fichiers de langue (fr_FR, en_US, es_ES, it_IT)</change>
+	</Version>
+	<Version Number="15.3.5" MonthVersion="2026-04">
+		<change type='fix'>Calcul des remises : correction de l'exclusion des lignes libres (sans produit lié) dans infrasdiscount_calculateCascadeBase() => comparaison lâche PHP (null == '') remplacée par empty() + comparaison stricte (!==), compatible toutes versions Dolibarr (V15 à V23)</change>
+		<change type='fix'>Hooks : ajout de isset() avant chaque accès à options_specialtype dans actions_infrasdiscount.class.php pour éviter les warnings PHP "Undefined array key" sur les lignes sans extrafield</change>
+	</Version>
+	<Version Number="15.3.6" MonthVersion="2026-06">
+		<change type='chg'>Compatibilité avec le module Infrastructure : exclusion des lignes de titres, sous-totaux et textes libres de tous les calculs de remise</change>
+	</Version>
+	<Version Number="15.3.7" MonthVersion="2026-06">
+		<change type='chg'>Changement de la source de téléchargement du changelog : infras.fr remplacé par le dépôt GitHub (InfraS-SARL/modules-versions)</change>
+	</Version>
+	<Version Number="15.3.8" MonthVersion="2026-07">
+		<change type='fix'>Trigger : avertissement PHP "Undefined property" (TPropaleHist::$element) à chaque événement Dolibarr sans rapport avec les lignes de devis, commandes ou factures. Le test in_array($object->element, [...]) lisait la propriété sans vérifier son existence au préalable.</change>
+	</Version>
+	<Version Number="15.3.9" MonthVersion="2026-09">
+		<change type='chg'>Position du module dans la famille « Dolibarr LTS by InfraS » : 100004 → 100008 (renumérotation de la famille)</change>
+	</Version>
+	<Version Number="15.3.10" MonthVersion="2026-10">
+		<change type='fix'>Avoirs : les lignes de remise étaient réécrites avec un signe négatif forcé, ce qui ajoutait la remise au montant de l'avoir au lieu de la déduire (cas d'un avoir créé depuis une facture portant une remise en pourcentage). Le signe dépend désormais du type de document : négatif dans le cas général, positif sur un avoir (ajout, modification et recalcul des lignes de remise)</change>
+		<change type='fix'>Recalcul automatique : erreur de recalcul affichée à chaque ouverture d'un document validé dont une remise semblait à corriger. Les remises en pourcentage et au prorata ne sont plus recalculées que sur les documents au statut brouillon, seuls modifiables</change>
+	</Version>
+	<Version Number="15.3.11" MonthVersion="2026-10">
+		<change type='fix'>Remises au prorata : une ligne prorata isolée (sa jumelle supprimée) était appariée à la remise prorata suivante et les montants doublaient à chaque affichage. Une paire est désormais une ligne produits immédiatement suivie d'une ligne services ; une ligne isolée garde son montant et se modifie comme un montant fixe</change>
+		<change type='fix'>Modification d'une remise au prorata sans effet : le recalcul final repartait des anciens montants en mémoire. Les lignes sont relues en base avant le recalcul</change>
+		<change type='fix'>Total TTC cible : une nouvelle cible s'ajoutait aux remises TTC déjà présentes au lieu de les remplacer. Les anciennes lignes sont supprimées avant le calcul (leur suppression fait recalculer les remises en pourcentage placées en dessous), avec retour à l'état d'origine si la nouvelle cible est refusée. La remise ne se répartit plus que sur les groupes de lignes dont le total est positif. Ajout d'un ajustement au centime sur le total comptable du document quand la cible est manquée par l'arrondi</change>
+		<change type='fix'>Remises calculées sur une base de sens contraire (il ne reste que des remises pour un type de ligne, par exemple après suppression du dernier service) : une remise au prorata grossissait à chaque recalcul. Une telle base vaut désormais zéro (infrasdiscount_usefulBase). La ligne services d'une paire prorata reçoit le reste, la somme de la paire reste exactement le montant de la remise</change>
+		<change type='fix'>Champ valeur laissé vide : la valeur par défaut, qui est un pourcentage, n'est plus utilisée comme montant fixe ni comme total TTC cible (message demandant une valeur)</change>
+		<change type='fix'>Avoirs : une remise ajoutée à la main sur un avoir était créée en négatif (Facture::addline force le signe). La ligne est remise dans le bon sens juste après sa création ; modification d'une remise prorata sur avoir calculée avec le bon signe</change>
+		<change type='fix'>Recalcul en cascade : les remises situées sous une remise recalculée gardaient un montant périmé jusqu'au prochain affichage. Le recalcul enchaîne les passes jusqu'à stabilité (infrasdiscount_recalculateAllDiscounts)</change>
+		<change type='fix'>Suppression d'une ligne : Dolibarr appelle le trigger avant d'effacer la ligne, les remises n'étaient donc pas recalculées. La ligne en cours de suppression est maintenant ignorée dans les calculs</change>
+		<change type='fix'>Remise automatique des commandes : avec une liste de références vide, la remise s'appliquait aux lignes libres. Correction des avertissements PHP (clés de taxes locales, variables non initialisées)</change>
+		<change type='fix'>Modification des remises : le type produit ou service et la validité d'une remise en montant étaient déduits du libellé traduit, donc faux pour un utilisateur d'une autre langue. Le type de la ligne est utilisé à la place</change>
+		<change type='fix'>Contrôles de saisie : pourcentage hors de l'intervalle 0 à 100, montant nul ou supérieur au total des lignes concernées sont refusés avec un message, à la création comme à la modification</change>
+		<change type='fix'>Sécurité : la saisie et la modification des remises vérifient le droit de modifier le document, le jeton anti-CSRF, l'activation du type de document et le statut brouillon. Le recalcul à l'affichage est réservé aux utilisateurs autorisés à modifier le document</change>
+		<change type='fix'>Menu : suppression d'une entrée pointant vers une page inexistante et correction du lien vers la page de paramétrage (désactiver puis réactiver le module)</change>
+		<change type='fix'>Traductions : ajout des clés manquantes (messages d'erreur du module, titre de la page À propos, libellés des informations techniques de la page Changelog / Support), suppression du BOM du fichier fr_FR</change>
+		<change type='fix'>Montants des remises arrondis au centime dès la création, comme le fait le recalcul. Saisie d'une valeur avec une virgule décimale acceptée dans le formulaire</change>
+		<change type='chg'>Le pourcentage d'une remise est stocké dans un nouvel extrafield caché de ligne (specialvalue), créé à l'activation du module : modifier la description d'une remise ne casse plus son recalcul. Les remises existantes restent lues dans la description et sont complétées à leur premier recalcul (désactiver puis réactiver le module)</change>
+		<change type='chg'>Une remise dont le montant est nul uniquement à cause de sa position (placée au-dessus des lignes) n'est plus supprimée automatiquement ; elle reste supprimée quand le document ne contient plus aucune ligne de son type</change>
+	</Version>
+	<Version Number="15.3.12" MonthVersion="2026-10">
+		<change type='fix'>Accès simultanés : infrasdiscount_test_php_ext() réécrivait la constante INFRAS_PHP_EXT_XML (suppression puis insertion dans llx_const) à chaque instanciation du descripteur du module (page des modules, activation, pages d'administration). Cette constante est partagée par tous les modules InfraS : une réécriture systématique pouvait bloquer ou faire annuler une transaction concurrente (incident constaté avec le module Infrastructure : lignes de document perdues lors d'ajouts simultanés). La constante n'est plus écrite que si sa valeur change ; l'avertissement « extension XML manquante » reste affiché à chaque appel tant que l'extension est absente.</change>
+	</Version>
+	<Version Number="15.3.13" MonthVersion="2026-10">
+		<change type='fix'>Trigger : le résultat du chargement du document parent n'était pas contrôlé ; en cas d'échec, le recalcul se poursuivait sur un objet vide. Le trigger journalise un avertissement et rend 0.</change>
+		<change type='fix'>Trigger : les erreurs du recalcul ou de la suppression des lignes de remise étaient déposées en message de session (setEventMessages), invisible depuis l'API REST et les tâches planifiées, et absentes du message d'erreur du document. Elles sont désormais remontées dans les erreurs du trigger, donc dans celles de la ligne et du document (interface et API).</change>
+		<change type='chg'>Performance : à chaque ajout, modification ou suppression de ligne, le trigger rechargeait le document et toutes ses lignes (attributs supplémentaires compris) trois fois et recalculait toutes les remises, même sans aucune ligne de remise dans le document. Une seule requête vérifie d'abord la présence d'une ligne de remise (special_code 6 à 9 ou attribut specialtype 1 à 4) ; sans remise, le trigger rend la main. Le premier rechargement, redondant avec celui de runTrigger(), est supprimé. Mesure sur un devis brouillon de 36 lignes sans remise : 219 requêtes SQL par modification de ligne avant, 14 après ; chez un client, 1 500 requêtes par ligne sur un devis de 318 lignes alimenté par l'API.</change>
+	</Version>
+	<InfraS Downloaded="20261006"/>
+	<Dolibarr minVersion="15.0.0" maxVersion="23.x.x"/>
+	<PHP minVersion="7.4" maxVersion="8.4"/>
+</changelog>
