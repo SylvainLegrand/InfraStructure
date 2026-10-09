@@ -1,0 +1,82 @@
+# Dolibarr language file - fr_FR - InfraS
+CHARSET                             = UTF-8
+
+basenameTechInfos                   = InfraS
+modnameTechInfos                    = infrastechinfos
+modcomnameTechInfos                 = InfraSTechInfos
+Module500060Name                    = Informations Techniques
+Module500060Desc                    = Affichage des informations techniques (dimensions, surface et poids) des produits d'un document commercial
+NewVersionAviable                   = Dernière version disponible
+PiloteVersion                       = Version pilote
+InfraSTechInfosCautionMess          = <center><b>----- à lire attentivement ! -----</b></center>
+InfraSTechInfosCaution              = <b>ATTENTION !</b>
+InfraSTechInfosWarningValidCoreChgt = <br><center>Les dernières modifications (de Dolibarr ou du module InfraSTechInfos) n'ont pas été validées.<br>Pour effacer ce message, contactez votre administrateur pour une désactivation / réactivation du module.</center>
+InfraSTechInfosVersionChg           = <br><b>Vous utilisez une nouvelle version du module InfraSTechInfos</b> (%s vers %s) ;<br><b>un "Core Change" est nécessaire</b> (le remplacement de certains fichiers de base de Dolibarr). Pour effectuer cette opération <b>désactivez et réactivez le module.</b></center>
+InfraSTechInfosDolChg               = <center><br><b>Vous avez effectué une migration de Dolibarr</b> (%s vers %s) depuis la dernière installation du module InfraSTechInfos ;<br><b>un "Core Change" est nécessaire</b> (le remplacement de certains fichiers de base de Dolibarr). Pour effectuer cette opération <b>désactivez et réactivez le module</b></center>
+InfraSXMLextError                   = <center><br>L'extension PHP <b>%s</b> n'est pas chargé<br>Certaines fonctionnalités du module ne seront pas disponibles</center>
+InfraSTechInfosChangelogXMLError    = Erreur changelog.xml
+InfraSTechInfosnoMinDolVersion      = Pas de version minimum connue
+InfraSSupportInformation            = Informations techniques
+
+### Permissions ###
+InfraSTechInfosPermMenu    = Afficher le menu secondaire vers les paramètres du module (utilisateur non administrateur)
+InfraSTechInfosPermBkpRest = Sauvegarder / Restaurer les paramètres du module
+InfraSTechInfosPermSpecif  = Modifier les paramètres spécifique InfraSTechInfos
+InfraSTechInfosPermView    = Voir les données techniques
+
+### infras lib page ###
+InfraSTechInfosParamSetup     = Paramétrage
+InfraSTechInfosParamChangelog = Evolutions
+
+### modinfras class page ###
+modfamily = Modules InfraS
+
+### InfraSTechInfos setup page ###
+InfraSTechInfosParamTitleComp       = <b>Options des fonctions de gestion des données techniques</b>
+InfraSTechInfosParamNoConfTechInfos = Ce module ne nécessite aucune configuration particulière
+
+###Setup.php###
+InfraSTechInfos                        = Informations techniques
+InfraSTechInfosSetup                   = Configuration générale
+InfraSTechInfosParamTitleComp          = Paramètres du module InfraSTechInfos
+InfraSTechInfosParamAction1            = Sauvegarder / Restaurer l'ensemble des paramètres du module
+InfraSTechInfosParamAction2            = <br>(après une restauration rafraichissez la page (F5) pour visualiser le résultat)
+InfraSTechInfosParamBkup               = Sauvegarder
+InfraSTechInfosParamRestore            = Restaurer
+InfraSTechInfosExpenseParamCautionSave = Cliquez sur le bouton '<b>Modifier</b>' après tout changement !
+InfraSTechInfosDurationOfWorkDay1      = Nombre d'heures travaillées par jour.
+InfraSTechInfosDurationOfWorkDay2      = cette valeur doit être renseignée en secondes ! (Actuellement elle est de %s heure(s))
+InfraSTechInfosDurationNbDaysPerWeek   = Nombre de jours à utiliser pour les calculs de durée basé sur la semaine
+InfraSTechInfosTotalTimeInDays         = Afficher le total de temps du document en semaines / jours et heures (suivant les facteurs de convertion précisés ci-dessus)
+InfraSTechInfosOnlyTotalTime           = N'afficher que le total du temps calculé du document
+
+### About page ###
+InfraSTechInfosParamsChangelog           = Changelog / Support
+InfraSTechInfosParamPresent1             = <b>Ce module est une création</b>
+InfraSTechInfosParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site web</b>
+InfraSTechInfosParamSlogan               = Structurez votre croissance !
+InfraSTechInfosParamLienModules          = Nos Modules
+InfraSTechInfosParamSupport              = Demande de support
+InfraSTechInfosParamLienDocs             = Nos Documentations
+InfraSTechInfosParamLicense              = sous Licence GPL v3 et supérieur.
+InfraSTechInfosParamPreferedPartner1     = Membre du programme officiel
+InfraSTechInfosParamPreferedPartner2     = Preferred Partner, gage de qualité et d’expertise.
+InfraSTechInfosParamMoreModulesLink      = Nos modules sur le dolistore
+InfraSTechInfosParamObjet                = <h3>Objet :</h3>
+InfraSTechInfosParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSTechInfosParamSkipCheck            = Téléchargement désactivé
+InfraSTechInfosParamNumberVersion        = N° de version
+InfraSTechInfosParamDolinfrasVersion     = N° de version LTS
+InfraSTechInfosParamMonthVersion         = Date
+InfraSTechInfosParamChangesVersion       = Modifications
+InfraSTechInfosParamCheckNewVersion      = Nouveau Changelog
+InfraSTechInfosParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
+
+### Actionsinfrastechinfos ###
+InfraSTechInfosTitreMaj          = Informations Techniques
+InfraSTechInfosColLineN          = Ligne N°
+InfraSTechInfosColRef            = Référence
+InfraSTechInfosColDim            = L x l x H
+InfraSTechInfosCautionTimeUnit   = l'unité de temps utilisée pour ce service n'est pas pris en compte
+InfraSTechInfosLines             = Ligne(s)
+InfraSTechInfosWarningMaxVersion = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSTechInfos %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>

@@ -1,0 +1,82 @@
+# Dolibarr language file - en_US - InfraS
+CHARSET                             = UTF-8
+
+basenameTechInfos                   = InfraS
+modnameTechInfos                    = infrastechinfos
+modcomnameTechInfos                 = InfraSTechInfos
+Module500060Name                    = Technical informations
+Module500060Desc                    = Display of technical information (dimensions, surface and weight) of the products of a commercial document
+NewVersionAviable                   = Last available version
+PiloteVersion                       = Pilot version
+InfraSTechInfosCautionMess          = <center><b>----- to read carefully! -----</b></center>
+InfraSTechInfosCaution              = <b>WARNING !</b>
+InfraSTechInfosWarningValidCoreChgt = <br><center>The latest modifications (from Dolibarr or the InfraSTechInfos module) have not been validated.<br>To clear this message, contact your administrator for deactivation / reactivation of the module.</center>
+InfraSTechInfosVersionChg           = <center><br><b>You use a new version of InfraSTechInfos module</b> (%s to %s) ;<br><b>a "Core Change" is needed</b> (the replacement of some basic files of Dolibarr). To perform this operation disable and reactivate the module.</b></center>
+InfraSTechInfosDolChg               = <center><br><b>You have made a migration from Dolibarr</b> (%s to %s) since the last installation of the InfraSTechInfos module ;<br><b>a "Core Change" is needed</b> (the replacement of some basic files of Dolibarr). To perform this operation disable and reactivate the module</b></center>
+InfraSXMLextError                   = <center><br>The PHP <b>%s</ b> extension is not loaded<br>Some features of the module will not be available</center>
+InfraSTechInfosChangelogXMLError    = changelog.xml error
+InfraSTechInfosnoMinDolVersion      = No minimum version known
+InfraSSupportInformation            = Technical informations
+
+### Permissions ###
+InfraSTechInfosPermMenu    = Show secondary menu to module settings (non-administrator user)
+InfraSTechInfosPermBkpRest = Backup / Restore module settings
+InfraSTechInfosPermSpecif  = Modify the specific parameters InfraSTechInfos
+InfraSTechInfosPermView    = See the technical data
+
+### infras lib page ###
+InfraSTechInfosParamSetup     = Settings
+InfraSTechInfosParamChangelog = Changelog
+
+### modinfras class page ###
+modfamily = InfraS Modules
+
+### InfraSTechInfos setup page ###
+InfraSTechInfosParamTitleComp       = <b>Options for technical data management functions</b>
+InfraSTechInfosParamNoConfTechInfos = This module requires no special configuration
+
+###Setup.php###
+InfraSTechInfos                        = Technical information
+InfraSTechInfosSetup                   = General setup
+InfraSTechInfosParamTitleComp          = InfraSTechInfos module settings
+InfraSTechInfosParamAction1            = Save / Restore all module parameters for
+InfraSTechInfosParamAction2            = (after a restore refresh the page (F5) to visualize the result)
+InfraSTechInfosParamBkup               = Backup
+InfraSTechInfosParamRestore            = Restore
+InfraSTechInfosExpenseParamCautionSave = Click the '<b>Edit</b>' button after any changes
+InfraSTechInfosDurationOfWorkDay1      = Number of hours worked per day.
+InfraSTechInfosDurationOfWorkDay2      = this value must be entered in seconds! (Currently it is %s hour(s))
+InfraSTechInfosDurationNbDaysPerWeek   = Number of days to use for duration calculations based on week
+InfraSTechInfosTotalTimeInDays         = Display the total time of the document in weeks / days and hours (according to the conversion factors specified above)
+InfraSTechInfosOnlyTotalTime           = Display only the total calculated time of the document
+
+### About page ###
+InfraSTechInfosParamsChangelog           = Changelog / Support
+InfraSTechInfosParamPresent1             = <b>This module is a creation</b>
+InfraSTechInfosParamPresent2             = <b>, documentation is available on our website</b>
+InfraSTechInfosParamSlogan               = Structure your growth!
+InfraSTechInfosParamLienModules          = Our Modules
+InfraSTechInfosParamSupport              = Support request
+InfraSTechInfosParamLienDocs             = Our User Guides
+InfraSTechInfosParamLicense              = Under GPL v3 and higher license
+InfraSTechInfosParamPreferedPartner1     = Member of the official program
+InfraSTechInfosParamPreferedPartner2     = Preferred Partner, guarantee of quality and expertise.
+InfraSTechInfosParamMoreModulesLink      = Our modules on the dolistore
+InfraSTechInfosParamObjet                = <h3>Object :</h3>
+InfraSTechInfosParamHistoryUpdates       = <b>Update history :</b>
+InfraSTechInfosParamSkipCheck            = Download disabled
+InfraSTechInfosParamNumberVersion        = version N°
+InfraSTechInfosParamDolinfrasVersion     = LTS version N°
+InfraSTechInfosParamMonthVersion         = Date
+InfraSTechInfosParamChangesVersion       = Modifications
+InfraSTechInfosParamCheckNewVersion      = New Changelog
+InfraSTechInfosParamCheckNewVersionTitle = Click to download the changelog of the latest available version
+
+### Actionsinfrastechinfos ###
+InfraSTechInfosTitreMaj          = Technical informations
+InfraSTechInfosColLineN          = Line N°
+InfraSTechInfosColRef            = Reference
+InfraSTechInfosColDim            = L x W x H
+InfraSTechInfosCautionTimeUnit   = the unit of time used for this service is not taken into account
+InfraSTechInfosLines             = Line(s)
+InfraSTechInfosWarningMaxVersion = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSTechInfos module %s.<br>The maximum supported version of Dolibarr is %s.<br>You are therefore using this module without any guarantee of proper functioning.</center>
