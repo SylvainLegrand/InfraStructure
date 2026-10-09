@@ -1,0 +1,140 @@
+# Dolibarr language file - fr_FR - InfraS
+CHARSET                         = UTF-8
+basenameInfraSProject           = InfraS
+modnameInfraSProject            = infrasproject
+modcomnameInfraSProject         = InfraSProject
+Module500055Name                = Gestion avancée des projets
+Module500055Desc                = Ajout des consommations sur projet, consommation par utilisateur (EPI, outillage)
+Module500055DescTrigger         = Trigger pour la gestion avancée des projets InfraS
+DolibarrMinVersionRequired      = Version minimum de Dolibarr nécessaire
+NewVersionAvailable             = Dernière version disponible
+PiloteVersion                   = Version pilote
+InfraSProjectCaution            = <b>ATTENTION !</b>
+InfraSProjectCautionMess        = <center><b>----- à lire attentivement ! -----</b></center>
+InfraSProjectXMLextError        = <br><center>L'extension PHP 'XML' n'est pas chargée<br>Certaines fonctionnalités du module ne seront pas disponibles</center>
+InfraSProjectChangelogXMLError  = Erreur changelog.xml
+InfraSProjectMinDolVersion      = Pas de version minimum connue
+InfraSProjecnoMaxDolVersion     = Pas de version maximum connue
+InfraSProjectSupportInformation = Informations techniques
+
+### Permissions ###
+InfraSProjectPermMenu     = Afficher le menu secondaire vers les paramètres du module (utilisateur non administrateur)
+InfraSProjectPermSetup    = Modifier les paramètres principaux du module
+InfraSProjectPermBkpRest  = Sauvegarder / Restaurer les paramètres du module
+InfraSProjectPermReadPrj  = Peut lire les consommations sur les projets
+InfraSProjectPermWritePrj = Peut créer des consommations sur les projets
+
+### Menus ###
+InfraSProjectParamsSetup   = Paramètres généraux
+InfraSProjectParamsGeneral = Paramètres Dolibarr
+
+### General Project ###
+ProjectAllowLinkFromOtherCompany        = Option relative à la liste déroulante de sélection des projets sur les éléments. Si cette liste est renseignée, on peut lier l'objet à des projets appartenant à l'un des tiers sélectionnés.
+ProjectAllowCommentOnProject            = Activer les commentaires sur les projets
+ProjectAllowCommentOnTask               = Activer les commentaires sur les tâches des projets
+ProjectAllowDiscardClosedProjectsSelect = Ignorer les projets clôturés dans la liste de sélection
+ProjectCanAlwaysLinkToAllSuppliers      = Lier un objet fournisseur à n’importe quel projet
+ProjectDisabledCreateOnOverview         = Masquer les boutons créer sur la page "Vue d'ensemble"
+ProjectDisabledUnlinkFromOverview       = Masquer les boutons délier (devis, commande, facture ...) sur la page "Vue d'ensemble"
+ProjectHideUnselectables                = Dans les listes de sélection masquer les projets brouillons ou cloturés
+ProjectHideTasks                        = Masquer les tâches
+ProjectListShowStartDate                = Dans la liste des projets afficher la date de début des projets
+ProjectLinkOnOverviewDisabled           = Masquer le bouton "lier à " dans l'onglet "Vue d'ensemble"
+ProjectOpenAlwaysOnTab                  = Ouvrir systématiquement le projet sur l'onglet choisi ("Vue d'ensemble", Tâches, etc...)
+ProjectElementsForMinusMargin           = Éléments à prendre en compte comme déduction dans le calcul du bénéfice
+ProjectElementsForPlusMargin            = Éléments à prendre en compte comme addition dans le calcul du bénéfice
+ProjectTimeSpentAlwaysUpdateTHM         = Mettre à jour le taux horaire moyen lors de la saisie du temps passé
+ProjectCreateNoDraft                    = Valider un projet dès la création
+ProjectEnabledSubProject                = Activer les sous-projets
+ProjectCanAddTimeSpentOnTask            = Ajouter du temps passé sur les tâches
+
+### Setup page ###
+InfraSProjectParamModule                         = Paramètres du module
+InfraSProjectParamAction1                        = Sauvegarder / Restaurer l'ensemble des paramètres du module
+InfraSProjectParamAction2                        = <br>(après une restauration rafraichissez la page (F5) pour visualiser le résultat)
+InfraSProjectParamBkup                           = Sauvegarder
+InfraSProjectParamRestore                        = Restaurer
+InfraSProjectCautionSave                         = Cliquez sur le bouton '<b>Modifier</b>' après tout changement !
+InfraSProjectPrefixInvcod                        = Préfixe pour le code inventaire
+InfraSProjectSearchMode                          = Mode de recherche
+InfraSProjectSearch1                             = Recherche par libellé
+InfraSProjectSearch2                             = Recherche par code inventaire
+InfraSProjectSearch3                             = Mixte
+InfraSProjectStockMvtIntoPrjOverview             = Afficher les consommations de stock dans les éléments des projets
+InfraSInfraSProjectProjectConsumptionLinkToUser  = Lier les consommations à un utilisateur (Exemple : EPI, outillage, etc...)
+InfraSInfraSProjectStockProdCat                  = Catégories de produits sélectionnables pour les consommations de stock
+InfraSInfraSProjectCreateProjectFromSignedPropal = Créer systématiquement un projet à la signature du devis
+InfraSProjectParamDolibarr                       = Paramètres natifs de Dolibarr
+InfraSProjectDisableEatBy                        = Masquer la date limite d'utilisation optimale (DMD / DLUO)
+InfraSProjectDisableSellBy                       = Masquer la date limite de consommation (DLC)
+InfraSInfraSProjectShowLastExchange              = Afficher le dernier échange lié au projet sur l'onglet principal
+InfraSInfraSProjectShowNextAction                = Afficher la prochaine action prévue liée au projet sur l'onglet principal
+InfraSInfraSProjectShowMarginProv                = Afficher le bénéfice provisoire dans l'onglet "Vue d'ensemble" des projets
+InfraSInfraSProjectElementsForMinusMargin        = Éléments à prendre en compte comme déduction dans le calcul du bénéfice provisoire
+InfraSInfraSProjectElementsForPlusMargin         = Éléments à prendre en compte comme addition dans le calcul du bénéfice provisoire
+InfraSProjectShowMarginProvFirst                 = Afficher le tableau de calcul du bénéfice provisoire en premier
+InfraSProjectTypeFeesNotIncludedInMargin1        = Types de lignes de notes de frais à 
+InfraSProjectTypeFeesNotIncludedInMargin2        = <b>NE PAS PRENDRE EN COMPTE</b>
+InfraSProjectTypeFeesNotIncludedInMargin3        = dans le calcul de bénéfice
+InfraSProjectHideCustomerOrderList               = Masquer la liste des commandes clients associées au projet
+InfraSProjectHideCustomerInvoiceList             = Masquer la liste des modèles de facture client associées au projet
+InfraSProjectHideSupplierProposalList            = Masquer la liste des propositions commerciales fournisseurs liées à un projet
+InfraSProjectHideShipmentList                    = Masquer la liste des expéditions associées au projet
+InfraSProjectHideProjectTaskList                 = Masquer la liste du temps consommé sur les tâches d'un projet
+InfraSProjectHideEmptyList                       = Masquer les listes de details vides
+InfraSProjectAddSupplierInvoiceInMarginProv      = Inclure le total des factures fournisseurs non liées à une commande fournisseur dans le calcul du Bénéfice provisoire.
+InfraSProjectFirstMarkRateToBeApplied            = Premier taux de marque à utiliser pour le calcul du droit à dépenser
+InfraSProjectSecondMarkRateToBeApplied           = Deuxième taux de marque à utiliser pour le calcul du droit à dépenser
+InfraSProjectThirdMarkRateToBeApplied            = Troisième taux de marque à utiliser pour le calcul du droit à dépenser
+InfraSProjectShowOrderLink                       = Afficher la premiere commande liée à une facture fournisseur dans le détail des Factures fournisseur
+InfrasprojectOrderLinked                         = Commande Fournisseur liée
+
+### About page ###
+
+### Changelog page ###
+InfraSProjectParamsChangelog           = Changelog / Support
+InfraSProjectParamPresent1             = <b>Ce module est une création</b>
+InfraSProjectParamPresent2             = <b>, une documentation de celui-ci est disponible sur notre site</b>
+InfraSProjectParamSlogan               = Structurez votre croissance !
+InfraSProjectParamLienModules          = Nos Modules
+InfraSProjectParamSupport              = Demande de support
+InfraSProjectParamLienDocs             = Nos Documentations
+InfraSProjectParamLicense              = sous Licence GPL v3 et ultérieures
+InfraSProjectParamMoreModulesLink      = Nos modules sur le Dolistore
+InfraSProjectParamObjet                = <h3>Objet :</h3>
+InfraSProjectParamHistoryUpdates       = <b>Historique des mises à jour :</b>
+InfraSProjectParamPreferedPartner1     = Membre du programme officiel
+InfraSProjectParamPreferedPartner2     = Preferred Partner, gage de qualité et d'expertise.
+InfraSProjectParamSkipCheck            = Téléchargement désactivé
+InfraSProjectParamNumberVersion        = N° de version
+InfraSProjectParamDolinfrasVersion     = N° de version LTS
+InfraSProjectParamMonthVersion         = Date
+InfraSProjectParamChangesVersion       = Modifications
+InfraSProjectParamCheckNewVersion      = Nouveau Changelog
+InfraSProjectParamCheckNewVersionTitle = Cliquez pour télécharger le changelog de la dernière version disponible
+
+### Element Tab ###
+InfraSProjectMarginProv                          = Bénéfice provisoire
+InfraSProjectMaxRemainingExpenses                = Dépenses maximales restantes pour
+InfraSProjectMarkupRateOf                        = un taux de marque de %s
+InfraSProjectSupplierInvoiceInMarginProv         = non liées à une commande fournisseur
+InfraSProjectTotalSupplierOrdersLessThanInvoices = le total des factures liées dépasse le montant de cet élément
+InfraSProjectRemainToPayFromSupplierInvoices     = Total des dépassements de facturation fournisseur (total des factures supérieures au total des commandes liées)
+
+### Tab ###
+InfraSProjectStockConsumption   = Consommations de Stock
+InfraSProjectProjectConsumption = Consommation pour le projet
+InfraSProjectForThisproject     = pour ce projet
+TypeOfFees                      = Types de notes de frais
+
+### actions class ###
+InfraSProjectWarningMaxVersion         = <center><br>Votre version de Dolibarr (%s) n'est pas encore supportée par le module InfraSProject %s.<br>La version maximum de Dolibarr supportée est la version %s.<br>Vous utilisez donc ce module sans garantie de bon fonctionnement.</center>
+InfraSProjectLinesBillsSuppliers       = Lignes de factures fournisseurs
+InfraSProjectListSupplierInvoicesLines = Liste des lignes de factures fournisseurs associées au projet
+InfraSProjectWarningLineWithProject    = Des lignes de facture sont déjà associées à un projet !
+InfraSProjectLastContact               = Dernier échange
+InfraSProjectNextAction                = Prochaine action à prévoir
+
+### trigger class ###
+InfraSProjectProjectCreated     = Projet %s créé
+InfraSProjectErrorCreateProject = Impossible de créer un projet, code retour : %s
