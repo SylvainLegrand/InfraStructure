@@ -1,0 +1,70 @@
+# Dolibarr language file - es_ES - InfraSCusPrice
+basenameCusP                 = InfraS
+modnameCusP                  = infrascusprice
+modcomnameCusP               = InfraSCusPrice
+Module500077Name             = Gestión de precios por cliente
+Module500077Desc             = Herramientas de gestión de precios por cliente: propagación de precios de una empresa matriz a filiales
+Module500077DescTrigger      = Trigger para la gestión de precios por cliente de InfraS
+DolibarrMinVersionRequiered  = Se requiere una versión mínima de Dolibarr
+NewVersionAviable            = Última versión disponible
+PiloteVersion                = Versión piloto
+InfraSCusPCautionMess        = <center><b>----- leer con cuidado ! -----</b></center>
+InfraSCusPCaution            = <b>CUIDADO !</b>
+InfraSCusPDolChg             = <br><center><b>Ha migrado de Dolibarr</b> (%s a %s) desde la última instalación del módulo InfraSCusPrice ;<br><b>se necesita un "Core Change"</b> (la sustitución de algunos archivos básicos de Dolibarr). Para realizar esta operación <b>deshabilite y reactive el módulo.</b></center>
+InfraSCusPVersionChg         = <br><center><b>Usas una nueva versión del módulo InfraSCusPrice</b> (%s to %s) ;<br><b>se necesita un "Core Change"</b> (la sustitución de algunos archivos básicos de Dolibarr). Para realizar esta operación <b>deshabilite y reactive el módulo.</b></center>
+InfraSXMLextError            = <br><center>La extensión PHP <b>%s</ b> no está cargada<br>Algunas características del módulo no estarán disponibles.<center>
+InfraSCusPChangelogXMLError  = Error changelog.xml
+InfraSCusPnoMinDolVersion    = No hay versión mínima conocida
+InfraSCusPnoMaxDolVersion    = No hay versión máxima conocida
+InfraSCusPSupportInformation = Informacion tecnica
+
+### Permissions ###
+InfraSCusPPermMenu   = Visualiza menú secundario a la configuración del módulo (usuario no administrador)
+InfraSCusPPermSpecif = Modificar los parámetros específicos InfraSCusPrice
+InfraSCusPPermCusP   = Use las funciones de actualización de precios
+
+### infras lib page ###
+InfraSCusPParams          = Parámetros
+InfraSCusPParamsChangeLog = Evoluciones
+InfraSCusPidErr           = ¡La compañía preocupada no está informada!
+
+### modinfras class page ###
+modfamily                   = Módulos infras
+InfraSCusPParamPresentation = InfraS : Gestión de precios por cliente
+
+### InfraSCusPsetup page ###
+InfraSCusPSetup                = Gestión de precios por cliente InfraS
+InfraSCusPParamNoConfTechInfos = Este módulo no requiere ninguna configuración especial
+InfraSCusPParamAction1         = Guardar / restaurar todas las configuraciones del módulo
+InfraSCusPParamAction2         = <br>(Después de una restauración, actualice la página (F5) para ver el resultado)
+InfraSCusPParamBkup            = Sauvegardar
+InfraSCusPParamRestore         = Restaurar
+InfraSCusPParamChange          = Cambiar
+
+### About page ###
+InfraSCusPParamPresent1             = <b>Este módulo es una creación</b>
+InfraSCusPParamPresent2             = <b>, una documentación está disponible en nuestro sitio web</b>
+InfraSCusPParamSlogan               = ¡Estructura tu crecimiento!
+InfraSCusPParamLienModules          = Nuestros módulos
+InfraSCusPParamMoreModulesLink      = Nuestros módulos en DoliStore
+InfraSCusPParamLienDocs             = Nuestra Documentacion
+InfraSCusPParamLicense              = Bajo GPL v3 y licencia superior
+InfraSCusPParamHistoryUpdates       = <b>Histórico de las actualizaciones :</b>
+InfraSCusPParamPreferedPartner1     = Miembro del programa oficial
+InfraSCusPParamPreferedPartner2     = Preferred Partner, garantía de calidad y experiencia.
+InfraSCusPParamSkipCheck            = Descargar discapacitados
+InfraSCusPParamNumberVersion        = N° de versión
+InfraSCusPriceParamDolinfrasVersion = Número de versión LTS
+InfraSCusPParamMonthVersion         = Fecha
+InfraSCusPParamChangesVersion       = Modificaciones
+InfraSCusPParamObjet                = <h3>Objeto :</h3>
+InfraSCusPParamCheckNewVersion      = Nueva Evoluciones
+InfraSCusPParamCheckNewVersionTitle = Haga clic para descargar el registro de cambios de la última versión disponible
+InfraSCusPParamSupport              = Solicitar soporte
+
+### actions_infrascusprice ###
+InfraSCusPWarningMaxVersion = <center><br>Las últimas modificaciones (de Dolibarr o del módulo InfraSCusPrice) no han sido validadas.<br>Para borrar este mensaje, comuníquese con su administrador para desactivar / reactivar el módulo.</center>
+InfraSCusPbtnSuprTitle      = Eliminar todos los precios al cliente
+InfraSCusPbtn3thdTitle      = Actualiza los precios al cliente de acuerdo con los precios registrados para la empresa matriz (%s)
+InfraSCusPbtnSupr           = Eliminar tarifas
+InfraSCusPbtn3thd           = actualización de precios
