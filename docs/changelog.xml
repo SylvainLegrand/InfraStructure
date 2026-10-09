@@ -611,6 +611,9 @@
 	<Version Number="21.8.13" MonthVersion="2026-10">
 		<change type='fix'>PDF : la couleur de texte des titres (INFRASTRUCTURE_PDF_TITLE_COLOR) était ignorée avec tous les modèles, natifs (azur, cyan...) comme InfraSPackPlus : pdfAddTitle() remettait le texte en noir juste après avoir appliqué la couleur configurée, ce qui annulait aussi le blanc automatique sur fond sombre. Le noir est désormais posé avant le calcul du fond, puis remplacé par le blanc automatique ou la couleur configurée, comme pour les sous-totaux, et rétabli en fin de titre pour ne pas colorer les lignes suivantes.</change>
 	</Version>
+	<Version Number="21.8.14" MonthVersion="2026-10">
+		<change type='fix'>Sécurité, fiche des documents : la ligne de sous-total (core/tpl/infrastructureline_total.tpl.php) imprimait tels quels le libellé et la description de la ligne, l'infobulle (attribut title) et le titre parent (infrastructure_getTitle). Un libellé ou une description contenant du HTML était exécuté par le navigateur de chaque personne ouvrant le document (XSS stocké, par exemple « &lt;img src=x onerror=…&gt; »). Mêmes échappements que la ligne de titre (infrastructureline_view.tpl.php) : dol_escape_htmltag() sur le libellé, le titre et l'infobulle, dol_htmlentitiesbr() sur la description affichée. Signalé et corrigé par Kytom.</change>
+	</Version>
 	<InfraS Downloaded="20261008"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
