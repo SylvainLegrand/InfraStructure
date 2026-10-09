@@ -1,0 +1,141 @@
+# Dolibarr language file - en_US - InfraS
+CHARSET                         = UTF-8
+basenameInfraSProject           = InfraS
+modnameInfraSProject            = infrasproject
+modcomnameInfraSProject         = InfraSProject
+Module500055Name                = Advanced Project Management
+Module500055Desc                = Addition of consumption on project, consumption per user (PPE, tools)
+Module500055DescTrigger         = Trigger for the Advanced Project Management InfraS
+easyaFamily                     = Easya Solutions
+DolibarrMinVersionRequired      = Minimum version of Dolibarr required
+NewVersionAvailable             = Latest version available
+PiloteVersion                   = Pilot version
+InfraSProjectCaution            = <b> Caution !</b>
+InfraSProjectCautionMess        = <center><b>----- read carefully ! -----</b></center>
+InfraSProjectXMLextError        = <br><center>The PHP extension 'XML' is not loaded<br>Some features of the module will not be available</center>
+InfraSProjectChangelogXMLError  = Error changelog.xml
+InfraSProjectMinDolVersion      = No minimum version known
+InfraSProjecnoMaxDolVersion     = No maximum version known
+InfraSProjectSupportInformation = Technical information
+
+### Permissions ###
+InfraSProjectPermMenu     = Show secondary menu to module settings (non-admin user)
+InfraSProjectPermSetup    = Change main module settings
+InfraSProjectPermBkpRest  = Backup / Restore module settings
+InfraSProjectPermReadPrj  = Can read consumption on projects
+InfraSProjectPermWritePrj = Can create consumption on projects
+
+### Menus ###
+InfraSProjectParamsSetup        = General settings
+InfraSProjectParamsGeneral      = Dolibarr Settings
+
+### General Project ###
+ProjectAllowLinkFromOtherCompany        = Option related to the project selection drop-down list on items. If this list is populated, the object can be linked to projects belonging to one of the selected third parties.
+ProjectAllowCommentOnProject            = Enable project comments
+ProjectAllowCommentOnTask               = Enable project task comments
+ProjectAllowDiscardClosedProjectsSelect = Ignore closed projects in the selection list
+ProjectCanAlwaysLinkToAllSuppliers      = Link a supplier object to any project
+ProjectDisabledCreateOnOverview         = Hide the create buttons on the "Overview" page
+ProjectDisabledUnlinkFromOverview       = Hide the unlink buttons (quote, order, invoice, etc.) on the "Overview" page
+ProjectHideUnselectables                = Hide draft or closed projects in selection lists
+ProjectHideTasks                        = Hide tasks
+ProjectListShowStartDate                = Show project start date in the project list
+ProjectLinkOnOverviewDisabled           = Hide the "link to" button in the "Overview" tab
+ProjectOpenAlwaysOnTab                  = Always open the project on the chosen tab ("Overview", Tasks, etc.)
+ProjectElementsForMinusMargin           = Items to be considered as deductions in profit calculation
+ProjectElementsForPlusMargin            = Items to be considered as additions in profit calculation
+ProjectTimeSpentAlwaysUpdateTHM         = Update the average hourly rate when entering time spent
+ProjectCreateNoDraft                    = Validate a project upon creation
+ProjectEnabledSubProject                = Enable sub-projects
+ProjectCanAddTimeSpentOnTask            = Add time spent on tasks
+
+### Setup page ###
+InfraSProjectParamModule                         = Module settings
+InfraSProjectParamAction1                        = Save / restore all module settings
+InfraSProjectParamAction2                        = <br>(after a restoration refresh the page (F5) to view the result)
+InfraSProjectParamBkup                           = Backup
+InfraSProjectParamRestore                        = Restore
+InfraSProjectCautionSave                         = Click the '<b>Edit</b>' button after any changes!
+InfraSProjectPrefixInvcod                        = Prefix for inventory code
+InfraSProjectSearchMode                          = Search mode
+InfraSProjectSearch1                             = Search by label
+InfraSProjectSearch2                             = Search by inventory code
+InfraSProjectSearch3                             = Both at the same time
+InfraSProjectStockMvtIntoPrjOverview             = Display stock consumption in project items
+InfraSInfraSProjectProjectConsumptionLinkToUser  = Link consumption to a user (Example: PPE, tools, etc.)
+InfraSInfraSProjectStockProdCat                  = Selectable product categories for stock consumption
+InfraSInfraSProjectCreateProjectFromSignedPropal = Systematically create a project when signing the quote
+InfraSProjectParamDolibarr                       = Dolibarr native settings
+InfraSProjectDisableEatBy                        = Hide the best before date (DMD / DLUO)
+InfraSProjectDisableSellBy                       = Hide the expiration date (DLC)
+InfraSInfraSProjectShowLastExchange              = Show the latest project related exchange on the main tab
+InfraSInfraSProjectShowNextAction                = Show next planned action related to the project on the main tab
+InfraSInfraSProjectShowMarginProv                = Show provisional profit in the "Overview" tab of projects
+InfraSInfraSProjectElementsForMinusMargin        = Items to be considered as deductions in the provisional profit calculation
+InfraSInfraSProjectElementsForPlusMargin         = Items to be considered as additions in the provisional profit calculation
+InfraSProjectShowMarginProvFirst                 = Show the provisional profit calculation table first
+InfraSProjectTypeFeesNotIncludedInMargin1        = Expense report line types to be
+InfraSProjectTypeFeesNotIncludedInMargin2        = <b>DO NOT TAKE INTO ACCOUNT</b>
+InfraSProjectTypeFeesNotIncludedInMargin3        = in the profit calculation
+InfraSProjectHideCustomerOrderList               = Hide the list of customer orders associated with the project
+InfraSProjectHideCustomerInvoiceList             = Hide the list of customer invoice templates associated with the project
+InfraSProjectHideSupplierProposalList            = Hide the list of supplier proposals associated with a project
+InfraSProjectHideShipmentList                    = Hide the list of shipments associated with the project
+InfraSProjectHideProjectTaskList                 = Hide the list of time spent on project tasks
+InfraSProjectHideEmptyList                       = Hide empty detail lists
+InfraSProjectAddSupplierInvoiceInMarginProv      = Include the total of supplier invoices not linked to a purchase order in the calculation of the Provisional Profit.
+InfraSProjectFirstMarkRateToBeApplied            = First mark rate to be used for calculating the right to spend
+InfraSProjectSecondMarkRateToBeApplied           = Second mark rate to be used for calculating the right to spend
+InfraSProjectThirdMarkRateToBeApplied            = Third mark rate to be used for calculating the right to spend
+InfraSProjectShowOrderLink                       = Show the first order linked to a supplier invoice in the detail of supplier invoices
+InfrasprojectOrderLinked                         = Linked Supplier Order
+
+### About page ###
+
+### Changelog page ###
+InfraSProjectParamsChangelog           = Changelog / Support
+InfraSProjectParamPresent1             = <b>This module is an InfraS creation</b>
+InfraSProjectParamPresent2             = <b>, its documentation is available on our site</b>
+InfraSProjectParamSlogan               = Structure your growth!
+InfraSProjectParamLienModules          = Our Modules
+InfraSProjectParamSupport              = Support request
+InfraSProjectParamLienDocs             = Our Documentation
+InfraSProjectParamLicense              = under GPL v3 and subsequent licenses
+InfraSProjectParamMoreModulesLink      = Our modules on the Dolistore
+InfraSProjectParamObjet                = <h3>Object :</h3>
+InfraSProjectParamHistoryUpdates       = <b>Update history :</b>
+InfraSProjectParamPreferedPartner1     = Member of the official program
+InfraSProjectParamPreferedPartner2     = Preferred Partner, guarantee of quality and expertise.
+InfraSProjectParamSkipCheck            = Download is off
+InfraSProjectParamNumberVersion        = Number of version
+InfraSProjectParamDolinfrasVersion     = LTS version number
+InfraSProjectParamMonthVersion         = Date
+InfraSProjectParamChangesVersion       = Changes
+InfraSProjectParamCheckNewVersion      = New Changelog
+InfraSProjectParamCheckNewVersionTitle = Click to download the changelog of the latest available version
+
+### Element Tab ###
+InfraSProjectMarginProv                          = Provisional benefit
+InfraSProjectMaxRemainingExpenses                = Maximum remaining expenses for
+InfraSProjectMarkupRateOf                        = a mark rate of %s
+InfraSProjectSupplierInvoiceInMarginProv         = not linked to a supplier order
+InfraSProjectTotalSupplierOrdersLessThanInvoices = the total of linked invoices exceeds the amount of this item
+InfraSProjectRemainToPayFromSupplierInvoices     = Total of supplier invoice overruns (total invoices exceeding total linked orders)
+
+### Tab ###
+InfraSProjectStockConsumption   = Stock consumption
+InfraSProjectProjectConsumption = Consumption for the project
+InfraSProjectForThisproject     = for this project
+TypeOfFees                      = Types of expense reports
+
+### actions class ###
+InfraSProjectWarningMaxVersion         = <center><br>Your version of Dolibarr (%s) is not yet supported by the InfraSProject %s module.<br>The maximum version of Dolibarr supported is version %s.<br>You therefore use this module without guarantee of proper functioning.</center>
+InfraSProjectLinesBillsSuppliers       = Suppliers invoices lines
+InfraSProjectListSupplierInvoicesLines = List of supplier invoice lines associated with the project
+InfraSProjectWarningLineWithProject    = Invoice lines are already associated with a project!
+InfraSProjectLastContact               = Last exchange
+InfraSProjectNextAction                = Next action to be planned
+
+### trigger class ###
+InfraSProjectProjectCreated     = Project %s created
+InfraSProjectErrorCreateProject = Unable to create project, return code: %s
