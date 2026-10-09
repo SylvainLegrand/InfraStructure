@@ -1,0 +1,133 @@
+# Dolibarr language file - it_IT - infrasfiles
+CHARSET                       = UTF-8
+
+basenameFile                  = InfraS
+modnameFile                   = infrasfiles
+modcomnameFile                = InfraSFiles
+Module550100Name              = Documenti ed e-mail
+Module550100Desc              = Generazione di documenti PDF, scheda « File allegati » e invio per e-mail per gli oggetti Dolibarr che non ne dispongono nativamente (ordini di addebito diretto / bonifico, inventari, ...)
+InfraSFilesCautionMess        = <center><b>----- leggere attentamente! -----</b></center>
+InfraSFilesCaution            = <b>ATTENZIONE!</b>
+InfraSXMLextError             = <center>L'estensione PHP <b>%s</b> non è caricata<br>Alcune funzionalità del modulo non saranno disponibili</center>
+InfraSFilesChangelogXMLError  = Errore changelog.xml
+InfraSFilesnoMinDolVersion    = Nessuna versione minima conosciuta
+InfraSFilesnoMaxDolVersion    = Nessuna versione massima conosciuta
+InfraSFilesSupportInformation = Informazioni tecniche
+
+### Permissions ###
+InfraSFilesPermMenu    = Vedere il menu dei parametri
+InfraSFilesPermSpecif  = Modificare i parametri del modulo
+InfraSFilesPermBkpRest = Salvare / Ripristinare i parametri del modulo
+InfraSFilesPermRead    = Scaricare TUTTI i file del modulo senza il permesso nativo di ogni oggetto (da riservare agli amministratori)
+
+### infras lib page ###
+InfraSFilesParams          = Parametri InfraS
+InfraSFilesParamsChangelog = Changelog / Supporto
+
+### modinfras class page ###
+modfamily = Moduli InfraS
+
+### InfraSFiles setup page ###
+InfraSFilesSetupPages       = Documenti ed e-mail
+InfraSFilesParamAction1     = Salvare / Ripristinare l'insieme dei parametri del modulo
+InfraSFilesParamAction2     = (dopo un ripristino, aggiornare la pagina (F5) per visualizzare il risultato)
+InfraSFilesParamBkup        = Salvare
+InfraSFilesParamRestore     = Ripristinare
+InfraSFilesTitleObjects     = <b>Documenti supportati</b>
+InfraSFilesParamCautionSave = Cliccare sul pulsante '<b>Modifica</b>' dopo ogni cambiamento delle opzioni!
+InfraSFilesColEnabled       = Attivato
+InfraSFilesColPdf           = Generazione PDF + File allegati
+InfraSFilesColEmail         = Invio per e-mail
+InfraSFilesNeedModule       = Richiede l'attivazione di uno di questi moduli: %s
+InfraSFilesObjWidthdraw     = Ordini di addebito diretto e di bonifico
+InfraSFilesObjInventory     = Inventari
+InfraSFilesOptSplitMode     = Suddivisione dei PDF
+InfraSFilesOptSplitModeHelp = <b>Un PDF per terzo</b>: ogni terzo riceve un PDF che raggruppa le sue fatture; la sua eventuale casa madre è indicata solo a titolo informativo.<br><b>Un PDF per casa madre</b>: i terzi che hanno una <b>casa madre</b> indicata nella loro scheda <b>e</b> l'opzione «Indirizzare le distinte alla casa madre» spuntata sono raggruppati in un unico PDF indirizzato a quella casa madre (una fattura per riga, con il nome del terzo fatturato); ogni altro terzo conserva il proprio PDF.<br>Esempio: 10 terzi di una stessa casa madre, 8 dei quali con l'opzione spuntata = 3 PDF (la casa madre con i suoi 8 terzi, più uno per ogni terzo restante).
+InfraSFilesSplitThirdparty  = Un PDF per terzo (raggruppando le sue fatture)
+InfraSFilesSplitParent      = Un PDF per casa madre (raggruppando i suoi terzi che hanno spuntato l'opzione), altrimenti un PDF per terzo
+InfraSFilesExtraParent      = Indirizzare le distinte di addebito diretto / bonifico alla casa madre
+InfraSFilesExtraParentHelp  = Con la suddivisione «Un PDF per casa madre» del modulo InfraSFiles, le distinte di questo terzo sono raggruppate in quella della sua casa madre (indicata sopra) e indirizzate ad essa. Senza casa madre, l'opzione non ha effetto.
+InfraSFilesOptFreeText      = Testo libero a piè di pagina (vuoto = nessuno)
+InfraSFilesOptWatermark     = Filigrana sui documenti in bozza (vuoto = nessuna)
+InfraSFilesOptShowQty       = Mostrare la quantità teorica sulla scheda di conteggio
+InfraSFilesTitleModels      = <b>Modelli di documenti</b>
+InfraSFilesModelsHelp       = Attivare i modelli proposti alla generazione e scegliere il modello predefinito, per ogni documento la cui generazione PDF è attivata sopra
+InfraSFilesNoModel          = Nessun modello di documento disponibile per questo documento
+InfraSFilesNoObjectEnabled  = Nessun documento con la generazione PDF attivata
+
+### Documents layer ###
+InfraSFilesNoModelSelected     = Nessun modello di documento selezionato: scegliere un modello predefinito nei parametri del modulo
+InfraSFilesModelBordereauDesc  = Distinta di addebito diretto / bonifico: un documento per terzo o per casa madre secondo l'opzione del modulo, con le fatture, le loro scadenze, le note di credito applicate e lo stato di ogni riga
+InfraSFilesPdfColDueDate       = Scadenza
+InfraSFilesPdfTitleDebit       = Distinta di addebito diretto
+InfraSFilesPdfTitleTransfer    = Distinta di bonifico
+InfraSFilesPdfCreditor         = Creditore
+InfraSFilesPdfOrderingParty    = Ordinante
+InfraSFilesPdfDebtor           = Debitore
+InfraSFilesPdfBeneficiary      = Beneficiario
+InfraSFilesPdfColDocument      = Documento
+InfraSFilesPdfNbLines          = %s riga/righe
+InfraSFilesSpecimen            = Esemplare
+InfraSFilesModelComptageDesc   = Scheda di conteggio dell'inventario: zona di stoccaggio nella prima colonna (righe ordinate per zona), caselle vuote «Quantità rilevata» e «Riconteggio», righe «Contato da» e «Ricontato da» con data e firma
+InfraSFilesPdfTitleCounting    = Scheda di conteggio
+InfraSFilesPdfColCounted       = Quantità rilevata
+InfraSFilesPdfColRecount       = Riconteggio
+InfraSFilesPdfZone             = Zona
+InfraSFilesPdfNbRefs           = %s riferimento/i
+InfraSFilesPdfCountedBy        = Contato da
+InfraSFilesPdfRecountedBy      = Ricontato da
+InfraSFilesPdfRejected         = di cui %s riga/righe respinte: %s
+InfraSFilesMassDeleteSelection = Elimina la selezione
+InfraSFilesMassDeleteDone      = %s file eliminati
+InfraSFilesMassDeleteNone      = Nessun file selezionato
+InfraSFilesMassDeleteErrorFile = File %s: eliminazione rifiutata o impossibile
+
+### Mail layer ###
+InfraSFilesMailTopicWidthdraw       = Distinta di addebito diretto / bonifico __REF__
+InfraSFilesMailTopicInventory       = Scheda di conteggio dell'inventario __REF__
+InfraSFilesMailTplWidthdrawLabel    = Invio di una distinta di addebito diretto / bonifico
+InfraSFilesMailTplWidthdrawTopic    = Distinta di addebito diretto / bonifico __REF__
+InfraSFilesMailTplWidthdrawContent  = Buongiorno,<br><br>In allegato la distinta di addebito diretto / bonifico __REF__.<br><br>Cordiali saluti,<br>__MYCOMPANY_NAME__
+InfraSFilesMailTplInventoryLabel    = Invio di una scheda di conteggio dell'inventario
+InfraSFilesMailTplInventoryTopic    = Scheda di conteggio dell'inventario __REF__
+InfraSFilesMailTplInventoryContent  = Buongiorno,<br><br>In allegato la scheda di conteggio dell'inventario __REF__.<br><br>Cordiali saluti,<br>__MYCOMPANY_NAME__
+Notify_WIDTHDRAW_SENTBYMAIL         = Ordine di addebito diretto / bonifico inviato per e-mail
+Notify_INVENTORY_SENTBYMAIL         = Inventario inviato per e-mail
+InfraSFilesMailByThirdparty         = Destinatari per terzo
+InfraSFilesMailByThirdpartyHelp     = Viene inviata un'e-mail a ogni terzo selezionato, con in allegato solo i suoi PDF. Oggetto e messaggio sono comuni: le variabili __THIRDPARTY_NAME__, __THIRDPARTY_EMAIL__... vengono sostituite per ogni terzo.
+InfraSFilesMailNoRecipient          = Nessuna e-mail nota per questo terzo: inserirne una, altrimenti non verrà inviato
+InfraSFilesMailNoFile               = Nessun PDF è stato generato per questo documento: generarli prima dell'invio
+InfraSFilesMailOrphanFiles          = File non associati a nessun terzo, non inviati: %s
+InfraSFilesMailNoThirdpartySelected = Nessun terzo selezionato
+InfraSFilesMailSentSummary          = %s e-mail inviate su %s terzi selezionati
+InfraSFilesMailErrorFor             = %s: %s
+InfraSFilesMailErrorNoRecipient     = nessun destinatario
+InfraSFilesMailErrorSend            = invio non riuscito
+InfraSFilesMailErrorBadEmail        = indirizzo e-mail non valido: %s
+InfraSFilesMailErrorThirdparty      = terzo non trovato (eliminato dopo la generazione?)
+
+### About page ###
+
+### Changelog page ###
+InfraSFilesParamPresent1             = <b>Questo modulo è una creazione di</b>
+InfraSFilesParamPresent2             = <b>, la sua documentazione è disponibile sul nostro sito</b>
+InfraSFilesParamSlogan               = Strutturate la vostra crescita!
+InfraSFilesParamLienModules          = I nostri moduli
+InfraSFilesParamSupport              = Richiesta di supporto
+InfraSFilesParamPreferedPartner1     = Membro del programma ufficiale
+InfraSFilesParamPreferedPartner2     = Preferred Partner, garanzia di qualità e competenza
+InfraSFilesParamMoreModulesLink      = I nostri moduli sul dolistore
+InfraSFilesParamHistoryUpdates       = <b>Cronologia degli aggiornamenti:</b>
+InfraSFilesParamSkipCheck            = Download disattivato
+InfraSFilesParamNumberVersion        = Numero di versione
+InfraSFilesParamDolinfrasVersion     = Numero di versione LTS
+InfraSFilesParamMonthVersion         = Data
+InfraSFilesParamChangesVersion       = Modifiche
+InfraSFilesParamCheckNewVersion      = Nuovo Changelog
+InfraSFilesParamCheckNewVersionTitle = Cliccare per scaricare il changelog dell'ultima versione disponibile
+DolibarrVersion                      = Versione di Dolibarr
+ModuleVersion                        = Versione del modulo
+WebServerVersion                     = Versione del server web
+
+### actions InfraSFiles class ###
+InfraSFilesWarningMaxVersion = <center><br>La vostra versione di Dolibarr (%s) non è ancora supportata dal modulo InfraSFiles %s.<br>La versione massima di Dolibarr supportata è la versione %s.<br>State quindi utilizzando questo modulo senza garanzia di buon funzionamento.</center>
