@@ -75,23 +75,23 @@
 	ob_start();
 	if (empty($line->label)) {
 		if (getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
-			print $line->description.' <span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.infrastructure_getTitle($object, $line).'</span>';
+			print dolPrintHTML($line->description).' <span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dol_escape_htmltag(infrastructure_getTitle($object, $line)).'</span>';
 		} else {
-			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.$line->description.'</span>';
+			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dolPrintHTML($line->description).'</span>';
 		}
 	} else {
 		if (getDolGlobalString('PRODUIT_DESC_IN_FORM') && !empty($line->description)) {
-			$lineLabel	= $line->description != $line->label ? $line->label.'</span><br><div class="infrastructure_desc">'.dol_htmlentitiesbr($line->description) : $line->label;
+			$lineLabel	= $line->description != $line->label ? dol_escape_htmltag($line->label).'</span><br><div class="infrastructure_desc">'.dolPrintHTML($line->description) : dol_escape_htmltag($line->label);
 			if (getDolGlobalInt('INFRASTRUCTURE_SCREEN_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
-				$lineLabel	.= ' '.infrastructure_getTitle($object, $line);
+				$lineLabel	.= ' '.dol_escape_htmltag(infrastructure_getTitle($object, $line));
 			}
 			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.$lineLabel.'</div>';
 		} else {
-			$lineLabel	= $line->label;
+			$lineLabel	= dol_escape_htmltag($line->label);
 			if (getDolGlobalInt('INFRASTRUCTURE_SCREEN_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
-				$lineLabel	.= ' '.infrastructure_getTitle($object, $line);
+				$lineLabel	.= ' '.dol_escape_htmltag(infrastructure_getTitle($object, $line));
 			}
-			print '	<span class="infrastructure_label classfortooltip" style=" '.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" title="'.$line->description.'">'.$lineLabel.'</span>';
+			print '	<span class="infrastructure_label classfortooltip" style=" '.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'" title="'.dol_escape_htmltag($line->description).'">'.$lineLabel.'</span>';
 		}
 	}
 	if (!empty($total_options) && getDolGlobalString('INFRASTRUCTURE_OL_SHOW_DETAILS')) {

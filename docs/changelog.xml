@@ -611,7 +611,14 @@
 	<Version Number="21.8.13" MonthVersion="2026-10">
 		<change type='fix'>PDF : la couleur de texte des titres (INFRASTRUCTURE_PDF_TITLE_COLOR) était ignorée avec tous les modèles, natifs (azur, cyan...) comme InfraSPackPlus : pdfAddTitle() remettait le texte en noir juste après avoir appliqué la couleur configurée, ce qui annulait aussi le blanc automatique sur fond sombre. Le noir est désormais posé avant le calcul du fond, puis remplacé par le blanc automatique ou la couleur configurée, comme pour les sous-totaux, et rétabli en fin de titre pour ne pas colorer les lignes suivantes.</change>
 	</Version>
-	<InfraS Downloaded="20261008"/>
+	<Version Number="21.8.14" MonthVersion="2026-10">
+		<change type='fix'>Sécurité, affichage des titres, sous-totaux et textes : libellés, descriptions, infobulles (attribut title) et titre parent (infrastructure_getTitle) étaient imprimés tels quels dans la ligne de sous-total (core/tpl/infrastructureline_total.tpl.php) et dans les lignes d'origine d'une création de document (hook printOriginObjectSubLine), et dol_htmlentitiesbr() laisse intact un texte déjà HTML (ligne de titre, infrastructureline_view.tpl.php). Un libellé ou une description contenant du HTML était exécuté par le navigateur de chaque personne ouvrant le document (XSS stocké, par exemple « &lt;img src=x onerror=…&gt; »). Libellés, titre et infobulles passent par dol_escape_htmltag(), les descriptions affichées par dolPrintHTML() du cœur (mise en forme conservée, JavaScript retiré). Signalé et corrigé par Kytom.</change>
+	</Version>
+	<Version Number="21.8.15" MonthVersion="2026-10">
+		<change type='fix'>Sous-total à libellé vide avec INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL (suite de la 21.8.14) : la description passait par dol_escape_htmltag() dans le gabarit de sous-total, mise en forme HTML perdue, alors que le hook des lignes d'origine utilisait dolPrintHTML() ; les deux affichages utilisent dolPrintHTML().</change>
+		<change type='chg'>Sous-totaux et totaux de bloc : la règle de calcul « vatbyrate » (Mode 3, MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND à 2 ou règle figée sur la pièce, cœur Dolibarr LTS by InfraS 2026-10-10, proposé par Kytom pour la conformité EN 16931 BR-CO-17) est traitée comme le Mode 2 : TVA du bloc = somme, par taux, de l'arrondi de (somme des HT de ligne arrondis du taux x taux), la base du bloc étant déjà la somme des lignes arrondies. Sans cela un bloc en Mode 3 suivait le Mode 1 et sa TVA pouvait différer d'un centime de celle de la pièce.</change>
+	</Version>
+	<InfraS Downloaded="20261010"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

@@ -1268,11 +1268,11 @@
 		$multicurrency_total_ttc		= 0;
 		$sign							= 1;
 		// Dolibarr(lignes stockées sans arrondi) : le sous-total d'un bloc est la somme des montants de ligne arrondis au
-		// centime (ceux qui sont imprimés), la TVA suit la règle du document (Mode 1 : somme des TVA de ligne arrondies ; Mode 2 : arrondi
+		// centime (ceux qui sont imprimés), la TVA suit la règle du document (Mode 1 : somme des TVA de ligne arrondies ; Mode 2 et Mode 3 : arrondi
 		// par taux de HT x taux) et TTC = HT + TVA + taxes locales arrondis, comme CommonObject::getRoundedTotals() pour le total du document.
 		// Sur un core standard les lignes sont déjà arrondies : l'arrondi est sans effet.
 		$roundLines						= method_exists($object, 'getRoundedTotals');
-		$roundOfTotal					= ($roundLines && method_exists($object, 'getCalculationRule') && $object->getCalculationRule('') == 'roundoftotal');
+		$roundOfTotal					= ($roundLines && method_exists($object, 'getCalculationRule') && in_array($object->getCalculationRule(''), array('roundoftotal', 'vatbyrate'), true));	// Mode 2 ou Mode 3 (vatbyrate, cœur LTS 2026-10-10) : TVA par taux sur la somme des HT de ligne arrondis
 		$rnd							= function ($v) use ($roundLines) {
 			return $roundLines ? (float) price2num($v, 'MT') : $v;
 		};
@@ -1407,7 +1407,7 @@
 		}
 		if ($roundLines) {
 			if ($roundOfTotal) {
-				// Mode 2 : TVA du bloc = somme, par taux, de l'arrondi de (HT du taux x taux)
+				// Mode 2 / Mode 3 : TVA du bloc = somme, par taux, de l'arrondi de (HT du taux x taux), HT du taux = somme des HT de ligne arrondis
 				$total_tva	= 0;
 				foreach ($TTotal_tva as $tx => $amount) {
 					$TTotal_tva[$tx]	= (float) price2num((isset($TTotal_ht[$tx]) ? $TTotal_ht[$tx] : 0) * ((float) $tx) / 100, 'MT');
