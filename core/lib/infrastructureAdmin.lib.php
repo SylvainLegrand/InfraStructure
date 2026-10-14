@@ -261,7 +261,9 @@ SET SQL_MODE = \'NO_AUTO_VALUE_ON_ZERO\';
 			$sql_const		.= ' AND entity = '.((int) $conf->entity);
 			$sql_const		.= ' ORDER BY name';
 			fwrite($handle, infrastructure_bkup_table ('const', $sql_const, $cols_const, $duplicate, 0, ''));
-			$cols_dict		= ['label', 'content', 'active', 'entity'];
+			// Ordre des colonnes imposé par infrastructure_bkup_table() : index 1 = entité (remplacée par __ENTITY__), index 2 = valeur
+			// reportée dans ON DUPLICATE KEY UPDATE. Avec content en index 1, chaque texte était restauré avec la valeur « 1 » (21.8.17).
+			$cols_dict		= ['label', 'entity', 'content', 'active'];
 			$duplicate_dict	= ['2', 'content', 'label'];
 			$sql_dict		= 'SELECT '.implode(', ', $cols_dict).' FROM '.$db->prefix().'c_infrastructure_free_text WHERE entity = "'.$conf->entity .'" ORDER BY label';
 			fwrite($handle, infrastructure_bkup_table ('c_infrastructure_free_text', $sql_dict, $cols_dict, $duplicate_dict, 1, ''));
