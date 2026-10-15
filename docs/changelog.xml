@@ -621,7 +621,10 @@
 	<Version Number="21.8.16" MonthVersion="2026-10">
 		<change type='fix'>Mise à jour sans cycle désactivation / réactivation : les extrafields de ligne et la migration du special_code 104777 vers 550090 (21.8.5) n'étaient joués que par init(). Nouvelle méthode postUpdate($dryrun) du descripteur, appelée par les migrations de build de dolinfras (18.9.0) après la mise à jour des fichiers : création des extrafields manquants (infrastructure_addExtraField(), idempotente) et conversion des lignes encore en 104777 s'il en reste. Les migrations depuis subtotal et soustotal, qui désactivent ces modules, restent réservées à init(). Sans remove() : droits des utilisateurs, placements de widgets et réglages conservés.</change>
 	</Version>
-	<InfraS Downloaded="20261011"/>
+	<Version Number="21.8.17" MonthVersion="2026-10">
+		<change type='fix'>Sauvegarde des réglages à la désactivation (update.&lt;entité&gt;) : les textes prédéfinis du dictionnaire étaient restaurés avec le contenu « 1 » à la réactivation. infrastructure_bkup_table() attend l'entité en 2e colonne et la valeur en 3e (ordre de llx_const) ; le dictionnaire était exporté avec content en 2e colonne, remplacé par __ENTITY__. Colonnes réordonnées (label, entity, content, active). Les contenus déjà écrasés sont à restaurer depuis une sauvegarde SQL.</change>
+	</Version>
+	<InfraS Downloaded="20261014"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
