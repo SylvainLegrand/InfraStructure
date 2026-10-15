@@ -1758,6 +1758,24 @@
 				infrastructure_forceRemisePercentForShowReduc($object);
 				infrastructure_applyTitleWithTotal($object);
 				infrastructure_applyTitlePrintAsListOrCondensed($object);
+				// Expédition / livraison : les colonnes quantité, poids et volume sont imprimées par les modèles PDF sans hook.
+				// Pour les lignes du module, qty reçoit le code de structure de la ligne de commande (qty_asked : titre 1..9,
+				// sous-total 91..99, texte libre 50), lu par pdf_writelinedesc(), et les colonnes sont vidées pour ne pas
+				// afficher ce code ni l'additionner dans les totaux de quantités.
+				if ($object->element == 'shipping' || $object->element == 'delivery') {
+					foreach ($object->lines ?? [] as $k => &$l) {
+						if ($this->isModInfrastructureLine($k, $object)) {
+							if (isset($l->qty_asked) && (float) $l->qty_asked != 0) {
+								$l->qty	= $l->qty_asked;
+							}
+							$l->qty_asked	= null;
+							$l->qty_shipped	= null;
+							$l->volume		= null;
+							$l->weight		= null;
+						}
+					}
+					unset($l);
+				}
 				}
 				if (in_array('propalcard', $TContext) || in_array('ordercard', $TContext) || in_array('invoicecard', $TContext) || in_array('supplier_proposalcard', $TContext) || in_array('ordersuppliercard', $TContext) || in_array('invoicesuppliercard', $TContext)) {
 				$i = 0;
@@ -1776,11 +1794,6 @@
 						if (!empty($parentTitle->id) && !empty($parentTitle->array_options['options_show_reduc'])) {
 							$l->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
 						}
-					}
-					// Pas de hook sur les colonnes du PDF expédition, on unset les bonnes variables
-					if (($object->element == 'shipping' || $object->element == 'delivery') && $this->isModInfrastructureLine($k, $object)) {
-						$l->qty = $l->qty_asked;
-						unset($l->qty_asked, $l->qty_shipped, $l->volume, $l->weight);
 					}
 				}
 				$hideInnerLines	= GETPOST('hideInnerLines', 'int');

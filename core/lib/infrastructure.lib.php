@@ -290,15 +290,13 @@
 	*/
 	function infrastructure_createOlExtrafields() {
 
-		global $db;
+		// Création uniquement si l'extrafield n'existe pas encore (infrastructure_addExtraField() vérifie l'existence) :
 
-		$extra = new ExtraFields($db); // propaldet, commandedet, facturedet
-		$extra->addExtraField('infrastructure_ol', 'Optionnel', 'varchar', 0, 255, 'propaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('infrastructure_ol', 'Optionnel', 'varchar', 0, 255, 'commandedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('infrastructure_ol', 'Optionnel', 'varchar', 0, 255, 'facturedet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('infrastructure_ol', 'Optionnel', 'varchar', 0, 255, 'supplier_proposaldet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('infrastructure_ol', 'Optionnel', 'varchar', 0, 255, 'commande_fournisseurdet', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
-		$extra->addExtraField('infrastructure_ol', 'Optionnel', 'varchar', 0, 255, 'facture_fourn_det', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+		// la page de paramètres appelle cette fonction à chaque affichage, et ExtraFields::addExtraField() journalise
+		// une erreur SQL « Duplicate » à chaque appel quand le champ existe déjà.
+		foreach (['propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det'] as $element_type) {
+			infrastructure_addExtraField('infrastructure_ol', 'Optionnel', 'varchar', 0, 255, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1, '', '', '', '1', 0, 0, [], '');
+		}
 	}
 
 	/**
