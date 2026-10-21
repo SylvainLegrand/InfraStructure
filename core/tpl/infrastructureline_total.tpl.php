@@ -75,7 +75,7 @@
 	ob_start();
 	if (empty($line->label)) {
 		if (getDolGlobalInt('INFRASTRUCTURE_CONCAT_TITLE_LABEL_IN_TOTAL_LABEL')) {
-			print dol_escape_htmltag($line->description).' <span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dol_escape_htmltag(infrastructure_getTitle($object, $line)).'</span>';
+			print dolPrintHTML($line->description).' <span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dol_escape_htmltag(infrastructure_getTitle($object, $line)).'</span>';
 		} else {
 			print '	<span class="infrastructure_label" style="'.$titleStyleItalic.$titleStyleBold.$titleStyleUnderline.'">'.dolPrintHTML($line->description).'</span>';
 		}
