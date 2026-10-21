@@ -648,6 +648,7 @@
 		*/
 		private function ShippingCreate($object, $user, $langs)
 		{
+			$this->ShippingRestoreStructureLines($object, $user);
 			$object->fetch_lines();
 			$object->fetchObjectLinked();
 			$cmd	= null;
@@ -707,6 +708,60 @@
 					$lineToDelete->delete($user);
 				}
 			}
+		}
+		/**
+		* Réinsère dans l'expédition les lignes de structure (titre, sous-total, texte libre) écartées par le cœur.
+		*
+		* Expedition::create() n'écrit en base que les lignes dont product_type est vide (produits), sauf si
+		* STOCK_SUPPORTS_SERVICES, SHIPMENT_SUPPORTS_SERVICES ou, sur Dolibarr LTS by InfraS, INFRAS_SHIPPING_SERVICE
+		* est actif : les lignes du module (product_type 9) demandées par l'écran de création sont perdues en silence.
+		* Au moment du trigger SHIPPING_CREATE, $object->lines contient encore les lignes demandées (addline()),
+		* avec leur ligne de commande d'origine : on recrée celles qui manquent, avec le code de structure et le rang
+		* de la ligne d'origine, sans entrepôt. Sans effet si le cœur les a déjà écrites (aucun doublon).
+		*
+		* @param	Expedition	$object		Expédition en cours de création (lignes en mémoire, identifiant posé)
+		* @param	User		$user		Utilisateur
+		* @return	int						Nombre de lignes réinsérées, < 0 si erreur de lecture
+		**/
+		private function ShippingRestoreStructureLines($object, $user)
+		{
+			if (empty($object->id) || empty($object->lines) || ! is_array($object->lines)) {
+				return 0;
+			}
+			$sql	= 'SELECT fk_elementdet FROM '.$this->db->prefix().'expeditiondet WHERE fk_expedition = '.((int) $object->id);
+			$resql	= $this->db->query($sql);
+			if (! $resql) {
+				dol_syslog(__METHOD__.' : '.$this->db->lasterror(), LOG_ERR);
+				return -1;
+			}
+			$existing	= [];
+			while ($obj = $this->db->fetch_object($resql)) {
+				$existing[(int) $obj->fk_elementdet]	= true;
+			}
+			$this->db->free($resql);
+			$nbRestored	= 0;
+			foreach ($object->lines as $line) {
+				$originLineId	= (int) (!empty($line->origin_line_id) ? $line->origin_line_id : (!empty($line->fk_elementdet) ? $line->fk_elementdet : 0));
+				if ($originLineId <= 0 || !empty($existing[$originLineId])) {
+					continue;
+				}
+				$orderline	= new OrderLine($this->db);
+				if ($orderline->fetch($originLineId) <= 0 || ! TInfrastructure::isModInfrastructureLine($orderline)) {
+					continue;
+				}
+				$arrayOptions	= !empty($line->array_options) && is_array($line->array_options) ? $line->array_options : [];
+				$resLine		= $object->create_line(0, $originLineId, $orderline->qty, (int) $orderline->rang, $arrayOptions);
+				if ($resLine <= 0) {
+					dol_syslog(__METHOD__.' : création impossible de la ligne de structure (ligne de commande '.$originLineId.') : '.$object->errorsToString(), LOG_WARNING);
+					continue;
+				}
+				$existing[$originLineId]	= true;
+				$nbRestored++;
+			}
+			if ($nbRestored > 0) {
+				dol_syslog(__METHOD__.' : '.$nbRestored.' ligne(s) de structure réinsérée(s) dans l\'expédition '.$object->id, LOG_NOTICE);
+			}
+			return $nbRestored;
 		}
 
 		/**

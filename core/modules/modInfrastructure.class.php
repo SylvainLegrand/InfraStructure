@@ -240,6 +240,85 @@
 		}
 
 		/**
+		*	Mise à jour sans réactivation (appelée par les migrations de build de dolinfras après une mise à jour des fichiers) :
+		*	rejoue la partie d'init() sûre sur un module actif, sans remove() : extrafields de ligne manquants
+		*	(infrastructure_addExtraField() est idempotente) et migration du special_code 104777 vers 550090 s'il reste des lignes
+		*	à convertir. Les migrations depuis les modules subtotal et soustotal, qui désactivent ces modules, restent réservées à
+		*	init() (décision d'exploitation).
+		*
+		*	@param		int		$dryrun		1 = aucune écriture, rapport seulement
+		*	@return		array				array('status' => 'done'|'skipped'|'error', 'details' => string)
+		**/
+		public function postUpdate($dryrun = 0)
+		{
+			global $conf, $db, $langs;
+
+			dol_include_once('/'.$this->name.'/core/lib/'.$this->name.'.lib.php');
+			dol_include_once('/'.$this->name.'/core/lib/infrastructureMigrateSubtotal.lib.php');
+			$actions	= array();
+			$errors		= array();
+			// Extrafields de ligne : même liste qu'init(), seuls les manquants sont créés
+			$definitions	= array();
+			foreach (['propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det'] as $element_type) {
+				$definitions[]	= array('show_total_ht', 'InfrastructureShowTotalHTOnInfrastructureBlock', 0, 10, $element_type);
+				$definitions[]	= array('show_reduc', 'InfrastructureShowReducOnInfrastructureBlock', 0, 10, $element_type);
+				$definitions[]	= array('infrastructure_show_qty', 'InfrastructureLineShowQty', 0, 10, $element_type);
+			}
+			foreach (['propaldet', 'commandedet', 'commande_fournisseurdet', 'facturedet', 'facture_fourn_det'] as $element_type) {
+				$definitions[]	= array('hideblock', 'Infrastructure_ForceHideAll', 4, 2, $element_type);
+			}
+			foreach (['propaldet', 'commandedet', 'facturedet'] as $element_type) {
+				$definitions[]	= array('show_table_header_before', 'InfrastructureShowTableHeaderBefore', 4, 2, $element_type);
+				$definitions[]	= array('print_as_list', 'InfrastructurePrintAsList', 4, 2, $element_type);
+				$definitions[]	= array('print_condensed', 'InfrastructurePrintCondensed', 4, 2, $element_type);
+			}
+			dol_include_once('/core/class/extrafields.class.php');
+			$extra	= new ExtraFields($db);
+			$created	= array();
+			foreach ($definitions as $def) {
+				list($attrname, $labelkey, $pos, $size, $element_type)	= $def;
+				$extra->fetch_name_optionals_label($element_type);
+				if (!empty($extra->attributes[$element_type]['label'][$attrname])) {
+					continue;
+				}
+				$created[]	= $element_type.'.'.$attrname;
+				if (!empty($dryrun)) {
+					continue;
+				}
+				$result	= infrastructure_addExtraField($attrname, $langs->trans($labelkey), 'int', $pos, $size, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, '', '', $conf->entity, '', 'isModEnabled("infrastructure")');
+				if ($result < 0) {
+					$errors[]	= 'extrafield '.$element_type.'.'.$attrname;
+				}
+			}
+			if ($created) {
+				$actions[]	= 'extrafields created: '.implode(', ', $created);
+			}
+			// special_code 104777 (ancien numéro du module) vers 550090 : comptage puis conversion s'il reste des lignes
+			$logger		= function ($msg) {
+				dol_syslog('modInfrastructure::postUpdate migrate special_code : '.$msg);
+			};
+			$dryRunCode	= infrastructure_migrateSpecialCode($db, $conf, true, $logger);
+			if (! $dryRunCode['success']) {
+				$errors[]	= 'special_code count failed: '.implode(' | ', $dryRunCode['errors']);
+			} elseif ($dryRunCode['updated'] > 0) {
+				$actions[]	= 'special_code 104777 -> 550090: '.$dryRunCode['updated'].' line(s)';
+				if (empty($dryrun)) {
+					$resCode	= infrastructure_migrateSpecialCode($db, $conf, false, $logger);
+					if (! $resCode['success']) {
+						$errors[]	= 'special_code migration failed: '.implode(' | ', $resCode['errors']);
+					}
+				}
+			}
+			if (!empty($errors)) {
+				return array('status' => 'error', 'details' => implode(' ; ', $errors));
+			}
+			if (empty($actions)) {
+				return array('status' => 'skipped', 'details' => 'extrafields and special codes already in place');
+			}
+			return array('status' => 'done', 'details' => implode(' ; ', $actions));
+		}
+
+		/**
 		* Function called when module is disabled.
 		* Remove from database constants, boxes and permissions from Dolibarr database.
 		* Data directories are not deleted

@@ -379,7 +379,7 @@
 			// Dolibarr (lignes stockées sans arrondi) : montants de ligne arrondis au centime avant sommation, TVA selon la règle
 			// du document (Mode 1 / Mode 2), TTC = HT + TVA + taxes locales arrondis (voir infrastructure_get_totalLineFromObject()).
 			$roundLines		= method_exists($object, 'getRoundedTotals');
-			$roundOfTotal	= ($roundLines && method_exists($object, 'getCalculationRule') && $object->getCalculationRule('') == 'roundoftotal');
+			$roundOfTotal	= ($roundLines && method_exists($object, 'getCalculationRule') && in_array($object->getCalculationRule(''), array('roundoftotal', 'vatbyrate'), true));	// Mode 2 ou Mode 3 (vatbyrate, cœur LTS 2026-10-10) : TVA par taux sur la somme des HT de ligne arrondis
 			$rnd			= function ($v) use ($roundLines) {
 				return $roundLines ? (float) price2num($v, 'MT') : $v;
 			};
@@ -434,7 +434,7 @@
 			}
 			if ($roundLines) {
 				if ($roundOfTotal) {
-					// Mode 2 : TVA du bloc = somme, par taux, de l'arrondi de (HT du taux x taux)
+					// Mode 2 / Mode 3 : TVA du bloc = somme, par taux, de l'arrondi de (HT du taux x taux), HT du taux = somme des HT de ligne arrondis
 					$TTot['total_tva']				= 0;
 					$TTot['multicurrency_total_tva']	= 0;
 					foreach ($TTot['TTotal_tva'] as $tx => $amount) {
