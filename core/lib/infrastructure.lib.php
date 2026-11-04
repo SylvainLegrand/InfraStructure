@@ -1859,27 +1859,29 @@
 	*	@param	CommonObject	$object		Document parent
 	*	@param	object			$line		Ligne titre
 	*	@param	float			$posy		Position Y où dessiner les colonnes
+	*	@param	Translate|null	$outputlangs	Langue du document (null = langue de session)
 	*	@return	void
 	**/
-	function infrastructure_drawTitleColumnsAtPosY($pdf, $pdfModel, &$object, &$line, $posy)
+	function infrastructure_drawTitleColumnsAtPosY($pdf, $pdfModel, &$object, &$line, $posy, $outputlangs = null)
 	{
 		global $langs;
 
+		$outputlangs		= is_object($outputlangs) ? $outputlangs : $langs;	// Langue du document pour le format des montants (repli : langue de session)
 		$use_multicurrency	= isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 1 : 0;
 		$totalHtToPrint		= '';
 		if (isset($line->infrastructure_title_total_ht)) {
 			if ($use_multicurrency && isset($line->infrastructure_title_multicurrency_total_ht)) {
-				$totalHtToPrint	= price($line->infrastructure_title_multicurrency_total_ht, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+				$totalHtToPrint	= price($line->infrastructure_title_multicurrency_total_ht, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 			} else {
-				$totalHtToPrint	= price($line->infrastructure_title_total_ht, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+				$totalHtToPrint	= price($line->infrastructure_title_total_ht, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 			}
 		}
 		$totalTtcToPrint	= '';
 		if (isset($line->infrastructure_title_total_ttc)) {
 			if ($use_multicurrency && isset($line->infrastructure_title_multicurrency_total_ttc)) {
-				$totalTtcToPrint	= price($line->infrastructure_title_multicurrency_total_ttc, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+				$totalTtcToPrint	= price($line->infrastructure_title_multicurrency_total_ttc, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 			} else {
-				$totalTtcToPrint	= price($line->infrastructure_title_total_ttc, 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+				$totalTtcToPrint	= price($line->infrastructure_title_total_ttc, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 			}
 		}
 		$vatToPrint			= '';

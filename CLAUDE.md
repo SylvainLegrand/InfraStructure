@@ -20,7 +20,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.18` (2026-10)
+- Dernière version locale : `21.8.19` (2026-11)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -648,6 +648,12 @@ GET /infrastructure/{elementtype}/{idline}
 Helpers internes (`_getTotal`, `_getFkFieldName`) pour abstraire le type de document. Authentification : token API standard Dolibarr (`DOLAPIKEY`).
 
 **Écritures de lignes par l'API REST du cœur** (`PUT /proposals/{id}/lines/{lineid}`, `POST`, `DELETE`, et de même pour les commandes et factures) : elles passent par `update_price()` du document, donc par le hook `updateTotalPrice`, qui n'est appelé que si le module déclare le contexte `api` (21.8.9+). Un correctif posé dans le descripteur n'agit qu'après mise à jour de `MAIN_MODULE_INFRASTRUCTURE_HOOKS` ou réactivation (voir « Module parts »). Un document dont le total a déjà été recalculé options comprises n'est pas réparé par le correctif : il faut ré-enregistrer une de ses lignes ou relancer `update_price(1)` depuis une fiche.
+
+### Langue du document pour les montants des PDF et ODT (fix 21.8.19)
+- **Symptôme** : PDF généré dans une langue différente de celle de la session (tiers anglais, session française) : sous-totaux, totaux portés par les titres, prix unitaire / remise de bloc et montants des lignes optionnelles au format de la session (« 8 700,00 »), lignes et totaux du document au format du document (« 2,352.00 »). Même défaut sur les substitutions ODT `line_price_*`. Signalé par IECS le 2026-11-03 sur le module Sous-total ATM ; le même code existait ici.
+- **Cause** : `price()` appelé sans langue (`''`) ou avec `$langs` (session) alors que le cœur et InfraSPackPlus transmettent la langue du document dans `$parameters['outputlangs']` à tous les hooks `pdf_getline*`, `pdf_writelinedesc` et `ODTSubstitutionLine`.
+- **Correctif** : chaque hook lit `$parameters['outputlangs']` (repli `$langs`) ; `pdfAddTotal()`, `pdfAddTitle()` et `infrastructure_drawTitleColumnsAtPosY()` reçoivent un paramètre optionnel `$outputlangs` (dernier argument, `null` = langue de session), passé explicitement par leurs appelants. Le hook `pdf_getlinetotalwithtax` prend aussi `$TInfo[7]` (TTC en devise du document) quand le taux n'est pas 1, comme `pdf_getlinetotalexcltax` avec `$TInfo[6]`. Le symbole monétaire reste absent de ces montants (cohérence avec les lignes des modèles du cœur).
+- **Règle à retenir** : dans un hook PDF ou ODT, jamais `price($x)`, `price($x, 0, '')` ni `price($x, 0, $langs)` : toujours la langue reçue dans `$parameters['outputlangs']`, et la transmettre aux méthodes internes appelées depuis le hook.
 
 ### Sommaire rapide flottant (Floating quick summary)
 
