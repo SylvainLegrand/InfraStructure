@@ -391,6 +391,8 @@
 		{
 			global $conf;
 
+			$outputlangs	= !empty($parameters['outputlangs']) && is_object($parameters['outputlangs']) ? $parameters['outputlangs'] : null;	// Langue du document pour le format des montants (null : price() replie sur la langue de session)
+
 			if (in_array($action, ['builddoc', 'addline', 'confirm_valid', 'confirm_paiement'])) {
 				$line												= &$parameters['line'];
 				$object												= &$parameters['object'];
@@ -411,9 +413,9 @@
 					if ($line->qty > 90) {
 						$substitutionarray['line_modinfrastructure_total'] = true;
 						$TInfo									= infrastructure_get_totalLineFromObject($object, $line, 0, 1);
-						$substitutionarray['line_price_ht']		= price($TInfo[0], 0, '', 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
-						$substitutionarray['line_price_vat']	= price($TInfo[1], 0, '', 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
-						$substitutionarray['line_price_ttc']	= price($TInfo[2], 0, '', 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
+						$substitutionarray['line_price_ht']		= price($TInfo[0], 0, $outputlangs, 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
+						$substitutionarray['line_price_vat']	= price($TInfo[1], 0, $outputlangs, 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
+						$substitutionarray['line_price_ttc']	= price($TInfo[2], 0, $outputlangs, 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
 					} else {
 						$substitutionarray['line_modinfrastructure_title'] = true;
 					}
@@ -758,12 +760,14 @@
 		* @param	float					$posy 		Position Y
 		* @param	float					$w 			Width
 		* @param	float					$h 			Height
+		* @param	Translate|null			$outputlangs Langue du document (null = langue de session)
 		* @return	void
 		*/
-		public function pdfAddTotal(&$pdf, &$object, &$line, $label, $description, $posx, $posy, $w, $h)
+		public function pdfAddTotal(&$pdf, &$object, &$line, $label, $description, $posx, $posy, $w, $h, $outputlangs = null)
 		{
 			global $conf, $infrastructure_last_title_posy, $langs;
 
+			$outputlangs						= is_object($outputlangs) ? $outputlangs : $langs;	// Langue du document pour le format des montants (repli : langue de session)
 			$infrastructureDefaultTopPadding	= 1;
 			$infrastructureDefaultBottomPadding	= 1;
 			$infrastructureDefaultLeftPadding	= 0.5;
@@ -872,9 +876,9 @@
 				}
 			}
 			if (!$hidePriceOnInfrastructureLines) {
-				$total_to_print		= price($line->total, 0, '', 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+				$total_to_print		= price($line->total, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 				if ($use_multicurrency) {
-					$total_to_print	= price($line->multicurrency_total_ht,0,'',1,0,getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+					$total_to_print	= price($line->multicurrency_total_ht, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 				}
 				if (getDolGlobalString('INFRASTRUCTURE_MANAGE_OL')) {
 					$TTitle	= infrastructure_getCachedAllTitleFromLine($object, $line);
@@ -897,9 +901,9 @@
 							$TInfo					= infrastructure_get_totalLineFromObject($object, $line, false, 1);
 							$object->lines			= $savedLines;
 							$object->context['infrastructureCache']	= $savedCache;
-							$total_to_print			= price($TInfo[0], 0, '', 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+							$total_to_print			= price($TInfo[0], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 							if ($use_multicurrency) {
-								$total_to_print		= price($TInfo[6], 0, '', 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+								$total_to_print		= price($TInfo[6], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 							}
 							$line->total_ht			= $TInfo[0];
 							$line->total			= $TInfo[0];
@@ -910,9 +914,9 @@
 					} else {
 						$TInfo			= infrastructure_get_totalLineFromObject($object, $line, false, 1);
 						$TTotal_tva		= $TInfo[3];
-						$total_to_print = price($TInfo[0], 0, '', 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+						$total_to_print = price($TInfo[0], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 						if ($use_multicurrency) {
-							$total_to_print = price($TInfo[6],0,'',1,0,getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+							$total_to_print = price($TInfo[6], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 						}
 						$line->total_ht	= $TInfo[0];
 						$line->total	= $TInfo[0];
@@ -930,7 +934,7 @@
 					// Modèles à colonnes configurables (InfraSPlus) : printStdColumnContent dessine le total directement (les hooks pdf_getline* ne sont pas appelés pour ces modèles).
 					$staticPdfModel->printStdColumnContent($pdf, $posy, 'totalexcltax', $total_to_print);
 					if (getDolGlobalString('PDF_PROPAL_SHOW_PRICE_INCL_TAX')) {
-						$staticPdfModel->printStdColumnContent($pdf, $posy, 'totalincltax', price($line->total_ttc, 0, '', 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT')));
+						$staticPdfModel->printStdColumnContent($pdf, $posy, 'totalincltax', price($line->total_ttc, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT')));
 					}
 				}
 				// Modèles natifs Dolibarr (azur, crabe, etc.) : le total HT/TTC est rendu via les hooks pdf_getlinetotalexcltax / pdf_getlinetotalwithtax (universels depuis 18.3.1) — pas de dessin direct ici pour éviter le doublon avec ces hooks.
@@ -957,9 +961,10 @@
 		* @param	float					$posy			Vertical position
 		* @param	float					$w				Width
 		* @param	float					$h				Height
+		* @param	Translate|null			$outputlangs	Langue du document (null = langue de session)
 		* @return	void
 		*/
-		public function pdfAddTitle(&$pdf, &$object, &$line, $label, $description, $posx, $posy, $w, $h)
+		public function pdfAddTitle(&$pdf, &$object, &$line, $label, $description, $posx, $posy, $w, $h, $outputlangs = null)
 		{
 			global $hidedesc;
 
@@ -1078,7 +1083,7 @@
 			if (isset($line->infrastructure_title_total_ht)) {
 				$pdfModel	= infrastructure_getCallerNativePdfModel($object);
 				if (is_object($pdfModel)) {
-					infrastructure_drawTitleColumnsAtPosY($pdf, $pdfModel, $object, $line, $infrastructure_last_title_posy);
+					infrastructure_drawTitleColumnsAtPosY($pdf, $pdfModel, $object, $line, $infrastructure_last_title_posy, $outputlangs);
 				}
 			}
 			// Retour au noir : sans fond ni description, la couleur du titre resterait active pour les lignes suivantes.
@@ -1272,6 +1277,7 @@
 
 			$i		= intval($parameters['i']);
 			$line	= isset($object->lines[$i]) ? $object->lines[$i] : null;
+			$outputlangs	= !empty($parameters['outputlangs']) && is_object($parameters['outputlangs']) ? $parameters['outputlangs'] : $langs;	// Langue du document pour le format des montants (repli : langue de session)
 			if ($this->isModInfrastructureLine($parameters, $object)) {
 				// VAT lines invisibles injectées par beforePDFCreation (mode hideInnerLines)
 				if ($line && $line->qty == -99) { $this->resprints = ' '; return 1; }
@@ -1289,7 +1295,7 @@
 					$this->resprints	= ' ';
 					return 1;
 				}
-				$total_to_print	= price($object->lines[$i]->total);
+				$total_to_print	= price($object->lines[$i]->total, 0, $outputlangs);
 				if (getDolGlobalInt('INFRASTRUCTURE_MANAGE_OL')) {
 					$TTitle	= infrastructure_getCachedAllTitleFromLine($object, $object->lines[$i]);
 					foreach ($TTitle as &$line_title) {
@@ -1306,9 +1312,9 @@
 						$TInfo						= infrastructure_get_totalLineFromObject($object, $object->lines[$i], false, 1);
 						$TTotal_tva					= $TInfo[3];
 						// Formatage standard Dolibarr (sans symbole monétaire) pour rester cohérent avec les autres lignes du document.
-						$total_to_print				= price($TInfo[0], 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+						$total_to_print				= price($TInfo[0], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 						if ($use_multicurrency) {
-							$total_to_print			= price($TInfo[6], 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+							$total_to_print			= price($TInfo[6], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 						}
 						$object->lines[$i]->total						= $TInfo[0];
 						$object->lines[$i]->total_ht					= $TInfo[0];
@@ -1338,7 +1344,7 @@
 			} elseif (!empty($hidedetails)) {
 				$lineTitle = (!empty($object->lines[$i])) ? infrastructure_getCachedParentTitle($object, $object->lines[$i]->rang): '';
 				if (!($lineTitle && infrastructure_getCachedTitleHasTotal($object, $lineTitle, true))) {
-					$this->resprints = price($object->lines[$i]->total_ht, 0, $langs);
+					$this->resprints = price($object->lines[$i]->total_ht, 0, $outputlangs);
 					$params = ['parameters' => $parameters, 'currentmethod' => 'pdf_getlinetotalexcltax', 'currentcontext' => 'infrastructure_hidedetails', 'i' => $i];
 					return $this->callHook($object, $hookmanager, $action, $params); // return 1 (qui est la valeur par défaut) OU -1 si erreur OU overrideReturn (contient -1 ou 0 ou 1)
 				}
@@ -1392,6 +1398,8 @@
 
 			$i		= intval($parameters['i']);
 			$line	= isset($object->lines[$i]) ? $object->lines[$i] : null;
+			$outputlangs	= !empty($parameters['outputlangs']) && is_object($parameters['outputlangs']) ? $parameters['outputlangs'] : $langs;	// Langue du document pour le format des montants (repli : langue de session)
+			$use_multicurrency	= isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1 ? 1 : 0;
 			if ($this->isModInfrastructureLine($parameters, $object)) {
 				// VAT lines invisibles injectées par beforePDFCreation (mode hideInnerLines)
 				if ($line && $line->qty == -99) { $this->resprints = ' '; return 1; }
@@ -1408,7 +1416,7 @@
 					$this->resprints	= ' ';
 					return 1;
 				}
-				$total_to_print	= price($object->lines[$i]->total_ttc);
+				$total_to_print	= price($object->lines[$i]->total_ttc, 0, $outputlangs);
 				if (getDolGlobalInt('INFRASTRUCTURE_MANAGE_OL')) {
 					$TTitle	= infrastructure_getCachedAllTitleFromLine($object, $object->lines[$i]);
 					foreach ($TTitle as &$line_title) {
@@ -1425,7 +1433,7 @@
 						$TInfo							= infrastructure_get_totalLineFromObject($object, $object->lines[$i], false, 1);
 						$TTotal_tva						= $TInfo[3];
 						// Formatage standard Dolibarr (sans symbole monétaire) pour rester cohérent avec les autres lignes du document.
-						$total_to_print					= price($TInfo[2], 0, $langs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+						$total_to_print					= price($use_multicurrency ? $TInfo[7] : $TInfo[2], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 						$object->lines[$i]->total		= $TInfo[0];
 						$object->lines[$i]->total_ht	= $TInfo[0];
 						$object->lines[$i]->total_tva	= !TInfrastructure::isModInfrastructureLine($object->lines[$i]) ? $TInfo[1] : $object->lines[$i]->total_tva;
@@ -1487,6 +1495,7 @@
 
 			$i		= intval($parameters['i']);
 			$line	= isset($object->lines[$i]) ? $object->lines[$i] : null;
+			$outputlangs	= !empty($parameters['outputlangs']) && is_object($parameters['outputlangs']) ? $parameters['outputlangs'] : $langs;	// Langue du document pour le format des montants (repli : langue de session)
 			if ($this->isModInfrastructureLine($parameters, $object)) {
 				if ($line && $line->qty == -99) { $this->resprints = ' '; return 1; }
 				$this->resprints = ' ';
@@ -1501,7 +1510,7 @@
 						$useMulticurrency		= isModEnabled('multicurrency') && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1;
 						$valueToDisplay			= $useMulticurrency ? $TTotal['multicurrency_total_unit_subprice'] : $TTotal['total_unit_subprice'];
 						infrastructure_setPdfTextColor($pdf, 'INFRASTRUCTURE_PDF_TOTAL_COLOR');
-						$this->resprints		= price($valueToDisplay, 0, '', 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
+						$this->resprints		= price($valueToDisplay, 0, $outputlangs, 1, 0, getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
 					}
 				}
 				return 1;
@@ -1517,7 +1526,7 @@
 			} elseif (!empty($hidedetails)) {
 				$lineTitle = (!empty($object->lines[$i])) ? infrastructure_getCachedParentTitle($object, $object->lines[$i]->rang) : '';
 				if (!($lineTitle && infrastructure_getCachedTitleHasTotal($object, $lineTitle, true))) {
-					$this->resprints = price($object->lines[$i]->subprice, 0, $langs);
+					$this->resprints = price($object->lines[$i]->subprice, 0, $outputlangs);
 					$params = ['parameters' => $parameters, 'currentmethod' => 'pdf_getlineupexcltax', 'currentcontext' => 'infrastructure_hidedetails', 'i' => $i];
 					return $this->callHook($object, $hookmanager, $action, $params); // return 1 (qui est la valeur par défaut) OU -1 si erreur OU overrideReturn (contient -1 ou 0 ou 1)
 				} //
@@ -1540,6 +1549,7 @@
 
 			$i		= intval($parameters['i']);
 			$line	= isset($object->lines[$i]) ? $object->lines[$i] : null;
+			$outputlangs	= !empty($parameters['outputlangs']) && is_object($parameters['outputlangs']) ? $parameters['outputlangs'] : $langs;	// Langue du document pour le format des montants (repli : langue de session)
 			if ($this->isModInfrastructureLine($parameters, $object)) {
 				if ($line && $line->qty == -99) { $this->resprints = ' '; return 1; }
 				$this->resprints = ' ';
@@ -1551,7 +1561,7 @@
 						}
 						if (!empty($parentTitle->array_options['options_show_reduc'])) {
 							$TTotal				= TInfrastructure::getTotalBlockFromTitle($object, $parentTitle);
-							$this->resprints	= price((1 - $TTotal['total_ht'] / $TTotal['total_subprice']) * 100, 0, '', 1, 2, 2).'%';
+							$this->resprints	= price((1 - $TTotal['total_ht'] / $TTotal['total_subprice']) * 100, 0, $outputlangs, 1, 2, 2).'%';
 						}
 					}
 				}
@@ -1966,7 +1976,7 @@
 						$TInfoOl = infrastructure_get_totalLineFromObject($object, $line, false, 1);
 						if (!empty($TInfoOl[8])) {
 							$outputlangs->load('infrastructure@infrastructure');
-							$label .= '<br />('.$outputlangs->transnoentities('InfrastructureOptionalTotalInLabel', price($TInfoOl[8], 0, '', 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'))).')';
+							$label .= '<br />('.$outputlangs->transnoentities('InfrastructureOptionalTotalInLabel', price($TInfoOl[8], 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'))).')';
 						}
 					}
 					// FIX DA024845 : Le module sous total amène des erreurs dans les sauts de page lorsque l'on arrive tout juste en bas de page.
@@ -1976,7 +1986,7 @@
 						$pdf->addPage('', '', true);
 						$posy = $pdf->GetY();
 					}
-					$this->pdfAddTotal($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h);
+					$this->pdfAddTotal($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h, $outputlangs);
 					// On delivery PDF, we don't want quantities to appear and there are no hooks => setting text color to background color;
 					if ($object->element == 'delivery') {
 						switch ($line->qty) {
@@ -1994,7 +2004,7 @@
 					$posy = $pdf->GetY();
 					return 1;
 				} elseif ($line->qty < 10) {
-					$this->pdfAddTitle($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h);
+					$this->pdfAddTitle($pdf, $object, $line, $label, $description, $posx, $posy, $w, $h, $outputlangs);
 					if ($object->element == 'delivery') {
 						$pdf->SetTextColor(255, 255, 255);
 					}
@@ -2013,7 +2023,7 @@
 				$labelproductservice	= pdf_getlinedesc($object, $parameters['i'], $outputlangs, $parameters['hideref'], $parameters['hidedesc'], $parameters['issupplierline']);
 				$labelproductservice	= preg_replace('/(<img[^>]*src=")([^"]*)(&amp;)([^"]*")/', '\1\2&\4', $labelproductservice, -1, $nbrep);
 				if (getDolGlobalInt('INFRASTRUCTURE_PDF_OL_SHOW_TOTAL_HT_AFTER_DESC')) {
-					$labelproductservice	.= '<br />'.$outputlangs->transnoentities('TotalHT').' : '.price($optionalLine->total_ht, 0, '', 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
+					$labelproductservice	.= '<br />'.$outputlangs->transnoentities('TotalHT').' : '.price($optionalLine->total_ht, 0, $outputlangs, 1, 0, getDolGlobalInt('MAIN_MAX_DECIMALS_TOT'));
 				}
 				$pdf->writeHTMLCell($parameters['w'], $parameters['h'], $parameters['posx'], $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1, false, true, 'J', true);
 				$pdf->SetFont('', '');
