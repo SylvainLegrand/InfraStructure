@@ -34,7 +34,63 @@
 	*	Modèle cible (infrastructure) :
 	*		- special_code = 550090 + product_type = 9 + qty (titre = niveau ;
 	*		  sous-total = 100 - niveau ; texte libre = 50) ; saut de page info_bits = 8.
+	*		- documents clients : texte des titres et sous-totaux dans le libellé
+	*		  de la ligne (soustotal l'écrit dans la description).
+	*	Déclenchement : init() d'infrastructure, dès que infrastructure_hasSoustotalData()
+	*	trouve le module actif ou ses extrafields de lignes (un module désactivé les
+	*	conserve : ses titres et sous-totaux restent à reprendre).
 	************************************************/
+
+	/**
+	*	Indique s'il reste des données du module soustotal (Iouston) à reprendre : module actif dans une entité,
+	*	définitions d'extrafields soustotal_* ou colonne soustotal_type dans une table d'extrafields de lignes.
+	*	Désactiver soustotal ne supprime pas ses extrafields : ses titres et sous-totaux restent à reprendre même
+	*	quand le module a été désactivé avant l'activation d'infrastructure.
+	*
+	*	@param		DoliDB		$db			Handler BDD
+	*	@return		bool					true si la migration et le nettoyage soustotal doivent être joués
+	**/
+	function infrastructure_hasSoustotalData($db)
+	{
+		if (isModEnabled('soustotal')) {
+			return true;
+		}
+		// Module actif dans une autre entité, ou définitions d'extrafields laissées par le module
+		$TCountSql	= ['SELECT COUNT(rowid) as nb FROM '.MAIN_DB_PREFIX.'const WHERE name = \'MAIN_MODULE_SOUSTOTAL\'',
+						'SELECT COUNT(rowid) as nb FROM '.MAIN_DB_PREFIX.'extrafields WHERE name LIKE \'soustotal\\_%\''
+						];
+		foreach ($TCountSql as $sqlCount) {
+			$resCount	= $db->query($sqlCount);
+			if ($resCount) {
+				$obj	= $db->fetch_object($resCount);
+				$db->free($resCount);
+				if ($obj && (int) $obj->nb > 0) {
+					return true;
+				}
+			}
+		}
+		// Colonne soustotal_type encore présente dans une table d'extrafields de lignes
+		foreach (['propaldet', 'commandedet', 'facturedet', 'facturedet_rec', 'commande_fournisseurdet', 'facture_fourn_det'] as $elementtype) {
+			$efTable	= MAIN_DB_PREFIX.$elementtype.'_extrafields';
+			$resTbl		= $db->query('SHOW TABLES LIKE \''.$db->escape($efTable).'\'');
+			$hasTbl		= ($resTbl && $db->num_rows($resTbl) > 0);
+			if ($resTbl) {
+				$db->free($resTbl);
+			}
+			if (! $hasTbl) {
+				continue;
+			}
+			$resCol	= $db->query('SHOW COLUMNS FROM '.$efTable.' LIKE \'soustotal\\_type\'');
+			$hasCol	= ($resCol && $db->num_rows($resCol) > 0);
+			if ($resCol) {
+				$db->free($resCol);
+			}
+			if ($hasCol) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	*	Exécute la migration soustotal → infrastructure (une transaction globale).
@@ -82,6 +138,7 @@
 		// 1) Transformation des lignes de documents ************
 		$log('[1/3] Transformation des lignes de documents (soustotal_type → qty/special_code)');
 		$TElementType	= ['propaldet', 'commandedet', 'facturedet', 'facturedet_rec', 'commande_fournisseurdet', 'facture_fourn_det'];
+		$TLabelElementType	= ['propaldet', 'commandedet', 'facturedet', 'facturedet_rec'];	// Documents clients : infrastructure y lit le titre dans le libellé de la ligne
 		$predefTable	= MAIN_DB_PREFIX.'c_predefined_texts';
 		$hasPredef		= $tableExists($predefTable);
 
@@ -96,6 +153,55 @@
 			if (! $tableExists($efTable) || ! $columnExists($efTable, 'soustotal_type')) {
 				$log('    - table/colonne soustotal_type absente → ignoré');
 				continue;
+			}
+
+			// a0) Titres et sous-totaux des documents clients : soustotal écrit le texte dans la description et laisse le
+			//     libellé vide, alors qu'infrastructure lit le titre dans le libellé (formulaire d'édition, numérotation,
+			//     titre parent repris dans le sous-total). Le texte est reporté en clair dans le libellé quand il tient
+			//     dans la colonne (255 caractères), la description est alors vidée comme sur une ligne native ; un texte
+			//     plus long reste dans la description, affichée en repli quand le libellé est vide. Les documents
+			//     fournisseurs gardent le texte dans la description, format natif d'infrastructure pour ces documents.
+			//     Fait avant a) : la garde special_code <> 550090 limite le report aux lignes pas encore migrées.
+			if (in_array($elementtype, $TLabelElementType) && $columnExists($detTable, 'label')) {
+				$sqlL	= 'SELECT d.rowid, d.description FROM '.$detTable.' d'
+						.' JOIN '.$efTable.' e ON e.fk_object = d.rowid'
+						.' WHERE e.soustotal_type IN (1, 2) AND d.special_code <> 550090'
+						.'   AND (d.label IS NULL OR d.label = \'\')'
+						.'   AND d.description IS NOT NULL AND d.description <> \'\'';
+				$resL	= $db->query($sqlL);
+				if (! $resL) {
+					$msg				= 'Erreur lecture libellés '.$elementtype.' : '.$db->lasterror();
+					$result['errors'][]	= $msg;
+					$log('      '.$msg);
+					$error++;
+					break;
+				}
+				$TLabel		= [];
+				$nbLongText	= 0;
+				while ($obj = $db->fetch_object($resL)) {
+					$text	= trim(dol_string_nohtmltag($obj->description, 1));
+					if ($text !== '' && dol_strlen($text) <= 255) {
+						$TLabel[(int) $obj->rowid]	= $text;
+					} else {
+						$nbLongText++;
+					}
+				}
+				$db->free($resL);
+				foreach ($TLabel as $rowid => $text) {
+					$sqlLabel	= 'UPDATE '.$detTable.' SET label = \''.$db->escape($text).'\', description = \'\''
+								.' WHERE rowid = '.((int) $rowid);
+					if (! $db->query($sqlLabel)) {
+						$msg				= 'Erreur report libellé '.$elementtype.' ligne '.$rowid.' : '.$db->lasterror();
+						$result['errors'][]	= $msg;
+						$log('      '.$msg);
+						$error++;
+						break;
+					}
+				}
+				if ($error) {
+					break;
+				}
+				$log('    - '.$detTable.' : '.count($TLabel).' titre(s) ou sous-total(aux) avec texte reporté dans le libellé'.($nbLongText ? ', '.$nbLongText.' texte(s) trop long(s) laissé(s) dans la description' : ''));
 			}
 
 			// a) Encodage type + niveau dans qty + special_code/product_type
@@ -410,7 +516,7 @@
 		$error	= 0;
 
 		// Désactivation du module soustotal (remove standard Dolibarr)
-		$modSubFile	= DOL_DOCUMENT_ROOT.'/custom/soustotal/core/modules/modSousTotal.class.php';
+		$modSubFile	= dol_buildpath('/soustotal/core/modules/modSousTotal.class.php', 0);	// Chemin réel du module, quel que soit le répertoire custom de l'instance
 		if (file_exists($modSubFile)) {
 			include_once $modSubFile;
 			if (class_exists('modSousTotal')) {

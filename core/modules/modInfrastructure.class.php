@@ -203,11 +203,12 @@
 				// Désactive le sommaire rapide
 				dolibarr_set_const($db, 'INFRASTRUCTURE_DISABLE_SUMMARY', 1, 'chaine', 0, '', $conf->entity);
 			}
-			// Migration depuis le module soustotal (Iouston, modSousTotal) si présent et activé.
+			// Migration depuis le module soustotal (Iouston, modSousTotal) s'il est actif ou s'il a laissé ses extrafields
+			// de lignes (désactivé avant l'activation d'infrastructure, ses titres et sous-totaux restent à reprendre).
 			// Placée ici (après création des extrafields) car le report soustotal_hidden → hideblock
 			// écrit dans la colonne extrafield hideblock, qui doit exister au préalable.
-			if (isModEnabled('soustotal')) {
-				dol_include_once('/'.$this->name.'/core/lib/infrastructureMigrateSoustotal.lib.php');
+			dol_include_once('/'.$this->name.'/core/lib/infrastructureMigrateSoustotal.lib.php');
+			if (infrastructure_hasSoustotalData($db)) {
 				$logMessages		= [];
 				$logger				= function ($msg) use (&$logMessages) {
 					$logMessages[]	= $msg;
@@ -234,7 +235,7 @@
 					dol_syslog('modInfrastructure::init cleanup soustotal FAILED — messages : '.implode("\n", $logMessages), LOG_ERR);
 					return 0;
 				}
-				dol_syslog('modInfrastructure::init migration soustotal → infrastructure OK — messages : '.implode("\n", $logMessages));
+				dol_syslog('modInfrastructure::init migration soustotal → infrastructure OK — messages : '.implode("\n", $logMessages), LOG_NOTICE);
 			}
 			return $this->_init($sql, $options);
 		}

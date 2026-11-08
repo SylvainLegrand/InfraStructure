@@ -20,7 +20,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.19` (2026-11)
+- Dernière version locale : `21.8.20` (2026-11)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -135,7 +135,8 @@ Dans `core/modules/modInfrastructure.class.php` :
 	- `show_total_ht` / `show_reduc` / `infrastructure_show_qty` (sur sous-totaux)
 	- `hideblock` / `show_table_header_before` / `print_as_list` / `print_condensed` (sur titres)
 5. Désactivation conditionnelle du sommaire rapide si `oblyon` actif avec `MAIN_MENU_INVERT`
-6. Appel de `$this->_init()` standard
+6. **Migration depuis le module `soustotal` (Iouston) si `infrastructure_hasSoustotalData()` est vrai** (voir section dédiée), puis désactivation et nettoyage de soustotal
+7. Appel de `$this->_init()` standard
 
 ### Mise à jour sans réactivation (Lifecycle : `postUpdate()`)
 
@@ -178,18 +179,20 @@ Clés de traduction : `InfrastructureMigrateSubtotalFailed`, `InfrastructureMigr
 
 ### Migration depuis le module soustotal (Iouston — modSousTotal)
 
-En plus du Sous-Total d'ATM, le module remplace aussi le **Sous-Total de Iouston** (`modSousTotal`, numéro 446160), dont le **modèle de données est structurellement différent** (aucun renommage de constantes ne s'applique). À l'activation, si `isModEnabled('soustotal')` est vrai, une migration dédiée est déclenchée depuis `init()`.
+En plus du Sous-Total d'ATM, le module remplace aussi le **Sous-Total de Iouston** (`modSousTotal`, numéro 446160), dont le **modèle de données est structurellement différent** (aucun renommage de constantes ne s'applique). À l'activation, une migration dédiée est déclenchée depuis `init()` dès que `infrastructure_hasSoustotalData()` est vrai : module actif dans une entité (`MAIN_MODULE_SOUSTOTAL`), définitions d'extrafields `soustotal_*` ou colonne `soustotal_type` dans une table d'extrafields de lignes. Jusqu'en 21.8.19, le test était `isModEnabled('soustotal')` : un soustotal désactivé avant l'activation d'infrastructure (son `remove()` conserve ses extrafields) laissait ses titres et sous-totaux non repris.
 
 **Différence de modèle** (source Iouston vs cible infrastructure) :
 
 - Lignes spéciales identifiées **uniquement** par l'extrafield `options_soustotal_type` (1 = titre, 2 = sous-total, 3 = texte libre) et le niveau par `options_soustotal_level` — `special_code`/`qty`/`product_type` ne sont **pas fiables** (la migration ATM→soustotal les avait remis à 0). Cible : `special_code = 550090` + `product_type = 9` + `qty` (titre = niveau ; sous-total = 100 − niveau ; texte libre = 50).
-- Saut de page `options_soustotal_page_break` → `info_bits = 8`. Repli `options_soustotal_hidden` → extrafield `hideblock`.
+- Texte des titres et sous-totaux : soustotal l'écrit dans `description` et laisse `label` vide ; infrastructure lit le titre dans `label` sur les documents clients (formulaire d'édition, numérotation, titre parent concaténé au sous-total) et dans `description` sur les documents fournisseurs.
+- Saut de page `options_soustotal_page_break` → `info_bits = 8`. Repli `options_soustotal_hidden` → extrafield `hideblock` (dans les deux modules, état de repli à l'écran).
 - Dictionnaire `c_predefined_texts` (colonnes `rowid, code, label, description, rang, color, entity, active`) → `c_infrastructure_free_text` (`description` → `content`).
 - Constantes `SOUSTOTAL_*` (couleurs **par niveau** `SOUSTOTAL_NIVEAU_%d_{PDF|FICHE}_*`) → `INFRASTRUCTURE_*` (couleurs **globales**), référence **NIVEAU_1**, le sous-total reprenant la couleur du titre.
 
 **Fichiers impliqués** :
 
 - `core/lib/infrastructureMigrateSoustotal.lib.php` :
+	- `infrastructure_hasSoustotalData($db)` — détection des données soustotal à reprendre (déclencheur d'`init()`), retour `bool`
 	- `infrastructure_migrateFromSoustotal($db, $conf, $dryRun, $logger)` — migration atomique (transaction), retour `['success' => bool, 'errors' => string[]]`
 	- `infrastructure_cleanupSoustotal($db, $conf, $logger)` — désactivation + nettoyage, retour `1` / `0`
 - `script/migrate-from-soustotal.php` — wrapper CLI/web (admin requis, simulation par défaut)
@@ -200,7 +203,7 @@ En plus du Sous-Total d'ATM, le module remplace aussi le **Sous-Total de Iouston
 
 | Étape | Opération |
 |-------|-----------|
-| 1/3 — Lignes de documents | Sur les 6 tables `*det` : `UPDATE ... JOIN *_extrafields` — réencode `special_code`/`product_type`/`qty` selon `soustotal_type`+`soustotal_level` (garde d'idempotence `special_code <> 550090`), `info_bits = 8` si `soustotal_page_break`, `hideblock = 1` si `soustotal_hidden` (gardé par `SHOW COLUMNS`), backfill de la description depuis `c_predefined_texts` si vide |
+| 1/3 — Lignes de documents | Sur les 6 tables `*det` : `UPDATE ... JOIN *_extrafields` — réencode `special_code`/`product_type`/`qty` selon `soustotal_type`+`soustotal_level` (garde d'idempotence `special_code <> 550090`), `info_bits = 8` si `soustotal_page_break`, `hideblock = 1` si `soustotal_hidden` (gardé par `SHOW COLUMNS`), backfill de la description depuis `c_predefined_texts` si vide ; sur `propaldet`, `commandedet`, `facturedet` et `facturedet_rec`, texte des titres et sous-totaux reporté de la description vers le libellé (HTML retiré, description vidée) s'il tient en 255 caractères, plus long laissé dans la description (21.8.20) |
 | 2/3 — Dictionnaire | `c_predefined_texts` → `c_infrastructure_free_text` (`description` → `content`, dédoublonnage `label` + `entity`) |
 | 3/3 — Constantes | **Multi-entité** : découvre les entités possédant des `SOUSTOTAL_*`, puis pour chacune mappe récapitulatifs par document, couleurs et styles (B/U/I) du NIVEAU_1 → `INFRASTRUCTURE_*` (upsert SQL direct, pas de dépendance à `dolibarr_set_const`) |
 
