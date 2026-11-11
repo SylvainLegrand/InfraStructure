@@ -637,7 +637,10 @@
 		<change type='fix'>Titres et sous-totaux repris de Sous-Total (Iouston) sur les devis, commandes, factures et modèles de facture : le texte restait dans la description avec un libellé vide, alors qu'infrastructure lit le titre dans le libellé. Le formulaire d'édition d'un titre affichait un champ vide et celui d'un sous-total proposait « Sous-total » suivi du titre parent, enregistré tel quel à la validation. Le texte est désormais reporté en clair dans le libellé (description vidée) quand il tient en 255 caractères ; un texte plus long reste dans la description, affichée en repli. Les documents fournisseurs, où infrastructure garde le titre dans la description, ne changent pas.</change>
 		<change type='chg'>Désactivation de soustotal après migration : descripteur cherché par dol_buildpath() au lieu d'un chemin custom fixe ; compte rendu de la migration journalisé en LOG_NOTICE, pour rester visible quand SYSLOG_LEVEL vaut 5.</change>
 	</Version>
-	<InfraS Downloaded="20261108"/>
+	<Version Number="21.8.21" MonthVersion="2026-11">
+		<change type='fix'>Documents avec lignes en option (INFRASTRUCTURE_MANAGE_OL) : le hook updateTotalPrice, qui remplace alors update_price() pour exclure les options du total, écrivait les totaux du document en pleine précision (8 décimales) et se contentait d'additionner les lignes. Avec le cœur LTS revenu au calcul d'origine de Dolibarr (lignes et totaux au centime), il applique désormais ce calcul aux lignes hors options : règle de TVA choisie comme update_price() (mode demandé par l'appelant, mode mémorisé sur une facture fournisseur, constante MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND ou sa variante fournisseur), TVA par taux en mode 1 calculée en entiers et écart porté sur la ligne en cours, situations précédentes déduites, totaux écrits au centime, le tout dans une transaction. Sur l'ancien cœur LTS à 8 décimales (reconnu à sa méthode getRoundedTotals()), le comportement précédent est conservé.</change>
+	</Version>
+	<InfraS Downloaded="20261110"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>

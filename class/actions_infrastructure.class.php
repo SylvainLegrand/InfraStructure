@@ -604,6 +604,11 @@
 		*	Recalcule le total du document en excluant les lignes optionnelles (special_code = 3).
 		*	Remplace update_price() quand des lignes OL existent, pour que leurs montants
 		*	réels restent visibles en ligne sans entrer dans le total général.
+		*	Depuis 21.8.21, le calcul suit celui du cœur Dolibarr d'origine (lignes et totaux au centime) : règle de TVA choisie
+		*	comme update_price() (mode demandé par l'appelant, mode mémorisé sur une facture fournisseur par le cœur LTS, constante
+		*	MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND ou sa variante fournisseur), TVA par taux en mode 1 avec l'écart porté sur la ligne en
+		*	cours, situations précédentes déduites, totaux écrits au centime. Sur l'ancien cœur LTS à 8 décimales (reconnu à sa
+		*	méthode getRoundedTotals()), les totaux restent écrits en pleine précision, sans règle de TVA, comme avant.
 		*
 		*	@param	array			$parameters		Parameters (exclspec, roundingadjust, nodatabaseupdate, seller)
 		*	@param	CommonObject	$object			Document parent (Propal, Commande, Facture, ...)
@@ -613,6 +618,7 @@
 		**/
 		public function updateTotalPrice($parameters, &$object, &$action, HookManager $hookmanager)
 		{
+			global $conf;
 			if (!getDolGlobalString('INFRASTRUCTURE_MANAGE_OL')) return 0;
 			$TAllowed	= ['propal', 'commande', 'facture', 'supplier_proposal', 'order_supplier', 'facture_fourn', 'invoice_supplier'];
 			if (!in_array($object->element, $TAllowed) || empty($object->table_element_line) || empty($object->fk_element)) return 0;
@@ -633,39 +639,90 @@
 			}
 			$object->db->free($rescheck);
 
+			// Ancien cœur LTS à 8 décimales : totaux écrits en pleine précision, sans règle de TVA (comportement antérieur à 21.8.21)
+			$exacttotals	= method_exists($object, 'getRoundedTotals');
 			// Nom du champ TVA dans la table de lignes (facture_fourn utilise 'tva', les autres 'total_tva')
 			$fieldtva_line = in_array($object->element, ['facture_fourn', 'invoice_supplier']) ? 'tva' : 'total_tva';
+			// Règle de TVA du document, choisie comme CommonObject::update_price() : mode demandé par l'appelant, sinon mode mémorisé sur
+			// une facture fournisseur (extraparams 'roundingmode', cœur LTS), sinon constante de l'instance, sinon '0'
+			$roundingmode	= (isset($parameters['roundingadjust']) ? (string) $parameters['roundingadjust'] : 'auto');
+			if ($roundingmode == 'auto' && in_array($object->element, ['facture_fourn', 'invoice_supplier']) && is_array($object->extraparams) && isset($object->extraparams['roundingmode']) && in_array((string) $object->extraparams['roundingmode'], ['0', '1', 'none'], true)) {
+				$roundingmode	= (string) $object->extraparams['roundingmode'];
+			}
+			if ($roundingmode == 'auto') {
+				$constname		= 'MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND'.(in_array($object->element, ['supplier_proposal', 'order_supplier', 'facture_fourn', 'invoice_supplier']) ? '_SUPPLIER' : '');
+				$roundingmode	= (isset($conf->global->$constname) ? getDolGlobalString($constname) : '0');
+			}
+			$nbdectot		= getDolGlobalInt('MAIN_MAX_DECIMALS_TOT', 2);
 
-			// Sommer les totaux en excluant les lignes OL (special_code = 3)
-			$sql	= "SELECT";
-			$sql	.= " COALESCE(SUM(total_ht), 0) as total_ht,";
-			$sql	.= " COALESCE(SUM(".$object->db->sanitize($fieldtva_line)."), 0) as total_tva,";
-			$sql	.= " COALESCE(SUM(total_ttc), 0) as total_ttc,";
-			$sql	.= " COALESCE(SUM(total_localtax1), 0) as total_localtax1,";
-			$sql	.= " COALESCE(SUM(total_localtax2), 0) as total_localtax2,";
-			$sql	.= " COALESCE(SUM(multicurrency_total_ht), 0) as multicurrency_total_ht,";
-			$sql	.= " COALESCE(SUM(multicurrency_total_tva), 0) as multicurrency_total_tva,";
-			$sql	.= " COALESCE(SUM(multicurrency_total_ttc), 0) as multicurrency_total_ttc";
+			// Lignes hors options (special_code != 3), dans l'ordre du cœur
+			$sql	= "SELECT rowid, total_ht, ".$object->db->sanitize($fieldtva_line)." as total_tva, total_ttc, total_localtax1, total_localtax2, tva_tx as vatrate,";
+			$sql	.= " multicurrency_total_ht, multicurrency_total_tva, multicurrency_total_ttc";
 			$sql	.= " FROM ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
 			$sql	.= " WHERE ".$object->db->sanitize($object->fk_element)." = ".((int) $object->id);
 			$sql	.= " AND special_code != 3";
+			$sql	.= " ORDER BY rowid";
 			$resql	= $object->db->query($sql);
 			if (!$resql) {
 				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
 				return -1;	// Erreur SQL remontée à update_price()
 			}
-			$obj = $object->db->fetch_object($resql);
+			$totals		= ['total_ht' => 0, 'total_tva' => 0, 'total_ttc' => 0, 'total_localtax1' => 0, 'total_localtax2' => 0, 'multicurrency_total_ht' => 0, 'multicurrency_total_tva' => 0, 'multicurrency_total_ttc' => 0];
+			$htbyrate	= [];
+			$tvabyrate	= [];
+			$object->db->begin();
+			while ($obj = $object->db->fetch_object($resql)) {
+				foreach ($totals as $field => $value) {
+					$totals[$field]	+= (float) $obj->$field;
+				}
+				if ($exacttotals || $roundingmode != '1') {
+					continue;
+				}
+				// Mode 1 (TVA par taux) : la TVA cumulée du taux doit valoir l'arrondi de (HT cumulé du taux x taux), calculé en entiers comme
+				// le cœur LTS (centimes x taux, arrondi exact) ; l'écart est porté sur la ligne en cours, comme le fait update_price()
+				$rate				= (string) $obj->vatrate;
+				$htbyrate[$rate]	= (isset($htbyrate[$rate]) ? $htbyrate[$rate] : 0) + (float) $obj->total_ht;
+				$tvabyrate[$rate]	= (isset($tvabyrate[$rate]) ? $tvabyrate[$rate] : 0) + (float) $obj->total_tva;
+				$tmpvat				= (float) price2num($htbyrate[$rate] * (float) $rate / 100, 'MT', 1);
+				$ratescaled			= (float) $rate * 10000;
+				if ($nbdectot == 2 && abs($ratescaled - round($ratescaled)) < 0.000001) {
+					$tmpvatint	= ((int) round($htbyrate[$rate] * 100)) * ((int) round($ratescaled));
+					$tmpvat		= (float) price2num(($tmpvatint < 0 ? -1 : 1) * intdiv(abs($tmpvatint) + 500000, 1000000) / 100, 'MT', 1);
+				}
+				$diff	= (float) price2num($tvabyrate[$rate] - $tmpvat, 'MT', 1);
+				if ($diff) {
+					if (abs($diff) > (10 * pow(10, -1 * $nbdectot))) {	// Plus de 10 fois la précision d'arrondi : données incohérentes, comme le cœur
+						dol_syslog(__METHOD__.' rounding difference too high after line '.$obj->rowid.' (HT x VAT = '.$tmpvat.', lines = '.$tvabyrate[$rate].')', LOG_WARNING);
+						$object->error	= 'We found a rounding difference after line '.$obj->rowid.' between HT*VAT='.$tmpvat.' and total in database='.$tvabyrate[$rate].' but diff='.$diff.' is too high to be a rounding problem';
 			$object->db->free($resql);
-			if (!$obj) return 0;
+						$object->db->rollback();
+						return -1;
+					}
+					$sqlfix	= "UPDATE ".$object->db->prefix().$object->db->sanitize($object->table_element_line);
+					$sqlfix	.= " SET ".$object->db->sanitize($fieldtva_line)." = ".((float) price2num((float) $obj->total_tva - $diff, 'MT', 1));
+					$sqlfix	.= ", total_ttc = ".((float) price2num((float) $obj->total_ttc - $diff, 'MT', 1));
+					$sqlfix	.= " WHERE rowid = ".((int) $obj->rowid);
+					if (!$object->db->query($sqlfix)) {
+						dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
+						$object->db->free($resql);
+						$object->db->rollback();
+						return -1;
+					}
+					$tvabyrate[$rate]		= (float) price2num($tvabyrate[$rate] - $diff, 'MT', 1);
+					$totals['total_tva']	-= $diff;
+					$totals['total_ttc']	-= $diff;
+				}
+			}
+			$object->db->free($resql);
 
-			$object->total_ht					= (float) price2num($obj->total_ht);
-			$object->total_tva					= (float) price2num($obj->total_tva);
-			$object->total_ttc					= (float) price2num($obj->total_ttc);
-			$object->total_localtax1			= (float) price2num($obj->total_localtax1);
-			$object->total_localtax2			= (float) price2num($obj->total_localtax2);
-			$object->multicurrency_total_ht		= (float) price2num($obj->multicurrency_total_ht);
-			$object->multicurrency_total_tva	= (float) price2num($obj->multicurrency_total_tva);
-			$object->multicurrency_total_ttc	= (float) price2num($obj->multicurrency_total_ttc);
+			$object->total_ht					= (float) price2num($totals['total_ht']);
+			$object->total_tva					= (float) price2num($totals['total_tva']);
+			$object->total_ttc					= (float) price2num($totals['total_ttc']);
+			$object->total_localtax1			= (float) price2num($totals['total_localtax1']);
+			$object->total_localtax2			= (float) price2num($totals['total_localtax2']);
+			$object->multicurrency_total_ht		= (float) price2num($totals['multicurrency_total_ht']);
+			$object->multicurrency_total_tva	= (float) price2num($totals['multicurrency_total_tva']);
+			$object->multicurrency_total_ttc	= (float) price2num($totals['multicurrency_total_ttc']);
 
 			// Ajouter le timbre fiscal si présent (identique à update_price)
 			if (!empty($object->revenuestamp)) {
@@ -674,24 +731,41 @@
 				$object->multicurrency_total_ttc+= $object->revenuestamp * $multicurrency_tx;
 			}
 
-			// Mettre à jour les totaux du document en base, en pleine précision (échelle DOUBLE(24,8)) comme CommonObject::update_price()
-			// sur Dolibarr LTS by InfraS : un arrondi au centime ici rendrait le TTC exact « au centime » et fausserait les totaux
-			// comptables dérivés par getRoundedTotals() (fiche, PDF, reste à payer) d'un centime.
+			// Situations précédentes déduites des totaux d'une facture de situation (identique à update_price)
+			if (!$exacttotals && !empty($object->situation_cycle_ref) && !empty($object->situation_counter) && $object->situation_counter > 1 && method_exists($object, 'get_prev_sits')) {
+				if ($object->type != Facture::TYPE_CREDIT_NOTE && getDolGlobalInt('INVOICE_USE_SITUATION') != 2) {
+					foreach ($object->get_prev_sits() as $sit) {
+						$object->total_ht					-= $sit->total_ht;
+						$object->total_tva					-= $sit->total_tva;
+						$object->total_localtax1			-= $sit->total_localtax1;
+						$object->total_localtax2			-= $sit->total_localtax2;
+						$object->total_ttc					-= $sit->total_ttc;
+						$object->multicurrency_total_ht		-= $sit->multicurrency_total_ht;
+						$object->multicurrency_total_tva	-= $sit->multicurrency_total_tva;
+						$object->multicurrency_total_ttc	-= $sit->multicurrency_total_ttc;
+					}
+				}
+			}
+			// Totaux du document écrits au centime, comme CommonObject::update_price() du cœur d'origine ; en pleine précision (échelle
+			// DOUBLE(24,8)) sur l'ancien cœur LTS, où un arrondi ici fausserait d'un centime les totaux dérivés par getRoundedTotals()
+			$rounding	= ($exacttotals ? 8 : 'MT');
 			$sql	= "UPDATE ".$object->db->prefix().$object->db->sanitize($object->table_element)." SET";
-			$sql	.= " total_ht = ".((float) price2num($object->total_ht, 8, 1)).",";
-			$sql	.= " total_tva = ".((float) price2num($object->total_tva, 8, 1)).",";
-			$sql	.= " localtax1 = ".((float) price2num($object->total_localtax1, 8, 1)).",";
-			$sql	.= " localtax2 = ".((float) price2num($object->total_localtax2, 8, 1)).",";
-			$sql	.= " total_ttc = ".((float) price2num($object->total_ttc, 8, 1));
-			$sql	.= ", multicurrency_total_ht = ".((float) price2num($object->multicurrency_total_ht, 8, 1));
-			$sql	.= ", multicurrency_total_tva = ".((float) price2num($object->multicurrency_total_tva, 8, 1));
-			$sql	.= ", multicurrency_total_ttc = ".((float) price2num($object->multicurrency_total_ttc, 8, 1));
+			$sql	.= " total_ht = ".((float) price2num($object->total_ht, $rounding, 1)).",";
+			$sql	.= " total_tva = ".((float) price2num($object->total_tva, $rounding, 1)).",";
+			$sql	.= " localtax1 = ".((float) price2num($object->total_localtax1, $rounding, 1)).",";
+			$sql	.= " localtax2 = ".((float) price2num($object->total_localtax2, $rounding, 1)).",";
+			$sql	.= " total_ttc = ".((float) price2num($object->total_ttc, $rounding, 1));
+			$sql	.= ", multicurrency_total_ht = ".((float) price2num($object->multicurrency_total_ht, $rounding, 1));
+			$sql	.= ", multicurrency_total_tva = ".((float) price2num($object->multicurrency_total_tva, $rounding, 1));
+			$sql	.= ", multicurrency_total_ttc = ".((float) price2num($object->multicurrency_total_ttc, $rounding, 1));
 			$sql	.= " WHERE rowid = ".((int) $object->id);
 			$resql	= $object->db->query($sql);
 			if (!$resql) {
 				dol_syslog(__METHOD__.' '.$object->db->lasterror(), LOG_ERR);
+				$object->db->rollback();
 				return -1;	// Erreur SQL remontée à update_price()
 			}
+			$object->db->commit();
 
 			return 1; // update_price() standard ignorée
 		}
