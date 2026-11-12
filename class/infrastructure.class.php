@@ -902,39 +902,40 @@
 			if (!empty($GLOBALS['object']->id) && in_array($GLOBALS['object']->element, ['propal', 'commande', 'facture'])) {
 				$current_object = $GLOBALS['object'];
 			} else {
-				if ($origin_line->element == 'propaldet') {
-					$current_object = new Propal($db);
-					$current_object->fetch($origin_line->fk_propal);
-				} elseif ($origin_line->element == 'commandedet') {
-					$current_object = new Commande($db);
-					$current_object->fetch($origin_line->fk_commande);
-				} elseif ($origin_line->element == 'facturedet') {
-					$current_object = new Facture($db);
-					$current_object->fetch($origin_line->fk_facture);
-				} else {
+				$current_object = self::fetchParentObject($origin_line);
+				if (!is_object($current_object)) {
 					return $TTitle;
 				}
 			}
 			// Récupération de la position de la ligne
-			$i = 0;
-			foreach ($current_object->lines as &$line) {
-				if ($origin_line->id == $line->id) {
-					break;
-				} else {
-					$i++;
+			$i = self::getLineIndex($current_object->lines, $origin_line);
+			// InfraS change : une ligne qui vient d'être insérée (trigger LINE*_INSERT) n'est pas encore dans le document en mémoire ;
+			// on relit le document en base au lieu de remonter depuis la dernière ligne (la ligne pouvait hériter d'un titre qui n'est pas le sien)
+			if ($i < 0 && !empty($origin_line->id)) {
+				$current_object = self::fetchParentObject($origin_line);
+				if (!is_object($current_object)) {
+					return $TTitle;
 				}
+				$i = self::getLineIndex($current_object->lines, $origin_line);
+				if ($i < 0) {
+					return $TTitle;
+				}
+			} elseif ($i < 0) {
+				$i = count($current_object->lines);	// Ligne sans id (pas encore enregistrée) : considérée en fin de document
 			}
 			$i--; // Skip la ligne d'origine
 			// Si elle n'est pas en 1ère position, alors on cherche des titres au dessus
 			if ($i >= 0) {
-				$next_title_lvl_to_skip = 0;
+				// InfraS change : pile des niveaux de sous-totaux rencontrés en remontant. Un seul niveau mémorisé ne suffisait pas avec des blocs
+				// imbriqués : le sous-total de niveau 2 écrasait le niveau 1 en attente, et le titre de niveau 1, déjà fermé, devenait le parent
+				$TClosedLevels = [];
 				for ($y = $i; $y >= 0; $y--) {
-					// Si je tombe sur un sous-total, je récupère son niveau pour savoir quel est le prochain niveau de titre que doit ignorer
+					// Si je tombe sur un sous-total, son bloc est fermé : le titre de même niveau rencontré plus haut est à ignorer
 					if (self::isTotal($current_object->lines[$y])) {
-						$next_title_lvl_to_skip = self::getNiveau($current_object->lines[$y]);
+						$TClosedLevels[] = self::getNiveau($current_object->lines[$y]);
 					} elseif (self::isTitle($current_object->lines[$y])) {
-						if ($current_object->lines[$y]->qty == $next_title_lvl_to_skip) {
-							$next_title_lvl_to_skip = 0;
+						if (!empty($TClosedLevels) && $current_object->lines[$y]->qty == end($TClosedLevels)) {
+							array_pop($TClosedLevels);
 							continue;
 						} else {
 							if (empty($current_object->lines[$y]->array_options) && !empty($current_object->lines[$y]->id)) $current_object->lines[$y]->fetch_optionals();
@@ -949,6 +950,49 @@
 				$TTitle = array_reverse($TTitle, true);
 			}
 			return $TTitle;
+		}
+
+		/**
+		* Position d'une ligne dans le tableau des lignes d'un document
+		*
+		* @param	array				$lines			Document lines
+		* @param	CommonObjectLine	$origin_line	Line to find
+		* @return	int									Index of the line, -1 if not found
+		*/
+		private static function getLineIndex($lines, $origin_line)
+		{
+			if (empty($origin_line->id) || !is_array($lines)) {
+				return -1;
+			}
+			foreach (array_values($lines) as $index => $line) {
+				if ($line->id == $origin_line->id) {
+					return $index;
+				}
+			}
+			return -1;
+		}
+
+		/**
+		* Relit en base le document parent d'une ligne (devis, commande ou facture)
+		*
+		* @param	CommonObjectLine	$origin_line	Document line
+		* @return	Propal|Commande|Facture|null		Parent document with its lines, null if the line type is not handled or the fetch failed
+		*/
+		private static function fetchParentObject($origin_line)
+		{
+			global $db;
+
+			$TParent = ['propaldet' => ['Propal', 'fk_propal'], 'commandedet' => ['Commande', 'fk_commande'], 'facturedet' => ['Facture', 'fk_facture']];
+			if (!isset($TParent[$origin_line->element])) {
+				return null;
+			}
+			list($class, $fk) = $TParent[$origin_line->element];
+			$parent = new $class($db);
+			if ($parent->fetch($origin_line->{$fk}) <= 0) {
+				dol_syslog(__METHOD__.' cannot fetch '.$class.' id='.$origin_line->{$fk}, LOG_ERR);
+				return null;
+			}
+			return $parent;
 		}
 
 		/**
