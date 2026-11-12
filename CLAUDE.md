@@ -257,6 +257,7 @@ Pour un sous-total à la position N, on remonte dans les lignes précédentes ju
 Le calcul exclut automatiquement :
 
 - les lignes spéciales du module (titres, sous-totaux, textes libres) — détection via `TInfrastructure::isModInfrastructureLine()`,
+- les lignes masquées par `hideblock = 1` sur le titre parent,
 - les lignes de remise du module `infrasdiscount` (via leur `special_code`).
 
 Implémentation principale : `TInfrastructure::getTotalBlockFromTitle(&$object, &$line)`.
@@ -298,7 +299,7 @@ La classe `ActionsInfrastructure` (`class/actions_infrastructure.class.php`) exp
 | `getlinetotalremise` | `pdfgeneration` | Remplacement du calcul de total de remise par ligne |
 | `afterCreationOfRecurringInvoice` | `invoicereccard` | Préserve les structures à la création depuis modèle récurrent |
 | `printCommonFooter` | tous contextes | Injection de scripts communs en pied de page |
-| `updateTotalPrice` | cartes de documents, `api` (21.8.9+) | Si `INFRASTRUCTURE_MANAGE_OL` et au moins une ligne OL (`special_code = 3`) : remplace `update_price()` pour exclure ces lignes des totaux du document. Depuis 21.8.11 (contrôle, somme ; PR Kytom #120) et 21.8.12 (`UPDATE`), une erreur SQL est journalisée et renvoie −1, propagé par `update_price()` : avant, le retour 0 laissait le cœur recalculer options comprises sans trace. `update_price()` du cœur n'exclut que le type 9 : sans ce hook, les options sont comptées. `api/index.php` n'initialise que le contexte `api` : avant 21.8.9 toute ligne écrite par l'API REST recalculait le document options comprises (incident Kytom, devis à 57 228,33 HT au lieu de 52 573,33 ; reproduit sur fitantanana : 3 186,58 au lieu de 186,58). `HookManager` n'exécute pas deux fois un module déclaré sur plusieurs contextes ; sous `api`, seuls `updateTotalPrice`, `changeRoundingMode` (retourne 0) et `createFrom` (réservé à `ordersuppliercard`) sont appelés |
+| `updateTotalPrice` | cartes de documents, `api` (21.8.9+) | Si `INFRASTRUCTURE_MANAGE_OL` et au moins une ligne OL (`special_code = 3`) : remplace `update_price()` pour exclure ces lignes des totaux du document. Depuis 21.8.11 (contrôle, somme ; PR Kytom #120) et 21.8.12 (`UPDATE`), une erreur SQL est journalisée et renvoie −1, propagé par `update_price()` : avant, le retour 0 laissait le cœur recalculer options comprises sans trace. `update_price()` du cœur n'exclut que le type 9 : sans ce hook, les options sont comptées. `api/index.php` n'initialise que le contexte `api` : avant 21.8.9 toute ligne écrite par l'API REST recalculait le document options comprises (incident Kytom, devis à 57 228,33 HT au lieu de 52 573,33 ; reproduit sur fitantanana : 3 186,58 au lieu de 186,58). `HookManager` n'exécute pas deux fois un module déclaré sur plusieurs contextes ; sous `api`, seuls `updateTotalPrice`, `changeRoundingMode` (retourne 0) et `createFrom` (réservé à `ordersuppliercard`) sont appelés Depuis 21.8.21 (cœur LTS revenu au calcul d'origine de Dolibarr), le hook applique ce calcul aux lignes hors options : règle de TVA choisie comme `update_price()` (`roundingadjust` de l'appelant, `extraparams['roundingmode']` d'une facture fournisseur, constante `MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND[_SUPPLIER]`), TVA par taux en mode 1 calculée en entiers avec l'écart porté sur la ligne en cours, situations précédentes déduites, totaux écrits au centime, en transaction ; sur l'ancien cœur à 8 décimales (`getRoundedTotals()` présent) l'écriture en pleine précision est conservée |
 | `displayMarginInfos` | cartes de documents | Si `INFRASTRUCTURE_MANAGE_OL` et au moins une ligne OL : recalcule `$parameters['marginInfo']` (passé par référence par `FormMargin::displayMarginInfos()`) via le calcul natif `getMarginInfosArray()` sur une copie du document privée des lignes OL, pour aligner le tableau des marges sur le Montant HT (21.8.2+) |
 
 ### Flux des hooks (Hook workflow)
@@ -333,7 +334,7 @@ Trois modes contrôlés par ExtraFields portés par le titre :
 | **Liste** | `print_as_list = 1` | Contenu rendu sous forme de liste à puces |
 | **Condensé** | `print_condensed = 1` | Affichage compact (agrégation selon options) |
 
-`hideblock = 1` n’agit pas sur le PDF : c’est le repli du bloc à l’écran. Pour un PDF sans détail, cocher « Masquer les lignes » (`hideInnerLines`) à la génération.
+Option complémentaire : `hideblock = 1` masque le détail dans le PDF (seul le titre et le sous-total restent visibles).
 
 ## Trigger et comportement (Trigger behavior)
 
@@ -393,7 +394,7 @@ Métadonnées des blocs stockées via ExtraFields sur les lignes de documents :
 | `show_total_ht` | 6 tables de lignes | Sous-totaux : afficher le Total HT |
 | `show_reduc` | idem | Sous-totaux : afficher la réduction totale |
 | `infrastructure_show_qty` | idem | Sous-totaux : afficher la quantité totale |
-| `hideblock` | propal/commande/facture + fournisseurs (sauf supplier_proposaldet) | Titres : bloc replié à l’écran (dossier fermé) ; sans effet sur les totaux ni sur le PDF |
+| `hideblock` | propal/commande/facture + fournisseurs (sauf supplier_proposaldet) | Titres : masquer les lignes du bloc |
 | `show_table_header_before` | 6 tables | Titres : répéter l'en-tête avant ce titre |
 | `print_as_list` | 6 tables | Titres : impression en liste à puces |
 | `print_condensed` | 6 tables | Titres : impression condensée |
@@ -567,7 +568,8 @@ POUR un sous-total à la position N :
      OU au premier sous-total de niveau ≤ niveau(sous-total)
   3. Sommer les lignes standards entre ces bornes
   4. Exclure les lignes spéciales infrastructure (isModInfrastructureLine)
-  5. Exclure les lignes de remise (modules tiers : infrasdiscount, etc.)
+  5. Exclure les lignes masquées (hideblock sur le titre parent)
+  6. Exclure les lignes de remise (modules tiers : infrasdiscount, etc.)
 ```
 
 Exemple :
@@ -587,7 +589,7 @@ Ligne 7 : Sous-total « Services » (qty=91) → 150,00 €
 - **`show_total_ht = 1`** : affiche le montant HT sur la ligne sous-total
 - **`show_reduc = 1`** : cumule et affiche le total des réductions du bloc
 - **`infrastructure_show_qty = 1`** : cumule et affiche la quantité totale du bloc
-- **`hideblock = 1`** (titre) : replie le bloc à l’écran seulement (`infrastructureline_view.tpl.php`, `infrastructure_getHtmlData`, enregistré par `script/interface.php`). Les totaux (`getTotalBlockFromTitle`) et les PDF InfraSPlus l’ignorent. Le PDF sans détail passe par la case « Masquer les lignes » (`hideInnerLines`) de la génération, qui applique aussi `INFRASTRUCTURE_PDF_TITLE_STYLE_IF_HIDDEN_LINES` au titre
+- **`hideblock = 1`** (titre) : masque les lignes du bloc, change le style du titre (`INFRASTRUCTURE_PDF_TITLE_STYLE_IF_HIDDEN_LINES`), les lignes cachées restent comptabilisées dans les sous-totaux suivants (selon paramétrage)
 - **`show_table_header_before = 1`** (titre) : répète l'en-tête du tableau juste avant ce titre dans le PDF
 - **`print_as_list = 1`** (titre) : rendu en liste à puces
 - **`print_condensed = 1`** (titre) : rendu condensé ; calcul TVA adapté si `INFRASTRUCTURE_LIMIT_TVA_ON_CONDENSED_BLOCS` activé
@@ -797,7 +799,7 @@ Les modèles PDF InfraSPlus (propal, facture, commande, etc.) intègrent nativem
 - reconnaissance des lignes spéciales (`special_code = 550090`, `product_type = 9`),
 - rendu personnalisé des titres selon `INFRASTRUCTURE_TITLE_STYLE` / `_PDF_TITLE_STYLE`,
 - affichage des sous-totaux avec répartition TVA,
-- support des modes `print_as_list`, `print_condensed` et de la case « Masquer les lignes » (`hideInnerLines`) ; `hideblock` (repli à l’écran) n’y est pas lu,
+- support des modes `hideblock`, `print_as_list`, `print_condensed`,
 - `show_table_header_before` pour répéter l'en-tête de tableau,
 - page récap optionnelle (`INFRASTRUCTURE_*_ADD_RECAP`).
 
