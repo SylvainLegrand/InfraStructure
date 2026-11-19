@@ -369,7 +369,7 @@
 		/**
 		* @param	CommonObject     $object		Document on which we want to get total block for title line
 		* @param	CommonObjectLine $line			Title line for which we want to get total block
-		* @param	boolean          $breakOnTitle	Whether to stop calculation when we find another title of same or higher level (example : I am on a title level 2 and I find a title level 1 or 2 then I stop calculation for my title block, if false I continue to calculate until I find a title of lower level than my initial title level)
+		* @param	boolean          $breakOnTitle	Unused since 21.8.22, kept for compatibility : the block always ends at the first title or subtotal of the same or a lower level
 		* @return	array
 		*/
 		public static function getTotalBlockFromTitle(&$object, &$line, $breakOnTitle = false)
@@ -392,8 +392,8 @@
 					continue;
 				} elseif (self::isTotal($l) && self::getNiveau($l) <= self::getNiveau($line)) {
 					break;
-				} elseif ($breakOnTitle && self::isTitle($l) && self::getNiveau($l) <= self::getNiveau($line)) {
-					break;
+				} elseif (self::isTitle($l) && self::getNiveau($l) <= self::getNiveau($line)) {
+					break;	// InfraS change : un titre de niveau égal ou inférieur ferme toujours le bloc (même règle que getParentTitleOfLine()) ; avant, seulement avec $breakOnTitle
 				}
 				if (!empty($l->array_options['options_infrastructure_ol'])) {
 					$tabprice				= calcul_price_total($l->qty, $l->subprice, $l->remise_percent, $l->tva_tx, $l->localtax1_tx, $l->localtax2_tx, 0, 'HT', $l->info_bits, $l->product_type);
@@ -507,66 +507,78 @@
 		}
 
 		/**
+		* Titre parent le plus proche de la ligne de rang $rang, même règle de parenté que getAllTitleFromLine() et que le cache PDF (voir getParentTitlesFromAbove()).
+		* Sert aussi au montant d'un sous-total : appelé avec le niveau du sous-total, il renvoie le titre qui ouvre le bloc sommé
+		*
 		* @param	FactureLigne|PropaleLigne|OrderLine $object
-		* @param	int									$rang  rank of the line in the object; The first line has rank = 1, not 0.
-		* @param 	int									$lvl
+		* @param	int									$rang	rank of the line in the object; The first line has rank = 1, not 0.
+		* @param 	int									$lvl	if > 0, deepest level of the title searched (level of the subtotal whose block is wanted) ; 0 = deduced from the line of rank $rang
 		* @return	bool|FactureLigne|PropaleLigne|OrderLine
 		*/
 		public static function getParentTitleOfLine(&$object, $rang, $lvl = 0)
 		{
-			if ($rang <= 0) {
+			if ($rang <= 0 || empty($object->lines) || !is_array($object->lines)) {
 				return false;
 			}
-			$skip_title		= 0;
-			$TLineReverse	= array_reverse($object->lines);
-			foreach ($TLineReverse as $line) {
-				if ($line->rang >= $rang || ($lvl > 0 && self::getNiveau($line) > $lvl)) {
-					continue; // Tout ce qui ce trouve en dessous j'ignore, nous voulons uniquement ce qui ce trouve au dessus
-				}
-				if (self::isTitle($line)) {
-					if ($skip_title) {
-						$skip_title--;
-						continue;
-					}
-					//@INFO J'ai ma ligne titre qui contient ma ligne, par contre je check pas s'il y a un sous-total
-					return $line;
-				} elseif (self::isTotal($line)) {
-					// Il s'agit d'un sous-total, ça veut dire que le prochain titre théoriquement doit être ignorer (je travail avec un incrément au cas ou je croise plusieurs sous-totaux)
-					$skip_title++;
+			// InfraS change : l'ancien comptage ignorait le niveau des sous-totaux, chaque sous-total annulant le premier titre rencontré, quel qu'il soit
+			// (sous-titre sans sous-total propre laissé ouvert, sous-titres frères vus comme imbriqués)
+			$origin_line	= null;
+			$TLineAbove		= [];
+			foreach (array_reverse($object->lines) as $line) {
+				if ($line->rang == $rang) {
+					$origin_line	= $line;
+				} elseif ($line->rang < $rang) {
+					$TLineAbove[]	= $line;
 				}
 			}
-			return false;
+			$level_max	= $lvl > 0 ? $lvl + 1 : self::getParentLevelMax($origin_line);
+			$TTitle		= self::getParentTitlesFromAbove($TLineAbove, $level_max, true);
+			return !empty($TTitle) ? $TTitle[0] : false;
 		}
 
 		/**
-		* Donne la ligne sous-total associée au titre
+		* Donne la ligne sous-total qui ferme le bloc du titre de rang $rang : premier sous-total de niveau égal ou inférieur placé sous le titre.
+		* Même règle que getParentTitleOfLine() lue dans l'autre sens : un titre de niveau égal ou inférieur rencontré avant ferme le bloc sans sous-total
 		*
 		* @param	FactureLigne|PropaleLigne|OrderLine $object
-		* @param	int									$rang  rank of the line in the object; The first line has rank = 1, not 0.
-		* @param	int									$lvl
+		* @param	int									$rang	rank of the title line in the object; The first line has rank = 1, not 0.
+		* @param	int									$lvl	if > 0, level of the block ; 0 = level of the title of rank $rang (for another line, level of its parent title)
 		* @return	bool|FactureLigne|PropaleLigne|OrderLine
 		*/
 		public static function getSubLineOfTitle(&$object, $rang, $lvl = 0)
 		{
-			if ($rang <= 0) {
+			if ($rang <= 0 || empty($object->lines) || !is_array($object->lines)) {
 				return false;
 			}
-			$skip_title	= 0;
-			if (!empty($object->lines)) {
+			// InfraS change : l'ancien comptage ignorait les niveaux, chaque titre rencontré annulant le sous-total suivant, quel qu'il soit
+			// (titre 1, titre 2, lignes, sous-total 1 : aucun sous-total trouvé pour le titre 1)
+			$level	= (int) $lvl;
+			if ($level <= 0) {
+				$level	= 9;
 				foreach ($object->lines as $line) {
-					if ($line->rang <= $rang || ($lvl > 0 && self::getNiveau($line) < $lvl)) continue;
-					if (self::isTitle($line)) {
-						$skip_title++;
-					} elseif (self::isTotal($line)) {
-						if ($skip_title) {
-							$skip_title--;
-							continue;
+					if ($line->rang == $rang) {
+						if (self::isTitle($line)) {
+							$level	= (int) $line->qty;
+						} else {
+							$parent	= self::getParentTitleOfLine($object, $rang);
+							$level	= !empty($parent) ? (int) $parent->qty : 9;
 						}
-						return $line;
+						break;
 					}
 				}
 			}
-
+			foreach ($object->lines as $line) {
+				if ($line->rang <= $rang) {
+					continue;
+				}
+				if (self::isTotal($line)) {
+					if (self::getNiveau($line) <= $level) {
+						return $line;
+					}
+				} elseif (self::isTitle($line) && $line->qty <= $level) {
+					return false;	// un nouveau bloc commence : le titre n'a pas de sous-total
+				}
+			}
 			return false;
 		}
 
@@ -774,8 +786,10 @@
 							$TLine[]	= $line;
 						}
 						continue;
-					} elseif ($add_line && static::isModInfrastructureLine($line) && static::getNiveau($line) == $level) { // Si on tombe sur un sous-total, il faut que ce soit un du même niveau que le titre.
-						if (self::isTotal($line)) {
+					} elseif ($add_line && ((self::isTitle($line) && $line->qty <= $level) || (self::isTotal($line) && self::getNiveau($line) <= $level))) {
+						// InfraS change : le bloc s'arrête au premier titre ou sous-total de niveau égal ou inférieur (même règle que getParentTitleOfLine() et getSubLineOfTitle()).
+						// Avant, seul un niveau strictement égal l'arrêtait : un sous-titre fermé par le sous-total du niveau supérieur débordait sur les blocs suivants
+						if (self::isTotal($line) && self::getNiveau($line) == $level) {	// Seul le sous-total du même niveau fait partie du bloc ; celui d'un niveau inférieur appartient au bloc englobant
 							if ($withBlockLine) {
 								$TLine[] = $line;
 							}
@@ -902,53 +916,137 @@
 			if (!empty($GLOBALS['object']->id) && in_array($GLOBALS['object']->element, ['propal', 'commande', 'facture'])) {
 				$current_object = $GLOBALS['object'];
 			} else {
-				if ($origin_line->element == 'propaldet') {
-					$current_object = new Propal($db);
-					$current_object->fetch($origin_line->fk_propal);
-				} elseif ($origin_line->element == 'commandedet') {
-					$current_object = new Commande($db);
-					$current_object->fetch($origin_line->fk_commande);
-				} elseif ($origin_line->element == 'facturedet') {
-					$current_object = new Facture($db);
-					$current_object->fetch($origin_line->fk_facture);
-				} else {
+				$current_object = self::fetchParentObject($origin_line);
+				if (!is_object($current_object)) {
 					return $TTitle;
 				}
 			}
 			// Récupération de la position de la ligne
-			$i = 0;
-			foreach ($current_object->lines as &$line) {
-				if ($origin_line->id == $line->id) {
-					break;
-				} else {
-					$i++;
+			$i = self::getLineIndex($current_object->lines, $origin_line);
+			// InfraS change : une ligne qui vient d'être insérée (trigger LINE*_INSERT) n'est pas encore dans le document en mémoire ;
+			// on relit le document en base au lieu de remonter depuis la dernière ligne (la ligne pouvait hériter d'un titre qui n'est pas le sien)
+			if ($i < 0 && !empty($origin_line->id)) {
+				$current_object = self::fetchParentObject($origin_line);
+				if (!is_object($current_object)) {
+					return $TTitle;
 				}
+				$i = self::getLineIndex($current_object->lines, $origin_line);
+				if ($i < 0) {
+					return $TTitle;
+				}
+			} elseif ($i < 0) {
+				$i = count($current_object->lines);	// Ligne sans id (pas encore enregistrée) : considérée en fin de document
 			}
 			$i--; // Skip la ligne d'origine
 			// Si elle n'est pas en 1ère position, alors on cherche des titres au dessus
 			if ($i >= 0) {
-				$next_title_lvl_to_skip = 0;
-				for ($y = $i; $y >= 0; $y--) {
-					// Si je tombe sur un sous-total, je récupère son niveau pour savoir quel est le prochain niveau de titre que doit ignorer
-					if (self::isTotal($current_object->lines[$y])) {
-						$next_title_lvl_to_skip = self::getNiveau($current_object->lines[$y]);
-					} elseif (self::isTitle($current_object->lines[$y])) {
-						if ($current_object->lines[$y]->qty == $next_title_lvl_to_skip) {
-							$next_title_lvl_to_skip = 0;
-							continue;
-						} else {
-							if (empty($current_object->lines[$y]->array_options) && !empty($current_object->lines[$y]->id)) $current_object->lines[$y]->fetch_optionals();
-							$TTitle[$current_object->lines[$y]->id] = $current_object->lines[$y];
-
-							if ($current_object->lines[$y]->qty == 1) break;
-						}
-					}
+				// InfraS change : règle de parenté commune à getParentTitleOfLine() et au cache PDF, voir getParentTitlesFromAbove()
+				$TLineAbove = array_reverse(array_slice(array_values($current_object->lines), 0, $i + 1));
+				foreach (self::getParentTitlesFromAbove($TLineAbove, self::getParentLevelMax($origin_line)) as $title_line) {
+					if (empty($title_line->array_options) && !empty($title_line->id)) $title_line->fetch_optionals();
+					$TTitle[$title_line->id] = $title_line;
 				}
 			}
 			if ($reverse) {
 				$TTitle = array_reverse($TTitle, true);
 			}
 			return $TTitle;
+		}
+
+		/**
+		* Titres parents d'une ligne, du plus proche au plus lointain, à partir des lignes placées au-dessus d'elle
+		*
+		* Règle de parenté (celle de titleHasTotalLine() en mode libre et de getTotalBlockFromTitle()) : en remontant, un titre n'est parent que si
+		* son niveau est strictement inférieur au seuil courant. Le seuil descend au niveau de chaque parent retenu (un titre de niveau égal ou supérieur
+		* rencontré plus haut est un bloc frère, fermé par le titre plus bas) et au niveau de chaque sous-total rencontré (un sous-total de niveau N ferme
+		* tous les blocs de niveau N et plus ouverts au-dessus de lui). infrastructure_warmPDFInfrastructureCache() applique la même règle en descendant
+		*
+		* @param	array	$TLineAbove		Lines above the origin line, the closest first
+		* @param	int		$level_max		Starting threshold, see getParentLevelMax()
+		* @param	bool	$first_only		Stop at the closest parent title
+		* @return	array					Parent title lines, the closest first
+		*/
+		private static function getParentTitlesFromAbove($TLineAbove, $level_max = 10, $first_only = false)
+		{
+			$TTitle = [];
+			foreach ($TLineAbove as $line) {
+				if ($level_max <= 1) {
+					break;
+				}
+				if (self::isTotal($line)) {
+					$level_max = min($level_max, self::getNiveau($line));
+				} elseif (self::isTitle($line) && $line->qty < $level_max) {
+					$TTitle[]	= $line;
+					$level_max	= (int) $line->qty;
+					if ($first_only) {
+						break;
+					}
+				}
+			}
+			return $TTitle;
+		}
+
+		/**
+		* Seuil de départ de la recherche des titres parents selon la ligne d'origine
+		*
+		* @param	CommonObjectLine|null	$line	Origin line
+		* @return	int								Level of a title (its parents have a strictly lower level), level + 1 of a subtotal (it belongs to the block of its own level, or to a lower one), 10 for any other line
+		*/
+		private static function getParentLevelMax($line)
+		{
+			if (!is_object($line)) {
+				return 10;
+			}
+			if (self::isTitle($line)) {
+				return (int) $line->qty;
+			}
+			if (self::isTotal($line)) {
+				return self::getNiveau($line) + 1;
+			}
+			return 10;
+		}
+
+		/**
+		* Position d'une ligne dans le tableau des lignes d'un document
+		*
+		* @param	array				$lines			Document lines
+		* @param	CommonObjectLine	$origin_line	Line to find
+		* @return	int									Index of the line, -1 if not found
+		*/
+		private static function getLineIndex($lines, $origin_line)
+		{
+			if (empty($origin_line->id) || !is_array($lines)) {
+				return -1;
+			}
+			foreach (array_values($lines) as $index => $line) {
+				if ($line->id == $origin_line->id) {
+					return $index;
+				}
+			}
+			return -1;
+		}
+
+		/**
+		* Relit en base le document parent d'une ligne (devis, commande ou facture)
+		*
+		* @param	CommonObjectLine	$origin_line	Document line
+		* @return	Propal|Commande|Facture|null		Parent document with its lines, null if the line type is not handled or the fetch failed
+		*/
+		private static function fetchParentObject($origin_line)
+		{
+			global $db;
+
+			$TParent = ['propaldet' => ['Propal', 'fk_propal'], 'commandedet' => ['Commande', 'fk_commande'], 'facturedet' => ['Facture', 'fk_facture']];
+			if (!isset($TParent[$origin_line->element])) {
+				return null;
+			}
+			list($class, $fk) = $TParent[$origin_line->element];
+			$parent = new $class($db);
+			if ($parent->fetch($origin_line->{$fk}) <= 0) {
+				dol_syslog(__METHOD__.' cannot fetch '.$class.' id='.$origin_line->{$fk}, LOG_ERR);
+				return null;
+			}
+			return $parent;
 		}
 
 		/**
@@ -1519,8 +1617,8 @@
 					if ($line->rang <= $start_rang) {
 						continue;
 					}
-					// Si on rencontre un sous-total du même niveau que le titre initial, on marque la fin du bloc.
-					if (TInfrastructure::isTotal($line) && TInfrastructure::getNiveau($line) == $niveau) {
+					// InfraS change : le premier sous-total de niveau égal ou inférieur à celui du titre ferme le bloc (même règle que getSubLineOfTitle()) ; avant, niveau strictement égal
+					if (TInfrastructure::isTotal($line) && TInfrastructure::getNiveau($line) <= $niveau) {
 						$end_rang = $line->rang;
 						break;
 					}
@@ -1532,17 +1630,10 @@
 				}
 			} elseif (TInfrastructure::isTotal($lineRef)) {
 				$end_rang = $lineRef->rang;
-				for ($i = count($object->lines) - 1; $i >= 0; $i--) {
-					$line = $object->lines[$i];
-					if ($line->rang >= $end_rang) {
-						continue;
-					}
-					// Si on rencontre un titre du même niveau que la ligne de départ, on marque le début du bloc.
-					if (TInfrastructure::isTitle($line) && TInfrastructure::getNiveau($line) == $niveau) {
-						$start_rang = $line->rang;
-						break;
-					}
-				}
+				// InfraS change : le bloc commence au titre d'où part le montant du sous-total (même règle que getParentTitleOfLine()), ou au début du document sans titre.
+				// Avant, au titre de même niveau le plus proche, même si son bloc était déjà fermé ; aucun taux sans titre de même niveau
+				$title_start	= self::getParentTitleOfLine($object, $end_rang, $niveau);
+				$start_rang		= !empty($title_start) ? $title_start->rang : 0;
 			}
 			// Si une des bornes n’est pas trouvée
 			if ($start_rang === null || $end_rang === null) {

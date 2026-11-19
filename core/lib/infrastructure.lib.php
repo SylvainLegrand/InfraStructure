@@ -1135,7 +1135,7 @@
 		$total_tva		= 0;
 		$total_ttc		= 0;
 		$TTotal_tva		= [];
-		$title_break	= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl);
+		$title_break	= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl);	// InfraS change : même règle de parenté pour le montant d'un sous-total que pour le titre parent d'une ligne
 		$sign			= isset($object->type) && $object->type == 2 && getDolGlobalString('INVOICE_POSITIVE_CREDIT_NOTE') ? -1 : 1;
 		$builddoc		= GETPOST('action', 'aZ09') == 'builddoc' ? true : false;
 		$TLineReverse	= array_reverse($object->lines);
@@ -1253,7 +1253,7 @@
 				return $object->context['infrastructureCache']['totalLineByKey'][$memoKey];
 			}
 		}
-		$title_break					= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl);
+		$title_break					= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl);	// InfraS change : même règle de parenté pour le montant d'un sous-total que pour le titre parent d'une ligne
 		$total							= 0;
 		$total_tva						= 0;
 		$total_ttc						= 0;
@@ -1637,7 +1637,8 @@
 	/**
 	*	Pré-chauffage du cache des titres parents pour toutes les lignes en un seul passage.
 	*	Évite les O(n²) cumulés dans les hooks PDF (appels répétés de getParentTitleOfLine + getAllTitleFromLine).
-	*	Utilise une pile de titres ouverts : title => push, infrastructure => pop (sémantique alignée sur getParentTitleOfLine avec $lvl=0).
+	*	Utilise une pile de titres ouverts, de niveaux strictement croissants. Même règle de parenté que TInfrastructure::getAllTitleFromLine() et
+	*	getParentTitleOfLine() : un titre ferme les titres ouverts de niveau égal ou supérieur, un sous-total de niveau N ferme les titres ouverts de niveau N et plus.
 	*
 	*	@param	CommonObject	$object	Document
 	*	@return	void
@@ -1660,22 +1661,32 @@
 			if (!is_object($line) || !isset($line->rang)) {
 				continue;
 			}
-			// Parent du rang courant = sommet de pile avant traitement
-			$parent		= !empty($openTitles) ? end($openTitles) : false;
-			$parentByRang[$line->rang]	= $parent;
-			// Chaîne complète = parent + chaîne du parent (indexée par id comme getAllTitleFromLine)
-			if ($parent) {
-				$parentChain	= isset($chainByRang[$parent->rang]) ? $chainByRang[$parent->rang] : [];
-				$chain			= [$parent->id => $parent] + $parentChain;
-			} else {
-				$chain	= [];
+			// InfraS change : la pile dépilait un titre par sous-total, sans regarder les niveaux (sous-titre sans sous-total propre laissé ouvert,
+			// sous-titres frères vus comme imbriqués). Avant de lire le parent, on ferme ce que la ligne courante ferme pour elle-même :
+			// un titre a pour parents les titres de niveau strictement inférieur, un sous-total appartient au bloc de son niveau ou d'un niveau inférieur
+			$isTitle	= TInfrastructure::isTitle($line);
+			$isTotal	= !$isTitle && TInfrastructure::isTotal($line);
+			$level		= $isTitle ? (int) $line->qty : ($isTotal ? TInfrastructure::getNiveau($line) : 0);
+			if ($isTitle || $isTotal) {
+				$levelKept	= $isTitle ? $level - 1 : $level;	// niveau le plus profond qui reste ouvert pour la ligne courante
+				while (!empty($openTitles) && end($openTitles)->qty > $levelKept) {
+					array_pop($openTitles);
+				}
+			}
+			// Parent du rang courant = sommet de pile ; chaîne complète = pile lue du sommet vers la base (indexée par id comme getAllTitleFromLine)
+			$parentByRang[$line->rang]	= !empty($openTitles) ? end($openTitles) : false;
+			$chain						= [];
+			foreach (array_reverse($openTitles) as $openTitle) {
+				$chain[$openTitle->id]	= $openTitle;
 			}
 			$chainByRang[$line->rang]	= $chain;
 			// Mise à jour de la pile pour la ligne suivante
-			if (TInfrastructure::isTitle($line)) {
+			if ($isTitle) {
 				$openTitles[]	= $line;
-			} elseif (TInfrastructure::isTotal($line)) {
-				array_pop($openTitles);
+			} elseif ($isTotal) {
+				while (!empty($openTitles) && end($openTitles)->qty >= $level) {
+					array_pop($openTitles);
+				}
 			}
 		}
 		$object->context['infrastructureCache']['parentTitleByRang']	= $parentByRang;
@@ -2041,20 +2052,26 @@
 		}
 		$showQtyByDefault	= TInfrastructure::showQtyForObject($object, 'pdf');
 		$linesToHide		= [];
+		$parentRangByIdx	= [];	// rang du titre parent de chaque sous-total retiré (0 = aucun), calculé une fois avec la règle commune
 		foreach ($object->lines as $idx => $subTotal) {
 			if (!TInfrastructure::isTotal($subTotal)) {
 				continue;
 			}
-			// Localise le titre parent : titre de même niveau précédent le sous-total dans $object->lines.
+			// Localise le titre parent : titre de même niveau qui ouvre le bloc fermé par le sous-total.
+			// InfraS change : même règle que getParentTitleOfLine(). Avant, le titre de même niveau le plus proche était retenu même si son bloc était déjà fermé
+			// (second sous-total de même niveau : le total du titre était écrasé par celui d'un sous-total qui ne lui appartient pas)
 			$niveau			= TInfrastructure::getNiveau($subTotal);
 			$parentTitleIdx	= -1;
-			for ($j = $idx - 1; $j >= 0; $j--) {
-				$prev	= $object->lines[$j];
-				if (TInfrastructure::isTitle($prev) && TInfrastructure::getNiveau($prev) == $niveau) {
-					$parentTitleIdx	= $j;
-					break;
+			$ruleParent		= TInfrastructure::getParentTitleOfLine($object, $subTotal->rang, $niveau);
+			if (!empty($ruleParent) && TInfrastructure::getNiveau($ruleParent) == $niveau) {
+				for ($j = $idx - 1; $j >= 0; $j--) {
+					if ($object->lines[$j]->rang == $ruleParent->rang) {
+						$parentTitleIdx	= $j;
+						break;
+					}
 				}
 			}
+			$parentRangByIdx[$idx]	= $parentTitleIdx >= 0 ? $object->lines[$parentTitleIdx]->rang : 0;
 			if ($parentTitleIdx >= 0) {
 				$TInfo		= infrastructure_get_totalLineFromObject($object, $subTotal, false, 1);
 				$vatRate	= TInfrastructure::getCommonVATRate($object, $subTotal);
@@ -2093,14 +2110,8 @@
 			$removedTotals	= [];
 			foreach ($linesToHide as $idx => $bool) {
 				$total				= $object->lines[$idx];
-				$parentTitleRang	= 0;
+				$parentTitleRang	= isset($parentRangByIdx[$idx]) ? $parentRangByIdx[$idx] : 0;	// InfraS change : titre parent trouvé plus haut avec la règle commune
 				$niveau				= TInfrastructure::getNiveau($total);
-				for ($j = $idx - 1; $j >= 0; $j--) {
-					if (TInfrastructure::isTitle($object->lines[$j]) && TInfrastructure::getNiveau($object->lines[$j]) == $niveau) {
-						$parentTitleRang	= $object->lines[$j]->rang;
-						break;
-					}
-				}
 				$removedTotals[]	= ['total' => $total, 'parentTitleRang' => $parentTitleRang, 'level' => $niveau];
 			}
 			$object->context['infrastructureCache']['removedTotals']	= $removedTotals;
