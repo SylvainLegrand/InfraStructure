@@ -369,7 +369,7 @@
 		/**
 		* @param	CommonObject     $object		Document on which we want to get total block for title line
 		* @param	CommonObjectLine $line			Title line for which we want to get total block
-		* @param	boolean          $breakOnTitle	Whether to stop calculation when we find another title of same or higher level (example : I am on a title level 2 and I find a title level 1 or 2 then I stop calculation for my title block, if false I continue to calculate until I find a title of lower level than my initial title level)
+		* @param	boolean          $breakOnTitle	Unused since 21.8.22, kept for compatibility : the block always ends at the first title or subtotal of the same or a lower level
 		* @return	array
 		*/
 		public static function getTotalBlockFromTitle(&$object, &$line, $breakOnTitle = false)
@@ -392,8 +392,8 @@
 					continue;
 				} elseif (self::isTotal($l) && self::getNiveau($l) <= self::getNiveau($line)) {
 					break;
-				} elseif ($breakOnTitle && self::isTitle($l) && self::getNiveau($l) <= self::getNiveau($line)) {
-					break;
+				} elseif (self::isTitle($l) && self::getNiveau($l) <= self::getNiveau($line)) {
+					break;	// InfraS change : un titre de niveau égal ou inférieur ferme toujours le bloc (même règle que getParentTitleOfLine()) ; avant, seulement avec $breakOnTitle
 				}
 				if (!empty($l->array_options['options_infrastructure_ol'])) {
 					$tabprice				= calcul_price_total($l->qty, $l->subprice, $l->remise_percent, $l->tva_tx, $l->localtax1_tx, $l->localtax2_tx, 0, 'HT', $l->info_bits, $l->product_type);
@@ -786,8 +786,10 @@
 							$TLine[]	= $line;
 						}
 						continue;
-					} elseif ($add_line && static::isModInfrastructureLine($line) && static::getNiveau($line) == $level) { // Si on tombe sur un sous-total, il faut que ce soit un du même niveau que le titre.
-						if (self::isTotal($line)) {
+					} elseif ($add_line && ((self::isTitle($line) && $line->qty <= $level) || (self::isTotal($line) && self::getNiveau($line) <= $level))) {
+						// InfraS change : le bloc s'arrête au premier titre ou sous-total de niveau égal ou inférieur (même règle que getParentTitleOfLine() et getSubLineOfTitle()).
+						// Avant, seul un niveau strictement égal l'arrêtait : un sous-titre fermé par le sous-total du niveau supérieur débordait sur les blocs suivants
+						if (self::isTotal($line) && self::getNiveau($line) == $level) {	// Seul le sous-total du même niveau fait partie du bloc ; celui d'un niveau inférieur appartient au bloc englobant
 							if ($withBlockLine) {
 								$TLine[] = $line;
 							}
@@ -1615,8 +1617,8 @@
 					if ($line->rang <= $start_rang) {
 						continue;
 					}
-					// Si on rencontre un sous-total du même niveau que le titre initial, on marque la fin du bloc.
-					if (TInfrastructure::isTotal($line) && TInfrastructure::getNiveau($line) == $niveau) {
+					// InfraS change : le premier sous-total de niveau égal ou inférieur à celui du titre ferme le bloc (même règle que getSubLineOfTitle()) ; avant, niveau strictement égal
+					if (TInfrastructure::isTotal($line) && TInfrastructure::getNiveau($line) <= $niveau) {
 						$end_rang = $line->rang;
 						break;
 					}
@@ -1628,17 +1630,10 @@
 				}
 			} elseif (TInfrastructure::isTotal($lineRef)) {
 				$end_rang = $lineRef->rang;
-				for ($i = count($object->lines) - 1; $i >= 0; $i--) {
-					$line = $object->lines[$i];
-					if ($line->rang >= $end_rang) {
-						continue;
-					}
-					// Si on rencontre un titre du même niveau que la ligne de départ, on marque le début du bloc.
-					if (TInfrastructure::isTitle($line) && TInfrastructure::getNiveau($line) == $niveau) {
-						$start_rang = $line->rang;
-						break;
-					}
-				}
+				// InfraS change : le bloc commence au titre d'où part le montant du sous-total (même règle que getParentTitleOfLine()), ou au début du document sans titre.
+				// Avant, au titre de même niveau le plus proche, même si son bloc était déjà fermé ; aucun taux sans titre de même niveau
+				$title_start	= self::getParentTitleOfLine($object, $end_rang, $niveau);
+				$start_rang		= !empty($title_start) ? $title_start->rang : 0;
 			}
 			// Si une des bornes n’est pas trouvée
 			if ($start_rang === null || $end_rang === null) {

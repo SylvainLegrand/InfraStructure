@@ -2052,20 +2052,26 @@
 		}
 		$showQtyByDefault	= TInfrastructure::showQtyForObject($object, 'pdf');
 		$linesToHide		= [];
+		$parentRangByIdx	= [];	// rang du titre parent de chaque sous-total retiré (0 = aucun), calculé une fois avec la règle commune
 		foreach ($object->lines as $idx => $subTotal) {
 			if (!TInfrastructure::isTotal($subTotal)) {
 				continue;
 			}
-			// Localise le titre parent : titre de même niveau précédent le sous-total dans $object->lines.
+			// Localise le titre parent : titre de même niveau qui ouvre le bloc fermé par le sous-total.
+			// InfraS change : même règle que getParentTitleOfLine(). Avant, le titre de même niveau le plus proche était retenu même si son bloc était déjà fermé
+			// (second sous-total de même niveau : le total du titre était écrasé par celui d'un sous-total qui ne lui appartient pas)
 			$niveau			= TInfrastructure::getNiveau($subTotal);
 			$parentTitleIdx	= -1;
-			for ($j = $idx - 1; $j >= 0; $j--) {
-				$prev	= $object->lines[$j];
-				if (TInfrastructure::isTitle($prev) && TInfrastructure::getNiveau($prev) == $niveau) {
-					$parentTitleIdx	= $j;
-					break;
+			$ruleParent		= TInfrastructure::getParentTitleOfLine($object, $subTotal->rang, $niveau);
+			if (!empty($ruleParent) && TInfrastructure::getNiveau($ruleParent) == $niveau) {
+				for ($j = $idx - 1; $j >= 0; $j--) {
+					if ($object->lines[$j]->rang == $ruleParent->rang) {
+						$parentTitleIdx	= $j;
+						break;
+					}
 				}
 			}
+			$parentRangByIdx[$idx]	= $parentTitleIdx >= 0 ? $object->lines[$parentTitleIdx]->rang : 0;
 			if ($parentTitleIdx >= 0) {
 				$TInfo		= infrastructure_get_totalLineFromObject($object, $subTotal, false, 1);
 				$vatRate	= TInfrastructure::getCommonVATRate($object, $subTotal);
@@ -2104,14 +2110,8 @@
 			$removedTotals	= [];
 			foreach ($linesToHide as $idx => $bool) {
 				$total				= $object->lines[$idx];
-				$parentTitleRang	= 0;
+				$parentTitleRang	= isset($parentRangByIdx[$idx]) ? $parentRangByIdx[$idx] : 0;	// InfraS change : titre parent trouvé plus haut avec la règle commune
 				$niveau				= TInfrastructure::getNiveau($total);
-				for ($j = $idx - 1; $j >= 0; $j--) {
-					if (TInfrastructure::isTitle($object->lines[$j]) && TInfrastructure::getNiveau($object->lines[$j]) == $niveau) {
-						$parentTitleRang	= $object->lines[$j]->rang;
-						break;
-					}
-				}
 				$removedTotals[]	= ['total' => $total, 'parentTitleRang' => $parentTitleRang, 'level' => $niveau];
 			}
 			$object->context['infrastructureCache']['removedTotals']	= $removedTotals;
