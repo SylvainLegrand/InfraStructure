@@ -20,7 +20,7 @@ Informations module (issues du code et du changelog local) :
 - Licence : GPL v3+
 - Compatibilité Dolibarr : `21.0.0` à `24.x.x`
 - Compatibilité PHP : `7.4` à `8.4`
-- Dernière version locale : `21.8.20` (2026-11)
+- Dernière version locale : `21.8.22` (2026-11)
 - Schéma de numérotation : depuis `18.1.0`, le module aligne sa version majeure sur la version minimale de Dolibarr supportée (même convention que `infraspackplus`). Format : `<dolibarrMin>.<mineur>.<patch>`. Les versions antérieures (jusqu'à `3.30.1`) suivaient une numérotation indépendante.
 - Dépendance obligatoire : aucune
 - Conflit : module **Milestone/Jalon** (iNodbox) — les deux modules ne peuvent pas être activés simultanément
@@ -361,7 +361,7 @@ Classe `InterfaceInfrastructuretrigger` dans `core/triggers/interface_90_modInfr
 | `RecurringInvoiceCreate` | Préserve les structures pour les factures récurrentes |
 | `SituationPercentReset` / `SituationFinal` | Gestion des factures de situation (avancement de travaux) |
 | `ComprisNonCompris` | Gestion de l'option NC (Non Compris) sur les lignes |
-| `OptionalLineManagement` | Lignes optionnelles (`INFRASTRUCTURE_MANAGE_OL`, événements `LINE*_INSERT` / `LINE*_MODIFY`) : `special_code = 3` sur une ligne cochée « Opt » ou placée sous un titre « Opt ». Depuis 21.8.7, sortie immédiate si la ligne n'est pas optionnelle et si `documentHasOptionalTitle()` ne trouve aucune ligne spéciale optionnelle dans le document (une requête SQL au lieu du rechargement complet du document par `getAllTitleFromLine()`) ; comparaison `infrastructure_ol = '1'` en chaîne car l'extrafield est un `varchar` (PostgreSQL refuse `varchar = integer` et annulerait la transaction). Le titre parent vient de `TInfrastructure::getAllTitleFromLine()` : depuis 21.8.22, les niveaux des sous-totaux rencontrés en remontant sont empilés (avant, un sous-bloc imbriqué dans un bloc optionnel faisait passer en option toute ligne ajoutée plus bas, incident Kytom Lyon PR2610-3472) et une ligne absente du document en mémoire (trigger d'insertion) est cherchée dans le document relu en base. Test autonome : `php test/getAllTitleFromLineTest.php` |
+| `OptionalLineManagement` | Lignes optionnelles (`INFRASTRUCTURE_MANAGE_OL`, événements `LINE*_INSERT` / `LINE*_MODIFY`) : `special_code = 3` sur une ligne cochée « Opt » ou placée sous un titre « Opt ». Depuis 21.8.7, sortie immédiate si la ligne n'est pas optionnelle et si `documentHasOptionalTitle()` ne trouve aucune ligne spéciale optionnelle dans le document (une requête SQL au lieu du rechargement complet du document par `getAllTitleFromLine()`) ; comparaison `infrastructure_ol = '1'` en chaîne car l'extrafield est un `varchar` (PostgreSQL refuse `varchar = integer` et annulerait la transaction). Le titre parent vient de `TInfrastructure::getAllTitleFromLine()` : depuis 21.8.22, les niveaux des sous-totaux rencontrés en remontant sont empilés (avant, un sous-bloc imbriqué dans un bloc optionnel faisait passer en option toute ligne ajoutée plus bas, incident signalé par Kytom) et une ligne absente du document en mémoire (trigger d'insertion) est cherchée dans le document relu en base |
 | `getShippingList` | Récupération des expéditions d'une commande pour inclusion dans les titres |
 | `addToBegin` / `addToEnd` | Helpers publics statiques d'insertion |
 
