@@ -926,23 +926,18 @@
 			$i--; // Skip la ligne d'origine
 			// Si elle n'est pas en 1ère position, alors on cherche des titres au dessus
 			if ($i >= 0) {
-				// InfraS change : pile des niveaux de sous-totaux rencontrés en remontant. Un seul niveau mémorisé ne suffisait pas avec des blocs
-				// imbriqués : le sous-total de niveau 2 écrasait le niveau 1 en attente, et le titre de niveau 1, déjà fermé, devenait le parent
-				$TClosedLevels = [];
-				for ($y = $i; $y >= 0; $y--) {
-					// Si je tombe sur un sous-total, son bloc est fermé : le titre de même niveau rencontré plus haut est à ignorer
+				// InfraS change : en remontant, un titre n'est parent que si son niveau est strictement inférieur au seuil courant. Le seuil descend à chaque
+				// parent retenu (un titre de niveau égal ou supérieur rencontré plus haut est un bloc frère, fermé par le titre plus bas) et à chaque sous-total
+				// (un sous-total de niveau N ferme tous les blocs de niveau N et plus ouverts au-dessus de lui). Même règle que titleHasTotalLine() en mode
+				// libre et getTotalBlockFromTitle(). Un seul niveau de sous-total mémorisé, puis une pile de niveaux, ne couvraient pas les blocs sans sous-total propre
+				$level_max = 10;
+				for ($y = $i; $y >= 0 && $level_max > 1; $y--) {
 					if (self::isTotal($current_object->lines[$y])) {
-						$TClosedLevels[] = self::getNiveau($current_object->lines[$y]);
-					} elseif (self::isTitle($current_object->lines[$y])) {
-						if (!empty($TClosedLevels) && $current_object->lines[$y]->qty == end($TClosedLevels)) {
-							array_pop($TClosedLevels);
-							continue;
-						} else {
-							if (empty($current_object->lines[$y]->array_options) && !empty($current_object->lines[$y]->id)) $current_object->lines[$y]->fetch_optionals();
-							$TTitle[$current_object->lines[$y]->id] = $current_object->lines[$y];
-
-							if ($current_object->lines[$y]->qty == 1) break;
-						}
+						$level_max = min($level_max, self::getNiveau($current_object->lines[$y]));
+					} elseif (self::isTitle($current_object->lines[$y]) && $current_object->lines[$y]->qty < $level_max) {
+						if (empty($current_object->lines[$y]->array_options) && !empty($current_object->lines[$y]->id)) $current_object->lines[$y]->fetch_optionals();
+						$TTitle[$current_object->lines[$y]->id] = $current_object->lines[$y];
+						$level_max = $current_object->lines[$y]->qty;
 					}
 				}
 			}
