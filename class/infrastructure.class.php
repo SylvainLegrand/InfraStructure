@@ -507,18 +507,38 @@
 		}
 
 		/**
+		* Titre parent le plus proche de la ligne de rang $rang
+		*
 		* @param	FactureLigne|PropaleLigne|OrderLine $object
-		* @param	int									$rang  rank of the line in the object; The first line has rank = 1, not 0.
-		* @param 	int									$lvl
+		* @param	int									$rang		rank of the line in the object; The first line has rank = 1, not 0.
+		* @param 	int									$lvl		if > 0, titles and subtotals of a higher level are ignored
+		* @param 	bool								$for_total	true = title opening the block summed by a subtotal (amount computation, original behaviour kept) ; false = parent title of the line, same rule as getAllTitleFromLine()
 		* @return	bool|FactureLigne|PropaleLigne|OrderLine
 		*/
-		public static function getParentTitleOfLine(&$object, $rang, $lvl = 0)
+		public static function getParentTitleOfLine(&$object, $rang, $lvl = 0, $for_total = false)
 		{
-			if ($rang <= 0) {
+			if ($rang <= 0 || empty($object->lines) || !is_array($object->lines)) {
 				return false;
 			}
-			$skip_title		= 0;
 			$TLineReverse	= array_reverse($object->lines);
+			// InfraS add : même règle de parenté que getAllTitleFromLine() et que le cache PDF. Le comptage des sous-totaux ci-dessous ignore leur niveau :
+			// un sous-total annule le premier titre rencontré, quel qu'il soit (sous-titre sans sous-total propre, sous-titres frères)
+			if (!$for_total) {
+				$origin_line	= null;
+				$TLineAbove		= [];
+				foreach ($TLineReverse as $line) {
+					if ($line->rang == $rang) {
+						$origin_line	= $line;
+					} elseif ($line->rang < $rang) {
+						$TLineAbove[]	= $line;
+					}
+				}
+				$level_max	= $lvl > 0 ? $lvl + 1 : self::getParentLevelMax($origin_line);
+				$TTitle		= self::getParentTitlesFromAbove($TLineAbove, $level_max, true);
+				return !empty($TTitle) ? $TTitle[0] : false;
+			}
+			// Montant d'un sous-total : comptage d'origine conservé, pour ne modifier aucun sous-total de document existant
+			$skip_title		= 0;
 			foreach ($TLineReverse as $line) {
 				if ($line->rang >= $rang || ($lvl > 0 && self::getNiveau($line) > $lvl)) {
 					continue; // Tout ce qui ce trouve en dessous j'ignore, nous voulons uniquement ce qui ce trouve au dessus
@@ -926,25 +946,70 @@
 			$i--; // Skip la ligne d'origine
 			// Si elle n'est pas en 1ère position, alors on cherche des titres au dessus
 			if ($i >= 0) {
-				// InfraS change : en remontant, un titre n'est parent que si son niveau est strictement inférieur au seuil courant. Le seuil descend à chaque
-				// parent retenu (un titre de niveau égal ou supérieur rencontré plus haut est un bloc frère, fermé par le titre plus bas) et à chaque sous-total
-				// (un sous-total de niveau N ferme tous les blocs de niveau N et plus ouverts au-dessus de lui). Même règle que titleHasTotalLine() en mode
-				// libre et getTotalBlockFromTitle(). Un seul niveau de sous-total mémorisé, puis une pile de niveaux, ne couvraient pas les blocs sans sous-total propre
-				$level_max = 10;
-				for ($y = $i; $y >= 0 && $level_max > 1; $y--) {
-					if (self::isTotal($current_object->lines[$y])) {
-						$level_max = min($level_max, self::getNiveau($current_object->lines[$y]));
-					} elseif (self::isTitle($current_object->lines[$y]) && $current_object->lines[$y]->qty < $level_max) {
-						if (empty($current_object->lines[$y]->array_options) && !empty($current_object->lines[$y]->id)) $current_object->lines[$y]->fetch_optionals();
-						$TTitle[$current_object->lines[$y]->id] = $current_object->lines[$y];
-						$level_max = $current_object->lines[$y]->qty;
-					}
+				// InfraS change : règle de parenté commune à getParentTitleOfLine() et au cache PDF, voir getParentTitlesFromAbove()
+				$TLineAbove = array_reverse(array_slice(array_values($current_object->lines), 0, $i + 1));
+				foreach (self::getParentTitlesFromAbove($TLineAbove, self::getParentLevelMax($origin_line)) as $title_line) {
+					if (empty($title_line->array_options) && !empty($title_line->id)) $title_line->fetch_optionals();
+					$TTitle[$title_line->id] = $title_line;
 				}
 			}
 			if ($reverse) {
 				$TTitle = array_reverse($TTitle, true);
 			}
 			return $TTitle;
+		}
+
+		/**
+		* Titres parents d'une ligne, du plus proche au plus lointain, à partir des lignes placées au-dessus d'elle
+		*
+		* Règle de parenté (celle de titleHasTotalLine() en mode libre et de getTotalBlockFromTitle()) : en remontant, un titre n'est parent que si
+		* son niveau est strictement inférieur au seuil courant. Le seuil descend au niveau de chaque parent retenu (un titre de niveau égal ou supérieur
+		* rencontré plus haut est un bloc frère, fermé par le titre plus bas) et au niveau de chaque sous-total rencontré (un sous-total de niveau N ferme
+		* tous les blocs de niveau N et plus ouverts au-dessus de lui). infrastructure_warmPDFInfrastructureCache() applique la même règle en descendant
+		*
+		* @param	array	$TLineAbove		Lines above the origin line, the closest first
+		* @param	int		$level_max		Starting threshold, see getParentLevelMax()
+		* @param	bool	$first_only		Stop at the closest parent title
+		* @return	array					Parent title lines, the closest first
+		*/
+		private static function getParentTitlesFromAbove($TLineAbove, $level_max = 10, $first_only = false)
+		{
+			$TTitle = [];
+			foreach ($TLineAbove as $line) {
+				if ($level_max <= 1) {
+					break;
+				}
+				if (self::isTotal($line)) {
+					$level_max = min($level_max, self::getNiveau($line));
+				} elseif (self::isTitle($line) && $line->qty < $level_max) {
+					$TTitle[]	= $line;
+					$level_max	= (int) $line->qty;
+					if ($first_only) {
+						break;
+					}
+				}
+			}
+			return $TTitle;
+		}
+
+		/**
+		* Seuil de départ de la recherche des titres parents selon la ligne d'origine
+		*
+		* @param	CommonObjectLine|null	$line	Origin line
+		* @return	int								Level of a title (its parents have a strictly lower level), level + 1 of a subtotal (it belongs to the block of its own level, or to a lower one), 10 for any other line
+		*/
+		private static function getParentLevelMax($line)
+		{
+			if (!is_object($line)) {
+				return 10;
+			}
+			if (self::isTitle($line)) {
+				return (int) $line->qty;
+			}
+			if (self::isTotal($line)) {
+				return self::getNiveau($line) + 1;
+			}
+			return 10;
 		}
 
 		/**
