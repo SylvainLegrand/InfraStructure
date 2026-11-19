@@ -2904,7 +2904,7 @@
 											if ($childLine.attr('data-folder-status') == "closed") {
 												doNotDisplayLines = doNotDisplayLines.concat(grandChildrenList);
 											} else if (keepTitleVisible && $childLine.attr('data-folder-status') == "open") {
-												doNotHiddeLines = doNotDisplayLines.concat(grandChildrenList);
+												doNotHiddeLines = doNotHiddeLines.concat(grandChildrenList);	// InfraS change : concaténait doNotDisplayLines, les lignes des sous-titres ouverts déjà vus étaient perdues
 											}
 										}
 										if (toggleStatus == 'closed') {
@@ -3048,13 +3048,11 @@
 							if (!Array.isArray(childrenList)) {
 								return false;
 							}
-							childrenList.forEach((childLineId) => {
+							// InfraS change : le return placé dans un forEach ne sortait que du callback, la fonction renvoyait toujours false
+							return childrenList.some((childLineId) => {
 								let $childLine = $('#' + childLineId);
-								if ($childLine.length > 0 && $childLine.attr('data-isinfrastructure') == "title") {
-									return true;
-								}
+								return $childLine.length > 0 && $childLine.attr('data-isinfrastructure') == "title";
 							});
-							return false;
 						}
 						/**
 						*

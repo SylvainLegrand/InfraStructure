@@ -76,51 +76,33 @@ if (typeof infrastructureOlFallbackConf !== "undefined") {
 
 if (typeof getInfrastructureTitleChilds !== "function") {
 	/**
+	 * Lignes du bloc d'un titre, même règle que côté PHP (TInfrastructure::getLinesFromTitle()) : le bloc s'arrête au premier titre
+	 * ou sous-total de niveau égal ou inférieur à celui du titre. Seul le sous-total du même niveau fait partie du bloc ;
+	 * un sous-total de niveau inférieur appartient au bloc englobant (avant : il était rendu avec le bloc, donc déplacé ou replié avec lui).
+	 *
 	 * @param {JQuery} $item
 	 * @param {bool} removeLastInfrastructure remove last infrastructure if it is the infrastructure of the title
 	 * @returns {*[]}
 	 */
 	function getInfrastructureTitleChilds($item, removeLastInfrastructure = false) {
-		let TcurrentChilds = []; // = JSON.parse(item.attr('data-childrens'));
-		let level = $item.attr('data-level');
+		let TcurrentChilds = [];
+		let level = parseInt($item.attr('data-level'), 10);	// niveaux comparés en nombres (les attributs sont des chaînes)
 
-		let indexOfFirstInfrastructure = -1;
-		let indexOfFirstTitle = -1;
-
-		$item.nextAll('[id^="row-"]').each(function (index) {
-
-			let dataLevel = $(this).attr('data-level');
+		$item.nextAll('[id^="row-"]').each(function () {
+			let dataLevel = parseInt($(this).attr('data-level'), 10);
 			let dataIsInfrastructure = $(this).attr('data-isinfrastructure');
+			let isTitle = dataIsInfrastructure == 'title';
+			let isTotal = dataIsInfrastructure == 'infrastructure';
 
-			if (dataIsInfrastructure != 'undefined' && dataLevel != 'undefined') {
-
-				if (dataLevel <= level && indexOfFirstInfrastructure < 0 && dataIsInfrastructure == 'infrastructure') {
-					indexOfFirstInfrastructure = index;
-					if (indexOfFirstTitle < 0) {
-						TcurrentChilds.push($(this).attr('id'));
-					}
+			if ((isTitle || isTotal) && !isNaN(dataLevel) && dataLevel <= level) {
+				// Fin du bloc : le sous-total du même niveau est celui du titre
+				if (isTotal && dataLevel == level && !removeLastInfrastructure) {
+					TcurrentChilds.push($(this).attr('id'));
 				}
-
-				if (dataLevel <= level && indexOfFirstInfrastructure < 0 && indexOfFirstTitle < 0 && dataIsInfrastructure == 'title') {
-					indexOfFirstTitle = index;
-				}
+				return false;
 			}
-
-			if (indexOfFirstTitle < 0 && indexOfFirstInfrastructure < 0) {
-				TcurrentChilds.push($(this).attr('id'));
-			}
+			TcurrentChilds.push($(this).attr('id'));
 		});
-
-		// remove last infrastructure if it is the infrastructure of the title
-		if(removeLastInfrastructure && TcurrentChilds.length > 0){
-			let lastChildId= TcurrentChilds.slice(-1);
-			let $lastChild = $('#'+lastChildId);
-			if($lastChild.length > 0 && $lastChild.attr('data-isinfrastructure') != undefined && $lastChild.attr('data-isinfrastructure') == 'infrastructure'){
-				if(level == $lastChild.attr('data-level') ){
-					TcurrentChilds.pop();
-				}
-			}
-		}
 
 		return TcurrentChilds;
 	}
