@@ -1135,7 +1135,7 @@
 		$total_tva		= 0;
 		$total_ttc		= 0;
 		$TTotal_tva		= [];
-		$title_break	= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl, true);	// InfraS change : montant d'un sous-total, comptage d'origine conservé
+		$title_break	= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl);	// InfraS change : même règle de parenté pour le montant d'un sous-total que pour le titre parent d'une ligne
 		$sign			= isset($object->type) && $object->type == 2 && getDolGlobalString('INVOICE_POSITIVE_CREDIT_NOTE') ? -1 : 1;
 		$builddoc		= GETPOST('action', 'aZ09') == 'builddoc' ? true : false;
 		$TLineReverse	= array_reverse($object->lines);
@@ -1253,7 +1253,7 @@
 				return $object->context['infrastructureCache']['totalLineByKey'][$memoKey];
 			}
 		}
-		$title_break					= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl, true);	// InfraS change : montant d'un sous-total, comptage d'origine conservé
+		$title_break					= TInfrastructure::getParentTitleOfLine($object, $rang, $lvl);	// InfraS change : même règle de parenté pour le montant d'un sous-total que pour le titre parent d'une ligne
 		$total							= 0;
 		$total_tva						= 0;
 		$total_ttc						= 0;

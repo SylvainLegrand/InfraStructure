@@ -507,86 +507,78 @@
 		}
 
 		/**
-		* Titre parent le plus proche de la ligne de rang $rang
+		* Titre parent le plus proche de la ligne de rang $rang, même règle de parenté que getAllTitleFromLine() et que le cache PDF (voir getParentTitlesFromAbove()).
+		* Sert aussi au montant d'un sous-total : appelé avec le niveau du sous-total, il renvoie le titre qui ouvre le bloc sommé
 		*
 		* @param	FactureLigne|PropaleLigne|OrderLine $object
-		* @param	int									$rang		rank of the line in the object; The first line has rank = 1, not 0.
-		* @param 	int									$lvl		if > 0, titles and subtotals of a higher level are ignored
-		* @param 	bool								$for_total	true = title opening the block summed by a subtotal (amount computation, original behaviour kept) ; false = parent title of the line, same rule as getAllTitleFromLine()
+		* @param	int									$rang	rank of the line in the object; The first line has rank = 1, not 0.
+		* @param 	int									$lvl	if > 0, deepest level of the title searched (level of the subtotal whose block is wanted) ; 0 = deduced from the line of rank $rang
 		* @return	bool|FactureLigne|PropaleLigne|OrderLine
 		*/
-		public static function getParentTitleOfLine(&$object, $rang, $lvl = 0, $for_total = false)
+		public static function getParentTitleOfLine(&$object, $rang, $lvl = 0)
 		{
 			if ($rang <= 0 || empty($object->lines) || !is_array($object->lines)) {
 				return false;
 			}
-			$TLineReverse	= array_reverse($object->lines);
-			// InfraS add : même règle de parenté que getAllTitleFromLine() et que le cache PDF. Le comptage des sous-totaux ci-dessous ignore leur niveau :
-			// un sous-total annule le premier titre rencontré, quel qu'il soit (sous-titre sans sous-total propre, sous-titres frères)
-			if (!$for_total) {
-				$origin_line	= null;
-				$TLineAbove		= [];
-				foreach ($TLineReverse as $line) {
-					if ($line->rang == $rang) {
-						$origin_line	= $line;
-					} elseif ($line->rang < $rang) {
-						$TLineAbove[]	= $line;
-					}
-				}
-				$level_max	= $lvl > 0 ? $lvl + 1 : self::getParentLevelMax($origin_line);
-				$TTitle		= self::getParentTitlesFromAbove($TLineAbove, $level_max, true);
-				return !empty($TTitle) ? $TTitle[0] : false;
-			}
-			// Montant d'un sous-total : comptage d'origine conservé, pour ne modifier aucun sous-total de document existant
-			$skip_title		= 0;
-			foreach ($TLineReverse as $line) {
-				if ($line->rang >= $rang || ($lvl > 0 && self::getNiveau($line) > $lvl)) {
-					continue; // Tout ce qui ce trouve en dessous j'ignore, nous voulons uniquement ce qui ce trouve au dessus
-				}
-				if (self::isTitle($line)) {
-					if ($skip_title) {
-						$skip_title--;
-						continue;
-					}
-					//@INFO J'ai ma ligne titre qui contient ma ligne, par contre je check pas s'il y a un sous-total
-					return $line;
-				} elseif (self::isTotal($line)) {
-					// Il s'agit d'un sous-total, ça veut dire que le prochain titre théoriquement doit être ignorer (je travail avec un incrément au cas ou je croise plusieurs sous-totaux)
-					$skip_title++;
+			// InfraS change : l'ancien comptage ignorait le niveau des sous-totaux, chaque sous-total annulant le premier titre rencontré, quel qu'il soit
+			// (sous-titre sans sous-total propre laissé ouvert, sous-titres frères vus comme imbriqués)
+			$origin_line	= null;
+			$TLineAbove		= [];
+			foreach (array_reverse($object->lines) as $line) {
+				if ($line->rang == $rang) {
+					$origin_line	= $line;
+				} elseif ($line->rang < $rang) {
+					$TLineAbove[]	= $line;
 				}
 			}
-			return false;
+			$level_max	= $lvl > 0 ? $lvl + 1 : self::getParentLevelMax($origin_line);
+			$TTitle		= self::getParentTitlesFromAbove($TLineAbove, $level_max, true);
+			return !empty($TTitle) ? $TTitle[0] : false;
 		}
 
 		/**
-		* Donne la ligne sous-total associée au titre
+		* Donne la ligne sous-total qui ferme le bloc du titre de rang $rang : premier sous-total de niveau égal ou inférieur placé sous le titre.
+		* Même règle que getParentTitleOfLine() lue dans l'autre sens : un titre de niveau égal ou inférieur rencontré avant ferme le bloc sans sous-total
 		*
 		* @param	FactureLigne|PropaleLigne|OrderLine $object
-		* @param	int									$rang  rank of the line in the object; The first line has rank = 1, not 0.
-		* @param	int									$lvl
+		* @param	int									$rang	rank of the title line in the object; The first line has rank = 1, not 0.
+		* @param	int									$lvl	if > 0, level of the block ; 0 = level of the title of rank $rang (for another line, level of its parent title)
 		* @return	bool|FactureLigne|PropaleLigne|OrderLine
 		*/
 		public static function getSubLineOfTitle(&$object, $rang, $lvl = 0)
 		{
-			if ($rang <= 0) {
+			if ($rang <= 0 || empty($object->lines) || !is_array($object->lines)) {
 				return false;
 			}
-			$skip_title	= 0;
-			if (!empty($object->lines)) {
+			// InfraS change : l'ancien comptage ignorait les niveaux, chaque titre rencontré annulant le sous-total suivant, quel qu'il soit
+			// (titre 1, titre 2, lignes, sous-total 1 : aucun sous-total trouvé pour le titre 1)
+			$level	= (int) $lvl;
+			if ($level <= 0) {
+				$level	= 9;
 				foreach ($object->lines as $line) {
-					if ($line->rang <= $rang || ($lvl > 0 && self::getNiveau($line) < $lvl)) continue;
-					if (self::isTitle($line)) {
-						$skip_title++;
-					} elseif (self::isTotal($line)) {
-						if ($skip_title) {
-							$skip_title--;
-							continue;
+					if ($line->rang == $rang) {
+						if (self::isTitle($line)) {
+							$level	= (int) $line->qty;
+						} else {
+							$parent	= self::getParentTitleOfLine($object, $rang);
+							$level	= !empty($parent) ? (int) $parent->qty : 9;
 						}
-						return $line;
+						break;
 					}
 				}
 			}
-
+			foreach ($object->lines as $line) {
+				if ($line->rang <= $rang) {
+					continue;
+				}
+				if (self::isTotal($line)) {
+					if (self::getNiveau($line) <= $level) {
+						return $line;
+					}
+				} elseif (self::isTitle($line) && $line->qty <= $level) {
+					return false;	// un nouveau bloc commence : le titre n'a pas de sous-total
+				}
+			}
 			return false;
 		}
 
