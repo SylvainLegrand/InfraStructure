@@ -649,6 +649,10 @@
 			if ($roundingmode == 'auto' && in_array($object->element, ['facture_fourn', 'invoice_supplier']) && is_array($object->extraparams) && isset($object->extraparams['roundingmode']) && in_array((string) $object->extraparams['roundingmode'], ['0', '1', 'none'], true)) {
 				$roundingmode	= (string) $object->extraparams['roundingmode'];
 			}
+			// Facture client : mode choisi sur la facture avec les liens Mode 1 / Mode 2 de son montant de TVA (extraparams 'roundingmode', cœur LTS Arrondis C4)
+			if ($roundingmode == 'auto' && $object->element == 'facture' && is_array($object->extraparams) && isset($object->extraparams['roundingmode']) && in_array((string) $object->extraparams['roundingmode'], ['0', '1'], true)) {
+				$roundingmode	= (string) $object->extraparams['roundingmode'];
+			}
 			if ($roundingmode == 'auto') {
 				$constname		= 'MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND'.(in_array($object->element, ['supplier_proposal', 'order_supplier', 'facture_fourn', 'invoice_supplier']) ? '_SUPPLIER' : '');
 				$roundingmode	= (isset($conf->global->$constname) ? getDolGlobalString($constname) : '0');

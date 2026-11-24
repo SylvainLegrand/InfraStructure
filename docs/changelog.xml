@@ -648,7 +648,10 @@
 		<change type='chg'>Bornes des blocs, même règle : un bloc s'arrête au premier titre ou sous-total de niveau égal ou inférieur à celui de son titre. TInfrastructure::getLinesFromTitle() et getLinesFromTitleId() ne s'arrêtaient que sur un niveau strictement égal (un sous-titre fermé par le sous-total du niveau supérieur débordait sur les blocs suivants) ; getTotalBlockFromTitle() s'arrête désormais toujours sur un titre de niveau égal ou inférieur (paramètre $breakOnTitle sans effet, conservé pour compatibilité) ; getCommonVATRate() prend les mêmes bornes que le montant du sous-total ; avec l'option INFRASTRUCTURE_PDF_TITLE_WITH_TOTAL, le total d'un sous-total n'est reporté sur le titre de même niveau que si ce titre ouvre bien son bloc. Aucun changement sur les documents dont chaque titre a son sous-total.</change>
 		<change type='fix'>Glisser-déposer et repli des blocs (navigateur) : getInfrastructureTitleChilds() rattachait au bloc d'un titre le sous-total d'un niveau inférieur qui le ferme. Déplacer un sous-titre sans sous-total propre emportait le sous-total du bloc englobant, et le replier le masquait. Seul le sous-total du même niveau fait désormais partie du bloc, comme côté serveur ; les niveaux sont comparés en nombres. Repli en mode « garder les titres » : les lignes des sous-titres ouverts n'étaient plus protégées dès qu'un autre sous-titre ouvert suivait (variable doNotHiddeLines mal alimentée) ; checkListOfLinesIdHaveTitle() renvoyait toujours faux.</change>
 	</Version>
-	<InfraS Downloaded="20261110"/>
+	<Version Number="21.8.23" MonthVersion="2026-11">
+		<change type='chg'>Hook updateTotalPrice : sur une facture client, le mode de TVA choisi sur la facture (extraparams 'roundingmode' : '0' = Mode 1, '1' = Mode 2, posé par les liens Mode 1 / Mode 2 du montant de TVA d'une facture brouillon du cœur LTS) passe avant la constante de l'instance, comme CommonObject::update_price(). Une facture sans ce choix suit la constante, comme avant.</change>
+	</Version>
+	<InfraS Downloaded="20261124"/>
 	<Dolibarr minVersion="21.0.0" maxVersion="24.x.x"/>
 	<PHP minVersion="7.4" maxVersion="8.4"/>
 </changelog>
